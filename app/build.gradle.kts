@@ -92,7 +92,7 @@ dependencies {
     implementation(libs.litertlm.android)
     constraints {
         // LiteRT-LM 0.18.1 pulls kotlin-reflect 2.4.0; keep it aligned with the Kotlin compiler.
-        implementation("org.jetbrains.kotlin:kotlin-reflect:${libs.versions.kotlin.get()}")
+        implementation(libs.kotlin.reflect)
     }
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
