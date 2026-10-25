@@ -28,10 +28,12 @@ class LiteRtSmokeTest {
     private val context = InstrumentationRegistry.getInstrumentation().targetContext
 
     @Test
-    fun embeddingGemma270m_embedsAQueryOnCpu() = runBlocking {
+    fun embeddingGemma270m_embedsAQueryOnCpu() = runBlocking<Unit> {
         val file = ModelCatalog.byId(ModelId.EG2_270M)
+        // The app must own dev-models; a folder created by adb is unreadable for the app (research R7).
+        val devModels = File(context.getExternalFilesDir(null), "dev-models").apply { mkdirs() }
         val source = listOf(
-            File(context.getExternalFilesDir(null), "dev-models/${file.fileName}"),
+            File(devModels, file.fileName),
             File(context.noBackupFilesDir, "models/${file.fileName}"),
         ).firstOrNull { it.isFile }
         assumeTrue("${file.fileName} is not provisioned", source != null)

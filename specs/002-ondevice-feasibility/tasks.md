@@ -40,23 +40,23 @@ La medición definitiva en el teléfono y las decisiones van en la fase final, c
 
 **Purpose**: añadir LiteRT-LM y tener los modelos en el ordenador y en el teléfono.
 
-- [ ] T001 Añadir a `gradle/libs.versions.toml`:
+- [X] T001 Añadir a `gradle/libs.versions.toml`:
   - `litertlm = "0.18.1"`;
   - la librería `litertlm-android = { group = "com.google.ai.edge.litertlm", name = "litertlm-android", version.ref = "litertlm" }`.
-- [ ] T002 Añadir `implementation(libs.litertlm.android)` a `app/build.gradle.kts`.
+- [X] T002 Añadir `implementation(libs.litertlm.android)` a `app/build.gradle.kts`.
   - Ejecutar `./gradlew :app:dependencies --configuration debugRuntimeClasspath` y anotar en `specs/002-ondevice-feasibility/research.md` (R1, «Resueltas en el build») las versiones resueltas de `gson`, `kotlin-reflect` y `kotlinx-coroutines-android`.
   - Si `kotlin-reflect` resuelve por debajo de `libs.versions.kotlin`, añadir una restricción `constraints { implementation("org.jetbrains.kotlin:kotlin-reflect:<kotlin>") }` que lo alinee.
-- [ ] T003 Declarar dentro de `<application>` en `app/src/main/AndroidManifest.xml`:
+- [X] T003 Declarar dentro de `<application>` en `app/src/main/AndroidManifest.xml`:
   ```xml
   <uses-native-library android:name="libOpenCL.so" android:required="false"/>
   <uses-native-library android:name="libvndksupport.so" android:required="false"/>
   ```
   Añadir un comentario de por qué (research R1). Comprobar que `./gradlew :app:assembleDebug :app:lintDebug` sigue en verde.
-- [ ] T004 [P] Descargar los 5 ficheros a `$HOME/MicroRAG-models` según `specs/002-ondevice-feasibility/contracts/provisioning.md` §1 (en segundo plano, ≈ 5,6 GB, fuera del repositorio).
+- [X] T004 [P] Descargar los 5 ficheros a `$HOME/MicroRAG-models` según `specs/002-ondevice-feasibility/contracts/provisioning.md` §1 (en segundo plano, ≈ 5,6 GB, fuera del repositorio).
   - Comprobar `shasum -a 256` contra research R2.
   - Si alguna huella no coincide, parar e informar.
-- [ ] T005 Depende de T003 y T004:
-  1. Instalar la app de debug en el teléfono (`./gradlew :app:installDebug`) y abrirla una vez, para que el sistema cree `Android/data/<paquete>` con el propietario correcto.
+- [X] T005 Depende de T003 y T004:
+  1. Instalar la app de debug en el teléfono (`./gradlew :app:installDebug`) y abrirla una vez, para que el sistema cree `Android/data/<paquete>` con el propietario correcto. **Hallazgo:** `dev-models` también la tiene que crear la app; si la crea adb, la app no puede leerla (research R7). Se resolvió moviendo los ficheros a una carpeta creada por la app.
   2. Prueba de escritura en `dev-models` (quickstart §3).
   3. `adb push` de los 5 ficheros a `/sdcard/Android/data/com.lisdatasolutions.microrag/files/dev-models/` del teléfono P31281001066.
   4. Si la prueba de escritura falla, usar el plan B de `contracts/provisioning.md` y registrarlo en research R7.
@@ -77,23 +77,23 @@ Todas las historias dependen de esta fase.
 
 ### Tests (escribir primero)
 
-- [ ] T006 [P] `…/test/domain/model/ModelCatalogTest.kt`:
+- [X] T006 [P] `…/test/domain/model/ModelCatalogTest.kt`:
   - 5 entradas, 2 `LLM` y 3 `EMBEDDING`;
   - `id` y `fileName` únicos;
   - `sha256` de 64 hex en minúscula y `revision` de 40 hex;
   - tamaños y huellas idénticos a research R2.
-- [ ] T007 [P] `…/test/rag/runtime/EmbeddingMathTest.kt`:
+- [X] T007 [P] `…/test/rag/runtime/EmbeddingMathTest.kt`:
   - truncado de 768 a 256 con norma 1 ± 1e-5;
   - el truncado conserva la dirección de los 256 primeros componentes;
   - vector nulo o con menos de 256 componentes → error;
   - coseno igual a 1 para vectores idénticos y 0 para ortogonales.
-- [ ] T008 [P] `…/test/rag/runtime/EmbeddingPrefixesTest.kt`:
+- [X] T008 [P] `…/test/rag/runtime/EmbeddingPrefixesTest.kt`:
   - constantes exactas, con el espacio final (research R3);
   - `query("  hola ")` → `"task: search query | text: hola"`;
   - `document(content, header)` → `"task: search result | text: <header>\n<content>"` con los espacios recortados;
   - con cabecera vacía no hay salto inicial.
-- [ ] T009 [P] `…/test/rag/runtime/RuntimeInfoTest.kt`: `RuntimeInfo.LITERT_LM_VERSION` coincide con el valor de `litertlm` en `gradle/libs.versions.toml` (ruta relativa al módulo: `../gradle/libs.versions.toml`).
-- [ ] T010 [P] `…/test/rag/runtime/EngineCoordinatorTest.kt`, con un `FakeEngine` que registra su cierre y su backend:
+- [X] T009 [P] `…/test/rag/runtime/RuntimeInfoTest.kt`: `RuntimeInfo.LITERT_LM_VERSION` coincide con el valor de `litertlm` en `gradle/libs.versions.toml` (ruta relativa al módulo: `../gradle/libs.versions.toml`).
+- [X] T010 [P] `…/test/rag/runtime/EngineCoordinatorTest.kt`, con un `FakeEngine` que registra su cierre y su backend:
   1. pedir un motor de GPU B con otro de GPU A cargado cierra A **antes** de ejecutar la fábrica de B;
   2. `loaded` nunca contiene más de un motor de GPU, observado con un collector durante una secuencia de cargas;
   3. los motores de CPU coexisten;
@@ -101,43 +101,43 @@ Todas las historias dependen de esta fase.
   5. si se cancela el `block`, la cancelación se propaga y el motor sigue cargado hasta `release`;
   6. si falla la fábrica, no queda ninguna entrada;
   7. `releaseAll` cierra todos los motores y deja `loaded` vacío.
-- [ ] T011 [P] `…/test/data/models/Sha256Test.kt`:
+- [X] T011 [P] `…/test/data/models/Sha256Test.kt`:
   - huella de vectores conocidos (cadena vacía, `"abc"`);
   - fichero de 3 MB por streaming igual a `MessageDigest` en un solo bloque;
   - `onBytes` monótono que termina en el tamaño total.
-- [ ] T012 [P] `…/test/architecture/LayeringTest.kt`: recorre `app/src/main/java` y `app/src/debug/java`. Solo los ficheros bajo `rag/runtime/litert/` pueden contener `import com.google.ai.edge.litertlm` (constitución II).
-- [ ] T013 [P] `…/testDebug/debug/feasibility/PercentilesTest.kt`:
+- [X] T012 [P] `…/test/architecture/LayeringTest.kt`: recorre `app/src/main/java` y `app/src/debug/java`. Solo los ficheros bajo `rag/runtime/litert/` pueden contener `import com.google.ai.edge.litertlm` (constitución II).
+- [X] T013 [P] `…/testDebug/debug/feasibility/PercentilesTest.kt`:
   - método nearest-rank: con 30 muestras, p50 es la 15.ª y p95 la 29.ª ordenadas;
   - lista vacía → error;
   - una sola muestra → p50 = p95.
 
 ### Implementación
 
-- [ ] T014 [P] Crear en `…/microrag/domain/model/`:
+- [X] T014 [P] Crear en `…/microrag/domain/model/`:
   - `ComputeBackend.kt`;
   - `ModelFile.kt` (`ModelId`, `ModelFamily`, `ModelFile`);
   - `ModelCatalog.kt`, con los 5 ficheros de research R2;
   - `ModelFileState.kt`, con los estados de data-model §2, incluido `Unverified`.
-- [ ] T015 [P] Crear `EmbeddingPrefixes.kt`, `EmbeddingMath.kt` y `RuntimeInfo.kt` en `…/microrag/rag/runtime/`, según `contracts/runtime-api.md`.
-- [ ] T016 [P] Crear `…/microrag/data/models/Sha256.kt`: streaming con un buffer de 1 MB, hex en minúscula y callback `onBytes`.
-- [ ] T017 Crear las interfaces en `…/microrag/rag/runtime/`, según `contracts/runtime-api.md`:
+- [X] T015 [P] Crear `EmbeddingPrefixes.kt`, `EmbeddingMath.kt` y `RuntimeInfo.kt` en `…/microrag/rag/runtime/`, según `contracts/runtime-api.md`.
+- [X] T016 [P] Crear `…/microrag/data/models/Sha256.kt`: streaming con un buffer de 1 MB, hex en minúscula y callback `onBytes`.
+- [X] T017 Crear las interfaces en `…/microrag/rag/runtime/`, según `contracts/runtime-api.md`:
   - `ManagedEngine.kt`;
   - `TextEmbedder.kt`;
   - `TextGenerator.kt` (`GenerationEvent`, `GenerationStats`, `GenerationConfig`);
   - `EngineFactory.kt` (`ModelMetadata`).
-- [ ] T018 Crear `…/microrag/rag/runtime/EngineCoordinator.kt`:
+- [X] T018 Crear `…/microrag/rag/runtime/EngineCoordinator.kt`:
   - un `Mutex` de carga y otro de uso por motor;
   - `loaded: StateFlow<Set<EngineKey>>`;
   - registrar con `AppLogger`, tag `MicroRAG`, `engine load <modelId> <backend>` y `engine release <modelId> <backend>`, sin contenido (quickstart §7).
 
   Hacer pasar T010.
-- [ ] T019 Crear `…/microrag/rag/runtime/litert/LiteRtTextEmbedder.kt`:
+- [X] T019 Crear `…/microrag/rag/runtime/litert/LiteRtTextEmbedder.kt`:
   - `EmbeddingEngineConfig(modelPath, backend, cacheDir = cacheDir/litertlm, maxInputLength = 512)`;
   - `initialize()` en `AppDispatchers.embeddings`;
   - `embedQuery` y `embedDocument` con `EmbeddingPrefixes`, llamando a `computeEmbedding(listOf(InputData.Text(…)), EmbeddingOptions(normalize = false, outputSize = null))`, y luego `EmbeddingMath.truncateAndNormalize(256)`;
   - `rawDimensions` según la última salida;
   - `close()`.
-- [ ] T020 Crear `…/microrag/rag/runtime/litert/LiteRtTextGenerator.kt`. Antes de escribirlo, comprobar con `javap` en el AAR cómo se extrae el texto de `Message` y la firma completa de `sendMessageAsync`:
+- [X] T020 Crear `…/microrag/rag/runtime/litert/LiteRtTextGenerator.kt`. Antes de escribirlo, comprobar con `javap` en el AAR cómo se extrae el texto de `Message` y la firma completa de `sendMessageAsync`:
   - `Engine(EngineConfig(modelPath, backend, maxNumTokens, cacheDir))` e `initialize()` en `AppDispatchers.llm`;
   - `generate()` crea una `Conversation` nueva con:
     - `ConversationConfig(samplerConfig = SamplerConfig(1, 1.0, 0.0, 0)` si es greedy;
@@ -146,22 +146,22 @@ Todas las historias dependen de esta fase.
   - emite `Token` por cada delta y `Finished(stats)` con `BenchmarkInfo` (si está activo) y el TTFT de reloj de pared;
   - cancelar la corrutina llama a `cancelProcess()` y cierra la conversación;
   - el texto nunca se registra en logs.
-- [ ] T021 Crear `…/microrag/rag/runtime/litert/LiteRtEngineFactory.kt`:
+- [X] T021 Crear `…/microrag/rag/runtime/litert/LiteRtEngineFactory.kt`:
   - correspondencia de backends `CPU → Backend.CPU()` y `GPU → Backend.GPU()`;
   - `metadata()` mediante `ModelInfo.from(path)`, con `maxContextTokens()` y `supportedBackends(Modality.TEXT)`;
   - `clearCompiledCache()` borra `cacheDir/litertlm`;
   - `benchmarkStatsEnabled` ↔ `ExperimentalFlags.enableBenchmark`.
 
   Antes de escribirlo, comprobar con `javap` en el AAR los nombres exactos de `Modality` y `ModelInfo` (research R1).
-- [ ] T022 Crear `…/microrag/rag/di/RuntimeModule.kt` (`single { EngineCoordinator }`, `single<EngineFactory> { LiteRtEngineFactory }`) y añadirlo a `…/microrag/core/di/AppModules.kt`.
+- [X] T022 Crear `…/microrag/rag/di/RuntimeModule.kt` (`single { EngineCoordinator }`, `single<EngineFactory> { LiteRtEngineFactory }`) y añadirlo a `…/microrag/core/di/AppModules.kt`.
   - Ajustar `extraTypes` en `…/test/core/di/AppModulesTest.kt` si `verify()` lo pide.
   - Hacer pasar T006–T012 con `./gradlew :app:testDebugUnitTest`.
-- [ ] T023 Inyección de dependencias del debug:
+- [X] T023 Inyección de dependencias del debug:
   - `…/debug/DebugModules.kt` (`val debugModules: List<Module>`);
   - stub `app/src/release/java/com/lisdatasolutions/microrag/debug/DebugModules.kt`, que devuelve `emptyList()`;
   - `…/microrag/MicroRagApplication.kt` carga `appModules + debugModules`;
   - test `…/testDebug/debug/DebugModulesTest.kt` con `verify()` del grafo completo.
-- [ ] T024 [P] Crear la infraestructura de medición en `…/debug/feasibility/`:
+- [X] T024 [P] Crear la infraestructura de medición en `…/debug/feasibility/`:
   - `Percentiles.kt`; hacer pasar T013.
   - `MeasurementProtocol.kt`, con los valores por defecto de data-model §3.
   - `ThermalMonitor.kt`:
@@ -169,11 +169,11 @@ Todas las historias dependen de esta fase.
     - `awaitCool(max = 5 min)`.
   - `MemoryProbe.kt`: `resetPeak()` escribe `5` en `/proc/self/clear_refs` y devuelve si es posible; `peakRssMb()` lee `VmHWM`.
   - `DeviceSnapshotCollector.kt`: `Build`, `MemoryInfo`, `ACTION_BATTERY_CHANGED` y versiones.
-- [ ] T025 Crear el modelo de informe `…/debug/feasibility/report/FeasibilityReport.kt`, `@Serializable` según data-model §3–5:
+- [X] T025 Crear el modelo de informe `…/debug/feasibility/report/FeasibilityReport.kt`, `@Serializable` según data-model §3–5:
   - `ScenarioResult` con los estados `COMPLETED`, `CANCELLED`, `FAILED` y `NOT_AVAILABLE`;
   - métricas de embeddings, generación y compatibilidad;
   - `DeviceSnapshot` y `exitCriteria`.
-- [ ] T026 Prueba de humo en el teléfono (riesgo 1 del plan):
+- [X] T026 Prueba de humo en el teléfono (riesgo 1 del plan):
   1. Crear la anotación `…/androidTest/debug/feasibility/RequiresModels.kt`.
   2. Crear `…/androidTest/rag/runtime/LiteRtSmokeTest.kt` (`@RequiresModels`):
      - localiza `embeddinggemma-2-text-270m.litertlm` en `dev-models` o en `no_backup/models`;
@@ -200,7 +200,7 @@ Todas las historias dependen de esta fase.
 
 ### Tests for User Story 1 ⚠️
 
-- [ ] T027 [P] [US1] `…/test/data/models/DefaultModelFileRepositoryTest.kt`. Directorios temporales, catálogo inyectado con huellas de ficheros pequeños y `freeBytes` falso. Casos:
+- [X] T027 [P] [US1] `…/test/data/models/DefaultModelFileRepositoryTest.kt`. Directorios temporales, catálogo inyectado con huellas de ficheros pequeños y `freeBytes` falso. Casos:
   - `installVerified` correcto: queda el fichero final, no queda `.part` y la fuente se borra si se pide;
   - huella distinta: se borra el `.part`, se conserva la fuente y el estado es `Mismatch`;
   - sin espacio: `Failed`, sin copiar;
@@ -226,7 +226,7 @@ Todas las historias dependen de esta fase.
 
 ### Implementation for User Story 1
 
-- [ ] T031 [US1] Crear `…/microrag/data/models/ModelFileRepository.kt` y `DefaultModelFileRepository.kt`, según `contracts/runtime-api.md`:
+- [X] T031 [US1] Crear `…/microrag/data/models/ModelFileRepository.kt` y `DefaultModelFileRepository.kt`, según `contracts/runtime-api.md`:
   - copia a `.part` con SHA-256 en streaming y `rename` atómico;
   - `StatFs` (tamaño más 64 MB);
   - E/S en `AppDispatchers.io`.

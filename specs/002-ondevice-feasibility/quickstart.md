@@ -57,10 +57,11 @@ Seguir [contracts/provisioning.md](contracts/provisioning.md):
 2. Comprobar con `shasum -a 256` contra research R2.
 3. Copiar con `adb push` a `dev-models`.
 
-Antes de copiar los 5,6 GB, probar con un fichero pequeño que el shell puede escribir en `Android/data` (R7):
+Antes de copiar, abrir una vez «Viabilidad on-device» para que **la app** cree `dev-models`. Si la carpeta la crea adb, la app no puede leerla (research R7). Después, probar con un fichero pequeño que el shell puede escribir en ella:
 
 ```bash
-adb -s P31281001066 shell 'mkdir -p /sdcard/Android/data/com.lisdatasolutions.microrag/files/dev-models && echo ok > /sdcard/Android/data/com.lisdatasolutions.microrag/files/dev-models/probe.txt && cat /sdcard/Android/data/com.lisdatasolutions.microrag/files/dev-models/probe.txt'
+D=/sdcard/Android/data/com.lisdatasolutions.microrag/files/dev-models
+adb -s P31281001066 shell "ls -ldn $D && echo ok > $D/probe.txt && cat $D/probe.txt && rm $D/probe.txt"
 ```
 
 ## 4. Importar y verificar (US1)

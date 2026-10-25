@@ -117,6 +117,11 @@ Total: 5 633 540 096 bytes (≈ 5,63 GB).
   3. La verificación se repite al cargar.
 - **Alternativa:** `adb push` a `/data/local/tmp` más `run-as … cp` a `no_backup/`. Depende de SELinux y del fabricante; queda como plan B en el quickstart.
 - **Riesgo:** algunas capas de fabricante restringen `Android/data` al shell. Se comprueba en la implementación con un fichero pequeño antes de copiar 5,6 GB.
+- **Comprobado en el teléfono (T005/T026):**
+  - el shell puede escribir en `Android/data/<paquete>/files`;
+  - pero si es el shell quien **crea** `dev-models`, la carpeta queda con uid 2000 y modo `rwxrws---`, y la app (uid 10057) no puede leerla (`Permission denied`);
+  - si la carpeta la crea la app, el shell escribe dentro gracias al grupo `ext_data_rw` (1078), y los ficheros quedan con modo 666, legibles por la app.
+  - **Regla:** la app crea `dev-models` (`DevModelImporter`, y también la prueba de humo) y adb solo copia ficheros dentro, nunca crea la carpeta.
 
 ## R8 — Coordinación de motores y ciclo de vida
 

@@ -19,14 +19,24 @@ shasum -a 256 *.litertlm      # comparar con research R2 / ModelCatalog
 
 ## 2. Copia al teléfono
 
-Destino: la carpeta de desarrollo de la app. El `mkdir -p` crea la carpeta si la app aún no se ha abierto.
+Destino: la carpeta de desarrollo de la app.
+
+**La carpeta la tiene que crear la app.** Si la crea adb (`mkdir`), queda con el propietario del shell y la app no puede leerla (research R7). Por eso, antes de copiar:
+1. Instalar la app de debug.
+2. Abrir «MicroRAG Debug → Viabilidad on-device» una vez, lo que crea `dev-models`.
+3. Comprobar que el propietario es la app (uid `u0_aNN`, no `2000`).
 
 ```bash
 SERIAL=P31281001066   # Nothing Phone (1)
 DEV=/sdcard/Android/data/com.lisdatasolutions.microrag/files/dev-models
-adb -s $SERIAL shell mkdir -p $DEV
+adb -s $SERIAL shell ls -ldn $DEV            # el uid debe ser el de la app (10xxx), no 2000
 adb -s $SERIAL push "$MODELS_DIR"/*.litertlm $DEV/
 ```
+
+Si `dev-models` ya existe con uid 2000:
+1. `mv $DEV $DEV.shell`.
+2. Abrir el diagnóstico, que vuelve a crear la carpeta.
+3. `mv $DEV.shell/* $DEV/ && rmdir $DEV.shell`. Es instantáneo, sin volver a copiar.
 
 ## 3. Importación con verificación (en la app)
 
