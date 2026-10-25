@@ -140,11 +140,11 @@ description: "Lista de tareas de F01 — Fundaciones y design system"
 
 ### Tests for User Story 1 ⚠️
 
-- [ ] T030 [P] [US1] Crear `app/src/test/java/com/lisdatasolutions/microrag/core/designsystem/ContrastTest.kt`:
+- [X] T030 [P] [US1] Crear `app/src/test/java/com/lisdatasolutions/microrag/core/designsystem/ContrastTest.kt`:
   - recalcula todos los pares de `data-model.md` §1.1 en claro y oscuro con `Contrast.kt`;
   - umbral de 4,5 en texto normal y 3,0 en texto grande o gráfico;
   - verifica el blanco sobre `gradients.cta` muestreado en 0 %…100 % con ≥ 3,0 (SC-002, D-019).
-- [ ] T031 [P] [US1] Crear `app/src/test/java/com/lisdatasolutions/microrag/core/designsystem/DesignSystemConformanceTest.kt`:
+- [X] T031 [P] [US1] Crear `app/src/test/java/com/lisdatasolutions/microrag/core/designsystem/DesignSystemConformanceTest.kt`:
   - escanea `app/src/main/java`;
   - ningún `Color(0x` fuera de `core/designsystem/theme/`;
   - ningún `.sp` fuera de `core/designsystem/theme/`;
@@ -159,20 +159,20 @@ description: "Lista de tareas de F01 — Fundaciones y design system"
 - una preview del estado de error en los componentes que lo tienen (botones deshabilitados u ocupados, chips de error, filas en error, `LisdataSourceCitation` no disponible, `LisdataAnswerCard` fallida).
 
 - [X] T032 [P] [US1] Crear `…/microrag/core/designsystem/component/Buttons.kt` con `LisdataGradientButton` (`gradients.cta`, 52 dp, deshabilitado y ocupado), `LisdataDarkButton` y `LisdataOutlinedButton` (normal y destructivo), y `ButtonsPreviews.kt`.
-- [ ] T033 [P] [US1] Crear `…/microrag/core/designsystem/component/Cards.kt` y `CardsPreviews.kt`:
+- [X] T033 [P] [US1] Crear `…/microrag/core/designsystem/component/Cards.kt` y `CardsPreviews.kt`:
   - `LisdataCard`, con borde de 1 dp y radio 16;
   - `LisdataHeroCard`, con `gradients.hero` y órbitas decorativas sin semántica;
   - `LisdataInfoCard`, con texto `textSecondaryOnContainer`;
   - `LisdataIconTile`, con los cinco estilos;
   - `LisdataStatCard`;
   - `LisdataQuickActionTile`.
-- [ ] T034 [P] [US1] Crear `…/microrag/core/designsystem/component/Chips.kt` y `ChipsPreviews.kt`:
+- [X] T034 [P] [US1] Crear `…/microrag/core/designsystem/component/Chips.kt` y `ChipsPreviews.kt`:
   - `LisdataStatusChip`, con los ocho `StatusKind`, punto o icono más texto;
   - `LisdataFilterChip`, M3 tematizado (D-018);
   - `LisdataCountChip`;
   - `LisdataEyebrow` y `LisdataSectionHeader`;
   - `LisdataStepIndicator`, que anuncia «Paso N de M».
-- [ ] T035 [P] [US1] Crear `…/microrag/core/designsystem/component/Rows.kt` y `RowsPreviews.kt`:
+- [X] T035 [P] [US1] Crear `…/microrag/core/designsystem/component/Rows.kt` y `RowsPreviews.kt`:
   - `LisdataModelStatusRow`;
   - `LisdataDocumentRow`, con semántica agrupada y switch deshabilitado si no está indexado;
   - `LisdataQueueRow`;
@@ -181,16 +181,16 @@ description: "Lista de tareas de F01 — Fundaciones y design system"
   - `LisdataSwitchRow` (`toggleable`);
   - `LisdataRadioRow` (`selectable`, `Role.RadioButton`);
   - `LisdataStageRow`.
-- [ ] T036 [P] [US1] Crear `…/microrag/core/designsystem/component/Progress.kt` y `ProgressPreviews.kt` con `LisdataProgressRing` (determinado o indeterminado, `progressValue` en el centro y `stateDescription` en palabras) y `LisdataProgressCard`. Ninguno inventa un porcentaje (constitución V).
-- [ ] T037 [P] [US1] Crear `…/microrag/core/designsystem/component/Chat.kt` y `ChatPreviews.kt`:
+- [X] T036 [P] [US1] Crear `…/microrag/core/designsystem/component/Progress.kt` y `ProgressPreviews.kt` con `LisdataProgressRing` (determinado o indeterminado, `progressValue` en el centro y `stateDescription` en palabras) y `LisdataProgressCard`. Ninguno inventa un porcentaje (constitución V).
+- [X] T037 [P] [US1] Crear `…/microrag/core/designsystem/component/Chat.kt` y `ChatPreviews.kt`:
   - `LisdataChatBubble`;
   - `LisdataAnswerCard`, con los estados `AnswerState`, «Copiar respuesta», chip de fuentes y Reintentar; el nombre del asistente sale de `R.string.assistant_name`;
   - `LisdataChatComposer`, en el que enviar pasa a detener mientras se genera (G12).
-- [ ] T038 [P] [US1] Crear `…/microrag/core/designsystem/component/Inputs.kt` y `InputsPreviews.kt` con `LisdataSearchField` (48 dp, radio 24, limpiar) y `LisdataFilePickerCard` (borde discontinuo, sin texto de arrastrar y soltar, G14).
-- [ ] T039 [P] [US1] Crear `…/microrag/core/designsystem/component/Dialogs.kt` y `DialogsPreviews.kt` con `LisdataConfirmationDialog` (M3 `AlertDialog`, foco inicial en Cancelar, variante destructiva) y `LisdataModelMissingBlock`.
-- [ ] T040 [US1] Añadir a `app/src/main/res/values/strings.xml` y `values-en/strings.xml` las cadenas que usan los componentes de T032–T039 (descripciones de contenido, estados y acciones), sin literales en los componentes.
-- [ ] T041 [US1] Crear en `app/src/debug/java/com/lisdatasolutions/microrag/debug/catalog/` los ficheros `SampleData.kt`, con datos de ejemplo etiquetados como «Ejemplo», y `CatalogEntries.kt`, con una `CatalogEntry` por componente y variante, agrupadas por sección. Depende de T025, T026 y T032–T039.
-- [ ] T042 [US1] Crear `app/src/debug/java/com/lisdatasolutions/microrag/debug/catalog/ComponentCatalogScreen.kt`:
+- [X] T038 [P] [US1] Crear `…/microrag/core/designsystem/component/Inputs.kt` y `InputsPreviews.kt` con `LisdataSearchField` (48 dp, radio 24, limpiar) y `LisdataFilePickerCard` (borde discontinuo, sin texto de arrastrar y soltar, G14).
+- [X] T039 [P] [US1] Crear `…/microrag/core/designsystem/component/Dialogs.kt` y `DialogsPreviews.kt` con `LisdataConfirmationDialog` (M3 `AlertDialog`, foco inicial en Cancelar, variante destructiva) y `LisdataModelMissingBlock`.
+- [X] T040 [US1] Añadir a `app/src/main/res/values/strings.xml` y `values-en/strings.xml` las cadenas que usan los componentes de T032–T039 (descripciones de contenido, estados y acciones), sin literales en los componentes.
+- [X] T041 [US1] Crear en `app/src/debug/java/com/lisdatasolutions/microrag/debug/catalog/` los ficheros `SampleData.kt`, con datos de ejemplo etiquetados como «Ejemplo», y `CatalogEntries.kt`, con una `CatalogEntry` por componente y variante, agrupadas por sección. Depende de T025, T026 y T032–T039.
+- [X] T042 [US1] Crear `app/src/debug/java/com/lisdatasolutions/microrag/debug/catalog/ComponentCatalogScreen.kt`:
   - lista seccionada;
   - conmutador de tema claro/oscuro y de `fontScale` (1,0 / 1,5 / 2,0) mediante `CompositionLocalProvider(LocalDensity)`;
   - registrar la entrada «Catálogo de componentes» en `DebugLauncherActivity`.
