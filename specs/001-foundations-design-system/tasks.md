@@ -282,22 +282,24 @@ description: "Lista de tareas de F01 — Fundaciones y design system"
 
 ### Tests for User Story 4 ⚠️
 
-- [ ] T056 [P] [US4] Crear `app/src/androidTest/java/com/lisdatasolutions/microrag/CatalogAccessibilityTest.kt`:
+- [X] T056 [P] [US4] Crear `app/src/androidTest/java/com/lisdatasolutions/microrag/CatalogAccessibilityTest.kt`:
   - `createComposeRule()` con `enableAccessibilityChecks()` (`ui-test-junit4-accessibility`) sobre cada `CatalogEntry` en claro y oscuro;
   - asserts explícitos de `assertTouchHeightIsAtLeast(48.dp)` y `assertTouchWidthIsAtLeast(48.dp)` en chips, filtros y botones de icono (SC-006);
   - comprobación de `stateDescription` en switches, radios y progreso.
 
 ### Implementation for User Story 4
 
-- [ ] T057 [US4] Corregir en `…/microrag/core/designsystem/component/*.kt` las violaciones que detecte T056:
+- [X] T057 [US4] Corregir en `…/microrag/core/designsystem/component/*.kt` las violaciones que detecte T056:
   - `minimumInteractiveComponentSize()` en chips y botones de icono;
   - `semantics(mergeDescendants = true)` en las filas;
   - `contentDescription = null` en iconos decorativos;
   - `stateDescription` en progreso y estados.
-- [ ] T058 [US4] Revisar con fuente al 200 % en el catálogo (conmutador de T042) y en el emulador (`adb shell settings put system font_scale 2.0`). Corregir recortes en los componentes: contenedores que crecen, `maxLines` y elipsis solo donde el diseño lo prevé. Registrar el resultado en `specs/001-foundations-design-system/checklists/accessibility-review.md`.
+- [X] T058 [US4] Revisar con fuente al 200 % en el catálogo (conmutador de T042) y en el emulador (`adb shell settings put system font_scale 2.0`). Corregir recortes en los componentes: contenedores que crecen, `maxLines` y elipsis solo donde el diseño lo prevé. Registrar el resultado en `specs/001-foundations-design-system/checklists/accessibility-review.md`.
 - [ ] T059 [US4] Hacer un recorrido manual con TalkBack del catálogo y de los marcadores de navegación (`quickstart.md` §5) y anotar las incidencias y su corrección en `specs/001-foundations-design-system/checklists/accessibility-review.md`.
 
 **Checkpoint**: T056 en verde; revisión manual documentada.
+
+> Estado: T056–T058 completadas (82/82 casos ATF; anillo de progreso corregido para fuente grande). **T059 queda abierta**: el árbol semántico está verificado, pero el recorrido con TalkBack necesita una persona que escuche la salida de voz (ver `checklists/accessibility-review.md` §3).
 
 ---
 

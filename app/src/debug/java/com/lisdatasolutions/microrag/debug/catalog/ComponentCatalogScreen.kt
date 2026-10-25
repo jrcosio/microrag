@@ -19,7 +19,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -33,13 +32,15 @@ import com.lisdatasolutions.microrag.core.designsystem.component.LisdataTopBar
 import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
 
 private val themeOptions = listOf("Sistema", "Claro", "Oscuro")
-private val fontScaleOptions = listOf(1f, 1.5f, 2f)
+/** null keeps the system font scale (including Android 14+ non-linear scaling). */
+private val fontScaleOptions = listOf<Float?>(null, 1f, 1.5f, 2f)
 
 /** Debug-only catalog of every LISDATA component with theme and font scale switches (FR-011). */
 @Composable
 fun ComponentCatalogScreen(onBack: () -> Unit) {
     var themeIndex by rememberSaveable { mutableIntStateOf(0) }
-    var fontScale by rememberSaveable { mutableFloatStateOf(1f) }
+    var fontScaleIndex by rememberSaveable { mutableIntStateOf(0) }
+    val fontScale = fontScaleOptions[fontScaleIndex]
     val systemDark = isSystemInDarkTheme()
     val dark = when (themeIndex) {
         1 -> false
@@ -47,7 +48,8 @@ fun ComponentCatalogScreen(onBack: () -> Unit) {
         else -> systemDark
     }
     val density = LocalDensity.current
-    CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale)) {
+    val catalogDensity = if (fontScale == null) density else Density(density.density, fontScale)
+    CompositionLocalProvider(LocalDensity provides catalogDensity) {
         LisdataTheme(darkTheme = dark) {
             Column(
                 modifier = Modifier
@@ -62,8 +64,9 @@ fun ComponentCatalogScreen(onBack: () -> Unit) {
                     themeOptions.forEachIndexed { index, label ->
                         LisdataFilterChip(label, selected = themeIndex == index, onClick = { themeIndex = index })
                     }
-                    fontScaleOptions.forEach { scale ->
-                        LisdataFilterChip("${(scale * 100).toInt()} %", selected = fontScale == scale, onClick = { fontScale = scale })
+                    fontScaleOptions.forEachIndexed { index, scale ->
+                        val label = if (scale == null) "Fuente del sistema" else "${(scale * 100).toInt()} %"
+                        LisdataFilterChip(label, selected = fontScaleIndex == index, onClick = { fontScaleIndex = index })
                     }
                 }
                 Text(

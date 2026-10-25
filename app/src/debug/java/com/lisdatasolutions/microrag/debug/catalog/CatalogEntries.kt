@@ -75,7 +75,9 @@ class CatalogEntry(
     val section: String,
     val title: String,
     val content: @Composable () -> Unit,
-)
+) {
+    override fun toString(): String = id
+}
 
 private val tabs = listOf(
     LisdataBottomBarItem(LisdataIcons.Home, "Inicio"),
@@ -139,7 +141,7 @@ val catalogEntries: List<CatalogEntry> = listOf(
         LisdataDarkButton("Pausar indexación", onClick = {}, Modifier.fillMaxWidth(), trailingIcon = LisdataIcons.Pause)
     },
     entry("Botones", "outlined", "LisdataOutlinedButton") {
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             LisdataOutlinedButton("Eliminar", onClick = {}, destructive = true, leadingIcon = LisdataIcons.Trash)
             LisdataOutlinedButton("Reintentar", onClick = {}, leadingIcon = LisdataIcons.Refresh)
         }
@@ -194,14 +196,14 @@ val catalogEntries: List<CatalogEntry> = listOf(
     },
     entry("Chips", "filter", "LisdataFilterChip") {
         var selected by remember { mutableStateOf(0) }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             listOf("Todos", "Indexados", "Pendientes").forEachIndexed { index, label ->
                 LisdataFilterChip(label, selected = selected == index, onClick = { selected = index })
             }
         }
     },
     entry("Chips", "count", "LisdataCountChip") {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             LisdataCountChip("3 archivos")
             LisdataCountChip("2 fuentes")
             LisdataCountChip("Página 12")
@@ -295,7 +297,7 @@ val catalogEntries: List<CatalogEntry> = listOf(
     // Progress
     entry("Progreso", "ring", "LisdataProgressRing") {
         LisdataHeroCard(title = "8.432 / 12.400 fragmentos", eyebrow = "Procesamiento local", decoration = false, modifier = Modifier.fillMaxWidth()) {
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 LisdataProgressRing(ProgressValue.Determinate(0.68f), label = "Completado", size = 140.dp)
                 LisdataProgressRing(ProgressValue.Indeterminate, label = "Completado", size = 140.dp)
             }
