@@ -34,15 +34,15 @@ interface TextEmbedder : ManagedEngine {
 interface TextGenerator : ManagedEngine {
   val model: ModelId
   suspend fun initialize()                    // en AppDispatchers.llm
-  fun generate(prompt: String, maxOutputTokens: Int): Flow<GenerationEvent>
+  fun generate(prompt: String): Flow<GenerationEvent>   // límite de salida en GenerationConfig
   fun cancel()                                // Conversation.cancelProcess()
 }
 
 sealed interface GenerationEvent {
   data class Token(val textDelta: String)
   data class Finished(val stats: GenerationStats)     // de BenchmarkInfo + reloj de pared
-  data class Failed(val reason: String)
 }
+// Un fallo del runtime se propaga como excepción del Flow (p. ej. LiteRtLmJniException).
 ```
 
 **Garantías:**
@@ -66,7 +66,7 @@ interface EngineFactory {
 data class GenerationConfig(val maxNumTokens: Int, val maxOutputTokens: Int, val greedy: Boolean)
 data class ModelMetadata(val maxContextTokens: Int?, val supportedBackends: List<ComputeBackend>)
 data class GenerationStats(
-  val initSeconds: Double?, val ttftSeconds: Double?, val ttftWallMs: Long,
+  val initSeconds: Double?, val ttftSeconds: Double?, val ttftWallMs: Long, val totalWallMs: Long,
   val prefillTokens: Int?, val prefillTokensPerSecond: Double?,
   val decodeTokens: Int?, val decodeTokensPerSecond: Double?,
 )
@@ -74,6 +74,8 @@ data class GenerationStats(
 
 - Implementación: `LiteRtEngineFactory` en `rag.runtime.litert`.
 - Los campos de `GenerationStats` que vienen de `BenchmarkInfo` son nulos si `benchmarkStatsEnabled = false`. Solo el diagnóstico de debug lo activa.
+
+**Inicialización segura:** `factory().initializeOrClose { it.initialize() }` cierra el motor si la inicialización falla o se cancela, para que nunca quede un motor nativo a medio cargar.
 
 ## Coordinación
 

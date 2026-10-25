@@ -29,7 +29,7 @@ adb -s <serial> exec-out run-as com.lisdatasolutions.microrag cat files/reports/
       "kind": "EMBEDDING", "model": "EG2_270M", "backend": "CPU", "status": "COMPLETED",
       "protocol": { "warmup": 3, "measured": 30 },
       "thermalStart": "NONE", "thermalEnd": "LIGHT", "charging": true, "peakRssMb": 412, "peakRssResetSupported": true,
-      "metrics": {
+      "embedding": {
         "initColdMs": 1830, "initWarmMs": 610, "queryP50Ms": 38.2, "queryP95Ms": 44.9,
         "documentP50Ms": 96.0, "documentP95Ms": 104.3, "rawDims": 768, "outputDims": 256, "l2Norm": 1.0000001,
         "declaredMaxContextTokens": 8192, "supportedBackends": ["CPU", "GPU"]
@@ -41,6 +41,8 @@ adb -s <serial> exec-out run-as com.lisdatasolutions.microrag cat files/reports/
 ```
 
 Las cifras del ejemplo son **ilustrativas** (constitución V). El informe real solo contiene medidas.
+
+Las métricas van en un campo por tipo: `embedding`, `compatibility` (con `backend = null`, porque compara CPU con GPU) o `generation`. En `generation`, las cifras principales son la mediana de las ejecuciones medidas y `runs` guarda cada ejecución.
 
 Valores posibles de `status`:
 - `COMPLETED`;
