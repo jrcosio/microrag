@@ -104,9 +104,12 @@ data class EngineKey(val model: ModelId, val backend: ComputeBackend)
 ```text
 object ModelCatalog { val all: List<ModelFile>; fun byId(id: ModelId): ModelFile }
 
+class DefaultModelFileRepository(modelsDir: File, catalog: List<ModelFile> = ModelCatalog.all,
+    dispatchers: AppDispatchers, logger: AppLogger, freeBytes: (File) -> Long)   // catálogo inyectable para tests
+
 interface ModelFileRepository {
   val states: StateFlow<Map<ModelId, ModelFileState>>
-  suspend fun refresh()                                    // escanea noBackupFilesDir/models
+  suspend fun refresh()                                    // escanea models/: presente → Unverified, ausente → Missing
   suspend fun installVerified(id: ModelId, source: File, deleteSourceOnSuccess: Boolean): ModelFileState
       // copia a models/<fileName>.part calculando SHA-256 en streaming;
       // si coincide → rename atómico a models/<fileName>; si no → borra .part (Mismatch)

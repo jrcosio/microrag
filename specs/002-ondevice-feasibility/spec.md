@@ -179,7 +179,7 @@ Mientras se ejecutan las pruebas, nunca hay dos motores ocupando la GPU a la vez
 **Verificación**
 
 - **FR-005**: Antes de cargar un fichero, la herramienta MUST calcular su SHA-256 y compararlo con el publicado. Solo los ficheros verificados se pueden cargar (constitución V).
-- **FR-006**: El estado de cada fichero MUST mostrarse sin depender solo del color: ausente, pendiente de importar, verificando (con progreso real), verificado, huella incorrecta o error (con su motivo).
+- **FR-006**: El estado de cada fichero MUST mostrarse sin depender solo del color: ausente, pendiente de importar, presente sin verificar, verificando (con progreso real), verificado, huella incorrecta o error (con su motivo).
 
 **Pruebas de embeddings**
 

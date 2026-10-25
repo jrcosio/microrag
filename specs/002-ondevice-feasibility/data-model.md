@@ -27,6 +27,7 @@ Va en el paquete `domain.model`, en el source set `main`, y F03 lo reutiliza.
 
 ```text
 Missing                                 (no está en noBackupFilesDir/models)
+Unverified(path)                        (presente, sin verificar en esta sesión; no cargable)
 Verifying(progress: ProgressValue)      (cálculo de SHA-256; progreso real en bytes)
 Verified(path)                          (huella correcta; único estado cargable)
 Mismatch(expected, actual)              (huella incorrecta; no se carga)
@@ -34,9 +35,11 @@ Failed(reason)                          (error de E/S, sin espacio…)
 ```
 
 Transiciones:
+- `refresh()`: fichero presente → `Unverified`; ausente → `Missing`. No calcula huellas.
 - `Missing → Verifying → Verified | Mismatch | Failed`: al instalar desde un fichero fuente. En F02 la fuente es la copia de desarrollo; en F03 será la descarga.
-- `Verified → Verifying → Verified | Mismatch`: al revalidar antes de cargar.
-- `Mismatch | Failed → Missing`: se borra el fichero instalado; nunca queda un fichero no verificado en `models/`.
+- `Unverified | Verified → Verifying → Verified | Mismatch`: al verificar. El diagnóstico verifica automáticamente los `Unverified` al abrirse (US1, escenario 1) y la suite revalida todo antes de medir (FR-005).
+- `Mismatch`: el fichero instalado se borra en el acto. El estado se mantiene para mostrarlo hasta el siguiente `refresh()`, que lo deja en `Missing`. Nunca se carga un fichero que no esté en `Verified`.
+- `Failed`: no queda ningún `.part`; el siguiente `refresh()` refleja lo que haya en disco.
 
 **Vista de diagnóstico (solo debug):** `DevModelRow(file: ModelFile, state: ModelFileState, devCopyBytes: Long?)`. `devCopyBytes ≠ null` indica que hay una copia en `dev-models` pendiente de importar. Se muestra como «Pendiente de importar» cuando el estado es `Missing`.
 
