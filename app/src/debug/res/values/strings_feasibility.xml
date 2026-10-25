@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- F02 on-device feasibility diagnostics. Internal debug tool: Spanish only, not translated. -->
+<resources>
+    <string name="feasibility_title" translatable="false">Viabilidad on-device</string>
+    <string name="feasibility_section_models" translatable="false">Modelos</string>
+    <string name="feasibility_model_meta" translatable="false">%1$s · %2$d MB · %3$s…</string>
+    <string name="feasibility_state_missing" translatable="false">Ausente</string>
+    <string name="feasibility_state_pending" translatable="false">Pendiente de importar</string>
+    <string name="feasibility_state_unverified" translatable="false">Sin verificar</string>
+    <string name="feasibility_state_verifying" translatable="false">Verificando %1$d %%</string>
+    <string name="feasibility_state_verified" translatable="false">Verificado</string>
+    <string name="feasibility_state_mismatch" translatable="false">Huella incorrecta</string>
+    <string name="feasibility_state_failed" translatable="false">Error: %1$s</string>
+    <string name="feasibility_action_import" translatable="false">Importar modelos de desarrollo</string>
+    <string name="feasibility_action_verify" translatable="false">Verificar de nuevo</string>
+    <string name="feasibility_empty_title" translatable="false">Sin modelos en el teléfono</string>
+    <string name="feasibility_empty_body" translatable="false">Copia los ficheros .litertlm con adb a la carpeta dev-models de la app y pulsa «Importar modelos de desarrollo» (quickstart §3).</string>
+</resources>
