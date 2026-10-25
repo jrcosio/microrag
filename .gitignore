@@ -1,0 +1,30 @@
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# IDE
+.idea/
+
+# Design sources not redistributable (Magnific icon catalog, see docs/roadmap/DECISIONS.md)
+docs/disegn_app/iconos/*.pdf
+
+# On-device models (downloaded or adb-pushed, never versioned)
+*.litertlm
+
+# Offline Python evaluation harness artifacts
+offline/.venv/
+offline/build/
+offline/models/
+__pycache__/
