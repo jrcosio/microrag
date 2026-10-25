@@ -35,7 +35,7 @@ Al cerrar cada feature se entrega:
 
 | ID | Feature | Tipo | Depende de | Estado |
 |---|---|---|---|---|
-| F01 | Fundaciones y design system | Producto (shell y DS) | — | 🟨 analyze ✓ (esperando revisión) |
+| F01 | Fundaciones y design system | Producto (shell y DS) | — | ✅ implementada (pendiente de revisión del usuario; T059 TalkBack manual abierta) |
 | F02 | Viabilidad on-device (fase 0) | Técnica | F01 | ⬜ |
 | F03 | Modelos y primer arranque | Producto | F01, F02 | ⬜ |
 | F04 | Núcleo de datos RAG | Técnica | F02 | ⬜ |
@@ -85,7 +85,7 @@ flowchart LR
 ## F01 — Fundaciones y design system
 
 - **Tipo:** Producto. Shell y design system; sin pantallas de producto finales.
-- **Estado:** 🟨 en curso. Spec, plan y tasks en `specs/001-foundations-design-system/` (rama `001-foundations-design-system`). Analyze completado con correcciones aplicadas; pendiente de revisión antes de implement.
+- **Estado:** ✅ implementada el 2026-10-25 en la rama `001-foundations-design-system`. Informe de cierre en `specs/001-foundations-design-system/report.md`. Queda abierto el recorrido manual con TalkBack (T059).
 
 **Objetivo.** Dejar una base compilable y verificable sobre la que montar el resto:
 - configuración del proyecto;

@@ -299,18 +299,18 @@ description: "Lista de tareas de F01 — Fundaciones y design system"
 
 **Checkpoint**: T056 en verde; revisión manual documentada.
 
-> Estado: T056–T058 completadas (82/82 casos ATF; anillo de progreso corregido para fuente grande). **T059 queda abierta**: el árbol semántico está verificado, pero el recorrido con TalkBack necesita una persona que escuche la salida de voz (ver `checklists/accessibility-review.md` §3).
+> Estado: T056–T058 completadas (78/78 casos ATF; anillo de progreso corregido para fuente grande). **T059 queda abierta**: el árbol semántico está verificado, pero el recorrido con TalkBack necesita una persona que escuche la salida de voz (ver `checklists/accessibility-review.md` §3).
 
 ---
 
 ## Phase 7: Polish & Cross-Cutting Concerns
 
-- [ ] T060 Ejecutar `./gradlew clean assembleDebug assembleRelease lintDebug testDebugUnitTest connectedDebugAndroidTest` y dejarlo todo en verde, corrigiendo los avisos de lint sin `baseline` (SC-010).
-- [ ] T061 Medir el arranque en frío en el emulador `Pixel_10` según `quickstart.md` §6 (`am start -W`, 5 ejecuciones, mediana < 1000 ms) y anotarlo con el dispositivo y la versión en `specs/001-foundations-design-system/checklists/release-verification.md` (SC-009). La medición en el teléfono de referencia se repite en F02.
-- [ ] T062 Revisar visualmente el catálogo frente a los PNG (`quickstart.md` §3). Documentar las diferencias frente al mockup, incluidos los tamaños de los controles M3 (D-018), en `specs/001-foundations-design-system/checklists/mockup-differences.md`.
-- [ ] T063 [P] Actualizar `docs/roadmap/INVENTARIO.md` §6: G19, G20 y G43 con su estado tras F01, y G08/G39 como resueltos por la implementación.
-- [ ] T064 [P] Actualizar `docs/roadmap/FEATURES.md`: F01 ✅ con un enlace al informe de cierre, y `docs/roadmap/DECISIONS.md` si durante la implementación hubo decisiones nuevas (p. ej. D-020 del fallback de T004).
-- [ ] T065 Preparar el informe de cierre de F01, que se entrega al usuario:
+- [X] T060 Ejecutar `./gradlew clean assembleDebug assembleRelease lintDebug testDebugUnitTest connectedDebugAndroidTest` y dejarlo todo en verde, corrigiendo los avisos de lint sin `baseline` (SC-010).
+- [X] T061 Medir el arranque en frío en el emulador `Pixel_10` según `quickstart.md` §6 (`am start -W`, 5 ejecuciones, mediana < 1000 ms) y anotarlo con el dispositivo y la versión en `specs/001-foundations-design-system/checklists/release-verification.md` (SC-009). La medición en el teléfono de referencia se repite en F02.
+- [X] T062 Revisar visualmente el catálogo frente a los PNG (`quickstart.md` §3). Documentar las diferencias frente al mockup, incluidos los tamaños de los controles M3 (D-018), en `specs/001-foundations-design-system/checklists/mockup-differences.md`.
+- [X] T063 [P] Actualizar `docs/roadmap/INVENTARIO.md` §6: G19, G20 y G43 con su estado tras F01, y G08/G39 como resueltos por la implementación.
+- [X] T064 [P] Actualizar `docs/roadmap/FEATURES.md`: F01 ✅ con un enlace al informe de cierre, y `docs/roadmap/DECISIONS.md` si durante la implementación hubo decisiones nuevas (p. ej. D-020 del fallback de T004).
+- [X] T065 Preparar el informe de cierre de F01, que se entrega al usuario:
   - resumen de lo implementado;
   - resultado de build, lint y tests;
   - diferencias frente al mockup (T062);

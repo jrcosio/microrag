@@ -20,3 +20,15 @@
 | P10 | Nombre de la app | ✅ «MicroRAG» | `ManifestInvariantsTest.p10` |
 
 Tamaño del APK de release sin minificar: 28,9 MB. Incluye la fuente variable Google Sans (4,8 MB). La reducción con R8 y el posible subconjunto de la fuente se evalúan en F15.
+
+## Arranque en frío (T061, SC-009)
+
+| Dato | Valor |
+|---|---|
+| Build | release (sin R8), firmado con la clave de debug solo para instalarlo en el emulador |
+| Dispositivo | Emulador `Pixel_10` (AVD), Android API 37, arm64-v8a, sobre un host Apple Silicon |
+| Método | `adb shell am force-stop` y luego `am start -W` (`LaunchState: COLD`), 5 mediciones tras una ejecución de calentamiento |
+| `TotalTime` (ms) | 181 · 199 · 179 · 211 · 181 |
+| **Mediana** | **181 ms** (objetivo < 1000 ms) ✅ |
+
+> Un emulador sobre un host de escritorio no representa un teléfono real. La medición se repite en el teléfono de referencia en F02 (SC-009).

@@ -31,7 +31,7 @@ Las versiones se verificaron el 2026-10-25 contra `maven-metadata.xml` de Google
 | compileSdk / targetSdk | 36.1 / 36 | **37.1** / 36 | Las librerías de AndroidX estables exigen compileSdk ≥ 37 (D-020). targetSdk se mantiene |
 | minSdk | 24 | **31** | D-017 |
 
-- **Decisión:** AGP 9.4.1 con Kotlin 2.4.21 y las librerías estables de la tabla.
+- **Decisión:** AGP 9.4.1 con Kotlin 2.4.21 y las librerías estables de la tabla. **Actualización (D-021):** AGP baja a 9.3.3 porque el Android Studio del equipo admite como máximo la serie 9.3. Kotlin, Gradle y las librerías no cambian.
 - **Alternativa y fallback:** mantener la pareja generada por Android Studio (AGP 9.3.3 / Kotlin 2.2.10). Si `assembleDebug` falla por incompatibilidad AGP↔KGP al subir de versión, se vuelve a esa pareja. En ese caso se eligen versiones de librerías compiladas con Kotlin ≤ 2.3, porque el compilador lee metadatos de una versión posterior como máximo. El cambio se registra en DECISIONS.
 
 ## R2 — Navegación

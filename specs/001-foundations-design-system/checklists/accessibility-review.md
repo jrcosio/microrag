@@ -5,12 +5,12 @@
 
 ## 1. Comprobación automática (T056, SC-006)
 
-`CatalogAccessibilityTest` (instrumentado) recorre las 41 entradas del catálogo en claro y oscuro (82 casos). Cada caso:
+`CatalogAccessibilityTest` (instrumentado) recorre las 39 entradas del catálogo en claro y oscuro (78 casos). Cada caso:
 - pasa los checks del *Accessibility Test Framework* (`enableAccessibilityChecks()`: área táctil, texto hablable, contraste);
 - comprueba que todo nodo clicable tiene un área táctil ≥ 48 × 48 dp (tras hacer scroll hasta el nodo);
 - comprueba que todo control con estado (interruptor, radio, selección) tiene etiqueta.
 
-**Resultado:** 82/82 casos ✅, más `ManifestInvariantsTest` 4/4 y `SystemBackTest` 1/1. T057 no requirió correcciones, porque ningún check falló.
+**Resultado:** 78/78 casos ✅, más `ManifestInvariantsTest` 4/4 y `SystemBackTest` 1/1. T057 no requirió correcciones, porque ningún check falló.
 
 ## 2. Fuente del sistema al 200 % (T058, SC-004)
 
@@ -28,7 +28,7 @@ Se revisó con `adb shell settings put system font_scale 2.0` (escalado no linea
 ## 3. TalkBack (T059)
 
 **Verificado de forma automática y estructural:**
-- Checks de ATF en las 82 variantes del catálogo (texto hablable en todos los controles).
+- Checks de ATF en las 78 variantes del catálogo (texto hablable en todos los controles).
 - Árbol de accesibilidad del shell (`uiautomator dump`): flecha Atrás con descripción «Back»/«Volver»; título como encabezado; cuatro pestañas con etiqueta; marcador con título y descripción leídos como texto.
 - Por diseño:
   - las filas agrupan su semántica (`mergeDescendants`);
