@@ -207,7 +207,7 @@ description: "Lista de tareas de F01 — Fundaciones y design system"
 
 ### Tests for User Story 2 ⚠️
 
-- [ ] T043 [P] [US2] Crear `app/src/test/java/com/lisdatasolutions/microrag/core/navigation/NavigationTest.kt` con Robolectric, Compose ui-test, `TestNavHostController` y `StateRestorationTester`. Cubre las reglas de `contracts/navigation.md`:
+- [X] T043 [P] [US2] Crear `app/src/test/java/com/lisdatasolutions/microrag/core/navigation/NavigationTest.kt` con Robolectric, Compose ui-test, `TestNavHostController` y `StateRestorationTester`. Cubre las reglas de `contracts/navigation.md`:
   - N1, una sola instancia por pestaña;
   - N2/N5, Atrás vuelve a Inicio;
   - N3, Atrás en Inicio no deja pila;
@@ -218,25 +218,29 @@ description: "Lista de tareas de F01 — Fundaciones y design system"
 
 ### Implementation for User Story 2
 
-- [ ] T044 [P] [US2] Crear `…/microrag/core/navigation/Destinations.kt`, con las 10 rutas `@Serializable` de `contracts/navigation.md`, y `TopLevelDestination.kt`, el enum con ruta, icono y etiqueta.
-- [ ] T045 [P] [US2] Crear `…/microrag/core/navigation/PendingDestination.kt`: un marcador con `LisdataTopBar` y `LisdataEmptyState`, el texto «Pendiente · Fxx», la ruta y los argumentos, a partir de recursos. Añadir sus previews en `PendingDestinationPreviews.kt`.
-- [ ] T046 [US2] Crear `…/microrag/core/navigation/NavigationActions.kt` con `navigateToTopLevel` (N1), la reselección (N4) y Atrás (N2, N3, N5).
-- [ ] T047 [US2] Crear `…/microrag/core/navigation/MicroRagNavHost.kt`: `NavHost` con inicio en `Home` (FR-022), los 10 `composable<…>` que muestran `PendingDestination` con su feature propietaria (research R17) y sin `deepLinks` (FR-023).
-- [ ] T048 [US2] Crear `…/microrag/core/navigation/MicroRagAppShell.kt`:
+- [X] T044 [P] [US2] Crear `…/microrag/core/navigation/Destinations.kt`, con las 10 rutas `@Serializable` de `contracts/navigation.md`, y `TopLevelDestination.kt`, el enum con ruta, icono y etiqueta.
+- [X] T045 [P] [US2] Crear `…/microrag/core/navigation/PendingDestination.kt`: un marcador con `LisdataTopBar` y `LisdataEmptyState`, el texto «Pendiente · Fxx», la ruta y los argumentos, a partir de recursos. Añadir sus previews en `PendingDestinationPreviews.kt`.
+- [X] T046 [US2] Crear `…/microrag/core/navigation/NavigationActions.kt` con `navigateToTopLevel` (N1), la reselección (N4) y Atrás (N2, N3, N5).
+- [X] T047 [US2] Crear `…/microrag/core/navigation/MicroRagNavHost.kt`: `NavHost` con inicio en `Home` (FR-022), los 10 `composable<…>` que muestran `PendingDestination` con su feature propietaria (research R17) y sin `deepLinks` (FR-023).
+- [X] T048 [US2] Crear `…/microrag/core/navigation/MicroRagAppShell.kt`:
   - función pura `shouldShowBottomBar(destination, imeVisible)`;
   - `Scaffold` con `LisdataBottomBar` visible según esa función, que recibe `WindowInsets.isImeVisible` (FR-020);
   - consumo de insets edge-to-edge;
   - el Atrás del sistema delegado según N2 y N3.
-- [ ] T049 [US2] Crear el enrutado de depuración por variante:
+- [X] T049 [US2] Crear el enrutado de depuración por variante:
   - `app/src/release/java/com/lisdatasolutions/microrag/debug/DebugRouting.kt`, un *stub* cuyo `initialRoute(intent)` devuelve `null`;
   - `app/src/debug/java/com/lisdatasolutions/microrag/debug/DebugRouting.kt`, que interpreta el extra `EXTRA_ROUTE` y devuelve la ruta tipada.
-- [ ] T050 [US2] Reescribir `…/microrag/MainActivity.kt`: `enableEdgeToEdge()`, `LisdataTheme { MicroRagAppShell(initialRoute = DebugRouting.initialRoute(intent)) }` y sin restos del tema morado.
-- [ ] T051 [US2] Crear `app/src/debug/java/com/lisdatasolutions/microrag/debug/routes/RouteMenuScreen.kt`:
+- [X] T050 [US2] Reescribir `…/microrag/MainActivity.kt`: `enableEdgeToEdge()`, `LisdataTheme { MicroRagAppShell(initialRoute = DebugRouting.initialRoute(intent)) }` y sin restos del tema morado.
+- [X] T051 [US2] Crear `app/src/debug/java/com/lisdatasolutions/microrag/debug/routes/RouteMenuScreen.kt`:
   - un botón por destino, con argumentos de prueba válidos e inválidos;
   - cada botón lanza `MainActivity` con `EXTRA_ROUTE`;
   - registrar la entrada «Menú de rutas» en `DebugLauncherActivity`.
 
 **Checkpoint**: navegación completa verificada por T043 y manualmente según `quickstart.md` §4.
+
+> Nota de implementación:
+> - En Navigation 2.10 el Atrás del sistema llega por `NavigationEvent`, que Robolectric no despacha. Por eso N2 y N3 se verifican en dos niveles: la pila en `NavigationTest` (JVM) y la tecla Atrás real en `app/src/androidTest/.../SystemBackTest.kt` (emulador).
+> - Robolectric (SDK 36) requiere `--add-exports java.base/jdk.internal.access` en `testOptions`.
 
 ---
 
