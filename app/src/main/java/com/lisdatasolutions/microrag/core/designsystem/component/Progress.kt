@@ -1,21 +1,23 @@
 package com.lisdatasolutions.microrag.core.designsystem.component
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.progressBarRangeInfo
 import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.intl.Locale
+import androidx.compose.ui.text.toUpperCase
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.lisdatasolutions.microrag.R
@@ -38,49 +40,63 @@ fun LisdataProgressRing(
         is ProgressValue.Determinate -> stringResource(R.string.progress_percent, progress.percent)
         ProgressValue.Indeterminate -> stringResource(R.string.progress_indeterminate)
     }
-    Box(
-        modifier = modifier
-            .size(size)
-            .clearAndSetSemantics {
-                stateDescription = description
-                progressBarRangeInfo = when (progress) {
-                    is ProgressValue.Determinate -> ProgressBarRangeInfo(progress.fraction, 0f..1f)
-                    ProgressValue.Indeterminate -> ProgressBarRangeInfo.Indeterminate
-                }
-            },
-        contentAlignment = Alignment.Center,
-    ) {
-        when (progress) {
-            is ProgressValue.Determinate -> CircularProgressIndicator(
-                progress = { progress.fraction },
-                modifier = Modifier.size(size),
-                color = colors.brandCyan,
-                trackColor = colors.onDarkTrack,
-                strokeWidth = 14.dp,
-                strokeCap = StrokeCap.Round,
-            )
-            ProgressValue.Indeterminate -> CircularProgressIndicator(
-                modifier = Modifier.size(size),
-                color = colors.brandCyan,
-                trackColor = colors.onDarkTrack,
-                strokeWidth = 14.dp,
-                strokeCap = StrokeCap.Round,
-            )
-        }
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            if (progress is ProgressValue.Determinate) {
-                Text(
-                    text = stringResource(R.string.progress_value_percent, progress.percent),
-                    style = LisdataTheme.typography.progressValue,
-                    color = colors.onDarkText,
-                )
-                LisdataEyebrow(text = label, color = colors.onDarkAccent)
-            } else {
-                LisdataEyebrow(text = stringResource(R.string.progress_indeterminate), color = colors.onDarkAccent)
+    val labelPadding = RingStroke + LisdataTheme.spacing.space4
+    Layout(
+        modifier = modifier.clearAndSetSemantics {
+            stateDescription = description
+            progressBarRangeInfo = when (progress) {
+                is ProgressValue.Determinate -> ProgressBarRangeInfo(progress.fraction, 0f..1f)
+                ProgressValue.Indeterminate -> ProgressBarRangeInfo.Indeterminate
             }
+        },
+        content = {
+            when (progress) {
+                is ProgressValue.Determinate -> CircularProgressIndicator(
+                    progress = { progress.fraction },
+                    color = colors.brandCyan,
+                    trackColor = colors.onDarkTrack,
+                    strokeWidth = RingStroke,
+                    strokeCap = StrokeCap.Round,
+                )
+                ProgressValue.Indeterminate -> CircularProgressIndicator(
+                    color = colors.brandCyan,
+                    trackColor = colors.onDarkTrack,
+                    strokeWidth = RingStroke,
+                    strokeCap = StrokeCap.Round,
+                )
+            }
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                if (progress is ProgressValue.Determinate) {
+                    Text(
+                        text = stringResource(R.string.progress_value_percent, progress.percent),
+                        style = LisdataTheme.typography.progressValue,
+                        color = colors.onDarkText,
+                        softWrap = false,
+                    )
+                }
+                Text(
+                    text = (if (progress is ProgressValue.Determinate) label else stringResource(R.string.progress_indeterminate))
+                        .toUpperCase(Locale.current),
+                    style = LisdataTheme.typography.eyebrow,
+                    color = colors.onDarkAccent,
+                    softWrap = false,
+                )
+            }
+        },
+    ) { measurables, constraints ->
+        // Square ring sized by its label (large font scales grow it), at least [size].
+        val labelPlaceable = measurables[1].measure(Constraints())
+        val needed = maxOf(labelPlaceable.width, labelPlaceable.height) + 2 * labelPadding.roundToPx()
+        val side = maxOf(size.roundToPx(), needed).coerceAtMost(constraints.maxWidth)
+        val ringPlaceable = measurables[0].measure(Constraints.fixed(side, side))
+        layout(side, side) {
+            ringPlaceable.place(0, 0)
+            labelPlaceable.place((side - labelPlaceable.width) / 2, (side - labelPlaceable.height) / 2)
         }
     }
 }
+
+private val RingStroke = 14.dp
 
 /** Card with a stage title, real progress, an optional detail line and an optional action. */
 @Composable
