@@ -166,7 +166,7 @@ Quien usa TalkBack, tamaños de fuente grandes o necesita objetivos táctiles am
   - desde Inicio, sale de la app.
 
   Las barras superiores de las pestañas Chat, Biblioteca y Ajustes MUST mostrar la flecha Atrás de los mockups, con el mismo efecto (G08).
-- **FR-019**: La app MUST conservar el destino actual, la pestaña seleccionada y la posición de scroll al rotar, al cambiar de tema y al volver tras la muerte del proceso.
+- **FR-019**: La app MUST conservar el destino actual, la pestaña seleccionada y el estado guardable de cada destino al rotar, al cambiar de tema y al volver tras la muerte del proceso. F01 aporta el mecanismo (estado guardado por entrada de la pila). La conservación de la posición de scroll se verifica en cada feature que añada contenido desplazable.
 - **FR-020**: La barra inferior MUST ocultarse mientras el teclado en pantalla está visible (G39).
 - **FR-021**: Los destinos cuyo contenido pertenece a features posteriores MUST mostrar un marcador temporal etiquetado «Pendiente · Fxx» (con el destino y los argumentos recibidos), sin datos ni controles de producto. Su eliminación completa se verifica en F15.
 - **FR-022**: Hasta F03 (onboarding), el destino inicial MUST ser `home`. La lógica de primer arranque no forma parte de esta feature.
@@ -207,7 +207,7 @@ Quien usa TalkBack, tamaños de fuente grandes o necesita objetivos táctiles am
 - **SC-006**: El 100 % de los elementos interactivos del catálogo superan la verificación automática de área táctil mínima de 48 dp.
 - **SC-007**: En el 100 % de los casos de prueba de rotación, cambio de tema y recreación, se conserva el destino y la pestaña.
 - **SC-008**: Una verificación automática no encuentra ningún color, tamaño de texto o texto literal definido fuera del sistema de diseño o de los recursos.
-- **SC-009**: La primera vista aparece en menos de 1 segundo desde un arranque en frío en el teléfono de referencia.
+- **SC-009**: La primera vista aparece en menos de 1 segundo (mediana de 5 arranques en frío). En F01 se mide en el emulador de desarrollo `Pixel_10`. A partir de F02, cuando exista teléfono de referencia, se repite allí.
 - **SC-010**: La base compila y pasa el análisis estático y todas las pruebas automáticas sin errores.
 
 ## Assumptions

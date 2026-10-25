@@ -77,7 +77,7 @@ adb shell am force-stop com.lisdatasolutions.microrag
 adb shell am start -W -n com.lisdatasolutions.microrag/.MainActivity | grep TotalTime   # < 1000 ms
 ```
 
-Se anota en el cierre de F01 junto con el dispositivo (emulador, a falta de teléfono de referencia hasta F02).
+Se toma la mediana de 5 ejecuciones y se anota en el cierre de F01 junto con el dispositivo: el emulador `Pixel_10`, a falta de teléfono de referencia hasta F02 (SC-009).
 
 ## Regenerar iconos (solo si cambia la lista)
 

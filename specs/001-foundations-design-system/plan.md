@@ -55,7 +55,7 @@ Todo se verifica con tests JVM (contraste, conformidad, DI, navegación) e instr
 
 **Project Type**: mobile-app (Android nativa, un solo módulo `:app`, D-009).
 
-**Performance Goals**: primera vista en menos de 1 s desde arranque en frío (SC-009); listas y catálogo fluidos.
+**Performance Goals**: primera vista en menos de 1 s desde arranque en frío, mediana de 5 (SC-009). En F01 se mide en el emulador `Pixel_10`.
 
 **Constraints**:
 - Ninguna dependencia de red (constitución I).
@@ -103,7 +103,11 @@ specs/001-foundations-design-system/
 │   ├── design-system-api.md
 │   ├── platform-invariants.md
 │   └── base-services.md
-├── checklists/requirements.md
+├── checklists/
+│   ├── requirements.md          # calidad de la spec
+│   ├── release-verification.md  # T055, T061 (invariantes de release y arranque)
+│   ├── accessibility-review.md  # T058, T059 (fuente 200 % y TalkBack)
+│   └── mockup-differences.md    # T062 (diferencias frente al PNG)
 └── tasks.md             # /speckit-tasks
 ```
 

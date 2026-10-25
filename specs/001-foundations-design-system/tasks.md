@@ -146,9 +146,15 @@ description: "Lista de tareas de F01 — Fundaciones y design system"
   - escanea `app/src/main/java`;
   - ningún `Color(0x` fuera de `core/designsystem/theme/`;
   - ningún `.sp` fuera de `core/designsystem/theme/`;
-  - ningún `Text("…")` con literal fuera de los ficheros `*Previews.kt` (SC-008, FR-001, FR-032).
+  - ningún `Text("…")` con literal fuera de los ficheros `*Previews.kt` (SC-008, FR-001, FR-032);
+  - ningún uso de `dynamicLightColorScheme`/`dynamicDarkColorScheme` en `src/main` (FR-002, P9).
 
 ### Implementation for User Story 1
+
+**Regla de previews (FR-010)**: cada `*Previews.kt` de T032–T039 incluye:
+- la anotación `@LisdataPreviews` (claro, oscuro y fuente al 200 %);
+- una preview con textos largos;
+- una preview del estado de error en los componentes que lo tienen (botones deshabilitados u ocupados, chips de error, filas en error, `LisdataSourceCitation` no disponible, `LisdataAnswerCard` fallida).
 
 - [ ] T032 [P] [US1] Crear `…/microrag/core/designsystem/component/Buttons.kt` con `LisdataGradientButton` (`gradients.cta`, 52 dp, deshabilitado y ocupado), `LisdataDarkButton` y `LisdataOutlinedButton` (normal y destructivo), y `ButtonsPreviews.kt`.
 - [ ] T033 [P] [US1] Crear `…/microrag/core/designsystem/component/Cards.kt` y `CardsPreviews.kt`:
@@ -204,8 +210,8 @@ description: "Lista de tareas de F01 — Fundaciones y design system"
   - N2/N5, Atrás vuelve a Inicio;
   - N3, Atrás en Inicio no deja pila;
   - N4, reselección vuelve a la raíz;
-  - N6, visibilidad de la barra inferior por destino;
-  - N7, restauración del destino y de la pestaña;
+  - N6, visibilidad de la barra inferior por destino y su ocultación con el teclado, mediante la función pura `shouldShowBottomBar(destination, imeVisible)` probada en todas sus combinaciones (FR-020);
+  - N7, restauración del destino y de la pestaña al recrear la Activity por rotación **y por cambio de tema claro/oscuro** (`uiMode`), y tras restaurar el estado guardado (SC-007);
   - N8, `Document(-1)` muestra el marcador sin cierre.
 
 ### Implementation for User Story 2
@@ -215,7 +221,8 @@ description: "Lista de tareas de F01 — Fundaciones y design system"
 - [ ] T046 [US2] Crear `…/microrag/core/navigation/NavigationActions.kt` con `navigateToTopLevel` (N1), la reselección (N4) y Atrás (N2, N3, N5).
 - [ ] T047 [US2] Crear `…/microrag/core/navigation/MicroRagNavHost.kt`: `NavHost` con inicio en `Home` (FR-022), los 10 `composable<…>` que muestran `PendingDestination` con su feature propietaria (research R17) y sin `deepLinks` (FR-023).
 - [ ] T048 [US2] Crear `…/microrag/core/navigation/MicroRagAppShell.kt`:
-  - `Scaffold` con `LisdataBottomBar` visible solo en las raíces de pestaña y sin teclado (`WindowInsets.isImeVisible`, FR-020);
+  - función pura `shouldShowBottomBar(destination, imeVisible)`;
+  - `Scaffold` con `LisdataBottomBar` visible según esa función, que recibe `WindowInsets.isImeVisible` (FR-020);
   - consumo de insets edge-to-edge;
   - el Atrás del sistema delegado según N2 y N3.
 - [ ] T049 [US2] Crear el enrutado de depuración por variante:
@@ -291,7 +298,7 @@ description: "Lista de tareas de F01 — Fundaciones y design system"
 ## Phase 7: Polish & Cross-Cutting Concerns
 
 - [ ] T060 Ejecutar `./gradlew clean assembleDebug assembleRelease lintDebug testDebugUnitTest connectedDebugAndroidTest` y dejarlo todo en verde, corrigiendo los avisos de lint sin `baseline` (SC-010).
-- [ ] T061 Medir el arranque en frío según `quickstart.md` §6 (`am start -W`, 5 ejecuciones, mediana < 1000 ms) y anotarlo con el dispositivo en `specs/001-foundations-design-system/checklists/release-verification.md` (SC-009).
+- [ ] T061 Medir el arranque en frío en el emulador `Pixel_10` según `quickstart.md` §6 (`am start -W`, 5 ejecuciones, mediana < 1000 ms) y anotarlo con el dispositivo y la versión en `specs/001-foundations-design-system/checklists/release-verification.md` (SC-009). La medición en el teléfono de referencia se repite en F02.
 - [ ] T062 Revisar visualmente el catálogo frente a los PNG (`quickstart.md` §3). Documentar las diferencias frente al mockup, incluidos los tamaños de los controles M3 (D-018), en `specs/001-foundations-design-system/checklists/mockup-differences.md`.
 - [ ] T063 [P] Actualizar `docs/roadmap/INVENTARIO.md` §6: G19, G20 y G43 con su estado tras F01, y G08/G39 como resueltos por la implementación.
 - [ ] T064 [P] Actualizar `docs/roadmap/FEATURES.md`: F01 ✅ con un enlace al informe de cierre, y `docs/roadmap/DECISIONS.md` si durante la implementación hubo decisiones nuevas (p. ej. D-020 del fallback de T004).
