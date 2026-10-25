@@ -159,7 +159,7 @@ Mientras se ejecutan las pruebas, nunca hay dos motores ocupando la GPU a la vez
 - **Estrangulamiento térmico:** se registra el estado térmico al inicio y al final de cada prueba. Si es «severo» o peor al empezar, la prueba avisa y espera a confirmar antes de medir.
 - **Cancelación en mitad de la inicialización:** la operación termina de forma limpia y el motor no queda a medio cargar.
 - **App en segundo plano o proceso eliminado durante una prueba:** se pierde esa medición (no se mide en segundo plano). Al volver, los resultados ya guardados siguen disponibles.
-- **Almacenamiento insuficiente al copiar modelos:** el procedimiento del quickstart indica el espacio necesario (≈ 5,7 GB para los cinco ficheros) y cómo comprobarlo.
+- **Almacenamiento insuficiente al copiar modelos:** el procedimiento del quickstart indica el espacio necesario (≈ 5,6 GB para los cinco ficheros más el pico de una copia) y cómo comprobarlo. La importación comprueba el espacio libre antes de copiar y, si falta, marca el fichero con error.
 
 ## Requirements *(mandatory)*
 
@@ -173,19 +173,20 @@ Mientras se ejecutan las pruebas, nunca hay dos motores ocupando la GPU a la vez
   - EmbeddingGemma 2: 740M, 440M y 270M.
 
   De cada uno conoce el nombre, el tamaño y la huella SHA-256 publicados, fijados a una revisión concreta del repositorio de origen (D-011).
-- **FR-003**: Los modelos MUST llegar al teléfono copiándose desde el ordenador de desarrollo al almacenamiento privado de la app, mediante un procedimiento documentado y reproducible.
+- **FR-003**: Los modelos MUST llegar al teléfono copiándose desde el ordenador de desarrollo mediante un procedimiento documentado y reproducible. Primero se copian a la carpeta de desarrollo de la app. Después la herramienta los importa con verificación al almacenamiento privado sin copia de seguridad (`noBackupFilesDir/models`, research R7).
 - **FR-004**: La app MUST NOT descargar modelos ni hacer ninguna llamada de red en esta feature, y MUST seguir sin declarar permisos de red (constitución I, invariante P4 de F01).
 
 **Verificación**
 
 - **FR-005**: Antes de cargar un fichero, la herramienta MUST calcular su SHA-256 y compararlo con el publicado. Solo los ficheros verificados se pueden cargar (constitución V).
-- **FR-006**: El estado de cada fichero MUST mostrarse sin depender solo del color: ausente, verificando (con progreso real), verificado o huella incorrecta.
+- **FR-006**: El estado de cada fichero MUST mostrarse sin depender solo del color: ausente, pendiente de importar, verificando (con progreso real), verificado, huella incorrecta o error (con su motivo).
 
 **Pruebas de embeddings**
 
 - **FR-007**: Para cada variante verificada de EmbeddingGemma 2 y cada backend (CPU y GPU), la herramienta MUST medir:
   - la inicialización en frío;
   - la latencia del embedding de una consulta corta, con calentamiento descartado y percentiles p50 y p95 sobre las repeticiones medidas.
+- **FR-007b**: Para cada variante y backend, la herramienta MUST medir también la latencia (p50 y p95) de embeber un fragmento de documento de ≈ 350 tokens con el prefijo de documento. Anticipa el ritmo de ingesta de F07 (añadido en el plan, research R3).
 - **FR-008**: Cada embedding MUST:
   - usar el prefijo de consulta documentado por LiteRT-LM;
   - truncarse a 256 dimensiones y renormalizarse con L2.
@@ -250,12 +251,13 @@ Mientras se ejecutan las pruebas, nunca hay dos motores ocupando la GPU a la vez
 
 ## Assumptions
 
-- **Origen y versión de los modelos:** Hugging Face `litert-community`, fijado al commit vigente en la implementación. Se registran el commit y las huellas.
-- **Descarga al ordenador:** se descargan los cinco ficheros (≈ 5,7 GB, confirmado en clarify) en el ordenador de desarrollo, fuera del repositorio (`*.litertlm` está en `.gitignore`). Es tooling de desarrollo, no tráfico de la app.
+- **Origen y versión de los modelos:** Hugging Face `litert-community`, fijado al commit y a las huellas de research R2.
+- **Descarga al ordenador:** se descargan los cinco ficheros (≈ 5,6 GB, confirmado en clarify) en el ordenador de desarrollo, fuera del repositorio (`*.litertlm` está en `.gitignore`). Es tooling de desarrollo, no tráfico de la app.
 - **Protocolo de medición por defecto:**
   - embeddings: 3 repeticiones de calentamiento y 30 medidas por combinación;
   - generación: 1 de calentamiento y 3 medidas por fichero, generando 128 tokens.
-  - Antes de cada bloque se espera a estado térmico «ninguno» o «leve». A confirmar en clarify.
+  - compatibilidad CPU↔GPU: 20 textos (10 consultas y 10 fragmentos) por variante;
+  - antes de cada bloque se espera a estado térmico «ninguno» o «leve», con un tope de 5 minutos (fijado en el plan, research R6).
 - **Prompt de prueba:** texto sintético en español con el formato de la plantilla del informe, construido a partir de la documentación del propio proyecto (no son datos de usuario). Mide ≈ 2.000 tokens según el tokenizador del modelo.
 - **Gemma en GPU con plan B en CPU** (confirmado en clarify): se mide en GPU, el backend previsto por el informe. CPU solo se mide para un fichero cuyo uso en GPU falle.
 - **Release:** la herramienta solo existe en debug, siguiendo el mismo patrón de source set que F01 (R7).
