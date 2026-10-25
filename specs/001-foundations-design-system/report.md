@@ -80,5 +80,5 @@ Detalle en [checklists/release-verification.md](checklists/release-verification.
 ## 6. Pendiente
 
 - **T059:** recorrido manual con TalkBack. El árbol semántico está verificado; falta escuchar la salida de voz en un dispositivo.
-- **G20 y G43:** el SVG oficial del logo y el icono oficial del lanzador.
+- **G20:** el SVG oficial del logo. G43 (icono del lanzador) quedó resuelto tras el cierre con el icono aportado por el usuario.
 - **SC-009 en el teléfono de referencia:** se mide en F02.

@@ -19,7 +19,7 @@ Este documento compara los componentes del design system (catálogo de debug) co
 | 13 | Modo oscuro | Sin mockup | Paleta derivada de §2.2 | D-016 |
 | 14 | Pantallas | 10 pantallas de producto | Marcadores «Pendiente · Fxx» con ruta y argumentos | FR-021; se sustituyen en F03–F12 |
 | 15 | Idioma | Español | Español por defecto; inglés en dispositivos configurados en inglés (`values-en`) | FR-032 |
-| 16 | Icono del lanzador | No existe asset | Icono genérico del scaffold (adaptativo) | G43 pendiente del asset oficial |
+| 16 | Icono del lanzador | No existe asset | Icono adaptativo aportado por el usuario (fondo `#334D75`, primer plano bitmap) | G43 resuelto tras el cierre de F01 |
 
 Coinciden con el PNG:
 - márgenes (20 dp) y radios (tarjeta 16 dp, botón 12 dp, tile 12 dp);
