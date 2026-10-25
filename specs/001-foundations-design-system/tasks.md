@@ -66,63 +66,65 @@ description: "Lista de tareas de F01 — Fundaciones y design system"
 
 ### Tests (escribir primero)
 
-- [ ] T006 [P] Test de `AppDispatchers` en `app/src/test/java/com/lisdatasolutions/microrag/core/dispatchers/AppDispatchersTest.kt`. Comprueba que `database`, `llm` y `embeddings` ejecutan en hilos con nombre `microrag-db`, `microrag-llm` y `microrag-embed`, y que dos tareas del mismo dispatcher no se solapan (`contracts/base-services.md`).
-- [ ] T007 [P] Test del grafo Koin en `app/src/test/java/com/lisdatasolutions/microrag/core/di/AppModulesTest.kt`, con `verify()` de koin-test sobre `appModules` (FR-030).
-- [ ] T008 [P] Test de `AppLogger` en `app/src/test/java/com/lisdatasolutions/microrag/core/logging/AppLoggerTest.kt`. Con un `isEnabled = false` inyectable, la lambda del mensaje no se evalúa (FR-027).
+- [X] T006 [P] Test de `AppDispatchers` en `app/src/test/java/com/lisdatasolutions/microrag/core/dispatchers/AppDispatchersTest.kt`. Comprueba que `database`, `llm` y `embeddings` ejecutan en hilos con nombre `microrag-db`, `microrag-llm` y `microrag-embed`, y que dos tareas del mismo dispatcher no se solapan (`contracts/base-services.md`).
+- [X] T007 [P] Test del grafo Koin en `app/src/test/java/com/lisdatasolutions/microrag/core/di/AppModulesTest.kt`, con `verify()` de koin-test sobre `appModules` (FR-030).
+- [X] T008 [P] Test de `AppLogger` en `app/src/test/java/com/lisdatasolutions/microrag/core/logging/AppLoggerTest.kt`. Con un `isEnabled = false` inyectable, la lambda del mensaje no se evalúa (FR-027).
 
 ### Recursos
 
-- [ ] T009 [P] Copiar `docs/disegn_app/Tipografias/GoogleSans-VariableFont_GRAD,opsz,wght.ttf` a `app/src/main/res/font/google_sans_variable.ttf` (research R4).
-- [ ] T010 [P] Copiar `docs/disegn_app/logoLISDATA.png` sin modificar a `app/src/main/res/drawable-nodpi/logo_lisdata.png` (research R6).
-- [ ] T011 [P] Crear el convertidor `tools/icons/lucide_to_vector.py`. Recibe la ruta de `icon-nodes.json`, la ruta de `icons.txt` y el directorio de salida. Convierte `path`, `circle`, `ellipse`, `rect` (`rx`/`ry`), `line`, `polyline` y `polygon` a `pathData` y escribe VectorDrawable de 24×24 con trazo 2, extremos y uniones redondeados, sin relleno y `strokeColor` `#FF000000`. No ejecuta nada del paquete descargado (research R5).
-- [ ] T012 [P] Crear `tools/icons/icons.txt` con el mapeo `ic_* ← lucide` de los 29 iconos de `INVENTARIO.md` §2.6, y `tools/icons/LICENSE-lucide.txt` con el texto ISC de lucide-static 1.61.0.
-- [ ] T013 Generar los 29 drawables `app/src/main/res/drawable/ic_*.xml` con T011 y T012 desde `lucide-static@1.61.0`, descargado con `npm pack --ignore-scripts` en un directorio temporal fuera del repo (`quickstart.md`, «Regenerar iconos»).
-- [ ] T014 [P] Crear las cadenas base en español en `app/src/main/res/values/strings.xml` y en inglés en `app/src/main/res/values-en/strings.xml` con las claves de `contracts/design-system-api.md` («Recursos de cadena compartidos»). `app_name` = «MicroRAG» (D-014).
-- [ ] T015 [P] Actualizar el tema XML:
+- [X] T009 [P] Copiar `docs/disegn_app/Tipografias/GoogleSans-VariableFont_GRAD,opsz,wght.ttf` a `app/src/main/res/font/google_sans_variable.ttf` (research R4).
+- [X] T010 [P] Copiar `docs/disegn_app/logoLISDATA.png` sin modificar a `app/src/main/res/drawable-nodpi/logo_lisdata.png` (research R6).
+- [X] T011 [P] Crear el convertidor `tools/icons/lucide_to_vector.py`. Recibe la ruta de `icon-nodes.json`, la ruta de `icons.txt` y el directorio de salida. Convierte `path`, `circle`, `ellipse`, `rect` (`rx`/`ry`), `line`, `polyline` y `polygon` a `pathData` y escribe VectorDrawable de 24×24 con trazo 2, extremos y uniones redondeados, sin relleno y `strokeColor` `#FF000000`. No ejecuta nada del paquete descargado (research R5).
+- [X] T012 [P] Crear `tools/icons/icons.txt` con el mapeo `ic_* ← lucide` de los 29 iconos de `INVENTARIO.md` §2.6, y `tools/icons/LICENSE-lucide.txt` con el texto ISC de lucide-static 1.61.0.
+- [X] T013 Generar los 29 drawables `app/src/main/res/drawable/ic_*.xml` con T011 y T012 desde `lucide-static@1.61.0`, descargado con `npm pack --ignore-scripts` en un directorio temporal fuera del repo (`quickstart.md`, «Regenerar iconos»).
+- [X] T014 [P] Crear las cadenas base en español en `app/src/main/res/values/strings.xml` y en inglés en `app/src/main/res/values-en/strings.xml` con las claves de `contracts/design-system-api.md` («Recursos de cadena compartidos»). `app_name` = «MicroRAG» (D-014).
+- [X] T015 [P] Actualizar el tema XML:
   - `app/src/main/res/values/themes.xml`: `Theme.MicroRAG`, ventana y `windowSplashScreenBackground` = `#F7FBFD`;
   - crear `app/src/main/res/values-night/themes.xml` con `#03161F`;
   - dejar en `app/src/main/res/values/colors.xml` solo lo que referencie el tema XML (research R16).
 
 ### Tokens y tema
 
-- [ ] T016 [P] Crear `…/microrag/core/designsystem/theme/LisdataColors.kt`: `@Immutable data class LisdataColors` con todos los tokens de `data-model.md` §1 e instancias `LightLisdataColors` y `DarkLisdataColors`. Es el único fichero, junto con T017, con hex de color.
-- [ ] T017 [P] Crear `…/microrag/core/designsystem/theme/LisdataGradients.kt` con los degradados de `data-model.md` §2 como `Brush`: `cta` con `#0099D4 → #0072DD` (D-019), `brandAccent`, `hero`, `welcome` y `stepProgress`.
-- [ ] T018 [P] Crear `…/microrag/core/designsystem/theme/LisdataTypography.kt`:
+- [X] T016 [P] Crear `…/microrag/core/designsystem/theme/LisdataColors.kt`: `@Immutable data class LisdataColors` con todos los tokens de `data-model.md` §1 e instancias `LightLisdataColors` y `DarkLisdataColors`. Es el único fichero, junto con T017, con hex de color.
+- [X] T017 [P] Crear `…/microrag/core/designsystem/theme/LisdataGradients.kt` con los degradados de `data-model.md` §2 como `Brush`: `cta` con `#0099D4 → #0072DD` (D-019), `brandAccent`, `hero`, `welcome` y `stepProgress`.
+- [X] T018 [P] Crear `…/microrag/core/designsystem/theme/LisdataTypography.kt`:
   - `GoogleSans` como `FontFamily` variable con pesos 400, 500, 600 y 700 vía `FontVariation`;
   - la `Typography` de M3 con la escala de `data-model.md` §3;
   - `LisdataTypography` con los extras `navLabel`, `navLabelSelected`, `progressValue` y `eyebrow`.
-- [ ] T019 [P] Crear `…/microrag/core/designsystem/theme/LisdataSpacing.kt` y `LisdataShapes.kt` con los tokens de `data-model.md` §4, incluido el mapeo a `Shapes` de M3.
-- [ ] T020 Crear `…/microrag/core/designsystem/theme/LisdataTheme.kt`. Depende de T016–T019.
+- [X] T019 [P] Crear `…/microrag/core/designsystem/theme/LisdataSpacing.kt` y `LisdataShapes.kt` con los tokens de `data-model.md` §4, incluido el mapeo a `Shapes` de M3.
+- [X] T020 Crear `…/microrag/core/designsystem/theme/LisdataTheme.kt`. Depende de T016–T019.
   - `@Composable fun LisdataTheme(darkTheme, content)` construye el `ColorScheme` de M3 desde los tokens (research R14), sin color dinámico.
   - Las `CompositionLocal` de colores, gradientes, tipografía, espaciado y formas se exponen con `object LisdataTheme { val colors … }`.
-- [ ] T021 [P] Crear `…/microrag/core/designsystem/theme/Contrast.kt` con las funciones puras `relativeLuminance(Color)` y `contrastRatio(Color, Color)` (WCAG 2.x), que reutiliza `ContrastTest`.
-- [ ] T022 [P] Crear `…/microrag/core/designsystem/model/`:
+- [X] T021 [P] Crear `…/microrag/core/designsystem/theme/Contrast.kt` con las funciones puras `relativeLuminance(Color)` y `contrastRatio(Color, Color)` (WCAG 2.x), que reutiliza `ContrastTest`.
+- [X] T022 [P] Crear `…/microrag/core/designsystem/model/`:
   - `StatusKind.kt`, `ProgressValue.kt`, `StageStatus.kt`, `IconTileStyle.kt`, `CitationUi.kt` y `AnswerState.kt`, según `data-model.md` §7;
   - `ProgressValue.Determinate` valida que `fraction` esté en [0,1].
-- [ ] T023 [P] Crear `…/microrag/core/designsystem/icon/`:
+- [X] T023 [P] Crear `…/microrag/core/designsystem/icon/`:
   - `LisdataIcons.kt`, un objeto con los 29 `@DrawableRes`;
   - `LisdataIcon.kt`;
   - `LisdataLogo.kt`, que usa `logo_lisdata` con la descripción `R.string.cd_logo` y escala por altura.
-- [ ] T024 [P] Crear `…/microrag/core/designsystem/preview/LisdataPreviews.kt` con la anotación multipreview `@LisdataPreviews` (claro, oscuro, `fontScale = 2f`) y un `LisdataPreviewSurface` que envuelve en `LisdataTheme`.
+- [X] T024 [P] Crear `…/microrag/core/designsystem/preview/LisdataPreviews.kt` con la anotación multipreview `@LisdataPreviews` (claro, oscuro, `fontScale = 2f`) y un `LisdataPreviewSurface` que envuelve en `LisdataTheme`.
 
 ### Componentes compartidos por el shell
 
-- [ ] T025 Crear `…/microrag/core/designsystem/component/Bars.kt` con `LisdataTopBar` (título, Atrás opcional, acciones y subtítulo) y `LisdataBottomBar` (M3 `NavigationBar` tematizada, 4 destinos, icono y etiqueta siempre visibles), según `contracts/design-system-api.md`. Crear también `BarsPreviews.kt`, con textos largos incluidos.
-- [ ] T026 Crear `…/microrag/core/designsystem/component/States.kt` con `LisdataEmptyState`, `LisdataErrorState` y `LisdataSkeletonRow` (anuncia «Cargando»), y `StatesPreviews.kt`.
+- [X] T025 Crear `…/microrag/core/designsystem/component/Bars.kt` con `LisdataTopBar` (título, Atrás opcional, acciones y subtítulo) y `LisdataBottomBar` (M3 `NavigationBar` tematizada, 4 destinos, icono y etiqueta siempre visibles), según `contracts/design-system-api.md`. Crear también `BarsPreviews.kt`, con textos largos incluidos.
+- [X] T026 Crear `…/microrag/core/designsystem/component/States.kt` con `LisdataEmptyState`, `LisdataErrorState` y `LisdataSkeletonRow` (anuncia «Cargando»), y `StatesPreviews.kt`.
 
 ### Servicios base
 
-- [ ] T027 [P] Crear `…/microrag/core/dispatchers/AppDispatchers.kt` (research R13) y `…/microrag/core/logging/AppLogger.kt`: la interfaz y `DefaultAppLogger`, sujeto a `BuildConfig.DEBUG`. Los tests T006 y T008 tienen que pasar.
-- [ ] T028 Crear los módulos Koin y la aplicación. Los tests T007 tienen que pasar.
+- [X] T027 [P] Crear `…/microrag/core/dispatchers/AppDispatchers.kt` (research R13) y `…/microrag/core/logging/AppLogger.kt`: la interfaz y `DefaultAppLogger`, sujeto a `BuildConfig.DEBUG`. Los tests T006 y T008 tienen que pasar.
+- [X] T028 Crear los módulos Koin y la aplicación. Los tests T007 tienen que pasar.
   - `…/microrag/core/di/CoreModule.kt`, `…/microrag/domain/di/DomainModule.kt`, `…/microrag/data/di/DataModule.kt` y `…/microrag/feature/di/FeatureModule.kt` (los tres últimos vacíos y documentados);
   - `…/microrag/core/di/AppModules.kt`;
   - `…/microrag/MicroRagApplication.kt` con `startKoin`;
   - registrar `android:name=".MicroRagApplication"` en `app/src/main/AndroidManifest.xml`.
-- [ ] T029 Crear la base de depuración:
+- [X] T029 Crear la base de depuración:
   - `app/src/debug/AndroidManifest.xml`, que declara `DebugLauncherActivity` con `MAIN`/`LAUNCHER` y la etiqueta «MicroRAG Debug»;
   - `app/src/debug/java/com/lisdatasolutions/microrag/debug/DebugLauncherActivity.kt`, con una lista de entradas registrables («Catálogo de componentes» y «Menú de rutas», que se rellenan en US1 y US2).
 
 **Checkpoint**: `./gradlew assembleDebug testDebugUnitTest` en verde; el tema, los iconos y los servicios base disponibles.
+
+> Nota de implementación: T032 (`Buttons.kt`) y `LisdataIconTile` (parte de T033, en `IconTile.kt`) se adelantaron a esta fase porque `LisdataEmptyState` y `LisdataErrorState` (T026) los usan.
 
 ---
 
@@ -156,7 +158,7 @@ description: "Lista de tareas de F01 — Fundaciones y design system"
 - una preview con textos largos;
 - una preview del estado de error en los componentes que lo tienen (botones deshabilitados u ocupados, chips de error, filas en error, `LisdataSourceCitation` no disponible, `LisdataAnswerCard` fallida).
 
-- [ ] T032 [P] [US1] Crear `…/microrag/core/designsystem/component/Buttons.kt` con `LisdataGradientButton` (`gradients.cta`, 52 dp, deshabilitado y ocupado), `LisdataDarkButton` y `LisdataOutlinedButton` (normal y destructivo), y `ButtonsPreviews.kt`.
+- [X] T032 [P] [US1] Crear `…/microrag/core/designsystem/component/Buttons.kt` con `LisdataGradientButton` (`gradients.cta`, 52 dp, deshabilitado y ocupado), `LisdataDarkButton` y `LisdataOutlinedButton` (normal y destructivo), y `ButtonsPreviews.kt`.
 - [ ] T033 [P] [US1] Crear `…/microrag/core/designsystem/component/Cards.kt` y `CardsPreviews.kt`:
   - `LisdataCard`, con borde de 1 dp y radio 16;
   - `LisdataHeroCard`, con `gradients.hero` y órbitas decorativas sin semántica;
