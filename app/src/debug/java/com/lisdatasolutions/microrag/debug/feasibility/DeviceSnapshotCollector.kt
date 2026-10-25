@@ -11,13 +11,20 @@ import com.lisdatasolutions.microrag.BuildConfig
 import com.lisdatasolutions.microrag.debug.feasibility.report.DeviceSnapshot
 import com.lisdatasolutions.microrag.rag.runtime.RuntimeInfo
 
+/** Device facts the suite records; an interface so the suite can be tested on the JVM. */
+interface DeviceInfoSource {
+    fun snapshot(): DeviceSnapshot
+
+    fun isCharging(): Boolean
+}
+
 /** Device, battery and version facts recorded with every report (research R6). */
 class DeviceSnapshotCollector(
     private val context: Context,
     private val thermal: ThermalMonitor,
-) {
+) : DeviceInfoSource {
 
-    fun snapshot(): DeviceSnapshot {
+    override fun snapshot(): DeviceSnapshot {
         val memory = ActivityManager.MemoryInfo().also {
             context.getSystemService(ActivityManager::class.java).getMemoryInfo(it)
         }
@@ -42,7 +49,7 @@ class DeviceSnapshotCollector(
         )
     }
 
-    fun isCharging(): Boolean = isCharging(batteryIntent())
+    override fun isCharging(): Boolean = isCharging(batteryIntent())
 
     private fun batteryIntent(): Intent? = ContextCompat.registerReceiver(
         context,

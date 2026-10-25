@@ -133,3 +133,22 @@ data class ExitCriteria(
     val bestQueryP95CpuMs: Double?,
     val queryUnder150msCpu: Boolean,
 )
+
+/** Phase-0 exit criteria (FR-017): TTFT measured and a CPU query embedding under 150 ms p95. */
+fun exitCriteriaOf(results: List<ScenarioResult>): ExitCriteria {
+    val bestQueryP95Cpu = results
+        .filter { it.kind == ScenarioKind.EMBEDDING && it.backend == ComputeBackend.CPU && it.status == ResultStatus.COMPLETED }
+        .mapNotNull { it.embedding?.queryP95Ms }
+        .minOrNull()
+    val ttftMeasured = results.any { it.kind == ScenarioKind.GENERATION && it.status == ResultStatus.COMPLETED && it.generation != null }
+    return ExitCriteria(
+        ttftMeasured = ttftMeasured,
+        bestQueryP95CpuMs = bestQueryP95Cpu,
+        queryUnder150msCpu = bestQueryP95Cpu != null && bestQueryP95Cpu < MeasurementProtocol.QUERY_P95_BUDGET_MS,
+    )
+}
+
+/** Where each report version is written; the suite rewrites it after every result. */
+fun interface ReportSink {
+    suspend fun write(report: FeasibilityReport): java.io.File
+}

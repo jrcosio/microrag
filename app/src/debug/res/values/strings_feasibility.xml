@@ -15,4 +15,58 @@
     <string name="feasibility_action_verify" translatable="false">Verificar de nuevo</string>
     <string name="feasibility_empty_title" translatable="false">Sin modelos en el teléfono</string>
     <string name="feasibility_empty_body" translatable="false">Copia los ficheros .litertlm con adb a la carpeta dev-models de la app y pulsa «Importar modelos de desarrollo» (quickstart §3).</string>
+    <string name="feasibility_section_tests" translatable="false">Pruebas</string>
+    <string name="feasibility_action_embeddings" translatable="false">Embeddings (3 variantes × CPU/GPU)</string>
+    <string name="feasibility_action_compatibility" translatable="false">Compatibilidad CPU↔GPU</string>
+    <string name="feasibility_action_generation" translatable="false">Generación (Gemma 4 E2B)</string>
+    <string name="feasibility_action_all" translatable="false">Batería completa</string>
+    <string name="feasibility_action_cancel" translatable="false">Cancelar</string>
+    <string name="feasibility_running_step" translatable="false">%1$s · %2$d de %3$d</string>
+    <string name="feasibility_phase_verify" translatable="false">Verificando huellas</string>
+    <string name="feasibility_phase_metadata" translatable="false">Leyendo metadatos</string>
+    <string name="feasibility_phase_thermal" translatable="false">Esperando a que se enfríe</string>
+    <string name="feasibility_phase_init_cold" translatable="false">Inicialización en frío</string>
+    <string name="feasibility_phase_init_warm" translatable="false">Inicialización con caché</string>
+    <string name="feasibility_phase_query_warmup" translatable="false">Consultas de calentamiento</string>
+    <string name="feasibility_phase_query" translatable="false">Consultas medidas</string>
+    <string name="feasibility_phase_document_warmup" translatable="false">Fragmentos de calentamiento</string>
+    <string name="feasibility_phase_document" translatable="false">Fragmentos medidos</string>
+    <string name="feasibility_phase_compat_cpu" translatable="false">Vectores en CPU</string>
+    <string name="feasibility_phase_compat_gpu" translatable="false">Vectores en GPU</string>
+    <string name="feasibility_phase_generation_warmup" translatable="false">Generación de calentamiento</string>
+    <string name="feasibility_phase_generation" translatable="false">Generaciones medidas</string>
+    <string name="feasibility_section_results" translatable="false">Resultados</string>
+    <string name="feasibility_results_empty" translatable="false">Aún no hay resultados en esta sesión.</string>
+    <string name="feasibility_status_completed" translatable="false">Completada</string>
+    <string name="feasibility_status_cancelled" translatable="false">Cancelada</string>
+    <string name="feasibility_status_failed" translatable="false">Fallida</string>
+    <string name="feasibility_status_not_available" translatable="false">No disponible</string>
+    <string name="feasibility_kind_compatibility" translatable="false">%1$s · CPU↔GPU</string>
+    <string name="feasibility_metric_init" translatable="false">Inicialización en frío / con caché: %1$d / %2$d ms</string>
+    <string name="feasibility_metric_query" translatable="false">Consulta p50 / p95: %1$s / %2$s ms</string>
+    <string name="feasibility_metric_document" translatable="false">Fragmento p50 / p95: %1$s / %2$s ms</string>
+    <string name="feasibility_metric_vector" translatable="false">Dimensiones %1$d → %2$d · norma %3$s · contexto máx. %4$s</string>
+    <string name="feasibility_metric_context" translatable="false">RSS pico %1$s MB · térmico %2$s → %3$s</string>
+    <string name="feasibility_metric_cosine" translatable="false">Coseno mín. / medio: %1$s / %2$s · textos comparados: %3$d</string>
+    <string name="feasibility_metric_compatible" translatable="false">Compatible (≥ 0,99)</string>
+    <string name="feasibility_metric_not_compatible" translatable="false">No compatible (&lt; 0,99)</string>
+    <string name="feasibility_metric_prompt" translatable="false">Tokens del prompt: %1$s · TTFT %2$s ms (reloj %3$d ms)</string>
+    <string name="feasibility_metric_speed" translatable="false">Prefill %1$s tok/s · decode %2$s tok/s</string>
+    <string name="feasibility_metric_fallback" translatable="false">Plan B en CPU: %1$s</string>
+    <string name="feasibility_metric_reason" translatable="false">Motivo: %1$s</string>
+    <string name="feasibility_action_show_output" translatable="false">Ver respuesta generada</string>
+    <string name="feasibility_action_hide_output" translatable="false">Ocultar respuesta</string>
+    <string name="feasibility_section_summary" translatable="false">Criterios de salida (fase 0)</string>
+    <string name="feasibility_summary_ttft" translatable="false">TTFT medido con ≈ 2.000 tokens: %1$s</string>
+    <string name="feasibility_summary_query" translatable="false">Mejor consulta p95 en CPU: %1$s</string>
+    <string name="feasibility_summary_budget" translatable="false">Consulta &lt; 150 ms p95 en CPU: %1$s</string>
+    <string name="feasibility_yes" translatable="false">sí</string>
+    <string name="feasibility_no" translatable="false">no</string>
+    <string name="feasibility_not_measured" translatable="false">sin medir</string>
+    <string name="feasibility_report_path" translatable="false">Último informe: %1$s</string>
+    <string name="feasibility_run_error" translatable="false">La batería se detuvo: %1$s</string>
+    <string name="feasibility_thermal_title" translatable="false">Teléfono caliente</string>
+    <string name="feasibility_thermal_body" translatable="false">El estado térmico es %1$s tras esperar 5 minutos. Las cifras saldrían afectadas por el estrangulamiento. ¿Medir igualmente?</string>
+    <string name="feasibility_thermal_confirm" translatable="false">Medir igualmente</string>
+    <string name="feasibility_thermal_skip" translatable="false">Saltar prueba</string>
 </resources>

@@ -33,10 +33,17 @@ class FeasibilityViewModelModelsTest {
     @After
     fun tearDown() = Dispatchers.resetMain()
 
-    private fun TestScope.viewModel(repository: FakeModelFileRepository, devDir: File) = FeasibilityViewModel(
-        repository = repository,
-        importer = DevModelImporter(devDir, repository, StandardTestDispatcher(testScheduler)),
-    )
+    private fun TestScope.viewModel(repository: FakeModelFileRepository, devDir: File): FeasibilityViewModel {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        val fixture = SuiteFixture(dispatcher, repository = repository)
+        return FeasibilityViewModel(
+            repository = repository,
+            importer = DevModelImporter(devDir, repository, dispatcher),
+            suite = fixture.suite,
+            coordinator = fixture.coordinator,
+            reports = com.lisdatasolutions.microrag.debug.feasibility.report.ReportWriter(tmp.newFolder(), dispatcher),
+        )
+    }
 
     @Test
     fun opening_refreshesAndVerifiesPresentFiles() = runTest(main) {

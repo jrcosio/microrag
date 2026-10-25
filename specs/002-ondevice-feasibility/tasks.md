@@ -275,10 +275,10 @@ Todas las historias dependen de esta fase.
 
 ### Tests for User Story 2 ⚠️
 
-- [ ] T038 [P] [US2] `…/testDebug/debug/feasibility/FeasibilityTextsTest.kt` (Robolectric, con los assets de debug):
+- [X] T038 [P] [US2] `…/testDebug/debug/feasibility/FeasibilityTextsTest.kt` (Robolectric, con los assets de debug):
   - `texts_es.json` tiene 10 consultas, 10 fragmentos y 1 fragmento de medida, todos no vacíos;
   - el fragmento de medida tiene entre 1.000 y 2.500 caracteres (≈ 350 tokens; el tamaño real lo confirma el teléfono).
-- [ ] T039 [P] [US2] `…/testDebug/debug/feasibility/FeasibilitySuiteEmbeddingTest.kt`, con fábrica, embedders, reloj (`nanoTime` inyectado), térmica y memoria falsos. Comprueba:
+- [X] T039 [P] [US2] `…/testDebug/debug/feasibility/FeasibilitySuiteEmbeddingTest.kt`, con fábrica, embedders, reloj (`nanoTime` inyectado), térmica y memoria falsos. Comprueba:
   - orden por combinación: `metadata` → `clearCompiledCache` → inicialización en frío → liberar → inicialización con caché → 3+30 consultas → 3+30 fragmentos → liberar;
   - si `metadata.supportedBackends` no incluye el backend → `NotAvailable` sin llamar a la fábrica;
   - un modelo que no queda `Verified` tras la revalidación inicial nunca llega a la fábrica (SC-001);
@@ -291,14 +291,14 @@ Todas las historias dependen de esta fase.
 
 ### Implementation for User Story 2
 
-- [ ] T040 [P] [US2] Crear `app/src/debug/assets/feasibility/texts_es.json`:
+- [X] T040 [P] [US2] Crear `app/src/debug/assets/feasibility/texts_es.json`:
   - 10 consultas en español sobre el contenido del informe RAG;
-  - 10 fragmentos de 150–350 tokens;
+  - 10 fragmentos de ≈ 120–160 tokens (469–630 caracteres; la compatibilidad compara vectores, no depende de la longitud);
   - 1 fragmento de medida de ≈ 350 tokens.
 
   Texto sintético a partir de `docs/RAG_Movil/informe-rag-movil-v2.md` (FR-019).
-- [ ] T041 [US2] Crear `…/debug/feasibility/FeasibilityTexts.kt`, que carga los assets con kotlinx.serialization. Hacer pasar T038.
-- [ ] T042 [US2] Crear `…/debug/feasibility/FeasibilitySuite.kt`. El constructor recibe `EngineCoordinator`, `EngineFactory`, `ModelFileRepository`, `FeasibilityTexts`, `ThermalSource`, `MemoryProbe`, `DeviceSnapshotCollector`, `AppDispatchers`, `AppLogger` y `nanoTime: () -> Long`, para que T039 pueda inyectar falsos.
+- [X] T041 [US2] Crear `…/debug/feasibility/FeasibilityTexts.kt`, que carga los assets con kotlinx.serialization. Hacer pasar T038.
+- [X] T042 [US2] Crear `…/debug/feasibility/FeasibilitySuite.kt`. El constructor recibe `EngineCoordinator`, `EngineFactory`, `ModelFileRepository`, `FeasibilityTexts`, `ThermalSource`, `MemoryProbe`, `DeviceSnapshotCollector`, `AppDispatchers`, `AppLogger` y `nanoTime: () -> Long`, para que T039 pueda inyectar falsos.
   - esqueleto de sesión:
     - `progress: StateFlow<SuiteProgress>` (fase, combinación y repetición i/N reales);
     - revalidación SHA-256 inicial;
@@ -309,7 +309,7 @@ Todas las historias dependen de esta fase.
   - bloque de embeddings y bloque de compatibilidad, con un `withEngine` por fase (plan, «Diseño de ejecución»).
 
   Registrarlo en `DebugModules.kt`. Hacer pasar T039.
-- [ ] T043 [US2] Ampliar el ViewModel y la pantalla con la sección «Embeddings»:
+- [X] T043 [US2] Ampliar el ViewModel y la pantalla con la sección «Embeddings»:
   - botones Embeddings y Compatibilidad, deshabilitados si no hay ninguna variante verificada;
   - progreso real;
   - Cancelar;
@@ -336,7 +336,7 @@ Todas las historias dependen de esta fase.
 
 ### Tests for User Story 3 ⚠️
 
-- [ ] T045 [P] [US3] `…/testDebug/debug/feasibility/FeasibilitySuiteGenerationTest.kt`, con un generador falso:
+- [X] T045 [P] [US3] `…/testDebug/debug/feasibility/FeasibilitySuiteGenerationTest.kt`, con un generador falso:
   - se prueba primero en GPU;
   - si la inicialización en GPU falla → se repite en CPU con `fallbackFromGpu = true` y el motivo;
   - si la generación en GPU falla → mismo plan B;
@@ -346,16 +346,16 @@ Todas las historias dependen de esta fase.
   - al cancelar durante la generación se llama a `cancel()` y el resultado es `Cancelled`;
   - un `LogSink` falso nunca recibe ninguna subcadena del prompt ni de la salida (FR-019);
   - `sampleOutput` se guarda en el resultado.
-- [ ] T046 [P] [US3] Ampliar `…/testDebug/debug/feasibility/FeasibilityTextsTest.kt`: `prompt_es.txt` no está vacío, contiene las fuentes `[1]`…`[6]`, la instrucción de la plantilla del informe y una PREGUNTA.
+- [X] T046 [P] [US3] Ampliar `…/testDebug/debug/feasibility/FeasibilityTextsTest.kt`: `prompt_es.txt` no está vacío, contiene las fuentes `[1]`…`[6]`, la instrucción de la plantilla del informe y una PREGUNTA.
 
 ### Implementation for User Story 3
 
-- [ ] T047 [P] [US3] Crear `app/src/debug/assets/feasibility/prompt_es.txt` (research R9):
+- [X] T047 [P] [US3] Crear `app/src/debug/assets/feasibility/prompt_es.txt` (research R9):
   - plantilla del informe («Responde a la PREGUNTA usando únicamente las FUENTES…»);
   - 6 fuentes numeradas con fragmentos de `docs/RAG_Movil/informe-rag-movil-v2.md`;
   - una pregunta;
   - objetivo de ≈ 2.000 tokens (≈ 8.000 caracteres en español como estimación inicial).
-- [ ] T048 [US3] Añadir el bloque de generación a `…/debug/feasibility/FeasibilitySuite.kt`:
+- [X] T048 [US3] Añadir el bloque de generación a `…/debug/feasibility/FeasibilitySuite.kt`:
   - `GenerationConfig(maxNumTokens = 4096, maxOutputTokens = 128, greedy = true)`;
   - inicialización en frío y con caché;
   - 1 + 3 generaciones;
@@ -363,7 +363,7 @@ Todas las historias dependen de esta fase.
   - un `withEngine` por fase.
 
   Hacer pasar T045 y T046.
-- [ ] T049 [US3] Ampliar el ViewModel y la pantalla con la sección «Generación», por fichero y backend:
+- [X] T049 [US3] Ampliar el ViewModel y la pantalla con la sección «Generación», por fichero y backend:
   - inicialización;
   - tokens del prompt;
   - TTFT (benchmark y reloj de pared);
@@ -390,7 +390,7 @@ Todas las historias dependen de esta fase.
 
 ### Tests for User Story 4 ⚠️
 
-- [ ] T051 [P] [US4] `…/testDebug/debug/feasibility/report/ReportWriterTest.kt`:
+- [X] T051 [P] [US4] `…/testDebug/debug/feasibility/report/ReportWriterTest.kt`:
   - el JSON hace ida y vuelta (`encode` → `decode`) con un informe completo;
   - el Markdown contiene las 7 secciones de `contracts/report-format.md`;
   - `exitCriteria`:
@@ -402,9 +402,9 @@ Todas las historias dependen de esta fase.
 
 ### Implementation for User Story 4
 
-- [ ] T052 [US4] Crear `…/debug/feasibility/report/ReportWriter.kt`: JSON con kotlinx.serialization y Markdown con tablas, en `filesDir/reports/`, en `AppDispatchers.io`. Hacer pasar T051.
-- [ ] T053 [US4] La suite reescribe el informe (mismo nombre de sesión) tras cada resultado y al terminar o cancelarse, con los resultados parciales y sus estados. Así una muerte del proceso solo pierde la medición en curso. Añadir el bloque «Batería completa», que ejecuta embeddings → compatibilidad → generación.
-- [ ] T054 [US4] Ampliar el ViewModel y la pantalla con la sección «Resumen»:
+- [X] T052 [US4] Crear `…/debug/feasibility/report/ReportWriter.kt`: JSON con kotlinx.serialization y Markdown con tablas, en `filesDir/reports/`, en `AppDispatchers.io`. Hacer pasar T051.
+- [X] T053 [US4] La suite reescribe el informe (mismo nombre de sesión) tras cada resultado y al terminar o cancelarse, con los resultados parciales y sus estados. Así una muerte del proceso solo pierde la medición en curso. Añadir el bloque «Batería completa», que ejecuta embeddings → compatibilidad → generación.
+- [X] T054 [US4] Ampliar el ViewModel y la pantalla con la sección «Resumen»:
   - criterios de salida (TTFT medido; mejor p95 de consulta en CPU; cumple < 150 ms sí/no);
   - ruta del último informe; al abrir la pantalla se lee el más reciente de `filesDir/reports`, para que sobreviva a una muerte del proceso;
   - botón «Batería completa».
@@ -432,19 +432,19 @@ Todas las historias dependen de esta fase.
 
 ### Tests for User Story 5 ⚠️
 
-- [ ] T057 [P] [US5] `…/test/rag/runtime/EngineMemoryCallbacksTest.kt`:
+- [X] T057 [P] [US5] `…/test/rag/runtime/EngineMemoryCallbacksTest.kt`:
   - `onTrimMemory(TRIM_MEMORY_UI_HIDDEN)` y los niveles superiores llaman a `releaseAll()`;
   - los niveles inferiores (`RUNNING_*`) no;
   - `onLowMemory` llama a `releaseAll()`.
-- [ ] T058 [P] [US5] `…/testDebug/debug/feasibility/FeasibilityViewModelLifecycleTest.kt`:
+- [X] T058 [P] [US5] `…/testDebug/debug/feasibility/FeasibilityViewModelLifecycleTest.kt`:
   - `onStop()` cancela la suite, espera a que termine (`cancelAndJoin`) y después llama a `releaseAll()`;
   - el resultado en curso queda `Cancelled`;
   - `isRunning` controla `keepScreenOn`.
 
 ### Implementation for User Story 5
 
-- [ ] T059 [US5] Crear `…/microrag/rag/runtime/EngineMemoryCallbacks.kt` (`ComponentCallbacks2`, con su propio `CoroutineScope(SupervisorJob() + Dispatchers.Default)`) y registrarlo en `…/microrag/MicroRagApplication.kt` con `registerComponentCallbacks`. Hacer pasar T057.
-- [ ] T060 [US5] En `…/debug/feasibility/FeasibilityScreen.kt`:
+- [X] T059 [US5] Crear `…/microrag/rag/runtime/EngineMemoryCallbacks.kt` (`ComponentCallbacks2`, con su propio `CoroutineScope(SupervisorJob() + Dispatchers.Default)`) y registrarlo en `…/microrag/MicroRagApplication.kt` con `registerComponentCallbacks`. Hacer pasar T057.
+- [X] T060 [US5] En `…/debug/feasibility/FeasibilityScreen.kt`:
   - `LifecycleEventEffect(ON_STOP) { viewModel.onStop() }`;
   - `LocalView.current.keepScreenOn = state.isRunning`;
   - al salir (`onBack`) se llama a `releaseAll()`.
