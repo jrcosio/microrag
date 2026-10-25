@@ -239,7 +239,7 @@ private fun ResultCard(result: ScenarioResult) {
     val name = ModelCatalog.byId(result.model).displayName
     val title = when (result.kind) {
         ScenarioKind.COMPATIBILITY -> stringResource(R.string.feasibility_kind_compatibility, name)
-        else -> "$name · ${result.backend}"
+        else -> listOfNotNull(name, result.backend?.name, result.activationPrecision?.name).joinToString(" · ")
     }
     LisdataCard {
         BodyText(title)

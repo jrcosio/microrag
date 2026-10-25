@@ -25,7 +25,11 @@ data class GenerationConfig(
     val maxNumTokens: Int,
     val maxOutputTokens: Int,
     val greedy: Boolean,
+    /** Null keeps the model's default; FLOAT32 avoids fp16 precision issues on some GPUs (research R14). */
+    val activationPrecision: ActivationPrecision? = null,
 )
+
+enum class ActivationPrecision { FLOAT32, FLOAT16 }
 
 /**
  * Timing of one generation. Fields from the runtime benchmark are null unless

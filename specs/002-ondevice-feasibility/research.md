@@ -183,3 +183,28 @@ Hay **dos formas de lanzar** la batería de pruebas, que comparten el mismo orqu
 | Estrangulamiento térmico en sesiones largas | Espera térmica entre bloques; se registran el estado y el margen al inicio y al final |
 | `ExperimentalFlags` es API experimental | Solo en el diagnóstico de debug; se contrasta con medidas de reloj de pared |
 | Acceso de adb a `Android/data` | Plan B con `run-as` (R7) |
+
+## R14 — Precisión de activaciones de Gemma en la Adreno 642L (hallazgo de implementación)
+
+**Observación (2026-10-26):** con la configuración por defecto, `gemma-4-E2B-it-gpu.litertlm` genera texto incoherente en el Nothing Phone (1): mezcla idiomas y caracteres devanagari y cirílicos. El fichero genérico `gemma-4-E2B-it.litertlm` genera texto correcto en GPU.
+
+**Experimento** (`GemmaGpuFileExperimentTest`): el mismo prompt con `EngineConfig.activationDataType`:
+
+| `activationDataType` | Salida del fichero `-gpu` |
+|---|---|
+| por defecto | incoherente |
+| `FLOAT16` | incoherente (idéntica a la por defecto) |
+| `FLOAT32` | coherente |
+
+El fichero `-gpu` usa el ejecutor `GpuArtisan` (log del runtime) con activaciones en fp16 por defecto. En esta GPU su precisión fp16 no basta.
+
+**Decisión de medición:** la suite mide cada fichero de Gemma en GPU con la precisión por defecto **y** con `FLOAT32` (`GenerationConfig.activationPrecision`). El informe incluye la columna «Activaciones» y la muestra de salida de cada caso. Como la coherencia no se mide automáticamente, se juzga en la muestra.
+
+## R15 — Variantes de EmbeddingGemma 2 y codificador de texto (hallazgo de implementación)
+
+**Observación:** las tres variantes (740M, 440M y 270M) dan latencias de texto prácticamente idénticas y el mismo coseno CPU↔GPU hasta el quinto decimal.
+
+**Experimento** (`EmbeddingVariantsExperimentTest`): los 20 textos de prueba embebidos en CPU con cada variante dan coseno **1,0 exacto** entre 270M y 440M y entre 270M y 740M.
+
+Las tres variantes comparten el codificador de texto; las mayores solo añaden las torres de visión y audio. Para un RAG solo de texto son equivalentes y la de 270M (157 MB) es suficiente. Esto afecta a G36: no tiene sentido comparar variantes en F05 para texto.
+

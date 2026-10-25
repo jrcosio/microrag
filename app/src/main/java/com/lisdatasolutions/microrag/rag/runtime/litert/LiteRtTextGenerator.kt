@@ -1,5 +1,6 @@
 package com.lisdatasolutions.microrag.rag.runtime.litert
 
+import com.google.ai.edge.litertlm.ActivationDataType
 import com.google.ai.edge.litertlm.Content
 import com.google.ai.edge.litertlm.Conversation
 import com.google.ai.edge.litertlm.ConversationConfig
@@ -10,6 +11,7 @@ import com.google.ai.edge.litertlm.ExperimentalFlags
 import com.google.ai.edge.litertlm.SamplerConfig
 import com.lisdatasolutions.microrag.domain.model.ComputeBackend
 import com.lisdatasolutions.microrag.domain.model.ModelId
+import com.lisdatasolutions.microrag.rag.runtime.ActivationPrecision
 import com.lisdatasolutions.microrag.rag.runtime.GenerationConfig
 import com.lisdatasolutions.microrag.rag.runtime.GenerationEvent
 import com.lisdatasolutions.microrag.rag.runtime.GenerationStats
@@ -46,6 +48,11 @@ internal class LiteRtTextGenerator(
                 backend = backend.toLiteRt(),
                 maxNumTokens = config.maxNumTokens,
                 cacheDir = cacheDir.path,
+                activationDataType = when (config.activationPrecision) {
+                    null -> null
+                    ActivationPrecision.FLOAT32 -> ActivationDataType.FLOAT32
+                    ActivationPrecision.FLOAT16 -> ActivationDataType.FLOAT16
+                },
             ),
         )
         try {

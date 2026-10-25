@@ -157,7 +157,7 @@ class SuiteFixture(
         }
 
         override fun generate(prompt: String): Flow<GenerationEvent> = flow {
-            events += "generate $model $backend ${config.maxOutputTokens}"
+            events += "generate $model $backend ${config.maxOutputTokens} ${config.activationPrecision}"
             if (model to backend in failGenerate) error("GPU generation failed")
             onGenerate()
             advance(800)

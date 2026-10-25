@@ -199,7 +199,7 @@ Mientras se ejecutan las pruebas, nunca hay dos motores ocupando la GPU a la vez
 **Pruebas de generación**
 
 - **FR-010**: Para cada fichero verificado de Gemma 4 E2B, la herramienta MUST:
-  - cargar el modelo en GPU y, solo si la carga o la generación en GPU fallan, repetir la prueba de ese fichero en CPU como plan B, registrando el motivo del fallo en GPU;
+  - cargar el modelo en GPU con la precisión de activaciones por defecto y también con FLOAT32 (añadido en implementación, research R14); solo si ambas fallan, repetir la prueba de ese fichero en CPU como plan B, registrando el motivo del fallo en GPU;
   - generar a partir de un prompt de ≈ 2.000 tokens con el formato del informe (fuentes numeradas y pregunta);
   - medir la inicialización en frío, el TTFT, el prefill y el decode (tokens/s), la memoria pico y el número real de tokens del prompt;
   - mostrar el texto generado.

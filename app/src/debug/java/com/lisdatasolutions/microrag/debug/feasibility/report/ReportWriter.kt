@@ -104,12 +104,12 @@ class ReportWriter(
 
             appendLine("## 5. Generación")
             appendLine()
-            appendLine("| Modelo | Backend | Init frío / caché (ms) | Tokens prompt | TTFT bench / pared (ms) | Prefill (tok/s) | Decode (tok/s) | RSS pico (MB) | Térmico | Plan B | Estado |")
-            appendLine("|---|---|---:|---:|---:|---:|---:|---:|---|---|---|")
+            appendLine("| Modelo | Backend | Activaciones | Init frío / caché (ms) | Tokens prompt | TTFT bench / pared (ms) | Prefill (tok/s) | Decode (tok/s) | RSS pico (MB) | Térmico | Plan B | Estado |")
+            appendLine("|---|---|---|---:|---:|---:|---:|---:|---:|---|---|---|")
             r.results.filter { it.kind == ScenarioKind.GENERATION }.forEach { s ->
                 val g = s.generation
                 appendLine(
-                    "| ${s.model} | ${s.backend} | ${g?.let { "${it.initColdMs} / ${it.initWarmMs}" } ?: "—"} | " +
+                    "| ${s.model} | ${s.backend} | ${s.activationPrecision ?: "por defecto"} | ${g?.let { "${it.initColdMs} / ${it.initWarmMs}" } ?: "—"} | " +
                         "${g?.promptTokens ?: "—"} | ${g?.let { "${it.ttftMs?.let(::num) ?: "—"} / ${it.ttftWallMs}" } ?: "—"} | " +
                         "${g?.prefillTokensPerSecond?.let(::num) ?: "—"} | ${g?.decodeTokensPerSecond?.let(::num) ?: "—"} | " +
                         "${s.peakRssMb ?: "—"}${resetMark(s)} | ${thermal(s)} | ${g?.fallbackReason?.let { "sí: $it" } ?: "no"} | ${status(s)} |",
@@ -128,7 +128,7 @@ class ReportWriter(
             appendLine("## 7. Muestra de salida")
             appendLine()
             r.results.filter { it.generation != null }.forEach { s ->
-                appendLine("### ${s.model} · ${s.backend}")
+                appendLine("### ${s.model} · ${s.backend} · activaciones ${s.activationPrecision ?: "por defecto"}")
                 appendLine()
                 s.generation!!.sampleOutput.lines().forEach { appendLine("> $it") }
                 appendLine()

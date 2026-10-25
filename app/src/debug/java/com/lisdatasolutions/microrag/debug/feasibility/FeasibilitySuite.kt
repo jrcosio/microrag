@@ -20,6 +20,7 @@ import com.lisdatasolutions.microrag.domain.model.ModelCatalog
 import com.lisdatasolutions.microrag.domain.model.ModelFamily
 import com.lisdatasolutions.microrag.domain.model.ModelFile
 import com.lisdatasolutions.microrag.domain.model.ModelFileState
+import com.lisdatasolutions.microrag.rag.runtime.ActivationPrecision
 import com.lisdatasolutions.microrag.rag.runtime.EmbeddingMath
 import com.lisdatasolutions.microrag.rag.runtime.EngineCoordinator
 import com.lisdatasolutions.microrag.rag.runtime.EngineFactory
@@ -115,11 +116,14 @@ class FeasibilitySuite(
                 }
                 if (SuiteBlock.GENERATION in blocks) {
                     verified(ModelFamily.LLM).forEach { file ->
-                        val gpu = generation(session, file, ComputeBackend.GPU, texts, confirmHot, fallbackReason = null)
-                        session.record(gpu)
-                        if (gpu.status == ResultStatus.FAILED || gpu.status == ResultStatus.NOT_AVAILABLE) {
-                            val reason = gpu.reason ?: gpu.status.name
-                            session.record(generation(session, file, ComputeBackend.CPU, texts, confirmHot, reason))
+                        // GPU with the model default and with FP32 activations (research R14).
+                        val gpu = listOf(null, ActivationPrecision.FLOAT32).map { precision ->
+                            generation(session, file, ComputeBackend.GPU, precision, texts, confirmHot, fallbackReason = null)
+                                .also { session.record(it) }
+                        }
+                        if (gpu.all { it.status == ResultStatus.FAILED || it.status == ResultStatus.NOT_AVAILABLE }) {
+                            val reason = gpu.first().reason ?: gpu.first().status.name
+                            session.record(generation(session, file, ComputeBackend.CPU, null, texts, confirmHot, reason))
                         }
                     }
                 }
@@ -183,6 +187,7 @@ class FeasibilitySuite(
         val file: ModelFile,
         val backend: ComputeBackend?,
         val protocol: MeasurementProtocol,
+        val precision: ActivationPrecision? = null,
     ) {
         private val startedAt = now()
         private val start = nanoTime()
@@ -190,7 +195,7 @@ class FeasibilitySuite(
         private val charging = device.isCharging()
         var phase = SuitePhase.METADATA
         var resetSupported = false
-        val label = listOfNotNull(file.displayName, backend?.name).joinToString(" · ")
+        val label = listOfNotNull(file.displayName, backend?.name, precision?.name).joinToString(" · ")
 
         fun progress(phase: SuitePhase, step: Int = 0, total: Int = 0) {
             this.phase = phase
@@ -207,6 +212,7 @@ class FeasibilitySuite(
             kind = kind,
             model = file.id,
             backend = backend,
+            activationPrecision = precision,
             status = status,
             reason = reason,
             atPhase = phase.name.takeIf { status != ResultStatus.COMPLETED },
@@ -375,10 +381,14 @@ class FeasibilitySuite(
         session: Session,
         file: ModelFile,
         backend: ComputeBackend,
+        precision: ActivationPrecision?,
         texts: FeasibilityTexts,
         confirmHot: suspend (ThermalLevel) -> Boolean,
         fallbackReason: String?,
-    ): ScenarioResult = scenario(session, ScenarioRun(ScenarioKind.GENERATION, file, backend, MeasurementProtocol.GENERATION)) {
+    ): ScenarioResult = scenario(
+        session,
+        ScenarioRun(ScenarioKind.GENERATION, file, backend, MeasurementProtocol.GENERATION, precision),
+    ) {
         val path = repository.pathOf(file.id) ?: return@scenario finish(ResultStatus.NOT_AVAILABLE, "model not verified")
         progress(SuitePhase.METADATA)
         val metadata = withContext(dispatchers.io) { factory.metadata(path) }
@@ -392,6 +402,7 @@ class FeasibilitySuite(
             maxNumTokens = MeasurementProtocol.GENERATION_MAX_NUM_TOKENS,
             maxOutputTokens = checkNotNull(protocol.maxOutputTokens),
             greedy = true,
+            activationPrecision = precision,
         )
         val key = EngineKey(file.id, backend)
         val create = suspend { factory.generator(file, path, backend, config).initializeOrClose { it.initialize() } }

@@ -316,7 +316,7 @@ Todas las historias dependen de esta fase.
   - por combinación: inicialización en frío y con caché, consulta y fragmento p50/p95, dimensiones (bruta → 256), norma, contexto máximo, memoria pico y estado térmico inicial → final;
   - compatibilidad: coseno mínimo y medio, y si es compatible;
   - diálogo térmico con `LisdataConfirmationDialog`.
-- [ ] T044 [US2] Ejecución exploratoria en el teléfono de los bloques de embeddings y compatibilidad desde la UI. Revisar que las cifras sean coherentes (no se registran todavía; la medición definitiva va en T066). Anotar cualquier problema de GPU por variante.
+- [X] T044 [US2] Ejecución exploratoria en el teléfono de los bloques de embeddings y compatibilidad desde la UI. Revisar que las cifras sean coherentes (no se registran todavía; la medición definitiva va en T066). Anotar cualquier problema de GPU por variante.
 
 **Checkpoint**: US2 operativa.
 
@@ -374,7 +374,10 @@ Todas las historias dependen de esta fase.
   - la muestra de salida en un bloque desplegable.
 
   Botón Generación y Cancelar.
-- [ ] T050 [US3] Ejecución exploratoria en el teléfono:
+- [X] T050a [US3] Hallazgos de la ejecución exploratoria, ya resueltos:
+  - el fichero `-gpu` genera texto incoherente con activaciones fp16. La suite mide cada fichero con la precisión por defecto y con FLOAT32 (`GenerationConfig.activationPrecision`; research R14 y `GemmaGpuFileExperimentTest`);
+  - las variantes de EmbeddingGemma 2 comparten el codificador de texto (research R15, `EmbeddingVariantsExperimentTest`).
+- [X] T050 [US3] Ejecución exploratoria en el teléfono:
   - comprobar `lastPrefillTokenCount`. Si se desvía más de ±10 % de 2.000, ajustar `prompt_es.txt` y repetir;
   - verificar que Cancelar surte efecto en menos de 1 s (cronometrado en el log de debug).
 
@@ -408,7 +411,7 @@ Todas las historias dependen de esta fase.
   - criterios de salida (TTFT medido; mejor p95 de consulta en CPU; cumple < 150 ms sí/no);
   - ruta del último informe; al abrir la pantalla se lee el más reciente de `filesDir/reports`, para que sobreviva a una muerte del proceso;
   - botón «Batería completa».
-- [ ] T055 [US4] Crear `…/androidTest/debug/feasibility/FeasibilityBenchmarkTest.kt` (`@LargeTest @RequiresModels`):
+- [X] T055 [US4] Crear `…/androidTest/debug/feasibility/FeasibilityBenchmarkTest.kt` (`@LargeTest @RequiresModels`):
   - `assumeTrue` si los 5 modelos no están `Verified` tras `refresh` + `verify`;
   - ejecuta la batería completa con la suite de Koin;
   - comprueba que se ha escrito el informe y que tiene `schemaVersion = 1`.
@@ -450,7 +453,7 @@ Todas las historias dependen de esta fase.
   - al salir (`onBack`) se llama a `releaseAll()`.
 
   Hacer pasar T058.
-- [ ] T061 [US5] Validación en el teléfono (quickstart §7):
+- [X] T061 [US5] Validación en el teléfono (quickstart §7):
   - Inicio durante una prueba de GPU → «Cancelada» al volver;
   - `adb logcat -s MicroRAG` muestra el orden release → load de GPU;
   - `adb logcat -b crash` vacío.
@@ -466,7 +469,7 @@ Todas las historias dependen de esta fase.
 - la medición definitiva con cifras;
 - decisiones y cierre de la feature.
 
-- [ ] T062 [P] Crear `…/androidTest/debug/feasibility/FeasibilityScreenAccessibilityTest.kt`: ATF (`enableAccessibilityChecks()`) y objetivos táctiles ≥ 48 dp sobre `FeasibilityScreen`, con `UiState` falsos en estos estados:
+- [X] T062 [P] Crear `…/androidTest/debug/feasibility/FeasibilityScreenAccessibilityTest.kt`: ATF (`enableAccessibilityChecks()`) y objetivos táctiles ≥ 48 dp sobre `FeasibilityScreen`, con `UiState` falsos en estos estados:
   - sin modelos;
   - verificando;
   - con resultados;

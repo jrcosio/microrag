@@ -5,6 +5,7 @@ import com.lisdatasolutions.microrag.debug.feasibility.report.ResultStatus
 import com.lisdatasolutions.microrag.domain.model.ComputeBackend.CPU
 import com.lisdatasolutions.microrag.domain.model.ComputeBackend.GPU
 import com.lisdatasolutions.microrag.domain.model.ModelId
+import com.lisdatasolutions.microrag.rag.runtime.ActivationPrecision
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
@@ -27,10 +28,14 @@ class FeasibilitySuiteGenerationTest {
 
         f.suite.run(setOf(SuiteBlock.GENERATION), proceed)
 
-        val result = f.suite.results.value.single()
+        val (result, fp32) = f.suite.results.value
         assertThat(result.backend).isEqualTo(GPU)
         assertThat(result.status).isEqualTo(ResultStatus.COMPLETED)
-        assertThat(f.events.count { it == "generate GEMMA4_E2B_GPU GPU 128" }).isEqualTo(4)
+        assertThat(result.activationPrecision).isNull()
+        assertThat(fp32.activationPrecision).isEqualTo(ActivationPrecision.FLOAT32)
+        assertThat(fp32.status).isEqualTo(ResultStatus.COMPLETED)
+        assertThat(f.events.count { it == "generate GEMMA4_E2B_GPU GPU 128 null" }).isEqualTo(4)
+        assertThat(f.events.count { it == "generate GEMMA4_E2B_GPU GPU 128 FLOAT32" }).isEqualTo(4)
         val metrics = result.generation!!
         assertThat(metrics.runs).hasSize(3)
         assertThat(metrics.initColdMs).isEqualTo(2000)
@@ -51,8 +56,9 @@ class FeasibilitySuiteGenerationTest {
 
         f.suite.run(setOf(SuiteBlock.GENERATION), proceed)
 
-        val (gpu, cpu) = f.suite.results.value
+        val (gpu, gpuFp32, cpu) = f.suite.results.value
         assertThat(gpu.backend to gpu.status).isEqualTo(GPU to ResultStatus.NOT_AVAILABLE)
+        assertThat(gpuFp32.status).isEqualTo(ResultStatus.NOT_AVAILABLE)
         assertThat(cpu.backend to cpu.status).isEqualTo(CPU to ResultStatus.COMPLETED)
         assertThat(cpu.generation!!.fallbackFromGpu).isTrue()
         assertThat(cpu.generation!!.fallbackReason).contains("GPU init failed")
@@ -66,7 +72,8 @@ class FeasibilitySuiteGenerationTest {
         f.suite.run(setOf(SuiteBlock.GENERATION), proceed)
 
         assertThat(f.suite.results.value.map { it.backend to it.status })
-            .containsExactly(GPU to ResultStatus.NOT_AVAILABLE, CPU to ResultStatus.COMPLETED).inOrder()
+            .containsExactly(GPU to ResultStatus.NOT_AVAILABLE, GPU to ResultStatus.NOT_AVAILABLE, CPU to ResultStatus.COMPLETED)
+            .inOrder()
     }
 
     @Test
@@ -79,7 +86,9 @@ class FeasibilitySuiteGenerationTest {
 
         assertThat(f.suite.results.value.map { Triple(it.model, it.backend, it.status) }).containsExactly(
             Triple(ModelId.GEMMA4_E2B, GPU, ResultStatus.NOT_AVAILABLE),
+            Triple(ModelId.GEMMA4_E2B, GPU, ResultStatus.NOT_AVAILABLE),
             Triple(ModelId.GEMMA4_E2B, CPU, ResultStatus.FAILED),
+            Triple(ModelId.GEMMA4_E2B_GPU, GPU, ResultStatus.COMPLETED),
             Triple(ModelId.GEMMA4_E2B_GPU, GPU, ResultStatus.COMPLETED),
         ).inOrder()
     }

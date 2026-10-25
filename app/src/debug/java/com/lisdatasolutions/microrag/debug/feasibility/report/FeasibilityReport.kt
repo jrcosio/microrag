@@ -4,6 +4,7 @@ import com.lisdatasolutions.microrag.debug.feasibility.MeasurementProtocol
 import com.lisdatasolutions.microrag.debug.feasibility.ThermalLevel
 import com.lisdatasolutions.microrag.domain.model.ComputeBackend
 import com.lisdatasolutions.microrag.domain.model.ModelId
+import com.lisdatasolutions.microrag.rag.runtime.ActivationPrecision
 import kotlinx.serialization.Serializable
 
 /** Feasibility report, schema 1 (contracts/report-format.md). Only measured values, never examples. */
@@ -59,6 +60,8 @@ data class ScenarioResult(
     val model: ModelId,
     /** Null for COMPATIBILITY, which compares CPU against GPU. */
     val backend: ComputeBackend?,
+    /** GENERATION only: forced activation type, null for the model default (research R14). */
+    val activationPrecision: ActivationPrecision? = null,
     val status: ResultStatus,
     val reason: String? = null,
     val atPhase: String? = null,

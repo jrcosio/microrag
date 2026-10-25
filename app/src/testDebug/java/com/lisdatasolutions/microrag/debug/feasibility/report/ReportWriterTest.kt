@@ -106,5 +106,6 @@ class ReportWriterTest {
         assertThat(md).contains("Consulta < 150 ms p95 en CPU: **sí**")
         assertThat(md).contains("> Se mide el TTFT [6].\n> Y la consulta [3].")
         assertThat(md).contains("A063")
+        assertThat(md).contains("| GEMMA4_E2B_GPU | GPU | por defecto | 9000 / 3000 | 2010 |")
     }
 }
