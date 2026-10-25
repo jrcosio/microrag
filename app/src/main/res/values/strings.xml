@@ -1,3 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">MIcroRAG</string>
+    <!-- Branding (D-014) -->
+    <string name="app_name">MicroRAG</string>
+    <string name="assistant_name">MicroRAG</string>
+    <string name="cd_logo">Logotipo de LISDATA</string>
+
+    <!-- Bottom navigation -->
+    <string name="nav_home">Inicio</string>
+    <string name="nav_chat">Chat</string>
+    <string name="nav_library">Biblioteca</string>
+    <string name="nav_settings">Ajustes</string>
+
+    <!-- Common actions -->
+    <string name="action_back">Volver</string>
+    <string name="action_retry">Reintentar</string>
+    <string name="action_cancel">Cancelar</string>
+    <string name="action_copy_answer">Copiar respuesta</string>
+    <string name="action_send">Enviar</string>
+    <string name="action_stop">Detener</string>
+
+    <!-- Common states -->
+    <string name="state_loading">Cargando</string>
+    <string name="source_unavailable">Fuente ya no disponible</string>
+    <string name="progress_percent">%1$d %% completado</string>
+    <string name="progress_indeterminate">Procesando…</string>
+    <string name="step_of">Paso %1$d de %2$d</string>
+
+    <!-- Pending destination placeholders (F01) -->
+    <string name="pending_destination_title">Pendiente · %1$s</string>
+    <string name="pending_destination_body">Destino «%1$s». Argumentos: %2$s</string>
+    <string name="pending_destination_no_args">sin argumentos</string>
 </resources>
