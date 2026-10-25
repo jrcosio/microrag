@@ -417,7 +417,7 @@ Todas las historias dependen de esta fase.
   - comprueba que se ha escrito el informe y que tiene `schemaVersion = 1`.
 
   Ejecutable con `am instrument` (quickstart §5, opción B).
-- [ ] T056 [US4] Validación de la recuperación: con una sesión corta (un bloque), recuperar el `.md` y el `.json` con `adb exec-out run-as` (quickstart §6) y comprobar que tienen el formato del contrato.
+- [X] T056 [US4] Validación de la recuperación: con una sesión corta (un bloque), recuperar el `.md` y el `.json` con `adb exec-out run-as` (quickstart §6) y comprobar que tienen el formato del contrato.
 
 **Checkpoint**: US4 operativa.
 
@@ -477,33 +477,33 @@ Todas las historias dependen de esta fase.
   - error.
 
   Ejecutarlo en el emulador `Pixel_10`.
-- [ ] T063 Puertas de calidad:
+- [X] T063 Puertas de calidad:
   - `./gradlew :app:assembleDebug :app:assembleRelease :app:lintDebug :app:lintRelease :app:testDebugUnitTest :app:testReleaseUnitTest`;
   - `:app:connectedDebugAndroidTest` en el emulador (los `@RequiresModels` deben salir *skipped*);
   - en el teléfono, `am instrument` con `-e notAnnotation …RequiresModels` (quickstart §1), nunca `connected*AndroidTest`.
 
   Todo en verde.
-- [ ] T064 Verificación de la release con `apkanalyzer` (quickstart §2), registrada en `specs/002-ondevice-feasibility/checklists/release-verification.md`:
+- [X] T064 Verificación de la release con `apkanalyzer` (quickstart §2), registrada en `specs/002-ondevice-feasibility/checklists/release-verification.md`:
   - sin clases `debug.feasibility` ni `DevModelImporter`;
   - sin `INTERNET`;
   - `lib/arm64-v8a/liblitertlm_jni.so` sin `x86_64`;
   - `uses-native-library` con `required=false`;
   - tamaño del APK frente a F01.
-- [ ] T065 Comprobar el arranque en frío de la release en el emulador (mediana de 5, como en F01) para descartar una regresión por la nueva dependencia. Se registra en el mismo checklist.
-- [ ] T066 **Medición definitiva** en el teléfono P31281001066 (quickstart §5, opción B con `am instrument`):
+- [X] T065 Comprobar el arranque en frío de la release en el emulador (mediana de 5, como en F01) para descartar una regresión por la nueva dependencia. Se registra en el mismo checklist.
+- [X] T066 **Medición definitiva** en el teléfono P31281001066 (quickstart §5, opción B con `am instrument`):
   - batería completa con la app recién instalada;
   - la caché de kernels se borra en cada inicialización en frío;
   - registrar si el teléfono estaba enchufado.
-- [ ] T067 Recuperar el informe (quickstart §6) en `specs/002-ondevice-feasibility/benchmarks.md` y `benchmarks.json`. Revisar que estén las 6 + 3 + 2 (o más) combinaciones y los criterios de salida (SC-002, SC-003, SC-009).
-- [ ] T068 **Si ninguna variante cumple < 150 ms p95 en CPU (SC-004): PARAR y decidir con el usuario** antes de seguir con T069.
-- [ ] T069 Registrar en `docs/roadmap/DECISIONS.md` (D-023 en adelante), con las cifras de `benchmarks.md`:
+- [X] T067 Recuperar el informe (quickstart §6) en `specs/002-ondevice-feasibility/benchmarks.md` y `benchmarks.json`. Revisar que estén las 6 + 3 + 2 (o más) combinaciones y los criterios de salida (SC-002, SC-003, SC-009).
+- [X] T068 **Si ninguna variante cumple < 150 ms p95 en CPU (SC-004): PARAR y decidir con el usuario** antes de seguir con T069.
+- [X] T069 Registrar en `docs/roadmap/DECISIONS.md` (D-023 en adelante), con las cifras de `benchmarks.md`:
   - fichero de Gemma (G35);
   - backend del embedding de consulta;
   - variantes de EmbeddingGemma 2 candidatas para F05 (G36);
   - si consultas e ingesta pueden usar backends distintos (compatibilidad CPU↔GPU).
 
   Actualizar el estado de G35 y G36 en `docs/roadmap/INVENTARIO.md`.
-- [ ] T070 Escribir `specs/002-ondevice-feasibility/report.md` con:
+- [X] T070 Escribir `specs/002-ondevice-feasibility/report.md` con:
   - el resumen;
   - los resultados de build, lint y tests;
   - las diferencias frente al mockup (no aplica: herramienta interna sin mockup; se indica);

@@ -269,9 +269,61 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G42).
 - **Origen:** usuario (clarify de F02).
 - **Afecta:** F02, F05, F07 y F10.
 
+## D-023 — Fichero de Gemma 4 E2B: el genérico, en GPU (G35)
+
+- **Fecha:** 2026-10-26
+- **Decisión:** se usa `gemma-4-E2B-it.litertlm` (genérico, 2,59 GB) en GPU con la precisión de activaciones por defecto. El fichero `gemma-4-E2B-it-gpu.litertlm` se descarta en el teléfono de referencia.
+- **Motivo:** cifras de `specs/002-ondevice-feasibility/benchmarks.md` (Nothing Phone (1), LiteRT-LM 0.18.1, prompt de 1.986 tokens, 128 tokens de salida, mediana de 3 ejecuciones).
+
+  | Fichero y activaciones | TTFT | Prefill | Decode | Init frío / caché | RSS pico | Salida |
+  |---|---:|---:|---:|---:|---:|---|
+  | genérico, por defecto | **4,53 s** | 450 tok/s | 8,8 tok/s | 16,9 s / 5,4 s | 2.478 MB | coherente, con citas |
+  | genérico, FP32 | 7,36 s | 274 tok/s | 8,9 tok/s | 16,8 s / 5,5 s | 2.735 MB | coherente |
+  | `-gpu`, por defecto (fp16) | 4,78 s | 425 tok/s | 9,9 tok/s | 12,7 s / 12,5 s | 2.147 MB | **incoherente** |
+  | `-gpu`, FP32 | 13,48 s | 149 tok/s | 9,1 tok/s | 12,3 s / 11,4 s | 2.330 MB | coherente |
+
+  En la Adreno 642L, el fichero `-gpu` solo genera texto válido con activaciones FP32, y entonces es casi 3 veces más lento que el genérico (research R14). Además no aprovecha la caché de kernels: tarda lo mismo en frío que con caché.
+- **Origen:** medición de F02 (FR-018).
+- **Afecta:** F03 (qué fichero se descarga, su tamaño y su huella) y F11. Se revisa si cambia el teléfono de referencia: en GPU más recientes el fichero `-gpu` podría funcionar en fp16.
+
+## D-024 — Backend de embeddings: consulta en CPU; la GPU es apta para la ingesta
+
+- **Fecha:** 2026-10-26
+- **Decisión:**
+  - **Consulta:** embedding en **CPU**.
+  - **Ingesta (F07):** puede usar la **GPU**. Se pueden mezclar vectores de CPU y de GPU en el mismo índice.
+- **Motivo:**
+  - **Consulta:** en CPU, p95 de 120,3 ms con la 270M, por debajo del objetivo de 150 ms (SC-004). La GPU no la acelera (p95 entre 124 y 141 ms) y competiría con el LLM.
+  - **Ingesta:** un fragmento de ≈ 350 tokens tarda unos 880 ms (p50) en CPU y unos 320–355 ms en GPU, unas 2,5 veces más rápido.
+  - **Mezcla:** el coseno CPU↔GPU es como mínimo 0,99321 y de media 0,99744 sobre 20 textos. Supera el umbral de 0,99 (FR-009b), aunque con poco margen.
+- **Origen:** medición de F02 (FR-018).
+- **Afecta:** F07 y F10. F04 vuelve a comprobar la compatibilidad con `embedding_golden` (constitución VI). Si el margen sobre 0,99 se pierde en otro teléfono, la ingesta pasa a CPU.
+
+## D-025 — Variante de EmbeddingGemma 2: la 270M de solo texto (G36)
+
+- **Fecha:** 2026-10-26
+- **Decisión:**
+  - Se usa `embeddinggemma-2-text-270m.litertlm` (157 MB).
+  - F05 deja de comparar variantes y se centra en la dimensión, el tamaño de fragmento, la cabecera y los bloques.
+- **Motivo:**
+  - Las tres variantes producen **exactamente los mismos vectores de texto**: coseno 1,0 en los 20 textos de prueba (research R15). Comparten el codificador de texto; las mayores solo añaden visión y audio.
+  - Las latencias medidas son equivalentes (consulta en CPU, p95 entre 120 y 125 ms en las tres).
+  - Para un RAG de solo texto, la 270M tiene la misma calidad con un tercio de la descarga.
+- **Origen:** medición de F02 (FR-018). Cambia el plan de G36 («elegir por nDCG en F05»), porque con vectores idénticos el nDCG es idéntico.
+- **Afecta:** F03 (descarga de 157 MB en lugar de 388 o 485), F04 (huella del modelo en `rag_meta`) y F05 (las ablaciones de variante desaparecen).
+
 ---
 
 ## Pendientes de decisión
+
+- **G44 — Presupuesto de TTFT (constitución IV) frente a lo medido.**
+  - **Medición:** con un prompt de 1.986 tokens, el TTFT es de 4,53 s (D-023). El presupuesto «primer token ≤ 3 s con 6 bloques» no se cumple en el teléfono de referencia.
+  - **Criterio de salida de la fase 0:** se cumple, porque pedía medir el TTFT.
+  - **Opciones a decidir con el usuario antes de F10 y F11:**
+    - (a) reducir el contexto a ≈ 1.200 tokens (3–4 bloques) para acercarse a 3 s;
+    - (b) aceptar ≈ 4,5 s en este teléfono y enmendar el presupuesto con la cifra medida (constitución VI);
+    - (c) evaluar palancas en F14: decodificación especulativa, plantilla más corta y E4B frente a E2B.
+  - **Decode:** a 8,8 tok/s, una respuesta de 128 tokens tarda ≈ 15 s en completarse. El streaming lo mitiga.
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.
 

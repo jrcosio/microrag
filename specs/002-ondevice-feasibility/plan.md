@@ -216,7 +216,7 @@ app/src/androidTest/java/com/lisdatasolutions/microrag/
 **Structure Decision**: módulo único con paquetes por capa (D-009), como en F01.
 - El runtime y el catálogo van en `main`, porque son producto y los reutilizan F03 y siguientes.
 - Todo lo de diagnóstico (importación por adb, suite, informe, pantalla y assets) va en `debug`, con stubs de release donde `main` lo referencia. Es el mismo patrón que `DebugRouting` en F01.
-- Los tests de clases solo de debug van en `src/testDebug`, para que `testReleaseUnitTest` compile.
+- Los tests de clases solo de debug van en `src/testDebug`. Nota de implementación: AGP 9 solo genera tests unitarios para el `testBuildType` (debug), así que no existe `testReleaseUnitTest`; la compilación de release se cubre con `assembleRelease` y `lintRelease`.
 
 ## Diseño de ejecución de la batería
 

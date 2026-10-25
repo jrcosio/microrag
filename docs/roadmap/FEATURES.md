@@ -36,7 +36,7 @@ Al cerrar cada feature se entrega:
 | ID | Feature | Tipo | Depende de | Estado |
 |---|---|---|---|---|
 | F01 | Fundaciones y design system | Producto (shell y DS) | — | ✅ implementada (pendiente de revisión del usuario; T059 TalkBack manual abierta) |
-| F02 | Viabilidad on-device (fase 0) | Técnica | F01 | 🟨 plan, tasks y analyze ✓ (esperando revisión) |
+| F02 | Viabilidad on-device (fase 0) | Técnica | F01 | ✅ implementada (pendiente de revisión; G44 abierto) |
 | F03 | Modelos y primer arranque | Producto | F01, F02 | ⬜ |
 | F04 | Núcleo de datos RAG | Técnica | F02 | ⬜ |
 | F05 | Harness offline de evaluación | Técnica | F04 | ⬜ |
@@ -140,7 +140,7 @@ flowchart LR
 ## F02 — Viabilidad on-device (fase 0)
 
 - **Tipo:** Técnica. Pantalla de diagnóstico interna, solo en debug.
-- **Estado:** 🟨 en curso. Spec, plan (`plan.md`, research R1–R13, modelo de datos, contratos y quickstart) y 70 tareas en `specs/002-ondevice-feasibility/`, rama `002-ondevice-feasibility`. Analyze completado y correcciones aplicadas; pendiente de revisión antes de implementar. Teléfono de referencia: Nothing Phone (1) (D-022).
+- **Estado:** ✅ implementada el 2026-10-26, pendiente de revisión. Informe de cierre en `specs/002-ondevice-feasibility/report.md` y cifras en `benchmarks.md`. Decisiones D-023 (Gemma genérico en GPU), D-024 (consulta en CPU; GPU apta para la ingesta) y D-025 (EmbeddingGemma 2 de 270M). Queda abierto **G44**, el presupuesto de TTFT: 4,53 s medidos con 1.986 tokens frente a los ≤ 3 s de la constitución. Teléfono de referencia: Nothing Phone (1) (D-022).
 
 **Objetivo.** Demostrar que Gemma 4 E2B y EmbeddingGemma 2 funcionan en el teléfono de referencia con LiteRT-LM 0.18.1, y medir:
 - `initialize()` en frío de cada engine;
@@ -269,7 +269,7 @@ También se introduce `EngineCoordinator`, que garantiza que nunca haya dos engi
 - **Estado:** ⬜
 
 **Objetivo.** Fijar en escritorio los parámetros de recuperación antes de indexar en el móvil:
-- variante de EmbeddingGemma 2 (270M, 440M o 740M);
+- ~~variante de EmbeddingGemma 2~~: resuelta en F02 (D-025: 270M; las tres variantes dan vectores de texto idénticos);
 - dimensión (128, 256, 512 o 768);
 - tamaño de chunk (250, 350 o 500 tokens);
 - cabecera contextual sí o no;

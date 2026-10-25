@@ -1,0 +1,667 @@
+{
+    "schemaVersion": 1,
+    "createdAt": "2026-10-26T00:13:54+01:00",
+    "device": {
+        "manufacturer": "Nothing",
+        "model": "A063",
+        "socManufacturer": "QTI",
+        "socModel": "SM7325",
+        "androidRelease": "15",
+        "sdkInt": 35,
+        "totalRamMb": 11236,
+        "thermalStatus": "NONE",
+        "thermalHeadroom": 0.5412333,
+        "charging": true,
+        "batteryLevel": 100,
+        "batteryTempC": 33.0,
+        "appVersion": "0.1.0",
+        "liteRtLmVersion": "0.18.1"
+    },
+    "models": [
+        {
+            "id": "GEMMA4_E2B",
+            "fileName": "gemma-4-E2B-it.litertlm",
+            "sizeBytes": 2588147712,
+            "sha256": "181938105e0eefd105961417e8da75903eacda102c4fce9ce90f50b97139a63c",
+            "revision": "1caa527c1e88b55f046fcd8d2b4265606680663d",
+            "state": "VERIFIED"
+        },
+        {
+            "id": "GEMMA4_E2B_GPU",
+            "fileName": "gemma-4-E2B-it-gpu.litertlm",
+            "sizeBytes": 2008432640,
+            "sha256": "a53a59001894c58e6bdb5b9b227709f91a2e3e556baa7d85acf9c55402ba5cf5",
+            "revision": "1caa527c1e88b55f046fcd8d2b4265606680663d",
+            "state": "VERIFIED"
+        },
+        {
+            "id": "EG2_740M",
+            "fileName": "embeddinggemma-2-740m.litertlm",
+            "sizeBytes": 484622336,
+            "sha256": "e7a8a2204b91e0f96e92960e84a09a89212e1633dcb7575a9bf3378b4df77f4c",
+            "revision": "24d962e906c7d332c6428e71c9676855024569e2",
+            "state": "VERIFIED"
+        },
+        {
+            "id": "EG2_440M",
+            "fileName": "embeddinggemma-2-text-vision-440m.litertlm",
+            "sizeBytes": 387710976,
+            "sha256": "92dcbea108899e5d6e30d919b0744f90d9967e80c67a4ab5503ac16d54f62eb0",
+            "revision": "e301f74d5551b0c2641bd5cb4652a76239d5c5f8",
+            "state": "VERIFIED"
+        },
+        {
+            "id": "EG2_270M",
+            "fileName": "embeddinggemma-2-text-270m.litertlm",
+            "sizeBytes": 164626432,
+            "sha256": "2d079ee2f6f066b1f368e8d7c819f55214eaef1d0513b312321901f30ab286fb",
+            "revision": "9be6e8b90982095dc05c2bd162e4b954ee4dbac7",
+            "state": "VERIFIED"
+        }
+    ],
+    "results": [
+        {
+            "kind": "EMBEDDING",
+            "model": "EG2_740M",
+            "backend": "CPU",
+            "activationPrecision": null,
+            "status": "COMPLETED",
+            "reason": null,
+            "atPhase": null,
+            "protocol": {
+                "warmup": 3,
+                "measured": 30,
+                "maxOutputTokens": null,
+                "texts": null
+            },
+            "startedAt": "2026-10-26T00:13:59+01:00",
+            "durationMs": 34805,
+            "thermalStart": "NONE",
+            "thermalEnd": "NONE",
+            "charging": true,
+            "peakRssMb": 625,
+            "peakRssResetSupported": true,
+            "embedding": {
+                "initColdMs": 825,
+                "initWarmMs": 309,
+                "queryP50Ms": 119.75948,
+                "queryP95Ms": 124.790782,
+                "documentP50Ms": 886.399791,
+                "documentP95Ms": 889.4975,
+                "rawDims": 768,
+                "outputDims": 256,
+                "l2Norm": 0.9999999993295573,
+                "declaredMaxContextTokens": 8192,
+                "supportedBackends": [
+                    "CPU",
+                    "GPU"
+                ]
+            },
+            "compatibility": null,
+            "generation": null
+        },
+        {
+            "kind": "EMBEDDING",
+            "model": "EG2_740M",
+            "backend": "GPU",
+            "activationPrecision": null,
+            "status": "COMPLETED",
+            "reason": null,
+            "atPhase": null,
+            "protocol": {
+                "warmup": 3,
+                "measured": 30,
+                "maxOutputTokens": null,
+                "texts": null
+            },
+            "startedAt": "2026-10-26T00:14:34+01:00",
+            "durationMs": 22489,
+            "thermalStart": "NONE",
+            "thermalEnd": "NONE",
+            "charging": true,
+            "peakRssMb": 562,
+            "peakRssResetSupported": true,
+            "embedding": {
+                "initColdMs": 6186,
+                "initWarmMs": 1069,
+                "queryP50Ms": 121.119427,
+                "queryP95Ms": 124.045105,
+                "documentP50Ms": 319.746354,
+                "documentP95Ms": 323.369427,
+                "rawDims": 768,
+                "outputDims": 256,
+                "l2Norm": 0.9999999906138018,
+                "declaredMaxContextTokens": 8192,
+                "supportedBackends": [
+                    "CPU",
+                    "GPU"
+                ]
+            },
+            "compatibility": null,
+            "generation": null
+        },
+        {
+            "kind": "EMBEDDING",
+            "model": "EG2_440M",
+            "backend": "CPU",
+            "activationPrecision": null,
+            "status": "COMPLETED",
+            "reason": null,
+            "atPhase": null,
+            "protocol": {
+                "warmup": 3,
+                "measured": 30,
+                "maxOutputTokens": null,
+                "texts": null
+            },
+            "startedAt": "2026-10-26T00:14:57+01:00",
+            "durationMs": 35860,
+            "thermalStart": "NONE",
+            "thermalEnd": "NONE",
+            "charging": true,
+            "peakRssMb": 656,
+            "peakRssResetSupported": true,
+            "embedding": {
+                "initColdMs": 817,
+                "initWarmMs": 304,
+                "queryP50Ms": 119.823021,
+                "queryP95Ms": 122.591042,
+                "documentP50Ms": 903.045833,
+                "documentP95Ms": 1035.389583,
+                "rawDims": 768,
+                "outputDims": 256,
+                "l2Norm": 0.9999999993295573,
+                "declaredMaxContextTokens": 8192,
+                "supportedBackends": [
+                    "CPU",
+                    "GPU"
+                ]
+            },
+            "compatibility": null,
+            "generation": null
+        },
+        {
+            "kind": "EMBEDDING",
+            "model": "EG2_440M",
+            "backend": "GPU",
+            "activationPrecision": null,
+            "status": "COMPLETED",
+            "reason": null,
+            "atPhase": null,
+            "protocol": {
+                "warmup": 3,
+                "measured": 30,
+                "maxOutputTokens": null,
+                "texts": null
+            },
+            "startedAt": "2026-10-26T00:15:33+01:00",
+            "durationMs": 23124,
+            "thermalStart": "NONE",
+            "thermalEnd": "NONE",
+            "charging": true,
+            "peakRssMb": 559,
+            "peakRssResetSupported": true,
+            "embedding": {
+                "initColdMs": 6164,
+                "initWarmMs": 1060,
+                "queryP50Ms": 133.34125,
+                "queryP95Ms": 140.708698,
+                "documentP50Ms": 326.540468,
+                "documentP95Ms": 331.09849,
+                "rawDims": 768,
+                "outputDims": 256,
+                "l2Norm": 0.9999999906138018,
+                "declaredMaxContextTokens": 8192,
+                "supportedBackends": [
+                    "CPU",
+                    "GPU"
+                ]
+            },
+            "compatibility": null,
+            "generation": null
+        },
+        {
+            "kind": "EMBEDDING",
+            "model": "EG2_270M",
+            "backend": "CPU",
+            "activationPrecision": null,
+            "status": "COMPLETED",
+            "reason": null,
+            "atPhase": null,
+            "protocol": {
+                "warmup": 3,
+                "measured": 30,
+                "maxOutputTokens": null,
+                "texts": null
+            },
+            "startedAt": "2026-10-26T00:15:56+01:00",
+            "durationMs": 34251,
+            "thermalStart": "NONE",
+            "thermalEnd": "NONE",
+            "charging": true,
+            "peakRssMb": 652,
+            "peakRssResetSupported": true,
+            "embedding": {
+                "initColdMs": 782,
+                "initWarmMs": 271,
+                "queryP50Ms": 119.140624,
+                "queryP95Ms": 120.323906,
+                "documentP50Ms": 873.904271,
+                "documentP95Ms": 881.046666,
+                "rawDims": 768,
+                "outputDims": 256,
+                "l2Norm": 0.9999999993295573,
+                "declaredMaxContextTokens": 8192,
+                "supportedBackends": [
+                    "CPU",
+                    "GPU"
+                ]
+            },
+            "compatibility": null,
+            "generation": null
+        },
+        {
+            "kind": "EMBEDDING",
+            "model": "EG2_270M",
+            "backend": "GPU",
+            "activationPrecision": null,
+            "status": "COMPLETED",
+            "reason": null,
+            "atPhase": null,
+            "protocol": {
+                "warmup": 3,
+                "measured": 30,
+                "maxOutputTokens": null,
+                "texts": null
+            },
+            "startedAt": "2026-10-26T00:16:31+01:00",
+            "durationMs": 25116,
+            "thermalStart": "NONE",
+            "thermalEnd": "NONE",
+            "charging": true,
+            "peakRssMb": 547,
+            "peakRssResetSupported": true,
+            "embedding": {
+                "initColdMs": 6818,
+                "initWarmMs": 1152,
+                "queryP50Ms": 138.790052,
+                "queryP95Ms": 141.115834,
+                "documentP50Ms": 354.886146,
+                "documentP95Ms": 356.470781,
+                "rawDims": 768,
+                "outputDims": 256,
+                "l2Norm": 0.9999999906138018,
+                "declaredMaxContextTokens": 8192,
+                "supportedBackends": [
+                    "CPU",
+                    "GPU"
+                ]
+            },
+            "compatibility": null,
+            "generation": null
+        },
+        {
+            "kind": "COMPATIBILITY",
+            "model": "EG2_740M",
+            "backend": null,
+            "activationPrecision": null,
+            "status": "COMPLETED",
+            "reason": null,
+            "atPhase": null,
+            "protocol": {
+                "warmup": 0,
+                "measured": 1,
+                "maxOutputTokens": null,
+                "texts": 20
+            },
+            "startedAt": "2026-10-26T00:16:56+01:00",
+            "durationMs": 16377,
+            "thermalStart": "NONE",
+            "thermalEnd": "NONE",
+            "charging": true,
+            "peakRssMb": 626,
+            "peakRssResetSupported": true,
+            "embedding": null,
+            "compatibility": {
+                "textCount": 20,
+                "cosineMin": 0.9932050594887971,
+                "cosineMean": 0.9974417261363244,
+                "compatible": true
+            },
+            "generation": null
+        },
+        {
+            "kind": "COMPATIBILITY",
+            "model": "EG2_440M",
+            "backend": null,
+            "activationPrecision": null,
+            "status": "COMPLETED",
+            "reason": null,
+            "atPhase": null,
+            "protocol": {
+                "warmup": 0,
+                "measured": 1,
+                "maxOutputTokens": null,
+                "texts": 20
+            },
+            "startedAt": "2026-10-26T00:17:13+01:00",
+            "durationMs": 15951,
+            "thermalStart": "NONE",
+            "thermalEnd": "NONE",
+            "charging": true,
+            "peakRssMb": 618,
+            "peakRssResetSupported": true,
+            "embedding": null,
+            "compatibility": {
+                "textCount": 20,
+                "cosineMin": 0.9932050594887971,
+                "cosineMean": 0.9974417261363244,
+                "compatible": true
+            },
+            "generation": null
+        },
+        {
+            "kind": "COMPATIBILITY",
+            "model": "EG2_270M",
+            "backend": null,
+            "activationPrecision": null,
+            "status": "COMPLETED",
+            "reason": null,
+            "atPhase": null,
+            "protocol": {
+                "warmup": 0,
+                "measured": 1,
+                "maxOutputTokens": null,
+                "texts": 20
+            },
+            "startedAt": "2026-10-26T00:17:30+01:00",
+            "durationMs": 10313,
+            "thermalStart": "NONE",
+            "thermalEnd": "NONE",
+            "charging": true,
+            "peakRssMb": 609,
+            "peakRssResetSupported": true,
+            "embedding": null,
+            "compatibility": {
+                "textCount": 20,
+                "cosineMin": 0.9932050594887971,
+                "cosineMean": 0.9974417261363244,
+                "compatible": true
+            },
+            "generation": null
+        },
+        {
+            "kind": "GENERATION",
+            "model": "GEMMA4_E2B",
+            "backend": "GPU",
+            "activationPrecision": null,
+            "status": "COMPLETED",
+            "reason": null,
+            "atPhase": null,
+            "protocol": {
+                "warmup": 1,
+                "measured": 3,
+                "maxOutputTokens": 128,
+                "texts": null
+            },
+            "startedAt": "2026-10-26T00:17:41+01:00",
+            "durationMs": 102146,
+            "thermalStart": "NONE",
+            "thermalEnd": "NONE",
+            "charging": true,
+            "peakRssMb": 2478,
+            "peakRssResetSupported": true,
+            "embedding": null,
+            "compatibility": null,
+            "generation": {
+                "initColdMs": 16876,
+                "initWarmMs": 5403,
+                "benchmarkInitS": 10.892696191999999,
+                "promptTokens": 1986,
+                "ttftMs": 4528.417374,
+                "ttftWallMs": 4745,
+                "prefillTokensPerSecond": 450.00646860506737,
+                "decodeTokensPerSecond": 8.820225377226825,
+                "decodeTokens": 128,
+                "runs": [
+                    {
+                        "promptTokens": 1986,
+                        "ttftMs": 4548.7608905,
+                        "ttftWallMs": 4753,
+                        "prefillTokensPerSecond": 447.7626979124568,
+                        "decodeTokens": 128,
+                        "decodeTokensPerSecond": 8.820225377226825,
+                        "totalWallMs": 18982
+                    },
+                    {
+                        "promptTokens": 1986,
+                        "ttftMs": 4528.417374,
+                        "ttftWallMs": 4745,
+                        "prefillTokensPerSecond": 450.00646860506737,
+                        "decodeTokens": 128,
+                        "decodeTokensPerSecond": 8.684514848231649,
+                        "totalWallMs": 19191
+                    },
+                    {
+                        "promptTokens": 1986,
+                        "ttftMs": 4520.5344835,
+                        "ttftWallMs": 4735,
+                        "prefillTokensPerSecond": 450.5667871889641,
+                        "decodeTokens": 128,
+                        "decodeTokensPerSecond": 8.8689537946931,
+                        "totalWallMs": 18881
+                    }
+                ],
+                "sampleOutput": "En la fase cero se mide lo siguiente:\n*   El tiempo de inicialización de cada motor [6].\n*   La latencia del embedding de una consulta en CPU y en GPU [6].\n*   El tiempo hasta el primer token con un prompt de unos dos mil tokens [6].\n*\nLos criterios de salida son:\n*   Tener medido el tiempo hasta el primer token con ese tamaño de prompt [6].\n*   Conseguir que el embedding de una consulta tarde menos de 150 milisegundos en el percentil 95 en CPU [6].\n*",
+                "fallbackFromGpu": false,
+                "fallbackReason": null
+            }
+        },
+        {
+            "kind": "GENERATION",
+            "model": "GEMMA4_E2B",
+            "backend": "GPU",
+            "activationPrecision": "FLOAT32",
+            "status": "COMPLETED",
+            "reason": null,
+            "atPhase": null,
+            "protocol": {
+                "warmup": 1,
+                "measured": 3,
+                "maxOutputTokens": 128,
+                "texts": null
+            },
+            "startedAt": "2026-10-26T00:19:24+01:00",
+            "durationMs": 113830,
+            "thermalStart": "NONE",
+            "thermalEnd": "NONE",
+            "charging": true,
+            "peakRssMb": 2735,
+            "peakRssResetSupported": true,
+            "embedding": null,
+            "compatibility": null,
+            "generation": {
+                "initColdMs": 16832,
+                "initWarmMs": 5496,
+                "benchmarkInitS": 11.077781352,
+                "promptTokens": 1986,
+                "ttftMs": 7361.0906905,
+                "ttftWallMs": 7599,
+                "prefillTokensPerSecond": 274.22903213658833,
+                "decodeTokensPerSecond": 8.854533475479798,
+                "decodeTokens": 128,
+                "runs": [
+                    {
+                        "promptTokens": 1986,
+                        "ttftMs": 7361.0906905,
+                        "ttftWallMs": 7599,
+                        "prefillTokensPerSecond": 274.22903213658833,
+                        "decodeTokens": 128,
+                        "decodeTokensPerSecond": 8.405545405652989,
+                        "totalWallMs": 22508
+                    },
+                    {
+                        "promptTokens": 1986,
+                        "ttftMs": 7513.1672105,
+                        "ttftWallMs": 7657,
+                        "prefillTokensPerSecond": 268.362742875939,
+                        "decodeTokens": 128,
+                        "decodeTokensPerSecond": 8.87027568656961,
+                        "totalWallMs": 21851
+                    },
+                    {
+                        "promptTokens": 1986,
+                        "ttftMs": 7162.92446375,
+                        "ttftWallMs": 7270,
+                        "prefillTokensPerSecond": 281.70260851194195,
+                        "decodeTokens": 128,
+                        "decodeTokensPerSecond": 8.854533475479798,
+                        "totalWallMs": 21528
+                    }
+                ],
+                "sampleOutput": "En la fase cero se mide lo siguiente: el tiempo de inicialización de cada motor, la latencia del embedding de una consulta en CPU y en GPU, el tiempo hasta el primer token con un prompt de unos dos mil tokens y la velocidad de decodificación [6].\n\nLos criterios de salida son: tener medido el tiempo hasta el primer token con ese tamaño de prompt y conseguir que el embedding de una consulta tarde menos de 150 milisegundos en el percentil 95 en CPU [6].\n\nEl embedding de una consulta se ejecuta en la CPU porque una consulta es un texto corto, y",
+                "fallbackFromGpu": false,
+                "fallbackReason": null
+            }
+        },
+        {
+            "kind": "GENERATION",
+            "model": "GEMMA4_E2B_GPU",
+            "backend": "GPU",
+            "activationPrecision": null,
+            "status": "COMPLETED",
+            "reason": null,
+            "atPhase": null,
+            "protocol": {
+                "warmup": 1,
+                "measured": 3,
+                "maxOutputTokens": 128,
+                "texts": null
+            },
+            "startedAt": "2026-10-26T00:21:19+01:00",
+            "durationMs": 99401,
+            "thermalStart": "NONE",
+            "thermalEnd": "NONE",
+            "charging": true,
+            "peakRssMb": 2147,
+            "peakRssResetSupported": true,
+            "embedding": null,
+            "compatibility": null,
+            "generation": {
+                "initColdMs": 12685,
+                "initWarmMs": 12507,
+                "benchmarkInitS": 25.092232021,
+                "promptTokens": 1986,
+                "ttftMs": 4779.30747175,
+                "ttftWallMs": 4944,
+                "prefillTokensPerSecond": 424.47574600410104,
+                "decodeTokensPerSecond": 9.940859655231128,
+                "decodeTokens": 128,
+                "runs": [
+                    {
+                        "promptTokens": 1986,
+                        "ttftMs": 4692.41028525,
+                        "ttftWallMs": 4849,
+                        "prefillTokensPerSecond": 432.65202536180294,
+                        "decodeTokens": 128,
+                        "decodeTokensPerSecond": 9.792758169341115,
+                        "totalWallMs": 17690
+                    },
+                    {
+                        "promptTokens": 1986,
+                        "ttftMs": 4779.30747175,
+                        "ttftWallMs": 4944,
+                        "prefillTokensPerSecond": 424.47574600410104,
+                        "decodeTokens": 128,
+                        "decodeTokensPerSecond": 9.940859655231128,
+                        "totalWallMs": 17586
+                    },
+                    {
+                        "promptTokens": 1986,
+                        "ttftMs": 4807.273138750001,
+                        "ttftWallMs": 4948,
+                        "prefillTokensPerSecond": 420.9575553687884,
+                        "decodeTokens": 128,
+                        "decodeTokensPerSecond": 11.178451602759514,
+                        "totalWallMs": 16197
+                    }
+                ],
+                "sampleOutput": "La fase de la faseतरह[6] comprЦена\n\nLos (criter[6]) son:\n- La faseतरह[6] compr[1] prueba con el dispositivo [6] para medir el tiempo de inicialDet[6] y la lat[6] del [6] en la CPU.\n- Los criterios de salida[6] son:\n    - El tiempo de la primera vez obten[6] con ese conc[6] prompt de dos milful, y la velocidad de decЦена[6].\n    - El tiempo de decમના [6] en el percent[95] en",
+                "fallbackFromGpu": false,
+                "fallbackReason": null
+            }
+        },
+        {
+            "kind": "GENERATION",
+            "model": "GEMMA4_E2B_GPU",
+            "backend": "GPU",
+            "activationPrecision": "FLOAT32",
+            "status": "COMPLETED",
+            "reason": null,
+            "atPhase": null,
+            "protocol": {
+                "warmup": 1,
+                "measured": 3,
+                "maxOutputTokens": 128,
+                "texts": null
+            },
+            "startedAt": "2026-10-26T00:22:59+01:00",
+            "durationMs": 137259,
+            "thermalStart": "NONE",
+            "thermalEnd": "NONE",
+            "charging": true,
+            "peakRssMb": 2330,
+            "peakRssResetSupported": true,
+            "embedding": null,
+            "compatibility": null,
+            "generation": {
+                "initColdMs": 12266,
+                "initWarmMs": 11379,
+                "benchmarkInitS": 22.848413533,
+                "promptTokens": 1986,
+                "ttftMs": 13478.078943,
+                "ttftWallMs": 13634,
+                "prefillTokensPerSecond": 148.5630930179416,
+                "decodeTokensPerSecond": 9.08915404175389,
+                "decodeTokens": 128,
+                "runs": [
+                    {
+                        "promptTokens": 1986,
+                        "ttftMs": 13478.078943,
+                        "ttftWallMs": 13634,
+                        "prefillTokensPerSecond": 148.5630930179416,
+                        "decodeTokens": 128,
+                        "decodeTokensPerSecond": 9.08915404175389,
+                        "totalWallMs": 27481
+                    },
+                    {
+                        "promptTokens": 1986,
+                        "ttftMs": 13484.048105,
+                        "ttftWallMs": 13647,
+                        "prefillTokensPerSecond": 148.50670926976096,
+                        "decodeTokens": 128,
+                        "decodeTokensPerSecond": 9.015918514392746,
+                        "totalWallMs": 27604
+                    },
+                    {
+                        "promptTokens": 1986,
+                        "ttftMs": 13463.02251375,
+                        "ttftWallMs": 13633,
+                        "prefillTokensPerSecond": 148.7277171906673,
+                        "decodeTokens": 128,
+                        "decodeTokensPerSecond": 9.110647246049608,
+                        "totalWallMs": 27435
+                    }
+                ],
+                "sampleOutput": "En la fase cero se mide lo siguiente: el tiempo de inicialización de cada motor, la latencia del embedding de una consulta en CPU y en GPU, el tiempo hasta el primer token con un prompt de unos dos mil tokens y la velocidad de decodificación [6].\n\nLos criterios de salida son: tener medido el tiempo hasta el primer token con ese tamaño de prompt y conseguir que el embedding de una consulta tarde menos de 150 milisegundos en el percentil 95 en CPU [6].\n\nEl embedding de una consulta se ejecuta en la CPU porque una consulta es un texto corto, y",
+                "fallbackFromGpu": false,
+                "fallbackReason": null
+            }
+        }
+    ],
+    "exitCriteria": {
+        "ttftMeasured": true,
+        "bestQueryP95CpuMs": 120.323906,
+        "queryUnder150msCpu": true
+    }
+}
