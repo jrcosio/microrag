@@ -252,7 +252,7 @@ description: "Lista de tareas de F01 — Fundaciones y design system"
 
 ### Tests for User Story 3 ⚠️
 
-- [ ] T052 [P] [US3] Crear `app/src/androidTest/java/com/lisdatasolutions/microrag/ManifestInvariantsTest.kt` sobre el `PackageInfo` instalado:
+- [X] T052 [P] [US3] Crear `app/src/androidTest/java/com/lisdatasolutions/microrag/ManifestInvariantsTest.kt` sobre el `PackageInfo` instalado:
   - `requestedPermissions` ⊆ {`${packageName}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`} (P4);
   - `FLAG_ALLOW_BACKUP` desactivado (P2);
   - ninguna actividad con `ACTION_VIEW` + `CATEGORY_BROWSABLE` (P5);
@@ -260,9 +260,9 @@ description: "Lista de tareas de F01 — Fundaciones y design system"
 
 ### Implementation for User Story 3
 
-- [ ] T053 [US3] Editar `app/src/main/AndroidManifest.xml`: `android:allowBackup="false"`, eliminar `android:fullBackupContent` y mantener `android:dataExtractionRules="@xml/data_extraction_rules"`. Comprobar que no se declara ningún permiso (P2, P4).
-- [ ] T054 [US3] Reescribir `app/src/main/res/xml/data_extraction_rules.xml`: `<cloud-backup>` y `<device-transfer>` excluyen `root`, `file`, `database`, `sharedpref`, `external`, `device_root`, `device_file`, `device_database` y `device_sharedpref` (research R9, P3).
-- [ ] T055 [US3] Verificar el APK de release según `quickstart.md` §2:
+- [X] T053 [US3] Editar `app/src/main/AndroidManifest.xml`: `android:allowBackup="false"`, eliminar `android:fullBackupContent` y mantener `android:dataExtractionRules="@xml/data_extraction_rules"`. Comprobar que no se declara ningún permiso (P2, P4).
+- [X] T054 [US3] Reescribir `app/src/main/res/xml/data_extraction_rules.xml`: `<cloud-backup>` y `<device-transfer>` excluyen `root`, `file`, `database`, `sharedpref`, `external`, `device_root`, `device_file`, `device_database` y `device_sharedpref` (research R9, P3).
+- [X] T055 [US3] Verificar el APK de release según `quickstart.md` §2:
   - permisos, `min-sdk` 31;
   - `allowBackup`;
   - ausencia de `BROWSABLE`;

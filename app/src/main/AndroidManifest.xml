@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+<!-- Constitution I: no network permission, no backup or device transfer (contracts/platform-invariants.md). -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application
         android:name=".MicroRagApplication"
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
