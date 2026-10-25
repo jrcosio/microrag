@@ -1,7 +1,7 @@
 # MicroRAG — Inventario de descubrimiento
 
 **Fecha:** 2026-10-25
-**Estado:** pendiente de aprobación.
+**Estado:** ✅ aprobado por el usuario el 2026-10-25. Los huecos marcados 🟡 o ❓ se resuelven en el clarify de cada feature.
 
 Este documento se elaboró sin escribir código de la app. Recoge lo encontrado en el design system, las pantallas, el informe técnico y la verificación externa de artefactos. Los datos de ejemplo de los mockups (nombres de documento, cifras, porcentajes) **no** son datos de producción.
 

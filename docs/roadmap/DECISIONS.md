@@ -59,7 +59,7 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G42).
   - **Inicio como feature propia (F09).** Agrega el estado de modelos, biblioteca e indexación, así que depende de esas features.
   - **Biblioteca y detalle (F08) antes que el chat (F11).** Las citas del chat abren el detalle del documento.
 - **Motivo:** dependencias técnicas y reducción de riesgo.
-- **Origen:** propuesta, pendiente de aprobación del usuario.
+- **Origen:** propuesta, aprobada por el usuario el 2026-10-25 (ver D-013).
 - **Afecta:** el roadmap completo.
 
 ## D-006 — minSdk de al menos 26
@@ -152,6 +152,17 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G42).
 - **Motivo:** el informe cita `litert-lm`, pero ese paquete de PyPI es solo la CLI.
 - **Origen:** verificación.
 - **Afecta:** F04 (generador de golden) y F05.
+
+## D-013 — Aprobación de inventario, constitución y roadmap
+
+- **Fecha:** 2026-10-25
+- **Decisión:**
+  - Se aprueban `INVENTARIO.md`, la constitución v1.0.0 y `FEATURES.md` (F01–F15 y backlog).
+  - Arranca el ciclo SDD con F01.
+  - Los huecos aún abiertos (🟡/❓) no quedan aprobados con esto: se resuelven en el `/speckit-clarify` de la feature a la que afectan.
+- **Motivo:** primer punto de control del encargo.
+- **Origen:** usuario.
+- **Afecta:** el proceso. Se hace el push inicial a `origin/main`.
 
 ---
 

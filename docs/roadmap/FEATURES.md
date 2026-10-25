@@ -1,7 +1,7 @@
 # MicroRAG — Roadmap de features
 
 **Fecha:** 2026-10-25
-**Estado:** ⏸ pendiente de aprobación del usuario.
+**Estado:** ✅ aprobado por el usuario el 2026-10-25.
 **Referencias:** `INVENTARIO.md` (pantallas, tokens, huecos G01–G42), `DECISIONS.md` (D-001…), `.specify/memory/constitution.md` (principios I–VIII).
 
 Cada feature recorre el ciclo SDD de Spec Kit en su rama `NNN-nombre`:
