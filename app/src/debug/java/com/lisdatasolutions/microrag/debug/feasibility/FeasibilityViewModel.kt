@@ -39,8 +39,9 @@ class FeasibilityViewModel(
     }
 
     fun importDevModels() = launchModelsWork {
+        // No refresh afterwards: it would turn a just-reported mismatch back into "missing".
         importer.importAll()
-        refreshAndVerify(reverifyVerified = false)
+        pendingCopies.value = importer.pendingCopies()
     }
 
     fun verifyAgain() = launchModelsWork { refreshAndVerify(reverifyVerified = true) }

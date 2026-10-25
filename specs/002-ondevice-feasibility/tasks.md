@@ -209,15 +209,15 @@ Todas las historias dependen de esta fase.
   - `verify` de un fichero corrupto → `Mismatch` y el fichero se borra;
   - `pathOf` solo devuelve ruta en `Verified`;
   - el progreso de `Verifying` es monótono y termina en el 100 %.
-- [ ] T028 [P] [US1] `…/testDebug/debug/feasibility/DevModelImporterTest.kt`:
+- [X] T028 [P] [US1] `…/testDebug/debug/feasibility/DevModelImporterTest.kt`:
   - `pendingCopies` solo incluye nombres del catálogo e ignora otros ficheros;
   - `importAll` llama a `installVerified(…, deleteSourceOnSuccess = true)` por cada copia pendiente.
-- [ ] T029 [P] [US1] `…/testDebug/debug/feasibility/FeasibilityViewModelModelsTest.kt` (repositorio e importador falsos):
+- [X] T029 [P] [US1] `…/testDebug/debug/feasibility/FeasibilityViewModelModelsTest.kt` (repositorio e importador falsos):
   - las filas combinan el estado y la copia pendiente;
   - al abrir se ejecuta `refresh` y después `verify` de cada `Unverified`;
   - la acción Importar actualiza las filas;
   - un modelo que no está en `Verified` deja sus pruebas deshabilitadas en el `UiState`.
-- [ ] T030 [P] [US1] `…/androidTest/data/models/ModelInstallInstrumentedTest.kt`. En el dispositivo, sobre `noBackupFilesDir` real, con un fichero de 1 MB y un catálogo de prueba:
+- [X] T030 [P] [US1] `…/androidTest/data/models/ModelInstallInstrumentedTest.kt`. En el dispositivo, sobre `noBackupFilesDir` real, con un fichero de 1 MB y un catálogo de prueba:
   - instalación correcta;
   - instalación con huella distinta;
   - el fichero instalado queda bajo `context.noBackupFilesDir/models`.
@@ -232,16 +232,16 @@ Todas las historias dependen de esta fase.
   - E/S en `AppDispatchers.io`.
 
   Registrarlo en `…/microrag/data/di/DataModule.kt` con `modelsDir = noBackupFilesDir/models`. Hacer pasar T027.
-- [ ] T032 [US1] Crear `…/debug/feasibility/DevModelImporter.kt` (`devDir = getExternalFilesDir(null)/dev-models`) y registrarlo en `…/debug/DebugModules.kt`. Hacer pasar T028.
-- [ ] T033 [P] [US1] Crear `app/src/debug/res/values/strings_feasibility.xml`, con `translatable="false"`. Incluye los textos de la pantalla:
+- [X] T032 [US1] Crear `…/debug/feasibility/DevModelImporter.kt` (`devDir = getExternalFilesDir(null)/dev-models`) y registrarlo en `…/debug/DebugModules.kt`. Hacer pasar T028.
+- [X] T033 [P] [US1] Crear `app/src/debug/res/values/strings_feasibility.xml`, con `translatable="false"`. Incluye los textos de la pantalla:
   - título «Viabilidad on-device»;
   - estados de modelo;
   - acciones Importar, Verificar de nuevo y Cancelar;
   - secciones;
   - avisos térmicos;
   - errores.
-- [ ] T034 [US1] Crear `…/debug/feasibility/FeasibilityUiState.kt` y `FeasibilityViewModel.kt`, con la sección de modelos y la verificación automática al abrir. Registrar el ViewModel en `DebugModules.kt`. Hacer pasar T029.
-- [ ] T035 [US1] Crear `…/debug/feasibility/FeasibilityScreen.kt`, con la sección «Modelos»:
+- [X] T034 [US1] Crear `…/debug/feasibility/FeasibilityUiState.kt` y `FeasibilityViewModel.kt`, con la sección de modelos y la verificación automática al abrir. Registrar el ViewModel en `DebugModules.kt`. Hacer pasar T029.
+- [X] T035 [US1] Crear `…/debug/feasibility/FeasibilityScreen.kt`, con la sección «Modelos»:
   - una fila por fichero con nombre, tamaño, huella abreviada y chip de estado con texto (no solo color);
   - `LisdataLinearProgress` mientras verifica;
   - botones Importar y Verificar de nuevo;
@@ -249,8 +249,8 @@ Todas las historias dependen de esta fase.
   - previews con estados falsos.
 
   Usa solo componentes `Lisdata*` y tokens.
-- [ ] T036 [US1] Añadir `DebugEntry("Viabilidad on-device") { onBack -> FeasibilityScreen(onBack) }` en `…/debug/DebugEntries.kt`, con `koinViewModel()`.
-- [ ] T037 [US1] Validación en el teléfono (quickstart §4):
+- [X] T036 [US1] Añadir `DebugEntry("Viabilidad on-device") { onBack -> FeasibilityScreen(onBack) }` en `…/debug/DebugEntries.kt`, con `koinViewModel()`.
+- [X] T037 [US1] Validación en el teléfono (quickstart §4):
   - importar los 5 ficheros → «Verificado» y `dev-models` vacío;
   - prueba negativa con un fichero truncado → «Huella incorrecta» y nada en `no_backup/models`;
   - volver a copiar el fichero correcto.

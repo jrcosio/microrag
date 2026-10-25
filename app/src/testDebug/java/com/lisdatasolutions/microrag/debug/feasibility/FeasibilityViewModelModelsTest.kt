@@ -73,6 +73,22 @@ class FeasibilityViewModelModelsTest {
     }
 
     @Test
+    fun importingACorruptCopy_keepsShowingTheMismatch() = runTest(main) {
+        val repository = FakeModelFileRepository(corrupt = setOf(ModelId.EG2_270M))
+        val devDir = tmp.newFolder("dev-models")
+        File(devDir, ModelCatalog.byId(ModelId.EG2_270M).fileName).writeBytes(ByteArray(10))
+        val vm = viewModel(repository, devDir)
+        advanceUntilIdle()
+
+        vm.importDevModels()
+        advanceUntilIdle()
+
+        val row = vm.state.value.models.first { it.file.id == ModelId.EG2_270M }
+        assertThat(row.state).isInstanceOf(ModelFileState.Mismatch::class.java)
+        assertThat(row.devCopyBytes).isEqualTo(10L)
+    }
+
+    @Test
     fun testsAreDisabledUntilAModelOfTheirFamilyIsVerified() = runTest(main) {
         val repository = FakeModelFileRepository(
             present = setOf(ModelId.EG2_270M, ModelId.GEMMA4_E2B),
