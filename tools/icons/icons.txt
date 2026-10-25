@@ -1,0 +1,32 @@
+# Resource name = Lucide icon name (lucide-static 1.61.0, ISC License).
+# Source of truth for the mapping: docs/roadmap/INVENTARIO.md §2.6.
+ic_sparkle = sparkle
+ic_layers = layers
+ic_database = database
+ic_cpu = cpu
+ic_shield_check = shield-check
+ic_home = house
+ic_chat = message-square-text
+ic_folder = folder
+# Mockups use a sun for Settings (INVENTARIO G19).
+ic_settings = sun
+ic_chevron_left = chevron-left
+ic_chevron_right = chevron-right
+ic_arrow_right = arrow-right
+ic_more_horizontal = ellipsis
+ic_upload = upload
+ic_send = send
+ic_stop = square
+ic_copy = copy
+ic_trash = trash-2
+ic_plus = plus
+ic_search = search
+ic_pause = pause
+ic_play = play
+ic_refresh = refresh-cw
+ic_globe = globe
+ic_file_text = file-text
+ic_info = info
+ic_check = check
+ic_check_circle = circle-check
+ic_warning = triangle-alert
