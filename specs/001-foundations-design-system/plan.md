@@ -37,7 +37,7 @@ Todo se verifica con tests JVM (contraste, conformidad, DI, navegación) e instr
 **Language/Version**: Kotlin 2.4.21 (K2), Java 17 como bytecode target y JDK 21 (JBR de Android Studio) para compilar (research R1).
 
 **Primary Dependencies** (versiones verificadas el 2026-10-25, research R1):
-- Build: AGP 9.4.1, Gradle 9.5.0.
+- Build: AGP 9.4.1, Gradle 9.8.2 (D-020).
 - UI: Compose BOM 2026.09.00 (ui 1.12.1, material3 1.4.0), activity-compose 1.13.0, lifecycle 2.11.0, core-ktx 1.19.1.
 - Navegación: navigation-compose 2.10.2 con kotlinx-serialization 1.12.0.
 - Concurrencia y DI: kotlinx-coroutines 1.11.0, Koin 4.2.2.
@@ -51,7 +51,7 @@ Todo se verifica con tests JVM (contraste, conformidad, DI, navegación) e instr
 - koin-test-junit4 4.2.2 (`verify()`).
 - Compose `ui-test-junit4-accessibility` (ATF) y androidx.test (runner 1.7.0, ext-junit 1.3.0) para los tests instrumentados en el emulador `Pixel_10` (API 37, arm64).
 
-**Target Platform**: Android 12+ (API 31–36). Dispositivos ARM64; x86_64 solo para el emulador en debug.
+**Target Platform**: Android 12+ (minSdk 31, targetSdk 36, compileSdk 37.1 por D-020). Dispositivos ARM64; x86_64 solo para el emulador en debug.
 
 **Project Type**: mobile-app (Android nativa, un solo módulo `:app`, D-009).
 

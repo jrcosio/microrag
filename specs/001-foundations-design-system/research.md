@@ -10,7 +10,7 @@ Las versiones se verificaron el 2026-10-25 contra `maven-metadata.xml` de Google
 | Pieza | Scaffold actual | Elegido | Fuente / nota |
 |---|---|---|---|
 | Android Gradle Plugin | 9.3.3 | **9.4.1** (última estable) | Google Maven; 9.6.0-alpha01 descartada por no ser estable |
-| Gradle wrapper | 9.5.0 | 9.5.0 | Compatible con AGP 9.x |
+| Gradle wrapper | 9.5.0 | **9.8.2** (última estable) | AGP 9.4.1 exige ≥ 9.6.0 (D-020) |
 | Kotlin (KGP + plugin Compose) | 2.2.10 | **2.4.21** (última estable) | Maven Central. AGP 9.x declara KGP 2.2.10 como dependencia *runtime*; poner el plugin Compose a 2.4.21 en el classpath hace que Gradle resuelva KGP 2.4.21 (gana la versión más alta) |
 | Plugin kotlinx-serialization | — | **2.4.21** | Lo exigen las rutas tipadas de Navigation |
 | kotlinx-serialization-json | — | **1.12.0** | Maven Central |
@@ -28,7 +28,7 @@ Las versiones se verificaron el 2026-10-25 contra `maven-metadata.xml` de Google
 | Compose ui-test-junit4 y **ui-test-junit4-accessibility** | — | según la BOM (1.12.1) | Google Maven. Aporta `enableAccessibilityChecks()` (ATF) |
 | JDK de build | — | JBR 21 de Android Studio (`/Applications/Android Studio.app/Contents/jbr/Contents/Home`) | El sistema no tiene un Java global; el daemon de Gradle pide toolchain 21 |
 | `compileOptions` | Java 11 | **Java 17** | Coherente con AGP 9 y JDK 21. El `jvmTarget` de Kotlin sigue a `compileOptions` con el Kotlin integrado |
-| compileSdk / targetSdk | 36.1 / 36 | 36.1 / 36 | Se mantienen (plataformas instaladas: 33–37.1) |
+| compileSdk / targetSdk | 36.1 / 36 | **37.1** / 36 | Las librerías de AndroidX estables exigen compileSdk ≥ 37 (D-020). targetSdk se mantiene |
 | minSdk | 24 | **31** | D-017 |
 
 - **Decisión:** AGP 9.4.1 con Kotlin 2.4.21 y las librerías estables de la tabla.

@@ -232,6 +232,19 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G42).
 - **Origen:** plan de F01 (`specs/001-foundations-design-system/research.md` y `data-model.md`). Se revisa en la parada tras analyze.
 - **Afecta:** F01 (tokens).
 
+## D-020 — Gradle 9.8.2 y compileSdk 37.1
+
+- **Fecha:** 2026-10-25
+- **Decisión:**
+  - El wrapper de Gradle pasa de 9.5.0 a **9.8.2**, la última estable. Se verifica su SHA-256 en `distributionSha256Sum`.
+  - **compileSdk** pasa de 36.1 a **37.1**. targetSdk se queda en **36** y minSdk en **31**.
+- **Motivo:**
+  - AGP 9.4.1 exige Gradle 9.6.0 o superior.
+  - Las librerías estables de AndroidX elegidas (Compose BOM 2026.09.00, core 1.19.1, lifecycle 2.11.0, navigation 2.10.2) exigen compileSdk 37 o superior.
+  - Subir compileSdk no cambia el comportamiento en ejecución. Subir targetSdk sí lo haría, así que queda para cuando se evalúe.
+- **Origen:** implementación de F01 (T004). Verificado con `assembleDebug`: AGP 9.4.1 resuelve KGP 2.4.21.
+- **Afecta:** F01 (build) y todas las demás.
+
 ---
 
 ## Pendientes de decisión

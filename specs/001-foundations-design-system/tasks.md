@@ -31,15 +31,15 @@ description: "Lista de tareas de F01 — Fundaciones y design system"
 
 **Purpose**: dejar el toolchain y el scaffold en el estado de research R1.
 
-- [ ] T001 Actualizar `gradle/libs.versions.toml` con las versiones de research R1:
+- [X] T001 Actualizar `gradle/libs.versions.toml` con las versiones de research R1:
   - agp 9.4.1; kotlin 2.4.21;
   - composeBom 2026.09.00; navigation 2.10.2; kotlinxSerialization 1.12.0; coroutines 1.11.0;
   - koinBom 4.2.2; robolectric 4.17; truth 1.4.5;
   - androidx.test runner/core 1.7.0, ext-junit 1.3.0, espresso 3.7.0;
   - entradas de librería para `navigation-compose`, `navigation-testing`, `kotlinx-serialization-json`, `kotlinx-coroutines-android`/`-test`, `koin-bom`, `koin-android`, `koin-androidx-compose`, `koin-test-junit4`, `lifecycle-runtime-compose`, `lifecycle-viewmodel-compose`, `compose-ui-test-junit4`, `compose-ui-test-junit4-accessibility`, `robolectric`, `truth`, `androidx-test-runner`, `androidx-test-core`;
   - alias de plugin `kotlin-serialization`.
-- [ ] T002 Actualizar `build.gradle.kts` (raíz): plugins `android.application`, `kotlin.compose` y `kotlin.serialization` con `apply false`. Actualizar `settings.gradle.kts` con `rootProject.name = "MicroRAG"`.
-- [ ] T003 Actualizar `app/build.gradle.kts`:
+- [X] T002 Actualizar `build.gradle.kts` (raíz): plugins `android.application`, `kotlin.compose` y `kotlin.serialization` con `apply false`. Actualizar `settings.gradle.kts` con `rootProject.name = "MicroRAG"`.
+- [X] T003 Actualizar `app/build.gradle.kts`:
   - aplicar el plugin `kotlin.serialization`;
   - `minSdk = 31`;
   - `compileOptions` en Java 17;
@@ -48,8 +48,8 @@ description: "Lista de tareas de F01 — Fundaciones y design system"
   - `testOptions.unitTests.isIncludeAndroidResources = true`;
   - `lint { abortOnError = true; checkDependencies = false }`;
   - dependencias de T001, con BOM de Compose y de Koin.
-- [ ] T004 Comprobar el toolchain con `./gradlew assembleDebug`. Si falla por la combinación AGP 9.4.1 + Kotlin 2.4.21, aplicar el fallback de research R1: AGP 9.3.3 / Kotlin 2.2.10 con versiones de librerías compatibles. Registrar el resultado en `docs/roadmap/DECISIONS.md` (D-020) solo si se usa el fallback.
-- [ ] T005 Eliminar restos del scaffold:
+- [X] T004 Comprobar el toolchain con `./gradlew assembleDebug`. Si falla por la combinación AGP 9.4.1 + Kotlin 2.4.21, aplicar el fallback de research R1: AGP 9.3.3 / Kotlin 2.2.10 con versiones de librerías compatibles. Registrar el resultado en `docs/roadmap/DECISIONS.md` (D-020) solo si se usa el fallback.
+- [X] T005 Eliminar restos del scaffold:
   - `app/src/main/java/com/lisdatasolutions/microrag/ui/theme/Color.kt`, `Theme.kt` y `Type.kt`;
   - `app/src/test/java/com/lisdatasolutions/microrag/ExampleUnitTest.kt`;
   - `app/src/androidTest/java/com/lisdatasolutions/microrag/ExampleInstrumentedTest.kt`;

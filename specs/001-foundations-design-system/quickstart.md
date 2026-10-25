@@ -11,7 +11,7 @@ Guía para comprobar de punta a punta que F01 cumple la spec. Las referencias ap
   export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
   ```
 
-- SDK en `~/Library/Android/sdk` (ver `local.properties`), con las plataformas 36.1 instaladas.
+- SDK en `~/Library/Android/sdk` (ver `local.properties`), con la plataforma 37.1 instalada (compileSdk, D-020).
 - Emulador `Pixel_10` (API 37, arm64) arrancado (`adb devices` muestra `emulator-5554`), o un teléfono físico arm64 con Android 12 o superior.
 - Solo para regenerar iconos: Node/npm, que ya están en `/opt/homebrew/bin`.
 

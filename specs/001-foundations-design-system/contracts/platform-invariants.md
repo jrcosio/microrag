@@ -4,7 +4,7 @@ Estas propiedades se fijan en F01 y **ninguna feature posterior puede romperlas*
 
 | ID | Invariante | Requisito | Verificación |
 |---|---|---|---|
-| P1 | `minSdk = 31`, `targetSdk = 36`, `compileSdk = 36.1` | FR-029, D-017 | `apkanalyzer manifest min-sdk` + revisión de `app/build.gradle.kts` |
+| P1 | `minSdk = 31`, `targetSdk = 36`, `compileSdk = 37.1` | FR-029, D-017, D-020 | `apkanalyzer manifest min-sdk` + revisión de `app/build.gradle.kts` |
 | P2 | `android:allowBackup="false"` | FR-026 | Manifiesto fusionado |
 | P3 | `dataExtractionRules`: `<cloud-backup>` y `<device-transfer>` excluyen todos los dominios | FR-026, R9 | Manifiesto + `res/xml/data_extraction_rules.xml` + `adb shell bmgr backupnow` sin datos |
 | P4 | Sin permisos de red ni permisos normales o peligrosos. Solo `${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` (nivel firma, AndroidX) | FR-025, R10 | Test instrumentado `ManifestInvariantsTest` (lista blanca de `requestedPermissions`) + `apkanalyzer manifest permissions` |
