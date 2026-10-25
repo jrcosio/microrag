@@ -16,6 +16,11 @@ Todo lo de este documento está verificado contra el AAR publicado (inspeccionad
 | Permisos del AAR | Ninguno | Manifiesto del AAR |
 | GPU | Requiere `libOpenCL.so` del fabricante, presente en el teléfono (`/vendor/lib64/libOpenCL.so`, Adreno 642L). Se declaran `<uses-native-library android:name="libOpenCL.so" android:required="false"/>` y `libvndksupport.so` (informe, Estructura del proyecto) | adb + informe |
 
+**Resueltas en el build** (`:app:dependencies --configuration debugRuntimeClasspath`, T002):
+- `gson` 2.14.0 (con `error_prone_annotations` 2.48.0);
+- `kotlinx-coroutines-android` 1.11.0;
+- `kotlin-reflect` 2.4.0, alineado a 2.4.21 con una restricción en `app/build.gradle.kts` para que coincida con el compilador.
+
 **API verificada** (paquete `com.google.ai.edge.litertlm`):
 
 - **Backends:** `Backend.CPU(threadCount?: Int, numOfThreads?: Int)` y `Backend.GPU()`.
