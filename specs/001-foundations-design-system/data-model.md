@@ -176,7 +176,7 @@ Son tipos de presentación de `core.designsystem`, no de dominio. Los mapeos des
 | `StatusKind` | `Local`, `Ready`, `Processing`, `Queued`, `Paused`, `Warning`, `Error`, `Info` | `LisdataStatusChip`, `LisdataModelStatusRow` y `LisdataDocumentRow`. Cada valor define el contenedor, el texto y un icono o punto; nunca solo el color (FR-013) |
 | `ProgressValue` | `Determinate(fraction: Float ∈ [0,1])` \| `Indeterminate` | `LisdataProgressRing`, `LisdataStepIndicator`, `LisdataProgressCard` y `LisdataQueueRow`. Nunca se inventa un porcentaje (constitución V) |
 | `StageStatus` | `Done`, `InProgress`, `Pending`, `Failed` | `LisdataStageRow` |
-| `IconTileStyle` | `Light`, `OnDark`, `Success`, `Neutral`, `Accent` (degradado) | `LisdataIconTile` |
+| `IconTileStyle` | `Light`, `OnDark`, `Success`, `Neutral`, `Error`, `Accent` (degradado) | `LisdataIconTile` (`Error` se añadió en la implementación para las etapas fallidas) |
 | `CitationUi` | `documentName: String`, `page: Int?`, `fragment: Int?`, `available: Boolean` | `LisdataSourceCitation` (si `available = false`, muestra «Fuente ya no disponible» y no navega) |
 | `ChatRole` / `AnswerState` | `User`, `Assistant` / `Streaming`, `Completed`, `Cancelled`, `Failed` | `LisdataChatBubble` y `LisdataAnswerCard` |
 

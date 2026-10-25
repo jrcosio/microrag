@@ -25,4 +25,13 @@
     <string name="pending_destination_title">Pending · %1$s</string>
     <string name="pending_destination_body">Destination “%1$s”. Arguments: %2$s</string>
     <string name="pending_destination_no_args">no arguments</string>
+
+    <!-- Design system components (F01) -->
+    <string name="cd_include_in_rag">Include %1$s in answers</string>
+    <string name="citation_page">Page %1$d</string>
+    <string name="citation_fragment">Fragment %1$d</string>
+    <string name="answer_cancelled">Generation cancelled</string>
+    <string name="answer_failed">The answer could not be generated</string>
+    <string name="action_clear_search">Clear search</string>
+    <string name="progress_value_percent">%1$d%%</string>
 </resources>

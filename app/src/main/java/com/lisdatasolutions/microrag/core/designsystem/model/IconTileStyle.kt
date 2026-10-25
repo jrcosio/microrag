@@ -14,6 +14,9 @@ enum class IconTileStyle {
     /** Neutral tile (pending stages). */
     Neutral,
 
+    /** Error tile (failed stages). */
+    Error,
+
     /** Brand gradient tile with a white icon (assistant avatar, sparkle). */
     Accent,
 }

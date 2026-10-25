@@ -28,6 +28,7 @@ fun LisdataIconTile(
         IconTileStyle.OnDark -> SolidColor(colors.onDarkTile) to colors.onDarkText
         IconTileStyle.Success -> SolidColor(colors.successContainer) to colors.success
         IconTileStyle.Neutral -> SolidColor(colors.neutralTile) to colors.textSecondaryOnContainer
+        IconTileStyle.Error -> SolidColor(colors.errorContainer) to colors.error
         IconTileStyle.Accent -> LisdataTheme.gradients.brandAccent to colors.onDarkText
     }
     Box(

@@ -216,6 +216,7 @@ Es un **catálogo de estilo**: no trae SVG exportados ni licencia, y le faltan l
 | `ic_check` | `check` | 08 etapa completada, 10 «Guardar preferencias» |
 | `ic_check_circle` | `circle-check` | Estado «Listo» (no maquetado) |
 | `ic_warning` | `triangle-alert` | Estados de error y aviso (no maquetado) |
+| `ic_close` | `x` | Borrar la búsqueda (añadido en la implementación de F01) |
 
 **Logo.** Se usa `logoLISDATA.png` (oficial, raster) para el wordmark. Los PNG muestran «lisdata ›» en una sola tinta, lo que es una aproximación. CLAUDE.md prohíbe redibujar el logo: hace falta el SVG oficial (ver G20).
 

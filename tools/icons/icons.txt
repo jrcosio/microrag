@@ -30,3 +30,5 @@ ic_info = info
 ic_check = check
 ic_check_circle = circle-check
 ic_warning = triangle-alert
+# Clear actions (search field), added during F01 implementation.
+ic_close = x

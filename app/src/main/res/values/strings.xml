@@ -30,4 +30,13 @@
     <string name="pending_destination_title">Pendiente · %1$s</string>
     <string name="pending_destination_body">Destino «%1$s». Argumentos: %2$s</string>
     <string name="pending_destination_no_args">sin argumentos</string>
+
+    <!-- Design system components (F01) -->
+    <string name="cd_include_in_rag">Incluir %1$s en las consultas</string>
+    <string name="citation_page">Página %1$d</string>
+    <string name="citation_fragment">Fragmento %1$d</string>
+    <string name="answer_cancelled">Generación cancelada</string>
+    <string name="answer_failed">No se pudo generar la respuesta</string>
+    <string name="action_clear_search">Borrar búsqueda</string>
+    <string name="progress_value_percent">%1$d%%</string>
 </resources>
