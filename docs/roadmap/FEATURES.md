@@ -36,7 +36,7 @@ Al cerrar cada feature se entrega:
 | ID | Feature | Tipo | Depende de | Estado |
 |---|---|---|---|---|
 | F01 | Fundaciones y design system | Producto (shell y DS) | — | ✅ implementada (pendiente de revisión del usuario; T059 TalkBack manual abierta) |
-| F02 | Viabilidad on-device (fase 0) | Técnica | F01 | ⬜ |
+| F02 | Viabilidad on-device (fase 0) | Técnica | F01 | 🟨 clarify ✓ (esperando revisión) |
 | F03 | Modelos y primer arranque | Producto | F01, F02 | ⬜ |
 | F04 | Núcleo de datos RAG | Técnica | F02 | ⬜ |
 | F05 | Harness offline de evaluación | Técnica | F04 | ⬜ |
@@ -140,7 +140,7 @@ flowchart LR
 ## F02 — Viabilidad on-device (fase 0)
 
 - **Tipo:** Técnica. Pantalla de diagnóstico interna, solo en debug.
-- **Estado:** ⬜
+- **Estado:** 🟨 en curso. Spec en `specs/002-ondevice-feasibility/spec.md`, rama `002-ondevice-feasibility`; clarify completado y pendiente de revisión. Teléfono de referencia: Nothing Phone (1) (D-022).
 
 **Objetivo.** Demostrar que Gemma 4 E2B y EmbeddingGemma 2 funcionan en el teléfono de referencia con LiteRT-LM 0.18.1, y medir:
 - `initialize()` en frío de cada engine;

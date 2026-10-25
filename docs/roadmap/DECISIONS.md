@@ -257,6 +257,18 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G42).
 - **Origen:** usuario, durante la implementación de F01.
 - **Afecta:** el build. Sustituye la versión de AGP de research R1 y el renombrado de proyecto del plan de F01. D-020 sigue vigente: Gradle 9.8.2 funciona con AGP 9.3.3.
 
+## D-022 — Alcance de la fase 0 (F02) y teléfono de referencia
+
+- **Fecha:** 2026-10-25
+- **Decisión:**
+  - **Teléfono de referencia:** Nothing Phone (1), A063. Snapdragon 778G+ (SM7325), Adreno 642L con OpenCL, 12 GB de RAM y Android 15 (API 35).
+  - **Modelos:** se prueban los cinco ficheros (≈ 5,7 GB): Gemma 4 E2B genérico y GPU; EmbeddingGemma 2 de 740M, 440M y 270M.
+  - **Compatibilidad CPU↔GPU:** se mide la de los embeddings, con coseno mínimo ≥ 0,99 sobre ≈ 20 textos.
+  - **Gemma 4 E2B:** se mide en GPU; en CPU solo como plan B si la GPU falla para un fichero.
+- **Motivo:** cerrar G35 y G36 con datos reales y saber pronto si consultas (CPU) e ingesta (GPU) pueden usar backends distintos.
+- **Origen:** usuario (clarify de F02).
+- **Afecta:** F02, F05, F07 y F10.
+
 ---
 
 ## Pendientes de decisión

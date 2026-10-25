@@ -33,6 +33,14 @@
 | Android | 15 (API 35), arm64-v8a |
 | Libre en `/data` | 111 GB |
 
+## Clarifications
+
+### Session 2026-10-25
+
+- Q: ¿Se descargan y prueban los cinco ficheros de modelo o solo una parte? → A: los cinco (Gemma 4 E2B genérico y GPU; EmbeddingGemma 2 de 740M, 440M y 270M), ≈ 5,7 GB en el ordenador y en el teléfono.
+- Q: ¿Se mide en F02 la compatibilidad CPU↔GPU de los embeddings? → A: sí. Para cada variante se embeben ≈ 20 textos de prueba (consultas y fragmentos de documento) en CPU y en GPU, y se informan el coseno mínimo y el medio entre ambos backends, con umbral ≥ 0,99 (informe, «Condición para mezclar vectores»).
+- Q: ¿Se mide Gemma 4 E2B también en CPU? → A: solo como plan B. Gemma se mide en GPU; si un fichero no carga o falla en GPU, ese fichero se mide en CPU.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Modelos verificados en el teléfono antes de usarlos (Priority: P1)
@@ -76,6 +84,7 @@ Quien desarrolla lanza, para cada variante de EmbeddingGemma 2 (740M, 440M y 270
    - la longitud máxima de entrada.
 2. **Given** la misma variante, **When** se ejecuta en GPU, **Then** se informan las mismas métricas o, si la GPU no está disponible para ese modelo, el error exacto, sin detener las demás combinaciones.
 3. **Given** las tres variantes medidas, **When** se consulta el resumen, **Then** se indica si al menos una cumple la consulta < 150 ms p95 en CPU (criterio de salida).
+4. **Given** una variante que funciona en CPU y en GPU, **When** se ejecuta la prueba de compatibilidad, **Then** se informan el coseno mínimo y el medio entre los vectores de ambos backends para el mismo conjunto de textos, y si cumple ≥ 0,99.
 
 ---
 
@@ -183,11 +192,12 @@ Mientras se ejecutan las pruebas, nunca hay dos motores ocupando la GPU a la vez
 
   La herramienta MUST comprobar que el resultado tiene 256 dimensiones y norma 1 ± 0,00001.
 - **FR-009**: La herramienta MUST leer y mostrar la longitud máxima de entrada declarada por cada modelo de embeddings.
+- **FR-009b**: Para cada variante que funcione en ambos backends, la herramienta MUST embeber el mismo conjunto de ≈ 20 textos de prueba (consultas y fragmentos de documento, con sus prefijos respectivos) en CPU y en GPU. MUST informar el coseno mínimo y el medio entre ambos backends y marcar la variante como compatible solo si el mínimo es ≥ 0,99. El resultado decide si consultas e ingesta pueden usar backends distintos.
 
 **Pruebas de generación**
 
 - **FR-010**: Para cada fichero verificado de Gemma 4 E2B, la herramienta MUST:
-  - cargar el modelo en GPU;
+  - cargar el modelo en GPU y, solo si la carga o la generación en GPU fallan, repetir la prueba de ese fichero en CPU como plan B, registrando el motivo del fallo en GPU;
   - generar a partir de un prompt de ≈ 2.000 tokens con el formato del informe (fuentes numeradas y pregunta);
   - medir la inicialización en frío, el TTFT, el prefill y el decode (tokens/s), la memoria pico y el número real de tokens del prompt;
   - mostrar el texto generado.
@@ -229,24 +239,25 @@ Mientras se ejecutan las pruebas, nunca hay dos motores ocupando la GPU a la vez
 ### Measurable Outcomes
 
 - **SC-001**: El 100 % de los ficheros se verifican por huella antes de cargarse. En las pruebas, un fichero con huella incorrecta no se carga nunca.
-- **SC-002**: El informe contiene resultados de las 6 combinaciones de embeddings (3 variantes × 2 backends) y de los 2 ficheros de Gemma, o el motivo documentado de las que no puedan ejecutarse.
+- **SC-002**: El informe contiene resultados de las 6 combinaciones de embeddings (3 variantes × 2 backends) y de los 2 ficheros de Gemma en GPU (más CPU como plan B para un fichero que falle en GPU), o el motivo documentado de las que no puedan ejecutarse.
 - **SC-003**: Se conoce el TTFT de Gemma 4 E2B con un prompt de ≈ 2.000 tokens en el teléfono de referencia (criterio de salida de la fase 0).
 - **SC-004**: Al menos una variante de EmbeddingGemma 2 embebe una consulta en menos de 150 ms (p95, CPU) en el teléfono de referencia. Si ninguna lo consigue, queda una decisión documentada y aprobada por el usuario.
 - **SC-005**: En ningún momento hay dos motores cargados en GPU a la vez (verificado por prueba automática y por los registros de la sesión).
 - **SC-006**: Durante cualquier prueba la interfaz responde: cancelar surte efecto en menos de 1 segundo y no hay avisos de «la aplicación no responde».
 - **SC-007**: La build de publicación no contiene la herramienta de diagnóstico ni permisos de red.
 - **SC-008**: Las decisiones de G35 y G36 y del backend de consulta quedan registradas en DECISIONS con sus cifras antes de cerrar la feature.
+- **SC-009**: Para cada variante ejecutable en ambos backends se conoce el coseno mínimo CPU↔GPU sobre el conjunto de prueba, y por tanto si consultas e ingesta pueden usar backends distintos (umbral ≥ 0,99).
 
 ## Assumptions
 
 - **Origen y versión de los modelos:** Hugging Face `litert-community`, fijado al commit vigente en la implementación. Se registran el commit y las huellas.
-- **Descarga al ordenador:** los ~5,7 GB se descargan en el ordenador de desarrollo, fuera del repositorio (`*.litertlm` está en `.gitignore`). Es tooling de desarrollo, no tráfico de la app.
+- **Descarga al ordenador:** se descargan los cinco ficheros (≈ 5,7 GB, confirmado en clarify) en el ordenador de desarrollo, fuera del repositorio (`*.litertlm` está en `.gitignore`). Es tooling de desarrollo, no tráfico de la app.
 - **Protocolo de medición por defecto:**
   - embeddings: 3 repeticiones de calentamiento y 30 medidas por combinación;
   - generación: 1 de calentamiento y 3 medidas por fichero, generando 128 tokens.
   - Antes de cada bloque se espera a estado térmico «ninguno» o «leve». A confirmar en clarify.
 - **Prompt de prueba:** texto sintético en español con el formato de la plantilla del informe, construido a partir de la documentación del propio proyecto (no son datos de usuario). Mide ≈ 2.000 tokens según el tokenizador del modelo.
-- **Gemma solo en GPU:** se mide en GPU, el backend previsto por el informe. CPU queda como posible referencia, a confirmar en clarify.
+- **Gemma en GPU con plan B en CPU** (confirmado en clarify): se mide en GPU, el backend previsto por el informe. CPU solo se mide para un fichero cuyo uso en GPU falle.
 - **Release:** la herramienta solo existe en debug, siguiendo el mismo patrón de source set que F01 (R7).
 - **Dependencias:** F01 (design system, colas dedicadas y lanzador de debug). No depende de F03–F05.
 - **Fuera de alcance:**
