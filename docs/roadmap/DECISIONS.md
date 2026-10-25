@@ -164,16 +164,69 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G42).
 - **Origen:** usuario.
 - **Afecta:** el proceso. Se hace el push inicial a `origin/main`.
 
+## D-014 — Nombre visible: MicroRAG
+
+- **Fecha:** 2026-10-25
+- **Decisión:**
+  - La app se llama «MicroRAG» en el lanzador y en todos los textos de interfaz que nombran el producto o el asistente. Por ejemplo, la etiqueta del asistente en el chat pasa de «LISDATA» a «MicroRAG», y la CTA de Preparación es «Entrar en MicroRAG».
+  - El logo de LISDATA se mantiene como marca de la empresa en las cabeceras donde aparece en los mockups (Bienvenida e Inicio).
+- **Motivo:** decisión del usuario sobre G32.
+- **Origen:** usuario (clarify de F01).
+- **Afecta:** F01 (`app_name` y strings) y los textos de F03, F09 y F11.
+
+## D-015 — Contraste: oscurecer solo los colores de texto
+
+- **Fecha:** 2026-10-25
+- **Decisión:**
+  - Se mantienen los rellenos, chips y degradados de los PNG.
+  - Los colores de texto que no cumplen WCAG AA se oscurecen:
+    - secundario `#658797` → `#54798A`;
+    - aviso `#A46C19` → `#8A5A12`;
+    - éxito `#129D83` → `#087A65`;
+    - error `#DB5865` → `#C23F4D`.
+  - El degradado de las CTA solo se ajusta si el tramo bajo la etiqueta no alcanza 3:1.
+- **Motivo:** el principio VII de la constitución exige WCAG AA (G05, G06, G42). La diferencia visual es mínima.
+- **Origen:** usuario (clarify de F01).
+- **Afecta:** F01 (tokens) y todas las pantallas.
+
+## D-016 — Modo oscuro derivado
+
+- **Fecha:** 2026-10-25
+- **Decisión:**
+  - Tema oscuro derivado de los tokens navy de la marca (`INVENTARIO.md` §2.2).
+  - Sigue el ajuste del sistema, sin selector propio.
+  - Se valida con las previews oscuras de cada componente.
+- **Motivo:** no hay mockups oscuros. El design system pide derivar roles y el checklist QA exige comprobar el modo oscuro (G07).
+- **Origen:** usuario (clarify de F01).
+- **Afecta:** F01 y F15 (auditoría).
+
+## D-017 — minSdk 31 (Android 12)
+
+- **Fecha:** 2026-10-25
+- **Decisión:** minSdk = 31. Concreta D-006, que fijaba el mínimo en 26.
+- **Motivo:**
+  - Los dispositivos objetivo (ARM64 con 8 GB o más) usan Android 12+.
+  - Simplifica los servicios en primer plano, el control térmico y los insets (G33).
+- **Origen:** usuario (clarify de F01).
+- **Afecta:** F01 y todas las demás.
+
+## D-018 — Controles estándar de Material 3 tematizados
+
+- **Fecha:** 2026-10-25
+- **Decisión:**
+  - El interruptor, los radios, los chips de filtro, la barra inferior, el campo de texto y los diálogos son los de Material 3, tematizados con los tokens de LISDATA.
+  - No se hacen réplicas a medida.
+  - Las diferencias de tamaño frente al PNG se documentan en cada entrega.
+- **Motivo:** se obtienen accesibilidad y comportamiento estándar con menos código propio (G18).
+- **Origen:** usuario (clarify de F01).
+- **Afecta:** F01 y todas las features de producto.
+
 ---
 
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.
 
-- **G32** — Marca y nombre de la app: «LISDATA» frente a «MicroRAG», tanto en el launcher como en la UI.
-- **G05/G06/G42** — Ajustes de contraste en los textos secundario, de aviso, de éxito y de error, y en las CTA con degradado.
-- **G07** — Paleta del modo oscuro derivada.
-- **G08** — Flecha Atrás en las pestañas, que vuelve a Inicio.
+- **G08** — Flecha Atrás en las pestañas, que vuelve a Inicio. Queda aplicada en la spec de F01 como supuesto por la precedencia del PNG; se revisa en el checkpoint de F01.
 - **G10** — Contenido de los pasos 2 y 3 de Preparación.
 - **G11–G17, G21, G22, G24–G26, G29–G31, G39** — Propuestas para estados y acciones no maquetados.
-- **G33 / D-006** — minSdk 31.
