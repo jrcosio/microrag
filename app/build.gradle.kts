@@ -51,6 +51,14 @@ android {
     testOptions {
         unitTests {
             isIncludeAndroidResources = true
+            all { test ->
+                // Robolectric's SDK 36 sandbox needs these JDK internals on JDK 17+.
+                test.jvmArgs(
+                    "--add-exports=java.base/jdk.internal.access=ALL-UNNAMED",
+                    "--add-opens=java.base/jdk.internal.access=ALL-UNNAMED",
+                    "--add-opens=java.base/java.io=ALL-UNNAMED",
+                )
+            }
         }
     }
     lint {
