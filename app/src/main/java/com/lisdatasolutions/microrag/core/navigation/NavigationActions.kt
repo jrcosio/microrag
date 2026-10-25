@@ -12,12 +12,24 @@ fun NavDestination.asTopLevelRoot(): TopLevelDestination? =
 fun shouldShowBottomBar(destination: TopLevelDestination?, imeVisible: Boolean): Boolean =
     destination != null && !imeVisible
 
-/** The tab the current back stack belongs to (Home when only Home is below). */
+/**
+ * The tab the current back stack belongs to (Home when only Home is below). Tabs are kept as a single
+ * instance above Home (N1), so at most one non-Home tab root is in the back stack.
+ */
 fun NavController.currentTopLevel(): TopLevelDestination =
-    currentBackStack.value
-        .asReversed()
-        .firstNotNullOfOrNull { entry -> entry.destination.asTopLevelRoot()?.takeIf { it != TopLevelDestination.HOME } }
+    TopLevelDestination.entries
+        .filter { it != TopLevelDestination.HOME }
+        .firstOrNull { hasRootInBackStack(it) }
         ?: TopLevelDestination.HOME
+
+private fun NavController.hasRootInBackStack(destination: TopLevelDestination): Boolean = runCatching {
+    when (destination) {
+        TopLevelDestination.HOME -> getBackStackEntry<Home>()
+        TopLevelDestination.CHAT -> getBackStackEntry<Chat>()
+        TopLevelDestination.LIBRARY -> getBackStackEntry<Library>()
+        TopLevelDestination.SETTINGS -> getBackStackEntry<Settings>()
+    }
+}.isSuccess
 
 /**
  * N1 + N4: switch tabs keeping a single instance of each, saving and restoring their state; selecting

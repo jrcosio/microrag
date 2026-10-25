@@ -22,5 +22,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "MicroRAG"
+rootProject.name = "MIcroRAG"
 include(":app")

@@ -64,6 +64,10 @@ android {
     lint {
         abortOnError = true
         checkDependencies = false
+        // Constitution: release ships ARM64 only (x86_64 is debug-only for the emulator).
+        disable += "ChromeOsAbiSupport"
+        // AGP is pinned to the newest version supported by the team's Android Studio (D-021).
+        disable += "AndroidGradlePluginVersion"
     }
 }
 
@@ -97,6 +101,8 @@ dependencies {
     testImplementation(libs.androidx.junit)
     testImplementation(libs.androidx.compose.ui.test.junit4)
     testImplementation(libs.androidx.navigation.testing)
+    // Pin Espresso: compose ui-test pulls 3.5.0 transitively, which lacks Android 16+ support.
+    testImplementation(libs.androidx.espresso.core)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.koin.test.junit4)
 

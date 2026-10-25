@@ -245,6 +245,18 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G42).
 - **Origen:** implementación de F01 (T004). Verificado con `assembleDebug`: AGP 9.4.1 resuelve KGP 2.4.21.
 - **Afecta:** F01 (build) y todas las demás.
 
+## D-021 — AGP 9.3.3 por compatibilidad con Android Studio
+
+- **Fecha:** 2026-10-25
+- **Decisión:**
+  - AGP pasa de 9.4.1 a **9.3.3**, la versión con la que Android Studio generó el scaffold.
+  - Se mantienen Kotlin 2.4.21 (AGP resuelve KGP 2.4.21), Gradle 9.8.2 y compileSdk 37.1. Todo queda verificado con build, lint y tests en verde.
+  - El aviso de lint `AndroidGradlePluginVersion` se desactiva con justificación.
+  - `rootProject.name` vuelve a «MIcroRAG», igual que la carpeta y la configuración `.idea`. El cambio de nombre a «MicroRAG» del plan rompía la sincronización de Android Studio («Can't find module entity for MIcroRAG.app»). El nombre visible de la app sigue siendo «MicroRAG» (D-014).
+- **Motivo:** el Android Studio del equipo admite como máximo AGP 9.3.x («The project is using an incompatible version (AGP 9.4.1)… Latest supported version is AGP 9.3.0»).
+- **Origen:** usuario, durante la implementación de F01.
+- **Afecta:** el build. Sustituye la versión de AGP de research R1 y el renombrado de proyecto del plan de F01. D-020 sigue vigente: Gradle 9.8.2 funciona con AGP 9.3.3.
+
 ---
 
 ## Pendientes de decisión

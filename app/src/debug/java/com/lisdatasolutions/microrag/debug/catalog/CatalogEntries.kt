@@ -11,6 +11,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -122,7 +123,7 @@ val catalogEntries: List<CatalogEntry> = listOf(
         }
     },
     entry("Barras", "bottomBar", "LisdataBottomBar") {
-        var selected by remember { mutableStateOf(0) }
+        var selected by remember { mutableIntStateOf(0) }
         LisdataBottomBar(items = tabs, selectedIndex = selected, onSelect = { selected = it })
     },
     // Buttons
@@ -195,7 +196,7 @@ val catalogEntries: List<CatalogEntry> = listOf(
         }
     },
     entry("Chips", "filter", "LisdataFilterChip") {
-        var selected by remember { mutableStateOf(0) }
+        var selected by remember { mutableIntStateOf(0) }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             listOf("Todos", "Indexados", "Pendientes").forEachIndexed { index, label ->
                 LisdataFilterChip(label, selected = selected == index, onClick = { selected = index })
@@ -279,7 +280,7 @@ val catalogEntries: List<CatalogEntry> = listOf(
         }
     },
     entry("Filas", "radio", "LisdataRadioRow") {
-        var selected by remember { mutableStateOf(0) }
+        var selected by remember { mutableIntStateOf(0) }
         LisdataCardGroup {
             LisdataRadioRow("Automático", selected == 0, { selected = 0 }, subtitle = "Detectar idioma de la pregunta")
             LisdataDivider()

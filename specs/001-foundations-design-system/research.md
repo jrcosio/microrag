@@ -9,7 +9,7 @@ Las versiones se verificaron el 2026-10-25 contra `maven-metadata.xml` de Google
 
 | Pieza | Scaffold actual | Elegido | Fuente / nota |
 |---|---|---|---|
-| Android Gradle Plugin | 9.3.3 | **9.4.1** (última estable) | Google Maven; 9.6.0-alpha01 descartada por no ser estable |
+| Android Gradle Plugin | 9.3.3 | ~~9.4.1~~ → **9.3.3** (D-021) | 9.4.1 es la última estable en Google Maven, pero el Android Studio del equipo admite como máximo 9.3.x |
 | Gradle wrapper | 9.5.0 | **9.8.2** (última estable) | AGP 9.4.1 exige ≥ 9.6.0 (D-020) |
 | Kotlin (KGP + plugin Compose) | 2.2.10 | **2.4.21** (última estable) | Maven Central. AGP 9.x declara KGP 2.2.10 como dependencia *runtime*; poner el plugin Compose a 2.4.21 en el classpath hace que Gradle resuelva KGP 2.4.21 (gana la versión más alta) |
 | Plugin kotlinx-serialization | — | **2.4.21** | Lo exigen las rutas tipadas de Navigation |

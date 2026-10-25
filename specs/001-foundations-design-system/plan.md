@@ -37,7 +37,7 @@ Todo se verifica con tests JVM (contraste, conformidad, DI, navegación) e instr
 **Language/Version**: Kotlin 2.4.21 (K2), Java 17 como bytecode target y JDK 21 (JBR de Android Studio) para compilar (research R1).
 
 **Primary Dependencies** (versiones verificadas el 2026-10-25, research R1):
-- Build: AGP 9.4.1, Gradle 9.8.2 (D-020).
+- Build: AGP 9.3.3 (D-021, compatible con el Android Studio del equipo), Gradle 9.8.2 (D-020).
 - UI: Compose BOM 2026.09.00 (ui 1.12.1, material3 1.4.0), activity-compose 1.13.0, lifecycle 2.11.0, core-ktx 1.19.1.
 - Navegación: navigation-compose 2.10.2 con kotlinx-serialization 1.12.0.
 - Concurrencia y DI: kotlinx-coroutines 1.11.0, Koin 4.2.2.
@@ -114,7 +114,7 @@ specs/001-foundations-design-system/
 ### Source Code (repository root)
 
 ```text
-settings.gradle.kts                      # rootProject.name = "MicroRAG"
+settings.gradle.kts                      # rootProject.name = "MIcroRAG" (se mantiene, D-021)
 gradle/libs.versions.toml                # versiones de research R1
 build.gradle.kts                         # plugins: android.application, kotlin.compose, kotlin.serialization
 app/build.gradle.kts                     # minSdk 31, Java 17, abiFilters, buildConfig, lint, deps
