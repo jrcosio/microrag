@@ -88,7 +88,7 @@ Quien instala la app tiene la garantía, desde la primera versión, de que:
 
 **Acceptance Scenarios**:
 
-1. **Given** la app instalada, **When** se consultan sus permisos declarados, **Then** no hay ningún permiso de red ni ningún otro permiso.
+1. **Given** la app instalada, **When** se consultan sus permisos solicitados, **Then** no hay ningún permiso de red ni ningún permiso normal o peligroso. Solo aparecen los permisos internos de nivel firma que añade la plataforma AndroidX, documentados.
 2. **Given** la app con datos locales, **When** se lanza una copia de seguridad o una transferencia entre dispositivos, **Then** no se incluye ningún dato de la app.
 3. **Given** la variante de publicación, **When** se usa la app, **Then** no se emiten registros de depuración.
 
@@ -141,7 +141,7 @@ Quien usa TalkBack, tamaños de fuente grandes o necesita objetivos táctiles am
 - **FR-005**: El sistema de diseño MUST definir espaciado (unidad de 4 dp, margen lateral de 20 dp), radios (tarjeta 16 dp, botón 12 dp, tile 12 dp, chip en píldora), bordes (1 dp) y elevación (0, borde en lugar de sombra) según §2.5.
 - **FR-006**: La app MUST incluir los iconos de §2.6 como recursos vectoriales de un único estilo lineal (Lucide, D-008), tintables por token y con los nombres `ic_*` del inventario. El icono de Ajustes MUST ser el sol de los mockups (G19).
 - **FR-007**: La marca MUST mostrarse con el asset oficial `logoLISDATA.png`, sin redibujarlo ni aproximarlo, con sus proporciones originales y una descripción accesible.
-- **FR-008**: Todos los pares texto/fondo definidos por los tokens MUST cumplir WCAG AA: 4,5:1 en texto normal y 3:1 en texto grande (≥ 18,66 px en negrita o ≥ 24 px). Para ello, los rellenos, chips y degradados del mockup se mantienen y se oscurecen solo los colores de texto: secundario `#54798A` (en lugar de `#658797`), aviso `#8A5A12` (en lugar de `#A46C19`), éxito `#087A65` (en lugar de `#129D83`) y error `#C23F4D` (en lugar de `#DB5865`). El degradado de las CTA solo se ajusta si el tramo bajo la etiqueta no alcanza 3:1 (G05, G06, G42).
+- **FR-008**: Todos los pares texto/fondo definidos por los tokens MUST cumplir WCAG AA: 4,5:1 en texto normal y 3:1 en texto grande, con la convención de Android/ATF: ≥ 18 sp regular o ≥ 14 sp en negrita. Para ello, los rellenos, chips y degradados del mockup se mantienen y se oscurecen solo los colores de texto: secundario `#54798A` (en lugar de `#658797`), aviso `#8A5A12` (en lugar de `#A46C19`), éxito `#087A65` (en lugar de `#129D83`) y error `#C23F4D` (en lugar de `#DB5865`). El degradado de las CTA solo se ajusta si el tramo bajo la etiqueta no alcanza 3:1 (G05, G06, G42).
 
 **Componentes**
 
@@ -175,7 +175,7 @@ Quien usa TalkBack, tamaños de fuente grandes o necesita objetivos táctiles am
 
 **Privacidad y plataforma**
 
-- **FR-025**: La app MUST NOT declarar permisos de red ni ningún otro permiso en esta feature.
+- **FR-025**: La app MUST NOT solicitar permisos de red ni ningún permiso normal o peligroso en esta feature. Solo se admiten los permisos internos de nivel firma que añaden las librerías de la plataforma (p. ej. `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` de AndroidX), documentados en el plan (research R10).
 - **FR-026**: La app MUST quedar excluida de las copias de seguridad en la nube y de las transferencias entre dispositivos.
 - **FR-027**: La variante de publicación MUST NOT emitir registros de depuración.
 - **FR-028**: La app MUST distribuirse solo para dispositivos ARM de 64 bits. La arquitectura x86_64 se admite únicamente en la variante de depuración, para el emulador de desarrollo.
@@ -203,7 +203,7 @@ Quien usa TalkBack, tamaños de fuente grandes o necesita objetivos táctiles am
 - **SC-002**: El 100 % de los pares texto/fondo de los tokens, en tema claro y oscuro, cumplen WCAG AA en una verificación automática.
 - **SC-003**: Cada destino principal se alcanza con 1 toque desde cualquier otro. En el 100 % de los recorridos de prueba, Atrás nunca deja dos instancias de la misma pestaña.
 - **SC-004**: Con la fuente del sistema al 200 %, ninguna vista previa ni entrada del catálogo muestra texto recortado o solapado en la revisión.
-- **SC-005**: El paquete instalado declara 0 permisos, y una copia de seguridad del dispositivo contiene 0 datos de la app.
+- **SC-005**: El paquete instalado solicita 0 permisos de red y 0 permisos normales o peligrosos (solo los internos de nivel firma documentados), y una copia de seguridad o transferencia del dispositivo contiene 0 datos de la app.
 - **SC-006**: El 100 % de los elementos interactivos del catálogo superan la verificación automática de área táctil mínima de 48 dp.
 - **SC-007**: En el 100 % de los casos de prueba de rotación, cambio de tema y recreación, se conserva el destino y la pestaña.
 - **SC-008**: Una verificación automática no encuentra ningún color, tamaño de texto o texto literal definido fuera del sistema de diseño o de los recursos.
