@@ -154,7 +154,8 @@ Mientras se ejecutan las pruebas, nunca hay dos motores ocupando la GPU a la vez
 
 - **Fichero ausente, incompleto o con huella distinta:** se informa y no se carga (US1).
 - **GPU no disponible para un modelo** (delegado OpenCL ausente o modelo no compatible): la combinación se registra como «no disponible», con el motivo, y se siguen midiendo las demás.
-- **Memoria insuficiente al cargar Gemma:** el error se captura, la app no se cierra y la combinación queda registrada como fallida.
+- **Memoria insuficiente al cargar Gemma:** si el runtime devuelve un error, se captura, la app no se cierra y la combinación queda registrada como fallida.
+  - Si el sistema mata el proceso por falta de memoria (no capturable), se pierde solo la medición en curso: el informe se reescribe tras cada resultado, así que lo ya medido se conserva.
 - **Prompt que no da exactamente 2.000 tokens:** se informa el número real de tokens. La comparación se hace sobre esa cifra.
 - **Estrangulamiento térmico:** se registra el estado térmico al inicio y al final de cada prueba. Si es «severo» o peor al empezar, la prueba avisa y espera a confirmar antes de medir.
 - **Cancelación en mitad de la inicialización:** la operación termina de forma limpia y el motor no queda a medio cargar.
@@ -203,6 +204,7 @@ Mientras se ejecutan las pruebas, nunca hay dos motores ocupando la GPU a la vez
   - medir la inicialización en frío, el TTFT, el prefill y el decode (tokens/s), la memoria pico y el número real de tokens del prompt;
   - mostrar el texto generado.
 - **FR-011**: Toda prueba en curso MUST poder cancelarse, y la cancelación MUST hacerse efectiva en menos de 1 segundo.
+  - Excepción: la inicialización de un motor, que el runtime no permite interrumpir (research R8). La cancelación se registra al instante, la interfaz sigue respondiendo y se hace efectiva al terminar la inicialización, liberando el motor.
 
 **Recursos**
 
@@ -230,7 +232,7 @@ Mientras se ejecutan las pruebas, nunca hay dos motores ocupando la GPU a la vez
 
 ### Key Entities *(include if data involved)*
 
-- **Fichero de modelo esperado**: nombre, modelo (Gemma 4 E2B o EmbeddingGemma 2 con su variante), tamaño, huella publicada y revisión de origen. Su estado local es ausente, verificando, verificado o incorrecto.
+- **Fichero de modelo esperado**: nombre, modelo (Gemma 4 E2B o EmbeddingGemma 2 con su variante), tamaño, huella publicada y revisión de origen. Su estado local es ausente, presente sin verificar, verificando, verificado, huella incorrecta o error. En el diagnóstico se muestra además si hay una copia pendiente de importar.
 - **Combinación de prueba**: modelo × fichero × backend (CPU o GPU) × tipo de prueba (embedding o generación).
 - **Resultado de prueba**: la combinación, las métricas (inicialización, p50/p95, TTFT, prefill/decode, memoria pico, dimensiones y norma, tokens del prompt), su estado (completada, cancelada, fallida con motivo), el estado térmico inicial y final, y fecha y hora.
 - **Informe de viabilidad**: el conjunto de resultados de una sesión, con los metadatos del dispositivo y las versiones.
@@ -244,7 +246,7 @@ Mientras se ejecutan las pruebas, nunca hay dos motores ocupando la GPU a la vez
 - **SC-003**: Se conoce el TTFT de Gemma 4 E2B con un prompt de ≈ 2.000 tokens en el teléfono de referencia (criterio de salida de la fase 0).
 - **SC-004**: Al menos una variante de EmbeddingGemma 2 embebe una consulta en menos de 150 ms (p95, CPU) en el teléfono de referencia. Si ninguna lo consigue, queda una decisión documentada y aprobada por el usuario.
 - **SC-005**: En ningún momento hay dos motores cargados en GPU a la vez (verificado por prueba automática y por los registros de la sesión).
-- **SC-006**: Durante cualquier prueba la interfaz responde: cancelar surte efecto en menos de 1 segundo y no hay avisos de «la aplicación no responde».
+- **SC-006**: Durante cualquier prueba la interfaz responde y no hay avisos de «la aplicación no responde». Cancelar surte efecto en menos de 1 segundo, salvo durante la inicialización de un motor (FR-011).
 - **SC-007**: La build de publicación no contiene la herramienta de diagnóstico ni permisos de red.
 - **SC-008**: Las decisiones de G35 y G36 y del backend de consulta quedan registradas en DECISIONS con sus cifras antes de cerrar la feature.
 - **SC-009**: Para cada variante ejecutable en ambos backends se conoce el coseno mínimo CPU↔GPU sobre el conjunto de prueba, y por tanto si consultas e ingesta pueden usar backends distintos (umbral ≥ 0,99).
@@ -260,7 +262,7 @@ Mientras se ejecutan las pruebas, nunca hay dos motores ocupando la GPU a la vez
   - antes de cada bloque se espera a estado térmico «ninguno» o «leve», con un tope de 5 minutos (fijado en el plan, research R6).
 - **Prompt de prueba:** texto sintético en español con el formato de la plantilla del informe, construido a partir de la documentación del propio proyecto (no son datos de usuario). Mide ≈ 2.000 tokens según el tokenizador del modelo.
 - **Gemma en GPU con plan B en CPU** (confirmado en clarify): se mide en GPU, el backend previsto por el informe. CPU solo se mide para un fichero cuyo uso en GPU falle.
-- **Release:** la herramienta solo existe en debug, siguiendo el mismo patrón de source set que F01 (R7).
+- **Release:** la herramienta solo existe en debug, siguiendo el mismo patrón de source set que F01 (research R7 de F01).
 - **Dependencias:** F01 (design system, colas dedicadas y lanzador de debug). No depende de F03–F05.
 - **Fuera de alcance:**
   - descarga de modelos en la app (F03);

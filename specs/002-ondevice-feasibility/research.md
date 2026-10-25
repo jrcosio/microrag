@@ -159,7 +159,8 @@ Hay **dos formas de lanzar** la batería de pruebas, que comparten el mismo orqu
 | Objetivo | Tipo |
 |---|---|
 | Truncado, L2 y coseno; percentiles; catálogo de modelos (huellas hex de 64 y nombres únicos); verificador SHA-256 (fichero temporal, progreso, discrepancia); reglas de `EngineCoordinator` con motores falsos; formato del informe (JSON ↔ Markdown); plantilla del prompt | JVM (`app/src/test`) |
-| Importación y verificación en un dispositivo real con un fichero pequeño; liberación en `onTrimMemory` | Instrumentado (emulador/teléfono, sin modelos) |
+| Importación y verificación en un dispositivo real con un fichero pequeño | Instrumentado (emulador/teléfono, sin modelos) |
+| Liberación en `onTrimMemory` (`EngineMemoryCallbacks`) | JVM, más comprobación manual en el teléfono |
 | Batería completa con modelos | Instrumentado `@RequiresModels` en el teléfono de referencia |
 | Release sin diagnóstico y sin permisos de red | `apkanalyzer` (como en F01 P6) |
 

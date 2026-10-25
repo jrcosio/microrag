@@ -156,6 +156,7 @@ app/src/main/java/com/lisdatasolutions/microrag/
         ├── TextGenerator.kt                   # + GenerationEvent, GenerationStats, GenerationConfig
         ├── EngineFactory.kt                   # + ModelMetadata
         ├── EngineCoordinator.kt
+        ├── EngineMemoryCallbacks.kt           # ComponentCallbacks2 → releaseAll()
         ├── EmbeddingMath.kt                   # truncate+L2, l2Norm, cosine
         ├── EmbeddingPrefixes.kt
         ├── RuntimeInfo.kt                     # LITERT_LM_VERSION
@@ -192,15 +193,20 @@ app/src/release/java/com/lisdatasolutions/microrag/debug/DebugModules.kt   # stu
 app/src/test/java/com/lisdatasolutions/microrag/
 ├── domain/model/ModelCatalogTest.kt
 ├── data/models/{Sha256Test, DefaultModelFileRepositoryTest}.kt
-├── rag/runtime/{EmbeddingMathTest, EmbeddingPrefixesTest, EngineCoordinatorTest, RuntimeInfoTest}.kt
+├── rag/runtime/{EmbeddingMathTest, EmbeddingPrefixesTest, EngineCoordinatorTest, RuntimeInfoTest, EngineMemoryCallbacksTest}.kt
+├── architecture/LayeringTest.kt               # solo rag/runtime/litert importa LiteRT-LM
 └── core/di/AppModulesTest.kt                  # + runtimeModule
-app/src/testDebug/java/com/lisdatasolutions/microrag/debug/feasibility/
-├── {PercentilesTest, ReportWriterTest, FeasibilityTextsTest}.kt
-├── FeasibilitySuiteTest.kt                    # fábrica falsa: orden, GPU única, plan B, cancelación
-└── FeasibilityViewModelTest.kt
+app/src/testDebug/java/com/lisdatasolutions/microrag/debug/
+├── DebugModulesTest.kt
+└── feasibility/
+    ├── {PercentilesTest, FeasibilityTextsTest, DevModelImporterTest}.kt
+    ├── report/ReportWriterTest.kt
+    ├── {FeasibilitySuiteEmbeddingTest, FeasibilitySuiteGenerationTest}.kt   # fábrica falsa
+    └── {FeasibilityViewModelModelsTest, FeasibilityViewModelLifecycleTest}.kt
 app/src/androidTest/java/com/lisdatasolutions/microrag/
 ├── ManifestInvariantsTest.kt                  # + uses-native-library required=false
 ├── data/models/ModelInstallInstrumentedTest.kt
+├── rag/runtime/LiteRtSmokeTest.kt             # @RequiresModels, 270M en CPU (riesgo 1)
 └── debug/feasibility/
     ├── RequiresModels.kt
     ├── FeasibilityScreenAccessibilityTest.kt
@@ -219,10 +225,10 @@ app/src/androidTest/java/com/lisdatasolutions/microrag/
    - revalidación SHA-256 de cada fichero `Verified` (FR-005);
    - `benchmarkStatsEnabled = true`.
 2. **Embeddings.** Por cada variante verificada y cada backend (CPU y GPU):
-   1. Esperar a estado térmico NONE o LIGHT (máximo 5 min; si es SEVERE o peor, se pide confirmación).
-   2. Reiniciar `VmHWM`.
-   3. Inicialización en frío: `clearCompiledCache()` y luego inicializar. Después, liberar e inicializar con caché.
-   4. Leer los metadatos.
+   1. Leer los metadatos (`ModelInfo`). Si el modelo no declara el backend, el resultado es `NotAvailable` sin cargarlo.
+   2. Esperar a estado térmico NONE o LIGHT (máximo 5 min; si es SEVERE o peor, se pide confirmación).
+   3. Reiniciar `VmHWM`.
+   4. Inicialización en frío: `clearCompiledCache()` y luego inicializar. Después, liberar e inicializar con caché.
    5. Consultas: 3 de calentamiento y 30 medidas, rotando las 10 consultas.
    6. Fragmentos: 3 de calentamiento y 30 medidas.
    7. Comprobar dimensiones y norma.
@@ -237,7 +243,7 @@ app/src/androidTest/java/com/lisdatasolutions/microrag/
    4. Liberar.
 
    Si falla la carga o la generación, se repite el fichero en CPU como plan B (`fallbackFromGpu = true`).
-5. **Cierre:** `exitCriteria`, escritura de JSON y Markdown y `releaseAll()`.
+5. **Cierre:** `exitCriteria`, escritura final de JSON y Markdown y `releaseAll()`. El informe también se reescribe tras cada resultado, para que una muerte del proceso no borre lo ya medido.
 
 **Detalles de la batería:**
 - Cada fase usa un único `withEngine`, para que nunca se recargue un motor dentro de un bucle medido.
@@ -254,6 +260,7 @@ Ver research R13. Además:
 1. **Primera tarea de implementación tras añadir la dependencia:** compilar e instalar, y cargar EmbeddingGemma 270M en CPU en el teléfono. Si falla la carga de `liblitertlm_jni.so` o la API no coincide con research R1, se para y se replantea antes de construir el resto.
 2. **Tamaño del APK release:** crece ≈ 22 MB por `liblitertlm_jni.so` en arm64. Es esperado (el producto la necesita desde F03/F04). Se registra en el informe de cierre.
 3. **`ExperimentalFlags` es global y experimental:** se activa solo desde la suite de debug y se contrasta con medidas de reloj de pared (R4).
+4. **Tests instrumentados en el teléfono:** `connected*AndroidTest` de Gradle desinstala la app al terminar, lo que borraría los 5,6 GB de modelos importados. En el teléfono, los tests instrumentados se ejecutan con `installDebug` + `installDebugAndroidTest` + `am instrument`, excluyendo `@RequiresModels` salvo cuando se busca la batería (quickstart §1 y §5).
 
 ## Complexity Tracking
 

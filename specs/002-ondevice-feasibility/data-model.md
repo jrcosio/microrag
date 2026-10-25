@@ -28,7 +28,7 @@ Va en el paquete `domain.model`, en el source set `main`, y F03 lo reutiliza.
 ```text
 Missing                                 (no está en noBackupFilesDir/models)
 Unverified(path)                        (presente, sin verificar en esta sesión; no cargable)
-Verifying(progress: ProgressValue)      (cálculo de SHA-256; progreso real en bytes)
+Verifying(bytesDone: Long, totalBytes: Long)  (cálculo de SHA-256; progreso real; la UI lo traduce a ProgressValue)
 Verified(path)                          (huella correcta; único estado cargable)
 Mismatch(expected, actual)              (huella incorrecta; no se carga)
 Failed(reason)                          (error de E/S, sin espacio…)
@@ -112,7 +112,7 @@ Todos llevan además los campos comunes: `scenario`, `startedAt`, `durationMs`, 
 | `totalRamMb` | `ActivityManager.MemoryInfo` |
 | `thermalStatus`, `thermalHeadroom` | `PowerManager` |
 | `charging`, `batteryLevel`, `batteryTempC` | `ACTION_BATTERY_CHANGED` |
-| `appVersion`, `liteRtLmVersion` | `BuildConfig.VERSION_NAME` y constante `LiteRtLmInfo.VERSION` (debe coincidir con `libs.versions.toml`; lo comprueba un test) |
+| `appVersion`, `liteRtLmVersion` | `BuildConfig.VERSION_NAME` y constante `RuntimeInfo.LITERT_LM_VERSION` (debe coincidir con `libs.versions.toml`; lo comprueba un test) |
 
 ## 5. `FeasibilityReport`
 

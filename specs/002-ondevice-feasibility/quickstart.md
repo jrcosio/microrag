@@ -17,16 +17,26 @@ Guía para validar F02 de principio a fin en el teléfono de referencia. Los det
   - ≈ 5,6 GB en el ordenador;
   - ≈ 8,5 GB en el teléfono: los 5,6 GB de modelos más el pico de una copia durante la importación.
 
-## 1. Build y tests sin modelos (cualquier dispositivo o emulador)
+## 1. Build y tests sin modelos (emulador y teléfono)
 
 ```bash
 ./gradlew :app:assembleDebug :app:lintDebug :app:testDebugUnitTest
-./gradlew :app:connectedDebugAndroidTest          # emulador Pixel_10 o teléfono
+./gradlew :app:connectedDebugAndroidTest          # SOLO en el emulador Pixel_10
+```
+
+**En el teléfono**, nunca con `connected*AndroidTest`: Gradle desinstala la app al terminar y se perderían los modelos importados. Se usa:
+
+```bash
+./gradlew :app:installDebug :app:installDebugAndroidTest
+adb -s P31281001066 shell am instrument -w \
+  -e notAnnotation com.lisdatasolutions.microrag.debug.feasibility.RequiresModels \
+  com.lisdatasolutions.microrag.test/androidx.test.runner.AndroidJUnitRunner
 ```
 
 **Esperado:**
 - todo en verde;
-- los tests `@RequiresModels` aparecen como *skipped* (asunción no cumplida), no como fallidos.
+- en el emulador, los tests `@RequiresModels` aparecen como *skipped* (asunción no cumplida), no como fallidos;
+- en el teléfono quedan excluidos por `notAnnotation`.
 
 ## 2. Release sin diagnóstico
 
@@ -64,7 +74,9 @@ Abrir «MicroRAG Debug → Viabilidad on-device → Importar modelos de desarrol
 **Prueba negativa:**
 1. Copiar a `dev-models` un fichero con el nombre de `embeddinggemma-2-text-270m.litertlm` pero con otro contenido. Por ejemplo, los primeros 10 MB del fichero real:
    ```bash
-   head -c 10485760 ... > /tmp/x
+   head -c 10485760 "$MODELS_DIR/embeddinggemma-2-text-270m.litertlm" > "$MODELS_DIR/truncated-270m.bin"
+   adb -s P31281001066 push "$MODELS_DIR/truncated-270m.bin" \
+     /sdcard/Android/data/com.lisdatasolutions.microrag/files/dev-models/embeddinggemma-2-text-270m.litertlm
    ```
 2. Pulsar Importar.
 

@@ -55,10 +55,11 @@ La medición definitiva en el teléfono y las decisiones van en la fase final, c
 - [ ] T004 [P] Descargar los 5 ficheros a `$HOME/MicroRAG-models` según `specs/002-ondevice-feasibility/contracts/provisioning.md` §1 (en segundo plano, ≈ 5,6 GB, fuera del repositorio).
   - Comprobar `shasum -a 256` contra research R2.
   - Si alguna huella no coincide, parar e informar.
-- [ ] T005 Depende de T004:
-  1. Prueba de escritura en `dev-models` (quickstart §3).
-  2. `adb push` de los 5 ficheros a `/sdcard/Android/data/com.lisdatasolutions.microrag/files/dev-models/` del teléfono P31281001066.
-  3. Si la prueba de escritura falla, usar el plan B de `contracts/provisioning.md` y registrarlo en research R7.
+- [ ] T005 Depende de T003 y T004:
+  1. Instalar la app de debug en el teléfono (`./gradlew :app:installDebug`) y abrirla una vez, para que el sistema cree `Android/data/<paquete>` con el propietario correcto.
+  2. Prueba de escritura en `dev-models` (quickstart §3).
+  3. `adb push` de los 5 ficheros a `/sdcard/Android/data/com.lisdatasolutions.microrag/files/dev-models/` del teléfono P31281001066.
+  4. Si la prueba de escritura falla, usar el plan B de `contracts/provisioning.md` y registrarlo en research R7.
 
 ---
 
@@ -127,7 +128,7 @@ Todas las historias dependen de esta fase.
 - [ ] T018 Crear `…/microrag/rag/runtime/EngineCoordinator.kt`:
   - un `Mutex` de carga y otro de uso por motor;
   - `loaded: StateFlow<Set<EngineKey>>`;
-  - registrar con `AppLogger` `engine load <modelId> <backend>` y `engine release <modelId> <backend>`, sin contenido.
+  - registrar con `AppLogger`, tag `MicroRAG`, `engine load <modelId> <backend>` y `engine release <modelId> <backend>`, sin contenido (quickstart §7).
 
   Hacer pasar T010.
 - [ ] T019 Crear `…/microrag/rag/runtime/litert/LiteRtTextEmbedder.kt`:
@@ -136,7 +137,7 @@ Todas las historias dependen de esta fase.
   - `embedQuery` y `embedDocument` con `EmbeddingPrefixes`, llamando a `computeEmbedding(listOf(InputData.Text(…)), EmbeddingOptions(normalize = false, outputSize = null))`, y luego `EmbeddingMath.truncateAndNormalize(256)`;
   - `rawDimensions` según la última salida;
   - `close()`.
-- [ ] T020 Crear `…/microrag/rag/runtime/litert/LiteRtTextGenerator.kt`:
+- [ ] T020 Crear `…/microrag/rag/runtime/litert/LiteRtTextGenerator.kt`. Antes de escribirlo, comprobar con `javap` en el AAR cómo se extrae el texto de `Message` y la firma completa de `sendMessageAsync`:
   - `Engine(EngineConfig(modelPath, backend, maxNumTokens, cacheDir))` e `initialize()` en `AppDispatchers.llm`;
   - `generate()` crea una `Conversation` nueva con:
     - `ConversationConfig(samplerConfig = SamplerConfig(1, 1.0, 0.0, 0)` si es greedy;
@@ -176,11 +177,11 @@ Todas las historias dependen de esta fase.
   1. Crear la anotación `…/androidTest/debug/feasibility/RequiresModels.kt`.
   2. Crear `…/androidTest/rag/runtime/LiteRtSmokeTest.kt` (`@RequiresModels`):
      - localiza `embeddinggemma-2-text-270m.litertlm` en `dev-models` o en `no_backup/models`;
-     - **verifica su SHA-256** con `Sha256` contra el catálogo;
-     - lo carga en CPU con `LiteRtEngineFactory`;
+     - lo copia a `cacheDir/smoke/` calculando su SHA-256 en streaming con `Sha256` y lo compara con el catálogo (no se carga nada sin verificar);
+     - lo carga en CPU con `LiteRtEngineFactory` desde esa copia, que se borra al terminar;
      - embebe una consulta y comprueba 256 dimensiones y norma 1;
      - ejecuta `metadata()`.
-  3. Ejecutarlo en P31281001066.
+  3. Ejecutarlo en P31281001066 con `am instrument -e class …LiteRtSmokeTest` (nunca `connected*AndroidTest` en el teléfono: desinstala la app; plan, riesgo 4).
 
   **Si falla la carga nativa o la API no coincide con research R1: PARAR e informar al usuario.**
 
@@ -219,7 +220,9 @@ Todas las historias dependen de esta fase.
 - [ ] T030 [P] [US1] `…/androidTest/data/models/ModelInstallInstrumentedTest.kt`. En el dispositivo, sobre `noBackupFilesDir` real, con un fichero de 1 MB y un catálogo de prueba:
   - instalación correcta;
   - instalación con huella distinta;
-  - `noBackupFilesDir/models` existe y no está en la ruta de backup.
+  - el fichero instalado queda bajo `context.noBackupFilesDir/models`.
+
+  En el teléfono se ejecuta con `am instrument` (quickstart §1).
 
 ### Implementation for User Story 1
 
@@ -252,7 +255,7 @@ Todas las historias dependen de esta fase.
   - prueba negativa con un fichero truncado → «Huella incorrecta» y nada en `no_backup/models`;
   - volver a copiar el fichero correcto.
 
-  Ejecutar T030 en el teléfono.
+  Ejecutar T030 en el teléfono con `am instrument` (quickstart §1).
 
 **Checkpoint**: US1 operativa. Los 5 modelos verificados en el teléfono.
 
@@ -276,7 +279,9 @@ Todas las historias dependen de esta fase.
   - `texts_es.json` tiene 10 consultas, 10 fragmentos y 1 fragmento de medida, todos no vacíos;
   - el fragmento de medida tiene entre 1.000 y 2.500 caracteres (≈ 350 tokens; el tamaño real lo confirma el teléfono).
 - [ ] T039 [P] [US2] `…/testDebug/debug/feasibility/FeasibilitySuiteEmbeddingTest.kt`, con fábrica, embedders, reloj (`nanoTime` inyectado), térmica y memoria falsos. Comprueba:
-  - orden por combinación: `clearCompiledCache` → inicialización en frío → liberar → inicialización con caché → `metadata` → 3+30 consultas → 3+30 fragmentos → liberar;
+  - orden por combinación: `metadata` → `clearCompiledCache` → inicialización en frío → liberar → inicialización con caché → 3+30 consultas → 3+30 fragmentos → liberar;
+  - si `metadata.supportedBackends` no incluye el backend → `NotAvailable` sin llamar a la fábrica;
+  - un modelo que no queda `Verified` tras la revalidación inicial nunca llega a la fábrica (SC-001);
   - percentiles calculados con el reloj falso;
   - la comprobación de dimensiones (256) y norma, que pasa a `Failed` si no se cumple;
   - un fallo de GPU queda `NotAvailable(motivo)` y se continúa con la siguiente combinación;
@@ -335,6 +340,7 @@ Todas las historias dependen de esta fase.
   - se prueba primero en GPU;
   - si la inicialización en GPU falla → se repite en CPU con `fallbackFromGpu = true` y el motivo;
   - si la generación en GPU falla → mismo plan B;
+  - si el plan B en CPU también falla → `Failed(motivo)` y la suite continúa con el siguiente fichero;
   - 1 generación de calentamiento y 3 medidas con `maxOutputTokens = 128`;
   - las `GenerationStats` se trasladan a `GenerationMetrics`;
   - al cancelar durante la generación se llama a `cancel()` y el resultado es `Cancelled`;
@@ -397,10 +403,10 @@ Todas las historias dependen de esta fase.
 ### Implementation for User Story 4
 
 - [ ] T052 [US4] Crear `…/debug/feasibility/report/ReportWriter.kt`: JSON con kotlinx.serialization y Markdown con tablas, en `filesDir/reports/`, en `AppDispatchers.io`. Hacer pasar T051.
-- [ ] T053 [US4] La suite escribe el informe al terminar, y también al cancelarse, con los resultados parciales y sus estados. Añadir el bloque «Batería completa», que ejecuta embeddings → compatibilidad → generación.
+- [ ] T053 [US4] La suite reescribe el informe (mismo nombre de sesión) tras cada resultado y al terminar o cancelarse, con los resultados parciales y sus estados. Así una muerte del proceso solo pierde la medición en curso. Añadir el bloque «Batería completa», que ejecuta embeddings → compatibilidad → generación.
 - [ ] T054 [US4] Ampliar el ViewModel y la pantalla con la sección «Resumen»:
   - criterios de salida (TTFT medido; mejor p95 de consulta en CPU; cumple < 150 ms sí/no);
-  - ruta del último informe;
+  - ruta del último informe; al abrir la pantalla se lee el más reciente de `filesDir/reports`, para que sobreviva a una muerte del proceso;
   - botón «Batería completa».
 - [ ] T055 [US4] Crear `…/androidTest/debug/feasibility/FeasibilityBenchmarkTest.kt` (`@LargeTest @RequiresModels`):
   - `assumeTrue` si los 5 modelos no están `Verified` tras `refresh` + `verify`;
@@ -470,7 +476,8 @@ Todas las historias dependen de esta fase.
   Ejecutarlo en el emulador `Pixel_10`.
 - [ ] T063 Puertas de calidad:
   - `./gradlew :app:assembleDebug :app:assembleRelease :app:lintDebug :app:lintRelease :app:testDebugUnitTest :app:testReleaseUnitTest`;
-  - `:app:connectedDebugAndroidTest` en el emulador (los `@RequiresModels` deben salir *skipped*) y en el teléfono.
+  - `:app:connectedDebugAndroidTest` en el emulador (los `@RequiresModels` deben salir *skipped*);
+  - en el teléfono, `am instrument` con `-e notAnnotation …RequiresModels` (quickstart §1), nunca `connected*AndroidTest`.
 
   Todo en verde.
 - [ ] T064 Verificación de la release con `apkanalyzer` (quickstart §2), registrada en `specs/002-ondevice-feasibility/checklists/release-verification.md`:
