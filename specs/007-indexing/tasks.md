@@ -52,7 +52,7 @@ description: "Lista de tareas de F07 — Indexación"
 
 **Purpose**: fijar la regla de D-036 desde Python y medir en el teléfono lo que puede cambiar el diseño (research R5 y R6).
 
-- [ ] T001 [P] Crear `offline/gen_overflow_cases.py`, que escribe `offline/golden/embedding_overflow.jsonl` (research R6). Para cada texto guarda la secuencia de recortes de la regla de `offline/eval/builds.py`, con longitudes en puntos de código:
+- [X] T001 [P] Crear `offline/gen_overflow_cases.py`, que escribe `offline/golden/embedding_overflow.jsonl` (research R6). Para cada texto guarda la secuencia de recortes de la regla de `offline/eval/builds.py`, con longitudes en puntos de código:
   - `int(len(text) × 0,9)` y después hasta el último espacio;
   - hasta 12 intentos.
 

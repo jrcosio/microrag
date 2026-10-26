@@ -21,6 +21,18 @@ def document_input(content, header=""):
     return DOCUMENT + "\n".join(part for part in (header.strip(), content.strip()) if part)
 
 
+OVERFLOW_ATTEMPTS = 12  # LiteRT-LM 0.18.1 rejects inputs over 512 tokens (D-036)
+
+
+def overflow_cut(text):
+    """D-036: the embedded text cut to 90 % of its length (in code points), then back to its last space.
+
+    Only the embedded text is cut, never the stored chunk. EmbeddingOverflow.cut in the app ports it.
+    """
+    cut = text[: int(len(text) * 0.9)]
+    return cut[: cut.rfind(" ")] if " " in cut else cut
+
+
 def to_float32(value):
     return struct.unpack("<f", struct.pack("<f", value))[0]
 

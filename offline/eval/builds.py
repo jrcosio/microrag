@@ -5,7 +5,7 @@ import json
 import time
 from pathlib import Path
 
-from embedding_text import DOCUMENT
+from embedding_text import DOCUMENT, OVERFLOW_ATTEMPTS, overflow_cut
 from eval import appconfig, corpus, index, models
 from eval.chunker import chunk_params, utf16_len
 from eval.extract import RawBlock, extract
@@ -82,8 +82,6 @@ class Embedder:
     model accepts it. Only the embedded text is cut, never the stored chunk. [truncated] counts the cuts.
     """
 
-    RETRIES = 12
-
     def __init__(self):
         from litert_lm import Backend, EmbeddingEngine, EmbeddingOptions
 
@@ -95,14 +93,13 @@ class Embedder:
         self.truncated = 0
 
     def __call__(self, text):
-        for attempt in range(self.RETRIES):
+        for attempt in range(OVERFLOW_ATTEMPTS):
             try:
                 vector = self.engine.compute_embedding(text, self.options).embedding
                 self.truncated += attempt > 0
                 return vector
             except RuntimeError:
-                cut = text[: int(len(text) * 0.9)]
-                text = cut[: cut.rfind(" ")] if " " in cut else cut
+                text = overflow_cut(text)
         raise RuntimeError("embedding input still too long after truncation")
 
 
