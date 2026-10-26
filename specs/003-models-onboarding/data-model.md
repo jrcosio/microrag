@@ -151,7 +151,7 @@ Reglas en research R8. Con `Compatible`, el caso de uso llama a `markPrepared`.
 SetupUiState(
     step: Int,                         // 1..3, SetupStepResolver (FR-006)
     rows: List<ModelRowUi>,            // en el orden del PNG: Gemma 4 y después EmbeddingGemma 2
-    storage: StorageUi,                // Offline | NoSpace(neededBytes) | Preparing
+    storage: StorageStatus,            // Offline | NoSpace(neededBytes) | Preparing (domain/model/SetupStep.kt)
     continueEnabled: Boolean,
     continueBlocker: ContinueBlocker?, // motivo visible cuando continueEnabled = false (FR-008)
     notificationsDenied: Boolean,      // aviso FR-010
