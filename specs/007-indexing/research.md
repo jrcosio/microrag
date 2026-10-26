@@ -1,0 +1,242 @@
+# Research — Indexación (F07)
+
+Fecha: 2026-10-26. Fuentes oficiales consultadas ese día. Las firmas de bibliotecas se han comprobado con `javap` sobre los artefactos que ya usa el proyecto (caché de Gradle).
+
+## R1. Ejecución larga: worker de WorkManager en primer plano, tipo `dataSync`
+
+**Hechos verificados:**
+- **Tipos de servicio en primer plano** (developer.android.com, «Foreground service types»):
+  - `dataSync` lista expresamente «Local file processing» entre sus usos. No tiene requisitos en tiempo de ejecución y ya está declarado en el manifiesto (F03, para las descargas en API 31–33).
+  - `mediaProcessing` es para «operaciones largas sobre recursos multimedia, como convertir formatos».
+  - `specialUse` exige justificar el uso en Play Console.
+  - `shortService` dura unos 3 minutos.
+- **Límite de tiempo** («Foreground service timeouts»):
+  - con `targetSdk` ≥ 35, `dataSync` y `mediaProcessing` pueden ejecutarse 6 h de cada 24, contadas por tipo;
+  - al agotarse, el sistema llama a `Service.onTimeout(int, int)` y el servicio tiene unos segundos para pararse;
+  - **el contador se reinicia cuando el usuario trae la app al primer plano**.
+- **WorkManager 2.12.0** (notas de versión):
+  - desde 2.10.0-alpha03 para los workers en primer plano de tipo `dataSync` cuando se agota el tiempo;
+  - desde 2.10.0-alpha04 añade la causa de parada `STOP_REASON_FOREGROUND_SERVICE_TIMEOUT`.
+- **Android 16** («Behavior changes: all apps», *JobScheduler quota optimizations*):
+  - los jobs que se ejecutan a la vez que un servicio en primer plano pasan a respetar la cuota de ejecución de jobs;
+  - afecta a WorkManager;
+  - se recomienda leer `WorkInfo.getStopReason()`.
+- **Arranque desde segundo plano** («Restrictions on starting a foreground service from the background»): no hay excepción para el código que se ejecuta dentro de un job o de un worker. Fuera de las excepciones (transición desde un estado visible, acción del usuario sobre una notificación, alarma exacta pedida por el usuario, `BOOT_COMPLETED`…), el sistema lanza `ForegroundServiceStartNotAllowedException`.
+- **`BOOT_COMPLETED`:** con `targetSdk` ≥ 35 no se puede lanzar un `dataSync` desde ese receptor.
+- **UIDT:** exige una restricción de red (F03 R3), y la guía lo reserva para transferencias. No encaja con un trabajo local.
+- **Guía «Alternatives to data sync foreground services»:** para procesamiento local de más de unos minutos, remite a WorkManager con un *long-running worker*. Advierte que este queda sujeto a las restricciones de arranque desde segundo plano y a los límites de los jobs: el sistema reprograma los que pasan de 10 minutos.
+
+**Decisión:**
+- **Un único `CoroutineWorker`** (el `IngestWorker` de F06, ampliado) que llama a `setForeground(ForegroundInfo(id, notificación, FOREGROUND_SERVICE_TYPE_DATA_SYNC))` al empezar.
+- **Al iniciar o reanudar el usuario** (con la app visible), el arranque en primer plano está permitido. El proceso queda como servicio en primer plano y el sistema no lo congela.
+- **Si `setForeground` falla** (el proceso arrancó en segundo plano tras una muerte, se agotaron las 6 h, o Android 16 paró el job por cuota y lo relanza en segundo plano):
+  - el worker sigue como job normal, en las ventanas que dé el sistema;
+  - publica la misma notificación como notificación normal;
+  - avanza en tramos y WorkManager lo reprograma cuando el sistema lo para. Como el trabajo se reanuda donde se quedó (R9), no se pierde nada;
+  - vuelve a intentar `setForeground` en cada lote. Con la app visible el arranque está permitido, así que recupera el primer plano en cuanto el usuario abre la app.
+- **Si el trabajo está esperando al sistema** (`ENQUEUED`) al abrir la app, la reconciliación (R12) lo vuelve a encolar para que arranque ya, en primer plano y con el contador de 6 h reiniciado.
+- **Estado «Esperando al sistema»:** la pantalla lo deriva de `WorkInfo` (`ENQUEUED` con una causa de parada del sistema) y lo muestra como pausa automática (FR-019).
+
+**Alternativas descartadas:**
+- **Servicio en primer plano propio:** las mismas restricciones de `dataSync` y de arranque, más código de ciclo de vida, y aun así necesita un job para reanudar tras una muerte.
+- **`specialUse`:** necesita justificación en Play y no se ajusta: el caso está cubierto por `dataSync`.
+- **`mediaProcessing`:** su uso declarado es multimedia.
+- **UIDT:** exige red.
+- **`shortService`:** dura 3 minutos.
+
+## R2. Trabajo congelado tras matar el proceso (observación de F06)
+
+**Análisis de los logs de F06** (`report.md` §7, teléfono, WorkManager 2.12.0):
+1. El sistema relanza el proceso para el job (`onStartJob`).
+2. `ForceStopRunnable` encuentra el trabajo en `RUNNING` (quedó así al matar el proceso) y lo vuelve a programar con el mismo id. JobScheduler para el job en curso (`onStopJob`).
+3. A la vez, el planificador oportunista dentro del proceso (`GreedyScheduler`) arranca el worker.
+4. Al terminar la ejecución interrumpida, WorkManager cancela el trabajo en todos sus planificadores, incluido el job de JobScheduler (`Cancelling work ID … Job ID 10004`), y no lo vuelve a programar porque ya está `RUNNING`.
+5. Queda el worker corriendo dentro del proceso sin ningún job ni servicio que lo sostenga. Android lo trata como proceso en caché y lo congela (`isFrozen=true`).
+
+**Hecho verificado:**
+- WorkManager 2.12.0-alpha01 añadió una API experimental «para desactivar la planificación oportunista dentro del proceso».
+- En el `classes.jar` de `work-runtime` 2.12.0 es `Configuration.Builder.setGreedySchedulerEnabled(boolean)`, anotada `@ExperimentalConfigurationApi`.
+- La app ya define su configuración (`MicroRagApplication : Configuration.Provider`).
+
+**Decisión:** `setGreedySchedulerEnabled(false)`, con `@OptIn(ExperimentalConfigurationApi::class)`. Todo el trabajo de WorkManager pasa por JobScheduler, así que nunca hay un worker en el proceso sin un job del sistema detrás.
+
+**Coste:** el trabajo arranca cuando JobScheduler lo ejecuta, no al instante dentro del proceso. Afecta también a F06 (el trabajo `ingest`) y a las descargas de F03 en API 31–33.
+
+**Verificación temprana** (riesgo 1): en el teléfono y en el emulador, matar el proceso a mitad de un documento con la app en segundo plano y sin abrirla. Hay que comprobar:
+- que el trabajo termina solo;
+- que el proceso no queda congelado;
+- la latencia desde «Iniciar indexación» hasta que arranca el worker.
+
+**Si sigue congelándose o la latencia supera unos 10 s:** se para y se consulta. La alternativa es un job propio de JobScheduler para la reanudación, como hizo F03 con las descargas.
+
+**Alternativas descartadas:**
+- **Dejar WorkManager como está:** reproduce el fallo de F06.
+- **Un vigilante con alarmas:** no puede descongelar un proceso congelado ni arrancar un servicio en primer plano.
+
+## R3. Notificación
+
+**Decisión:**
+- Canal nuevo `indexing` («Indexación de documentos»), de importancia baja y sin sonido.
+- **Contenido:**
+  - «Indexando documentos»;
+  - progreso determinado con «N de M fragmentos» si se conoce el total, o indeterminado si no;
+  - en pausa automática, su causa;
+  - **sin nombres de archivo** (constitución I: la notificación se ve en la pantalla de bloqueo).
+- **Acción «Pausar»:** un `PendingIntent` explícito e inmutable a un receptor no exportado (`IndexingActionReceiver`), como el de F03 para las descargas.
+- **Tocarla:** abre `MainActivity` con una acción interna explícita (`ACTION_OPEN_INDEXING`), que navega a `Index`. No es un deep link: no hay `intent-filter` con esquema ni host. Si otra app la enviara, solo abriría esa pantalla, sin datos ni efectos.
+- **Actualización:** con cada lote, mediante `setForeground` (con servicio en primer plano) o `NotificationManager.notify` (sin él), con el mismo id.
+- **Notificaciones denegadas:** el trabajo sigue igual. Android 13+ sigue mostrando el servicio en primer plano en el Administrador de tareas.
+
+## R4. Backend y sesión del engine
+
+**Decisión** (D-039):
+- **Backend:** la ingesta pide el engine `(EMBEDDINGGEMMA, GPU)`. Si no carga, usa `(EMBEDDINGGEMMA, CPU)` y lo registra con el motivo (solo el nombre de la excepción).
+- **Engine retenido:** `EngineCoordinator` gana una sesión retenida (`hold`/`release` o `withHeld`). El engine de la ingesta queda marcado como **en uso por la ingesta** y no se cierra al ocultarse la UI.
+- **Liberación por memoria:** `EngineMemoryCallbacks` pasa a liberar solo los engines no retenidos. Hoy libera todos en `TRIM_MEMORY_UI_HIDDEN`, lo que cerraría el engine de la ingesta al salir de la app.
+- **El LLM nunca se retiene en la ingesta**, así que «liberar el LLM durante la ingesta y en UI_HIDDEN» (constitución IV) se cumple:
+  - al empezar la fase de embeddings, la ingesta libera explícitamente los engines de generación;
+  - la regla de «nunca dos engines en la GPU» del coordinador sigue vigente.
+- **Liberación del engine:** al terminar, al pausar (por el usuario o por temperatura) y al detenerse el worker.
+- **Reintento:** si el engine falla a mitad (excepción que no es de longitud, R6), se libera y se vuelve a cargar una vez. Si vuelve a fallar, el documento acaba `error` con `embedding_failed`.
+
+## R5. `computeEmbeddingBatch` en LiteRT-LM 0.18.1
+
+**Hecho verificado** (`javap` sobre `litertlm-android-0.18.1`): `EmbeddingEngine` expone `computeEmbeddingBatch(List<List<InputData>>, EmbeddingOptions)` y su versión asíncrona. El informe y FR-014 suponen llamadas en serie de un texto, porque la versión que conocía el informe no tenía lotes.
+
+**Decisión:** F07 empieza en serie (FR-014).
+
+**Verificación temprana** (riesgo 3): en el teléfono, con 64 fragmentos reales, medir:
+- en serie frente a lotes de 8 y 16;
+- en GPU y en CPU;
+- el coseno entre los vectores de los dos modos.
+
+**Si el lote acelera al menos un 30 % con coseno ≥ 0,9999:** se para y se consulta al usuario. Usarlo cambia FR-014 y el ritmo de SC-001.
+
+## R6. Entradas demasiado largas (D-036)
+
+**Hechos:**
+- **Máximo de entrada:** el escritorio (`offline/eval/builds.py`) crea el engine con `max_input_length = 512` y la app también (`LiteRtTextEmbedder.MAX_INPUT_LENGTH`).
+- **Regla del escritorio:** ante el error, recorta **todo el texto embebido** (prefijo, cabecera y contenido) a `int(len(text) × 0,9)` y después hasta el último espacio. Reintenta hasta 12 veces.
+- **Longitudes:** `len` de Python cuenta puntos de código, no unidades UTF-16. El troceado y la estimación de tokens sí usan UTF-16 (`utf16_len`).
+- **Excepción en Android:** el único tipo de excepción propio del AAR es `LiteRtLmJniException`.
+
+**Decisión:**
+- **Función pura `EmbeddingOverflow.cut(text)`** (en `rag/runtime`), port exacto de la regla con longitudes en **puntos de código**. Una prueba JVM la compara con casos generados en Python, con acentos, emoji y textos sin espacios.
+- **Dónde se aplica:** dentro de `TextEmbedder.embedDocument`, en un bucle de hasta 12 intentos. Devuelve el vector y el número de recortes, para el log y el informe.
+
+**Verificación temprana** (riesgo 2): en el dispositivo, un texto de unos 700 tokens. Hay que fijar:
+- qué excepción y qué mensaje da;
+- que el recorte la resuelve.
+
+**Si la excepción permite distinguir «demasiado largo» de otros fallos,** solo se recorta en ese caso. Si no, se recorta ante cualquier `LiteRtLmJniException`, como el escritorio con `RuntimeError`.
+
+## R7. Solo se encuentran los documentos indexados (FR-011)
+
+**Hechos:**
+- **Búsqueda vectorial:** `vector_full_scan` en modo top-k devuelve los *k* más cercanos de toda la tabla `chunks`.
+- **Modo *streaming*:** SQLite-Vector 1.1.2 lo tiene (omitiendo *k*), que admite `JOIN`, `WHERE` y `LIMIT`. Verificado en `API.md` de la etiqueta 1.1.2.
+- **Latencia de F04 en el teléfono:** búsqueda vectorial exacta de 10k fragmentos con p95 de 23,1 ms; BM25, 26,5 ms.
+- **Presupuesto de consulta:** 150 ms, con 120 ms de embedding de consulta.
+
+**Decisión:** top-(*k* + *m*) y filtro, en las dos búsquedas.
+- ***m*:** número de fragmentos guardados de documentos que no son buscables (`status <> 'done'` o `included = 0`). Se calcula con un `COUNT` sobre el índice `(document_id, ordinal)` de `chunks`, agrupado por los pocos documentos no buscables.
+- **Búsqueda vectorial:** `vector_full_scan(..., k + m)` unido a `chunks` y `documents`, con `WHERE status = 'done' AND included = 1`, `ORDER BY distance` y `LIMIT k`.
+- **BM25:** el mismo esquema, con `LIMIT k + m` dentro y el filtro fuera.
+- **Por qué es exacto:** si hay *m* fragmentos no buscables, los *k* mejores buscables están entre los *k* + *m* mejores.
+- **Coste:** cuando no hay nada a medias ni excluido (*m* = 0), es el mismo coste que hoy más un `JOIN` de *k* filas. Durante una indexación, *m* es como mucho lo guardado de los documentos en curso.
+
+**Alcance:** este filtro también resuelve la exclusión de F08 (`included = 0`), así que F10 hereda las búsquedas ya filtradas.
+
+**Verificación:** `RagIndexBenchmarkTest` se repite con el filtro. El p95 con *m* = 0 no puede subir más de 2 ms frente a F04. Con *m* = 4.300 (un PDF de 2.000 páginas a medias) se mide y se reporta.
+
+**Alternativas descartadas:**
+- **Modo *streaming* con `ORDER BY` y `LIMIT`:** ordena todo el índice en cada consulta.
+- **Tabla de preparación movida a `chunks` al publicar:** un esquema v3, el doble de escrituras, y aun así haría falta el filtro de inclusión de F08.
+
+## R8. La tanda y el progreso
+
+**Decisión:**
+- **`IngestRunStore`** (DataStore de preferencias en `noBackupFilesDir/datastore`, como el de F03). Guarda la tanda:
+  - los ids de sus documentos, en orden;
+  - si está pausada por el usuario;
+  - la causa de una pausa persistente: usuario, sin espacio o modelo ausente.
+- **La temperatura y el límite del sistema no se persisten:** se derivan en vivo del estado térmico y de `WorkInfo`.
+- **Fase 1 (troceado previo):** el runner extrae y trocea primero todos los documentos `pending` de la tanda, y los deja `parsed` con su número de fragmentos (lo que ya hace F06). Así el total M se conoce en segundos (FR-022): 200 páginas tardan 0,7 s en el teléfono, y 2.000 páginas, 4,1 s.
+- **Fase 2 (embeddings):** documento a documento, vuelve a extraer y trocear en *streaming* (determinista) y embebe. No se guardan los fragmentos en memoria entre las dos fases.
+- **Progreso:**
+  - M = Σ `chunk_count` de los documentos de la tanda que no están en error;
+  - N = Σ fragmentos guardados de esos mismos documentos, con un `COUNT` agrupado (método nuevo `RagIndex.storedChunkCounts(ids)`);
+  - si algún documento de la tanda sigue `pending`, M es desconocido y se muestra «Procesando...»;
+  - se recalcula con `documentChanges` (una vez por lote), así que sobrevive al cierre de la app (FR-024).
+- **Ritmo y tiempo restante:**
+  - el worker publica los fragmentos por segundo de los dos últimos lotes guardados (128 fragmentos);
+  - la estimación se muestra si los dos lotes difieren menos de un 25 % («ritmo estable», FR-023), como «≈ 12 min restantes»;
+  - no se muestra antes del primer lote, al cambiar de backend ni durante una pausa.
+- **Fin de la tanda:** cuando ningún documento de la tanda está `pending`, `parsed` ni `embedding`, la tanda se vacía. La pantalla muestra «Todo actualizado», o los documentos con error si los hay.
+
+## R9. Reanudación y coherencia (FR-008, FR-009)
+
+**Decisión:**
+- **Inicio de la fase 2 de un documento:** el runner lee los fragmentos guardados (`ordinal → content`) con un método nuevo de `RagIndex`.
+- **Mientras trocea:**
+  - un fragmento ya guardado se compara con el nuevo; si coinciden, se salta sin embeber;
+  - si alguno difiere, o hay guardados más allá del último ordinal, se borran los fragmentos del documento (método nuevo `deleteChunks`) y se empieza desde 0 (FR-009).
+- **Escritura:** lotes de 64 con `insertChunks` (`INSERT OR IGNORE` por `(document_id, ordinal)`).
+- **Al parar** (pausa del usuario, cancelación o parada del sistema): el lote parcial ya embebido se guarda con `withContext(NonCancellable)` antes de salir, con un tope de 5 s. Así una reanudación recalcula como mucho el fragmento en curso (SC-005 admite hasta 63).
+- **Cierre del documento:** se comprueba que los guardados son exactamente `chunk_count`, con ordinales 0..n-1. Si es así, `updateStatus(DONE)`. Si no, error `incomplete`, que se puede reintentar.
+- **Escrituras de un documento quitado** (FR-029): antes de cada lote se comprueba que el documento sigue existiendo y en `embedding`. `insertChunks` ya rechaza un documento desconocido. Si no existe, el runner lo salta sin error.
+
+## R10. Pausas (FR-025 a FR-028)
+
+**Decisión:**
+- **Usuario:** `pause()` guarda la pausa en `IngestRunStore` y cancela el trabajo único `ingest`. El worker termina el fragmento en curso, guarda el lote parcial (R9) y libera el engine. `resume()` borra la pausa y encola los documentos pendientes de la tanda.
+- **Temperatura** (D-039):
+  - **lectura:** `PowerManager.addThermalStatusListener` (API 29) en `data/device/ThermalStatusSource`, como un `Flow`;
+  - **pausa:** con `THERMAL_STATUS_SEVERE` o superior, el runner guarda el lote, libera el engine, publica «pausa térmica» y espera dentro del worker;
+  - **reanudación:** al bajar a `THERMAL_STATUS_MODERATE` o menos, vuelve a cargar el engine y continúa;
+  - **pruebas:** `adb shell cmd thermalservice override-status 3` y `reset`, verificado en el emulador y en el teléfono.
+- **Sin espacio:**
+  - **antes de cada lote:** espacio libre ≥ 64 MiB, el mismo margen que F06 (`ImportLimits.SPACE_MARGIN_BYTES`). Un lote ocupa unos 0,5 MB, y 10k fragmentos ocuparon 46 MB en F04;
+  - **error de escritura:** un fallo de SQLite por disco lleno (`SQLITE_FULL`, código 13) se trata igual;
+  - **qué pasa:** el documento queda en `embedding` sin publicar, la tanda queda pausada con causa «sin espacio» y la pantalla orienta a liberar espacio. «Reanudar» vuelve a comprobarlo.
+- **Modelo ausente:** antes de la fase 2, si el modelo de embeddings no está `Verified` (`ModelFileRepository`), la tanda queda pausada con esa causa, y la pantalla ofrece ir a Preparación (ruta `Setup` de F03).
+- **Límite del sistema:** derivado de `WorkInfo` (R1). No requiere acción del usuario.
+
+## R11. Título de la cabecera contextual y del FTS
+
+**Hecho:**
+- **Escritorio:** usa `doc.title › heading_path` para la cabecera embebida y para el `title_norm` del FTS. Esos títulos no llevan extensión.
+- **App hoy:** `DefaultRagIndex.insertChunks` calcula `title_norm` con `display_name`, que es el nombre del archivo con extensión.
+
+**Decisión:**
+- **Función compartida `DocumentTitle.of(displayName)`** (`domain/rag`): quita la última extensión si tiene de 1 a 10 caracteres alfanuméricos y queda algo delante. Es la misma regla de extensión que F06 en `detectFormat`.
+- **Dónde se usa:** en la cabecera del embedding (runner) y en `insertChunks` para el `title_norm`, así las dos coinciden con el escritorio.
+- **Casos de prueba:** «Manual técnico.pdf» da «Manual técnico»; «notas» queda igual; «.bashrc» queda igual; «a.b.pdf» da «a.b».
+
+## R12. Reconciliación al abrir la app (FR-018)
+
+**Decisión:**
+- `ReconcileIndexingUseCase` se llama desde `MainActivity.onStart`, en el *scope* de la aplicación. Nunca desde `Application.onCreate`, porque el proceso también arranca en segundo plano para el job (F03 R3).
+- **Si la tanda no está pausada, tiene documentos sin terminar y no hay trabajo `ingest` sin terminar** (por ejemplo, tras «Forzar detención», que cancela los jobs), vuelve a encolarlos.
+- **Si hay trabajo pero está `ENQUEUED` esperando al sistema**, lo vuelve a encolar con `REPLACE` para que arranque ya con la app visible (R1). Un trabajo `RUNNING` no se toca: recupera el primer plano él solo en el siguiente lote.
+
+## R13. Mediciones (FR-040, SC-001)
+
+**Decisión:** `IndexingBenchmarkTest` (instrumentada, `@RequiresModels`), solo en el teléfono. Indexa `text_200_pages.pdf` (430 fragmentos) con el runner real sobre un índice temporal:
+- **GPU:** tiempo total y fragmentos por segundo de la fase 2;
+- **CPU:** lo mismo, forzando el backend.
+
+Registra con la etiqueta `indexing-benchmark` y aplica el umbral de SC-001 (≤ 5 min en GPU) solo en el A063.
+
+**Además:** `RagIndexBenchmarkTest` con el filtro (R7), y el recorrido manual con la app real.
+
+## R14. Pruebas sin modelos
+
+**Decisión:**
+- **Fakes para la JVM y para las instrumentadas sin `@RequiresModels`:**
+  - un `TextEmbedder` determinista (vector derivado del hash del texto, normalizado, con un fallo de longitud programable);
+  - un `ThermalStatusSource` controlable;
+  - espacio libre inyectable, como `DocumentImporter`.
+- **Pruebas del runner** (JVM, con `FakeRagIndex`): reanudación, desajuste, pausa, temperatura, espacio, documento quitado y error del engine.
+- **Pruebas de visibilidad** (instrumentadas): sobre SQLite real con SQLite-Vector.
+- **Muertes del proceso** (SC-002): con `adb` en el teléfono, en tres momentos (quickstart §6). Lo complementa una prueba instrumentada determinista que cancela el runner a mitad y reanuda, como `IngestFlowTest` de F06.

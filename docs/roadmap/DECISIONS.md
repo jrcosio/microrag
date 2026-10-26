@@ -585,6 +585,35 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
 
 ---
 
+## D-040 — Diseño de la indexación (plan de F07)
+
+- **Fecha:** 2026-10-26
+- **Decisión:**
+  1. **Ejecución:**
+     - el `IngestWorker` es un worker largo de WorkManager en primer plano, de tipo `dataSync` (que incluye «procesamiento de archivos locales»);
+     - si el sistema no deja arrancar el primer plano, sigue como job normal en tramos y recupera el primer plano en cuanto la app está visible;
+     - al abrir la app se reconcilia la tanda.
+  2. **Sin planificador en proceso:** `Configuration.Builder.setGreedySchedulerEnabled(false)` (WorkManager 2.12.0, experimental). Evita el trabajo huérfano y congelado que se vio en el cierre de F06.
+  3. **Dos fases por tanda:** primero se trocean todos los documentos pendientes, para conocer el total en segundos. Después, por documento, se vuelve a trocear, se embebe y se guarda en lotes de 64. Al reanudar, se comparan los guardados y, si no coinciden, se rehace el documento.
+  4. **Visibilidad:** las búsquedas piden *k* + *m* candidatos (*m*, los fragmentos no buscables) y filtran `status = 'done'` e `included = 1`. Sin cambio de esquema; F10 lo hereda.
+  5. **Tanda en DataStore:** ids, pausa y causa persistente (usuario, sin espacio, modelo ausente). La temperatura y el límite del sistema se derivan en vivo.
+  6. **Engine retenido:** el de la ingesta no se libera al ocultarse la UI; el LLM sí, y se libera al empezar la ingesta.
+  7. **Título de la cabecera y del FTS:** el nombre del documento sin extensión (`DocumentTitle`), como los títulos del escritorio.
+- **Motivo:**
+  - Android 15 limita `dataSync` a 6 h cada 24 (el contador se reinicia al traer la app al primer plano);
+  - Android 16 somete a cuota los jobs que corren con un servicio en primer plano;
+  - no se puede arrancar un servicio en primer plano desde un job en segundo plano;
+  - UIDT exige red;
+  - los logs de F06 muestran que el planificador en proceso deja el worker sin job.
+- **Alternativas descartadas:**
+  - servicio en primer plano propio, `specialUse`, `mediaProcessing` y UIDT;
+  - el modo *streaming* de SQLite-Vector con `ORDER BY`, o una tabla de preparación (esquema v3);
+  - guardar los fragmentos en memoria entre las fases.
+- **Origen:** plan de F07 (research R1–R12).
+- **Afecta:** F06 (el trabajo `ingest` y la cola), F03 (descargas en API 31–33 sin planificador en proceso), F10 (búsquedas ya filtradas), F11 (coordinador con engines retenidos) y F14 (INT8 con el mismo filtro).
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.
