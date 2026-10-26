@@ -58,6 +58,7 @@
   - solo con ritmo estable y nunca en pausa (R8);
   - si quedan otros documentos además del actual, la tarjeta «Procesando ahora» añade la línea «y %d documentos más en cola».
 - **P10 — Acceso provisional desde Inicio:** el placeholder de Inicio gana un segundo `LisdataOutlinedButton`, «Estado de indexación (provisional)», bajo el de la Ingesta. Se retira con F09.
+- **P12 — Carga:** mientras se calcula el primer estado (normalmente menos de un segundo), la top bar y, en el centro, un `LisdataProgressRing` indeterminado pequeño, sin texto visible, anunciado como «Cargando».
 - **P11 — Notificación** (R3):
   - título «Indexando documentos»;
   - texto «%1$s de %2$s fragmentos», o «Preparando documentos»;
@@ -100,7 +101,7 @@
 
 - **Entrada:**
   - «Iniciar indexación» de la Ingesta (ya navega a `Index`);
-  - la notificación (`ACTION_OPEN_INDEXING`);
+  - la notificación (`ACTION_OPEN_INDEXING`): `MainActivity` en `singleTop`, atendida también en `onNewIntent` y solo con el onboarding completado (research R3);
   - P10.
 - **Salida:**
   - Atrás → la pantalla anterior; si se abrió desde la notificación, Inicio;

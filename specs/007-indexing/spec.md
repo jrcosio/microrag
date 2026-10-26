@@ -170,14 +170,14 @@ La pantalla Estado de indexación reproduce el PNG 08 y cubre los estados del `.
 - **Quitar de la cola un documento a medio indexar** (acción de F06): su procesamiento se detiene, y se borran sus fragmentos ya guardados, su registro y su copia.
 - **El documento desaparece o cambia durante el trabajo** (copia privada borrada): acaba en error y el resto sigue.
 - **El troceado de la reanudación no coincide con lo guardado** (por ejemplo, otra versión de la app con otros parámetros): el documento no se mezcla; se vuelve a indexar desde cero.
-- **La GPU no carga el engine:** se usa la CPU, y la pantalla y el informe lo reflejan.
-- **El engine de embedding falla a mitad:** se reintenta una vez cargándolo de nuevo; si vuelve a fallar, la tanda se pausa con la causa.
+- **La GPU no carga el engine o no da vectores fiables en este teléfono:** se usa la CPU y se registra en el log y en el informe. En un emulador, donde la GPU de LiteRT se bloquea al cargar (F04), se usa directamente la CPU.
+- **El engine de embedding falla a mitad:** se recarga una vez; si la GPU vuelve a fallar, se pasa a la CPU. Si aun así falla, ese documento acaba en error «No se pudo indexar» y la tanda sigue con los demás.
 - **El chat (F11, futuro) necesita el LLM mientras se indexa:** nunca hay dos engines en GPU a la vez; el coordinador decide (constitución IV). En F07 no hay chat; se deja el contrato listo.
 - **Un documento sin fragmentos tras trocear** (texto vacío): queda en error «Sin texto», como en F06.
 - **El índice no es compatible o no se abre:** no se procesa nada y la pantalla lo explica, como la Ingesta de F06 (P5).
 - **Una actualización de la app durante la indexación:** el trabajo continúa con la nueva versión desde el primer fragmento no guardado.
 - **El usuario niega las notificaciones:** el trabajo sigue igual; solo falta la notificación.
-- **Documentos importados durante una indexación en curso:** se pueden añadir a la tanda con «Iniciar indexación» sin reiniciar lo que va en marcha.
+- **Documentos importados durante una indexación en curso:** se pueden añadir a la tanda con «Iniciar indexación» sin reiniciar lo que va en marcha. Se trocean enseguida, para que el total siga siendo conocido.
 - **Muchos documentos pequeños:** el progreso global sigue siendo real y la pantalla no parpadea al cambiar de documento.
 - **Ahorro de batería o modo reposo:** el trabajo respeta lo que el sistema permita; si el sistema lo detiene, se reanuda como en US2.
 
@@ -207,14 +207,14 @@ La pantalla Estado de indexación reproduce el PNG 08 y cubre los estados del `.
 - **FR-012**: Durante la indexación MUST estar cargado solo el engine de embedding; nunca el LLM a la vez en la GPU (constitución IV). El engine MUST liberarse al terminar o al pausar.
 - **FR-013**: Los embeddings de la ingesta MUST calcularse en la GPU (D-024). Si la GPU no carga el engine, la app MUST usar la CPU y registrarlo. El usuario no elige el backend.
 - **FR-014**: Los embeddings MUST calcularse en serie sobre un engine ya cargado, nunca varios a la vez (informe, Embeddings).
-- **FR-015**: Antes de procesar, la app MUST comprobar que el modelo de embeddings está instalado y verificado (F03). Si no, los documentos quedan esperando y la pantalla lo explica.
+- **FR-015**: Antes de calcular embeddings, la app MUST comprobar que el modelo de embeddings está instalado y verificado (F03). Si no, los documentos quedan esperando (troceados, si ya lo estaban) y la pantalla lo explica.
 
 **Ejecución en segundo plano**
 
 - **FR-016**: La indexación MUST continuar con la app cerrada o el teléfono bloqueado, con una notificación de progreso real que abre el Estado de indexación.
 - **FR-017**: Si el proceso muere, la indexación MUST reanudarse sola, sin abrir la app, en cuanto el sistema lo permita. El trabajo no puede quedarse parado indefinidamente en un proceso congelado (observación de F06).
 - **FR-018**: Al abrir la app, si hay documentos a medias sin ningún trabajo programado (por ejemplo, tras forzar la detención), la app MUST volver a programarlos.
-- **FR-019**: Si el sistema agota el tiempo que permite al trabajo, la app MUST pausarlo con esa causa y continuar cuando el sistema lo permita o al abrir la app.
+- **FR-019**: Si el sistema detiene el trabajo por sus límites (tiempo en primer plano, cuotas, restricciones), la app MUST mostrarlo como pausa automática «Esperando al sistema» mientras no avanza, y continuar cuando el sistema lo permita o al abrir la app, sin perder lo hecho.
 - **FR-020**: Nada del procesamiento MUST ejecutarse en el hilo principal (constitución IV).
 
 **Progreso**
@@ -268,10 +268,10 @@ La pantalla Estado de indexación reproduce el PNG 08 y cubre los estados del `.
 ### Measurable Outcomes
 
 - **SC-001**: En el teléfono de referencia, el PDF de 200 páginas (430 fragmentos) pasa de «Iniciar indexación» a indexado sin intervención en **5 minutos o menos** con la GPU. Se registra también el tiempo con la CPU.
-- **SC-002**: Tras matar el proceso en al menos 3 momentos distintos (extracción, mitad de los embeddings y cierre del documento) y no abrir la app, el documento acaba indexado con exactamente los mismos fragmentos que sin interrupción: 0 duplicados, 0 huecos y el mismo texto en cada ordinal.
+- **SC-002**: Tras matar el proceso en al menos 3 momentos distintos (durante el troceado de un PDF de 2.000 páginas, a mitad de los embeddings y entre dos documentos) y no abrir la app, cada documento acaba indexado con exactamente los mismos fragmentos que sin interrupción: 0 duplicados, 0 huecos y el mismo texto en cada ordinal. Una prueba automática interrumpe además en el cierre del documento, que dura milisegundos.
 - **SC-003**: Durante una indexación, el 100 % de las búsquedas devuelve solo fragmentos de documentos ya indexados.
 - **SC-004**: La cifra «N / M fragmentos» nunca se aleja más de un lote (64) de los fragmentos realmente guardados, y M coincide con la suma de los troceados. Sin total conocido no se muestra ningún porcentaje.
-- **SC-005**: Pausar detiene el cálculo de vectores en 5 segundos o menos. Al reanudar, se recalculan como mucho los fragmentos del lote que no llegó a guardarse (≤ 63).
+- **SC-005**: Pausar detiene el cálculo de vectores en 5 segundos o menos, y al reanudar se recalcula como mucho 1 fragmento. Tras una muerte del proceso, se recalculan como mucho los del lote que no llegó a guardarse (≤ 63).
 - **SC-006**: Con temperatura grave simulada, la indexación se pausa en 5 segundos o menos con la causa visible, y continúa sola al volver a una temperatura normal.
 - **SC-007**: En el 100 % de los momentos de una indexación, el LLM no está cargado.
 - **SC-008**: Las comprobaciones automáticas de accesibilidad pasan en todos los estados de la pantalla, en claro y en oscuro, con la fuente al 200 %.

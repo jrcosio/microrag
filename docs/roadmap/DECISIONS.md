@@ -599,6 +599,9 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
   5. **Tanda en DataStore:** ids, pausa y causa persistente (usuario, sin espacio, modelo ausente). La temperatura y el límite del sistema se derivan en vivo.
   6. **Engine retenido:** el de la ingesta no se libera al ocultarse la UI; el LLM sí, y se libera al empezar la ingesta.
   7. **Título de la cabecera y del FTS:** el nombre del documento sin extensión (`DocumentTitle`), como los títulos del escritorio.
+  8. **GPU validada por dispositivo:** la ingesta usa la GPU solo si, en la primera sesión, 3 textos fijos dan coseno ≥ 0,99 frente a la CPU (D-024). Se repite al cambiar el modelo o la app. En un emulador, nunca GPU: LiteRT se bloquea al cargarla (F04).
+  9. **Estados:** `paused` y `cancelled` de `documents` (D-030) no se usan; la pausa es de la tanda.
+  10. **Etapas del PNG 08 (G29):** «Persistencia vectorial» es el cierre del documento. El cierre no hace `optimize` del FTS ni reconstruye INT8 (aplazado a F14).
 - **Motivo:**
   - Android 15 limita `dataSync` a 6 h cada 24 (el contador se reinicia al traer la app al primer plano);
   - Android 16 somete a cuota los jobs que corren con un servicio en primer plano;

@@ -12,7 +12,7 @@ F07 completa la ingesta en el teléfono. Los documentos que F06 importa y trocea
   - el `IngestWorker` de F06 pasa a ser un worker largo en primer plano (`dataSync`, «procesamiento de archivos locales»);
   - el runner hace dos fases:
     1. trocear todos los documentos pendientes, para conocer el total;
-    2. por documento, volver a trocear en *streaming*, embeber en la GPU (o en la CPU si la GPU no carga) y guardar en lotes de 64.
+    2. por documento, volver a trocear en *streaming*, embeber en la GPU (si está validada en el dispositivo; si no, y siempre en un emulador, en la CPU) y guardar en lotes de 64.
 
   Se reanuda donde se quedó comparando con lo guardado, y publica el documento al final.
 - **Robustez:**
@@ -25,7 +25,7 @@ F07 completa la ingesta en el teléfono. Los documentos que F06 importa y trocea
   - parada segura sin espacio;
   - aviso de modelo ausente;
   - reintento por documento.
-- **Pantalla:** PNG 08 con 4 etapas (G29), «Procesando ahora», tiempo restante medido y las propuestas P1–P11 para los estados sin mockup. La cola de Ingesta muestra «Indexando».
+- **Pantalla:** PNG 08 con 4 etapas (G29), «Procesando ahora», tiempo restante medido y las propuestas P1–P12 para los estados sin mockup. La cola de Ingesta muestra «Indexando».
 
 **Investigación previa** (research):
 - límites de Android 15/16 para servicios en primer plano y jobs, verificados en las fuentes oficiales (R1);
@@ -106,7 +106,7 @@ F07 completa la ingesta en el teléfono. Los documentos que F06 importa y trocea
 | IV. Rendimiento | Dispatchers dedicados. Engine de embedding retenido y el LLM liberado (R4). Fase 1 en segundos y fase 2 en serie (R5 verifica los lotes). Pausa térmica. Mediciones en el teléfono (R13). Las búsquedas filtradas no empeoran con *m* = 0 (R7) | ✅ |
 | V. Veracidad del estado | N/M sale de lo guardado y del troceado real. Sin total, indeterminado. Tiempo restante solo con ritmo medido estable. Documento visible solo en `done` (N1, N7). Ninguna cifra de ejemplo fuera de las previews | ✅ |
 | VI. Calidad y pruebas | Pruebas unitarias del runner, del repositorio y de las funciones puras. Instrumentadas de visibilidad, flujo, accesibilidad y modo estricto. Mediciones con modelos. Muertes del proceso en el teléfono (SC-002) | ✅ |
-| VII. UI fiel y accesible | PNG 08 literal, con G29. Los estados sin mockup son las propuestas P1–P11, que se aprueban en la parada tras analyze. `Lisdata*`, tokens, `strings.xml` en español e inglés, 48 dp, TalkBack y fuente al 200 % | ✅ (P1–P11 pendientes de aprobación) |
+| VII. UI fiel y accesible | PNG 08 literal, con G29. Los estados sin mockup son las propuestas P1–P12, que se aprueban en la parada tras analyze. `Lisdata*`, tokens, `strings.xml` en español e inglés, 48 dp, TalkBack y fuente al 200 % | ✅ (P1–P12 pendientes de aprobación) |
 | VIII. Proceso | Documentación en español y código en inglés. D-039 (clarify) y D-040 (plan). Parada tras analyze | ✅ |
 
 **Re-check post-diseño:** sin violaciones.
@@ -126,7 +126,7 @@ specs/007-indexing/
 ├── quickstart.md
 ├── contracts/
 │   ├── indexing-api.md         # repositorio, casos de uso, RagIndex, engines, worker; reglas N1–N14
-│   └── index-ui.md             # pantalla, etapas, propuestas P1–P11, cambios en la Ingesta; reglas U1–U6
+│   └── index-ui.md             # pantalla, etapas, propuestas P1–P12, cambios en la Ingesta; reglas U1–U6
 ├── checklists/requirements.md
 └── tasks.md                    # /speckit-tasks
 ```
@@ -231,13 +231,14 @@ offline/
    - el worker en primer plano;
    - `setGreedySchedulerEnabled(false)`.
 
-   **Si el trabajo sigue congelándose o la latencia de arranque pasa de unos 10 s, se para y se consulta** (alternativa: job propio de JobScheduler).
+   **Si el trabajo sigue congelándose o la latencia de arranque pasa de 5 s, se para y se consulta** (alternativa: job propio de JobScheduler).
 2. **Excepción de entrada larga** (R6). Prueba con modelos en el teléfono antes de cerrar la regla de recorte. Si la excepción no se distingue, se recorta ante cualquier `LiteRtLmJniException`, como el escritorio.
 3. **Lotes del engine** (R5). Medición temprana. **Si acelera al menos un 30 % con coseno ≥ 0,9999, se para y se consulta**, porque cambia FR-014.
 4. **Coste del filtro de búsqueda** (R7). `RagIndexBenchmarkTest` en el teléfono. Si con *m* = 0 sube más de 2 ms, se revisa la consulta antes de seguir.
 5. **Engine liberado al salir de la app.** `EngineMemoryCallbacks` hoy lo cerraría (R4). Se cambia y se prueba antes de la fase 2.
-6. **SC-001 en GPU.** 430 fragmentos a unos 0,34 s son unos 2,5 min, con margen sobre los 5 min. Si la GPU no carga en el teléfono, se mide en CPU (unos 6,3 min) y se consulta si SC-001 debe aplicarse a la CPU.
-7. **Propuestas P1–P11 sin aprobar.** Las tareas de UI de esos estados van después de la parada tras analyze.
+6. **SC-001 en GPU.** 430 fragmentos a unos 0,34 s son unos 2,5 min, con margen sobre los 5 min. Si la GPU no carga o no pasa la validación (coseno ≥ 0,99 frente a la CPU, R4) en el teléfono, se mide en CPU (unos 6,3 min) y se consulta si SC-001 debe aplicarse a la CPU.
+7. **GPU del emulador.** LiteRT se bloquea en código nativo al cargar en GPU en el emulador (F04). La sesión nunca usa la GPU en un emulador (R4), así que las pruebas con modelos del emulador indexan en CPU.
+8. **Propuestas P1–P12 sin aprobar.** Las tareas de UI de esos estados van después de la parada tras analyze.
 
 ## Complexity Tracking
 

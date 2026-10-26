@@ -53,12 +53,17 @@ suspend fun deleteChunks(documentId: Long)
 **Cambios de comportamiento:**
 - `vectorSearch` y `textSearch` devuelven solo fragmentos de documentos `done` e `included` (R7, regla N7).
 - `insertChunks` calcula `title_norm` con `DocumentTitle.of(display_name)` (R11).
+- `insertChunks` lanza `IndexStorageFullException` (`domain/rag`) si SQLite falla por disco lleno (`SQLITE_FULL`). Ninguna capa fuera de `data/rag` ve excepciones de SQLite (R10).
 
 ## Engines (`rag/runtime`, contrato de F02)
 
 ```kotlin
 // EngineCoordinator
-/** Like withEngine, but the engine stays held until [block] ends: memory callbacks do not release it. */
+/**
+ * Like withEngine, but the engine stays held until [block] ends: memory callbacks do not release it.
+ * Only for embedding engines (the LLM is never held). A request for another GPU engine meanwhile waits
+ * for the release without holding the load lock, so CPU engines keep working (research R4).
+ */
 suspend fun <T : ManagedEngine, R> withHeldEngine(key: EngineKey, factory: suspend () -> T, block: suspend (T) -> R): R
 
 /** Releases every engine that is not held (EngineMemoryCallbacks on UI_HIDDEN and low memory). */
@@ -68,7 +73,10 @@ suspend fun releaseUnheld()
 suspend fun releaseGenerators()
 
 // TextEmbedder
-/** Embeds a chunk with DOCUMENT prefix and [header], applying the D-036 cuts (research R6). */
+/**
+ * Embeds a chunk with DOCUMENT prefix and [header], applying the D-036 cuts (research R6).
+ * Throws EmbeddingInputTooLongException after 12 attempts and EmbeddingEngineException on any other failure.
+ */
 suspend fun embedDocumentFitting(content: String, header: String): DocumentEmbedding
 ```
 
@@ -80,10 +88,10 @@ suspend fun embedDocumentFitting(content: String, header: String): DocumentEmbed
 | `DataStoreIngestRunStore` (`data/indexing`) | La tanda (data-model §2) |
 | `ThermalStatusSource` (`data/device`) | `PowerManager.currentThermalStatus` y su listener como `Flow<ThermalLevel>` |
 | `IngestRunner` (`data/ingest`, ampliado) | Fase 1 (troceado de los `pending`, como F06) y fase 2 (embeddings y escritura por lotes, R8–R10) |
-| `ChunkEmbeddingSession` (`data/indexing`) | Abre el engine retenido (GPU, si no CPU), libera el LLM, embebe con la cabecera y lo cierra |
+| `ChunkEmbeddingSession` (`data/indexing`) | Libera el LLM, elige el backend (GPU solo si está validada en el dispositivo y nunca en un emulador, R4), abre el engine retenido, embebe con la cabecera, recarga o pasa a CPU si falla, y lo cierra |
 | `IngestWorker` (`data/ingest`, ampliado) | `setForeground` de tipo `dataSync`, notificación y delegación en el runner (R1, R3) |
 | `IndexingNotifications`, `IndexingActionReceiver` (`data/indexing`) | Canal, notificación y acción «Pausar» (R3) |
-| `WorkManagerIngestScheduler` (`data/ingest`, ampliado) | `cancel()` del trabajo único y lectura de `stopReason` |
+| `WorkManagerIngestScheduler` (`data/ingest`, ampliado) | `cancel()` del trabajo único, `replace(ids)` con `ExistingWorkPolicy.REPLACE` (reconciliación, R12) y lectura de `stopReason` y `runAttemptCount` |
 
 ## Trabajo en segundo plano (cambios sobre F06)
 
@@ -112,4 +120,7 @@ suspend fun embedDocumentFitting(content: String, header: String): DocumentEmbed
 | N11 | Los errores son por documento. Un fallo nunca detiene los demás documentos de la tanda |
 | N12 | Los logs llevan solo ids, recuentos, tiempos, backend y códigos. Nunca nombres, rutas ni texto (constitución I). La notificación no lleva nombres de archivo |
 | N13 | El embedding va en `AppDispatchers.embeddings`, el índice en `AppDispatchers.database` y la E/S en `AppDispatchers.io`. Nada en el hilo principal (SC-009) |
-| N14 | `reconcile` solo se llama con la app visible. Encola la tanda si no hay trabajo sin terminar, o la reemplaza si está esperando al sistema; nunca toca un trabajo `RUNNING` (R12) |
+| N14 | `reconcile` solo se llama con la app visible y solo actúa con el índice disponible. Encola la tanda si no hay trabajo sin terminar, o la reemplaza (`replace`) si está esperando al sistema; nunca toca un trabajo `RUNNING` (R12) |
+| N15 | La GPU solo se usa si está validada en este dispositivo (coseno ≥ 0,99 frente a la CPU en 3 textos fijos, guardado con el SHA-256 del modelo y la versión de la app) y nunca en un emulador (R4) |
+| N16 | Entre documentos, el runner vuelve a leer la tanda y hace la fase 1 de los `pending` añadidos, para que el total siga conocido (R8) |
+| N17 | Al terminar, el worker vacía la tanda si no le quedan documentos `pending`, `parsed` ni `embedding`. `start()` descarta antes los ya terminados (R8) |

@@ -8,7 +8,7 @@ El esquema sigue en v2 (D-038). F07 usa columnas y estados que ya existen desde 
 
 | Columna | Uso |
 |---|---|
-| `status` | `pending → parsed → embedding → done`, o `error` (§4). `paused` y `cancelled` no se usan: la pausa es de la tanda (§2), no del documento |
+| `status` | `pending → parsed → embedding → done`, o `error` (§4). `paused` y `cancelled` (D-030) no se usan: la pausa es de la tanda (§2), no del documento (D-040) |
 | `chunk_count` | La fija la fase 1 al trocear (como F06). Es el total del documento para el progreso y para comprobar el cierre |
 | `error` | Código de `IngestError`, incluidos los nuevos de §3 |
 | `included` | 1 al registrarse (F04). F07 no lo cambia; las búsquedas lo filtran (R7) |
@@ -36,6 +36,7 @@ Fichero: `noBackupFilesDir/datastore/ingest_run.preferences_pb`.
 | `document_ids` | `String` (ids separados por comas, en orden) | Documentos que el usuario mandó indexar y que pertenecen a la tanda actual |
 | `paused` | `Boolean` | La tanda está pausada y no debe programarse trabajo |
 | `pause_cause` | `String?` | `user`, `no_space` o `model_missing`. Solo con `paused = true` |
+| `gpu_check` | `String?` | Resultado de la validación de la GPU (research R4): `<sha256 del modelo>|<versionCode>|ok` o `…|cpu`. Se repite si cambia el modelo o la app |
 
 **Reglas:**
 - **Altas:** «Iniciar indexación» y «Reintentar» añaden ids. «Iniciar indexación» o «Reanudar» con la tanda pausada la reanudan.
@@ -63,11 +64,12 @@ sealed interface QueueItemState {
 }
 ```
 
-`IngestProgress` gana la etapa `EMBEDDING`:
+`IngestProgress` gana:
+- las etapas `EMBEDDING` y `CLOSING` (con `EXTRACTING` y `CHUNKING` de F06);
 - `chunksDone` y `chunksTotal`;
 - `chunksPerSecond: Double?` (null hasta el primer lote o si no es estable);
 - `backend: ComputeBackend`;
-- `waiting: WaitReason?`, que solo puede ser `THERMAL`.
+- `waiting: WaitReason?`, aparte de la etapa, que solo puede ser `THERMAL`. Así la pantalla sigue mostrando la etapa real del documento durante la espera.
 
 ### `domain/indexing` (nuevo)
 
@@ -126,12 +128,25 @@ object DocumentTitle {
 ```kotlin
 /** D-036, exact port of offline/eval/builds.py (lengths in code points, research R6). */
 object EmbeddingOverflow {
-    const val MAX_CUTS = 12
+    const val MAX_ATTEMPTS = 12   // as RETRIES in builds.py
     fun cut(text: String): String
 }
 
 /** A document chunk's vector and how many D-036 cuts it needed. */
 class DocumentEmbedding(val vector: FloatArray, val cuts: Int)
+
+/** The input still did not fit after MAX_ATTEMPTS. */
+class EmbeddingInputTooLongException : RuntimeException()
+
+/** Any other engine failure (research R4: reload once, then CPU, then document error). */
+class EmbeddingEngineException(cause: Throwable) : RuntimeException(cause)
+```
+
+### `domain/rag` (excepción nueva)
+
+```kotlin
+/** The index could not write because the device is out of space (SQLITE_FULL, research R10). */
+class IndexStorageFullException : IllegalStateException()
 ```
 
 ## 4. Máquinas de estados
@@ -165,7 +180,8 @@ Las claves de F06 (`doc`, `stage`, `page`, `pages`), más:
 
 | Clave | Tipo | Valor |
 |---|---|---|
-| `stage` | `String` | Nuevos valores: `embedding`, `closing` y `thermal_wait` |
+| `stage` | `String` | Nuevos valores: `embedding` y `closing` |
+| `waiting` | `String?` | `thermal` durante la espera térmica; ausente si no |
 | `chunks_done` | `Int` | Fragmentos guardados del documento actual |
 | `chunks_total` | `Int` | `chunk_count` del documento actual |
 | `rate` | `Double` | Fragmentos por segundo de los dos últimos lotes, si es estable (R8); `-1` si no |
@@ -180,3 +196,13 @@ Las claves de F06 (`doc`, `stage`, `page`, `pages`), más:
 | Texto | «Indexando documentos» y «N de M fragmentos», o la causa de la pausa automática. Sin nombres de archivo |
 | Acción | «Pausar», con un `PendingIntent` explícito e inmutable a `IndexingActionReceiver` (no exportado) |
 | Al tocarla | `MainActivity` con la acción interna `ACTION_OPEN_INDEXING`, que abre `Index` |
+
+## 7. Causa de pausa en el estado de la pantalla
+
+| Condición (en este orden) | `PauseReason` |
+|---|---|
+| La tanda tiene `paused = true` | La de `pause_cause`: `USER`, `NO_SPACE` o `MODEL_MISSING` |
+| Temperatura ≥ `SEVERE` con la tanda activa (el worker espera, o el sistema lo ha parado) | `THERMAL` |
+| Trabajo `ENQUEUED` con `runAttemptCount > 0` y `stopReason` del sistema (`QUOTA`, `TIMEOUT`, `FOREGROUND_SERVICE_TIMEOUT`, `DEVICE_STATE`, `APP_STANDBY`, `BACKGROUND_RESTRICTION` u otro distinto de `CANCELLED_BY_APP`) | `SYSTEM_LIMIT` («Esperando al sistema») |
+| Si no | Ninguna (en curso) |
+

@@ -365,7 +365,7 @@ También se introduce `EngineCoordinator`, que garantiza que nunca haya dos engi
 ## F07 — Indexación
 
 - **Tipo:** Producto.
-- **Estado:** 🟨 en curso: spec y clarify aprobados el 2026-10-26 (`specs/007-indexing/`, D-039). Plan (D-040), tareas y analyze terminados; pendientes de revisión, incluidas las propuestas de UI P1–P11.
+- **Estado:** 🟨 en curso: spec y clarify aprobados el 2026-10-26 (`specs/007-indexing/`, D-039). Plan (D-040), tareas y analyze terminados; pendientes de revisión, incluidas las propuestas de UI P1–P12.
 
 **Objetivo.** `IngestWorker` (`CoroutineWorker` en primer plano, reanudable):
 - extrae, fragmenta, embebe y persiste en lotes transaccionales de 64;

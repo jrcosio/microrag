@@ -72,7 +72,9 @@ $ADB -s $PHONE logcat -d -s MicroRAG | grep -E "indexing-benchmark|overflow-prob
 
 En el teléfono y en el emulador, con la app real:
 
-1. Importar `text_200_pages.pdf` y pulsar «Iniciar indexación». Anotar la latencia hasta el primer progreso con `setGreedySchedulerEnabled(false)`.
+1. Importar `text_200_pages.pdf` y pulsar «Iniciar indexación». Anotar la latencia hasta el primer progreso con `setGreedySchedulerEnabled(false)` (umbral: 5 s). Repetir pulsando Inicio justo después de «Iniciar indexación»: el trabajo empieza en tramos si no llega al primer plano, y lo recupera al volver a la app.
+
+   En el emulador hacen falta los modelos instalados (onboarding de F03 o `adb push` como en F02); la ingesta usa la CPU, porque la GPU del emulador se bloquea (research R4).
 2. Comprobar que la notificación muestra el progreso y que el proceso es un servicio en primer plano:
 
    ```bash
@@ -81,16 +83,17 @@ En el teléfono y en el emulador, con la app real:
 3. Pulsar Inicio y matar el proceso a mitad de los embeddings:
 
    ```bash
-   $ADB shell run-as $PKG kill -9 $(pidof)
+   $ADB shell "run-as $PKG kill -9 \$(pidof $PKG)"
    ```
 
    **No abrir la app.** Esperar y comprobar en el log `ingest done id=…` y que el proceso no queda congelado:
 
    ```bash
-   dumpsys activity processes | grep isFrozen
+   $ADB shell dumpsys activity processes | grep isFrozen
    ```
-4. Repetir matando durante la fase 1 y durante el cierre del documento.
-5. En el emulador API 37:
+4. Repetir matando durante el troceado de un PDF de 2.000 páginas y entre dos documentos. El cierre del documento dura milisegundos: lo cubre la interrupción determinista de `IndexingFlowTest`.
+5. En la AVD API 33, ejecutar la prueba de descarga de F03 (`ModelDownloadSmokeTest`, con red) para comprobar que funciona sin el planificador en proceso.
+6. En el emulador API 37:
    - simular la cuota de Android 16 con `am compat enable OVERRIDE_QUOTA_ENFORCEMENT_TO_FGS_JOBS $PKG` y comprobar que el trabajo sigue en tramos;
    - acortar el límite de `dataSync` con `device_config put activity_manager data_sync_fgs_timeout_duration 60000` y comprobar que el trabajo continúa.
 

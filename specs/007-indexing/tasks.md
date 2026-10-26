@@ -9,10 +9,10 @@ description: "Lista de tareas de F07 — Indexación"
 
 **Tests**: **obligatorios**. Los exigen la constitución (VI) y los criterios SC-001 a SC-010. En cada fase, las tareas de test van **antes** de la implementación: se escriben primero y deben fallar antes de implementar.
 
-**Organización**: por historia de usuario de la spec:
+**Organización**: por historia de usuario de la spec. El orden de ejecución es US1 → US3 → US2 → US4 → US5, porque la robustez (US2) necesita el repositorio de la tanda que construye US3:
 - US1 — Indexar los documentos importados de principio a fin (P1);
-- US2 — La indexación sobrevive a todo (P1);
 - US3 — Ver el progreso real (P1);
+- US2 — La indexación sobrevive a todo (P1);
 - US4 — Pausar, reanudar, reintentar y pausas automáticas (P2);
 - US5 — Pantalla fiel al mockup, accesible y coherente con la Ingesta (P2).
 
@@ -20,7 +20,7 @@ description: "Lista de tareas de F07 — Indexación"
 - Todos los comandos Gradle requieren `export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"`.
 - Dispositivos:
   - teléfono de referencia: `adb -s P31281001066`, con los modelos instalados;
-  - emulador `Pixel_10`: `emulator-5554`;
+  - emulador `Pixel_10`: `emulator-5554`; con modelos, indexa en CPU (research R4);
   - AVD `MicroRAG_API33`: `emulator-5556`.
 
   **Nunca `connected*AndroidTest`**: se instalan los dos APK y se usa `am instrument` (quickstart §3).
@@ -29,7 +29,14 @@ description: "Lista de tareas de F07 — Indexación"
 
 **Commits**: atómicos, en inglés, uno por tarea o grupo lógico (constitución VIII).
 
-**UI pendiente de aprobación**: las propuestas P1–P11 de contracts/index-ui.md se aprueban en la parada tras analyze. Las tareas que las implementan dan por hecha esa aprobación: T030 (P11), T039 (hero sin título), T047 (P10), T048 (P3–P5 y P7), T053 (P1, P2, P6, P8 y P9) y T054 (cambios en la Ingesta).
+**UI pendiente de aprobación**: las propuestas P1–P12 de contracts/index-ui.md se aprueban en la parada tras analyze. Las tareas que las implementan dan por hecha esa aprobación:
+- T033: hero sin título;
+- T035: P1, P2, P9 y P12;
+- T041: P11;
+- T051: P3–P5 y P7;
+- T052: P10;
+- T057: P6 y P8;
+- T058: cambios en la Ingesta.
 
 ## Format: `[ID] [P?] [Story] Description`
 
@@ -37,7 +44,7 @@ description: "Lista de tareas de F07 — Indexación"
 - **[Story]**: historia a la que pertenece (US1–US5).
 - Las rutas son relativas a la raíz del repositorio. Abreviaturas:
   - `…/microrag/` = `app/src/main/java/com/lisdatasolutions/microrag/`;
-  - `…/test/` y `…/androidTest/` usan el mismo paquete bajo `app/src/test/java/` y `app/src/androidTest/java/`.
+  - `…/test/`, `…/androidTest/` y `…/sharedTest/` usan el mismo paquete bajo `app/src/test/java/`, `app/src/androidTest/java/` y `app/src/sharedTest/java/`.
 
 ---
 
@@ -45,7 +52,11 @@ description: "Lista de tareas de F07 — Indexación"
 
 **Purpose**: fijar la regla de D-036 desde Python y medir en el teléfono lo que puede cambiar el diseño (research R5 y R6).
 
-- [ ] T001 [P] Crear `offline/gen_overflow_cases.py`, que escribe `offline/golden/embedding_overflow.jsonl` (research R6). Para cada texto, guarda la secuencia de recortes de la regla de `offline/eval/builds.py` (`int(len(text) × 0,9)` y después hasta el último espacio, con longitudes en puntos de código) hasta 12 pasos. Casos:
+- [ ] T001 [P] Crear `offline/gen_overflow_cases.py`, que escribe `offline/golden/embedding_overflow.jsonl` (research R6). Para cada texto guarda la secuencia de recortes de la regla de `offline/eval/builds.py`, con longitudes en puntos de código:
+  - `int(len(text) × 0,9)` y después hasta el último espacio;
+  - hasta 12 intentos.
+
+  Casos:
   - un texto español largo;
   - acentos y `ñ`;
   - emoji fuera del BMP;
@@ -53,13 +64,13 @@ description: "Lista de tareas de F07 — Indexación"
   - un espacio justo en el corte;
   - un texto vacío.
 
-  Extraer la regla a una función (`overflow_cut(text)`) que use también `builds.py`, para que haya una sola fuente. Opción `--check`. Prueba en `offline/tests/test_overflow_cases.py`: regenerar y comparar.
-- [ ] T002 [P] Crear `…/androidTest/data/indexing/EmbeddingOverflowDeviceTest.kt` (`@RequiresModels`, research R6). Con `LiteRtTextEmbedder` real en CPU:
+  Extraer la regla a una función `overflow_cut(text)` que use también `builds.py`, para que haya una sola fuente. Opción `--check`. Prueba en `offline/tests/test_overflow_cases.py`: regenerar y comparar.
+- [ ] T002 [P] Crear `…/androidTest/data/indexing/EmbeddingOverflowDeviceTest.kt` (`@RequiresModels`, research R6). Con `LiteRtTextEmbedder` real en CPU y en GPU (la GPU se salta en un emulador):
   - embeber un texto de unos 700 tokens;
   - registrar con la etiqueta `overflow-probe` la clase y el mensaje de la excepción;
   - comprobar que tras los recortes de D-036 el modelo lo acepta.
 
-  Ejecutarla en el teléfono y anotar en research R6 la excepción real y si se distingue de otros fallos.
+  Ejecutarla en el teléfono. Anotar en research R6 la excepción real y si se distingue de otros fallos.
 - [ ] T003 [P] Crear `…/androidTest/data/indexing/EmbeddingBatchProbeTest.kt` (`@RequiresModels`, research R5). Con 64 fragmentos reales de `text_200_pages.pdf`, medir en GPU y en CPU:
   - `computeEmbedding` en serie;
   - `computeEmbeddingBatch` en lotes de 8 y de 16.
@@ -86,50 +97,65 @@ description: "Lista de tareas de F07 — Indexación"
   - una extensión de 11 caracteres o no alfanumérica no se quita.
 - [ ] T005 [P] `…/test/rag/runtime/EmbeddingOverflowTest.kt`: lee `offline/golden/embedding_overflow.jsonl` desde `sharedTest` y exige la misma secuencia de recortes (R6).
 - [ ] T006 [P] Ampliar `…/test/rag/runtime/EngineCoordinatorTest.kt` (research R4):
-  - `withHeldEngine` mantiene el engine durante el bloque;
+  - `withHeldEngine` mantiene el engine durante el bloque y solo acepta engines de embedding;
   - `releaseUnheld` cierra los no retenidos y respeta el retenido;
   - `releaseGenerators` cierra solo los de generación;
+  - **otra petición de GPU mientras hay una retenida:** espera sin bloquear el `loadLock`, así que una petición de CPU en paralelo se atiende;
   - la regla de una sola GPU sigue vigente;
   - `EngineMemoryCallbacks` con `TRIM_MEMORY_UI_HIDDEN` ya no cierra un engine retenido.
 - [ ] T007 [P] `…/test/data/indexing/DataStoreIngestRunStoreTest.kt` (data-model §2):
   - altas sin duplicados y en orden;
   - bajas;
+  - descarte de terminados y vaciado en una sola edición;
   - pausa con causa;
   - reanudar;
-  - persistencia entre instancias;
-  - vaciado.
+  - `gpu_check`;
+  - persistencia entre instancias.
 - [ ] T008 [P] Ampliar `…/androidTest/data/rag/RagIndexWriteTest.kt`:
-  - `storedChunkCounts` (ids sin fragmentos dan 0);
+  - `storedChunkCounts`, donde los ids sin fragmentos dan 0;
   - `storedChunkContents` en orden;
   - `deleteChunks` borra los fragmentos y sus filas FTS y conserva el documento;
   - `insertChunks` calcula `title_norm` con `DocumentTitle` (R11).
 - [ ] T009 [P] Crear `…/androidTest/data/rag/RagIndexVisibilityTest.kt` (research R7, N7, SC-003). Sobre SQLite-Vector real, con documentos `done`, `embedding`, `parsed`, `error` y `done` excluido (`included = 0`):
   - `vectorSearch` y `textSearch` devuelven solo fragmentos de los `done` incluidos;
-  - con *m* > 0 se devuelven exactamente los *k* mejores buscables (comparado con fuerza bruta en Kotlin);
-  - con *m* = 0, el mismo resultado que la consulta de F04.
+  - con *m* > 0 se devuelven exactamente los *k* mejores buscables, comparados con fuerza bruta en Kotlin;
+  - con *m* = 0, el mismo resultado que la consulta de F04;
+  - `EXPLAIN QUERY PLAN` muestra un solo escaneo vectorial (CTE `MATERIALIZED`).
 
 ### Implementation
 
 - [ ] T010 Ampliar `…/microrag/domain/ingest/IngestModels.kt` (data-model §3):
   - `IngestError.EMBEDDING_FAILED` e `INCOMPLETE`, reintentables;
   - `QueueItemState.Indexing` y `Paused`;
-  - `IngestProgress.Stage.EMBEDDING`, `CLOSING` y `THERMAL_WAIT`, con `chunksDone`, `chunksTotal`, `chunksPerSecond` y `backend`.
+  - `IngestProgress` con las etapas `EMBEDDING` y `CLOSING`, `waiting: WaitReason?` aparte, `chunksDone`, `chunksTotal`, `chunksPerSecond` y `backend`.
 
-  Ajustar los `when` exhaustivos de `feature/ingest` con textos provisionales; los definitivos van en US5.
-- [ ] T011 [P] Crear `…/microrag/domain/indexing/IndexingModels.kt` (`IndexingState`, `RunProgress`, `CurrentDocument`, `PauseReason`, `FailedDocument`) y `IndexingRepository.kt` (contracts/indexing-api.md).
+  Ajustar los `when` exhaustivos de `feature/ingest` con textos provisionales; los definitivos van en T058.
+- [ ] T011 [P] Crear en `…/microrag/domain/indexing/`:
+  - `IndexingModels.kt`: `IndexingState`, `RunProgress`, `CurrentDocument`, `PauseReason` y `FailedDocument`;
+  - `IndexingRepository.kt` (contracts/indexing-api.md).
 - [ ] T012 [P] Crear `…/microrag/domain/rag/DocumentTitle.kt` (R11). Comprobar T004.
-- [ ] T013 [P] Crear `…/microrag/rag/runtime/EmbeddingOverflow.kt` (R6) y añadir `DocumentEmbedding`. Añadir `embedDocumentFitting(content, header)` a `TextEmbedder` y a `LiteRtTextEmbedder`: bucle de hasta 12 recortes con la excepción que fije T002. Ajustar los fakes de prueba existentes. Comprobar T005.
-- [ ] T014 Ampliar `…/microrag/rag/runtime/EngineCoordinator.kt` con `withHeldEngine`, `releaseUnheld` y `releaseGenerators`, y `EngineMemoryCallbacks.kt` para que use `releaseUnheld` (R4). Comprobar T006.
-- [ ] T015 Ampliar `RagIndex` (`…/microrag/domain/rag/RagIndex.kt`) y `DefaultRagIndex` (`…/microrag/data/rag/DefaultRagIndex.kt`):
-  - `storedChunkCounts`, `storedChunkContents` y `deleteChunks` (con `notifyChanged`);
-  - búsquedas con *k* + *m* y filtro `status = 'done' AND included = 1` (R7);
-  - `title_norm` con `DocumentTitle`.
+- [ ] T013 [P] Crear en `…/microrag/rag/runtime/`:
+  - `EmbeddingOverflow.kt` (R6) y `DocumentEmbedding`;
+  - `EmbeddingInputTooLongException` y `EmbeddingEngineException`.
 
-  Actualizar `FakeRagIndex` y la lista de operaciones rechazadas de `RagIndexCompatibilityTest`. Comprobar T008 y T009 en el emulador.
+  Añadir `embedDocumentFitting(content, header)` a `TextEmbedder` y a `LiteRtTextEmbedder`: hasta 12 intentos y traducción de la excepción de LiteRT según T002. Ajustar los fakes de prueba existentes. Comprobar T005.
+- [ ] T014 Ampliar `…/microrag/rag/runtime/EngineCoordinator.kt` con `withHeldEngine`, `releaseUnheld` y `releaseGenerators`. Política: espera de GPU sin el `loadLock`. `EngineMemoryCallbacks.kt` usa `releaseUnheld` (R4). Comprobar T006.
+- [ ] T015 Ampliar `RagIndex` (`…/microrag/domain/rag/RagIndex.kt`, con `IndexStorageFullException`) y `DefaultRagIndex` (`…/microrag/data/rag/DefaultRagIndex.kt`):
+  - `storedChunkCounts`, `storedChunkContents` y `deleteChunks` (con `notifyChanged`);
+  - búsquedas con *k* + *m*, filtro `status = 'done' AND included = 1` y CTE `MATERIALIZED` (R7);
+  - `title_norm` con `DocumentTitle`;
+  - traducción de `SQLITE_FULL` a `IndexStorageFullException` (R10).
+
+  **Adaptar las pruebas existentes que buscan sobre documentos no publicados:** `RagIndexSearchTest`, `RagIndexStrictModeTest` y `RagIndexBenchmarkTest` ponen sus documentos en `DONE`. Actualizar `FakeRagIndex` y la lista de operaciones rechazadas de `RagIndexCompatibilityTest`. Comprobar T008 y T009 en el emulador.
 - [ ] T016 [P] Crear `…/microrag/data/indexing/DataStoreIngestRunStore.kt` con su interfaz `IngestRunStore` (data-model §2). Comprobar T007.
-- [ ] T017 [P] Crear `…/microrag/data/device/ThermalStatusSource.kt`: interfaz y `PowerManagerThermalStatusSource`, con `PowerManager.currentThermalStatus` y `addThermalStatusListener` como `Flow<ThermalLevel>` (`NORMAL`, `MODERATE`, `SEVERE_OR_WORSE`). Añadir a `LayeringTest` la regla «`android.os.PowerManager` solo en `data/device`».
-- [ ] T018 En `…/microrag/MicroRagApplication.kt`, añadir `setGreedySchedulerEnabled(false)` con `@OptIn(ExperimentalConfigurationApi::class)` y un comentario que remita a research R2. Comprobar que las pruebas de F03 (descarga en API 31–33) y de F06 (`WorkManagerIngestSchedulerTest`, `IngestFlowTest`) siguen en verde.
-- [ ] T019 Registrar en Koin (`DataModule`, `DomainModule`): `IngestRunStore`, `ThermalStatusSource` y el resto de definiciones nuevas, y extender `AppModulesTest` (`verify()`).
+- [ ] T017 [P] Crear `…/microrag/data/device/ThermalStatusSource.kt`: interfaz y `PowerManagerThermalStatusSource`, con `PowerManager.currentThermalStatus` y `addThermalStatusListener` como `Flow<ThermalLevel>` (`NORMAL`, `MODERATE`, `SEVERE_OR_WORSE`). Ampliar `LayeringTest`:
+  - `android.os.PowerManager` solo en `data/device`;
+  - `feature/indexing` no importa WorkManager, `androidx.sqlite`, LiteRT ni `PowerManager`, como `feature/ingest`.
+- [ ] T018 En `…/microrag/MicroRagApplication.kt`, añadir `setGreedySchedulerEnabled(false)` con `@OptIn(ExperimentalConfigurationApi::class)` y un comentario que remita a research R2. Comprobar que siguen en verde:
+  - `WorkManagerIngestSchedulerTest` de F06;
+  - las pruebas de WorkManager de F03, como la descarga en API 31–33;
+  - `IngestFlowTest`.
+- [ ] T019 Registrar en Koin (`DataModule`, `DomainModule`) `IngestRunStore`, `ThermalStatusSource` y el resto de definiciones nuevas, y extender `AppModulesTest` (`verify()`).
 
 **Checkpoint**: tipos, índice filtrado, engines retenidos, tanda y configuración listos. JVM, lint y las instrumentadas de F04 y F06 en verde.
 
@@ -143,47 +169,126 @@ description: "Lista de tareas de F07 — Indexación"
 
 ### Tests for User Story 1
 
-- [ ] T020 [P] [US1] Ampliar `…/test/data/ingest/IngestRunnerTest.kt` con un `TextEmbedder` determinista (`…/test/data/indexing/FakeTextEmbedder.kt`: vector derivado del hash del texto embebido, normalizado, con fallo programable). Casos:
+- [ ] T020 [P] [US1] Crear `…/sharedTest/data/indexing/FakeTextEmbedder.kt`, común a la JVM y a las instrumentadas: vector derivado del hash del texto embebido, normalizado, con fallo de longitud o de engine programable.
+- [ ] T021 [P] [US1] Ampliar `…/test/data/ingest/IngestRunnerTest.kt` con `FakeTextEmbedder` y `RecordingLogger`:
   - **fase 1:** los `pending` pasan a `parsed` antes de embeber nada;
   - **fase 2:** `embedding`, lotes de 64 y `done`;
   - **texto embebido:** el de N5 (prefijo y «título › ruta»); `content` sin cabecera;
   - **`token_estimate`:** con `CHARS_PER_TOKEN`;
   - **reanudación (N2):** con 130 guardados, solo se embeben los siguientes;
   - **desajuste:** se borran y se rehace desde 0;
-  - **cierre:** con un recuento que no cuadra, `error incomplete`;
-  - **fallo del engine dos veces:** `embedding_failed`, y el siguiente documento sigue (N11);
+  - **cierre:** si el recuento no cuadra, `error incomplete`;
+  - **`EmbeddingEngineException` persistente:** `embedding_failed`, y el siguiente documento sigue (N11);
   - **documento quitado a mitad:** se salta sin escribir;
-  - **cancelación:** el lote parcial se guarda (N4).
-- [ ] T021 [P] [US1] `…/test/data/indexing/ChunkEmbeddingSessionTest.kt` (R4):
+  - **cancelación:** el lote parcial se guarda (N4);
+  - **N16:** un `pending` añadido a la tanda a mitad se trocea antes del siguiente documento;
+  - **N17:** al terminar se vacía la tanda;
+  - **logs:** sin nombres de archivo ni texto (SC-010).
+
+  **Adaptar las expectativas de F06** que esperaban `PARSED` tras `process`. Ahora la fase 1 sola se prueba con la sesión de embeddings ausente o con el modelo no verificado.
+- [ ] T022 [P] [US1] `…/test/data/indexing/ChunkEmbeddingSessionTest.kt` (R4):
   - libera los generadores antes de cargar;
-  - pide la GPU y, si falla al cargar, usa la CPU y registra el motivo;
+  - en un emulador (`Build.HARDWARE` falso inyectable), nunca GPU;
+  - sin `gpu_check`, valida la GPU con 3 textos fijos frente a la CPU y guarda el resultado;
+  - con coseno < 0,99 o fallo de carga, usa la CPU y lo registra;
+  - un `gpu_check` de otro modelo o de otra versión se repite;
   - retiene el engine durante la sesión y lo libera al cerrarla;
-  - un fallo a mitad recarga una vez.
-- [ ] T022 [P] [US1] Crear `…/androidTest/data/indexing/IndexingFlowTest.kt` con SQLite-Vector real, el importador y el runner de F06, y el embedder determinista:
+  - un fallo a mitad recarga una vez, después pasa de GPU a CPU, y después lanza.
+- [ ] T023 [P] [US1] Crear `…/androidTest/data/indexing/IndexingFlowTest.kt` con SQLite-Vector real, el importador y el runner de F06, `FakeTextEmbedder` y un `ThermalStatusSource` controlable:
   - TXT, MD y `text_3_pages.pdf` acaban `done`, con los fragmentos del troceado;
   - durante la fase 2, una búsqueda no devuelve fragmentos del documento en curso (SC-003);
-  - cancelación determinista a mitad de `text_200_pages` y reanudación con los mismos 430 fragmentos, sin duplicados (SC-002, parte automática).
+  - **interrupción determinista, en tres puntos:** durante la fase 1, a mitad de los embeddings de `text_200_pages` y en el cierre. La reanudación da los mismos 430 fragmentos, sin duplicados (SC-002, parte automática);
+  - quitar un documento a mitad de la fase 2: se borran sus fragmentos y el resto sigue;
+  - temperatura `SEVERE` simulada: espera, y al bajar continúa.
 
 ### Implementation for User Story 1
 
-- [ ] T023 [US1] Crear `…/microrag/data/indexing/ChunkEmbeddingSession.kt` (R4): sesión que libera los generadores, abre el engine retenido de `EmbeddingGemma` en GPU (CPU si falla), expone `embed(content, header)` y recarga una vez si el engine falla a mitad. Usa `EngineFactory` y `ModelFileRepository.pathOf`. Comprobar T021.
-- [ ] T024 [US1] Ampliar `…/microrag/data/ingest/IngestRunner.kt` con las fases 1 y 2 (research R8–R9, reglas N1–N5, N11 y N13):
+- [ ] T024 [US1] Crear `…/microrag/data/indexing/ChunkEmbeddingSession.kt` (R4, N15):
+  - libera los generadores;
+  - elige el backend: GPU validada, nunca en un emulador;
+  - abre el engine retenido de `EmbeddingGemma`;
+  - expone `embed(content, header)`;
+  - recarga una vez y después pasa a CPU.
+
+  Usa `EngineFactory`, `ModelFileRepository.pathOf` y el SHA-256 del modelo verificado. Comprobar T022.
+- [ ] T025 [US1] Ampliar `…/microrag/data/ingest/IngestRunner.kt` con las fases 1 y 2 (research R8–R9, reglas N1–N5, N11, N13, N16 y N17):
   - comparación con lo guardado;
   - lotes de 64;
-  - lote parcial en `NonCancellable` (tope 5 s);
+  - lote parcial en `NonCancellable`, con un tope de 5 s;
   - comprobación de estado antes de cada lote;
+  - relectura de la tanda entre documentos;
   - cierre con recuento;
-  - publicación del progreso `EMBEDDING`/`CLOSING`, con el ritmo de los dos últimos lotes.
+  - progreso `EMBEDDING`/`CLOSING`, con el ritmo de los dos últimos lotes;
+  - vaciado de la tanda al terminar.
 
-  Mantener intacta la lógica de F06 para la fase 1. Comprobar T020.
-- [ ] T025 [US1] Ampliar `…/microrag/data/ingest/IngestWorker.kt` e `IngestScheduler.kt` (claves de progreso de data-model §5, `cancel()` y `stopReason`) sin el primer plano (US2). Actualizar `WorkManagerIngestSchedulerTest`. Comprobar T022 en el emulador.
-- [ ] T026 [US1] En el teléfono, indexar con la app real un PDF, un TXT y un MD desde la Ingesta. Comprobar en el log `ingest done` y en la base que los fragmentos tienen vector y que los documentos están `done`.
+  Mantener intacta la lógica de F06 para la fase 1. Comprobar T021.
+- [ ] T026 [US1] Ampliar `…/microrag/data/ingest/IngestWorker.kt` e `IngestScheduler.kt`, sin el primer plano (US2):
+  - claves de progreso de data-model §5;
+  - `cancel()`;
+  - `replace(ids)`;
+  - `stopReason` y `runAttemptCount`.
+
+  Actualizar `WorkManagerIngestSchedulerTest`, y también `IngestFlowTest`, `IngestStrictModeTest` e `IngestBenchmarkTest` de F06 (el runner necesita ahora su sesión de embeddings; se inyecta `FakeTextEmbedder` y sus expectativas pasan a `done`). Comprobar T023 en el emulador.
+- [ ] T027 [US1] En el teléfono, indexar con la app real un PDF, un TXT y un MD desde la Ingesta. Comprobar:
+  - en el log, `ingest done` y el backend elegido tras la validación de la GPU;
+  - en la base, que los fragmentos tienen vector y los documentos están `done`.
 
 **Checkpoint**: MVP funcional: la app indexa y publica documentos completos.
 
 ---
 
-## Phase 4: User Story 2 - La indexación sobrevive a todo (Priority: P1)
+## Phase 4: User Story 3 - Ver el progreso real (Priority: P1)
+
+**Goal**: la pantalla Estado de indexación muestra, como el PNG 08, el estado en curso, el total desconocido, «Todo actualizado» y el tiempo restante, con cifras reales que sobreviven al cierre de la app.
+
+**Independent Test**: con 3 documentos en marcha, N y M cuadran con lo guardado y con los troceados. Al reabrir, el mismo progreso.
+
+### Tests for User Story 3
+
+- [ ] T028 [P] [US3] Crear `…/test/data/indexing/DefaultIndexingRepositoryTest.kt` con `FakeRagIndex`, `work-testing`, un `IngestRunStore` en memoria y temperatura fija:
+  - `Idle` sin tanda;
+  - `Active` con M desconocido mientras queda un `pending` (FR-021/022);
+  - N/M al guardar lotes y al cerrar documentos;
+  - documentos con error fuera de N y M;
+  - `CurrentDocument` y su etapa (data-model §3, con `waiting` aparte);
+  - documentos en cola;
+  - tiempo restante solo con ritmo estable (R8, FR-023);
+  - `IndexUnavailable`.
+- [ ] T029 [P] [US3] Tests de `start` en el mismo fichero:
+  - descarta los terminados;
+  - añade `pending`, `parsed` y `embedding` sin duplicar;
+  - quita la pausa;
+  - encola;
+  - devuelve el número añadido.
+- [ ] T030 [P] [US3] `…/test/feature/indexing/IndexViewModelTest.kt`:
+  - mapea `IndexingState` a `IndexUiState`: porcentaje, «N / M», etapas, documento actual, tiempo restante y acción principal;
+  - expone `onPause`, `onResume` y `onRetry`.
+- [ ] T031 [P] [US3] `…/test/feature/indexing/IndexScreenTest.kt` (Robolectric, qualifiers `es` y `en`):
+  - **estado en curso del PNG 08:**
+    - hero con eyebrow;
+    - anillo con porcentaje;
+    - «N / M fragmentos» en formato local;
+    - 4 etapas con sus estados;
+    - «Procesando ahora»;
+    - «Pausar indexación»;
+  - **P1:** «Todo actualizado»;
+  - **P2:** anillo indeterminado, sin porcentaje;
+  - **P9:** tiempo restante y «y %d documentos más en cola»;
+  - **P12:** carga.
+
+### Implementation for User Story 3
+
+- [ ] T032 [US3] Implementar en `…/microrag/data/indexing/DefaultIndexingRepository.kt` `state` y `start` (R8, data-model §3 y §7), con los casos de uso `Observe` y `Start`. El `StartIndexingUseCase` de F06 delega en `start()`. Comprobar T028 y T029.
+- [ ] T033 [US3] Ampliar `LisdataHeroCard` (`…/microrag/core/designsystem/component/Cards.kt`) con el título opcional. Actualizar su preview, el catálogo y `CatalogAccessibilityTest` si cambia.
+- [ ] T034 [US3] Crear `…/microrag/feature/indexing/IndexUiState.kt`, `IndexTexts.kt` e `IndexViewModel.kt`. Comprobar T030.
+- [ ] T035 [US3] Crear `…/microrag/feature/indexing/IndexScreen.kt` (`IndexRoute` + `IndexScreen` sin estado) con la estructura de contracts/index-ui.md. Crear `strings_indexing.xml` (es y en) con los textos del PNG y de P1, P2, P9 y P12; las fases siguientes lo amplían. Comprobar T031.
+- [ ] T036 [US3] En `…/microrag/core/navigation/MicroRagNavHost.kt`, sustituir el placeholder de `Index` por `IndexRoute`. Actualizar `NavigationTest` y `AppModulesTest`.
+
+**Checkpoint**: la pantalla muestra el progreso real de la indexación.
+
+---
+
+## Phase 5: User Story 2 - La indexación sobrevive a todo (Priority: P1)
 
 **Goal**: el trabajo sigue con la app cerrada, con notificación, y se reanuda solo tras una muerte del proceso, un reinicio o una parada del sistema.
 
@@ -191,78 +296,45 @@ description: "Lista de tareas de F07 — Indexación"
 
 ### Tests for User Story 2
 
-- [ ] T027 [P] [US2] `…/test/data/indexing/IndexingNotificationsTest.kt` (Robolectric, R3):
+- [ ] T037 [P] [US2] `…/test/data/indexing/IndexingNotificationsTest.kt` (Robolectric, R3):
   - canal `indexing` de importancia baja;
   - textos sin nombres de archivo;
   - progreso determinado e indeterminado;
   - acción «Pausar» con `PendingIntent` explícito e inmutable;
   - toque → `MainActivity` con `ACTION_OPEN_INDEXING`.
-- [ ] T028 [P] [US2] Crear `…/test/data/ingest/IngestWorkerTest.kt` (`work-testing`, R1): si `setForeground` lanza `ForegroundServiceStartNotAllowedException`, el worker sigue, publica la notificación normal y lo reintenta en el siguiente lote.
-- [ ] T029 [P] [US2] Tests de `reconcile` en `…/test/data/indexing/DefaultIndexingRepositoryTest.kt` (R12, N14):
+- [ ] T038 [P] [US2] Crear `…/test/data/ingest/IngestWorkerTest.kt` (`work-testing`, R1): si `setForeground` lanza `ForegroundServiceStartNotAllowedException`, el worker sigue, publica la notificación normal y lo reintenta en el siguiente lote.
+- [ ] T039 [P] [US2] Tests de `reconcile` en `DefaultIndexingRepositoryTest` (R12, N14):
   - tanda sin trabajo → encola;
-  - trabajo `ENQUEUED` con causa del sistema → `REPLACE`;
+  - trabajo `ENQUEUED` con causa del sistema → `replace`;
   - `RUNNING` → no toca;
-  - tanda pausada → nada.
+  - tanda pausada → nada;
+  - índice no disponible → nada.
+
+  Añadir también la tabla de data-model §7: `SYSTEM_LIMIT` desde `WorkInfo` y `THERMAL` con temperatura grave aunque el sistema haya parado el trabajo.
+- [ ] T040 [P] [US2] `…/test/MainActivityRoutingTest.kt` (Robolectric):
+  - con el onboarding completado, `ACTION_OPEN_INDEXING` abre `Index` al crear y en `onNewIntent` sin otra instancia (`singleTop`);
+  - sin onboarding, la acción se ignora.
 
 ### Implementation for User Story 2
 
-- [ ] T030 [US2] Crear `…/microrag/data/indexing/IndexingNotifications.kt` e `IndexingActionReceiver.kt` (no exportado, en el manifiesto), con los textos de P11 en `strings_indexing.xml` (es y en). Comprobar T027.
-- [ ] T031 [US2] Añadir a `IngestWorker` el primer plano `dataSync` (`setForeground` al empezar y en cada lote) y la notificación normal si falla (R1). Comprobar T028.
-- [ ] T032 [US2] Implementar `reconcile` en `…/microrag/data/indexing/DefaultIndexingRepository.kt` (puede empezar como esqueleto de US3) y `ReconcileIndexingUseCase`. Llamarlo desde `MainActivity.onStart` en el *scope* de la aplicación. Comprobar T029.
-- [ ] T033 [US2] **Verificación temprana en los dispositivos** (quickstart §4, riesgo 1). Con la app real en el teléfono y en el emulador:
-  - anotar la latencia de arranque sin planificador en proceso;
+- [ ] T041 [US2] Crear `…/microrag/data/indexing/IndexingNotifications.kt` e `IndexingActionReceiver.kt` (no exportado, en el manifiesto), con los textos de P11 en `strings_indexing.xml` (es y en). Comprobar T037.
+- [ ] T042 [US2] Añadir a `IngestWorker` el primer plano `dataSync` (`setForeground` al empezar y en cada lote) y la notificación normal si falla (R1). Comprobar T038.
+- [ ] T043 [US2] Implementar `reconcile` en `DefaultIndexingRepository` y `ReconcileIndexingUseCase`, y la causa `SYSTEM_LIMIT`/`THERMAL` en `state`. Llamar a `reconcile` desde `MainActivity.onStart` en el *scope* de la aplicación. Comprobar T039.
+- [ ] T044 [US2] `MainActivity` en `launchMode="singleTop"`, con `ACTION_OPEN_INDEXING` atendida en `onCreate` y `onNewIntent` solo con el onboarding completado (R3). Atrás desde esa entrada → Inicio. Comprobar T040.
+- [ ] T045 [US2] **Verificación temprana en los dispositivos** (quickstart §4, riesgo 1). Con la app real en el teléfono y en el emulador:
+  - anotar la latencia de arranque sin planificador en proceso (umbral: 5 s), también pulsando Inicio justo después de «Iniciar indexación»;
   - comprobar que el proceso es servicio en primer plano y que la notificación avanza;
-  - matar con `kill -9` durante la fase 1, a mitad de los embeddings y en el cierre, **sin abrir la app**: el trabajo termina solo, el proceso no queda congelado y el documento tiene 430 fragmentos sin duplicados ni huecos (SC-002);
+  - matar con `kill -9`, **sin abrir la app**, en tres momentos: durante el troceado de un PDF de 2.000 páginas, a mitad de los embeddings y entre dos documentos. Cada vez:
+    - el trabajo termina solo;
+    - el proceso no queda congelado;
+    - los fragmentos cuadran, sin duplicados ni huecos (SC-002);
   - en el emulador API 37, `OVERRIDE_QUOTA_ENFORCEMENT_TO_FGS_JOBS` y `data_sync_fgs_timeout_duration` de 60 s: el trabajo continúa en tramos;
+  - en la AVD API 33, `ModelDownloadSmokeTest` (con red) sigue funcionando sin el planificador en proceso;
   - reiniciar el teléfono a mitad: continúa tras desbloquear.
 
-  Anotar los resultados en research R1–R2. **Si sigue congelándose o la latencia pasa de unos 10 s, parar y consultar al usuario.**
+  Anotar los resultados en research R1–R2. **Si sigue congelándose o la latencia pasa de 5 s, parar y consultar al usuario.**
 
 **Checkpoint**: la indexación sobrevive a muertes, reinicios y límites del sistema.
-
----
-
-## Phase 5: User Story 3 - Ver el progreso real (Priority: P1)
-
-**Goal**: la pantalla Estado de indexación muestra el estado en curso del PNG 08 con cifras reales que sobreviven al cierre de la app.
-
-**Independent Test**: con 3 documentos en marcha, N y M cuadran con lo guardado y con los troceados. Al reabrir, el mismo progreso.
-
-### Tests for User Story 3
-
-- [ ] T034 [P] [US3] Ampliar `…/test/data/indexing/DefaultIndexingRepositoryTest.kt` con `FakeRagIndex`, `work-testing`, un `IngestRunStore` en memoria y temperatura fija:
-  - `Idle` sin tanda;
-  - `Active` con M desconocido mientras queda un `pending` (FR-021/022);
-  - N/M al guardar lotes y al cerrar documentos;
-  - documentos con error fuera de N y M;
-  - `CurrentDocument` y su etapa;
-  - documentos en cola;
-  - tiempo restante solo con ritmo estable (R8, FR-023);
-  - la tanda se vacía al terminar;
-  - `IndexUnavailable`.
-- [ ] T035 [P] [US3] Tests de `start` en el mismo fichero:
-  - añade `pending`, `parsed` y `embedding` sin duplicar;
-  - quita la pausa;
-  - encola;
-  - devuelve el número añadido.
-- [ ] T036 [P] [US3] `…/test/feature/indexing/IndexViewModelTest.kt`: mapea `IndexingState` a `IndexUiState` (porcentaje, «N / M», etapas, documento actual, acción principal) y expone `onPause`, `onResume` y `onRetry`.
-- [ ] T037 [P] [US3] `…/test/feature/indexing/IndexScreenTest.kt` (Robolectric, qualifiers `es` y `en`), con el estado en curso del PNG 08:
-  - hero con eyebrow;
-  - anillo con porcentaje;
-  - «N / M fragmentos» en formato local;
-  - 4 etapas con sus estados;
-  - «Procesando ahora»;
-  - «Pausar indexación».
-
-### Implementation for User Story 3
-
-- [ ] T038 [US3] Completar `DefaultIndexingRepository.state` y `start` (R8, data-model §3), con los casos de uso `Observe` y `Start`. El `StartIndexingUseCase` de F06 delega en `start()`. Comprobar T034 y T035.
-- [ ] T039 [US3] Ampliar `LisdataHeroCard` (`…/microrag/core/designsystem/component/Cards.kt`) con el título opcional. Actualizar su preview, el catálogo y `CatalogAccessibilityTest` si cambia.
-- [ ] T040 [US3] Crear `…/microrag/feature/indexing/IndexUiState.kt`, `IndexTexts.kt` e `IndexViewModel.kt`. Comprobar T036.
-- [ ] T041 [US3] Crear `…/microrag/feature/indexing/IndexScreen.kt` (`IndexRoute` + `IndexScreen` sin estado) con la estructura de contracts/index-ui.md para el estado en curso, y `strings_indexing.xml` (es y en) con los textos del PNG. Comprobar T037.
-- [ ] T042 [US3] En `…/microrag/core/navigation/MicroRagNavHost.kt`, sustituir el placeholder de `Index` por `IndexRoute`. Abrir `Index` desde `ACTION_OPEN_INDEXING` en `MainActivity` (Atrás → Inicio si es la raíz). Actualizar `NavigationTest` y `AppModulesTest`.
-
-**Checkpoint**: la pantalla muestra el progreso real de la indexación.
 
 ---
 
@@ -270,27 +342,38 @@ description: "Lista de tareas de F07 — Indexación"
 
 **Goal**: control del usuario y pausas automáticas coherentes con el trabajo.
 
-**Independent Test**: pausar y reanudar sin repetir. Temperatura simulada: pausa y sigue sola. Sin espacio: para sin publicar y avisa. Modelo ausente: espera y lo explica.
+**Independent Test**:
+- pausar y reanudar sin repetir;
+- temperatura simulada: pausa y sigue sola;
+- sin espacio: para sin publicar y avisa;
+- modelo ausente: espera y lo explica.
 
 ### Tests for User Story 4
 
-- [ ] T043 [P] [US4] Ampliar `IngestRunnerTest` (R10):
-  - **temperatura `SEVERE`:** guarda el lote, libera el engine, publica `THERMAL_WAIT` y espera; al bajar a `MODERATE`, recarga y sigue (N9);
-  - **espacio por debajo del margen antes de un lote, o error `SQLITE_FULL`:** no publica, pausa la tanda con `no_space` y termina;
-  - **modelo no `Verified`:** pausa con `model_missing` antes de cargar nada (N10).
-- [ ] T044 [P] [US4] Ampliar `DefaultIndexingRepositoryTest`:
+- [ ] T046 [P] [US4] Ampliar `IngestRunnerTest` (R10):
+  - **temperatura `SEVERE`:** guarda el lote, libera el engine, publica `waiting = THERMAL` con la etapa real y espera. Al bajar a `MODERATE`, recarga y sigue (N9);
+  - **espacio por debajo del margen antes de un lote, o `IndexStorageFullException`:** no publica, pausa la tanda con `no_space` y termina;
+  - **modelo no `Verified`:** tras la fase 1, pausa con `model_missing` antes de cargar nada (N10).
+- [ ] T047 [P] [US4] Ampliar `DefaultIndexingRepositoryTest`:
   - `pause` guarda antes de cancelar (N8);
   - `resume` borra la pausa y encola los pendientes;
   - `retry` pone `pending`, añade a la tanda y encola;
-  - `PauseReason` en `state`: usuario, sin espacio y modelo ausente desde la tanda; temperatura desde el progreso; límite del sistema desde `WorkInfo`.
-- [ ] T045 [P] [US4] Ampliar `IndexViewModelTest` e `IndexScreenTest`: en pausa (P3), pausa automática (P4), sin espacio (P5) y modelo ausente (P7), con su acción.
+  - `PauseReason` desde la tanda (usuario, sin espacio, modelo ausente).
+- [ ] T048 [P] [US4] Ampliar `IndexViewModelTest` e `IndexScreenTest` con su acción en cada estado:
+  - en pausa (P3);
+  - pausa automática por temperatura y por el sistema (P4);
+  - sin espacio (P5);
+  - modelo ausente (P7).
 
 ### Implementation for User Story 4
 
-- [ ] T046 [US4] Implementar en `IngestRunner` la espera térmica, la comprobación de espacio (con `DeviceResources::freeBytes`) y el mapeo de `SQLITE_FULL` (código 13), y el modelo ausente (R10). Comprobar T043.
-- [ ] T047 [US4] Implementar en `DefaultIndexingRepository` `pause`, `resume` y `retry` con sus casos de uso. `ImportQueueRepository.retry` y `remove` de un documento pasan por la tanda (contracts/indexing-api.md). Conectar `IndexingActionReceiver` a `pause`. Añadir P10 (acceso provisional en Inicio, `PendingDestination`). Comprobar T044.
-- [ ] T048 [US4] Completar en `IndexScreen` los estados P3, P4, P5 y P7, con `Setup` como destino de P7. Comprobar T045.
-- [ ] T049 [US4] En el teléfono, simular la temperatura (`cmd thermalservice override-status 3` y `reset`) y comprobar la pausa en 5 s o menos y la reanudación sola (SC-006). Pausar y reanudar desde la pantalla y desde la notificación (SC-005).
+- [ ] T049 [US4] Implementar en `IngestRunner` la espera térmica y la comprobación de espacio (con `DeviceResources::freeBytes` e `IndexStorageFullException`), y el modelo ausente (R10). Comprobar T046.
+- [ ] T050 [US4] Implementar en `DefaultIndexingRepository` `pause`, `resume` y `retry` con sus casos de uso. `ImportQueueRepository.retry` y `remove` de un documento pasan por la tanda (contracts/indexing-api.md). Conectar `IndexingActionReceiver` a `pause`. Comprobar T047.
+- [ ] T051 [US4] Completar en `IndexScreen` los estados P3, P4, P5 y P7, con `Setup` como destino de P7. Comprobar T048.
+- [ ] T052 [US4] Añadir P10 (acceso provisional en Inicio, `PendingDestination`) con su prueba en `NavigationTest`.
+- [ ] T053 [US4] En el teléfono:
+  - **temperatura:** simularla con `cmd thermalservice override-status 3` y `reset`, con la app visible y también con el trabajo sin primer plano (tras matar el proceso). Comprobar la pausa en 5 s o menos con la causa «Pausa por temperatura» y la reanudación sola (SC-006);
+  - **pausa:** pausar y reanudar desde la pantalla y desde la notificación. Medir el tiempo hasta la pausa (≤ 5 s) y los fragmentos recalculados al reanudar (≤ 1), en el log (SC-005).
 
 **Checkpoint**: control completo y pausas automáticas explicadas.
 
@@ -298,33 +381,40 @@ description: "Lista de tareas de F07 — Indexación"
 
 ## Phase 7: User Story 5 - Pantalla fiel al mockup, accesible y coherente con la Ingesta (Priority: P2)
 
-**Goal**: todos los estados de la pantalla, la Ingesta actualizada y accesibilidad completa.
+**Goal**: los estados restantes de la pantalla, la Ingesta actualizada y accesibilidad completa.
 
-**Independent Test**: capturas del teléfono frente al PNG 08. Todos los estados pasan las comprobaciones de accesibilidad en claro y oscuro con la fuente al 200 %. La cola de Ingesta muestra «Indexando» y pierde los `done`.
+**Independent Test**:
+- capturas del teléfono frente al PNG 08;
+- todos los estados pasan las comprobaciones de accesibilidad en claro y oscuro con la fuente al 200 %;
+- la cola de Ingesta muestra «Indexando» y pierde los `done`.
 
 ### Tests for User Story 5
 
-- [ ] T050 [P] [US5] Ampliar `IndexScreenTest`:
-  - P1 «Todo actualizado» con y sin errores;
-  - P2 indeterminado sin porcentaje;
-  - P6 documentos con error y «Reintentar»;
-  - P8 biblioteca no disponible;
-  - P9 tiempo restante y «y %d documentos más en cola»;
+- [ ] T054 [P] [US5] Ampliar `IndexScreenTest`:
+  - P6: documentos con error y «Reintentar»;
+  - P8: biblioteca no disponible;
   - anuncios U3 en el resumen `liveRegion`.
-- [ ] T051 [P] [US5] Ampliar `…/test/feature/ingest/IngestViewModelTest.kt` e `IngestScreenTest.kt`:
+- [ ] T055 [P] [US5] Ampliar `…/test/feature/ingest/IngestViewModelTest.kt` e `IngestScreenTest.kt`:
   - «Indexando · N de M fragmentos» con barra;
   - «En pausa»;
   - los chips y frases de `embedding_failed` e `incomplete`;
   - un `done` sale de la cola;
-  - la CTA se habilita con `parsed`/`embedding` sin trabajo y con la tanda en pausa.
-- [ ] T052 [P] [US5] Crear `…/androidTest/feature/indexing/IndexScreenAccessibilityTest.kt`, parametrizada como la de F06: todos los estados de `IndexPreviewData`, en claro y en oscuro, con la fuente al 200 % (SC-008).
+  - la CTA se habilita con `parsed` o `embedding` sin trabajo y con la tanda en pausa.
+- [ ] T056 [P] [US5] Crear `…/androidTest/feature/indexing/IndexScreenAccessibilityTest.kt`, parametrizada como la de F06: todos los estados de `IndexPreviewData`, en claro y en oscuro, con la fuente al 200 % (SC-008).
 
 ### Implementation for User Story 5
 
-- [ ] T053 [US5] Completar en `IndexScreen` P1, P2, P6, P8 y P9, y la semántica U1–U3 (`liveRegion = Polite` en un resumen invisible). Comprobar T050.
-- [ ] T054 [US5] Ampliar `DefaultImportQueueRepository`, `IngestTexts` e `IngestScreen` con los estados de index-ui §Ingesta: documentos `embedding` en la cola, `Indexing`, `Paused` y los motivos nuevos en es y en. Comprobar T051.
-- [ ] T055 [P] [US5] Crear `…/microrag/feature/indexing/IndexPreviews.kt` con `IndexPreviewData` (datos de ejemplo etiquetados, constitución V) para todos los estados, en claro y en oscuro. Ampliar `IngestPreviews` con «Indexando» y «En pausa». Comprobar T052 en el emulador.
-- [ ] T056 [US5] Capturar en el teléfono los estados en curso (como el PNG), en pausa, pausa térmica, sin tareas y con error, en claro y en oscuro. Compararlos con el PNG 08 y listar las diferencias para el informe (constitución VII).
+- [ ] T057 [US5] Completar en `IndexScreen` P6 y P8, y la semántica U1–U3 (`liveRegion = Polite` en un resumen invisible). Comprobar T054.
+- [ ] T058 [US5] Ampliar `DefaultImportQueueRepository`, `IngestTexts` e `IngestScreen` con los estados de index-ui §Ingesta: documentos `embedding` en la cola, `Indexing`, `Paused` y los motivos nuevos en es y en. Comprobar T055.
+- [ ] T059 [P] [US5] Crear `…/microrag/feature/indexing/IndexPreviews.kt` con `IndexPreviewData` (datos de ejemplo etiquetados, constitución V) para todos los estados, en claro y en oscuro. Ampliar `IngestPreviews` con «Indexando» y «En pausa». Comprobar T056 en el emulador.
+- [ ] T060 [US5] Capturar en el teléfono, en claro y en oscuro:
+  - en curso (como el PNG);
+  - en pausa;
+  - pausa térmica;
+  - sin tareas;
+  - con error.
+
+  Compararlas con el PNG 08 y listar las diferencias para el informe (constitución VII).
 
 **Checkpoint**: UI cerrada y accesible.
 
@@ -332,35 +422,36 @@ description: "Lista de tareas de F07 — Indexación"
 
 ## Phase 8: Polish & Cross-Cutting Concerns
 
-- [ ] T057 [P] Crear `…/androidTest/data/indexing/IndexingStrictModeTest.kt`: `start`, la observación del estado, `pause` y `resume` llamados desde el hilo principal, con el runner y el embedder determinista, sin violaciones de disco. Con control negativo, como F06 (SC-009).
-- [ ] T058 [P] Ampliar `…/androidTest/data/rag/RagIndexBenchmarkTest.kt` (R7):
-  - p95 vectorial y BM25 con 10k fragmentos y *m* = 0, comparados con F04 (umbral: +2 ms en el teléfono);
-  - con *m* = 4.300, solo registrar.
+- [ ] T061 [P] Crear `…/androidTest/data/indexing/IndexingStrictModeTest.kt`: `start`, la observación del estado, `pause` y `resume` llamados desde el hilo principal, con el runner y `FakeTextEmbedder`, sin violaciones de disco. Con control negativo, como F06 (SC-009).
+- [ ] T062 [P] Ampliar `…/androidTest/data/rag/RagIndexBenchmarkTest.kt` (R7):
+  - **10k fragmentos, *m* = 0:** p95 vectorial y BM25 comparados con F04 (umbral: +2 ms en el teléfono);
+  - ***m* = 4.300:** registrar. Si, sumado al embedding de consulta (≈ 120 ms), supera 150 ms, consultar.
 
   Ejecutarla en el teléfono. **Si el p95 con *m* = 0 sube más de 2 ms, revisar la consulta antes de seguir.**
-- [ ] T059 [P] Crear `…/androidTest/data/indexing/IndexingBenchmarkTest.kt` (`@RequiresModels`, R13). Con `text_200_pages.pdf`, runner real, `ChunkEmbeddingSession` y un índice temporal:
+- [ ] T063 [P] Crear `…/androidTest/data/indexing/IndexingBenchmarkTest.kt` (`@RequiresModels`, R13). Con `text_200_pages.pdf`, el runner real, `ChunkEmbeddingSession` y un índice temporal:
   - tiempo total y fragmentos por segundo en GPU y en CPU (backend forzado);
+  - muestreo de `EngineCoordinator.loaded` durante la tanda, que nunca contiene el LLM (SC-007);
   - etiqueta `indexing-benchmark`;
-  - SC-001 (≤ 5 min en GPU) solo en el A063.
+  - SC-001 (≤ 5 min en GPU), solo en el A063.
 
   Ejecutarla en el teléfono.
-- [ ] T060 Actualizar `docs/roadmap/INVENTARIO.md`:
-  - G29: etapas resueltas (D-040);
-  - ficha P08: estados implementados con P1–P11;
-  - el hueco 11 (filtro de búsquedas): resuelto en F07.
-- [ ] T061 Puertas de calidad:
+- [ ] T064 Actualizar `docs/roadmap/INVENTARIO.md`:
+  - **G28** (exclusión en la búsqueda vectorial): resuelto en F07 con *k* + *m* y filtro (D-040);
+  - **G29:** etapas resueltas (D-040);
+  - **ficha P08:** estados implementados con P1–P12.
+- [ ] T065 Puertas de calidad:
   - pruebas Python;
   - `./gradlew :app:assembleDebug :app:assembleRelease :app:lintDebug :app:lintRelease :app:testDebugUnitTest`;
   - suite instrumentada (sin `@RequiresModels` ni `@RequiresNetwork`) en el emulador API 37, en la AVD API 33 y en el teléfono;
   - las de `@RequiresModels` en el teléfono.
 
   Todo en verde, salvo las 4 de navegación de la API 33 ya conocidas (F06 §7).
-- [ ] T062 Recorrido manual completo en el teléfono (quickstart §6), incluido TalkBack en la pantalla de estado.
-- [ ] T063 Documentación de cierre:
-  - `specs/007-indexing/report.md`, con:
+- [ ] T066 Recorrido manual completo en el teléfono (quickstart §6), incluido TalkBack en la pantalla de estado.
+- [ ] T067 Documentación de cierre:
+  - `specs/007-indexing/report.md`:
     - resumen y puertas;
     - validación por historia y criterio;
-    - cifras: SC-001, ritmos de GPU y CPU, búsquedas con filtro, latencia de arranque y lotes;
+    - cifras: SC-001, ritmos en GPU y CPU, validación de la GPU, búsquedas con filtro, latencia de arranque y lotes;
     - diferencias frente al PNG;
     - desviaciones del plan y pendientes;
   - estado de F07 en `docs/roadmap/FEATURES.md`;
@@ -372,12 +463,14 @@ description: "Lista de tareas de F07 — Indexación"
 
 ### Phase Dependencies
 
-- **Setup (fase 1):** sin dependencias. **T003 puede parar el trabajo** si el lote acelera (cambia FR-014). T002 fija la excepción que usa T013.
+- **Setup (fase 1):** sin dependencias.
+  - **T003 puede parar el trabajo** si el lote acelera (cambia FR-014).
+  - T002 fija la excepción que usa T013.
 - **Foundational (fase 2):** depende de la fase 1 (T001 para T005; T002 para T013). **Bloquea todas las historias.**
 - **US1 (fase 3):** depende de la fase 2. Es el MVP.
-- **US2 (fase 4):** depende de US1 (el worker indexa). **T033 puede parar el trabajo** (riesgo 1).
-- **US3 (fase 5):** depende de US1. Puede ir en paralelo con US2.
-- **US4 (fase 6):** depende de US3 (pantalla y repositorio) y de US1 (runner).
+- **US3 (fase 4):** depende de US1. Construye el repositorio de la tanda (`state` y `start`).
+- **US2 (fase 5):** depende de US1 y de US3 (`reconcile` y la causa de pausa usan el repositorio). **T045 puede parar el trabajo** (riesgo 1).
+- **US4 (fase 6):** depende de US3 y de US2 (receptor de la notificación).
 - **US5 (fase 7):** depende de US3 y US4.
 - **Polish (fase 8):** depende de todo.
 
@@ -385,15 +478,17 @@ description: "Lista de tareas de F07 — Indexación"
 
 - Las pruebas primero, y deben fallar.
 - Modelos y repositorio antes que ViewModel; ViewModel antes que pantalla.
-- Las verificaciones en el dispositivo (T026, T033, T049 y T056) cierran su historia.
+- Las verificaciones en el dispositivo cierran su historia: T027, T045, T053 y T060.
 
 ### Parallel Opportunities
 
 - **Fase 1:** T001, T002 y T003.
-- **Fase 2:** todas las pruebas (T004–T009); después T011, T012, T013, T016 y T017.
-- **US1:** T020, T021 y T022.
-- **US2 y US3** en paralelo tras US1.
-- **Polish:** T057, T058 y T059.
+- **Fase 2:**
+  - todas las pruebas, T004–T009;
+  - después, T011, T012, T013, T016 y T017.
+- **US1:** T020, T021, T022 y T023.
+- **US2:** T037–T040.
+- **Polish:** T061, T062 y T063.
 
 ## Parallel Example: Foundational tests
 
@@ -408,12 +503,12 @@ T007 DataStoreIngestRunStoreTest   T008 RagIndexWriteTest      T009 RagIndexVisi
 
 1. Fase 1, con las mediciones tempranas T002 y T003 en el teléfono.
 2. Fase 2.
-3. US1: el runner indexa y publica. **Parar y validar** con T026.
+3. US1: el runner indexa y publica. **Parar y validar** con T027.
 
 ### Incremental Delivery
 
-1. Tras el MVP, US2: robustez, con la verificación temprana T033 en el teléfono.
-2. US3: pantalla con progreso real.
-3. US4: control y pausas.
-4. US5: estados restantes, Ingesta y accesibilidad.
-5. Polish: mediciones, puertas, recorrido e informe.
+1. Tras el MVP, **US3:** pantalla con progreso real.
+2. **US2:** robustez, con la verificación temprana T045 en el teléfono.
+3. **US4:** control y pausas.
+4. **US5:** estados restantes, Ingesta y accesibilidad.
+5. **Polish:** mediciones, puertas, recorrido e informe.

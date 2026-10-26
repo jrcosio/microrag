@@ -65,9 +65,10 @@ Fecha: 2026-10-26. Fuentes oficiales consultadas ese día. Las firmas de bibliot
 **Verificación temprana** (riesgo 1): en el teléfono y en el emulador, matar el proceso a mitad de un documento con la app en segundo plano y sin abrirla. Hay que comprobar:
 - que el trabajo termina solo;
 - que el proceso no queda congelado;
-- la latencia desde «Iniciar indexación» hasta que arranca el worker.
+- la latencia desde «Iniciar indexación» hasta que arranca el worker, también pulsando Inicio justo después. Android solo deja arrancar el primer plano unos segundos después de que la app deja de verse; si el worker llega tarde, la tanda empieza en tramos y recupera el primer plano al volver a la app (R1);
+- que la descarga de modelos de F03 en API 31–33 sigue funcionando sin el planificador en proceso.
 
-**Si sigue congelándose o la latencia supera unos 10 s:** se para y se consulta. La alternativa es un job propio de JobScheduler para la reanudación, como hizo F03 con las descargas.
+**Si sigue congelándose o la latencia supera 5 s:** se para y se consulta. La alternativa es un job propio de JobScheduler para la reanudación, como hizo F03 con las descargas.
 
 **Alternativas descartadas:**
 - **Dejar WorkManager como está:** reproduce el fallo de F06.
@@ -83,21 +84,28 @@ Fecha: 2026-10-26. Fuentes oficiales consultadas ese día. Las firmas de bibliot
   - en pausa automática, su causa;
   - **sin nombres de archivo** (constitución I: la notificación se ve en la pantalla de bloqueo).
 - **Acción «Pausar»:** un `PendingIntent` explícito e inmutable a un receptor no exportado (`IndexingActionReceiver`), como el de F03 para las descargas.
-- **Tocarla:** abre `MainActivity` con una acción interna explícita (`ACTION_OPEN_INDEXING`), que navega a `Index`. No es un deep link: no hay `intent-filter` con esquema ni host. Si otra app la enviara, solo abriría esa pantalla, sin datos ni efectos.
+- **Tocarla:** abre `MainActivity` con una acción interna explícita (`ACTION_OPEN_INDEXING`), que navega a `Index`. No es un deep link: no hay `intent-filter` con esquema ni host.
+  - `MainActivity` pasa a `launchMode="singleTop"` y atiende la acción también en `onNewIntent`, para no crear otra instancia con la app abierta;
+  - la acción solo se atiende si el onboarding está completado (destino de arranque `HOME`). Como la actividad está exportada, otra app podría enviarla; así no puede saltarse el onboarding, y solo abriría esa pantalla, sin datos ni efectos.
 - **Actualización:** con cada lote, mediante `setForeground` (con servicio en primer plano) o `NotificationManager.notify` (sin él), con el mismo id.
 - **Notificaciones denegadas:** el trabajo sigue igual. Android 13+ sigue mostrando el servicio en primer plano en el Administrador de tareas.
 
 ## R4. Backend y sesión del engine
 
 **Decisión** (D-039):
-- **Backend:** la ingesta pide el engine `(EMBEDDINGGEMMA, GPU)`. Si no carga, usa `(EMBEDDINGGEMMA, CPU)` y lo registra con el motivo (solo el nombre de la excepción).
-- **Engine retenido:** `EngineCoordinator` gana una sesión retenida (`hold`/`release` o `withHeld`). El engine de la ingesta queda marcado como **en uso por la ingesta** y no se cierra al ocultarse la UI.
+- **Backend:** la ingesta pide el engine `(EMBEDDINGGEMMA, GPU)` solo si la GPU está **validada en este dispositivo**. Si no, usa `(EMBEDDINGGEMMA, CPU)` y lo registra con el motivo (solo el nombre de la excepción).
+- **Validación de la GPU** (D-024 y D-030: si en un teléfono la GPU no llega a coseno ≥ 0,99, ese teléfono indexa en CPU):
+  - **emulador** (`Build.HARDWARE` `ranchu` o `goldfish`): nunca GPU. Su inicialización de LiteRT en GPU se bloquea en código nativo más de 10 minutos (F04, `report.md` §6.4) y `withTimeout` no puede interrumpir una llamada JNI;
+  - **primera sesión de ingesta en un dispositivo real:** se carga la GPU y se embeben 3 textos fijos en GPU y en CPU (CPU y GPU a la vez está permitido: solo hay una GPU). Si el coseno de los 3 es ≥ 0,99, la GPU queda validada;
+  - **resultado:** se guarda en `IngestRunStore` junto al SHA-256 del modelo y la versión de la app, y se repite si cambia alguno. Un fallo al cargar la GPU cuenta como no validada.
+- **Engine retenido:** `EngineCoordinator` gana `withHeldEngine`, solo para engines de embedding. El engine de la ingesta queda marcado como **en uso por la ingesta** y no se cierra al ocultarse la UI.
+- **Otra petición de GPU mientras la ingesta la retiene** (en F07, la comprobación del LLM de F03; en F11, el chat): espera a que la ingesta libere la GPU **sin tener el `loadLock`**, así que el resto del coordinador (por ejemplo, el embedding de consulta en CPU) sigue funcionando. F11 decidirá si el chat pausa la ingesta.
 - **Liberación por memoria:** `EngineMemoryCallbacks` pasa a liberar solo los engines no retenidos. Hoy libera todos en `TRIM_MEMORY_UI_HIDDEN`, lo que cerraría el engine de la ingesta al salir de la app.
 - **El LLM nunca se retiene en la ingesta**, así que «liberar el LLM durante la ingesta y en UI_HIDDEN» (constitución IV) se cumple:
   - al empezar la fase de embeddings, la ingesta libera explícitamente los engines de generación;
   - la regla de «nunca dos engines en la GPU» del coordinador sigue vigente.
 - **Liberación del engine:** al terminar, al pausar (por el usuario o por temperatura) y al detenerse el worker.
-- **Reintento:** si el engine falla a mitad (excepción que no es de longitud, R6), se libera y se vuelve a cargar una vez. Si vuelve a fallar, el documento acaba `error` con `embedding_failed`.
+- **Reintento:** si el engine falla a mitad (`EmbeddingEngineException`, R6), se libera y se vuelve a cargar una vez. Si vuelve a fallar y era la GPU, se pasa a la CPU. Si la CPU también falla, el documento acaba `error` con `embedding_failed` y la tanda sigue (N11).
 
 ## R5. `computeEmbeddingBatch` en LiteRT-LM 0.18.1
 
@@ -122,13 +130,14 @@ Fecha: 2026-10-26. Fuentes oficiales consultadas ese día. Las firmas de bibliot
 
 **Decisión:**
 - **Función pura `EmbeddingOverflow.cut(text)`** (en `rag/runtime`), port exacto de la regla con longitudes en **puntos de código**. Una prueba JVM la compara con casos generados en Python, con acentos, emoji y textos sin espacios.
-- **Dónde se aplica:** dentro de `TextEmbedder.embedDocument`, en un bucle de hasta 12 intentos. Devuelve el vector y el número de recortes, para el log y el informe.
+- **Dónde se aplica:** en `TextEmbedder.embedDocumentFitting`, el único método que usa la ingesta, con hasta **12 intentos** como el escritorio (`RETRIES = 12`). Devuelve el vector y el número de recortes, para el log y el informe.
+- **Excepciones propias** (`rag/runtime`): `LiteRtTextEmbedder` traduce la excepción de LiteRT a `EmbeddingInputTooLongException` (agotados los 12 intentos) o a `EmbeddingEngineException` (cualquier otro fallo). `data/indexing` nunca ve tipos de LiteRT (constitución II).
 
 **Verificación temprana** (riesgo 2): en el dispositivo, un texto de unos 700 tokens. Hay que fijar:
 - qué excepción y qué mensaje da;
 - que el recorte la resuelve.
 
-**Si la excepción permite distinguir «demasiado largo» de otros fallos,** solo se recorta en ese caso. Si no, se recorta ante cualquier `LiteRtLmJniException`, como el escritorio con `RuntimeError`.
+**Si la excepción permite distinguir «demasiado largo» de otros fallos,** solo se recorta en ese caso, y un fallo del engine se trata enseguida como `EmbeddingEngineException`. Si no, se recorta ante cualquier `LiteRtLmJniException`, como el escritorio con `RuntimeError`, y un engine roto acaba en `EmbeddingInputTooLongException` tras los 12 intentos (mismo resultado: `embedding_failed`).
 
 ## R7. Solo se encuentran los documentos indexados (FR-011)
 
@@ -147,7 +156,12 @@ Fecha: 2026-10-26. Fuentes oficiales consultadas ese día. Las firmas de bibliot
 
 **Alcance:** este filtro también resuelve la exclusión de F08 (`included = 0`), así que F10 hereda las búsquedas ya filtradas.
 
-**Verificación:** `RagIndexBenchmarkTest` se repite con el filtro. El p95 con *m* = 0 no puede subir más de 2 ms frente a F04. Con *m* = 4.300 (un PDF de 2.000 páginas a medias) se mide y se reporta.
+**Orden de ejecución:** la búsqueda vectorial va en una CTE `MATERIALIZED` (`WITH v AS MATERIALIZED (SELECT rowid, distance FROM vector_full_scan(...))`), para que SQLite no la ponga como bucle interno del `JOIN` y repita el escaneo. Una prueba comprueba con `EXPLAIN QUERY PLAN` que el escaneo vectorial se hace una vez.
+
+**Verificación:** `RagIndexBenchmarkTest` se repite con el filtro.
+- **Con *m* = 0:** el p95 no puede subir más de 2 ms frente a F04.
+- **Con *m* = 4.300** (un PDF de 2.000 páginas a medias): se mide y se reporta. Si con el embedding de consulta (≈ 120 ms) supera el presupuesto de 150 ms, se consulta antes de cerrar.
+- **Exclusiones de F08:** pueden hacer *m* grande; F10 vuelve a medir con su volumen.
 
 **Alternativas descartadas:**
 - **Modo *streaming* con `ORDER BY` y `LIMIT`:** ordena todo el índice en cada consulta.
@@ -172,7 +186,8 @@ Fecha: 2026-10-26. Fuentes oficiales consultadas ese día. Las firmas de bibliot
   - el worker publica los fragmentos por segundo de los dos últimos lotes guardados (128 fragmentos);
   - la estimación se muestra si los dos lotes difieren menos de un 25 % («ritmo estable», FR-023), como «≈ 12 min restantes»;
   - no se muestra antes del primer lote, al cambiar de backend ni durante una pausa.
-- **Fin de la tanda:** cuando ningún documento de la tanda está `pending`, `parsed` ni `embedding`, la tanda se vacía. La pantalla muestra «Todo actualizado», o los documentos con error si los hay.
+- **Documentos añadidos con la tanda en marcha:** el runner vuelve a leer la tanda entre documentos. Si hay `pending` nuevos, les hace la fase 1 antes de seguir, así el total vuelve a conocerse en segundos. La petición que se encoló detrás los encuentra ya hechos y no hace nada.
+- **Fin de la tanda:** cuando ningún documento de la tanda está `pending`, `parsed` ni `embedding`, el **worker** vacía la tanda al terminar, en una sola edición de DataStore. `start()` también descarta los documentos ya terminados antes de añadir, por si el worker no llegó a hacerlo. La pantalla muestra «Todo actualizado», o los documentos con error si los hay.
 
 ## R9. Reanudación y coherencia (FR-008, FR-009)
 
@@ -197,10 +212,11 @@ Fecha: 2026-10-26. Fuentes oficiales consultadas ese día. Las firmas de bibliot
   - **pruebas:** `adb shell cmd thermalservice override-status 3` y `reset`, verificado en el emulador y en el teléfono.
 - **Sin espacio:**
   - **antes de cada lote:** espacio libre ≥ 64 MiB, el mismo margen que F06 (`ImportLimits.SPACE_MARGIN_BYTES`). Un lote ocupa unos 0,5 MB, y 10k fragmentos ocuparon 46 MB en F04;
-  - **error de escritura:** un fallo de SQLite por disco lleno (`SQLITE_FULL`, código 13) se trata igual;
+  - **error de escritura:** `DefaultRagIndex` traduce el fallo de SQLite por disco lleno (`SQLITE_FULL`, código 13) a `IndexStorageFullException`, declarada en el contrato de `RagIndex` (`domain/rag`). El runner captura esa, no la de SQLite (`LayeringTest`: `androidx.sqlite` solo en `data/rag`);
   - **qué pasa:** el documento queda en `embedding` sin publicar, la tanda queda pausada con causa «sin espacio» y la pantalla orienta a liberar espacio. «Reanudar» vuelve a comprobarlo.
 - **Modelo ausente:** antes de la fase 2, si el modelo de embeddings no está `Verified` (`ModelFileRepository`), la tanda queda pausada con esa causa, y la pantalla ofrece ir a Preparación (ruta `Setup` de F03).
-- **Límite del sistema:** derivado de `WorkInfo` (R1). No requiere acción del usuario.
+- **Límite del sistema:** derivado de `WorkInfo` (R1; tabla en data-model §7). No requiere acción del usuario.
+- **Temperatura sin primer plano:** JobScheduler restringe los jobs con temperatura grave salvo que la app tenga un servicio en primer plano (código de AOSP, a confirmar en el teléfono). En ese caso el sistema para el worker en vez de dejarlo esperar dentro, y lo relanza cuando levanta la restricción. La pantalla lo muestra igualmente como pausa térmica: con temperatura grave, la causa es `THERMAL` aunque el trabajo esté parado por el sistema.
 
 ## R11. Título de la cabecera contextual y del FTS
 
@@ -217,6 +233,7 @@ Fecha: 2026-10-26. Fuentes oficiales consultadas ese día. Las firmas de bibliot
 
 **Decisión:**
 - `ReconcileIndexingUseCase` se llama desde `MainActivity.onStart`, en el *scope* de la aplicación. Nunca desde `Application.onCreate`, porque el proceso también arranca en segundo plano para el job (F03 R3).
+- **Si el índice no está disponible**, no hace nada (evita encolar y fallar en cada arranque).
 - **Si la tanda no está pausada, tiene documentos sin terminar y no hay trabajo `ingest` sin terminar** (por ejemplo, tras «Forzar detención», que cancela los jobs), vuelve a encolarlos.
 - **Si hay trabajo pero está `ENQUEUED` esperando al sistema**, lo vuelve a encolar con `REPLACE` para que arranque ya con la app visible (R1). Un trabajo `RUNNING` no se toca: recupera el primer plano él solo en el siguiente lote.
 
@@ -239,4 +256,4 @@ Registra con la etiqueta `indexing-benchmark` y aplica el umbral de SC-001 (≤ 
   - espacio libre inyectable, como `DocumentImporter`.
 - **Pruebas del runner** (JVM, con `FakeRagIndex`): reanudación, desajuste, pausa, temperatura, espacio, documento quitado y error del engine.
 - **Pruebas de visibilidad** (instrumentadas): sobre SQLite real con SQLite-Vector.
-- **Muertes del proceso** (SC-002): con `adb` en el teléfono, en tres momentos (quickstart §6). Lo complementa una prueba instrumentada determinista que cancela el runner a mitad y reanuda, como `IngestFlowTest` de F06.
+- **Muertes del proceso** (SC-002): con `adb` en el teléfono, en tres momentos (quickstart §4). Lo complementa una prueba instrumentada determinista que cancela el runner a mitad y reanuda, como `IngestFlowTest` de F06.
