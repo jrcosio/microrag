@@ -48,6 +48,17 @@ android {
         // The app picks its own language (D-029): every locale must be installed, not only the device's.
         language { enableSplit = false }
     }
+    packaging {
+        jniLibs {
+            // SQLite loads the vector extension from a file path, so native libraries must be
+            // extracted at install time; vector.so ships without the lib prefix (F04 research R2).
+            useLegacyPackaging = true
+        }
+    }
+    sourceSets {
+        // Golden files live once in offline/golden; instrumented tests read them as test assets (F04 research R6).
+        getByName("androidTest").assets.srcDir(rootProject.file("offline/golden"))
+    }
     buildFeatures {
         compose = true
         buildConfig = true
@@ -101,6 +112,8 @@ dependencies {
     }
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.sqlite.bundled)
+    implementation(libs.sqlite.vector)
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
 

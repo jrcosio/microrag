@@ -22,6 +22,8 @@
 
 **Efecto en WorkManager.** WorkManager 2.12.0 trae Room 2.7.0 y `androidx.sqlite` 2.5.0; al añadir `sqlite-bundled` 2.7.1, Gradle sube `androidx.sqlite:sqlite` y `sqlite-framework` a 2.7.1. Las dos son de la misma línea estable de AndroidX y se espera compatibilidad. Se verifica con los tests de WorkManager (JVM, Robolectric) y con la prueba de humo de descarga en API 33 (riesgo R10-1).
 
+**Resuelto en la implementación** (T002, `debugRuntimeClasspath`): `androidx.sqlite:sqlite` y `sqlite-framework` 2.5.0 → **2.7.1**; `room-runtime` sigue en **2.7.0**. Los tests JVM de WorkManager (`ModelDownloadWorkerTest` y `DefaultModelDownloadControllerTest`) pasan.
+
 **Descartados:**
 - `sqlite-vec` (Asg017): el informe fija SQLite-Vector (constitución III, restricciones técnicas).
 - SQLite del sistema: no permite cargar extensiones.

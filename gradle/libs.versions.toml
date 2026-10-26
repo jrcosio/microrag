@@ -20,6 +20,8 @@ litertlm = "0.18.1"
 work = "2.12.0"
 datastore = "1.2.1"
 mockwebserver = "5.5.1"
+sqliteBundled = "2.7.1"
+sqliteVector = "1.1.2"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -46,6 +48,8 @@ androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx"
 androidx-work-testing = { group = "androidx.work", name = "work-testing", version.ref = "work" }
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 mockwebserver3 = { group = "com.squareup.okhttp3", name = "mockwebserver3", version.ref = "mockwebserver" }
+androidx-sqlite-bundled = { group = "androidx.sqlite", name = "sqlite-bundled", version.ref = "sqliteBundled" }
+sqlite-vector = { group = "ai.sqlite", name = "vector", version.ref = "sqliteVector" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
