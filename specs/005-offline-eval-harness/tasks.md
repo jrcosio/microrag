@@ -35,17 +35,17 @@ description: "Lista de tareas de F05 — Harness offline de evaluación"
 
 **Purpose**: dependencias verificadas, verificación temprana del entorno y esqueleto del paquete.
 
-- [ ] T001 Actualizar `offline/requirements.txt`:
+- [X] T001 Actualizar `offline/requirements.txt`:
   - dependencias directas `litert-lm-api==0.18.1`, `sqliteai-vector==1.1.2` y `pypdf==6.20.1` (research R1);
   - todas las transitivas fijadas con `pip freeze` desde un entorno limpio.
 
   Reinstalar `offline/.venv` desde cero con quickstart §0 y comprobar que las pruebas de F04 (`$E -I -m unittest discover -s offline/tests`) siguen en verde.
-- [ ] T002 **Verificación temprana** (plan, riesgo 1), con el entorno real y sin añadir código al repositorio (scripts en el scratchpad):
+- [X] T002 **Verificación temprana** (plan, riesgo 1), con el entorno real y sin añadir código al repositorio (scripts en el scratchpad):
   - `sqliteai-vector` carga con `entrypoint="sqlite3_vector_init"`, `vector_version()` devuelve `1.1.2` y `vector_full_scan` coincide con la fuerza bruta;
   - Gemma 4 E2B genera en la GPU del Mac con un prompt de ≈ 2.000 tokens y el sampler determinista.
 
   Si algo difiere de research R1/R7, parar y avisar.
-- [ ] T003 [P] Crear el esqueleto:
+- [X] T003 [P] Crear el esqueleto:
   - `offline/eval/__init__.py`;
   - `offline/run_eval.py`, la CLI con los subcomandos de contracts/eval-cli.md, que de momento salen con «not implemented»;
   - las carpetas `offline/corpus/docs/`, `offline/testset/`, `offline/config/` y `offline/reports/`.

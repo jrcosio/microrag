@@ -11,7 +11,10 @@ Las reglas están en `specs/004-rag-data-core/contracts/offline-golden.md`.
 ## Entorno
 
 - Python 3.12, en un entorno virtual propio.
-- Una sola dependencia, fijada en `requirements.txt`: `litert-lm-api==0.18.1` (se importa como `litert_lm`).
+- Dependencias fijadas en `requirements.txt`, sin transitivas:
+  - `litert-lm-api==0.18.1` (se importa como `litert_lm`): embeddings, generación y tokenizador;
+  - `sqliteai-vector==1.1.2`: SQLite-Vector de escritorio, la misma versión que en la app (evaluación, F05);
+  - `pypdf==6.20.1`: texto de los PDF del corpus (evaluación, F05).
 - Se ejecuta siempre con `offline/.venv/bin/python -I`.
 
 ```bash
