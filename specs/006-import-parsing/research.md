@@ -195,6 +195,12 @@ Verificado el 2026-10-26: los 9 TXT y los 6 MD del corpus de F05 son UTF-8 sin B
 
 Los bytes sin definir de cp1252 (`0x81`, `0x8D`, `0x8F`, `0x90`, `0x9D`) dan U+FFFD en los dos lados; el golden lo comprueba.
 
+**Al implementar** (T049) no se usaron los decodificadores de la plataforma, porque los de ICU en Android pueden diferir de Python:
+- **cp1252:** una tabla propia de 32 entradas para `0x80–0x9F`, generada desde Python;
+- **UTF-8:** un validador propio de UTF-8 bien formado (RFC 3629), la regla estricta de Python.
+
+El golden de decodificación coincide en la JVM y en ART (API 33 y 37).
+
 **Alternativa:** simplificar la semántica en Python (espacios ASCII). Cambiaría la extracción de F05 e invalidaría su evaluación.
 
 ## R9. Chunker: port literal y streaming
@@ -219,6 +225,8 @@ Prueba: los 27 casos y 162 fragmentos de `chunker_golden.jsonl` (FR-021, SC-001)
 - **Fragmentos:** en F06 solo se cuentan; no se guardan.
 
 SC-005 mide el crecimiento de la memoria (PSS) en el teléfono con un PDF de 200 páginas.
+
+**Al implementar** (T050): un párrafo sin ninguna línea en blanco por encima de 4 × `MAX_BLOCK_CHARS` (1 M de caracteres) se corta por una línea, para no retenerlo entero. Es el único caso en que los bloques de la app difieren de los del escritorio, y ningún documento real lo produce. `StreamingEquivalenceTest` prueba la partición por párrafos con el corte duro desactivado, y el corte duro por separado.
 
 **Alternativa:** leer el texto entero. Un TXT de 100 MB ocuparía unos 200 MB como `String` UTF-16, con riesgo de OOM.
 
