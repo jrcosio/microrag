@@ -37,7 +37,7 @@ Al cerrar cada feature se entrega:
 |---|---|---|---|---|
 | F01 | Fundaciones y design system | Producto (shell y DS) | — | ✅ cerrada (T059 TalkBack manual abierta) |
 | F02 | Viabilidad on-device (fase 0) | Técnica | F01 | ✅ cerrada |
-| F03 | Modelos y primer arranque | Producto | F01, F02 | 🟨 en curso (implement) |
+| F03 | Modelos y primer arranque | Producto | F01, F02 | ✅ implementada (pendiente de revisión; T071 TalkBack manual abierta) |
 | F04 | Núcleo de datos RAG | Técnica | F02 | ⬜ |
 | F05 | Harness offline de evaluación | Técnica | F04 | ⬜ |
 | F06 | Importación y parsing | Producto | F04 | ⬜ |
@@ -180,7 +180,10 @@ También se introduce `EngineCoordinator`, que garantiza que nunca haya dos engi
 ## F03 — Modelos y primer arranque
 
 - **Tipo:** Producto.
-- **Estado:** 🟨 en curso: spec y clarify aprobados el 2026-10-26 (`specs/003-models-onboarding/`, D-027). Plan, tasks y analyze aprobados el 2026-10-26 (D-028); implementación en curso.
+- **Estado:** ✅ implementada el 2026-10-26, pendiente de revisión. Informe de cierre en `specs/003-models-onboarding/report.md`.
+  - **Decisiones:** D-027 (onboarding y descarga), D-028 (UIDT y WorkManager) y D-029 (español por defecto).
+  - **Teléfono de referencia:** descarga real de 2,75 GB con pausa, muerte del proceso, modo avión y reinicio (+3,8 % de bytes); prueba de Gemma en GPU en ≈ 19 s; arranque en frío de 820 ms (mediana).
+  - **Abierto:** recorrido manual con TalkBack (T071).
 
 **Objetivo.** Onboarding real: Bienvenida → Preparación (3 pasos, G10) → Inicio.
 - Descarga reanudable y verificada de los dos modelos (D-011).

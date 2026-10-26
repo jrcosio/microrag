@@ -30,8 +30,9 @@ Esperado:
 # Emulador (sin modelos)
 ./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.notAnnotation=com.lisdatasolutions.microrag.debug.feasibility.RequiresModels,com.lisdatasolutions.microrag.data.download.RequiresNetwork
 
-# Emulador: prueba de humo de UIDT con descarga real de EmbeddingGemma 2 (165 MB), bajo demanda
-./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.lisdatasolutions.microrag.data.download.UidtDownloadSmokeTest
+# Emulador: prueba de humo de la descarga real de EmbeddingGemma 2 (165 MB), bajo demanda.
+# API 37 → UIDT; AVD API 33 → WorkManager. Instalar con adb -s <emulador> y lanzar con am instrument.
+adb -s <emulador> shell am instrument -w -e class com.lisdatasolutions.microrag.data.download.ModelDownloadSmokeTest $PKG.test/androidx.test.runner.AndroidJUnitRunner
 
 # Teléfono
 ./gradlew :app:installDebug :app:installDebugAndroidTest
@@ -58,6 +59,13 @@ Esperado:
 ## 4. Pruebas en el teléfono de referencia
 
 **Partida.** El teléfono conserva los modelos de F02 en `no_backup/models`.
+
+**Datos móviles:** si el teléfono no está en Wi-Fi, no se hacen las pruebas de descarga. Durante ellas se desactivan los datos móviles (`$ADB shell svc data disable`, y al terminar `svc data enable`) para que ni el modo avión ni un corte de Wi-Fi hagan caer la descarga a la red móvil (la app la permite tras confirmar, D-027).
+
+**Notas prácticas** (validación del 2026-10-26):
+- La acción «Detener» solo se ve con la notificación desplegada: hay que expandirla en la cortina.
+- La muerte del proceso se simula con `$ADB shell run-as $PKG kill -9 $(pidof)`; `am kill` no mata un proceso que ejecuta un job.
+- Bytes recibidos por la app: `dumpsys netstats detail`, entradas `uid=<uid de la app>` (`rb=`).
 
 - **Prueba de verificación sin descarga:** con los ficheros presentes y sin registro, la Preparación debe mostrar «Verificando» → «Preparando» → «Listo» sin descargar nada.
 - **Prueba de descarga:** se borran antes los dos ficheros requeridos (los de diagnóstico se quedan). Copia de respaldo en `$HOME/MicroRAG-models`.

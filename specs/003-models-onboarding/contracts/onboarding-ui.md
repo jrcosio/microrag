@@ -108,7 +108,7 @@ Textos en `res/values/strings_onboarding.xml` (es, por defecto) y `res/values-en
 ## Accesibilidad
 
 **Fila de modelo:** `mergeDescendants`, con la `contentDescription` «%1$s, %2$s, %3$s» (nombre, papel, estado verbal). Ejemplos de estado verbal:
-- «descargando, 34 por ciento, 880 megabytes de 2,59 gigabytes»;
+- «descargando, 30 por ciento» (en descargas e importaciones el porcentaje va en tramos de 10 y sin bytes, para que la región viva no anuncie cada 0,5 %; en pausa y sin red sí se leen los bytes);
 - «listo»;
 - «error: la descarga no superó la verificación, doble toque para reintentar».
 

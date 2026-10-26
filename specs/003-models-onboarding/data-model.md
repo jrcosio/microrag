@@ -52,7 +52,7 @@ DownloadProgress(           // StateFlow de proceso publicado por ModelDownloadR
     active: ModelId?,       // modelo que se está descargando; null si no hay ninguno
     bytesDone: Long,
     totalBytes: Long,
-    outcome: DownloadOutcome?, // resultado del último intento terminado
+    outcomes: Map<ModelId, DownloadOutcome>, // último resultado de cada modelo; se borra al volver a programar
 )
 
 sealed DownloadOutcome:

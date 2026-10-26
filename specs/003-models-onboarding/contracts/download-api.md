@@ -93,7 +93,7 @@ class ModelDownloadRunner(downloader, repository: ModelFileRepository, store: On
 **Reglas de `runQueue`:**
 1. Para cada modelo pedido en orden de catálogo que no esté `Verified`:
    1. Comprueba el espacio: bytes pendientes + 500 MB. Si no hay, `NoSpace`.
-   2. Descarga, con hasta 5 intentos y espera de 2, 4, 8, 16 y 32 s. El contador vuelve a cero si un intento avanza ≥ 1 MiB.
+   2. Descarga, con hasta 5 intentos y esperas de 2, 4, 8 y 16 s entre ellos (el quinto fallo termina sin espera). El contador vuelve a cero si un intento avanza ≥ 1 MiB. Los orígenes prohibidos y los 4xx (salvo 408 y 429) no se reintentan. Si el fallo de red coincide con estar sin red, el run termina con `retryLater` y el planificador lo relanza al volver la conexión.
    3. Llama a `repository.adopt(id, partial)`. Si devuelve `Mismatch`, el resultado es `Failed(HashMismatch)` y el parcial ya está borrado.
 2. Un resultado que no sea `Completed` corta la cola y se devuelve.
 3. Un `IOException` al escribir con el espacio libre por debajo de lo pendiente se convierte en `NoSpace(needed)`, sin reintentos (caso límite «Disco lleno durante la descarga»). El parcial se conserva.
@@ -104,7 +104,7 @@ class ModelDownloadRunner(downloader, repository: ModelFileRepository, store: On
 | Clase | API | Responsabilidad |
 |---|---|---|
 | `ModelDownloadJobService : JobService` | ≥ 34 | `onStartJob` → `setNotification(…, JOB_END_NOTIFICATION_POLICY_REMOVE)` y lanza `runner.runQueue()` en un scope. Al terminar, `jobFinished(params, wantsReschedule = false)`. `onStopJob` cancela el scope y devuelve `true` (reprogramar), salvo con `STOP_REASON_CANCELLED_BY_APP` |
-| `ModelDownloadWorker : CoroutineWorker` | 31–33 | `setForeground(ForegroundInfo(id, notif, FOREGROUND_SERVICE_TYPE_DATA_SYNC))`, tolerando `ForegroundServiceStartNotAllowedException`. Después `runQueue()`. Con cualquier resultado (`Completed`, `NoSpace`, `Failed` o `Cancelled` por pausa), `Result.success()`, igual que `jobFinished(…, false)` en UIDT. Si el sistema detiene el worker (`isStopped`), WorkManager lo reprograma solo |
+| `ModelDownloadWorker : CoroutineWorker` | 31–33 | `setForeground(ForegroundInfo(id, notif, FOREGROUND_SERVICE_TYPE_DATA_SYNC))`, tolerando `ForegroundServiceStartNotAllowedException`. Después `runQueue()`. `Result.retry()` solo con `retryLater` (se perdió la red); con cualquier otro resultado (`Completed`, `NoSpace`, `Failed`, `Cancelled`), `Result.success()`, igual que `jobFinished(…, retryLater)` en UIDT. Si el sistema detiene el worker (`isStopped`), WorkManager lo reprograma solo |
 | `DefaultModelDownloadController` | todas | Elige la ruta por `Build.VERSION.SDK_INT`. Job id fijo `JOB_ID_MODEL_DOWNLOAD = 3001` y trabajo único `model-download` |
 | `DownloadNotifications` | todas | Canal `model_downloads` (importancia baja). Notificación en curso con el modelo, `N %`, «X MB de Y» y la acción «Detener». Se actualiza como mucho una vez por segundo |
 | `DownloadActionReceiver` | todas | `exported=false`. Recibe la acción «Detener» y ejecuta `PauseModelDownloadUseCase` |
@@ -116,9 +116,8 @@ Ampliación de `ModelFileRepository` en data-model §4. `VerificationRecordStore
 ## Runtime (`rag/runtime/`)
 
 ```kotlin
-class ModelCompatibilityChecker(factory: EngineFactory, coordinator: EngineCoordinator, dispatchers: AppDispatchers) {
-    suspend fun check(file: ModelFile, path: File): CompatibilityResult
-}
+fun interface ModelCompatibility { suspend fun check(file: ModelFile, path: File): CompatibilityResult }
+class ModelCompatibilityChecker(factory: EngineFactory, coordinator: EngineCoordinator, logger: AppLogger) : ModelCompatibility
 ```
 
 Reglas en research R8. No importa LiteRT-LM (`LayeringTest`).

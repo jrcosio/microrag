@@ -94,10 +94,12 @@
 - La hace el ViewModel de la Preparación al hacerse visible, nunca desde `Application.onCreate`, porque el proceso también puede arrancar en segundo plano para el job.
 - Si hay modelos pedidos sin pausa y no hay ningún job pendiente o en curso, se vuelve a programar. Así se cubren el «Stop» del Administrador de tareas (que no reprograma), `force-stop` y cualquier pérdida del job.
 
-**Verificación temprana (T044, 2026-10-26):** en el emulador `Pixel_10` (API 37), `UidtDownloadSmokeTest` programó el UIDT desde la app. El job descargó EmbeddingGemma 2 (164.626.432 bytes) desde la URL fijada, a través de la redirección a `us.aws.cdn.hf.co`, y quedó verificada en `models/` en **14,1 s** de extremo a extremo. Según los logs:
+**Verificación temprana (T044, 2026-10-26):** en el emulador `Pixel_10` (API 37), `UidtDownloadSmokeTest` (hoy `ModelDownloadSmokeTest`) programó el UIDT desde la app. El job descargó EmbeddingGemma 2 (164.626.432 bytes) desde la URL fijada, a través de la redirección a `us.aws.cdn.hf.co`, y quedó verificada en `models/` en **14,1 s** de extremo a extremo. Según los logs:
 - el job se programó con éxito (`RESULT_SUCCESS`, 157 MB estimados);
 - el fichero quedó adoptado como `Verified`;
 - el resultado fue `Completed`.
+
+**Verificado en el teléfono (T060, 2026-10-26):** un reinicio con la descarga de EmbeddingGemma 2 al 27 % no pierde nada. Al desbloquear el teléfono, el sistema relanza el proceso de la app **para `ModelDownloadJobService`** (`am_proc_start … service ModelDownloadJobService`), sin abrir la app, y el job termina la descarga. El job espera al desbloqueo porque los modelos viven en almacenamiento cifrado por credenciales (`noBackupFilesDir`).
 
 **A verificar en el teléfono durante la implementación (riesgo 1):**
 - Que un UIDT persistido se reanuda tras reiniciar sin abrir la app.
@@ -121,7 +123,7 @@
 
 **Decisión:**
 - **Orden:** EmbeddingGemma 2 y después Gemma 4 (FR-014). Antes de cada modelo se comprueba que `StatFs(noBackupFilesDir).availableBytes ≥ bytes pendientes + 500 MB` (FR-016). Si no, se termina con `NoSpace(bytesNecesarios)` y el job acaba sin reintento.
-- **Reintentos:** hasta 5 intentos seguidos por modelo, con espera exponencial de 2, 4, 8, 16 y 32 s (FR-019). Un intento que recibe al menos 1 MiB pone el contador a cero. Tras 5 fallos queda `Failed(motivo)` y el job termina con fallo. «Reintentar» lo vuelve a programar.
+- **Reintentos:** hasta 5 intentos seguidos por modelo, con esperas exponenciales de 2, 4, 8 y 16 s entre ellos (FR-019; el quinto fallo termina sin esperar). Un intento que recibe al menos 1 MiB pone el contador a cero. Tras 5 fallos queda `Failed(motivo)` y el job termina con fallo. «Reintentar» lo vuelve a programar.
 - **Sin red:** el runner no la espera. Si se pierde, la lectura falla, el job termina y el sistema lo relanza cuando se cumple la restricción de red. La UI muestra «Esperando conexión» cuando `ConnectivityManager` no tiene red con `INTERNET`.
 - **Progreso:** un `StateFlow` de proceso con bytes escritos y total, publicado cada ≥ 0,5 % o cada 500 ms. La notificación se actualiza como mucho una vez por segundo (límite de frecuencia del sistema).
 - **Pausa** (FR-018):
@@ -224,7 +226,7 @@ Los bytes descargados no se guardan aparte: el tamaño del fichero `.download` e
 
 ## R13 — Riesgos
 
-1. **Reanudación de UIDT tras reiniciar** (R3): se verifica en el teléfono. Hay plan B documentado.
+1. **Reanudación de UIDT tras reiniciar** (R3): ✅ verificada en el teléfono. Se reanuda al desbloquear, sin abrir la app.
 2. **Prueba de compatibilidad de Gemma en teléfonos con poca RAM:** 2,5 GB de RSS. Con < 7,5 GB ya hay aviso (G31). Si el sistema mata el proceso durante «Preparando», al volver se repite: no hay estado intermedio que se pueda dar por bueno.
 3. **CDN de Hugging Face:** cambio de host o de política de rangos. Mitigación: la lista de hosts cubre `*.hf.co`, sin rangos se cae a descarga completa (200), y el error se muestra con «Reintentar». Si Hugging Face cambia de dominio, hace falta una versión nueva de la app (aceptable: constitución I).
 4. **Tamaño del APK:** WorkManager (con Room) y DataStore añaden peso. Se mide al cerrar. R8 llega en F15.

@@ -277,7 +277,7 @@ description: "Lista de tareas de F03 — Modelos y primer arranque"
   Hace pasar T034. Comprobar el manifiesto fusionado (`processDebugMainManifest`) y que el lint sigue en verde.
 - [X] T042 [P] [US2] Casos de uso en `…/microrag/domain/onboarding/`: `ObserveModelSetupUseCase`, `BuildDownloadConfirmationUseCase`, `StartModelDownloadUseCase`, `PauseModelDownloadUseCase` y `ResumeModelDownloadUseCase`. Hace pasar T029.
 - [X] T043 [US2] DI: en `DataModule`, registrar `ModelDownloader`, `ModelDownloadRunner` (single de proceso, compartido entre el job y la UI) y `ModelDownloadController`. Casos de uso con `factoryOf`. Actualizar `AppModulesTest`.
-- [X] T044 [US2] **Verificación temprana (plan, riesgo 1).** Crear la anotación `…/androidTest/data/download/RequiresNetwork.kt` y `…/androidTest/data/download/UidtDownloadSmokeTest.kt` (`@LargeTest @RequiresNetwork`).
+- [X] T044 [US2] **Verificación temprana (plan, riesgo 1).** Crear la anotación `…/androidTest/data/download/RequiresNetwork.kt` y `…/androidTest/data/download/ModelDownloadSmokeTest.kt` (creado como `UidtDownloadSmokeTest` y generalizado a las dos rutas) (`@LargeTest @RequiresNetwork`).
   - El test usa el grafo real de Koin: `ModelDownloadController.schedule` y espera, con un tiempo límite de 10 min, a que EmbeddingGemma 2 (165 MB) quede `Verified` en `ModelFileRepository`.
   - Se ejecuta **solo en el emulador API 37**, bajo demanda (quickstart §2). Queda excluido de las ejecuciones habituales y del teléfono.
   - Anotar en research R3: tiempo, notificación y comportamiento de la cancelación.
@@ -323,7 +323,7 @@ description: "Lista de tareas de F03 — Modelos y primer arranque"
 
 - [X] T051 [US3] `…/microrag/rag/runtime/ModelCompatibilityChecker.kt` (research R8). Usa `withEngine` de `EngineCoordinator`, `GenerationConfig(maxNumTokens = 4096, maxOutputTokens = 8, greedy = true)` y un prompt fijo y corto, y libera al terminar. Registrarlo en `RuntimeModule`. Hace pasar T048. `LayeringTest` sigue en verde.
 - [X] T052 [US3] `PrepareModelsUseCase.kt` (scope de aplicación inyectado, exclusión mutua y `PreparationState` como `StateFlow`) y `RetryModelUseCase.kt`. Integrarlos en `SetupViewModel.onResumeVisible` y en la acción de fila. Hace pasar T049 y T050.
-- [ ] T053 [US3] Validar en el teléfono (quickstart §4):
+- [X] T053 [US3] Validar en el teléfono (quickstart §4):
   - verificación de los ficheros de F02 existentes sin descargar: «Verificando» → «Preparando» → «Listo (GPU)»;
   - tiempo de la prueba de Gemma (SC-010: < 30 s);
   - init posterior con caché, desde el diagnóstico de F02 (≈ 5,4 s);
@@ -352,7 +352,7 @@ description: "Lista de tareas de F03 — Modelos y primer arranque"
   - lectura corta: `Network`;
   - total transferido ≤ tamaño × 1,05 en una reanudación al 50 % (SC-002).
 - [X] T055 [P] [US4] Ampliar `ModelDownloadRunnerTest`, en tiempo virtual:
-  - 5 fallos seguidos con esperas de 2, 4, 8, 16 y 32 s → `Failed`;
+  - 5 fallos seguidos con esperas de 2, 4, 8 y 16 s entre ellos → `Failed`;
   - un intento que avanza ≥ 1 MiB pone el contador a cero;
   - la cancelación da `Cancelled` y conserva el parcial.
 - [X] T056 [P] [US4] `…/test/domain/onboarding/ReconcileDownloadsUseCaseTest.kt`:
@@ -371,7 +371,7 @@ description: "Lista de tareas de F03 — Modelos y primer arranque"
 - [X] T057 [US4] Completar `ModelDownloader` con `Range`, 206, 200, 416, truncado, `RangeMismatch` y la comprobación de lectura completa. Hace pasar T054.
 - [X] T058 [US4] Completar `ModelDownloadRunner` con reintentos y espera exponencial (inyectando `delay`) y el reinicio del contador. Comprobar que el `onStopJob` de T039 y la reprogramación de WorkManager tras `isStopped` reanudan con lo descargado. Hace pasar T055.
 - [X] T059 [US4] `ReconcileDownloadsUseCase.kt`, integrado en `SetupViewModel.onResumeVisible` antes de `PrepareModelsUseCase`. Hace pasar T056.
-- [ ] T060 [US4] Validar en el teléfono (quickstart §4):
+- [X] T060 [US4] Validar en el teléfono (quickstart §4):
   - muerte del proceso al ≈ 50 % de Gemma (SC-002, con los bytes transferidos);
   - Stop del Administrador de tareas;
   - modo avión 60 s (SC-003, con el tiempo de reanudación);
@@ -432,7 +432,7 @@ description: "Lista de tareas de F03 — Modelos y primer arranque"
 ### Implementation for User Story 6
 
 - [X] T065 [US6] `ImportModelFileUseCase.kt` (scope de aplicación y `Importing` en el `PreparationState` o en un `StateFlow` propio, combinado por `ObserveModelSetupUseCase`). En el diálogo: «Seleccionar archivo del dispositivo» lanza `rememberLauncherForActivityResult(OpenDocument)` con `arrayOf("*/*")` para el modelo de la fila tocada, sin selector adicional. Hace pasar T064.
-- [ ] T066 [US6] Validar en el teléfono el escenario US6: importación correcta y fichero ajeno (quickstart §4).
+- [X] T066 [US6] Validar en el teléfono el escenario US6: importación correcta y fichero ajeno (quickstart §4).
 
 ---
 
@@ -440,13 +440,13 @@ description: "Lista de tareas de F03 — Modelos y primer arranque"
 
 - [X] T067 [P] `…/androidTest/NoTrafficInstrumentedTest.kt` (research R9, SC-008): recorrer Bienvenida, Preparación con todos los modelos «Listo» (fakes) e Inicio. Los bytes de `TrafficStats` del UID no cambian.
 - [X] T068 [P] Revisar que todas las cadenas tienen traducción en `values-en` (lint `MissingTranslation` en verde) y que no queda ningún texto fijo en el código de las pantallas.
-- [ ] T069 Puertas completas (quickstart §1 y §2):
+- [X] T069 Puertas completas (quickstart §1 y §2):
   - `assembleDebug`, `assembleRelease`, `lintDebug`, `lintRelease` y `testDebugUnitTest`;
   - `connectedDebugAndroidTest` en el emulador;
   - `am instrument` en el teléfono sin `@RequiresModels`.
 
   Anotar los recuentos.
-- [ ] T070 Validación de extremo a extremo en el teléfono (quickstart §4) partiendo de cero: descarga real de ≈ 2,75 GB con Wi-Fi, prueba de compatibilidad y entrada a Inicio. Medir:
+- [X] T070 Validación de extremo a extremo en el teléfono (quickstart §4) partiendo de cero: descarga real de ≈ 2,75 GB con Wi-Fi, prueba de compatibilidad y entrada a Inicio. Medir:
   - duración de la descarga;
   - duración de la verificación de cada modelo;
   - prueba de Gemma (SC-010);
@@ -460,8 +460,8 @@ description: "Lista de tareas de F03 — Modelos y primer arranque"
   - componentes;
   - sin diagnóstico en release;
   - tamaño del APK frente a F02 (54,3 MB) y desglose de lo que añaden WorkManager y DataStore.
-- [ ] T073 Diferencias frente a los PNG 01 y 02 (capturas del emulador y del teléfono, claro y oscuro). Informe de cierre en `specs/003-models-onboarding/report.md`: resumen, puertas, diferencias, cifras medidas, desviaciones y riesgos verificados (R13-1 reinicio).
-- [ ] T074 Actualizar `docs/roadmap/FEATURES.md` (F03 ✅ implementada, pendiente de revisión), `docs/roadmap/INVENTARIO.md` (P01, P02, G02, G09, G10, G30 y G31) y `docs/roadmap/DECISIONS.md` (cualquier decisión nueva de la implementación). Dejar el teléfono como estaba: los modelos de F02 siguen presentes y los ajustes de pantalla, restaurados.
+- [X] T073 Diferencias frente a los PNG 01 y 02 (capturas del emulador y del teléfono, claro y oscuro). Informe de cierre en `specs/003-models-onboarding/report.md`: resumen, puertas, diferencias, cifras medidas, desviaciones y riesgos verificados (R13-1 reinicio).
+- [X] T074 Actualizar `docs/roadmap/FEATURES.md` (F03 ✅ implementada, pendiente de revisión), `docs/roadmap/INVENTARIO.md` (P01, P02, G02, G09, G10, G30 y G31) y `docs/roadmap/DECISIONS.md` (cualquier decisión nueva de la implementación). Dejar el teléfono como estaba: los modelos de F02 siguen presentes y los ajustes de pantalla, restaurados.
 
 ---
 
