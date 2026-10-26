@@ -22,13 +22,17 @@ class EvalConfigTest(unittest.TestCase):
         changes = {
             "build": "chunk250", "mode": "vector", "follow_up_rule": False, "candidates": 40, "rrf_k": 30,
             "max_blocks": 4, "neighbors": False, "max_per_document": 2, "budget_tokens": 1500,
-            "prompt_limit_tokens": 1800, "llm": "E2B", "max_output_tokens": 256,
+            "prompt_limit_tokens": 1800, "llm": "E2B", "max_output_tokens": 256, "prompt_template": "v2",
         }
         self.assertEqual(set(changes), {f.name for f in dataclasses.fields(EvalConfig)})
         for name, value in changes.items():
             self.assertNotEqual(dataclasses.replace(EvalConfig(), **{name: value}).fingerprint(**FINGERPRINTS), base, name)
         for name in FINGERPRINTS:
             self.assertNotEqual(EvalConfig().fingerprint(**{**FINGERPRINTS, name: "x" * 64}), base, name)
+
+    def test_late_fields_at_default_keep_old_fingerprints(self):
+        self.assertNotIn("prompt_template", EvalConfig().to_json())
+        self.assertIn("prompt_template", EvalConfig(prompt_template="v2").to_json())
 
     def test_json_is_canonical(self):
         text = EvalConfig().to_json()

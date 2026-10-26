@@ -41,6 +41,11 @@ class PromptTest(unittest.TestCase):
         self.assertIn("CONVERSACIÓN PREVIA (solo como contexto de la pregunta):\n"
                       f"Usuario: {'p' * 300}\nAsistente: {'r' * 500}\n\nFUENTES:\n", prompt)
 
+    def test_v2_adds_its_rules_after_the_report_rules(self):
+        prompt = build_prompt("¿Plazo?", [], None, "v2")
+        self.assertTrue(prompt.startswith(RULES[:-1]))
+        self.assertIn("- Cita solo los números de las FUENTES, nunca números de artículos o apartados.\n- Si hay conversación previa, interpreta la PREGUNTA como continuación de ella.\n\nFUENTES:", prompt)
+
     def test_refusal_sentence(self):
         self.assertEqual(REFUSAL, "No encuentro esa información en los documentos disponibles.")
 

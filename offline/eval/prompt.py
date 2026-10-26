@@ -3,10 +3,19 @@
 REFUSAL = "No encuentro esa información en los documentos disponibles."
 PREVIOUS_QUESTION_CHARS = 300
 PREVIOUS_ANSWER_CHARS = 500
+TEMPLATES = ("informe", "v2")
+# FR-022 lever: against unjustified refusals and article numbers taken as citations (manual judgement of F05).
+V2_RULES = [
+    "- Si alguna fuente contiene la respuesta, aunque use otras palabras, respóndela; usa la frase anterior solo si ninguna fuente la contiene.",
+    "- Cita solo los números de las FUENTES, nunca números de artículos o apartados.",
+    "- Si hay conversación previa, interpreta la PREGUNTA como continuación de ella.",
+]
 
 
-def build_prompt(question, blocks, previous):
+def build_prompt(question, blocks, previous, template="informe"):
     """[previous] is the (question, answer) of the previous turn for a follow-up, or None."""
+    if template not in TEMPLATES:
+        raise ValueError(f"Unknown prompt template {template}")
     lines = [
         "Responde a la PREGUNTA usando únicamente las FUENTES.",
         "",
@@ -16,6 +25,7 @@ def build_prompt(question, blocks, previous):
         "- Si las fuentes no contienen la respuesta, responde exactamente:",
         f'  "{REFUSAL}"',
         "- No uses conocimiento propio ni inventes datos, cifras o plazos.",
+        *(V2_RULES if template == "v2" else []),
         "",
     ]
     if previous is not None:

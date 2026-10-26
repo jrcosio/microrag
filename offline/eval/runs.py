@@ -10,6 +10,7 @@ RUNS_DIR = OFFLINE / "build" / "runs"
 
 MODES = ("vector", "fts", "hybrid")
 LLM_CHOICES = (None, "E2B", "E4B")
+LATE_FIELDS = {"prompt_template": "informe"}
 
 
 @dataclasses.dataclass(frozen=True)
@@ -29,6 +30,7 @@ class EvalConfig:
     prompt_limit_tokens: int = 2000
     llm: str | None = None
     max_output_tokens: int = 512
+    prompt_template: str = "informe"
 
     def __post_init__(self):
         if self.mode not in MODES:
@@ -37,7 +39,12 @@ class EvalConfig:
             raise ValueError(f"Unknown LLM {self.llm}")
 
     def to_json(self):
-        return json.dumps(dataclasses.asdict(self), sort_keys=True, separators=(",", ":"))
+        values = dataclasses.asdict(self)
+        # Fields added after the first runs stay out of the JSON at their default, so those runs keep their fingerprint.
+        for name, default in LATE_FIELDS.items():
+            if values[name] == default:
+                del values[name]
+        return json.dumps(values, sort_keys=True, separators=(",", ":"))
 
     def fingerprint(self, index, testset, models):
         """SHA-256 of the configuration plus the fingerprints of its index, test set and models."""

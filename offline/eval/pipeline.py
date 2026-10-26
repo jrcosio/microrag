@@ -110,7 +110,7 @@ def budget_tokens(config, chars_per_token):
     """Context budget so that the whole prompt fits config.prompt_limit_tokens (research R6)."""
     if config.budget_tokens is not None:
         return config.budget_tokens
-    template = len(build_prompt("", [], None))
+    template = len(build_prompt("", [], None, config.prompt_template))
     overhead = math.ceil(template / chars_per_token) + config.max_blocks * HEADER_TOKENS_PER_BLOCK + QUESTION_TOKENS
     return int((config.prompt_limit_tokens - overhead) * BUDGET_MARGIN)
 
@@ -293,7 +293,7 @@ def generate(config, backend="gpu", ids=None, out_name="answers.jsonl"):
             previous = None
             if q.previous in by_id:
                 previous = (by_id[q.previous].question, answers.get(q.previous, by_id[q.previous].expected_answer or ""))
-            item = Item(q.id, build_prompt(q.question, blocks, previous))
+            item = Item(q.id, build_prompt(q.question, blocks, previous, config.prompt_template))
             generated += run_generation(engine, [item], out_path, config.max_output_tokens, on_answer)
     seconds = round(time.time() - started, 1)
     return generation_metrics(config, fingerprint, out_path, seconds, generated)
@@ -370,7 +370,7 @@ def prompt_lengths(config, tokenizer, ctx=None):
         q = by_id[row["id"]]
         previous = (by_id[q.previous].question, by_id[q.previous].expected_answer or "") if q.previous in by_id else None
         blocks = [ContextBlock(**b) for b in row["blocks"]]
-        sizes.append(len(tokenizer.tokenize(build_prompt(q.question, blocks, previous))))
+        sizes.append(len(tokenizer.tokenize(build_prompt(q.question, blocks, previous, config.prompt_template))))
     return sizes, result
 
 
