@@ -233,6 +233,8 @@ description: "Lista de tareas de F07 — Indexación"
   - en el log, `ingest done` y el backend elegido tras la validación de la GPU;
   - en la base, que los fragmentos tienen vector y los documentos están `done`.
 
+  > Estado (2026-10-27): hecho en el emulador API 37 con la app real (CPU, porque es emulador): 6 documentos `done`, un engine cargado una vez y liberado al final, ordinales 0..n−1, vectores de 256 con norma 1 y `title_norm` sin extensión. El trabajo arrancó 12 ms después de encolarse. **Pendiente en el teléfono** (validación de la GPU), que no estaba conectado.
+
 **Checkpoint**: MVP funcional: la app indexa y publica documentos completos.
 
 ---
