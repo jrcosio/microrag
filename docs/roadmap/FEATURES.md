@@ -39,8 +39,8 @@ Al cerrar cada feature se entrega:
 | F02 | Viabilidad on-device (fase 0) | Técnica | F01 | ✅ cerrada |
 | F03 | Modelos y primer arranque | Producto | F01, F02 | ✅ cerrada (T071 TalkBack manual abierta) |
 | F04 | Núcleo de datos RAG | Técnica | F02 | ✅ cerrada |
-| F05 | Harness offline de evaluación | Técnica | F04 | 🟨 implementada; pendiente de revisión |
-| F06 | Importación y parsing | Producto | F04 | ⬜ |
+| F05 | Harness offline de evaluación | Técnica | F04 | ✅ cerrada |
+| F06 | Importación y parsing | Producto | F04 | 🟨 en curso (specify) |
 | F07 | Indexación | Producto | F02, F06 | ⬜ |
 | F08 | Biblioteca y detalle de documento | Producto | F07 | ⬜ |
 | F09 | Inicio | Producto | F03, F07, F08 | ⬜ |
@@ -271,7 +271,7 @@ También se introduce `EngineCoordinator`, que garantiza que nunca haya dos engi
 ## F05 — Harness offline de evaluación
 
 - **Tipo:** Técnica. Python, sin UI.
-- **Estado:** 🟨 implementada el 2026-10-26 en la rama `005-offline-eval-harness`; pendiente de la revisión de cierre. Informe de cierre en `specs/005-offline-eval-harness/report.md` y cifras en `offline/reports/eval-report.md`. Decisiones D-033 (revisión por el asistente), D-034 (parámetros), D-035 (respuestas correctas 78,4 % frente al 80 %, aceptado con E2B) y D-036 (entradas de embedding largas).
+- **Estado:** ✅ cerrada: implementada y aprobada por el usuario el 2026-10-26. Informe de cierre en `specs/005-offline-eval-harness/report.md` y cifras en `offline/reports/eval-report.md`. Decisiones D-033 (revisión por el asistente), D-034 (parámetros), D-035 (respuestas correctas 78,4 % frente al 80 %, aceptado con E2B) y D-036 (entradas de embedding largas).
 
 **Objetivo.** Fijar en escritorio los parámetros de recuperación antes de indexar en el móvil:
 - ~~variante de EmbeddingGemma 2~~: resuelta en F02 (D-025: 270M; las tres variantes dan vectores de texto idénticos);
