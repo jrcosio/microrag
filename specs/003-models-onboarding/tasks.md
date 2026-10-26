@@ -439,7 +439,7 @@ description: "Lista de tareas de F03 — Modelos y primer arranque"
 ## Phase 9: Polish, validación completa y cierre
 
 - [X] T067 [P] `…/androidTest/NoTrafficInstrumentedTest.kt` (research R9, SC-008): recorrer Bienvenida, Preparación con todos los modelos «Listo» (fakes) e Inicio. Los bytes de `TrafficStats` del UID no cambian.
-- [ ] T068 [P] Revisar que todas las cadenas tienen traducción en `values-en` (lint `MissingTranslation` en verde) y que no queda ningún texto fijo en el código de las pantallas.
+- [X] T068 [P] Revisar que todas las cadenas tienen traducción en `values-en` (lint `MissingTranslation` en verde) y que no queda ningún texto fijo en el código de las pantallas.
 - [ ] T069 Puertas completas (quickstart §1 y §2):
   - `assembleDebug`, `assembleRelease`, `lintDebug`, `lintRelease` y `testDebugUnitTest`;
   - `connectedDebugAndroidTest` en el emulador;
@@ -455,7 +455,7 @@ description: "Lista de tareas de F03 — Modelos y primer arranque"
   - toques de la app desde la instalación hasta Inicio, sin contar los diálogos del sistema (SC-005: ≤ 4);
   - relanzar en cada paso y comprobar que se recupera el mismo paso y los mismos estados (SC-006).
 - [ ] T071 Recorrido manual con TalkBack y fuente al 200 % en el teléfono (quickstart §6). Anotar los hallazgos y corregir lo que bloquee.
-- [ ] T072 [P] Comprobaciones de release (quickstart §7) en `specs/003-models-onboarding/checklists/release-verification.md`:
+- [X] T072 [P] Comprobaciones de release (quickstart §7) en `specs/003-models-onboarding/checklists/release-verification.md`:
   - permisos exactos;
   - componentes;
   - sin diagnóstico en release;
