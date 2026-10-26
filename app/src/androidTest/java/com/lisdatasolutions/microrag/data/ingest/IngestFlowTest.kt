@@ -5,7 +5,13 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
+import com.lisdatasolutions.microrag.data.indexing.FakeEmbeddingSessions
+import com.lisdatasolutions.microrag.data.indexing.FakeThermalStatusSource
+import com.lisdatasolutions.microrag.data.indexing.InMemoryIngestRunStore
 import com.lisdatasolutions.microrag.domain.ingest.IngestError
+import com.lisdatasolutions.microrag.domain.ingest.IngestProgress
+import com.lisdatasolutions.microrag.domain.ingest.QueueItemState
+import com.lisdatasolutions.microrag.domain.ingest.QueueKey
 import com.lisdatasolutions.microrag.domain.rag.DocumentStatus
 import com.lisdatasolutions.microrag.rag.ingest.DocumentExtractor
 import com.lisdatasolutions.microrag.rag.ingest.PdfOpener
@@ -14,9 +20,6 @@ import com.lisdatasolutions.microrag.testing.CapturingLogger
 import com.lisdatasolutions.microrag.testing.TempRagIndex
 import java.io.File
 import java.util.UUID
-import com.lisdatasolutions.microrag.domain.ingest.IngestProgress
-import com.lisdatasolutions.microrag.domain.ingest.QueueItemState
-import com.lisdatasolutions.microrag.domain.ingest.QueueKey
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -26,8 +29,8 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Assume.assumeTrue
 import org.junit.Test
@@ -51,7 +54,7 @@ class IngestFlowTest {
     private val pdf = PlatformPdfOpener()
     private val source = SafDocumentSource(context.contentResolver)
     private val importer = DocumentImporter(source, files, pdf, temp.index, { Long.MAX_VALUE / 2 }, logger)
-    private val runner = IngestRunner(temp.index, DocumentExtractor(pdf), Dispatchers.IO, logger)
+    private val runner = IngestRunner(temp.index, DocumentExtractor(pdf), FakeEmbeddingSessions.withoutModel(), InMemoryIngestRunStore(), FakeThermalStatusSource(), { Long.MAX_VALUE }, Dispatchers.IO, logger)
 
     @After
     fun tearDown() {
@@ -137,7 +140,7 @@ class IngestFlowTest {
                 }
             }
         }
-        val interrupted = IngestRunner(temp.index, DocumentExtractor(slowAtPage20), Dispatchers.IO, logger)
+        val interrupted = IngestRunner(temp.index, DocumentExtractor(slowAtPage20), FakeEmbeddingSessions.withoutModel(), InMemoryIngestRunStore(), FakeThermalStatusSource(), { Long.MAX_VALUE }, Dispatchers.IO, logger)
 
         val job = launch(Dispatchers.Default) { interrupted.process(listOf(long)) { } }
         withTimeout(60_000) { reachedPage.await() }
@@ -160,6 +163,9 @@ class IngestFlowTest {
         val idle = object : IngestScheduler {
             override val activeDocumentIds = MutableStateFlow(emptySet<Long>())
             override val progress = MutableStateFlow<IngestProgress?>(null)
+            override val work = MutableStateFlow(IngestWork.NONE)
+            override suspend fun replace(documentIds: List<Long>) = Unit
+            override suspend fun cancel() = Unit
             override suspend fun enqueue(documentIds: List<Long>) = Unit
         }
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)

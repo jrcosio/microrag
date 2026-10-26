@@ -12,7 +12,9 @@ import com.lisdatasolutions.microrag.data.download.DownloadNotifications
 import com.lisdatasolutions.microrag.data.download.FileDownloader
 import com.lisdatasolutions.microrag.data.download.ModelDownloadRunner
 import com.lisdatasolutions.microrag.data.download.ModelDownloader
+import com.lisdatasolutions.microrag.data.indexing.ChunkEmbeddingSession
 import com.lisdatasolutions.microrag.data.indexing.DataStoreIngestRunStore
+import com.lisdatasolutions.microrag.data.indexing.EmbeddingSessions
 import com.lisdatasolutions.microrag.data.indexing.IngestRunStore
 import com.lisdatasolutions.microrag.data.ingest.DefaultImportQueueRepository
 import com.lisdatasolutions.microrag.data.ingest.DocumentFileStore
@@ -31,6 +33,7 @@ import com.lisdatasolutions.microrag.data.onboarding.DataStoreOnboardingStore
 import com.lisdatasolutions.microrag.data.rag.DefaultRagIndex
 import com.lisdatasolutions.microrag.data.rag.RagSchema
 import com.lisdatasolutions.microrag.domain.ingest.ImportQueueRepository
+import com.lisdatasolutions.microrag.domain.model.ModelId
 import com.lisdatasolutions.microrag.domain.model.NetworkKind
 import com.lisdatasolutions.microrag.domain.onboarding.DeviceResources
 import com.lisdatasolutions.microrag.domain.onboarding.ModelDownloadController
@@ -81,13 +84,34 @@ val dataModule = module {
     single { DocumentImporter(get(), get(), get(), get(), get<DeviceResources>()::freeBytes, get()) }
     single<IngestScheduler> { WorkManagerIngestScheduler(WorkManager.getInstance(androidContext())) }
     single { DocumentExtractor(get()) }
-    single { IngestRunner(get(), get(), get<AppDispatchers>().io, get()) }
 
     // Indexing (F07): the run and the device's heat.
     single<IngestRunStore> {
         DataStoreIngestRunStore(DataStoreIngestRunStore.create(androidContext().noBackupFilesDir, get<ApplicationScope>().scope))
     }
     single<ThermalStatusSource> { PowerManagerThermalStatusSource(androidContext()) }
+    single<EmbeddingSessions> {
+        ChunkEmbeddingSession(
+            coordinator = get(),
+            factory = get(),
+            modelPath = { get<ModelFileRepository>().pathOf(ModelId.EG2_270M) },
+            runStore = get(),
+            appVersion = BuildConfig.VERSION_CODE.toLong(),
+            logger = get(),
+        )
+    }
+    single {
+        IngestRunner(
+            index = get(),
+            extractor = get(),
+            sessions = get(),
+            runStore = get(),
+            thermal = get(),
+            freeBytes = get<DeviceResources>()::freeBytes,
+            io = get<AppDispatchers>().io,
+            logger = get(),
+        )
+    }
     // Single: the import attempts live here, in the application scope (D-038).
     single<ImportQueueRepository> {
         DefaultImportQueueRepository(

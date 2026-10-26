@@ -32,6 +32,9 @@ class FakeRagIndex(initial: IndexCompatibility = IndexCompatibility.Compatible) 
     /** Set to make the next insertChunks fail as a full disk would. */
     var failNextInsertWithFullDisk = false
 
+    /** Ordinals insertChunks silently drops, to play a store that lost chunks. */
+    var dropOrdinals: Set<Int> = emptySet()
+
     /** Batches stored, in order: (document, ordinals). */
     val insertedBatches = mutableListOf<Pair<Long, List<Int>>>()
     private var nextId = 1L
@@ -115,7 +118,7 @@ class FakeRagIndex(initial: IndexCompatibility = IndexCompatibility.Compatible) 
             throw IndexStorageFullException(RuntimeException("Error code: 13, message: database or disk is full"))
         }
         val stored = this.chunks.getOrPut(documentId) { sortedMapOf() }
-        val inserted = chunks.count { stored.putIfAbsent(it.ordinal, it) == null }
+        val inserted = chunks.filterNot { it.ordinal in dropOrdinals }.count { stored.putIfAbsent(it.ordinal, it) == null }
         insertedBatches += documentId to chunks.map { it.ordinal }
         if (inserted > 0) changes.value += 1
         inserted

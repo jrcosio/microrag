@@ -15,6 +15,8 @@ import com.lisdatasolutions.microrag.rag.runtime.TextEmbedder
 import com.lisdatasolutions.microrag.rag.runtime.initializeOrClose
 import java.io.File
 import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
 
 /** What the runner embeds chunks with: one engine, held for a stretch of work (F07 research R4). */
 interface ChunkEmbedder {
@@ -73,7 +75,8 @@ class ChunkEmbeddingSession(
                 }
                 logger.w(TAG) { "ingest engine failed ${e.cause?.javaClass?.simpleName}; going on with $backend" }
             } finally {
-                coordinator.release(key)
+                // Also when the work is cancelled: the engine never outlives the session (research R4).
+                withContext(NonCancellable) { coordinator.release(key) }
             }
         }
     }
@@ -115,7 +118,7 @@ class ChunkEmbeddingSession(
             logger.w(TAG) { "ingest gpu check failed ${(e.cause ?: e).javaClass.simpleName}" }
             false
         } finally {
-            coordinator.release(cpuKey)
+            withContext(NonCancellable) { coordinator.release(cpuKey) }
         }
     }
 

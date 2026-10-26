@@ -8,6 +8,9 @@ import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.google.common.truth.Truth.assertThat
+import com.lisdatasolutions.microrag.data.indexing.FakeEmbeddingSessions
+import com.lisdatasolutions.microrag.data.indexing.FakeThermalStatusSource
+import com.lisdatasolutions.microrag.data.indexing.InMemoryIngestRunStore
 import com.lisdatasolutions.microrag.domain.rag.DocumentStatus
 import com.lisdatasolutions.microrag.rag.ingest.DocumentExtractor
 import com.lisdatasolutions.microrag.testing.CapturingLogger
@@ -70,7 +73,7 @@ class IngestBenchmarkTest {
         val importer = DocumentImporter(source, files, pdf, temp.index, { Long.MAX_VALUE / 2 }, logger)
         val uri = Uri.fromFile(file).toString()
         val id = (importer.import(uri, source.describe(uri)) as ImportResult.Imported).documentId
-        val runner = IngestRunner(temp.index, DocumentExtractor(pdf), Dispatchers.IO, logger)
+        val runner = IngestRunner(temp.index, DocumentExtractor(pdf), FakeEmbeddingSessions.withoutModel(), InMemoryIngestRunStore(), FakeThermalStatusSource(), { Long.MAX_VALUE }, Dispatchers.IO, logger)
 
         Runtime.getRuntime().gc()
         val baselineKb = Debug.getPss()

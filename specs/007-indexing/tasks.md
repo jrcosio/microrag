@@ -170,7 +170,7 @@ description: "Lista de tareas de F07 — Indexación"
 ### Tests for User Story 1
 
 - [X] T020 [P] [US1] Crear `…/sharedTest/data/indexing/FakeTextEmbedder.kt`, común a la JVM y a las instrumentadas: vector derivado del hash del texto embebido, normalizado, con fallo de longitud o de engine programable.
-- [ ] T021 [P] [US1] Ampliar `…/test/data/ingest/IngestRunnerTest.kt` con `FakeTextEmbedder` y `RecordingLogger`:
+- [X] T021 [P] [US1] Ampliar `…/test/data/ingest/IngestRunnerTest.kt` con `FakeTextEmbedder` y `RecordingLogger`:
   - **fase 1:** los `pending` pasan a `parsed` antes de embeber nada;
   - **fase 2:** `embedding`, lotes de 64 y `done`;
   - **texto embebido:** el de N5 (prefijo y «título › ruta»); `content` sin cabecera;
@@ -194,7 +194,7 @@ description: "Lista de tareas de F07 — Indexación"
   - un `gpu_check` de otro modelo o de otra versión se repite;
   - retiene el engine durante la sesión y lo libera al cerrarla;
   - un fallo a mitad recarga una vez, después pasa de GPU a CPU, y después lanza.
-- [ ] T023 [P] [US1] Crear `…/androidTest/data/indexing/IndexingFlowTest.kt` con SQLite-Vector real, el importador y el runner de F06, `FakeTextEmbedder` y un `ThermalStatusSource` controlable:
+- [X] T023 [P] [US1] Crear `…/androidTest/data/indexing/IndexingFlowTest.kt` con SQLite-Vector real, el importador y el runner de F06, `FakeTextEmbedder` y un `ThermalStatusSource` controlable:
   - TXT, MD y `text_3_pages.pdf` acaban `done`, con los fragmentos del troceado;
   - durante la fase 2, una búsqueda no devuelve fragmentos del documento en curso (SC-003);
   - **interrupción determinista, en tres puntos:** durante la fase 1, a mitad de los embeddings de `text_200_pages` y en el cierre. La reanudación da los mismos 430 fragmentos, sin duplicados (SC-002, parte automática);
@@ -211,7 +211,7 @@ description: "Lista de tareas de F07 — Indexación"
   - recarga una vez y después pasa a CPU.
 
   Usa `EngineFactory`, `ModelFileRepository.pathOf` y el SHA-256 del modelo verificado. Comprobar T022.
-- [ ] T025 [US1] Ampliar `…/microrag/data/ingest/IngestRunner.kt` con las fases 1 y 2 (research R8–R9, reglas N1–N5, N11, N13, N16 y N17):
+- [X] T025 [US1] Ampliar `…/microrag/data/ingest/IngestRunner.kt` con las fases 1 y 2 (research R8–R9, reglas N1–N5, N11, N13, N16 y N17):
   - comparación con lo guardado;
   - lotes de 64;
   - lote parcial en `NonCancellable`, con un tope de 5 s;
@@ -222,7 +222,7 @@ description: "Lista de tareas de F07 — Indexación"
   - vaciado de la tanda al terminar.
 
   Mantener intacta la lógica de F06 para la fase 1. Comprobar T021.
-- [ ] T026 [US1] Ampliar `…/microrag/data/ingest/IngestWorker.kt` e `IngestScheduler.kt`, sin el primer plano (US2):
+- [X] T026 [US1] Ampliar `…/microrag/data/ingest/IngestWorker.kt` e `IngestScheduler.kt`, sin el primer plano (US2):
   - claves de progreso de data-model §5;
   - `cancel()`;
   - `replace(ids)`;

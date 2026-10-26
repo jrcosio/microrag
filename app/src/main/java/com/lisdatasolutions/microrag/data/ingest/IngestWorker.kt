@@ -9,10 +9,9 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
 /**
- * The processing request of «Iniciar indexación» (F06 research R7): extract and chunk its documents in
- * order. Errors stay per document, so it always succeeds; a stop by the system leaves the current
- * document pending and WorkManager runs the request again. F07 adds the foreground service with the
- * embeddings, which are the long part.
+ * The processing request of «Iniciar indexación» (F06 research R7, F07 research R1): the runner chunks
+ * the pending documents, then embeds and stores them. Errors stay per document, so it always succeeds;
+ * a stop by the system leaves the work where it was, and WorkManager runs the request again.
  */
 class IngestWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params), KoinComponent {
 

@@ -13,6 +13,7 @@ import androidx.work.WorkerParameters
 import androidx.work.testing.WorkManagerTestInitHelper
 import com.google.common.truth.Truth.assertThat
 import com.lisdatasolutions.microrag.domain.ingest.IngestProgress
+import com.lisdatasolutions.microrag.domain.model.ComputeBackend
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -73,4 +74,32 @@ class WorkManagerIngestSchedulerTest {
         assertThat(WorkManagerIngestScheduler.documentIdOf("ingest-doc:42")).isEqualTo(42L)
         assertThat(WorkManagerIngestScheduler.documentIdOf("ingest")).isNull()
     }
+
+    // F07 T026.
+
+    @Test
+    fun embeddingProgressRoundTrips() {
+        val embedding = IngestProgress(
+            5, IngestProgress.Stage.EMBEDDING, chunksDone = 130, chunksTotal = 430, chunksPerSecond = 4.5,
+            backend = ComputeBackend.GPU, waiting = IngestProgress.WaitReason.THERMAL,
+        )
+        assertThat(WorkManagerIngestScheduler.progressOf(WorkManagerIngestScheduler.progressData(embedding))).isEqualTo(embedding)
+        val closing = IngestProgress(5, IngestProgress.Stage.CLOSING, chunksDone = 430, chunksTotal = 430)
+        assertThat(WorkManagerIngestScheduler.progressOf(WorkManagerIngestScheduler.progressData(closing))).isEqualTo(closing)
+    }
+
+    @Test
+    fun replaceKeepsOneRequestAndCancelStopsTheWork() = runBlocking<Unit> {
+        scheduler.enqueue(listOf(1L))
+        scheduler.enqueue(listOf(2L))
+        assertThat(scheduler.work.first()).isEqualTo(IngestWork(unfinished = true, running = true, waitingForSystem = false))
+
+        scheduler.replace(listOf(3L))
+        assertThat(scheduler.activeDocumentIds.first()).containsExactly(3L)
+
+        scheduler.cancel()
+        assertThat(scheduler.work.first()).isEqualTo(IngestWork.NONE)
+        assertThat(scheduler.activeDocumentIds.first()).isEmpty()
+    }
 }
+

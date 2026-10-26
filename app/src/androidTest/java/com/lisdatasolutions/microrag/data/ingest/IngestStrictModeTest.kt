@@ -7,6 +7,9 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
+import com.lisdatasolutions.microrag.data.indexing.FakeEmbeddingSessions
+import com.lisdatasolutions.microrag.data.indexing.FakeThermalStatusSource
+import com.lisdatasolutions.microrag.data.indexing.InMemoryIngestRunStore
 import com.lisdatasolutions.microrag.domain.ingest.IngestProgress
 import com.lisdatasolutions.microrag.domain.ingest.QueueItemState
 import com.lisdatasolutions.microrag.rag.ingest.DocumentExtractor
@@ -85,6 +88,9 @@ class IngestStrictModeTest {
             val scheduler = object : IngestScheduler {
                 override val activeDocumentIds = MutableStateFlow(emptySet<Long>())
                 override val progress = MutableStateFlow<IngestProgress?>(null)
+            override val work = MutableStateFlow(IngestWork.NONE)
+            override suspend fun replace(documentIds: List<Long>) = Unit
+            override suspend fun cancel() = Unit
                 val requests = mutableListOf<List<Long>>()
                 override suspend fun enqueue(documentIds: List<Long>) {
                     requests += documentIds
@@ -92,7 +98,7 @@ class IngestStrictModeTest {
             }
             val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
             val repository = DefaultImportQueueRepository(importer, source, temp.index, files, scheduler, pdf, scope, Dispatchers.IO, logger)
-            val runner = IngestRunner(temp.index, DocumentExtractor(pdf), Dispatchers.IO, logger)
+            val runner = IngestRunner(temp.index, DocumentExtractor(pdf), FakeEmbeddingSessions.withoutModel(), InMemoryIngestRunStore(), FakeThermalStatusSource(), { Long.MAX_VALUE }, Dispatchers.IO, logger)
             val expected = if (pdf.isAvailable) 3 else 2
 
             val found = mainThreadViolations {
