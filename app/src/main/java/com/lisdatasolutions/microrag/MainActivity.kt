@@ -1,5 +1,6 @@
 package com.lisdatasolutions.microrag
 
+import android.content.Context
 import android.os.Bundle
 import android.view.View
 import android.view.ViewTreeObserver
@@ -11,6 +12,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
 import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
+import com.lisdatasolutions.microrag.core.locale.AppLocale
 import com.lisdatasolutions.microrag.core.navigation.MicroRagAppShell
 import com.lisdatasolutions.microrag.debug.DebugRouting
 import com.lisdatasolutions.microrag.domain.model.StartDestination
@@ -22,6 +24,10 @@ class MainActivity : ComponentActivity() {
 
     private val resolveStartDestination: ResolveStartDestinationUseCase by inject()
     private var startDestination by mutableStateOf<StartDestination?>(null)
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(AppLocale.wrap(newBase))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -1,9 +1,11 @@
 package com.lisdatasolutions.microrag
 
 import android.app.Application
+import android.content.Context
 import android.util.Log
 import androidx.work.Configuration
 import com.lisdatasolutions.microrag.core.di.appModules
+import com.lisdatasolutions.microrag.core.locale.AppLocale
 import com.lisdatasolutions.microrag.debug.debugModules
 import com.lisdatasolutions.microrag.rag.runtime.EngineCoordinator
 import com.lisdatasolutions.microrag.rag.runtime.EngineMemoryCallbacks
@@ -19,6 +21,11 @@ class MicroRagApplication : Application(), Configuration.Provider {
     /** On-demand WorkManager (F03 research R1): only the API 31-33 download path touches it. */
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder().setMinimumLoggingLevel(if (BuildConfig.DEBUG) Log.INFO else Log.ERROR).build()
+
+    /** Spanish by default for everything built from the app context, such as notifications (D-029). */
+    override fun attachBaseContext(base: Context) {
+        super.attachBaseContext(AppLocale.wrap(base))
+    }
 
     override fun onCreate() {
         super.onCreate()

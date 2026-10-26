@@ -371,6 +371,22 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
 
 ---
 
+## D-029 — Idioma de la app: español por defecto, inglés secundario
+
+- **Fecha:** 2026-10-26
+- **Decisión:**
+  - La app se muestra en **español** aunque el teléfono esté en otro idioma. El idioma del sistema por sí solo nunca la cambia.
+  - El **inglés** es un idioma secundario que el usuario elige expresamente:
+    - en Android 13+, desde los ajustes de idioma por app del sistema (`localeConfig` con `es` y `en`);
+    - más adelante, desde el selector de la app (F12, pantalla Idiomas).
+  - Otros idiomas se añadirán después, por el mismo mecanismo.
+- **Cómo:** `AppLocale` aplica el idioma elegido por el usuario o, si no ha elegido ninguno, español, en el `attachBaseContext` de la aplicación (notificaciones) y de la actividad (UI).
+- **Motivo:** indicación del usuario durante la implementación de F03 («el idioma principal es el español, el inglés es secundario»). En las capturas del emulador, configurado en inglés, la app salía en inglés.
+- **Origen:** usuario.
+- **Afecta:** todas las pantallas. F12 implementa el selector (G25) sobre esta base.
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.
