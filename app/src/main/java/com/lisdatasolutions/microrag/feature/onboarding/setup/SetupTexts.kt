@@ -13,6 +13,8 @@ import com.lisdatasolutions.microrag.core.designsystem.model.ProgressValue
 import com.lisdatasolutions.microrag.core.designsystem.model.StatusKind
 import com.lisdatasolutions.microrag.domain.model.ComputeBackend
 import com.lisdatasolutions.microrag.domain.model.ContinueBlocker
+import com.lisdatasolutions.microrag.domain.model.ModelCatalog
+import com.lisdatasolutions.microrag.domain.model.ModelFamily
 import com.lisdatasolutions.microrag.domain.model.ModelId
 import com.lisdatasolutions.microrag.domain.model.ModelSetupStatus
 import com.lisdatasolutions.microrag.domain.model.SetupProblem
@@ -97,7 +99,7 @@ fun ModelSetupStatus.detailText(id: ModelId): String? = when (this) {
     is ModelSetupStatus.Verifying -> stringResource(R.string.model_detail_verifying, percentOf(bytesDone, totalBytes))
     ModelSetupStatus.Preparing -> stringResource(R.string.model_detail_preparing)
     is ModelSetupStatus.Ready ->
-        if (backend == ComputeBackend.CPU) stringResource(R.string.model_detail_ready_cpu, bytesText(sizeBytes)) else bytesText(sizeBytes)
+        if (slowFallback(id)) stringResource(R.string.model_detail_ready_cpu, bytesText(sizeBytes)) else bytesText(sizeBytes)
     is ModelSetupStatus.NoSpace -> stringResource(R.string.model_detail_no_space, bytesText(neededBytes))
     is ModelSetupStatus.Incompatible -> stringResource(R.string.model_detail_incompatible, problem.text(id))
     is ModelSetupStatus.Failed -> stringResource(R.string.model_detail_failed, problem.text(id))
@@ -139,7 +141,7 @@ fun ModelSetupStatus.accessibilityText(id: ModelId): String {
         }
         ModelSetupStatus.Preparing -> stringResource(R.string.a11y_status_preparing)
         is ModelSetupStatus.Ready ->
-            stringResource(if (backend == ComputeBackend.CPU) R.string.a11y_status_ready_cpu else R.string.a11y_status_ready)
+            stringResource(if (slowFallback(id)) R.string.a11y_status_ready_cpu else R.string.a11y_status_ready)
         is ModelSetupStatus.NoSpace -> stringResource(R.string.a11y_status_no_space, bytesText(neededBytes))
         is ModelSetupStatus.Incompatible -> stringResource(R.string.a11y_status_incompatible, problem.text(id))
         is ModelSetupStatus.Failed -> stringResource(R.string.a11y_status_failed, problem.text(id))
@@ -148,6 +150,10 @@ fun ModelSetupStatus.accessibilityText(id: ModelId): String {
 }
 
 private fun tens(percent: Int) = percent / 10 * 10
+
+/** Only Gemma on CPU is a degraded mode; embeddings run on CPU by design (D-024). */
+private fun ModelSetupStatus.Ready.slowFallback(id: ModelId): Boolean =
+    backend == ComputeBackend.CPU && ModelCatalog.byId(id).family == ModelFamily.LLM
 
 @Composable
 fun ContinueBlocker.text(): String = stringResource(
@@ -169,7 +175,7 @@ fun StorageStatus.chipText(): String = stringResource(
 )
 
 fun StorageStatus.statusKind(): StatusKind = when (this) {
-    StorageStatus.Offline -> StatusKind.Ready
+    StorageStatus.Offline -> StatusKind.Local
     is StorageStatus.NoSpace -> StatusKind.Warning
     StorageStatus.Preparing -> StatusKind.Processing
 }

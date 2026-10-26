@@ -1,11 +1,17 @@
 package com.lisdatasolutions.microrag.domain.di
 
 import com.lisdatasolutions.microrag.domain.onboarding.BuildDownloadConfirmationUseCase
+import com.lisdatasolutions.microrag.domain.onboarding.CompleteOnboardingUseCase
+import com.lisdatasolutions.microrag.domain.onboarding.ImportModelFileUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.LocalModelWorkTracker
 import com.lisdatasolutions.microrag.domain.onboarding.ObserveModelSetupUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.PauseModelDownloadUseCase
+import com.lisdatasolutions.microrag.domain.onboarding.PrepareModelsUseCase
+import com.lisdatasolutions.microrag.domain.onboarding.PrepareStorageUseCase
+import com.lisdatasolutions.microrag.domain.onboarding.ReconcileDownloadsUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.ResolveStartDestinationUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.ResumeModelDownloadUseCase
+import com.lisdatasolutions.microrag.domain.onboarding.RetryModelUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.StartModelDownloadUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.StartOnboardingUseCase
 import org.koin.core.module.dsl.factoryOf
@@ -22,4 +28,11 @@ val domainModule = module {
     factoryOf(::StartModelDownloadUseCase)
     factoryOf(::PauseModelDownloadUseCase)
     factoryOf(::ResumeModelDownloadUseCase)
+    factoryOf(::ReconcileDownloadsUseCase)
+    // Single: its mutex keeps one on-device test at a time across screens (FR-021).
+    singleOf(::PrepareModelsUseCase)
+    factoryOf(::RetryModelUseCase)
+    factoryOf(::ImportModelFileUseCase)
+    factoryOf(::PrepareStorageUseCase)
+    factoryOf(::CompleteOnboardingUseCase)
 }

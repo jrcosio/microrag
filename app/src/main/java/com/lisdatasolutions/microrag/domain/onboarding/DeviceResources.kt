@@ -15,6 +15,9 @@ interface DeviceResources {
     /** Whether the default network can reach the Internet; updates as connectivity changes. */
     val hasInternet: Flow<Boolean>
 
+    /** Creates the private folders for models, documents and index (FR-025); false on failure. */
+    fun prepareStorage(): Boolean
+
     companion object {
         /** Report: warn below about 7.5 GB of RAM (constitution IV, F03 research R11). Decimal bytes. */
         const val LOW_RAM_THRESHOLD_BYTES = 7_500_000_000L

@@ -6,6 +6,7 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.os.StatFs
+import com.lisdatasolutions.microrag.data.models.AppDirs
 import com.lisdatasolutions.microrag.domain.model.NetworkKind
 import com.lisdatasolutions.microrag.domain.onboarding.DeviceResources
 import java.io.File
@@ -17,6 +18,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 /** Reads memory, free space and connectivity. Only observes the network; it never opens connections. */
 class AndroidDeviceResources(
     context: Context,
+    private val dirs: AppDirs,
     private val storageRoot: File,
 ) : DeviceResources {
 
@@ -26,6 +28,8 @@ class AndroidDeviceResources(
     override fun totalRamBytes(): Long = ActivityManager.MemoryInfo().also { activityManager.getMemoryInfo(it) }.totalMem
 
     override fun freeBytes(): Long = StatFs(storageRoot.path).availableBytes
+
+    override fun prepareStorage(): Boolean = dirs.ensureAll()
 
     override fun currentNetwork(): NetworkKind = kindOf(connectivity.getNetworkCapabilities(connectivity.activeNetwork))
 

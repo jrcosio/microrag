@@ -9,12 +9,14 @@ import com.lisdatasolutions.microrag.data.download.DownloadNotifications
 import com.lisdatasolutions.microrag.data.download.ModelDownloadRunner
 import com.lisdatasolutions.microrag.data.download.ModelDownloader
 import com.lisdatasolutions.microrag.data.models.AppDirs
+import com.lisdatasolutions.microrag.data.models.ContentResolverModelFileSource
 import com.lisdatasolutions.microrag.data.models.DefaultModelFileRepository
 import com.lisdatasolutions.microrag.data.models.ModelFileRepository
 import com.lisdatasolutions.microrag.data.onboarding.DataStoreOnboardingStore
 import com.lisdatasolutions.microrag.domain.model.NetworkKind
 import com.lisdatasolutions.microrag.domain.onboarding.DeviceResources
 import com.lisdatasolutions.microrag.domain.onboarding.ModelDownloadController
+import com.lisdatasolutions.microrag.domain.onboarding.ModelFileSource
 import com.lisdatasolutions.microrag.domain.onboarding.OnboardingStore
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
@@ -33,7 +35,8 @@ val dataModule = module {
     single<OnboardingStore> {
         DataStoreOnboardingStore(DataStoreOnboardingStore.create(androidContext().noBackupFilesDir, get<ApplicationScope>().scope))
     }
-    single<DeviceResources> { AndroidDeviceResources(androidContext(), androidContext().noBackupFilesDir) }
+    single<DeviceResources> { AndroidDeviceResources(androidContext(), get(), androidContext().noBackupFilesDir) }
+    single<ModelFileSource> { ContentResolverModelFileSource(androidContext().contentResolver) }
 
     // The only network access of the app (constitution I, F03 FR-026): pinned Hugging Face files.
     single { ModelDownloader(userAgent = "MicroRAG/${BuildConfig.VERSION_NAME}") }

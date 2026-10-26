@@ -59,6 +59,11 @@ class DefaultModelDownloadController(
 
     override fun partialBytes(id: ModelId): Long = dirs.partial(ModelCatalog.byId(id)).length()
 
+    override fun deleteOrphanPartials() {
+        val expected = ModelCatalog.required.map { dirs.partial(it).name }.toSet()
+        dirs.downloads.listFiles()?.filter { it.isFile && it.name !in expected }?.forEach { it.delete() }
+    }
+
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     private fun scheduleTransferJob(pendingBytes: Long) {
         val network = NetworkRequest.Builder()

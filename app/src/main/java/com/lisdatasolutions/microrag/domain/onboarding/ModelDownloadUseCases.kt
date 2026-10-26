@@ -94,12 +94,15 @@ class StartModelDownloadUseCase(
     private val controller: ModelDownloadController,
     private val resources: DeviceResources,
     private val store: OnboardingStore,
+    private val tracker: LocalModelWorkTracker,
 ) {
     suspend operator fun invoke(): StartDownloadResult {
         val pending = pendingDownloads(repository, controller)
         val bytes = pending.sumOf { it.second }
         val missing = bytes + ModelSetupPolicy.SPACE_MARGIN_BYTES - resources.freeBytes()
         if (missing > 0) return StartDownloadResult.NoSpace(missing)
+        // A downloaded file replaces any rejected import for the same model.
+        pending.forEach { (file, _) -> tracker.set(file.id, null) }
         store.requestDownload(pending.map { it.first.id }.toSet())
         controller.schedule(bytes)
         return StartDownloadResult.Started

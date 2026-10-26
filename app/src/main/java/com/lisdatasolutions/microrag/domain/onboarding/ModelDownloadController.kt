@@ -24,4 +24,7 @@ interface ModelDownloadController {
 
     /** Bytes already on disk for [id]'s partial download. */
     fun partialBytes(id: ModelId): Long
+
+    /** Deletes partial downloads of files that are no longer required (F03 FR-023). */
+    fun deleteOrphanPartials()
 }
