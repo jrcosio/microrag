@@ -76,7 +76,8 @@ val dataModule = module {
     single<DocumentSource> { SafDocumentSource(androidContext().contentResolver) }
     single { DocumentImporter(get(), get(), get(), get(), get<DeviceResources>()::freeBytes, get()) }
     single<IngestScheduler> { WorkManagerIngestScheduler(WorkManager.getInstance(androidContext())) }
-    single { IngestRunner(get(), DocumentExtractor(get()), get<AppDispatchers>().io, get()) }
+    single { DocumentExtractor(get()) }
+    single { IngestRunner(get(), get(), get<AppDispatchers>().io, get()) }
     // Single: the import attempts live here, in the application scope (D-038).
     single<ImportQueueRepository> {
         DefaultImportQueueRepository(
