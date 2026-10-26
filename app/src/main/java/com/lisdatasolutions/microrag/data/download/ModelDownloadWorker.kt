@@ -7,6 +7,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import com.lisdatasolutions.microrag.core.logging.AppLogger
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
@@ -49,6 +50,9 @@ class ModelDownloadWorker(context: Context, params: WorkerParameters) : Coroutin
         )
         try {
             setForeground(info)
+        } catch (e: CancellationException) {
+            // Also an IllegalStateException: cancellation must propagate, not be logged as a refusal.
+            throw e
         } catch (e: IllegalStateException) {
             // ForegroundServiceStartNotAllowedException (Android 12+) when started in the background.
             logger.w(TAG, e) { "download worker continues without a foreground service" }
