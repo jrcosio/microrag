@@ -47,6 +47,7 @@ class RagSchemaTest {
 
         assertThat(from).isInStrictOrder()
         assertThat(from.all { it in 0 until RagIndexConfig.SCHEMA_VERSION }).isTrue()
-        assertThat(RagMigrations.all).isEmpty()
+        // Every released version has its step up to the current one (F06: 1 -> 2, D-038).
+        assertThat(from).containsExactlyElementsIn(1 until RagIndexConfig.SCHEMA_VERSION).inOrder()
     }
 }

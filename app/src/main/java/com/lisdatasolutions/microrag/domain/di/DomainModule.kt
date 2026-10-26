@@ -1,5 +1,8 @@
 package com.lisdatasolutions.microrag.domain.di
 
+import com.lisdatasolutions.microrag.domain.ingest.ImportDocumentsUseCase
+import com.lisdatasolutions.microrag.domain.ingest.ObserveImportQueueUseCase
+import com.lisdatasolutions.microrag.domain.ingest.StartIndexingUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.BuildDownloadConfirmationUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.CompleteOnboardingUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.ImportModelFileUseCase
@@ -35,4 +38,9 @@ val domainModule = module {
     factoryOf(::ImportModelFileUseCase)
     factoryOf(::PrepareStorageUseCase)
     factoryOf(::CompleteOnboardingUseCase)
+
+    // Document import (F06).
+    factoryOf(::ObserveImportQueueUseCase)
+    factoryOf(::ImportDocumentsUseCase)
+    factoryOf(::StartIndexingUseCase)
 }

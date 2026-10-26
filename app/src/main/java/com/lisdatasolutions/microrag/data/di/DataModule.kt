@@ -1,5 +1,6 @@
 package com.lisdatasolutions.microrag.data.di
 
+import androidx.work.WorkManager
 import com.lisdatasolutions.microrag.BuildConfig
 import com.lisdatasolutions.microrag.core.di.ApplicationScope
 import com.lisdatasolutions.microrag.core.dispatchers.AppDispatchers
@@ -9,7 +10,13 @@ import com.lisdatasolutions.microrag.data.download.DownloadNotifications
 import com.lisdatasolutions.microrag.data.download.FileDownloader
 import com.lisdatasolutions.microrag.data.download.ModelDownloadRunner
 import com.lisdatasolutions.microrag.data.download.ModelDownloader
+import com.lisdatasolutions.microrag.data.ingest.DefaultImportQueueRepository
 import com.lisdatasolutions.microrag.data.ingest.DocumentFileStore
+import com.lisdatasolutions.microrag.data.ingest.DocumentImporter
+import com.lisdatasolutions.microrag.data.ingest.DocumentSource
+import com.lisdatasolutions.microrag.data.ingest.IngestScheduler
+import com.lisdatasolutions.microrag.data.ingest.SafDocumentSource
+import com.lisdatasolutions.microrag.data.ingest.WorkManagerIngestScheduler
 import com.lisdatasolutions.microrag.data.ingest.PlatformPdfOpener
 import com.lisdatasolutions.microrag.data.models.AppDirs
 import com.lisdatasolutions.microrag.data.models.ContentResolverModelFileSource
@@ -19,6 +26,7 @@ import com.lisdatasolutions.microrag.data.onboarding.DataStoreOnboardingStore
 import com.lisdatasolutions.microrag.data.rag.DefaultRagIndex
 import com.lisdatasolutions.microrag.data.rag.RagSchema
 import com.lisdatasolutions.microrag.domain.model.NetworkKind
+import com.lisdatasolutions.microrag.domain.ingest.ImportQueueRepository
 import com.lisdatasolutions.microrag.domain.onboarding.DeviceResources
 import com.lisdatasolutions.microrag.domain.onboarding.ModelDownloadController
 import com.lisdatasolutions.microrag.domain.onboarding.ModelFileSource
@@ -63,6 +71,23 @@ val dataModule = module {
     // Document import (F06): private copies and the system PDF reader.
     single { DocumentFileStore(get<AppDirs>().documents) }
     single<PdfOpener> { PlatformPdfOpener() }
+    single<DocumentSource> { SafDocumentSource(androidContext().contentResolver) }
+    single { DocumentImporter(get(), get(), get(), get(), get<DeviceResources>()::freeBytes, get()) }
+    single<IngestScheduler> { WorkManagerIngestScheduler(WorkManager.getInstance(androidContext())) }
+    // Single: the import attempts live here, in the application scope (D-038).
+    single<ImportQueueRepository> {
+        DefaultImportQueueRepository(
+            importer = get(),
+            source = get(),
+            index = get(),
+            files = get(),
+            scheduler = get(),
+            pdf = get(),
+            scope = get<ApplicationScope>().scope,
+            io = get<AppDispatchers>().io,
+            logger = get(),
+        )
+    }
 
     // The only network access of the app (constitution I, F03 FR-026): pinned Hugging Face files.
     single<FileDownloader> { ModelDownloader(userAgent = "MicroRAG/${BuildConfig.VERSION_NAME}") }
