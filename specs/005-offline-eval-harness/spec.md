@@ -34,6 +34,16 @@
 - El Mac del proyecto es un M5 Pro con 48 GB.
 - El Python del entorno offline trae SQLite 3.50 con FTS5 y carga de extensiones.
 
+## Clarifications
+
+### Session 2026-10-26
+
+- Q: ¿De dónde sale el corpus de evaluación (G37) y se guarda en git? → A: documentos públicos en español con licencia que permita reutilizarlos, elegidos por quien desarrolla (normativa, guías y manuales públicos), versionados en el repositorio con su origen y su licencia para que la evaluación sea reproducible por cualquiera.
+- Q: ¿Cómo se generan las preguntas del conjunto de prueba? → A: las redacta Claude (el asistente de desarrollo) a partir de fragmentos muestreados por documento y tipo de contenido, con pregunta, respuesta esperada y evidencia literal, sin copiar frases del texto. Las validaciones automáticas comprueban la evidencia y el usuario revisa al menos 100 con una lista preparada para ello.
+- Q: ¿Cómo se juzgan respuestas, negativas y citas? → A: con reglas automáticas en todas las ablaciones (datos clave de la respuesta esperada, frase exacta de negativa, bloque citado que contiene la evidencia). En la configuración elegida, Claude juzga todas las respuestas a mano para calibrar las reglas y el usuario revisa una muestra; se informa de cuánto coinciden las reglas con el juicio manual.
+- Q: ¿Se compara Gemma 4 E4B con E2B en F05 o se aplaza a F14? → A: en F05, solo en la configuración elegida: se descarga `gemma-4-E4B-it.litertlm` (3,66 GB, verificado por SHA-256) al escritorio y se genera el conjunto completo una vez para comparar calidad y tiempo en el escritorio. La latencia en el teléfono sigue siendo de F14.
+- Q: ¿Qué se hace si la mejor configuración no alcanza algún umbral? → A: se prueban dentro de F05 las palancas baratas que prevé el informe (FTS con trigramas, ajustes de troceado y cabecera, más candidatos, ajustes de la plantilla). Si aun así falta algún umbral, se para y se presentan al usuario las cifras con opciones antes de cerrar F05.
+
 ## User Scenarios & Testing *(mandatory)*
 
 **Actores:**
@@ -195,12 +205,12 @@ Con las cifras, se elige la configuración y se registra en DECISIONS: dimensió
 
 - **FR-006**: El conjunto MUST contener al menos 300 preguntas con respuesta, 50 sin respuesta y 40 de seguimiento, con al menos 100 revisadas a mano, salvo que el tamaño del corpus obligue a ajustarlo con el usuario.
 - **FR-007**: Cada pregunta con respuesta MUST tener:
-  - respuesta esperada;
+  - respuesta esperada y sus datos clave (FR-021);
   - evidencia: el texto literal del documento que la sostiene, con la huella del documento;
   - fragmentos relevantes `(huella del documento, ordinal)` en la configuración de referencia.
 
   En otras variantes de troceado, los relevantes se derivan de la evidencia.
-- **FR-008**: Las preguntas se distribuyen entre documentos y tipos de contenido (texto, listas, tablas o datos numéricos, procedimientos) y no copian frases literales del texto.
+- **FR-008**: Las preguntas MUST distribuirse entre documentos y tipos de contenido (texto, listas, tablas o datos numéricos, procedimientos) y no copiar frases literales del texto. Las redacta el asistente de desarrollo a partir de fragmentos muestreados (confirmado en clarify), y el usuario revisa al menos 100, que quedan marcadas como revisadas, corregidas o descartadas.
 - **FR-009**: El conjunto MUST validarse automáticamente:
   - las evidencias aparecen en sus documentos;
   - los seguimientos apuntan a preguntas existentes;
@@ -235,13 +245,19 @@ Con las cifras, se elige la configuración y se registra en DECISIONS: dimensió
   - el de negativas correctas sobre las preguntas sin respuesta;
   - el de citas correctas: la fuente citada contiene lo afirmado;
   - el tamaño real del prompt en tokens (mediana y p95) por variante de bloques.
-- **FR-015**: MUST compararse Gemma 4 E2B con E4B en la configuración elegida, con el mismo conjunto y la misma plantilla. Se informa de la calidad y del tiempo de generación en el escritorio.
+- **FR-015**: MUST compararse Gemma 4 E2B con E4B (confirmado en clarify) solo en la configuración elegida, con el mismo conjunto y la misma plantilla. El fichero de E4B se verifica por su huella antes de usarlo. Se informa de la calidad y del tiempo de generación en el escritorio; la decisión sobre el teléfono, que depende de la latencia, sigue siendo de F14.
+- **FR-021**: El juicio MUST hacerse así (confirmado en clarify):
+  - **Respuesta correcta:** contiene los datos clave de la respuesta esperada (cifras, plazos, términos), definidos al crear la pregunta.
+  - **Negativa correcta:** la respuesta coincide con la frase fijada, tras normalizar mayúsculas, puntuación y espacios.
+  - **Cita correcta:** el bloque citado contiene la evidencia de la pregunta.
+
+  Estas reglas se aplican a todas las variantes. En la configuración elegida, el asistente de desarrollo juzga a mano todas las respuestas y el usuario revisa una muestra. El informe da el acuerdo entre reglas y juicio manual, y las cifras finales usan el juicio manual.
 - **FR-016**: La generación MUST poder reanudarse tras una interrupción sin repetir las respuestas ya obtenidas con la misma configuración, y guardar cada respuesta con su prompt, sus bloques y su juicio.
 
 **Informe y decisiones**
 
 - **FR-017**: MUST producirse un informe de evaluación con:
-  - el corpus (recuentos, sin contenido privado si el corpus lo es);
+  - el corpus (documentos, tipos, recuentos y licencias);
   - el conjunto de prueba;
   - la configuración de referencia;
   - todas las ablaciones con sus métricas frente a los umbrales;
@@ -249,6 +265,12 @@ Con las cifras, se elige la configuración y se registra en DECISIONS: dimensió
   - la configuración elegida con su justificación.
 - **FR-018**: Las decisiones MUST registrarse en DECISIONS (constitución III) y propagarse a las constantes compartidas de la app y del pipeline offline. Si cambia la dimensión, MUST actualizarse también los metadatos esperados del índice y el golden de embeddings, y volver a validarse en el teléfono.
 - **FR-019**: Una ejecución MUST quedar identificada por su configuración (parámetros, huellas de modelos, versión del normalizador y del conjunto de prueba), para que dos resultados sean comparables o se sepa por qué no lo son.
+
+- **FR-022**: Si la configuración elegida no alcanza algún umbral de SC-004, MUST probarse dentro de F05 las palancas baratas del informe (FTS con trigramas como tercera lista de RRF, ajustes de troceado y cabecera, más candidatos, ajustes de la plantilla) y documentarse su efecto. Si aun así falta algún umbral, F05 MUST pararse y presentar al usuario las cifras y las opciones antes de cerrar (confirmado en clarify).
+
+**Corpus**
+
+- **FR-020**: El corpus MUST estar versionado en el repositorio con, por cada documento, su URL de origen, su licencia y su huella. Solo entran documentos cuya licencia permita reutilizarlos y redistribuirlos.
 
 ### Key Entities *(include if feature involves data)*
 
@@ -273,7 +295,7 @@ Con las cifras, se elige la configuración y se registra en DECISIONS: dimensió
 - **SC-001**: Reconstruir el índice con el mismo corpus y la misma configuración da un resultado idéntico en el 100 % de los fragmentos e identificadores, y las métricas de recuperación se repiten exactamente.
 - **SC-002**: El índice de evaluación describe el mismo espacio vectorial que la app: sus metadatos coinciden con los que la app espera y los golden de F04 siguen pasando.
 - **SC-003**: El conjunto de prueba tiene al menos 300 preguntas con respuesta, 50 sin respuesta y 40 de seguimiento, con al menos 100 revisadas a mano. El 100 % de las evidencias se encuentra en su documento.
-- **SC-004**: El informe recoge las métricas de la referencia y de cada valor de cada ablación (FR-012), comparadas con los umbrales del informe:
+- **SC-004**: El informe recoge las métricas de la referencia y de cada valor de cada ablación (FR-012), comparadas con los umbrales del informe. La configuración elegida los alcanza, o el usuario ha aceptado expresamente la diferencia (FR-022). Los umbrales son:
   - Recall@20 híbrido ≥ 0,90;
   - Recall@6 ≥ 0,80;
   - MRR híbrido ≥ vector y ≥ FTS;
@@ -286,8 +308,8 @@ Con las cifras, se elige la configuración y se registra en DECISIONS: dimensió
 
 ## Assumptions
 
-- **Corpus:** documentos en español representativos del uso previsto, en los formatos del MVP (PDF con texto, TXT y Markdown). Su origen, si se versiona y quién lo aporta se decide en el clarify (G37).
-- **Generación de preguntas y juicio:** el informe habla de «un modelo grande» y de revisión manual. Qué modelo, si se usan servicios externos con los documentos y cómo se juzgan respuestas y citas se decide en el clarify. La constitución I se refiere a la app; el pipeline de escritorio no forma parte del producto, pero la privacidad del corpus se respeta igual.
+- **Corpus** (confirmado en clarify): documentos públicos en español, en los formatos del MVP (PDF con texto, TXT y Markdown), de tipos variados (normativa, guías y manuales) para parecerse a lo que importarán los usuarios. Se descargan una vez en el escritorio y se versionan con su URL de origen, su huella y su licencia. Al ser públicos, no hay datos privados en el repositorio ni en los informes.
+- **Generación de preguntas y juicio** (confirmado en clarify): las preguntas las redacta el asistente de desarrollo sobre el corpus público y el usuario revisa al menos 100. Las respuestas se juzgan con reglas automáticas en todas las variantes y a mano en la configuración elegida (FR-021).
 - **Extracción de texto:** se usa la mejor disponible en el escritorio para los formatos del MVP. El texto que obtenga la app en F06 puede diferir; F06 lo compara.
 - **Tokens:** los tamaños en tokens se traducen a caracteres con la relación del informe (≈ 4 caracteres por token en español). El tamaño real de los prompts se mide con el tokenizador del propio modelo cuando sea posible.
 - **Generación en el escritorio:** usa los mismos ficheros de modelo y la misma plantilla que el móvil. Las diferencias numéricas entre el escritorio y el teléfono no afectan a la calidad de forma apreciable (F04 midió un coseno ≥ 0,99 en embeddings). La latencia no se mide aquí, sino en F14.
@@ -298,5 +320,5 @@ Con las cifras, se elige la configuración y se registra en DECISIONS: dimensió
   - las medidas de latencia en el teléfono (F14);
   - la cuantización INT8 (F14);
   - la variante de EmbeddingGemma (D-025);
-  - FTS con trigramas, salvo que la evaluación lo justifique;
+  - FTS con trigramas, salvo como palanca si no se alcanzan los umbrales (FR-022);
   - el OCR de escaneados (backlog).

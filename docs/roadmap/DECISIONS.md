@@ -424,6 +424,24 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
 
 ---
 
+## D-032 — Evaluación offline (clarify de F05)
+
+- **Fecha:** 2026-10-26
+- **Decisión:**
+  - **Corpus (G37):** documentos públicos en español con licencia que permita reutilizarlos y redistribuirlos: normativa, guías y manuales públicos. Los elige quien desarrolla y se versionan en el repositorio con su URL de origen, su huella y su licencia. Así la evaluación es reproducible por cualquiera y no hay datos privados.
+  - **Preguntas:** las redacta Claude, el asistente de desarrollo, a partir de fragmentos muestreados por documento y tipo de contenido, con respuesta esperada, datos clave y evidencia literal, sin copiar frases. El usuario revisa al menos 100.
+  - **Juicio:** reglas automáticas en todas las variantes (datos clave, frase exacta de negativa, bloque citado con la evidencia). En la configuración elegida, Claude juzga a mano todas las respuestas y el usuario revisa una muestra; las cifras finales usan el juicio manual.
+  - **E4B:** se compara con E2B en F05, solo en la configuración elegida y en el escritorio. La latencia en el teléfono sigue siendo de F14.
+  - **Umbrales:** si la configuración elegida no los alcanza, se prueban las palancas baratas del informe (trigramas, troceado, cabecera, candidatos, plantilla). Si aun así falta alguno, se para y se consulta al usuario antes de cerrar F05.
+- **Motivo:**
+  - un corpus público evita el problema de privacidad de enviar documentos a un modelo grande y hace la evaluación reproducible;
+  - el juicio automático permite iterar en minutos y el manual da las cifras finales fiables;
+  - E4B cuesta poco en el Mac y adelanta información para F11 y F14.
+- **Origen:** usuario (clarify de F05).
+- **Afecta:** F05, F06 (troceado), F10, F11 y F14.
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.

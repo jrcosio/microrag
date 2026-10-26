@@ -33,9 +33,10 @@
 
 - **Feature técnica.** Los actores son quien desarrolla, el usuario que aporta el corpus y las features que heredan los parámetros. Las métricas (Recall, MRR, nDCG), RRF, BM25 y la plantilla de prompt forman parte del contrato del informe (constitución III), no de la implementación. La spec no fija librerías, scripts ni estructura de código.
 - **Relevantes derivados de la evidencia** (FR-007): el informe identifica los relevantes por `(content_hash, ordinal)`. Como la ablación de tamaño de fragmento cambia los ordinales, cada pregunta guarda además la evidencia literal y los relevantes de cada variante se derivan de ella. Amplía el informe sin contradecirlo.
-- **Pendiente de `/speckit-clarify`** (recogido en «Assumptions»):
-  - origen y versionado del corpus (G37);
-  - cómo se generan las preguntas;
-  - cómo se juzgan respuestas y citas;
-  - E4B en F05 o en F14;
-  - qué pasa si no se alcanzan los umbrales.
+- **Resuelto en `/speckit-clarify`** (sesión 2026-10-26, D-032):
+  - corpus público versionado con licencias (FR-020);
+  - preguntas redactadas por el asistente y revisadas por el usuario (FR-008);
+  - juicio automático en todas las variantes y manual en la elegida (FR-021);
+  - E4B en F05, en la configuración elegida (FR-015);
+  - umbrales: iterar con palancas baratas y, si no basta, consultar (FR-022).
+- Re-validación tras el clarify: 16/16, sin cambios de estado.

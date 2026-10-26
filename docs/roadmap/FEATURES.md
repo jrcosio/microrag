@@ -39,7 +39,7 @@ Al cerrar cada feature se entrega:
 | F02 | Viabilidad on-device (fase 0) | Técnica | F01 | ✅ cerrada |
 | F03 | Modelos y primer arranque | Producto | F01, F02 | ✅ cerrada (T071 TalkBack manual abierta) |
 | F04 | Núcleo de datos RAG | Técnica | F02 | ✅ cerrada |
-| F05 | Harness offline de evaluación | Técnica | F04 | 🟨 en curso (specify) |
+| F05 | Harness offline de evaluación | Técnica | F04 | 🟨 en curso (clarify; pendiente de revisión) |
 | F06 | Importación y parsing | Producto | F04 | ⬜ |
 | F07 | Indexación | Producto | F02, F06 | ⬜ |
 | F08 | Biblioteca y detalle de documento | Producto | F07 | ⬜ |
@@ -271,7 +271,7 @@ También se introduce `EngineCoordinator`, que garantiza que nunca haya dos engi
 ## F05 — Harness offline de evaluación
 
 - **Tipo:** Técnica. Python, sin UI.
-- **Estado:** 🟨 en curso: spec en `specs/005-offline-eval-harness/`.
+- **Estado:** 🟨 en curso: spec y clarify en `specs/005-offline-eval-harness/` (D-032), pendientes de revisión.
 
 **Objetivo.** Fijar en escritorio los parámetros de recuperación antes de indexar en el móvil:
 - ~~variante de EmbeddingGemma 2~~: resuelta en F02 (D-025: 270M; las tres variantes dan vectores de texto idénticos);
@@ -292,7 +292,7 @@ También se introduce `EngineCoordinator`, que garantiza que nunca haya dos engi
 1. `offline/` es reproducible:
    - dependencias con versiones fijadas (`litert-lm-api==0.18.1`);
    - construye un índice de evaluación con el mismo `schema.sql`, prefijos, cabecera, truncado y normalizador que la app.
-2. Conjunto de prueba sobre un **corpus aportado por el usuario** (G37):
+2. Conjunto de prueba sobre un **corpus público versionado** (G37, D-032):
    - ~300 preguntas;
    - ~50 sin respuesta;
    - ~40 de seguimiento;
