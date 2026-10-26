@@ -2,6 +2,7 @@ package com.lisdatasolutions.microrag.data.models
 
 import com.google.common.truth.Truth.assertThat
 import com.lisdatasolutions.microrag.core.logging.DefaultAppLogger
+import com.lisdatasolutions.microrag.domain.model.ComputeBackend
 import com.lisdatasolutions.microrag.domain.model.ModelFamily
 import com.lisdatasolutions.microrag.domain.model.ModelFile
 import com.lisdatasolutions.microrag.domain.model.ModelFileState
@@ -57,7 +58,7 @@ class DefaultModelFileRepositoryTest {
         val target = File(modelsDir, file.fileName)
         assertThat(state).isEqualTo(ModelFileState.Verified(target))
         assertThat(target.readBytes()).isEqualTo(content)
-        assertThat(modelsDir.listFiles()!!.map { it.name }).containsExactly(file.fileName)
+        assertThat(modelsDir.listFiles()!!.map { it.name }).containsExactly(file.fileName, "verification.json")
         assertThat(src.exists()).isFalse()
         assertThat(repo.pathOf(file.id)).isEqualTo(target)
     }
@@ -138,6 +139,102 @@ class DefaultModelFileRepositoryTest {
         assertThat(progress).isNotEmpty()
         assertThat(progress).isInOrder()
         assertThat(progress.last()).isEqualTo(content.size.toLong())
+    }
+
+    @Test
+    fun adopt_renamesTheVerifiedDownloadWithoutCopyingAndRecordsIt() = runTest {
+        val (repo, modelsDir) = repository()
+        val partial = File(modelsDir, "downloads/${file.fileName}.download").apply { parentFile!!.mkdirs(); writeBytes(content) }
+
+        val state = repo.adopt(file.id, partial)
+
+        val target = File(modelsDir, file.fileName)
+        assertThat(state).isEqualTo(ModelFileState.Verified(target))
+        assertThat(partial.exists()).isFalse()
+        assertThat(target.readBytes()).isEqualTo(content)
+        assertThat(File(modelsDir, "verification.json").readText()).contains(file.sha256)
+    }
+
+    @Test
+    fun adopt_withOneAlteredByte_deletesTheDownloadAndNeverInstallsIt() = runTest {
+        val (repo, modelsDir) = repository()
+        val altered = content.copyOf().also { it[4096] = (it[4096] + 1).toByte() }
+        val partial = File(modelsDir, "downloads/${file.fileName}.download").apply { parentFile!!.mkdirs(); writeBytes(altered) }
+
+        val state = repo.adopt(file.id, partial)
+
+        assertThat(state).isInstanceOf(ModelFileState.Mismatch::class.java)
+        assertThat(partial.exists()).isFalse()
+        assertThat(File(modelsDir, file.fileName).exists()).isFalse()
+        assertThat(repo.pathOf(file.id)).isNull()
+    }
+
+    @Test
+    fun installFromStream_installsOnlyAMatchingStream() = runTest {
+        val (repo, modelsDir) = repository()
+
+        assertThat(repo.installFromStream(second.id, ByteArrayInputStream(content))).isInstanceOf(ModelFileState.Mismatch::class.java)
+        assertThat(File(modelsDir, second.fileName).exists()).isFalse()
+        assertThat(modelsDir.listFiles()!!.filter { it.name.endsWith(".part") }).isEmpty()
+
+        assertThat(repo.installFromStream(file.id, ByteArrayInputStream(content)))
+            .isEqualTo(ModelFileState.Verified(File(modelsDir, file.fileName)))
+    }
+
+    @Test
+    fun markPrepared_isPublishedAndSurvivesARestartWithoutRehashing() = runTest {
+        val (repo, modelsDir) = repository()
+        repo.markPrepared(file.id, ComputeBackend.GPU)
+        assertThat(repo.preparedBackends.value).isEmpty() // not verified yet: ignored
+
+        repo.installVerified(file.id, source(content), deleteSourceOnSuccess = false)
+        repo.markPrepared(file.id, ComputeBackend.GPU)
+        assertThat(repo.preparedBackends.value).containsExactly(file.id, ComputeBackend.GPU)
+
+        // A new process: the record makes the file Verified and prepared without hashing it.
+        val (restarted, _) = repository()
+        val seen = mutableListOf<ModelFileState>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { restarted.states.collect { seen += it.getValue(file.id) } }
+        restarted.refresh()
+
+        assertThat(restarted.states.value[file.id]).isEqualTo(ModelFileState.Verified(File(modelsDir, file.fileName)))
+        assertThat(restarted.preparedBackends.value).containsExactly(file.id, ComputeBackend.GPU)
+        assertThat(seen.filterIsInstance<ModelFileState.Verifying>()).isEmpty()
+    }
+
+    @Test
+    fun refresh_withAChangedFile_needsVerificationAgain() = runTest {
+        val (repo, modelsDir) = repository()
+        repo.installVerified(file.id, source(content), deleteSourceOnSuccess = false)
+        repo.markPrepared(file.id, ComputeBackend.CPU)
+        File(modelsDir, file.fileName).setLastModified(0)
+
+        val (restarted, _) = repository()
+        restarted.refresh()
+
+        assertThat(restarted.states.value[file.id]).isInstanceOf(ModelFileState.Unverified::class.java)
+        assertThat(restarted.preparedBackends.value).isEmpty()
+    }
+
+    @Test
+    fun verifyingTheSameFileAgain_keepsItsPreparedBackend() = runTest {
+        val (repo, _) = repository()
+        repo.installVerified(file.id, source(content), deleteSourceOnSuccess = false)
+        repo.markPrepared(file.id, ComputeBackend.GPU)
+
+        repo.verify(file.id)
+
+        assertThat(repo.preparedBackends.value).containsExactly(file.id, ComputeBackend.GPU)
+    }
+
+    @Test
+    fun refresh_keepsPartialDownloads() = runTest {
+        val (repo, modelsDir) = repository()
+        val partial = File(modelsDir, "downloads/${file.fileName}.download").apply { parentFile!!.mkdirs(); writeBytes(otherContent) }
+
+        repo.refresh()
+
+        assertThat(partial.exists()).isTrue()
     }
 
     private fun testFile(id: ModelId, name: String, bytes: ByteArray) = ModelFile(

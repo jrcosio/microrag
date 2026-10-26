@@ -1,10 +1,12 @@
 package com.lisdatasolutions.microrag.debug.feasibility
 
 import com.lisdatasolutions.microrag.data.models.ModelFileRepository
+import com.lisdatasolutions.microrag.domain.model.ComputeBackend
 import com.lisdatasolutions.microrag.domain.model.ModelCatalog
 import com.lisdatasolutions.microrag.domain.model.ModelFileState
 import com.lisdatasolutions.microrag.domain.model.ModelId
 import java.io.File
+import java.io.InputStream
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 
@@ -56,6 +58,17 @@ class FakeModelFileRepository(
         }
         states.update { it + (id to state) }
         return state
+    }
+
+    override val preparedBackends = MutableStateFlow<Map<ModelId, ComputeBackend>>(emptyMap())
+
+    override suspend fun adopt(id: ModelId, file: File): ModelFileState = installVerified(id, file, deleteSourceOnSuccess = true)
+
+    override suspend fun installFromStream(id: ModelId, input: InputStream): ModelFileState =
+        installVerified(id, File("/stream/$id"), deleteSourceOnSuccess = false)
+
+    override suspend fun markPrepared(id: ModelId, backend: ComputeBackend) {
+        preparedBackends.update { it + (id to backend) }
     }
 
     override fun pathOf(id: ModelId): File? = (states.value[id] as? ModelFileState.Verified)?.path
