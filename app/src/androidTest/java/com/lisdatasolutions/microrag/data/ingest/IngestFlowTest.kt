@@ -8,13 +8,28 @@ import com.google.common.truth.Truth.assertWithMessage
 import com.lisdatasolutions.microrag.domain.ingest.IngestError
 import com.lisdatasolutions.microrag.domain.rag.DocumentStatus
 import com.lisdatasolutions.microrag.rag.ingest.DocumentExtractor
+import com.lisdatasolutions.microrag.rag.ingest.PdfOpener
+import com.lisdatasolutions.microrag.rag.ingest.PdfPages
 import com.lisdatasolutions.microrag.testing.CapturingLogger
 import com.lisdatasolutions.microrag.testing.TempRagIndex
 import java.io.File
 import java.util.UUID
+import com.lisdatasolutions.microrag.domain.ingest.IngestProgress
+import com.lisdatasolutions.microrag.domain.ingest.QueueItemState
+import com.lisdatasolutions.microrag.domain.ingest.QueueKey
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.runBlocking
 import org.junit.After
+import org.junit.Assume.assumeTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -97,5 +112,80 @@ class IngestFlowTest {
             assertWithMessage("document $id").that(document.chunkCount).isEqualTo(if (id == txt) 1 else 2)
         }
         assertThat(files.cleanOrphans(temp.index.documents(DocumentStatus.entries.toSet()).mapNotNull { it.localPath }.toSet())).isEqualTo(0)
+    }
+
+    // F06 US4 (T057): interruptions never leave partial copies or double results (SC-006).
+
+    @Test
+    fun interruptedProcessingResumesWithTheSameResult() = runBlocking<Unit> {
+        assumeTrue(pdf.isAvailable)
+        val long = id(import(picked("text_200_pages.pdf")))
+        val reachedPage = CompletableDeferred<Unit>()
+        // Holds page 20 for a moment so the cancellation always lands in the middle of the document.
+        val slowAtPage20 = object : PdfOpener {
+            override val isAvailable = true
+            override fun open(file: File): PdfPages {
+                val pages = pdf.open(file)
+                return object : PdfPages by pages {
+                    override fun pageText(index: Int): String {
+                        if (index == 20) {
+                            reachedPage.complete(Unit)
+                            Thread.sleep(500)
+                        }
+                        return pages.pageText(index)
+                    }
+                }
+            }
+        }
+        val interrupted = IngestRunner(temp.index, DocumentExtractor(slowAtPage20), Dispatchers.IO, logger)
+
+        val job = launch(Dispatchers.Default) { interrupted.process(listOf(long)) { } }
+        withTimeout(60_000) { reachedPage.await() }
+        job.cancelAndJoin()
+        assertThat(temp.index.document(long)!!.status).isEqualTo(DocumentStatus.PENDING)
+
+        runner.process(listOf(long)) { }
+        val resumed = temp.index.document(long)!!
+        assertThat(resumed.status).isEqualTo(DocumentStatus.PARSED)
+        temp.index.updateStatus(long, DocumentStatus.PENDING)
+        runner.process(listOf(long)) { }
+        assertThat(temp.index.document(long)!!.chunkCount).isEqualTo(resumed.chunkCount)
+    }
+
+    @Test
+    fun aNewRepositoryRebuildsTheSameQueueFromTheIndex() = runBlocking<Unit> {
+        val first = id(import(picked("a.txt", "Uno.".toByteArray())))
+        val second = id(import(picked("b.md", "# B\ndos".toByteArray())))
+        runner.process(listOf(second)) { }
+        val idle = object : IngestScheduler {
+            override val activeDocumentIds = MutableStateFlow(emptySet<Long>())
+            override val progress = MutableStateFlow<IngestProgress?>(null)
+            override suspend fun enqueue(documentIds: List<Long>) = Unit
+        }
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+        val restarted = DefaultImportQueueRepository(importer, source, temp.index, files, idle, pdf, scope, Dispatchers.IO, logger)
+
+        val queue = restarted.queue.first()
+        scope.cancel()
+
+        assertThat(queue.items.map { it.key }).containsExactly(QueueKey.Document(first), QueueKey.Document(second)).inOrder()
+        assertThat(queue.items.map { it.state }).containsExactly(QueueItemState.Ready, QueueItemState.Prepared(1, null)).inOrder()
+    }
+
+    @Test
+    fun aCancelledCopyLeavesNothingBehind() = runBlocking<Unit> {
+        val big = picked("grande.txt", ByteArray(20_000_000) { ('a' + it % 26).code.toByte() })
+        val copying = CompletableDeferred<Unit>()
+
+        val job = launch(Dispatchers.IO) {
+            importer.import(big, source.describe(big)) { copied, _ -> if (copied > 0) copying.complete(Unit) }
+        }
+        withTimeout(30_000) { copying.await() }
+        job.cancelAndJoin()
+
+        val documentsDir = File(root, "documents")
+        assertThat(documentsDir.list().orEmpty().filter { it.endsWith(".tmp") }).isEmpty()
+        assertThat(temp.index.documents(DocumentStatus.entries.toSet())).isEmpty()
+        assertThat(files.cleanOrphans(emptySet())).isEqualTo(0)
     }
 }
