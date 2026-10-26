@@ -169,7 +169,7 @@ description: "Lista de tareas de F07 — Indexación"
 
 ### Tests for User Story 1
 
-- [ ] T020 [P] [US1] Crear `…/sharedTest/data/indexing/FakeTextEmbedder.kt`, común a la JVM y a las instrumentadas: vector derivado del hash del texto embebido, normalizado, con fallo de longitud o de engine programable.
+- [X] T020 [P] [US1] Crear `…/sharedTest/data/indexing/FakeTextEmbedder.kt`, común a la JVM y a las instrumentadas: vector derivado del hash del texto embebido, normalizado, con fallo de longitud o de engine programable.
 - [ ] T021 [P] [US1] Ampliar `…/test/data/ingest/IngestRunnerTest.kt` con `FakeTextEmbedder` y `RecordingLogger`:
   - **fase 1:** los `pending` pasan a `parsed` antes de embeber nada;
   - **fase 2:** `embedding`, lotes de 64 y `done`;
@@ -186,7 +186,7 @@ description: "Lista de tareas de F07 — Indexación"
   - **logs:** sin nombres de archivo ni texto (SC-010).
 
   **Adaptar las expectativas de F06** que esperaban `PARSED` tras `process`. Ahora la fase 1 sola se prueba con la sesión de embeddings ausente o con el modelo no verificado.
-- [ ] T022 [P] [US1] `…/test/data/indexing/ChunkEmbeddingSessionTest.kt` (R4):
+- [X] T022 [P] [US1] `…/test/data/indexing/ChunkEmbeddingSessionTest.kt` (R4):
   - libera los generadores antes de cargar;
   - en un emulador (`Build.HARDWARE` falso inyectable), nunca GPU;
   - sin `gpu_check`, valida la GPU con 3 textos fijos frente a la CPU y guarda el resultado;
@@ -203,7 +203,7 @@ description: "Lista de tareas de F07 — Indexación"
 
 ### Implementation for User Story 1
 
-- [ ] T024 [US1] Crear `…/microrag/data/indexing/ChunkEmbeddingSession.kt` (R4, N15):
+- [X] T024 [US1] Crear `…/microrag/data/indexing/ChunkEmbeddingSession.kt` (R4, N15):
   - libera los generadores;
   - elige el backend: GPU validada, nunca en un emulador;
   - abre el engine retenido de `EmbeddingGemma`;
