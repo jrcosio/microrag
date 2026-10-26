@@ -394,7 +394,7 @@ description: "Lista de tareas de F07 — Indexación"
 
 ### Tests for User Story 5
 
-- [ ] T054 [P] [US5] Ampliar `IndexScreenTest`:
+- [X] T054 [P] [US5] Ampliar `IndexScreenTest`:
   - P6: documentos con error y «Reintentar»;
   - P8: biblioteca no disponible;
   - anuncios U3 en el resumen `liveRegion`.
@@ -408,7 +408,7 @@ description: "Lista de tareas de F07 — Indexación"
 
 ### Implementation for User Story 5
 
-- [ ] T057 [US5] Completar en `IndexScreen` P6 y P8, y la semántica U1–U3 (`liveRegion = Polite` en un resumen invisible). Comprobar T054.
+- [X] T057 [US5] Completar en `IndexScreen` P6 y P8, y la semántica U1–U3 (`liveRegion = Polite` en un resumen invisible). Comprobar T054.
 - [X] T058 [US5] Ampliar `DefaultImportQueueRepository`, `IngestTexts` e `IngestScreen` con los estados de index-ui §Ingesta: documentos `embedding` en la cola, `Indexing`, `Paused` y los motivos nuevos en es y en. Comprobar T055.
 - [ ] T059 [P] [US5] Crear `…/microrag/feature/indexing/IndexPreviews.kt` con `IndexPreviewData` (datos de ejemplo etiquetados, constitución V) para todos los estados, en claro y en oscuro. Ampliar `IngestPreviews` con «Indexando» y «En pausa». Comprobar T056 en el emulador.
 - [ ] T060 [US5] Capturar en el teléfono, en claro y en oscuro:

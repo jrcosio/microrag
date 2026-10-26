@@ -235,11 +235,14 @@ private fun Failed(failed: List<FailedDocument>, onRetry: (Long) -> Unit) {
     if (failed.isEmpty()) return
     LisdataSectionHeader(text = stringResource(R.string.index_failed_header), modifier = Modifier.padding(top = LisdataTheme.spacing.space2))
     failed.forEach { document ->
+        val cause = document.error.chipText()
         LisdataQueueRow(
             name = document.displayName,
             meta = "",
-            statusText = document.error.chipText(),
+            statusText = cause,
             status = StatusKind.Error,
+            // One sentence on the clickable card, so TalkBack names what «Reintentar» acts on.
+            accessibilityText = stringResource(R.string.index_failed_row, document.displayName, cause),
             onClickLabel = if (document.canRetry) stringResource(R.string.index_retry) else null,
             onClick = if (document.canRetry) ({ onRetry(document.id) }) else null,
             modifier = Modifier.fillMaxWidth(),

@@ -43,6 +43,7 @@
     <string name="index_no_space">No space</string>
     <string name="index_no_space_body">There is no space left to keep indexing. Free up space on the phone and tap Resume.</string>
     <string name="index_failed_header">Documents with errors</string>
+    <string name="index_failed_row">%1$s, %2$s</string>
     <string name="index_model_missing_title">The embedding model is missing</string>
     <string name="index_model_missing_body">It is needed to index. You can download it again from the model setup.</string>
     <string name="index_prepare_models">Set up models</string>

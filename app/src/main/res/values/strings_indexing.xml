@@ -46,6 +46,7 @@
     <string name="index_no_space_body">No queda espacio para seguir indexando. Libera espacio en el teléfono y pulsa Reanudar.</string>
     <!-- P6 -->
     <string name="index_failed_header">Documentos con error</string>
+    <string name="index_failed_row">%1$s, %2$s</string>
     <!-- P7 -->
     <string name="index_model_missing_title">Falta el modelo de embeddings</string>
     <string name="index_model_missing_body">Hace falta para indexar. Puedes volver a descargarlo desde la preparación de modelos.</string>
