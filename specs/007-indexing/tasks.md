@@ -354,16 +354,16 @@ description: "Lista de tareas de F07 — Indexación"
 
 ### Tests for User Story 4
 
-- [ ] T046 [P] [US4] Ampliar `IngestRunnerTest` (R10):
+- [X] T046 [P] [US4] Ampliar `IngestRunnerTest` (R10):
   - **temperatura `SEVERE`:** guarda el lote, libera el engine, publica `waiting = THERMAL` con la etapa real y espera. Al bajar a `MODERATE`, recarga y sigue (N9);
   - **espacio por debajo del margen antes de un lote, o `IndexStorageFullException`:** no publica, pausa la tanda con `no_space` y termina;
   - **modelo no `Verified`:** tras la fase 1, pausa con `model_missing` antes de cargar nada (N10).
-- [ ] T047 [P] [US4] Ampliar `DefaultIndexingRepositoryTest`:
+- [X] T047 [P] [US4] Ampliar `DefaultIndexingRepositoryTest`:
   - `pause` guarda antes de cancelar (N8);
   - `resume` borra la pausa y encola los pendientes;
   - `retry` pone `pending`, añade a la tanda y encola;
   - `PauseReason` desde la tanda (usuario, sin espacio, modelo ausente).
-- [ ] T048 [P] [US4] Ampliar `IndexViewModelTest` e `IndexScreenTest` con su acción en cada estado:
+- [X] T048 [P] [US4] Ampliar `IndexViewModelTest` e `IndexScreenTest` con su acción en cada estado:
   - en pausa (P3);
   - pausa automática por temperatura y por el sistema (P4);
   - sin espacio (P5);
@@ -371,9 +371,9 @@ description: "Lista de tareas de F07 — Indexación"
 
 ### Implementation for User Story 4
 
-- [ ] T049 [US4] Implementar en `IngestRunner` la espera térmica y la comprobación de espacio (con `DeviceResources::freeBytes` e `IndexStorageFullException`), y el modelo ausente (R10). Comprobar T046.
-- [ ] T050 [US4] Implementar en `DefaultIndexingRepository` `pause`, `resume` y `retry` con sus casos de uso. `ImportQueueRepository.retry` y `remove` de un documento pasan por la tanda (contracts/indexing-api.md). Conectar `IndexingActionReceiver` a `pause`. Comprobar T047.
-- [ ] T051 [US4] Completar en `IndexScreen` los estados P3, P4, P5 y P7, con `Setup` como destino de P7. Comprobar T048.
+- [X] T049 [US4] Implementar en `IngestRunner` la espera térmica y la comprobación de espacio (con `DeviceResources::freeBytes` e `IndexStorageFullException`), y el modelo ausente (R10). Comprobar T046.
+- [X] T050 [US4] Implementar en `DefaultIndexingRepository` `pause`, `resume` y `retry` con sus casos de uso. `ImportQueueRepository.retry` y `remove` de un documento pasan por la tanda (contracts/indexing-api.md). Conectar `IndexingActionReceiver` a `pause`. Comprobar T047.
+- [X] T051 [US4] Completar en `IndexScreen` los estados P3, P4, P5 y P7, con `Setup` como destino de P7. Comprobar T048.
 - [X] T052 [US4] Añadir P10 (acceso provisional en Inicio, `PendingDestination`) con su prueba en `NavigationTest`.
 - [ ] T053 [US4] En el teléfono:
   - **temperatura:** simularla con `cmd thermalservice override-status 3` y `reset`, con la app visible y también con el trabajo sin primer plano (tras matar el proceso). Comprobar la pausa en 5 s o menos con la causa «Pausa por temperatura» y la reanudación sola (SC-006);

@@ -103,4 +103,51 @@ class IndexScreenTest {
         compose.onNodeWithText("ETAPAS DEL PROCESO", useUnmergedTree = true).assertDoesNotExist()
         compose.onNodeWithText("Todo actualizado", useUnmergedTree = true).assertDoesNotExist()
     }
+
+    // F07 T048: P3, P4, P5 and P7.
+
+    @Test
+    fun pausedByTheUser_offersResume() {
+        show(IndexPreviewData.paused)
+
+        // The chip under the chunks and the stage that was in progress.
+        compose.onAllNodesWithText("En pausa", useUnmergedTree = true).assertCountEquals(2)
+        compose.onNode(hasText("Reanudar") and hasClickAction()).assertIsEnabled().performClick()
+        assertThat(calls).containsExactly("resume")
+        compose.onNodeWithText("Pausar indexación", useUnmergedTree = true).assertDoesNotExist()
+    }
+
+    @Test
+    fun tooHot_explainsItAndStillOffersPause() {
+        show(IndexPreviewData.thermal)
+
+        compose.onAllNodesWithText("Pausa por temperatura", useUnmergedTree = true).assertCountEquals(2)
+        exists("El teléfono está muy caliente. La indexación seguirá sola cuando se enfríe.")
+        compose.onNode(hasText("Pausar indexación") and hasClickAction()).assertExists()
+    }
+
+    @Test
+    fun waitingForTheSystem_isExplained() {
+        show(IndexPreviewData.waitingForSystem)
+
+        exists("Android ha limitado el trabajo en segundo plano. Seguirá en cuanto lo permita o al abrir la app.")
+    }
+
+    @Test
+    fun noSpace_guidesAndOffersResume() {
+        show(IndexPreviewData.noSpace)
+
+        exists("No queda espacio para seguir indexando. Libera espacio en el teléfono y pulsa Reanudar.")
+        compose.onNode(hasText("Reanudar") and hasClickAction()).assertExists()
+    }
+
+    @Test
+    fun missingModel_leadsToTheModelSetup() {
+        show(IndexPreviewData.modelMissing)
+
+        exists("Falta el modelo de embeddings")
+        compose.onNode(hasText("Preparar modelos") and hasClickAction()).performClick()
+        assertThat(calls).containsExactly("setup")
+        compose.onNodeWithText("ETAPAS DEL PROCESO", useUnmergedTree = true).assertDoesNotExist()
+    }
 }

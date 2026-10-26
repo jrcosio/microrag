@@ -238,4 +238,64 @@ class DefaultIndexingRepositoryTest {
 
         assertThat((state() as IndexingState.Active).pause).isEqualTo(PauseReason.THERMAL)
     }
+
+    // T047: the user's controls (rule N8).
+
+    @Test
+    fun pause_isSavedBeforeTheWorkIsCancelled() = runTest {
+        val id = doc("A.txt", DocumentStatus.EMBEDDING, chunks = 9)
+        runStore.edit { it.adding(listOf(id)) }
+        var pausedWhenCancelled = false
+        scheduler.onCancel = { pausedWhenCancelled = runStore.run.value.pauseCause == RunPauseCause.USER }
+
+        repository().pause()
+
+        assertThat(pausedWhenCancelled).isTrue()
+        assertThat(scheduler.cancels).isEqualTo(1)
+        assertThat((state() as IndexingState.Active).pause).isEqualTo(PauseReason.USER)
+    }
+
+    @Test
+    fun resume_clearsThePauseAndEnqueuesWhatIsLeft() = runTest {
+        val done = doc("A.txt", DocumentStatus.DONE, chunks = 1)
+        val left = doc("B.txt", DocumentStatus.EMBEDDING, chunks = 9)
+        runStore.edit { it.adding(listOf(done, left)).pausedBy(RunPauseCause.NO_SPACE) }
+
+        repository().resume()
+
+        assertThat(runStore.run.value.paused).isFalse()
+        assertThat(scheduler.enqueued).containsExactly(listOf(left))
+    }
+
+    @Test
+    fun retry_putsARetryableDocumentBackInTheRun() = runTest {
+        val retryable = doc("A.txt", DocumentStatus.ERROR, error = IngestError.EMBEDDING_FAILED)
+        val final = doc("B.txt", DocumentStatus.ERROR, error = IngestError.NO_TEXT)
+        runStore.edit { it.pausedBy(RunPauseCause.USER) }
+        val repository = repository()
+
+        repository.retry(final)
+        assertThat(index.docs.getValue(final).status).isEqualTo(DocumentStatus.ERROR)
+        assertThat(scheduler.enqueued).isEmpty()
+
+        repository.retry(retryable)
+        assertThat(index.docs.getValue(retryable).status).isEqualTo(DocumentStatus.PENDING)
+        assertThat(index.docs.getValue(retryable).error).isNull()
+        assertThat(runStore.run.value).isEqualTo(IngestRun(listOf(retryable)))
+        assertThat(scheduler.enqueued).containsExactly(listOf(retryable))
+    }
+
+    @Test
+    fun storedPauses_areTheirReason() = runTest {
+        val id = doc("A.txt", DocumentStatus.PARSED, chunks = 9)
+        val repository = repository()
+        for ((cause, reason) in listOf(
+            RunPauseCause.USER to PauseReason.USER,
+            RunPauseCause.NO_SPACE to PauseReason.NO_SPACE,
+            RunPauseCause.MODEL_MISSING to PauseReason.MODEL_MISSING,
+        )) {
+            runStore.edit { IngestRun(listOf(id), cause) }
+            assertThat((state(repository) as IndexingState.Active).pause).isEqualTo(reason)
+        }
+    }
 }

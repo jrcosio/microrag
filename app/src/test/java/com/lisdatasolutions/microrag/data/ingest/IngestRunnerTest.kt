@@ -1,11 +1,13 @@
 package com.lisdatasolutions.microrag.data.ingest
 
 import com.google.common.truth.Truth.assertThat
+import com.lisdatasolutions.microrag.data.device.ThermalLevel
 import com.lisdatasolutions.microrag.data.indexing.FakeEmbeddingSessions
 import com.lisdatasolutions.microrag.data.indexing.FakeTextEmbedder
 import com.lisdatasolutions.microrag.data.indexing.FakeThermalStatusSource
 import com.lisdatasolutions.microrag.data.indexing.InMemoryIngestRunStore
 import com.lisdatasolutions.microrag.data.indexing.RunPauseCause
+import com.lisdatasolutions.microrag.domain.ingest.ImportLimits
 import com.lisdatasolutions.microrag.domain.ingest.IngestError
 import com.lisdatasolutions.microrag.domain.ingest.IngestProgress
 import com.lisdatasolutions.microrag.domain.rag.ChunkInput
@@ -27,6 +29,7 @@ import java.io.IOException
 import java.nio.file.Files
 import kotlin.math.ceil
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -37,6 +40,7 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Test
 
@@ -204,8 +208,10 @@ class IngestRunnerTest {
     private val sessions = FakeEmbeddingSessions()
     private val embedder get() = sessions.embedder
 
-    private fun indexingRunner() = IngestRunner(
-        index, DocumentExtractor(pdf), sessions, runStore, FakeThermalStatusSource(), { Long.MAX_VALUE },
+    private val thermal = FakeThermalStatusSource()
+
+    private fun indexingRunner(freeBytes: () -> Long = { Long.MAX_VALUE }) = IngestRunner(
+        index, DocumentExtractor(pdf), sessions, runStore, thermal, freeBytes,
         Dispatchers.IO, logger, clock = System::currentTimeMillis, progressIntervalMs = 10,
     )
 
@@ -398,9 +404,76 @@ class IngestRunnerTest {
         assertThat(log).contains("ingest done id=$id")
     }
 
+
+    // F07 T046 (research R10): heat, space and a missing model.
+
+    @Test
+    fun severeHeat_waitsWithTheEngineReleasedAndGoesOnWhenCooler() = runBlocking<Unit> {
+        val id = document("largo.txt", "text/plain", paragraphs(LONG).toByteArray())
+        var calls = 0
+        embedder.beforeEmbedding = { if (++calls == 70) thermal.level.value = ThermalLevel.SEVERE_OR_WORSE }
+        val waited = CompletableDeferred<IngestProgress>()
+
+        val job = launch(Dispatchers.Default) {
+            indexingRunner().process(listOf(id)) { if (it.waiting == IngestProgress.WaitReason.THERMAL) waited.complete(it) }
+        }
+        val waiting = withTimeout(30_000) { waited.await() }
+        assertThat(waiting.stage).isEqualTo(IngestProgress.Stage.EMBEDDING)
+        assertThat(index.docs.getValue(id).status).isEqualTo(DocumentStatus.EMBEDDING)
+        thermal.level.value = ThermalLevel.MODERATE
+        withTimeout(30_000) { job.join() }
+
+        assertThat(sessions.opened).isEqualTo(2)
+        assertThat(index.docs.getValue(id).status).isEqualTo(DocumentStatus.DONE)
+    }
+
+    @Test
+    fun tooLittleSpaceBeforeABatch_pausesTheRunWithoutPublishing() = runBlocking<Unit> {
+        val id = document("largo.txt", "text/plain", paragraphs(LONG).toByteArray())
+        runStore.edit { it.adding(listOf(id)) }
+
+        indexingRunner(freeBytes = { ImportLimits.SPACE_MARGIN_BYTES - 1 }).process(listOf(id)) { }
+
+        assertThat(index.docs.getValue(id).status).isEqualTo(DocumentStatus.EMBEDDING)
+        assertThat(runStore.run.first().pauseCause).isEqualTo(RunPauseCause.NO_SPACE)
+        assertThat(index.chunks[id].orEmpty()).isEmpty()
+    }
+
+    @Test
+    fun aFullDiskWhileWriting_pausesTheRunToo() = runBlocking<Unit> {
+        val id = document("largo.txt", "text/plain", paragraphs(LONG).toByteArray())
+        index.failNextInsertWithFullDisk = true
+
+        indexingRunner().process(listOf(id)) { }
+
+        assertThat(index.docs.getValue(id).status).isEqualTo(DocumentStatus.EMBEDDING)
+        assertThat(runStore.run.first().pauseCause).isEqualTo(RunPauseCause.NO_SPACE)
+    }
+
+    @Test
+    fun aPausedRun_isLeftAlone() = runBlocking<Unit> {
+        val id = document("a.txt", "text/plain", paragraphs(5).toByteArray())
+        runStore.edit { it.adding(listOf(id)).pausedBy(RunPauseCause.USER) }
+
+        indexingRunner().process(listOf(id)) { }
+
+        assertThat(index.docs.getValue(id).status).isEqualTo(DocumentStatus.PENDING)
+    }
+
+    @Test
+    fun withoutTheModel_itChunksAndPausesBeforeLoadingAnything() = runBlocking<Unit> {
+        val id = document("a.txt", "text/plain", paragraphs(5).toByteArray())
+        sessions.ready = false
+
+        indexingRunner().process(listOf(id)) { }
+
+        assertThat(index.docs.getValue(id).status).isEqualTo(DocumentStatus.PARSED)
+        assertThat(runStore.run.first().pauseCause).isEqualTo(RunPauseCause.MODEL_MISSING)
+        assertThat(sessions.opened).isEqualTo(0)
+    }
+
     private fun Chunk.toStored() = ChunkInput(
         ordinal = ordinal, headingPath = headingPath.ifBlank { null }, page = page, content = content,
         tokenEstimate = 1, embedding = FakeTextEmbedder.vectorOf(content),
     )
 }
-

@@ -88,6 +88,14 @@ class IndexViewModelTest {
         advanceUntilIdle()
         assertThat(viewModel.state.value.action).isEqualTo(IndexAction.Pause)
 
+        repository.state.value = active(PauseReason.SYSTEM_LIMIT)
+        advanceUntilIdle()
+        assertThat(viewModel.state.value.action).isEqualTo(IndexAction.Pause)
+
+        repository.state.value = active(PauseReason.NO_SPACE)
+        advanceUntilIdle()
+        assertThat(viewModel.state.value.action).isEqualTo(IndexAction.Resume)
+
         repository.state.value = active(PauseReason.MODEL_MISSING)
         advanceUntilIdle()
         assertThat(viewModel.state.value.action).isNull()

@@ -106,6 +106,9 @@ class FakeIngestScheduler : com.lisdatasolutions.microrag.data.ingest.IngestSche
     val replaced = mutableListOf<List<Long>>()
     var cancels = 0
 
+    /** Runs inside cancel(), to see what was saved before it. */
+    var onCancel: () -> Unit = {}
+
     override suspend fun enqueue(documentIds: List<Long>) {
         enqueued += documentIds
         activeDocumentIds.value = activeDocumentIds.value + documentIds
@@ -119,6 +122,7 @@ class FakeIngestScheduler : com.lisdatasolutions.microrag.data.ingest.IngestSche
     }
 
     override suspend fun cancel() {
+        onCancel()
         cancels++
         activeDocumentIds.value = emptySet()
         work.value = com.lisdatasolutions.microrag.data.ingest.IngestWork.NONE
