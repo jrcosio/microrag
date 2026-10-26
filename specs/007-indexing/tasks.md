@@ -89,13 +89,13 @@ description: "Lista de tareas de F07 — Indexación"
 
 ### Tests (primero, deben fallar)
 
-- [ ] T004 [P] `…/test/domain/rag/DocumentTitleTest.kt` (research R11):
+- [X] T004 [P] `…/test/domain/rag/DocumentTitleTest.kt` (research R11):
   - «Manual técnico.pdf» → «Manual técnico»;
   - «notas» queda igual;
   - «.bashrc» queda igual;
   - «a.b.pdf» → «a.b»;
   - una extensión de 11 caracteres o no alfanumérica no se quita.
-- [ ] T005 [P] `…/test/rag/runtime/EmbeddingOverflowTest.kt`: lee `offline/golden/embedding_overflow.jsonl` desde `sharedTest` y exige la misma secuencia de recortes (R6).
+- [X] T005 [P] `…/test/rag/runtime/EmbeddingOverflowTest.kt`: lee `offline/golden/embedding_overflow.jsonl` desde `sharedTest` y exige la misma secuencia de recortes (R6).
 - [ ] T006 [P] Ampliar `…/test/rag/runtime/EngineCoordinatorTest.kt` (research R4):
   - `withHeldEngine` mantiene el engine durante el bloque y solo acepta engines de embedding;
   - `releaseUnheld` cierra los no retenidos y respeta el retenido;
@@ -133,8 +133,8 @@ description: "Lista de tareas de F07 — Indexación"
 - [ ] T011 [P] Crear en `…/microrag/domain/indexing/`:
   - `IndexingModels.kt`: `IndexingState`, `RunProgress`, `CurrentDocument`, `PauseReason` y `FailedDocument`;
   - `IndexingRepository.kt` (contracts/indexing-api.md).
-- [ ] T012 [P] Crear `…/microrag/domain/rag/DocumentTitle.kt` (R11). Comprobar T004.
-- [ ] T013 [P] Crear en `…/microrag/rag/runtime/`:
+- [X] T012 [P] Crear `…/microrag/domain/rag/DocumentTitle.kt` (R11). Comprobar T004.
+- [X] T013 [P] Crear en `…/microrag/rag/runtime/`:
   - `EmbeddingOverflow.kt` (R6) y `DocumentEmbedding`;
   - `EmbeddingInputTooLongException` y `EmbeddingEngineException`.
 

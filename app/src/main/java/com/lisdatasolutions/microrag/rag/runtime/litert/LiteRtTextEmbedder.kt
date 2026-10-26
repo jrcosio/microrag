@@ -4,12 +4,18 @@ import com.google.ai.edge.litertlm.EmbeddingEngine
 import com.google.ai.edge.litertlm.EmbeddingEngineConfig
 import com.google.ai.edge.litertlm.EmbeddingOptions
 import com.google.ai.edge.litertlm.InputData
+import com.google.ai.edge.litertlm.LiteRtLmJniException
 import com.lisdatasolutions.microrag.domain.model.ComputeBackend
 import com.lisdatasolutions.microrag.domain.model.ModelId
+import com.lisdatasolutions.microrag.rag.runtime.DocumentEmbedding
+import com.lisdatasolutions.microrag.rag.runtime.EmbeddingEngineException
+import com.lisdatasolutions.microrag.rag.runtime.EmbeddingInputTooLongException
 import com.lisdatasolutions.microrag.rag.runtime.EmbeddingMath
+import com.lisdatasolutions.microrag.rag.runtime.EmbeddingOverflow
 import com.lisdatasolutions.microrag.rag.runtime.EmbeddingPrefixes
 import com.lisdatasolutions.microrag.rag.runtime.TextEmbedder
 import java.io.File
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 
@@ -54,15 +60,37 @@ internal class LiteRtTextEmbedder(
     override suspend fun embedDocument(content: String, header: String): FloatArray =
         embed(EmbeddingPrefixes.document(content, header))
 
-    private suspend fun embed(input: String): FloatArray = withContext(dispatcher) {
+    override suspend fun embedDocumentFitting(content: String, header: String): DocumentEmbedding = withContext(dispatcher) {
+        var input = EmbeddingPrefixes.document(content, header)
+        repeat(EmbeddingOverflow.MAX_ATTEMPTS) { attempt ->
+            try {
+                return@withContext DocumentEmbedding(compute(input), cuts = attempt)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                if (!e.isInputTooLong()) throw EmbeddingEngineException(e)
+                input = EmbeddingOverflow.cut(input)
+            }
+        }
+        throw EmbeddingInputTooLongException()
+    }
+
+    private suspend fun embed(input: String): FloatArray = withContext(dispatcher) { compute(input) }
+
+    /** Blocking; runs on [dispatcher]. */
+    private fun compute(input: String): FloatArray {
         val engine = checkNotNull(engine) { "Embedder for $model is not initialized" }
         val raw = engine.computeEmbedding(
             listOf(InputData.Text(input)),
             EmbeddingOptions(normalize = false, outputSize = null),
         ).embedding
         rawDimensions = raw.size
-        EmbeddingMath.truncateAndNormalize(raw)
+        return EmbeddingMath.truncateAndNormalize(raw)
     }
+
+    /** What LiteRT-LM 0.18.1 says for an input over [MAX_INPUT_LENGTH] tokens (F07 research R6, T002). */
+    private fun Exception.isInputTooLong(): Boolean =
+        this is LiteRtLmJniException && message?.contains(TOO_LONG_MESSAGE) == true
 
     override fun close() {
         engine?.close()
@@ -71,5 +99,6 @@ internal class LiteRtTextEmbedder(
 
     private companion object {
         const val MAX_INPUT_LENGTH = 512
+        const val TOO_LONG_MESSAGE = "exceeds maximum supported signature length"
     }
 }

@@ -17,6 +17,14 @@ interface TextEmbedder : ManagedEngine {
     /** Embeds a document chunk with [EmbeddingPrefixes.DOCUMENT] and its contextual [header]. */
     suspend fun embedDocument(content: String, header: String = ""): FloatArray
 
+    /**
+     * Embeds a chunk for indexing, cutting the embedded text with the D-036 rule while the model
+     * rejects it as too long (F07 research R6). Throws [EmbeddingInputTooLongException] after
+     * [EmbeddingOverflow.MAX_ATTEMPTS] attempts and [EmbeddingEngineException] on any other failure.
+     */
+    suspend fun embedDocumentFitting(content: String, header: String): DocumentEmbedding =
+        DocumentEmbedding(embedDocument(content, header), cuts = 0)
+
     /** Size of the raw model output before truncation; null until the first embedding. */
     val rawDimensions: Int?
 }
