@@ -534,6 +534,34 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
 
 ---
 
+## D-038 — Diseño de la importación (plan de F06)
+
+- **Fecha:** 2026-10-26
+- **Decisión:**
+  1. **Esquema v2:** `documents` gana `skipped_pages INTEGER` (páginas de PDF sin texto omitidas) y `SCHEMA_VERSION` pasa a 2, con la migración `1 → 2` (`ALTER TABLE … ADD COLUMN`). El espacio vectorial no cambia.
+  2. **Intentos de importación:** un archivo que aún se está copiando, o que falló antes de registrarse, vive en memoria en el *scope* de aplicación. Sobrevive a la recreación de la Activity, pero no a la muerte del proceso. Los documentos registrados sí persisten en el índice.
+  3. **Sin concesiones persistentes de URI:** se copia al volver del selector y no se guarda acceso al original (G22).
+  4. **Un solo camino para PDF:** `PdfRendererPreV` en todos los dispositivos con la extensión S ≥ 13, incluido Android 15+.
+  5. **Trabajo único** `ingest` con `APPEND_OR_REPLACE`. Los ids van en `inputData`, con una etiqueta por documento para derivar «En cola». Sin servicio en primer plano en F06; lo añade F07.
+  6. **Extracción compartida con el escritorio:** la app porta la semántica Python de `extract.py`, comprobada con un golden. `extract.py` lee con `decode_text` (UTF-8 con BOM opcional, respaldo cp1252), lo que no cambia la extracción del corpus de F05.
+- **Motivo:**
+  - El recuento de páginas sin texto debe sobrevivir a un reinicio (US3-4, FR-008), y F08 podrá mostrarlo.
+  - Un intento fallido no tiene copia que conservar, y su URI no se puede releer tras la muerte del proceso.
+  - Un solo camino de PDF es más fácil de probar.
+  - La cola debe distinguir «Listo» de «En cola» sin una tabla nueva.
+  - La evaluación de F05 solo representa a la app si ambas extraen igual.
+- **Alternativas descartadas:**
+  - guardar las páginas omitidas en `documents.error`, o no persistirlas;
+  - persistir los intentos en DataStore;
+  - permisos persistentes de URI;
+  - `PdfRenderer` en API 35+ con `PdfRendererPreV` por debajo;
+  - `ExistingWorkPolicy.KEEP`;
+  - un worker por documento.
+- **Origen:** plan de F06 (research R2–R11).
+- **Afecta:** F06; F07 (amplía el worker y reutiliza la extracción); F08 (`skipped_pages`); `offline/` (esquema v2 en `appconfig` y reconstrucción de índices).
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.
