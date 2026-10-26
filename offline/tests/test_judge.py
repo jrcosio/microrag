@@ -17,8 +17,17 @@ class NormalizationTest(unittest.TestCase):
     def test_key_facts_ignore_case_accents_punctuation_and_thousands(self):
         self.assertTrue(judge.has_key_facts("El plazo es de TREINTA días (art. 5).", ["treinta dias"]))
         self.assertTrue(judge.has_key_facts("Hasta 1.000 euros.", ["1000 euros"]))
+        self.assertTrue(judge.has_key_facts("Gasta 1,632 calorías.", ["1.632 calorías"]))
         self.assertFalse(judge.has_key_facts("Hasta 100 euros.", ["1000 euros"]))
         self.assertFalse(judge.has_key_facts("Hasta 10 euros.", ["1 euros"]))
+
+    def test_key_facts_allow_word_forms_and_order(self):
+        # Cases from the manual check of the rule (D-032 calibration).
+        self.assertTrue(judge.has_key_facts("puede ser renovado otro periodo", ["renovarse"]))
+        self.assertTrue(judge.has_key_facts("deben ser destruidos o devueltos al responsable", ["destruyen", "devuelven al responsable"]))
+        self.assertTrue(judge.has_key_facts("deberán previamente consultar los sistemas", ["consultar previamente"]))
+        self.assertFalse(judge.has_key_facts("la versión 10.7 o superior", ["10.4 o superior"]))
+        self.assertFalse(judge.has_key_facts("en cinco meses", ["sesenta días"]))
 
 
 class RefusalTest(unittest.TestCase):

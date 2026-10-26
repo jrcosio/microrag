@@ -13,7 +13,8 @@ from dataclasses import dataclass
 from eval.prompt import REFUSAL
 
 CITATION = re.compile(r"\[(\d+(?:\s*,\s*\d+)*)\]")
-THOUSANDS = re.compile(r"(?<=\d)[.\s](?=\d{3}\b)")
+THOUSANDS = re.compile(r"(?<=\d)[.,\s](?=\d{3}\b)")
+STEM = 5  # words match by their first 5 letters: renovado ~ renovarse, destruidos ~ destruyen
 
 
 def norm(text):
@@ -23,9 +24,15 @@ def norm(text):
     return " ".join(re.sub(r"[^\w]+", " ", plain).split())
 
 
+def _stems(text):
+    return [w if w.isdigit() else w[:STEM] for w in norm(text).split()]
+
+
 def has_key_facts(answer, facts):
-    padded = f" {norm(answer)} "
-    return all(f" {norm(fact)} " in padded for fact in facts)
+    """Every word of every fact appears in the answer, in any order, compared by its first letters
+    (calibrated against the manual judgement, D-032). Numbers must match exactly."""
+    words = set(_stems(answer))
+    return all(all(w in words for w in _stems(fact)) for fact in facts)
 
 
 def is_refusal(answer):

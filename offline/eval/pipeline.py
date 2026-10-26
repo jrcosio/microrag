@@ -392,3 +392,70 @@ def calibrate_budget(config, start=None, step=50, quantile=95):
                 return budget, trace
             budget -= step
     raise SystemExit("no budget fits the prompt limit")
+
+
+# --- manual judgement ------------------------------------------------------------------------------
+
+MANUAL_FIELDS = ["id", "tipo", "pregunta", "respuesta_esperada", "datos_clave", "respuesta_modelo", "fuentes",
+                 "regla", "regla_citas", "manual", "manual_citas", "comentario"]
+
+
+def export_manual(config, path):
+    """Answers of a generation run with the rule verdicts, ready to be judged by hand (FR-021)."""
+    import csv
+
+    ctx = load_context(config.build)
+    fingerprint = EvalConfig.fingerprint(config, *fingerprints(ctx, config))
+    folder = run_dir(fingerprint)
+    retrieval_fp = json.loads((folder / "config.json").read_text())["retrieval"]
+    blocks = {json.loads(l)["id"]: json.loads(l)["blocks"] for l in (run_dir(retrieval_fp) / "retrieval.jsonl").read_text(encoding="utf-8").splitlines()}
+    by_id = {q.id: q for q in live_questions()}
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8-sig", newline="") as out:
+        writer = csv.DictWriter(out, fieldnames=MANUAL_FIELDS)
+        writer.writeheader()
+        for line in (folder / "answers.jsonl").read_text(encoding="utf-8").splitlines():
+            a = json.loads(line)
+            q = by_id[a["id"]]
+            j = a["judge"]
+            sources = " || ".join(f"[{n}] {b['document_name'][:40]} › {b['heading_path'] or ''} (ord. {b['first_ordinal']}-{b['last_ordinal']})"
+                                  for n, b in enumerate(blocks[a["id"]], start=1))
+            writer.writerow({
+                "id": q.id, "tipo": q.type, "pregunta": q.question, "respuesta_esperada": q.expected_answer or "",
+                "datos_clave": " | ".join(q.key_facts), "respuesta_modelo": a["answer"], "fuentes": sources,
+                "regla": "correcta" if j["correct"] else "incorrecta",
+                "regla_citas": f"{j['citations_ok']}/{j['citations_total']}", "manual": "", "manual_citas": "", "comentario": "",
+            })
+    return path
+
+
+def rejudge():
+    """Judges every stored answer again with the current rules and refreshes the stored metrics."""
+    from eval.selector import ContextBlock
+
+    questions = {q.id: q for q in testset.load()}
+    contexts, refreshed = {}, {}
+    for answers_path in sorted(builds.BUILD.joinpath("runs").glob("*/answers.jsonl")):
+        folder = answers_path.parent
+        meta = json.loads((folder / "config.json").read_text())
+        config = EvalConfig(**meta["config"])
+        ctx = contexts.setdefault(config.build, load_context(config.build))
+        rows = {json.loads(l)["id"]: json.loads(l) for l in (run_dir(meta["retrieval"]) / "retrieval.jsonl").read_text(encoding="utf-8").splitlines()}
+        lines = []
+        for line in answers_path.read_text(encoding="utf-8").splitlines():
+            a = json.loads(line)
+            q, row = questions[a["id"]], rows[a["id"]]
+            blocks = [ContextBlock(**b) for b in row["blocks"]]
+            a["judge"] = dataclasses.asdict(judge.judge_answer(q.type, a["answer"], q.key_facts, blocks, _pairs(ctx, row["relevant"])))
+            lines.append(json.dumps(a, ensure_ascii=False))
+        answers_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        refreshed[meta["fingerprint"]] = generation_metrics(config, meta["fingerprint"], answers_path, None, 0)
+    stored = json.loads(ABLATIONS_FILE.read_text()) if ABLATIONS_FILE.exists() else {}
+    for key, results in stored.items():
+        for r in results:
+            if r.get("fingerprint") in refreshed:
+                seconds = r.get("seconds")
+                r.update({k: v for k, v in refreshed[r["fingerprint"]].items() if k not in ("seconds", "generated_now")})
+                r["seconds"] = seconds
+    ABLATIONS_FILE.write_text(json.dumps(stored, ensure_ascii=False, indent=1))
+    return refreshed

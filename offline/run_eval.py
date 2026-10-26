@@ -12,7 +12,7 @@ sys.path.insert(0, str(HERE))  # -I leaves the script directory out of sys.path
 
 COMMANDS = [
     "fetch-corpus", "sources", "build", "validate-testset", "review-sheet", "review-apply", "sample",
-    "retrieve", "generate", "ablations", "report", "chunker-golden", "calibrate",
+    "retrieve", "generate", "ablations", "report", "chunker-golden", "calibrate", "rejudge",
 ]
 
 
@@ -201,6 +201,12 @@ def chunker_golden(args):
     print(f"{cases} cases, {chunks} chunks -> {golden.GOLDEN}")
 
 
+def rejudge(args):
+    from eval import pipeline
+
+    print(f"{len(pipeline.rejudge())} runs judged again")
+
+
 def report(args):
     from eval import report as report_module
 
@@ -210,7 +216,7 @@ def report(args):
 HANDLERS = {
     "fetch-corpus": fetch_corpus, "sources": sources, "build": build, "sample": sample,
     "validate-testset": validate_testset, "review-sheet": review_sheet, "review-apply": review_apply,
-    "retrieve": retrieve, "generate": generate, "ablations": ablations, "report": report, "calibrate": calibrate, "chunker-golden": chunker_golden,
+    "retrieve": retrieve, "generate": generate, "ablations": ablations, "report": report, "calibrate": calibrate, "chunker-golden": chunker_golden, "rejudge": rejudge,
 }
 
 
