@@ -457,6 +457,58 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
 
 ---
 
+## D-034 — Parámetros de recuperación y contexto (evaluación de F05)
+
+- **Fecha:** 2026-10-26
+- **Decisión:** los parámetros de la tabla, con la cifra de `offline/reports/eval-report.md` que justifica cada uno. Quedan en `offline/config/rag_parameters.json` y en `RagParameters.kt`, y una prueba JVM mantiene los dos iguales.
+
+  | Parámetro | Valor | Cifra que lo justifica | Alternativas descartadas |
+  |---|---|---|---|
+  | Recuperación | Híbrida: vector + FTS5, RRF k = 60, 50 candidatos por lista | MRR híbrido 0,810 frente a 0,776 (vector) y 0,743 (FTS); Recall@20 0,984 | Solo vector, solo FTS |
+  | Normalizador léxico | SpanishText v1 (palabras vacías + stemmer) | MRR híbrido 0,810 y Recall@bloques 0,862, los mejores | Sin normalizar (FTS R@20 0,882); solo palabras vacías (MRR 0,777) |
+  | Cabecera contextual | Sí | nDCG@10 vectorial 0,806 frente a 0,766 sin ella | Sin cabecera |
+  | Tamaño de fragmento | 350 tokens: objetivo 1.594 y máximo 2.113 caracteres, con 4,554 caracteres por token medidos | MRR 0,810 frente a 0,786 (250) y 0,797 (500) | 250 tokens; 500 tokens (recorta el 22 % de las entradas de embedding) |
+  | Regla de seguimiento | Sí | Recall@20 de seguimientos 0,98 frente a 0,79 sin ella | Sin regla |
+  | Dimensión | 256 (decidido por el usuario) | Híbrido igual que 512: MRR 0,810 frente a 0,811. El nDCG@10 solo vectorial pierde un 3,3 % frente a 768 (la regla del informe pide ≤ 1 %); se acepta porque la búsqueda de la app es híbrida y 512 duplicaría el coste en el móvil | 128 (nDCG 0,752), 512, 768 |
+  | Contexto | 4 bloques, sin vecinos, como mucho 3 por documento, presupuesto de 1.719 tokens | Respuestas 68,9 % con la regla, a 0,6 puntos de la mejor variante, con un p95 de prompt un 16–18 % más corto (1.630 tokens) | 6 u 8 bloques, con o sin vecinos |
+  | Prompt | Plantilla del informe; límite de 2.000 tokens en el p95 | Todas las variantes calibradas quedan ≤ 2.000 (constitución IV, D-026) | Plantilla v2 (no mejora y baja la negativa al 91 %) |
+  | LLM | Gemma 4 E2B (D-023) | Ver D-035 | E4B (a F14) |
+
+- **Origen:** evaluación de F05. El usuario eligió la dimensión.
+- **Afecta:** F06 (troceado), F07 (indexación), F10 (recuperación) y F11 (contexto y prompt).
+
+---
+
+## D-035 — Umbral de respuestas correctas no alcanzado; se acepta con E2B (cierre de F05)
+
+- **Fecha:** 2026-10-26
+- **Decisión:** se acepta la configuración de D-034 con Gemma 4 E2B. En el juicio manual de las 426 respuestas da un **78,4 %** de respuestas correctas, frente al 80 % del informe; la diferencia es de 1,6 puntos. El resto de umbrales se cumplen: negativa 96,4 % y citas 94,2 %. Es la excepción que admite SC-004 de F05.
+- **Palancas probadas (FR-022):**
+  - más bloques y vecinos: ±1 punto;
+  - plantilla v2: 0 puntos y peor negativa;
+  - 512 dimensiones: +1,4 puntos;
+  - Gemma 4 E4B: +6,5 puntos con la regla automática, pero 2,3 veces más lento. En el teléfono se estima por encima de los 5 s de primer token.
+- **Análisis de fallos:** 36 de las 80 respuestas no correctas no tenían el fragmento relevante entre los bloques del contexto, aunque estaba entre los 20 primeros candidatos (Recall@20 0,984). El presupuesto del prompt deja unos 3 bloques de media. Las otras 44 fallan con el relevante delante: 11 negativas indebidas y 33 respuestas incorrectas o incompletas.
+- **Palancas de FR-022 sin probar:** el FTS con trigramas y más candidatos. Con 50 candidatos el relevante ya está casi siempre entre los 20 primeros, así que el margen está en el orden de los primeros puestos.
+- **Seguimiento:**
+  - F10 revisa el orden dentro del presupuesto (trigramas como tercera lista de RRF, reordenación);
+  - F11 trabaja la plantilla con respuestas reales, por las negativas indebidas y las respuestas incompletas;
+  - F14 mide E4B en el teléfono (latencia y memoria) antes de proponer un cambio de modelo, que sería una feature aparte (regla P5 de F05).
+- **Origen:** usuario.
+- **Afecta:** F10, F11 y F14.
+
+---
+
+## D-036 — Entradas de embedding demasiado largas (hallazgo de F05)
+
+- **Fecha:** 2026-10-26
+- **Decisión:** si EmbeddingGemma rechaza una entrada por superar los 512 tokens, se recorta el texto embebido al 90 % de su longitud, por un espacio, y se reintenta. Solo se recorta lo que se embebe, nunca el fragmento guardado.
+- **Motivo:** LiteRT-LM 0.18.1 rechaza esas entradas y su API de Android no tiene estrategia de desbordamiento. El máximo del troceado se calcula con la densidad media de tokens, pero los fragmentos con muchas cifras o con cabeceras largas del BOE la superan. En la referencia afectó a 38 de 1.913 fragmentos (2,0 %).
+- **Origen:** evaluación de F05.
+- **Afecta:** F07 (indexación).
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.

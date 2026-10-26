@@ -5,26 +5,33 @@ Es la fuente única de los parámetros que decide F05 (constitución III). La le
 ```json
 {
   "decided_in": "F05",
-  "decisions": ["D-0xx"],
+  "decisions": ["D-034", "D-035", "D-036"],
   "dims": 256,
   "contextual_header": true,
   "normalizer_version": 1,
-  "chunk_target_chars": 1580,
-  "chunk_max_chars": 2150,
-  "chars_per_token": 4.5,
+  "chunk_target_chars": 1594,
+  "chunk_max_chars": 2113,
+  "chars_per_token": 4.554,
+  "embedding_overflow_cut": 0.9,
   "candidates": 50,
   "rrf_k": 60,
   "follow_up_rule": true,
-  "max_blocks": 6,
+  "max_blocks": 4,
   "max_per_document": 3,
-  "budget_tokens": 1750,
-  "expand_top": 2,
+  "budget_tokens": 1719,
+  "expand_top": 0,
+  "prompt_limit_tokens": 2000,
+  "prompt_template": "informe",
   "llm_model": "GEMMA4_E2B",
   "max_output_tokens": 512
 }
 ```
 
-Los valores del ejemplo son orientativos (con `budget_tokens` ajustado a 2.000 tokens de prompt, research R6); los definitivos salen del informe de evaluación.
+Valores definitivos de F05 (D-034 a D-036). Respecto al borrador del plan se añaden:
+
+- `embedding_overflow_cut`: la regla de recorte de D-036;
+- `prompt_limit_tokens`: el límite del p95 del prompt, de la constitución IV;
+- `prompt_template`: la plantilla elegida (`informe`).
 
 ## Reglas
 
