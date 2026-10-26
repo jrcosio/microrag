@@ -39,7 +39,7 @@ Al cerrar cada feature se entrega:
 | F02 | Viabilidad on-device (fase 0) | Técnica | F01 | ✅ cerrada |
 | F03 | Modelos y primer arranque | Producto | F01, F02 | ✅ cerrada (T071 TalkBack manual abierta) |
 | F04 | Núcleo de datos RAG | Técnica | F02 | ✅ cerrada |
-| F05 | Harness offline de evaluación | Técnica | F04 | 🟨 en curso (tasks) |
+| F05 | Harness offline de evaluación | Técnica | F04 | 🟨 en curso (analyze) |
 | F06 | Importación y parsing | Producto | F04 | ⬜ |
 | F07 | Indexación | Producto | F02, F06 | ⬜ |
 | F08 | Biblioteca y detalle de documento | Producto | F07 | ⬜ |
