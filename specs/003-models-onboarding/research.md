@@ -17,6 +17,18 @@
 - **Dependencias transitivas:** `room-runtime` 2.7.0, `kotlinx-coroutines-android` 1.9.0 (Gradle la resuelve a la 1.11.0 del proyecto), `core` 1.12.0 (resuelve a 1.19.1) y `startup-runtime` 1.1.1.
 - **Servicio:** declara `SystemForegroundService` sin `foregroundServiceType`. El proyecto lo fusiona con `dataSync` (R3).
 
+**Resueltas en el build** (T002, `:app:dependencies --configuration debugRuntimeClasspath`):
+- `work-runtime` 2.12.0, con `room-runtime` 2.7.0 y `androidx.sqlite` 2.5.0, que F04 elevará con `sqlite-bundled` 2.7.1;
+- `kotlinx-coroutines-android` 1.11.0;
+- `core` 1.19.1;
+- `startup-runtime` 1.1.1;
+- `datastore-preferences` 1.2.1, con `okio` 3.9.1.
+
+**Inicialización de WorkManager bajo demanda.** Se elimina el `WorkManagerInitializer` de App Startup y `MicroRagApplication` implementa `Configuration.Provider`, así:
+- WorkManager no abre su base de datos en cada arranque (SC-007);
+- en API ≥ 34, donde la descarga va por UIDT, no se inicializa nunca;
+- tras reiniciar el teléfono, `RescheduleReceiver` lo inicializa al llamar a `getInstance`.
+
 **DataStore 1.3.0** es la release más reciente (2026-10-21, cinco días antes de este plan). Se elige la 1.2.1, madura y con la misma API de `Preferences`. La 1.3.0 se reevalúa en F12.
 
 **Sin cliente HTTP de terceros.** El descargador usa `HttpsURLConnection` de la plataforma (R2). Así no entra ninguna librería de red en el APK, y la comprobación de confinamiento (R9) es más simple.

@@ -94,6 +94,8 @@ dependencies {
         // LiteRT-LM 0.18.1 pulls kotlin-reflect 2.4.0; keep it aligned with the Kotlin compiler.
         implementation(libs.kotlin.reflect)
     }
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.datastore.preferences)
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
 
@@ -110,6 +112,8 @@ dependencies {
     testImplementation(libs.androidx.espresso.core)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.koin.test.junit4)
+    testImplementation(libs.androidx.work.testing)
+    testImplementation(libs.mockwebserver3)
 
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.test.core)
