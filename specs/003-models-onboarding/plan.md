@@ -155,7 +155,7 @@ app/src/main/java/com/lisdatasolutions/microrag/
 │   ├── models/
 │   │   ├── DefaultModelFileRepository.kt       # + adopt, installFromStream, markPrepared, registro en refresh
 │   │   ├── ModelFileRepository.kt
-│   │   ├── ModelDirs.kt                        # models/, models/downloads/
+│   │   ├── AppDirs.kt                          # models/, models/downloads/, documents/, index/
 │   │   └── VerificationRecordStore.kt
 │   ├── onboarding/DataStoreOnboardingStore.kt
 │   ├── device/AndroidDeviceResources.kt        # RAM, StatFs, ConnectivityManager

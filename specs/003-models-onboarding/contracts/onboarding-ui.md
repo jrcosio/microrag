@@ -39,7 +39,7 @@ Textos en `res/values/strings_onboarding.xml` (es, por defecto) y `res/values-en
 | `ModelSetupStatus` | Chip es | Chip en | Detalle es | Barra |
 |---|---|---|---|---|
 | `Unconfigured` | Por configurar | Not set up | — | — |
-| `Queued` | En cola | Queued | Empezará al terminar EmbeddingGemma 2 | — |
+| `Queued` | En cola | Queued | Con otro modelo delante: «Empezará al terminar %1$s». Si es el primero de la cola (job pendiente de que el sistema lo relance): «%1$s de %2$s» con los bytes ya descargados | — |
 | `Downloading` | Descargando %1$d % | Downloading %1$d% | %1$s de %2$s | determinada |
 | `Importing` | Importando %1$d % | Importing %1$d% | %1$s de %2$s | determinada |
 | `Paused` | En pausa | Paused | %1$s de %2$s · Toca para reanudar | determinada, sin animación |
@@ -87,8 +87,12 @@ Textos en `res/values/strings_onboarding.xml` (es, por defecto) y `res/values-en
   - con poca RAM, el aviso: «Este dispositivo tiene menos de 7,5 GB de memoria. Las respuestas pueden ser más lentas.»
 - **Acciones:** «Descargar» (principal), «Seleccionar archivo del dispositivo» (secundaria) y «Cancelar».
 - **Sin espacio:** si al abrirla ya no hay espacio suficiente, «Descargar» se deshabilita y se muestra «Faltan %s».
-- **«Seleccionar archivo del dispositivo»:** con varios modelos pendientes, primero se elige el modelo («¿Qué modelo vas a importar?»: Gemma 4 / EmbeddingGemma 2). Después se abre `ActivityResultContracts.OpenDocument(arrayOf("*/*"))`.
-- **Permiso de notificaciones** (API ≥ 33 y sin conceder): al pulsar «Descargar» se muestra antes un diálogo, «Avisos de descarga» / «Te avisaremos del progreso aunque salgas de la app.», con «Continuar». Después se pide el permiso del sistema.
+- **«Seleccionar archivo del dispositivo»:** importa el modelo de la **fila tocada** para abrir la confirmación. No hay selector de modelo adicional.
+  - Abre `ActivityResultContracts.OpenDocument(arrayOf("*/*"))`.
+  - Si el tamaño del documento (`OpenableColumns.SIZE`) no es el del catálogo, el resultado es «Incompatible · El archivo no corresponde a %s» al instante, sin copiar nada.
+- **Permiso de notificaciones** (API ≥ 33 y sin conceder): no hay diálogo propio, para que el flujo siga en 4 toques (SC-005).
+  - El cuerpo de la confirmación añade la línea «Te pediremos permiso para mostrarte el progreso en una notificación.» (en: «We'll ask for permission to show progress in a notification.»).
+  - Al pulsar «Descargar» se pide directamente el permiso del sistema y la descarga se programa con cualquier resultado.
 
 ## Notificación de descarga
 

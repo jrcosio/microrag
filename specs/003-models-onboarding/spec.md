@@ -190,7 +190,7 @@ Como alternativa a la descarga, el usuario elige con el selector del sistema un 
 - **Usuario que vuelve a la Bienvenida** desde la Preparación con descargas en curso: las descargas siguen. Al volver a «Comenzar», la Preparación muestra el estado real.
 - **Rotación, multiventana y escalado de fuente al 200 %:** el contenido se reorganiza sin recortes. En pantallas compactas, la ilustración de la Bienvenida cede espacio a los textos y la CTA.
 - **Permiso de notificaciones denegado** de forma permanente: la descarga funciona y la pantalla recuerda que el progreso solo se ve dentro de la app.
-- **El sistema detiene el trabajo en segundo plano** (ahorro de batería, límites de tiempo): la descarga queda «En pausa» o «Esperando conexión» y se reanuda sin perder lo descargado.
+- **El sistema detiene el trabajo en segundo plano** (ahorro de batería, límites de tiempo): la fila queda «En cola» con los bytes ya descargados (o «Esperando conexión» si no hay red) y la descarga se reanuda sin perder lo descargado.
 - **Red cautiva** (Wi-Fi con portal de inicio de sesión) **o servidor con error:** se reintenta con espera creciente. Tras varios fallos seguidos, la fila muestra «Error» con «Reintentar».
 - **Modelos ya presentes** antes de empezar (por ejemplo, copiados por la herramienta de diagnóstico de depuración): se verifican y, si son correctos, no se vuelven a descargar.
 

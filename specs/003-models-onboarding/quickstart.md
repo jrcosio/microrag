@@ -28,11 +28,14 @@ Esperado:
 
 ```bash
 # Emulador (sin modelos)
-./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.notAnnotation=com.lisdatasolutions.microrag.debug.feasibility.RequiresModels
+./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.notAnnotation=com.lisdatasolutions.microrag.debug.feasibility.RequiresModels,com.lisdatasolutions.microrag.data.download.RequiresNetwork
+
+# Emulador: prueba de humo de UIDT con descarga real de EmbeddingGemma 2 (165 MB), bajo demanda
+./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.lisdatasolutions.microrag.data.download.UidtDownloadSmokeTest
 
 # Teléfono
 ./gradlew :app:installDebug :app:installDebugAndroidTest
-$ADB -s $PHONE shell am instrument -w -e notAnnotation com.lisdatasolutions.microrag.debug.feasibility.RequiresModels \
+$ADB -s $PHONE shell am instrument -w -e notAnnotation com.lisdatasolutions.microrag.debug.feasibility.RequiresModels,com.lisdatasolutions.microrag.data.download.RequiresNetwork \
   $PKG.test/androidx.test.runner.AndroidJUnitRunner
 ```
 
@@ -46,7 +49,7 @@ Esperado:
 2. Abrir la app: aparece la **Bienvenida**, igual que el PNG 01. Atrás cierra la app.
 3. «Comenzar» → **Preparación**, «PASO 1 DE 3», con los dos modelos «Por configurar» y «Continuar» deshabilitado con su motivo.
 4. Tocar «Gemma 4»: se abre la confirmación con los dos modelos, «Total: 2,75 GB», el espacio libre y «Red: Wi-Fi».
-5. «Descargar» → explicación de notificaciones → permiso del sistema → «PASO 2 DE 3»:
+5. «Descargar» (la confirmación ya avisa del permiso) → permiso del sistema → «PASO 2 DE 3»:
    - EmbeddingGemma 2 muestra «Descargando N %» y Gemma 4, «En cola»;
    - la notificación muestra el mismo porcentaje.
 6. Al terminar EmbeddingGemma 2: «Verificando» → «Preparando» → «Listo».

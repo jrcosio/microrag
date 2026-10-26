@@ -48,5 +48,6 @@ Fuera de la lista, cualquier permiso de almacenamiento (`READ_EXTERNAL_STORAGE`,
 | Descargas parciales | `noBackupFilesDir/models/downloads/` |
 | Registro de verificación | `noBackupFilesDir/models/verification.json` |
 | Preferencias del onboarding | `noBackupFilesDir/datastore/onboarding.preferences_pb` |
+| Documentos e índice (se crean vacíos; los usan F06 y F04) | `noBackupFilesDir/documents/` y `noBackupFilesDir/index/` |
 | Base interna de WorkManager | `databases/` (gestionada por la librería, excluida de copias por `dataExtractionRules`) |
 | Caché de kernels de LiteRT-LM | `cacheDir/litertlm/` (F02) |

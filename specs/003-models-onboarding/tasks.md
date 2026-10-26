@@ -52,8 +52,7 @@ description: "Lista de tareas de F03 — Modelos y primer arranque"
   - estados de fila, detalles y motivos;
   - bloqueo de «Continuar»;
   - confirmación;
-  - selector de modelo a importar;
-  - explicación de notificaciones;
+  - línea de aviso del permiso de notificaciones en la confirmación;
   - aviso de notificaciones denegadas;
   - canal y textos de la notificación;
   - descripciones accesibles.
@@ -117,7 +116,7 @@ description: "Lista de tareas de F03 — Modelos y primer arranque"
   - `SetupStep.kt`, con `SetupStepResolver`, `ContinueBlocker` y `StorageStatus`.
 - [ ] T012 [P] Interfaces de dominio en `…/microrag/domain/onboarding/`: `OnboardingStore.kt`, `DeviceResources.kt` y `ModelDownloadController.kt` (contracts/download-api.md § Dominio). También `PreparationState` en `ModelSetupStatus.kt` o en un fichero propio.
 - [ ] T013 `…/microrag/domain/onboarding/ModelSetupStatusResolver.kt`: función pura según data-model §2. Hace pasar T005 y T006, junto con `SetupStepResolver` de T011.
-- [ ] T014 [P] `…/microrag/data/models/ModelDirs.kt` (`models/` y `models/downloads/` bajo `noBackupFilesDir`) y `VerificationRecordStore.kt` (kotlinx-serialization, `tmp` + `rename`). Hace pasar T007.
+- [ ] T014 [P] `…/microrag/data/models/AppDirs.kt` (`models/`, `models/downloads/`, `documents/` e `index/` bajo `noBackupFilesDir`, data-model §10) y `VerificationRecordStore.kt` (kotlinx-serialization, `tmp` + `rename`). Hace pasar T007.
 - [ ] T015 Ampliar `ModelFileRepository` y `DefaultModelFileRepository` con `adopt`, `installFromStream`, `markPrepared`, `preparedBackend` y el chequeo con registro en `refresh` (data-model §4 y §7).
   - `installVerified` y `verify` también escriben el registro.
   - `refresh` limpia solo los `.part` de `models/`.
@@ -131,7 +130,7 @@ description: "Lista de tareas de F03 — Modelos y primer arranque"
   - `hasInternet`, un `callbackFlow` con `ConnectivityManager.registerDefaultNetworkCallback`.
 
   No importa APIs de red (T010).
-- [ ] T018 DI: en `…/microrag/data/di/DataModule.kt`, registrar `ModelDirs`, `VerificationRecordStore`, `OnboardingStore` y `DeviceResources`, y pasar el registro a `DefaultModelFileRepository`. Actualizar `…/test/core/di/AppModulesTest.kt` (`verify()` con los `extraTypes` necesarios) y comprobarlo en verde.
+- [ ] T018 DI: en `…/microrag/data/di/DataModule.kt`, registrar `AppDirs`, `VerificationRecordStore`, `OnboardingStore` y `DeviceResources`, y pasar el registro a `DefaultModelFileRepository`. Actualizar `…/test/core/di/AppModulesTest.kt` (`verify()` con los `extraTypes` necesarios) y comprobarlo en verde.
 
 **Checkpoint**: `./gradlew :app:testDebugUnitTest :app:lintDebug` en verde. F02 sigue funcionando: diagnóstico en el emulador sin modelos.
 
@@ -205,7 +204,8 @@ description: "Lista de tareas de F03 — Modelos y primer arranque"
   - antes de cada modelo se comprueba el espacio (bytes pendientes + 500 MB), y si falta, `NoSpace(needed)` sin descargar;
   - `adopt` tras completar y `Completed`;
   - `adopt` con `Mismatch` da `Failed(HashMismatch)` y corta la cola;
-  - `progress` publica `active`, `bytesDone` y `totalBytes`;
+  - `progress` publica `active`, `bytesDone` y `totalBytes`, y `bytesDone` nunca retrocede dentro de un mismo intento (SC-004);
+  - un `IOException` de escritura con espacio insuficiente da `NoSpace(needed)` sin reintentos y conserva el parcial;
   - los logs no contienen URL ni rutas.
 - [ ] T029 [P] [US2] Tests de casos de uso en `…/test/domain/onboarding/`:
   - `BuildDownloadConfirmationUseCaseTest`: modelos pendientes, total, espacio libre y el que quedará, red y `lowRam` con 7_499_999_999 frente a 7_500_000_000;
@@ -220,10 +220,11 @@ description: "Lista de tareas de F03 — Modelos y primer arranque"
 - [ ] T031 [P] [US2] `…/test/data/download/ModelDownloadWorkerTest.kt` (work-testing y Robolectric con `sdk = 32`):
   - llama a `setForeground` con el tipo `dataSync`;
   - tolera `ForegroundServiceStartNotAllowedException`;
-  - mapea el resultado: con red, `retry`; con el resto, `success`.
+  - con cualquier resultado del runner (`Completed`, `NoSpace`, `Failed` o `Cancelled`) devuelve `success`, sin bucles de reintento (contracts/download-api.md).
 - [ ] T032 [P] [US2] `…/test/feature/onboarding/setup/SetupViewModelTest.kt`, parte de descarga con casos de uso falsos:
   - tocar una fila `Unconfigured` abre la confirmación;
-  - «Descargar» con API ≥ 33 y sin permiso emite la petición de permiso, y la descarga se programa con cualquier resultado;
+  - con API ≥ 33 y sin permiso, la confirmación incluye la línea de aviso; «Descargar» emite directamente la petición del permiso del sistema (sin diálogo propio) y la descarga se programa con cualquier resultado;
+  - salir de la Preparación (`onCleared`) no cancela ni pausa la descarga (FR-003);
   - notificaciones denegadas muestran el aviso;
   - `Downloading` → «Detener» → `Paused` → tocar → reanudar;
   - `NoSpace` en la confirmación deshabilita «Descargar».
@@ -232,6 +233,7 @@ description: "Lista de tareas de F03 — Modelos y primer arranque"
   - objetivos de 48 dp;
   - la fila fusionada con nombre, papel y estado verbal;
   - la CTA deshabilitada expone el texto de bloqueo;
+  - el chip de estado tiene `liveRegion = Polite` (FR-031);
   - fuente 2.0 sin recortes (recorrer con scroll y filtrar los nodos recortados, como en F02).
 - [ ] T034 [P] [US2] Actualizar `…/androidTest/ManifestInvariantsTest.kt` a P4' (contracts/platform-invariants.md):
   - la lista cerrada **exacta** de permisos;
@@ -252,7 +254,7 @@ description: "Lista de tareas de F03 — Modelos y primer arranque"
   - E/S en `Dispatchers.IO`.
 
   Hace pasar T027.
-- [ ] T037 [US2] `…/microrag/data/download/ModelDownloadRunner.kt`, parte básica: cola, espacio, `adopt`, `progress` (≥ 0,5 % o 500 ms) y logs sin URL. Hace pasar T028.
+- [ ] T037 [US2] `…/microrag/data/download/ModelDownloadRunner.kt`, parte básica: cola, espacio, `adopt`, `progress` (≥ 0,5 % o 500 ms), `NoSpace` ante disco lleno y logs sin URL. Hace pasar T028.
 - [ ] T038 [P] [US2] `…/microrag/data/download/DownloadNotifications.kt`:
   - canal `model_downloads` con importancia baja;
   - notificación en curso con progreso, «Detener» (`PendingIntent` inmutable a `DownloadActionReceiver`) y toque que abre `MainActivity`;
@@ -275,11 +277,13 @@ description: "Lista de tareas de F03 — Modelos y primer arranque"
   Hace pasar T034. Comprobar el manifiesto fusionado (`processDebugMainManifest`) y que el lint sigue en verde.
 - [ ] T042 [P] [US2] Casos de uso en `…/microrag/domain/onboarding/`: `ObserveModelSetupUseCase`, `BuildDownloadConfirmationUseCase`, `StartModelDownloadUseCase`, `PauseModelDownloadUseCase` y `ResumeModelDownloadUseCase`. Hace pasar T029.
 - [ ] T043 [US2] DI: en `DataModule`, registrar `ModelDownloader`, `ModelDownloadRunner` (single de proceso, compartido entre el job y la UI) y `ModelDownloadController`. Casos de uso con `factoryOf`. Actualizar `AppModulesTest`.
-- [ ] T044 [US2] **Verificación temprana (plan, riesgo 1).** Con una entrada de depuración temporal o un test instrumentado manual, programar UIDT y descargar EmbeddingGemma 2 (165 MB) de extremo a extremo:
-  - en el emulador API 37;
-  - en el teléfono API 35, respetando los modelos existentes (usar un directorio de prueba o borrar solo ese fichero y volver a copiarlo de `$HOME/MicroRAG-models` después).
+- [ ] T044 [US2] **Verificación temprana (plan, riesgo 1).** Crear la anotación `…/androidTest/data/download/RequiresNetwork.kt` y `…/androidTest/data/download/UidtDownloadSmokeTest.kt` (`@LargeTest @RequiresNetwork`).
+  - El test usa el grafo real de Koin: `ModelDownloadController.schedule` y espera, con un tiempo límite de 10 min, a que EmbeddingGemma 2 (165 MB) quede `Verified` en `ModelFileRepository`.
+  - Se ejecuta **solo en el emulador API 37**, bajo demanda (quickstart §2). Queda excluido de las ejecuciones habituales y del teléfono.
+  - Anotar en research R3: tiempo, notificación y comportamiento de la cancelación.
+  - El teléfono se valida después con la UI (T053 y T060).
 
-  Anotar en research R3: tiempo, notificación, comportamiento de «Detener» y del «Stop» del Administrador de tareas. Si UIDT no funciona como está documentado, **parar** y replantear con el usuario.
+  Si UIDT no funciona como está documentado, **parar** y replantear con el usuario.
 - [ ] T045 [P] [US2] `…/microrag/feature/onboarding/setup/SetupUiState.kt` y `SetupTexts.kt` (estado → textos, detalle, `StatusKind`, descripción accesible y bloqueo, según contracts/onboarding-ui.md). Ampliar `LisdataConfirmationDialog` en `…/microrag/core/designsystem/component/Dialogs.kt` con un slot de contenido, con su preview, sin romper los usos actuales.
 - [ ] T046 [US2] `…/microrag/feature/onboarding/setup/SetupViewModel.kt`, parte de descarga: estado combinado, confirmación, permiso de notificaciones, pausa y reanudación, y `onResumeVisible` (lo completan US3 y US4). Hace pasar T032.
 - [ ] T047 [US2] `SetupScreen.kt`, `DownloadConfirmationDialog.kt` y `SetupPreviews.kt` en `…/microrag/feature/onboarding/setup/`:
@@ -356,14 +360,16 @@ description: "Lista de tareas de F03 — Modelos y primer arranque"
   - en pausa → no programa;
   - con job en curso → no duplica;
   - ficheros completos sin registro → `verify`;
-  - parciales de modelos fuera del catálogo → se borran.
+  - parciales de modelos fuera del catálogo → se borran;
+  - último resultado `Failed` → no reprograma hasta «Reintentar»;
+  - `NoSpace` → reprograma solo si ya hay espacio suficiente.
 
   Ampliar `ObserveModelSetupUseCaseTest`: sin red y con un pedido → `WaitingForNetwork`.
 
 ### Implementation for User Story 4
 
 - [ ] T057 [US4] Completar `ModelDownloader` con `Range`, 206, 200, 416, truncado, `RangeMismatch` y la comprobación de lectura completa. Hace pasar T054.
-- [ ] T058 [US4] Completar `ModelDownloadRunner` con reintentos y espera exponencial (inyectando `delay`) y el reinicio del contador. Comprobar que el `onStopJob` y el `Result.retry` de T039 reprograman con lo descargado. Hace pasar T055.
+- [ ] T058 [US4] Completar `ModelDownloadRunner` con reintentos y espera exponencial (inyectando `delay`) y el reinicio del contador. Comprobar que el `onStopJob` de T039 y la reprogramación de WorkManager tras `isStopped` reanudan con lo descargado. Hace pasar T055.
 - [ ] T059 [US4] `ReconcileDownloadsUseCase.kt`, integrado en `SetupViewModel.onResumeVisible` antes de `PrepareModelsUseCase`. Hace pasar T056.
 - [ ] T060 [US4] Validar en el teléfono (quickstart §4):
   - muerte del proceso al ≈ 50 % de Gemma (SC-002, con los bytes transferidos);
@@ -395,7 +401,7 @@ description: "Lista de tareas de F03 — Modelos y primer arranque"
 ### Implementation for User Story 5
 
 - [ ] T063 [US5] `CompleteOnboardingUseCase.kt` y el estado de almacenamiento en `SetupViewModel`:
-  - crea las carpetas privadas (`ModelDirs`, y en `noBackupFilesDir` las de documentos e índice que usarán F04 y F06; solo se crean);
+  - crea las carpetas privadas `noBackupFilesDir/models/`, `noBackupFilesDir/documents/` y `noBackupFilesDir/index/` (`AppDirs`, data-model §10; F04 y F06 usarán esas rutas);
   - calcula el espacio;
   - abre `Settings.ACTION_INTERNAL_STORAGE_SETTINGS`.
 
@@ -419,11 +425,13 @@ description: "Lista de tareas de F03 — Modelos y primer arranque"
   - el progreso `Importing` sale de los bytes;
   - la cancelación no deja `.part`.
 
-  Ampliar `SetupViewModelTest`: elegir el modelo cuando hay dos pendientes y `onFilePicked`.
+  - un documento con tamaño distinto del catálogo da `Incompatible` sin copiar.
+
+  Ampliar `SetupViewModelTest`: `onFilePicked` importa el modelo de la fila que abrió la confirmación.
 
 ### Implementation for User Story 6
 
-- [ ] T065 [US6] `ImportModelFileUseCase.kt` (scope de aplicación y `Importing` en el `PreparationState` o en un `StateFlow` propio, combinado por `ObserveModelSetupUseCase`). En `SetupScreen` y en el diálogo: selector de modelo y `rememberLauncherForActivityResult(OpenDocument)` con `arrayOf("*/*")`. Hace pasar T064.
+- [ ] T065 [US6] `ImportModelFileUseCase.kt` (scope de aplicación y `Importing` en el `PreparationState` o en un `StateFlow` propio, combinado por `ObserveModelSetupUseCase`). En el diálogo: «Seleccionar archivo del dispositivo» lanza `rememberLauncherForActivityResult(OpenDocument)` con `arrayOf("*/*")` para el modelo de la fila tocada, sin selector adicional. Hace pasar T064.
 - [ ] T066 [US6] Validar en el teléfono el escenario US6: importación correcta y fichero ajeno (quickstart §4).
 
 ---
@@ -443,7 +451,9 @@ description: "Lista de tareas de F03 — Modelos y primer arranque"
   - duración de la verificación de cada modelo;
   - prueba de Gemma (SC-010);
   - arranque en frío con el onboarding completado (SC-007, mediana de 5);
-  - recorrido en modo avión (SC-008).
+  - recorrido en modo avión (SC-008);
+  - toques de la app desde la instalación hasta Inicio, sin contar los diálogos del sistema (SC-005: ≤ 4);
+  - relanzar en cada paso y comprobar que se recupera el mismo paso y los mismos estados (SC-006).
 - [ ] T071 Recorrido manual con TalkBack y fuente al 200 % en el teléfono (quickstart §6). Anotar los hallazgos y corregir lo que bloquee.
 - [ ] T072 [P] Comprobaciones de release (quickstart §7) en `specs/003-models-onboarding/checklists/release-verification.md`:
   - permisos exactos;
@@ -492,7 +502,7 @@ T004 ModelCatalogTest (+)            T005 ModelSetupStatusResolverTest
 T006 SetupStepResolverTest           T007 VerificationRecordStoreTest
 T008 DefaultModelFileRepositoryTest  T009 DataStoreOnboardingStoreTest
 T010 NetworkConfinementTest
-→ T011 domain/model   T012 interfaces   T014 ModelDirs + registro   T016 DataStore   T017 DeviceResources
+→ T011 domain/model   T012 interfaces   T014 AppDirs + registro   T016 DataStore   T017 DeviceResources
 → T013 resolver → T015 repositorio → T018 DI
 ```
 

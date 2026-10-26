@@ -187,8 +187,8 @@ Los bytes descargados no se guardan aparte: el tamaño del fichero `.download` e
 
 **Decisión:**
 - **Notificaciones (FR-010):** en API 33+, al pulsar «Descargar» en la confirmación, si `POST_NOTIFICATIONS` no está concedido:
-  1. una explicación breve dentro del flujo de la confirmación;
-  2. `ActivityResultContracts.RequestPermission`;
+  1. una línea de explicación dentro del cuerpo de la confirmación, sin diálogo adicional, para mantener los 4 toques de SC-005;
+  2. al pulsar «Descargar», `ActivityResultContracts.RequestPermission`;
   3. se programa la descarga con cualquier resultado.
 
   Con el permiso denegado, la Preparación muestra un aviso persistente (`LisdataInfoCard`).

@@ -187,3 +187,14 @@ sealed ContinueBlocker:
 
 - **`WelcomeScreen`:** sin estado. Su único evento es `onStart` (`stage = STARTED` y navegar a `Setup`).
 - **`StartDestination`:** `Welcome`, `SetupOverWelcome` o `Home` (research R10).
+
+## 10. Carpetas privadas (`AppDirs`)
+
+Todas están bajo `noBackupFilesDir` (constitución I) y las crea la Preparación (FR-025).
+
+| Carpeta | Contenido | Feature |
+|---|---|---|
+| `models/` | Modelos verificados y `verification.json` | F02 y F03 |
+| `models/downloads/` | Descargas parciales `.download` | F03 |
+| `documents/` | Copias privadas de los documentos importados | F06 |
+| `index/` | Base de datos RAG e índices | F04 |
