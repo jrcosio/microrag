@@ -18,11 +18,18 @@ import com.google.common.truth.Truth.assertThat
 import com.lisdatasolutions.microrag.MainActivity
 import com.lisdatasolutions.microrag.R
 import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
+import com.lisdatasolutions.microrag.domain.model.OnboardingStage
+import com.lisdatasolutions.microrag.domain.onboarding.FakeOnboardingStore
+import com.lisdatasolutions.microrag.domain.onboarding.ResolveStartDestinationUseCase
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.ExternalResource
 import org.junit.runner.RunWith
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
+import org.koin.core.context.startKoin
+import org.koin.core.context.stopKoin
+import org.koin.dsl.module
 
 /** Navigation contract N1–N8 (contracts/navigation.md, FR-016…FR-022, SC-003, SC-007). */
 @RunWith(AndroidJUnit4::class)
@@ -117,7 +124,8 @@ class NavigationTest {
     @Test
     fun n6_bottomBarOnlyOnTabRoots() {
         launchShell()
-        val secondary = listOf(Welcome, Setup, Ingest, Document(documentId = 1), Index, Languages)
+        // Welcome and Setup need the Koin graph since F03: OnboardingNavigationTest (androidTest) covers them.
+        val secondary = listOf(Ingest, Document(documentId = 1), Index, Languages)
         secondary.forEach { route ->
             compose.runOnUiThread { nav.navigate(route) }
             compose.waitForIdle()
@@ -156,7 +164,19 @@ class NavigationTest {
 @Config(application = Application::class)
 class NavigationRestorationTest {
 
-    @get:Rule
+    /** Since F03 the activity asks Koin where to start: Home, with the onboarding completed. */
+    @get:Rule(order = 0)
+    val completedOnboarding = object : ExternalResource() {
+        override fun before() {
+            startKoin {
+                modules(module { factory { ResolveStartDestinationUseCase(FakeOnboardingStore(OnboardingStage.COMPLETED)) } })
+            }
+        }
+
+        override fun after() = stopKoin()
+    }
+
+    @get:Rule(order = 1)
     val compose = createAndroidComposeRule<MainActivity>()
 
     private val context: Context = ApplicationProvider.getApplicationContext()

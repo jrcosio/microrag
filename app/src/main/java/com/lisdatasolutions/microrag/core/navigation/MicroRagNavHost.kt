@@ -6,6 +6,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import com.lisdatasolutions.microrag.feature.onboarding.welcome.WelcomeRoute
 
 /**
  * Navigation graph with every logical destination. Each feature replaces its placeholder without
@@ -15,10 +16,11 @@ import androidx.navigation.toRoute
 fun MicroRagNavHost(
     navController: NavHostController,
     modifier: Modifier = Modifier,
+    startDestination: Any = Home,
 ) {
     val back: () -> Unit = { navController.popBackStack() }
-    NavHost(navController = navController, startDestination = Home, modifier = modifier) {
-        composable<Welcome> { PendingDestination("welcome", "F03", onBack = back) }
+    NavHost(navController = navController, startDestination = startDestination, modifier = modifier) {
+        composable<Welcome> { WelcomeRoute(onStart = { navController.navigate(Setup) }) }
         composable<Setup> { PendingDestination("setup", "F03", onBack = back) }
         composable<Home> { PendingDestination("home", "F09") }
         composable<Chat> { entry ->
