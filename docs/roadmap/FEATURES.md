@@ -38,7 +38,7 @@ Al cerrar cada feature se entrega:
 | F01 | Fundaciones y design system | Producto (shell y DS) | — | ✅ cerrada (T059 TalkBack manual abierta) |
 | F02 | Viabilidad on-device (fase 0) | Técnica | F01 | ✅ cerrada |
 | F03 | Modelos y primer arranque | Producto | F01, F02 | ✅ cerrada (T071 TalkBack manual abierta) |
-| F04 | Núcleo de datos RAG | Técnica | F02 | 🟨 en curso (analyze) |
+| F04 | Núcleo de datos RAG | Técnica | F02 | 🟨 en curso (analyze; pendiente de revisión) |
 | F05 | Harness offline de evaluación | Técnica | F04 | ⬜ |
 | F06 | Importación y parsing | Producto | F04 | ⬜ |
 | F07 | Indexación | Producto | F02, F06 | ⬜ |
@@ -227,7 +227,7 @@ También se introduce `EngineCoordinator`, que garantiza que nunca haya dos engi
 ## F04 — Núcleo de datos RAG
 
 - **Tipo:** Técnica. Sin UI; diagnóstico de la base opcional en debug.
-- **Estado:** 🟨 en curso: spec y clarify aprobados el 2026-10-26 (`specs/004-rag-data-core/`, D-030); plan en curso.
+- **Estado:** 🟨 en curso: spec y clarify aprobados el 2026-10-26 (`specs/004-rag-data-core/`, D-030). Plan, tareas (52) y analyze terminados, con las correcciones aplicadas; pendientes de revisión.
 
 **Objetivo.** Construir la capa de datos del RAG:
 - `schema.sql` en `assets/`, ampliado según G27;

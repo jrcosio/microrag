@@ -90,7 +90,7 @@ F04 construye la capa de datos local del RAG y la garantía de compatibilidad en
 | III. RAG según el informe | Esquema, triggers, BM25 3/1, `vector_init` en cada conexión, normalizador idéntico al del informe con golden en los dos lados, `rag_meta` validado al abrir, prefijos de F02 y 256D con L2 | ✅ (G27 ampliado, D-030) |
 | IV. Rendimiento | Una conexión en `AppDispatchers.database` (un solo hilo y un solo escritor). Modo estricto en debug. Lotes en transacción. Medición con 10k fragmentos (SC-008) | ✅ |
 | V. Veracidad del estado | Un índice incompatible o ilegible no devuelve resultados y expone el motivo. Lotes atómicos: nunca un documento a medias por un lote roto | ✅ |
-| VI. Calidad y pruebas | Pruebas instrumentadas obligatorias de SQLite (con SQLite-Vector, FTS5, triggers y migraciones), del normalizador frente al golden y de la compatibilidad de embeddings ≥ 0,99, en CPU y GPU | ✅ |
+| VI. Calidad y pruebas | Pruebas instrumentadas obligatorias de SQLite (con SQLite-Vector, FTS5, triggers y migraciones), del normalizador frente al golden y de la compatibilidad de embeddings ≥ 0,99, en CPU y GPU. Las pruebas unitarias del repositorio (`DefaultRagIndex`) son instrumentadas, sobre un fichero temporal: SQLite-Vector solo existe como nativa de Android. Su lógica pura (compatibilidad, esquema, BLOB, configuración) se prueba en la JVM | ✅ |
 | VII. UI | Sin UI (D-030) | N/A |
 | VIII. Proceso | Documentación en español y código en inglés. D-030. Parada tras analyze | ✅ |
 
@@ -144,6 +144,7 @@ app/src/release/java/.../debug/DebugStrictMode.kt # stub sin efecto
 
 app/src/test/java/com/lisdatasolutions/microrag/
 ├── rag/text/{SpanishTextTest, NormalizerGoldenTest}.kt
+├── rag/runtime/EmbeddingGoldenFileTest.kt          # meta, entradas y normas del golden de embeddings
 ├── domain/rag/{IndexCompatibilityCheckerTest, RagIndexConfigTest}.kt
 └── data/rag/{RagSchemaTest, VectorBlobsTest}.kt
 app/src/androidTest/java/com/lisdatasolutions/microrag/
@@ -155,13 +156,14 @@ app/src/androidTest/java/com/lisdatasolutions/microrag/
 │   ├── RagIndexStrictModeTest.kt                # SC-007
 │   └── RagIndexBenchmarkTest.kt                 # SC-008 (10k fragmentos, p50/p95 al log)
 ├── rag/text/NormalizerGoldenInstrumentedTest.kt
-└── rag/runtime/EmbeddingGoldenTest.kt           # @RequiresModels, CPU y GPU
+├── rag/runtime/EmbeddingGoldenTest.kt           # @RequiresModels, CPU y GPU
+└── testing/TempRagIndex.kt                      # índice temporal en cacheDir y conexión cruda
 
 offline/                                          # contracts/offline-golden.md
 ├── README.md, requirements.txt
 ├── normalizer.py, embedding_text.py
 ├── gen_normalizer_golden.py, gen_embedding_golden.py
-├── tests/{test_normalizer.py, test_embedding_text.py}
+├── tests/{__init__.py, test_normalizer.py, test_embedding_text.py}
 └── golden/{normalizer_inputs.txt, normalizer_golden.jsonl, embedding_texts.jsonl, embedding_golden.jsonl}
 ```
 
@@ -192,7 +194,7 @@ Ver research R10. Además:
 
 1. **Primera tarea tras añadir las dependencias:** `VectorExtensionLoadTest`, que carga la extensión y ejecuta `vector_version()` en el emulador y en el teléfono. Si falla en el teléfono, se aplica el plan B de R2 antes de seguir.
 2. **WorkManager con `androidx.sqlite` 2.7.1:** se ejecutan sus tests JVM justo después de añadir las dependencias.
-3. **Golden de embeddings en GPU por debajo de 0,99:** se documenta y queda D-030 (el teléfono indexa en CPU). La parte de CPU es la que bloquea.
+3. **Golden de embeddings en GPU por debajo de 0,99:** la prueba falla (FR-021). Se documenta, se para y se consulta al usuario antes de cerrar F04. Por D-030 y D-024, ese teléfono indexaría en CPU.
 
 ## Complexity Tracking
 

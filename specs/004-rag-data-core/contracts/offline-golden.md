@@ -38,12 +38,14 @@ offline/
 | O3 | `gen_embedding_golden.py` verifica el SHA-256 del modelo. Usa `Backend.CPU()`, `max_input_length=512` y `EmbeddingOptions(normalize=False)`. Construye las entradas como `EmbeddingPrefixes`, trunca a 256 con L2 como `EmbeddingMath` y escribe la cabecera `meta` |
 | O4 | Los golden son ficheros de texto en el repositorio. Las pruebas de Android los leen como *assets* de `androidTest` (`sourceSets.androidTest.assets` añade `../offline/golden`) y la JVM, por ruta. No hay copias |
 | O5 | Las pruebas Python se ejecutan con `offline/.venv/bin/python -I -m unittest discover -s offline/tests` y no necesitan el modelo, salvo `gen_embedding_golden.py` |
+| O6 | El SHA-256 de `normalizer_golden.jsonl` queda fijado por versión del normalizador en `NormalizerGoldenTest` y en `test_normalizer.py`. Cambiar el golden sin subir `VERSION` hace fallar las dos pruebas (spec US3, escenario 3) |
 
 ## Pruebas en la app que consumen los golden
 
 | Prueba | Dónde | Criterio |
 |---|---|---|
 | `SpanishTextTest` | JVM | Ejemplos del informe y propiedades (dígitos intactos, palabras vacías, escapado FTS) |
-| `NormalizerGoldenTest` | JVM | 100 % de coincidencia exacta con `normalizer_golden.jsonl` |
+| `NormalizerGoldenTest` | JVM | 100 % de coincidencia exacta con `normalizer_golden.jsonl` y huella fijada (O6) |
 | `NormalizerGoldenInstrumentedTest` | Dispositivo (emulador y teléfono) | 100 % de coincidencia exacta (ICU de Android) |
-| `EmbeddingGoldenTest` | Dispositivo, `@RequiresModels` | La entrada construida por `EmbeddingPrefixes` es igual a `input`. Coseno ≥ 0,99 por par en CPU y en GPU (D-030). Informa del mínimo y la media por backend. Sin GPU: «no disponible» |
+| `EmbeddingGoldenFileTest` | JVM | `meta` con el SHA-256 del catálogo y 256 dimensiones; 50 entradas; la entrada construida por `EmbeddingPrefixes` es igual a `input`; vectores unitarios |
+| `EmbeddingGoldenTest` | Dispositivo, `@RequiresModels` | El SHA-256 del modelo del dispositivo es el de `meta`; si no, falla sin comparar. Coseno ≥ 0,99 por par en CPU y en GPU (D-030). Informa del mínimo y la media por backend. Sin GPU: «no disponible» |

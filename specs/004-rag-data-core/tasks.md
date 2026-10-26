@@ -109,7 +109,7 @@ description: "Lista de tareas de F04 — Núcleo de datos RAG"
 
 - [ ] T010 [P] Crear `…/microrag/domain/rag/RagModels.kt` y `…/microrag/domain/rag/RagIndex.kt`:
   - tipos de data-model §3, con `DocumentStatus.sqlValue`;
-  - la interfaz `RagIndex` y `IndexUnavailableException`, según contracts/rag-index-api.md.
+  - la interfaz `RagIndex`, `IndexUnavailableException` y `DuplicateDocumentException`, según contracts/rag-index-api.md.
 - [ ] T011 [P] Crear `…/microrag/rag/text/SpanishText.kt`:
   - el código del informe (§Búsqueda léxica en español), literal;
   - más `const val VERSION = 1` y un KDoc que remita al golden y a la regla de subir la versión.
@@ -141,7 +141,8 @@ description: "Lista de tareas de F04 — Núcleo de datos RAG"
   - si no está vacío, usa `IndexCompatibilityChecker`: `Compatible` publica el estado, e `Incompatible` lo publica sin tocar nada;
   - `compatibility` como `StateFlow`, que empieza en `Closed`;
   - la guarda `requireCompatible()`, que lanza `IndexUnavailableException(state)` antes de tocar la base (A2);
-  - `meta()` y `close()`;
+  - `meta()`;
+  - `close()`, que vuelve a `Closed` (la siguiente operación reabre);
   - los logs solo llevan ids, recuentos y tiempos (A10).
 - [ ] T017 Crear `…/androidTest/testing/TempRagIndex.kt`. Es el ayudante de las pruebas instrumentadas:
   - un `DefaultRagIndex` sobre `cacheDir/rag-test-<uuid>.db`, con el esquema real de *assets*, la extensión real, `RagIndexConfig.current()`, un dispatcher de un solo hilo y un `AppLogger` que captura los mensajes;
@@ -166,11 +167,12 @@ description: "Lista de tareas de F04 — Núcleo de datos RAG"
   - **Documentos:**
     - `addDocument` devuelve el id, con `source = 'user'`, `pending`, `included = true` y las fechas;
     - `updateStatus` y `setIncluded` actualizan `updated_at_ms` (reloj inyectado);
-    - `document(id)` de un id inexistente devuelve `null`.
+    - `document(id)` de un id inexistente devuelve `null`;
+    - un segundo `addDocument` con el mismo `content_hash` lanza `DuplicateDocumentException(idExistente)` y no cambia nada (A11).
   - **Escenario 2:** un lote de 5 fragmentos devuelve 5. `counts()` da `chunks = ftsRows = 5`. Se comprueban `title_norm = normalize("<nombre> › <ruta>")` y `body_norm = normalize(content)`.
   - **Escenario 3 (SC-004):** repetir el lote devuelve 0, y los recuentos no cambian.
   - **Validación (A3):**
-    - un vector de 255 componentes, ordinales repetidos dentro del lote o un documento inexistente dan `IllegalArgumentException`;
+    - un vector de 255 componentes, un vector no unitario (norma 2), ordinales repetidos dentro del lote o un documento inexistente dan `IllegalArgumentException`;
     - no se inserta nada.
   - **Escenario 5 (A4):**
     1. con `raw()`, crear un trigger `BEFORE INSERT ON chunks` que hace `RAISE(ABORT)` en el ordinal 3;
@@ -188,10 +190,11 @@ description: "Lista de tareas de F04 — Núcleo de datos RAG"
 ### Implementación
 
 - [ ] T019 [US1] En `…/microrag/data/rag/DefaultRagIndex.kt`:
-  - `addDocument`, `document`, `updateStatus`, `setIncluded` y `deleteDocument`;
+  - `addDocument`, con `DuplicateDocumentException` ante un `content_hash` existente (A11);
+  - `document`, `updateStatus` (`error` se escribe siempre y `chunkCount` solo si no es null), `setIncluded` y `deleteDocument`;
   - `counts()`, con `ftsRows` contado en `chunks_fts_docsize`, que es el índice real (en una tabla FTS5 de contenido externo, `count(*)` sobre `chunks_fts` lee `chunks`).
 - [ ] T020 [US1] En `…/microrag/data/rag/DefaultRagIndex.kt`, `insertChunks`:
-  - valida antes de la transacción (A3);
+  - valida antes de la transacción (A3): 256 componentes, norma unitaria, documento existente y ordinales distintos;
   - `INSERT OR IGNORE … vector_as_f32(?)` dentro de `transaction { }`, con `UPDATE rag_meta SET value = '1' WHERE key = 'quant_dirty'` en la misma transacción (A4);
   - `title_norm` y `body_norm` se calculan dentro, como en data-model §4;
   - devuelve el número de filas insertadas (`changes()`).
@@ -214,7 +217,7 @@ description: "Lista de tareas de F04 — Núcleo de datos RAG"
   - **Escenario 1 (SC-003):**
     - con 20 fragmentos de vectores aleatorios con semilla, la consulta con el vector de cada uno lo devuelve el primero, en el 100 % de los casos;
     - como mucho `k` resultados, con la distancia en orden ascendente;
-    - un vector de consulta de 255 componentes da `IllegalArgumentException`.
+    - un vector de consulta de 255 componentes o no unitario da `IllegalArgumentException`.
   - **Escenario 2 (A6):** un término en el título de un fragmento y en el cuerpo de otro (con la misma longitud de cuerpo): el del título va primero.
   - **Escenario 3:** «de la que» devuelve una lista vacía sin error.
   - **Escenario 4:** `R-1234 "manual"` no da error de sintaxis y encuentra el fragmento con `r-1234`.
@@ -222,12 +225,12 @@ description: "Lista de tareas de F04 — Núcleo de datos RAG"
   - **Escenario 6:** `neighbor(doc, n + 1)` devuelve el fragmento, o `null` si no existe.
   - **Índice vacío (FR-013):** las dos búsquedas devuelven listas vacías.
   - **US1, escenario 6:** tras `close()` y reabrir, la búsqueda vectorial sigue funcionando, porque `vector_init` se ejecuta en cada conexión.
-  - **A10:** ningún mensaje del logger capturado contiene el texto de un fragmento ni el de la consulta.
+  - **A10:** ningún mensaje del logger capturado contiene el texto de un fragmento, el de la consulta ni el nombre de un documento.
 
 ### Implementación
 
 - [ ] T024 [US2] En `…/microrag/data/rag/DefaultRagIndex.kt`:
-  - `vectorSearch` (A5): `vector_full_scan` con el BLOB LE, y rechazo de vectores que no tengan 256 componentes;
+  - `vectorSearch` (A5): `vector_full_scan` con el BLOB LE, y rechazo de vectores que no tengan 256 componentes o no sean unitarios;
   - `textSearch` (A6): `SpanishText.ftsQuery`; si sale vacía, devuelve una lista vacía sin consultar;
   - `loadChunks` (A7): `JOIN` con `documents`, en bloques de como mucho 500 ids;
   - `neighbor`.
@@ -397,8 +400,8 @@ description: "Lista de tareas de F04 — Núcleo de datos RAG"
 - [ ] T049 Puertas de calidad (quickstart §1–§3):
   - `./gradlew :app:assembleDebug :app:assembleRelease :app:lintDebug :app:lintRelease :app:testDebugUnitTest`;
   - pruebas Python;
-  - suite instrumentada completa en el emulador, sin `RequiresModels` ni `RequiresNetwork`;
-  - suite instrumentada en el teléfono, sin `RequiresNetwork`, incluidas `NoTrafficInstrumentedTest` y las pruebas de F02 y F03.
+  - suite instrumentada completa en el emulador y en el teléfono, sin `RequiresModels` ni `RequiresNetwork`, incluida `NoTrafficInstrumentedTest`;
+  - en el teléfono, además, `EmbeddingGoldenTest` y `RagIndexBenchmarkTest` (quickstart §3).
 
   Todo en verde.
 - [ ] T050 WorkManager con `androidx.sqlite` 2.7.1 en un dispositivo (riesgo R10-1): arrancar la AVD `MicroRAG_API33` y ejecutar `ModelDownloadSmokeTest` como en F03. Debe acabar en `SUCCESS` por la ruta WorkManager.
@@ -410,7 +413,7 @@ description: "Lista de tareas de F04 — Núcleo de datos RAG"
   - tamaño del APK y tamaño instalado frente a F03 (57,4 MB), con el coste de la extracción de nativas (research R2).
 - [ ] T052 Documentación de cierre:
   - `docs/roadmap/DECISIONS.md`: D-031, la extracción de nativas (`useLegacyPackaging`) para cargar `vector.so`, con su coste medido;
-  - `specs/004-rag-data-core/report.md`: resumen, resultados de build, lint y tests, cifras (golden CPU y GPU, medición con 10k, tamaños), diferencias frente al plan y pendientes;
+  - `specs/004-rag-data-core/report.md`: resumen, resultados de build, lint y tests, cifras con dispositivo y versiones (golden CPU y GPU, medición con 10k, tamaños; constitución VI), diferencias frente al plan y pendientes. Incluye cómo quedan cubiertos los casos límite sin prueba propia: disco lleno (el *rollback* de A4) y borrado durante una búsqueda (un solo hilo de base de datos);
   - estado de F04 en `docs/roadmap/FEATURES.md`;
   - tareas marcadas `[X]`.
 

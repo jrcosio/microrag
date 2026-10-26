@@ -211,7 +211,7 @@ Al abrirlo, la app compara esos datos con su propia configuración. Si no coinci
 
 - **FR-010**: La búsqueda vectorial exacta, siempre sobre los vectores F32, MUST devolver como mucho *k* identificadores de fragmentos ordenados por similitud de coseno (por defecto *k* = 50). La cuantización INT8 y su precarga quedan fuera de F04 (se deciden en F14, confirmado en clarify).
 - **FR-011**: La búsqueda léxica MUST:
-  - recibir una consulta ya normalizada con el normalizador;
+  - construir la consulta a partir del texto del usuario con el normalizador (FR-018);
   - devolver como mucho *k* identificadores (por defecto 50);
   - ordenarlos por relevancia, con peso 3 para el título y la ruta de encabezados y 1 para el cuerpo;
   - devolver una lista vacía si la consulta no tiene términos.

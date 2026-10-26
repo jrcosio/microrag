@@ -90,7 +90,7 @@ StoredDocument(id, displayName, contentHash, mimeType?, uri?, status, chunkCount
 ChunkInput(ordinal, headingPath?, page?, content, tokenEstimate, embedding: FloatArray /* 256, unitario */)
 ChunkView(id, documentId, ordinal, headingPath?, page?, content, tokenEstimate, documentName)
 ScoredChunk(id, distance)        // distancia de coseno de SQLite-Vector: menor = más parecido
-IndexCounts(documents, chunks, ftsRows)
+IndexCounts(documents, chunks, ftsRows)   // ftsRows: filas de chunks_fts_docsize (contract A8)
 
 sealed IndexCompatibility:
     Closed                       // aún no se ha abierto
@@ -126,4 +126,4 @@ Las calcula el repositorio, nunca quien llama (research R8).
 | `normalizer_inputs.txt` | Un texto de entrada por línea; las líneas que empiezan por `#` son comentarios | Escrito a mano, más una expansión sistemática en el generador |
 | `normalizer_golden.jsonl` | `{"in": "...", "out": "..."}` | `gen_normalizer_golden.py` (salidas del port en Python) |
 | `embedding_texts.jsonl` | `{"id": "q01", "kind": "query", "text": "..."}` o `{"id": "d01", "kind": "doc", "header": "Doc › Sección", "text": "..."}` | Escrito a mano |
-| `embedding_golden.jsonl` | Primera línea, `{"meta": {"model_file", "model_sha256", "litert_lm_api", "max_input_length", "dims", "created"}}`; después, `{"id", "kind", "input": "<texto exacto con prefijo>", "v256": [256 floats]}` | `gen_embedding_golden.py` |
+| `embedding_golden.jsonl` | Primera línea, `{"meta": {"model_file", "model_sha256", "litert_lm_api", "max_input_length", "dims"}}`, sin fecha para que regenerar no cambie el fichero (la fecha la da git); después, `{"id", "kind", "input": "<texto exacto con prefijo>", "v256": [256 floats]}` | `gen_embedding_golden.py` |
