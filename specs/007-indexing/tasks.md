@@ -441,6 +441,8 @@ description: "Lista de tareas de F07 — Indexación"
   - SC-001 (≤ 5 min en GPU), solo en el A063.
 
   Ejecutarla en el teléfono.
+
+  *Código hecho. Emulador API 37, CPU (2026-10-27):* 430 fragmentos en 103 s, 4,21 fragmentos/s y ningún LLM durante la tanda (sin Gemma instalado; la GPU se salta en el emulador). Falta la ejecución en el teléfono, donde además se precarga Gemma.
 - [X] T064 Actualizar `docs/roadmap/INVENTARIO.md`:
   - **G28** (exclusión en la búsqueda vectorial): resuelto en F07 con *k* + *m* y filtro (D-040);
   - **G29:** etapas resueltas (D-040);
