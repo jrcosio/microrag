@@ -147,8 +147,9 @@ fun LisdataDocumentRow(
 }
 
 /**
- * Import queue row: name, size and state, optional real progress and contextual action. With
- * [accessibilityText] the row is announced as that single sentence; [onClickLabel] names its action.
+ * Import queue row: name, size and state, optional real progress and contextual action; an empty
+ * [meta] is left out. With [accessibilityText] the row is announced as that single sentence;
+ * [onClickLabel] names its action.
  */
 @Composable
 fun LisdataQueueRow(
@@ -183,7 +184,7 @@ fun LisdataQueueRow(
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
-                Text(text = meta, style = LisdataTheme.typography.material.bodyMedium, color = colors.textSecondary)
+                if (meta.isNotEmpty()) Text(text = meta, style = LisdataTheme.typography.material.bodyMedium, color = colors.textSecondary)
                 if (statusText != null && status != null) LisdataStatusChip(text = statusText, kind = status)
                 if (progress != null) LisdataLinearProgress(progress)
             }

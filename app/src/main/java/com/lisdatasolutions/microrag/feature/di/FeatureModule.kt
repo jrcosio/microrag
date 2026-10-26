@@ -1,5 +1,6 @@
 package com.lisdatasolutions.microrag.feature.di
 
+import com.lisdatasolutions.microrag.feature.indexing.IndexViewModel
 import com.lisdatasolutions.microrag.feature.ingest.IngestViewModel
 import com.lisdatasolutions.microrag.feature.onboarding.setup.SetupViewModel
 import com.lisdatasolutions.microrag.feature.onboarding.welcome.WelcomeViewModel
@@ -14,4 +15,5 @@ val featureModule = module {
         SetupViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get())
     }
     viewModel { IngestViewModel(get(), get(), get(), get(), get()) }
+    viewModel { IndexViewModel(get(), get(), get(), get()) }
 }

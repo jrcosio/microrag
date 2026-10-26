@@ -18,26 +18,34 @@ import com.google.common.truth.Truth.assertThat
 import com.lisdatasolutions.microrag.MainActivity
 import com.lisdatasolutions.microrag.R
 import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
-import com.lisdatasolutions.microrag.domain.model.OnboardingStage
-import com.lisdatasolutions.microrag.domain.onboarding.FakeOnboardingStore
-import com.lisdatasolutions.microrag.domain.onboarding.ResolveStartDestinationUseCase
-import org.junit.Rule
+import com.lisdatasolutions.microrag.domain.indexing.IndexingRepository
+import com.lisdatasolutions.microrag.domain.indexing.IndexingState
+import com.lisdatasolutions.microrag.domain.indexing.ObserveIndexingUseCase
+import com.lisdatasolutions.microrag.domain.indexing.PauseIndexingUseCase
+import com.lisdatasolutions.microrag.domain.indexing.ResumeIndexingUseCase
+import com.lisdatasolutions.microrag.domain.indexing.RetryIndexingUseCase
 import com.lisdatasolutions.microrag.domain.ingest.ImportDocumentsUseCase
 import com.lisdatasolutions.microrag.domain.ingest.ObserveImportQueueUseCase
 import com.lisdatasolutions.microrag.domain.ingest.RemoveQueueItemUseCase
 import com.lisdatasolutions.microrag.domain.ingest.RetryQueueItemUseCase
 import com.lisdatasolutions.microrag.domain.ingest.StartIndexingUseCase
+import com.lisdatasolutions.microrag.domain.model.OnboardingStage
+import com.lisdatasolutions.microrag.domain.onboarding.FakeOnboardingStore
+import com.lisdatasolutions.microrag.domain.onboarding.ResolveStartDestinationUseCase
+import com.lisdatasolutions.microrag.feature.indexing.IndexViewModel
 import com.lisdatasolutions.microrag.feature.ingest.IngestViewModel
 import com.lisdatasolutions.microrag.testing.FakeImportQueueRepository
-import org.koin.core.module.dsl.viewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.ExternalResource
 import org.junit.runner.RunWith
-import org.robolectric.RuntimeEnvironment
-import org.robolectric.annotation.Config
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
+import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
+import org.robolectric.RuntimeEnvironment
+import org.robolectric.annotation.Config
 
 /** Navigation contract N1–N8 (contracts/navigation.md, FR-016…FR-022, SC-003, SC-007). */
 @RunWith(AndroidJUnit4::class)
@@ -59,6 +67,22 @@ class NavigationTest {
                                 StartIndexingUseCase(repository),
                                 RetryQueueItemUseCase(repository),
                                 RemoveQueueItemUseCase(repository),
+                            )
+                        }
+                        viewModel {
+                            val indexing = object : IndexingRepository {
+                                override val state = MutableStateFlow<IndexingState>(IndexingState.Idle(emptyList()))
+                                override suspend fun start() = 0
+                                override suspend fun pause() = Unit
+                                override suspend fun resume() = Unit
+                                override suspend fun retry(documentId: Long) = Unit
+                                override suspend fun reconcile() = Unit
+                            }
+                            IndexViewModel(
+                                ObserveIndexingUseCase(indexing),
+                                PauseIndexingUseCase(indexing),
+                                ResumeIndexingUseCase(indexing),
+                                RetryIndexingUseCase(indexing),
                             )
                         }
                     },
@@ -183,6 +207,16 @@ class NavigationTest {
         compose.runOnUiThread { nav.popBackStack() }
         compose.waitForIdle()
         assertThat(nav.currentDestination?.hasRoute(Home::class)).isTrue()
+    }
+
+
+    @Test
+    fun provisionalHomeEntryOpensTheIndexScreen() {
+        launchShell()
+        compose.onNodeWithText(context.getString(R.string.index_provisional_entry)).performClick()
+        compose.waitForIdle()
+        assertThat(nav.currentDestination?.hasRoute(Index::class)).isTrue()
+        compose.onNodeWithText(context.getString(R.string.index_idle_title)).assertIsDisplayed()
     }
 
     @Test

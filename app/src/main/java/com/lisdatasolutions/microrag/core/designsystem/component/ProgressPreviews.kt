@@ -14,7 +14,7 @@ import com.lisdatasolutions.microrag.core.designsystem.preview.LisdataPreviews
 @LisdataPreviews
 @Composable
 private fun ProgressRingPreview() = LisdataPreviewSurface {
-    LisdataHeroCard(title = "", eyebrow = "Procesamiento local", decoration = false, modifier = Modifier.fillMaxWidth()) {
+    LisdataHeroCard(title = null, eyebrow = "Procesamiento local", decoration = false, modifier = Modifier.fillMaxWidth()) {
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             LisdataProgressRing(ProgressValue.Determinate(0.68f), label = "Completado", size = 140.dp)
             LisdataProgressRing(ProgressValue.Indeterminate, label = "Completado", size = 140.dp)

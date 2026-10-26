@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- P08 Indexing status (F07 contracts/index-ui.md). English is secondary (D-029). -->
+<resources>
+    <string name="index_title">Indexing status</string>
+    <string name="index_eyebrow">Local processing</string>
+    <string name="index_ring_label">Complete</string>
+    <string name="index_chunks">%1$s / %2$s chunks</string>
+    <string name="index_ring_description">%1$d%% complete, %2$s of %3$s chunks</string>
+    <string name="index_preparing">Preparing documents</string>
+    <string name="index_loading">Loading</string>
+    <string name="index_remaining">≈ %1$s left</string>
+    <string name="index_duration_minutes">%1$d min</string>
+    <string name="index_duration_hours">%1$d h %2$d min</string>
+    <string name="index_duration_less_than_a_minute">less than 1 min</string>
+
+    <string name="index_stages">Process stages</string>
+    <string name="index_stage_extraction">Text extraction</string>
+    <string name="index_stage_chunking">Chunking</string>
+    <string name="index_stage_embeddings">Embedding generation</string>
+    <string name="index_stage_persistence">Vector persistence</string>
+    <string name="index_stage_done">Done</string>
+    <string name="index_stage_in_progress">In progress</string>
+    <string name="index_stage_pending">Pending</string>
+    <string name="index_stage_paused">Paused</string>
+
+    <string name="index_processing_now">Processing now</string>
+    <plurals name="index_more_queued">
+        <item quantity="one">and %d more document queued</item>
+        <item quantity="other">and %d more documents queued</item>
+    </plurals>
+
+    <string name="index_pause">Pause indexing</string>
+    <string name="index_resume">Resume</string>
+    <string name="index_retry">Retry</string>
+
+    <string name="index_idle_title">All up to date</string>
+    <string name="index_idle_body">There are no documents waiting to be indexed.</string>
+    <string name="index_paused">Paused</string>
+    <string name="index_paused_thermal">Paused: too hot</string>
+    <string name="index_paused_thermal_body">The phone is very hot. Indexing will go on by itself once it cools down.</string>
+    <string name="index_paused_system">Waiting for the system</string>
+    <string name="index_paused_system_body">Android has limited background work. It will go on as soon as it allows it or when you open the app.</string>
+    <string name="index_no_space">No space</string>
+    <string name="index_no_space_body">There is no space left to keep indexing. Free up space on the phone and tap Resume.</string>
+    <string name="index_failed_header">Documents with errors</string>
+    <string name="index_model_missing_title">The embedding model is missing</string>
+    <string name="index_model_missing_body">It is needed to index. You can download it again from the model setup.</string>
+    <string name="index_prepare_models">Set up models</string>
+    <string name="index_unavailable_title">The library is not available</string>
+    <string name="index_unavailable_body">Indexing is not possible while the local library is unavailable.</string>
+    <string name="index_provisional_entry">Indexing status (provisional)</string>
+    <string name="index_announce_document_started">Indexing %1$s</string>
+    <string name="index_announce_paused">Indexing paused: %1$s</string>
+    <string name="index_announce_failed">%1$s: %2$s</string>
+</resources>

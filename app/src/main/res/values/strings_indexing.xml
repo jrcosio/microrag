@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- P08 Estado de indexación (F07 contracts/index-ui.md). Texts of PNG 08 copied literally (D-004); the rest are proposals P1–P12. -->
+<resources>
+    <string name="index_title">Estado de indexación</string>
+    <string name="index_eyebrow">Procesamiento local</string>
+    <string name="index_ring_label">Completado</string>
+    <string name="index_chunks">%1$s / %2$s fragmentos</string>
+    <string name="index_ring_description">%1$d %% completado, %2$s de %3$s fragmentos</string>
+    <string name="index_preparing">Preparando documentos</string>
+    <string name="index_loading">Cargando</string>
+    <string name="index_remaining">≈ %1$s restantes</string>
+    <string name="index_duration_minutes">%1$d min</string>
+    <string name="index_duration_hours">%1$d h %2$d min</string>
+    <string name="index_duration_less_than_a_minute">menos de 1 min</string>
+
+    <string name="index_stages">Etapas del proceso</string>
+    <string name="index_stage_extraction">Extracción de texto</string>
+    <string name="index_stage_chunking">Fragmentación</string>
+    <string name="index_stage_embeddings">Generación de embeddings</string>
+    <string name="index_stage_persistence">Persistencia vectorial</string>
+    <string name="index_stage_done">Completado</string>
+    <string name="index_stage_in_progress">En curso</string>
+    <string name="index_stage_pending">Pendiente</string>
+    <string name="index_stage_paused">En pausa</string>
+
+    <string name="index_processing_now">Procesando ahora</string>
+    <plurals name="index_more_queued">
+        <item quantity="one">y %d documento más en cola</item>
+        <item quantity="other">y %d documentos más en cola</item>
+    </plurals>
+
+    <string name="index_pause">Pausar indexación</string>
+    <string name="index_resume">Reanudar</string>
+    <string name="index_retry">Reintentar</string>
+
+    <!-- P1 -->
+    <string name="index_idle_title">Todo actualizado</string>
+    <string name="index_idle_body">No hay documentos pendientes de indexar.</string>
+    <!-- P3–P5 -->
+    <string name="index_paused">En pausa</string>
+    <string name="index_paused_thermal">Pausa por temperatura</string>
+    <string name="index_paused_thermal_body">El teléfono está muy caliente. La indexación seguirá sola cuando se enfríe.</string>
+    <string name="index_paused_system">Esperando al sistema</string>
+    <string name="index_paused_system_body">Android ha limitado el trabajo en segundo plano. Seguirá en cuanto lo permita o al abrir la app.</string>
+    <string name="index_no_space">Sin espacio</string>
+    <string name="index_no_space_body">No queda espacio para seguir indexando. Libera espacio en el teléfono y pulsa Reanudar.</string>
+    <!-- P6 -->
+    <string name="index_failed_header">Documentos con error</string>
+    <!-- P7 -->
+    <string name="index_model_missing_title">Falta el modelo de embeddings</string>
+    <string name="index_model_missing_body">Hace falta para indexar. Puedes volver a descargarlo desde la preparación de modelos.</string>
+    <string name="index_prepare_models">Preparar modelos</string>
+    <!-- P8 -->
+    <string name="index_unavailable_title">La biblioteca no está disponible</string>
+    <string name="index_unavailable_body">No se puede indexar mientras la biblioteca local no esté disponible.</string>
+    <!-- P10 -->
+    <string name="index_provisional_entry">Estado de indexación (provisional)</string>
+    <!-- U3: announcements without moving the focus. -->
+    <string name="index_announce_document_started">Indexando %1$s</string>
+    <string name="index_announce_paused">Indexación en pausa: %1$s</string>
+    <string name="index_announce_failed">%1$s: %2$s</string>
+</resources>

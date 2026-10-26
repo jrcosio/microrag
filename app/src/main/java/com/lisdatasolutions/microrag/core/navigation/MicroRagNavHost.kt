@@ -8,6 +8,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.lisdatasolutions.microrag.R
+import com.lisdatasolutions.microrag.feature.indexing.IndexRoute
 import com.lisdatasolutions.microrag.feature.ingest.IngestRoute
 import com.lisdatasolutions.microrag.feature.onboarding.setup.SetupRoute
 import com.lisdatasolutions.microrag.feature.onboarding.welcome.WelcomeRoute
@@ -33,11 +34,14 @@ fun MicroRagNavHost(
             )
         }
         composable<Home> {
-            // P6 (F06): provisional entry to the import screen until F09 delivers Home.
+            // F06 P6 and F07 P10: provisional entries to the import and indexing screens until F09 delivers Home.
             PendingDestination(
                 "home",
                 "F09",
-                action = PendingAction(stringResource(R.string.ingest_provisional_entry)) { navController.navigate(Ingest) },
+                actions = listOf(
+                    PendingAction(stringResource(R.string.ingest_provisional_entry)) { navController.navigate(Ingest) },
+                    PendingAction(stringResource(R.string.index_provisional_entry)) { navController.navigate(Index) },
+                ),
             )
         }
         composable<Chat> { entry ->
@@ -55,7 +59,7 @@ fun MicroRagNavHost(
                 onBack = back,
             )
         }
-        composable<Index> { PendingDestination("index", "F07", onBack = back) }
+        composable<Index> { IndexRoute(onBack = back, onPrepareModels = { navController.navigate(Setup) }) }
         composable<Settings> { PendingDestination("settings", "F12", onBack = back) }
         composable<Languages> { PendingDestination("languages", "F12", onBack = back) }
     }

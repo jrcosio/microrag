@@ -59,11 +59,12 @@ fun LisdataDivider(modifier: Modifier = Modifier) {
 
 /**
  * Dark gradient hero (Home, Document detail, Indexing, Languages). [titleAccent] renders a second
- * title line in the accent color. The orbit decoration is purely visual and hidden from TalkBack.
+ * title line in the accent color; the Indexing hero (PNG 08) has no title at all. The orbit
+ * decoration is purely visual and hidden from TalkBack.
  */
 @Composable
 fun LisdataHeroCard(
-    title: String,
+    title: String?,
     modifier: Modifier = Modifier,
     eyebrow: String? = null,
     titleAccent: String? = null,
@@ -92,10 +93,12 @@ fun LisdataHeroCard(
             verticalArrangement = Arrangement.spacedBy(spacing.space3),
         ) {
             if (eyebrow != null) LisdataEyebrow(text = eyebrow, color = colors.onDarkAccent)
-            Column {
-                Text(text = title, style = LisdataTheme.typography.material.headlineMedium, color = colors.onDarkText)
-                if (titleAccent != null) {
-                    Text(text = titleAccent, style = LisdataTheme.typography.material.headlineMedium, color = colors.onDarkAccent)
+            if (title != null) {
+                Column {
+                    Text(text = title, style = LisdataTheme.typography.material.headlineMedium, color = colors.onDarkText)
+                    if (titleAccent != null) {
+                        Text(text = titleAccent, style = LisdataTheme.typography.material.headlineMedium, color = colors.onDarkAccent)
+                    }
                 }
             }
             content()

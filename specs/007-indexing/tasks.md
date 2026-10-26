@@ -262,10 +262,10 @@ description: "Lista de tareas de F07 — Indexación"
   - quita la pausa;
   - encola;
   - devuelve el número añadido.
-- [ ] T030 [P] [US3] `…/test/feature/indexing/IndexViewModelTest.kt`:
+- [X] T030 [P] [US3] `…/test/feature/indexing/IndexViewModelTest.kt`:
   - mapea `IndexingState` a `IndexUiState`: porcentaje, «N / M», etapas, documento actual, tiempo restante y acción principal;
   - expone `onPause`, `onResume` y `onRetry`.
-- [ ] T031 [P] [US3] `…/test/feature/indexing/IndexScreenTest.kt` (Robolectric, qualifiers `es` y `en`):
+- [X] T031 [P] [US3] `…/test/feature/indexing/IndexScreenTest.kt` (Robolectric, qualifiers `es` y `en`):
   - **estado en curso del PNG 08:**
     - hero con eyebrow;
     - anillo con porcentaje;
@@ -281,10 +281,10 @@ description: "Lista de tareas de F07 — Indexación"
 ### Implementation for User Story 3
 
 - [X] T032 [US3] Implementar en `…/microrag/data/indexing/DefaultIndexingRepository.kt` `state` y `start` (R8, data-model §3 y §7), con los casos de uso `Observe` y `Start`. El `StartIndexingUseCase` de F06 delega en `start()`. Comprobar T028 y T029.
-- [ ] T033 [US3] Ampliar `LisdataHeroCard` (`…/microrag/core/designsystem/component/Cards.kt`) con el título opcional. Actualizar su preview, el catálogo y `CatalogAccessibilityTest` si cambia.
-- [ ] T034 [US3] Crear `…/microrag/feature/indexing/IndexUiState.kt`, `IndexTexts.kt` e `IndexViewModel.kt`. Comprobar T030.
-- [ ] T035 [US3] Crear `…/microrag/feature/indexing/IndexScreen.kt` (`IndexRoute` + `IndexScreen` sin estado) con la estructura de contracts/index-ui.md. Crear `strings_indexing.xml` (es y en) con los textos del PNG y de P1, P2, P9 y P12; las fases siguientes lo amplían. Comprobar T031.
-- [ ] T036 [US3] En `…/microrag/core/navigation/MicroRagNavHost.kt`, sustituir el placeholder de `Index` por `IndexRoute`. Actualizar `NavigationTest` y `AppModulesTest`.
+- [X] T033 [US3] Ampliar `LisdataHeroCard` (`…/microrag/core/designsystem/component/Cards.kt`) con el título opcional. Actualizar su preview, el catálogo y `CatalogAccessibilityTest` si cambia.
+- [X] T034 [US3] Crear `…/microrag/feature/indexing/IndexUiState.kt`, `IndexTexts.kt` e `IndexViewModel.kt`. Comprobar T030.
+- [X] T035 [US3] Crear `…/microrag/feature/indexing/IndexScreen.kt` (`IndexRoute` + `IndexScreen` sin estado) con la estructura de contracts/index-ui.md. Crear `strings_indexing.xml` (es y en) con los textos del PNG y de P1, P2, P9 y P12; las fases siguientes lo amplían. Comprobar T031.
+- [X] T036 [US3] En `…/microrag/core/navigation/MicroRagNavHost.kt`, sustituir el placeholder de `Index` por `IndexRoute`. Actualizar `NavigationTest` y `AppModulesTest`.
 
 **Checkpoint**: la pantalla muestra el progreso real de la indexación.
 
@@ -372,7 +372,7 @@ description: "Lista de tareas de F07 — Indexación"
 - [ ] T049 [US4] Implementar en `IngestRunner` la espera térmica y la comprobación de espacio (con `DeviceResources::freeBytes` e `IndexStorageFullException`), y el modelo ausente (R10). Comprobar T046.
 - [ ] T050 [US4] Implementar en `DefaultIndexingRepository` `pause`, `resume` y `retry` con sus casos de uso. `ImportQueueRepository.retry` y `remove` de un documento pasan por la tanda (contracts/indexing-api.md). Conectar `IndexingActionReceiver` a `pause`. Comprobar T047.
 - [ ] T051 [US4] Completar en `IndexScreen` los estados P3, P4, P5 y P7, con `Setup` como destino de P7. Comprobar T048.
-- [ ] T052 [US4] Añadir P10 (acceso provisional en Inicio, `PendingDestination`) con su prueba en `NavigationTest`.
+- [X] T052 [US4] Añadir P10 (acceso provisional en Inicio, `PendingDestination`) con su prueba en `NavigationTest`.
 - [ ] T053 [US4] En el teléfono:
   - **temperatura:** simularla con `cmd thermalservice override-status 3` y `reset`, con la app visible y también con el trabajo sin primer plano (tras matar el proceso). Comprobar la pausa en 5 s o menos con la causa «Pausa por temperatura» y la reanudación sola (SC-006);
   - **pausa:** pausar y reanudar desde la pantalla y desde la notificación. Medir el tiempo hasta la pausa (≤ 5 s) y los fragmentos recalculados al reanudar (≤ 1), en el log (SC-005).
