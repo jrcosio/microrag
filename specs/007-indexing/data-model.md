@@ -200,7 +200,7 @@ Las claves de F06 (`doc`, `stage`, `page`, `pages`), más:
 
 | Condición (en este orden) | `PauseReason` |
 |---|---|
-| La tanda tiene `paused = true` | La de `pause_cause`: `USER`, `NO_SPACE` o `MODEL_MISSING` |
+| La tanda tiene `pause_cause` | Esa causa: `USER`, `NO_SPACE` o `MODEL_MISSING` |
 | Temperatura ≥ `SEVERE` con la tanda activa (el worker espera, o el sistema lo ha parado) | `THERMAL` |
 | Trabajo `ENQUEUED` con `runAttemptCount > 0` y `stopReason` del sistema (`QUOTA`, `TIMEOUT`, `FOREGROUND_SERVICE_TIMEOUT`, `DEVICE_STATE`, `APP_STANDBY`, `BACKGROUND_RESTRICTION` u otro distinto de `CANCELLED_BY_APP`) | `SYSTEM_LIMIT` («Esperando al sistema») |
 | Si no | Ninguna (en curso) |
