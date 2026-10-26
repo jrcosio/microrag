@@ -48,17 +48,33 @@ interface RagIndex {
     /** Deletes the document with its chunks and their FTS entries. */
     suspend fun deleteDocument(id: Long)
 
+    /** Stored chunks per document, for [ids]; ids without chunks count 0 (F07 research R8). */
+    suspend fun storedChunkCounts(ids: Collection<Long>): Map<Long, Int>
+
+    /** Ordinal → content of the stored chunks of [documentId], in ordinal order (F07 research R9). */
+    suspend fun storedChunkContents(documentId: Long): Map<Int, String>
+
+    /** Deletes the chunks of [documentId] and their FTS rows, keeping the document (F07 research R9). */
+    suspend fun deleteChunks(documentId: Long)
+
     /**
      * Stores a batch in one transaction; chunks already stored (same document and ordinal) are
-     * ignored. An invalid batch is rejected whole with [IllegalArgumentException]. Returns the
-     * number of chunks inserted.
+     * ignored. An invalid batch is rejected whole with [IllegalArgumentException], and a full disk with
+     * [IndexStorageFullException]. The FTS title is the document's [DocumentTitle]. Returns the number
+     * of chunks inserted.
      */
     suspend fun insertChunks(documentId: Long, chunks: List<ChunkInput>): Int
 
-    /** Exact top-[k] search by cosine distance; [query] has 256 components and unit norm. */
+    /**
+     * Exact top-[k] search by cosine distance; [query] has 256 components and unit norm. Only chunks
+     * of documents that are done and included are found (F07 rule N7).
+     */
     suspend fun vectorSearch(query: FloatArray, k: Int = DEFAULT_K): List<ScoredChunk>
 
-    /** BM25 search (title 3, body 1) of [userQuery] normalized with SpanishText; no terms gives an empty list. */
+    /**
+     * BM25 search (title 3, body 1) of [userQuery] normalized with SpanishText; no terms gives an empty
+     * list. Only chunks of documents that are done and included are found (F07 rule N7).
+     */
     suspend fun textSearch(userQuery: String, k: Int = DEFAULT_K): List<Long>
 
     /** Unknown ids are left out of the map. */
@@ -80,3 +96,6 @@ interface RagIndex {
 class IndexUnavailableException(val state: IndexCompatibility) : IllegalStateException("RAG index unavailable: $state")
 
 class DuplicateDocumentException(val existingId: Long) : IllegalStateException("Document already registered: $existingId")
+
+/** The index could not write because the device is out of space (SQLITE_FULL, F07 research R10). */
+class IndexStorageFullException(cause: Throwable) : IllegalStateException("No space left to write the index", cause)

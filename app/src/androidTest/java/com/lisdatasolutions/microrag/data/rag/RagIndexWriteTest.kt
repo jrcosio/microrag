@@ -286,4 +286,41 @@ class RagIndexWriteTest {
         assertThat(stored.skippedPages).isEqualTo(3)
         assertThat(stored.chunkCount).isEqualTo(12)
     }
+
+    // F07 T008: what indexing needs from the index (contracts/indexing-api.md).
+
+    @Test
+    fun storedChunks_countsContentsAndDeletion() = runBlocking<Unit> {
+        val a = addDoc("Manual técnico.pdf", "a")
+        val b = addDoc("Notas.txt", "b")
+        val empty = addDoc("Vacío.md", "c")
+        index.insertChunks(a, (0..2).map { chunk(it, content = "Fragmento $it de A") })
+        index.insertChunks(b, listOf(chunk(0, content = "Único de B")))
+
+        assertThat(index.storedChunkCounts(listOf(a, b, empty, 999L))).containsExactly(a, 3, b, 1, empty, 0, 999L, 0)
+        assertThat(index.storedChunkContents(a))
+            .containsExactly(0, "Fragmento 0 de A", 1, "Fragmento 1 de A", 2, "Fragmento 2 de A").inOrder()
+
+        val before = index.documentChanges.value
+        index.deleteChunks(a)
+
+        assertThat(index.documentChanges.value).isGreaterThan(before)
+        assertThat(index.storedChunkContents(a)).isEmpty()
+        assertThat(index.document(a)).isNotNull()
+        assertThat(index.counts()).isEqualTo(IndexCounts(documents = 3, chunks = 1, ftsRows = 1))
+        integrityCheck()
+    }
+
+    @Test
+    fun titleNorm_usesTheNameWithoutItsExtension() = runBlocking<Unit> {
+        val id = addDoc("Manual técnico.pdf", "t")
+        index.insertChunks(id, listOf(chunk(0, headingPath = "Capítulo 2"), chunk(1)))
+
+        val titles = temp.withRaw { db -> db.query("SELECT title_norm FROM chunks ORDER BY ordinal") { it.getText(0) } }
+        assertThat(titles).containsExactly(
+            SpanishText.normalize("Manual técnico › Capítulo 2"),
+            SpanishText.normalize("Manual técnico"),
+        ).inOrder()
+    }
 }
+

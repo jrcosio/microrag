@@ -111,12 +111,12 @@ description: "Lista de tareas de F07 — Indexación"
   - reanudar;
   - `gpu_check`;
   - persistencia entre instancias.
-- [ ] T008 [P] Ampliar `…/androidTest/data/rag/RagIndexWriteTest.kt`:
+- [X] T008 [P] Ampliar `…/androidTest/data/rag/RagIndexWriteTest.kt`:
   - `storedChunkCounts`, donde los ids sin fragmentos dan 0;
   - `storedChunkContents` en orden;
   - `deleteChunks` borra los fragmentos y sus filas FTS y conserva el documento;
   - `insertChunks` calcula `title_norm` con `DocumentTitle` (R11).
-- [ ] T009 [P] Crear `…/androidTest/data/rag/RagIndexVisibilityTest.kt` (research R7, N7, SC-003). Sobre SQLite-Vector real, con documentos `done`, `embedding`, `parsed`, `error` y `done` excluido (`included = 0`):
+- [X] T009 [P] Crear `…/androidTest/data/rag/RagIndexVisibilityTest.kt` (research R7, N7, SC-003). Sobre SQLite-Vector real, con documentos `done`, `embedding`, `parsed`, `error` y `done` excluido (`included = 0`):
   - `vectorSearch` y `textSearch` devuelven solo fragmentos de los `done` incluidos;
   - con *m* > 0 se devuelven exactamente los *k* mejores buscables, comparados con fuerza bruta en Kotlin;
   - con *m* = 0, el mismo resultado que la consulta de F04;
@@ -140,7 +140,7 @@ description: "Lista de tareas de F07 — Indexación"
 
   Añadir `embedDocumentFitting(content, header)` a `TextEmbedder` y a `LiteRtTextEmbedder`: hasta 12 intentos y traducción de la excepción de LiteRT según T002. Ajustar los fakes de prueba existentes. Comprobar T005.
 - [X] T014 Ampliar `…/microrag/rag/runtime/EngineCoordinator.kt` con `withHeldEngine`, `releaseUnheld` y `releaseGenerators`. Política: espera de GPU sin el `loadLock`. `EngineMemoryCallbacks.kt` usa `releaseUnheld` (R4). Comprobar T006.
-- [ ] T015 Ampliar `RagIndex` (`…/microrag/domain/rag/RagIndex.kt`, con `IndexStorageFullException`) y `DefaultRagIndex` (`…/microrag/data/rag/DefaultRagIndex.kt`):
+- [X] T015 Ampliar `RagIndex` (`…/microrag/domain/rag/RagIndex.kt`, con `IndexStorageFullException`) y `DefaultRagIndex` (`…/microrag/data/rag/DefaultRagIndex.kt`):
   - `storedChunkCounts`, `storedChunkContents` y `deleteChunks` (con `notifyChanged`);
   - búsquedas con *k* + *m*, filtro `status = 'done' AND included = 1` y CTE `MATERIALIZED` (R7);
   - `title_norm` con `DocumentTitle`;

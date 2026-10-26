@@ -3,6 +3,7 @@ package com.lisdatasolutions.microrag.data.rag
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import com.lisdatasolutions.microrag.domain.rag.ChunkView
+import com.lisdatasolutions.microrag.domain.rag.DocumentStatus
 import com.lisdatasolutions.microrag.domain.rag.NewDocument
 import com.lisdatasolutions.microrag.testing.TempRagIndex
 import com.lisdatasolutions.microrag.testing.TempRagIndex.Companion.chunk
@@ -22,7 +23,9 @@ class RagIndexSearchTest {
     @After
     fun tearDown() = temp.close()
 
-    private suspend fun addDoc(name: String) = index.addDocument(NewDocument(displayName = name, contentHash = name))
+    /** Published at once: searches only see done documents (F07 rule N7). */
+    private suspend fun addDoc(name: String) =
+        index.addDocument(NewDocument(displayName = name, contentHash = name)).also { index.updateStatus(it, DocumentStatus.DONE) }
 
     private fun idsByOrdinal(documentId: Long): Map<Int, Long> = temp.withRaw { db ->
         db.query("SELECT ordinal, id FROM chunks WHERE document_id = ?", documentId) { it.getLong(0).toInt() to it.getLong(1) }.toMap()

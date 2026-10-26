@@ -5,11 +5,13 @@ import com.lisdatasolutions.microrag.core.logging.AppLogger
 import com.lisdatasolutions.microrag.domain.rag.ChunkInput
 import com.lisdatasolutions.microrag.domain.rag.ChunkView
 import com.lisdatasolutions.microrag.domain.rag.CompatibilityDecision
+import com.lisdatasolutions.microrag.domain.rag.DocumentTitle
 import com.lisdatasolutions.microrag.domain.rag.DocumentStatus
 import com.lisdatasolutions.microrag.domain.rag.DuplicateDocumentException
 import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
 import com.lisdatasolutions.microrag.domain.rag.IndexCompatibilityChecker
 import com.lisdatasolutions.microrag.domain.rag.IndexCounts
+import com.lisdatasolutions.microrag.domain.rag.IndexStorageFullException
 import com.lisdatasolutions.microrag.domain.rag.IndexUnavailableException
 import com.lisdatasolutions.microrag.domain.rag.NewDocument
 import com.lisdatasolutions.microrag.domain.rag.RagIndex
@@ -126,6 +128,34 @@ class DefaultRagIndex(
         notifyChanged()
     }
 
+    override suspend fun storedChunkCounts(ids: Collection<Long>): Map<Long, Int> = withIndex { db ->
+        val counts = ids.distinct().chunked(LOAD_BLOCK).flatMap { block ->
+            db.query(
+                "SELECT document_id, count(*) FROM chunks WHERE document_id IN (${block.joinToString(",") { "?" }}) GROUP BY document_id",
+                *block.toTypedArray(),
+            ) { it.getLong(0) to it.getLong(1).toInt() }
+        }.toMap()
+        ids.associateWith { counts[it] ?: 0 }
+    }
+
+    override suspend fun storedChunkContents(documentId: Long): Map<Int, String> = withIndex { db ->
+        db.query("SELECT ordinal, content FROM chunks WHERE document_id = ? ORDER BY ordinal", documentId) {
+            it.getLong(0).toInt() to it.getText(1)
+        }.toMap(LinkedHashMap())
+    }
+
+    override suspend fun deleteChunks(documentId: Long) = withIndex { db ->
+        // The chunks_ad trigger removes their FTS rows.
+        val deleted = db.transaction {
+            val before = chunkCount(db, documentId)
+            db.exec("DELETE FROM chunks WHERE document_id = ?", documentId)
+            db.exec("UPDATE rag_meta SET value = '1' WHERE key = ?", RagMetaKeys.QUANT_DIRTY)
+            before
+        }
+        logger.i(TAG) { "rag chunks doc=$documentId deleted=$deleted" }
+        notifyChanged()
+    }
+
     override suspend fun insertChunks(documentId: Long, chunks: List<ChunkInput>): Int {
         require(chunks.map { it.ordinal }.toSet().size == chunks.size) { "Repeated ordinals in the batch" }
         chunks.forEach { requireUnitVector(it.embedding) }
@@ -133,24 +163,27 @@ class DefaultRagIndex(
             val name = db.queryOne("SELECT display_name FROM documents WHERE id = ?", documentId) { it.getText(0) }
             requireNotNull(name) { "Unknown document $documentId" }
             if (chunks.isEmpty()) return@withIndex 0
+            val title = DocumentTitle.of(name)
             val started = System.nanoTime()
-            val inserted = db.transaction {
-                val before = chunkCount(db, documentId)
-                chunks.forEach { chunk ->
-                    val title = listOf(name, chunk.headingPath).filter { !it.isNullOrBlank() }.joinToString(" › ")
-                    db.exec(
-                        """
-                        INSERT OR IGNORE INTO chunks(document_id, ordinal, heading_path, page, content, title_norm,
-                            body_norm, token_estimate, embedding)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, vector_as_f32(?))
-                        """.trimIndent(),
-                        documentId, chunk.ordinal, chunk.headingPath, chunk.page, chunk.content,
-                        SpanishText.normalize(title), SpanishText.normalize(chunk.content), chunk.tokenEstimate,
-                        chunk.embedding.toLeBlob(),
-                    )
+            val inserted = storageFullAware {
+                db.transaction {
+                    val before = chunkCount(db, documentId)
+                    chunks.forEach { chunk ->
+                        val header = listOf(title, chunk.headingPath).filter { !it.isNullOrBlank() }.joinToString(" › ")
+                        db.exec(
+                            """
+                            INSERT OR IGNORE INTO chunks(document_id, ordinal, heading_path, page, content, title_norm,
+                                body_norm, token_estimate, embedding)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, vector_as_f32(?))
+                            """.trimIndent(),
+                            documentId, chunk.ordinal, chunk.headingPath, chunk.page, chunk.content,
+                            SpanishText.normalize(header), SpanishText.normalize(chunk.content), chunk.tokenEstimate,
+                            chunk.embedding.toLeBlob(),
+                        )
+                    }
+                    db.exec("UPDATE rag_meta SET value = '1' WHERE key = ?", RagMetaKeys.QUANT_DIRTY)
+                    chunkCount(db, documentId) - before
                 }
-                db.exec("UPDATE rag_meta SET value = '1' WHERE key = ?", RagMetaKeys.QUANT_DIRTY)
-                chunkCount(db, documentId) - before
             }
             logger.i(TAG) { "rag chunks doc=$documentId inserted=$inserted of ${chunks.size} in ${elapsedMs(started)} ms" }
             if (inserted > 0) notifyChanged()
@@ -162,10 +195,7 @@ class DefaultRagIndex(
         requireUnitVector(query)
         require(k > 0) { "k must be positive" }
         return withIndex { db ->
-            db.query(
-                "SELECT rowid, distance FROM vector_full_scan('chunks', 'embedding', ?, ?) ORDER BY distance",
-                query.toLeBlob(), k,
-            ) { ScoredChunk(it.getLong(0), it.getDouble(1)) }
+            db.query(VECTOR_SEARCH_SQL, query.toLeBlob(), k + hiddenChunks(db), k) { ScoredChunk(it.getLong(0), it.getDouble(1)) }
         }
     }
 
@@ -176,10 +206,7 @@ class DefaultRagIndex(
             if (ftsQuery.isEmpty()) {
                 emptyList()
             } else {
-                db.query(
-                    "SELECT rowid FROM chunks_fts WHERE chunks_fts MATCH ? ORDER BY bm25(chunks_fts, 3.0, 1.0) LIMIT ?",
-                    ftsQuery, k,
-                ) { it.getLong(0) }
+                db.query(TEXT_SEARCH_SQL, ftsQuery, k + hiddenChunks(db), k) { it.getLong(0) }
             }
         }
     }
@@ -357,6 +384,25 @@ class DefaultRagIndex(
             )
         }
 
+    /**
+     * *m* of research R7: stored chunks that searches must not return, of documents not done or excluded.
+     * The k + m best candidates always hold the k best searchable ones.
+     */
+    private fun hiddenChunks(db: RagConnection): Int = count(
+        db,
+        "SELECT COALESCE(SUM((SELECT count(*) FROM chunks c WHERE c.document_id = d.id)), 0) FROM documents d " +
+            "WHERE d.status <> 'done' OR d.included = 0",
+    )
+
+    /** Runs a write and turns SQLite's «database or disk is full» into [IndexStorageFullException]. */
+    private inline fun <T> storageFullAware(block: () -> T): T = try {
+        block()
+    } catch (e: IllegalArgumentException) {
+        throw e
+    } catch (e: RuntimeException) {
+        if (e.message?.let(SQLITE_FULL::containsMatchIn) == true) throw IndexStorageFullException(e) else throw e
+    }
+
     private fun chunkCount(db: RagConnection, documentId: Long): Int =
         count(db, "SELECT count(*) FROM chunks WHERE document_id = ?", documentId)
 
@@ -374,12 +420,30 @@ class DefaultRagIndex(
 
     private fun elapsedMs(startedNanos: Long): Long = (System.nanoTime() - startedNanos) / 1_000_000
 
-    private companion object {
-        const val TAG = "MicroRAG"
-        const val META_TABLE = "rag_meta"
-        const val LOAD_BLOCK = 500
-        const val UNIT_NORM_TOLERANCE = 1e-3
-        const val DOCUMENT_COLUMNS = "id, display_name, content_hash, mime_type, uri, status, chunk_count, error, " +
+    internal companion object {
+        /**
+         * The scan runs once, materialized, then is joined and filtered (research R7). Arguments: the
+         * query blob, k + m candidates and k.
+         */
+        const val VECTOR_SEARCH_SQL = "WITH v AS MATERIALIZED (" +
+            "SELECT rowid, distance FROM vector_full_scan('chunks', 'embedding', ?, ?)) " +
+            "SELECT v.rowid, v.distance FROM v JOIN chunks c ON c.id = v.rowid JOIN documents d ON d.id = c.document_id " +
+            "WHERE d.status = 'done' AND d.included = 1 ORDER BY v.distance LIMIT ?"
+
+        /** Arguments: the FTS query, k + m candidates and k. */
+        const val TEXT_SEARCH_SQL = "WITH f AS MATERIALIZED (" +
+            "SELECT rowid, bm25(chunks_fts, 3.0, 1.0) AS score FROM chunks_fts WHERE chunks_fts MATCH ? ORDER BY score LIMIT ?) " +
+            "SELECT f.rowid FROM f JOIN chunks c ON c.id = f.rowid JOIN documents d ON d.id = c.document_id " +
+            "WHERE d.status = 'done' AND d.included = 1 ORDER BY f.score LIMIT ?"
+
+        /** androidx.sqlite reports «Error code: 13, message: database or disk is full». */
+        private val SQLITE_FULL = Regex("""Error code: 13\b""")
+
+        private const val TAG = "MicroRAG"
+        private const val META_TABLE = "rag_meta"
+        private const val LOAD_BLOCK = 500
+        private const val UNIT_NORM_TOLERANCE = 1e-3
+        private const val DOCUMENT_COLUMNS = "id, display_name, content_hash, mime_type, uri, status, chunk_count, error, " +
             "included, size_bytes, page_count, local_path, created_at_ms, updated_at_ms, skipped_pages"
     }
 }

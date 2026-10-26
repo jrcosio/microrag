@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import com.lisdatasolutions.microrag.debug.feasibility.Percentiles
+import com.lisdatasolutions.microrag.domain.rag.DocumentStatus
 import com.lisdatasolutions.microrag.domain.rag.NewDocument
 import com.lisdatasolutions.microrag.testing.TempRagIndex
 import com.lisdatasolutions.microrag.testing.TempRagIndex.Companion.chunk
@@ -39,6 +40,8 @@ class RagIndexBenchmarkTest {
                         },
                     )
                 }
+                // Searches only see published documents (F07 rule N7).
+                index.updateStatus(doc, DocumentStatus.DONE, chunkCount = CHUNKS_PER_DOCUMENT)
             }
             val insertSeconds = (System.nanoTime() - insertStarted) / 1e9
             assertThat(index.counts().chunks).isEqualTo(DOCUMENTS * CHUNKS_PER_DOCUMENT)
