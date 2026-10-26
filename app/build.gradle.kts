@@ -58,6 +58,9 @@ android {
     sourceSets {
         // Golden files live once in offline/golden; instrumented tests read them as test assets (F04 research R6).
         getByName("androidTest").assets.srcDir(rootProject.file("offline/golden"))
+        // Readers of those golden files, shared by JVM and instrumented tests (F06).
+        getByName("test").kotlin.srcDir("src/sharedTest/java")
+        getByName("androidTest").kotlin.srcDir("src/sharedTest/java")
     }
     buildFeatures {
         compose = true
