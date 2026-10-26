@@ -56,7 +56,137 @@ def build(args):
         print(json.dumps({"variant": name, **info}, ensure_ascii=False))
 
 
-HANDLERS = {"fetch-corpus": fetch_corpus, "sources": sources, "build": build}
+def parse_config(pairs):
+    """EvalConfig from key=value pairs, e.g. build=chunk250 mode=vector max_blocks=4 neighbors=false llm=E2B."""
+    import dataclasses
+
+    from eval.runs import EvalConfig
+
+    fields = {f.name: f for f in dataclasses.fields(EvalConfig)}
+    values = {}
+    for pair in pairs:
+        key, _, raw = pair.partition("=")
+        if key not in fields:
+            raise SystemExit(f"unknown parameter {key}; choose from {', '.join(fields)}")
+        default = getattr(EvalConfig(), key)
+        if raw.lower() in ("none", "null"):
+            values[key] = None
+        elif isinstance(default, bool):
+            values[key] = raw.lower() in ("1", "true", "yes", "si", "sí")
+        elif isinstance(default, int) or key == "budget_tokens":
+            values[key] = int(raw)
+        else:
+            values[key] = raw
+    return EvalConfig(**values)
+
+
+def sample(args):
+    from eval import pipeline
+
+    rows = pipeline.write_sample(pipeline.load_context("ref"))
+    print(f"{len(rows)} chunks -> {pipeline.SAMPLE}")
+
+
+def validate_testset(args):
+    from collections import Counter
+
+    from eval import pipeline, testset
+
+    options = argparse.ArgumentParser(prog="validate-testset")
+    options.add_argument("--pre-review", action="store_true", help="do not require the reviewed minimum (T3)")
+    options.add_argument("--write-relevants", action="store_true", help="store relevant_ref derived from the evidence")
+    opts = options.parse_args(args)
+    ctx = pipeline.load_context("ref")
+    questions, errors = pipeline.validate_testset(ctx, require_review=not opts.pre_review)
+    if opts.write_relevants:
+        testset.save(questions)
+    live = [q for q in questions if q.review != "discarded"]
+    print("types:", dict(Counter(q.type for q in live)), "| review:", dict(Counter(q.review for q in questions)))
+    print("content types:", dict(Counter(q.content_type for q in live if q.type == "answerable")))
+    for error in errors:
+        print(error)
+    if errors:
+        raise SystemExit(f"{len(errors)} errors")
+    print("test set valid")
+
+
+def review_sheet(args):
+    from eval import pipeline, testset
+
+    ctx = pipeline.load_context("ref")
+    questions = testset.load()
+    by_id = {q.id: q.question for q in questions}
+    picked = testset.review_sample(questions)
+    testset.write_review_sheet(picked, testset.REVIEW_SHEET, ctx.titles, by_id)
+    print(f"{len(picked)} questions -> {testset.REVIEW_SHEET}")
+
+
+def review_apply(args):
+    from eval import testset
+
+    updated, summary = testset.apply_review(testset.load(), testset.REVIEW_SHEET)
+    testset.save(updated)
+    print("applied:", summary)
+
+
+def retrieve(args):
+    import json
+
+    from eval import pipeline
+
+    print(json.dumps(pipeline.retrieve(parse_config(args)), indent=1))
+
+
+def generate(args):
+    import json
+
+    from eval import pipeline
+
+    options = argparse.ArgumentParser(prog="generate")
+    options.add_argument("--backend", default="gpu", choices=("gpu", "cpu"))
+    options.add_argument("--ids", help="comma-separated question ids (default: all)")
+    options.add_argument("--out", default="answers.jsonl")
+    opts, rest = options.parse_known_args(args)
+    config = parse_config(rest)
+    if config.llm is None:
+        raise SystemExit("generate needs llm=E2B or llm=E4B")
+    ids = set(opts.ids.split(",")) if opts.ids else None
+    print(json.dumps(pipeline.generate(config, opts.backend, ids, opts.out), indent=1))
+
+
+def ablations(args):
+    import dataclasses
+
+    from eval import pipeline
+
+    options = argparse.ArgumentParser(prog="ablations")
+    options.add_argument("--base", nargs="*", default=[], help="key=value pairs of the base configuration")
+    options.add_argument("--generation", action="store_true",
+                         help="E2B answers for 4, 6 and 8 blocks with and without neighbours on the base configuration")
+    opts = options.parse_args(args)
+    base = parse_config(opts.base)
+    if not opts.generation:
+        pipeline.run_ablations(pipeline.retrieval_ablations(base))
+        return
+    variants = []
+    for blocks in (4, 6, 8):
+        for neighbors in (True, False):
+            label = f"E2B, {blocks} bloques{'' if neighbors else ' sin vecinos'}"
+            variants.append((label, dataclasses.replace(base, max_blocks=blocks, neighbors=neighbors, llm="E2B")))
+    pipeline.run_ablations(variants, key="generation")
+
+
+def report(args):
+    from eval import report as report_module
+
+    print(f"wrote {report_module.render()}")
+
+
+HANDLERS = {
+    "fetch-corpus": fetch_corpus, "sources": sources, "build": build, "sample": sample,
+    "validate-testset": validate_testset, "review-sheet": review_sheet, "review-apply": review_apply,
+    "retrieve": retrieve, "generate": generate, "ablations": ablations, "report": report,
+}
 
 
 def main(argv=None):

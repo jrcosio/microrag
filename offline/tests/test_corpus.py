@@ -72,5 +72,18 @@ class SourcesTest(unittest.TestCase):
             self.assertIn(expected, text)
 
 
+class WikitextTest(unittest.TestCase):
+    def test_markup_is_removed_and_code_samples_kept(self):
+        wikitext = (
+            "== Título ==\n{{Plantilla|x={{anidada}}}}Texto con '''negrita''' y [[Enlace|enlace]].<ref>nota</ref>\n"
+            "{|\n| celda\n|}\n[[Archivo:foto.png|miniatura|pie]]\n* punto\n<noinclude>Nav</noinclude><p>Párrafo</p>\n"
+            "Código: &lt;b&gt; <em:id>x</em:id> <math>a^2</math>"
+        )
+        self.assertEqual(
+            corpus.wikitext_to_text(wikitext),
+            "Título\nTexto con negrita y enlace.\n\npunto\nNavPárrafo\nCódigo: <b> <em:id>x</em:id> a^2",
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

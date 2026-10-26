@@ -8,6 +8,7 @@ written only if its SHA-256 matches the manifest. `fetch` entries pin what is do
 """
 
 import hashlib
+import html
 import io
 import json
 import re
@@ -250,7 +251,10 @@ def wikitext_to_text(wikitext):
     text = re.sub(r"^=+\s*(.*?)\s*=+\s*$", r"\1", text, flags=re.M)
     text = re.sub(r"^[*#:;]+\s*", "", text, flags=re.M)
     text = re.sub(r"</?(?:syntaxhighlight|source|pre|code|tt|nowiki|div|span|center|small|big|sup|sub|br|blockquote|poem)[^>]*>", "", text, flags=re.I)
+    text = re.sub(r"</?(?:p|noinclude|onlyinclude|includeonly|u|s|font|abbr|gallery|references|math|strong|em)(?=[\s>/])[^>]*>",
+                  "", text, flags=re.I)
     text = re.sub(r"__[A-Z]+__", "", text)
+    text = html.unescape(text)
     lines = [line.rstrip() for line in text.splitlines()]
     text = "\n".join(lines)
     return re.sub(r"\n{3,}", "\n\n", text).strip()
