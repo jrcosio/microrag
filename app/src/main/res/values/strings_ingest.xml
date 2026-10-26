@@ -39,7 +39,6 @@
         <item quantity="one">%d página sin texto</item>
         <item quantity="other">%d páginas sin texto</item>
     </plurals>
-    <string name="ingest_state_error">Error</string>
 
     <string name="ingest_error_unsupported_format">Formato no admitido</string>
     <string name="ingest_error_unsupported_format_detail">Solo se admiten PDF con texto, TXT y Markdown.</string>

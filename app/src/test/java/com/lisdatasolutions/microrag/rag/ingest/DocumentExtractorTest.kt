@@ -59,7 +59,7 @@ class DocumentExtractorTest {
 
     @Test
     fun onlySpacesIsNoText() {
-        val summary = DocumentExtractor(Pages(emptyList())).extract(file(" \n \n\t"), DocumentFormat.TXT) { }
+        val summary = DocumentExtractor(Pages(emptyList())).extract(file(" \n\u00A0\n\t"), DocumentFormat.TXT) { }
 
         assertThat(summary.blocks).isEqualTo(0)
     }

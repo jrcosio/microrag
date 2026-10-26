@@ -53,7 +53,7 @@ class ChunkerTest(unittest.TestCase):
         self.assertEqual(first, Chunker(target_chars=300, max_chars=600).chunk(blocks))
 
     def test_kotlin_trim_and_lengths(self):
-        self.assertEqual(kt_trim("  hola \t\n"), "hola")  # NBSP is whitespace for Kotlin
+        self.assertEqual(kt_trim("\xa0 hola \t\n"), "hola")  # NBSP is whitespace for Kotlin
         self.assertEqual(kt_trim("\u0085hola"), "\u0085hola")   # NEL is not
         self.assertEqual(utf16_len("a\U0001d41a"), 3)
 

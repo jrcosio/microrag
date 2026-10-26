@@ -29,7 +29,7 @@ def synthetic_cases(target, maximum):
         "split_by_sentence": [RawBlock(("Largo",), sentences, 2)],
         "unsplittable_sentence": [RawBlock((), long_sentence.strip(), None)],
         "pages_and_blank_lines": [RawBlock((), f"{short}\n \n\n{short}", 1), RawBlock((), f"\t{short}  ", 2), RawBlock((), "", 3)],
-        "unicode_and_whitespace": [RawBlock(("Título › con símbolo",), " Texto con NBSP y emoji 😀.\n\n Otro párrafo ", None)],
+        "unicode_and_whitespace": [RawBlock(("Título › con símbolo",), "\xa0Texto con NBSP y emoji 😀.\n\n\u2003Otro párrafo\u2003", None)],
     }
 
 

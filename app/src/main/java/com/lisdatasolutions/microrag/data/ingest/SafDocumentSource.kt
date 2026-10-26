@@ -1,8 +1,8 @@
 package com.lisdatasolutions.microrag.data.ingest
 
 import android.content.ContentResolver
-import android.net.Uri
 import android.provider.OpenableColumns
+import androidx.core.net.toUri
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.InputStream
@@ -14,7 +14,7 @@ import java.io.InputStream
 class SafDocumentSource(private val resolver: ContentResolver) : DocumentSource {
 
     override fun describe(uri: String): SourceInfo {
-        val parsed = Uri.parse(uri)
+        val parsed = uri.toUri()
         if (parsed.scheme == ContentResolver.SCHEME_FILE) {
             val file = File(requireNotNull(parsed.path))
             if (!file.isFile) throw FileNotFoundException("missing file")
@@ -39,7 +39,7 @@ class SafDocumentSource(private val resolver: ContentResolver) : DocumentSource 
     }
 
     override fun open(uri: String): InputStream =
-        resolver.openInputStream(Uri.parse(uri)) ?: throw FileNotFoundException("no stream")
+        resolver.openInputStream(uri.toUri()) ?: throw FileNotFoundException("no stream")
 
     private companion object {
         const val DEFAULT_NAME = "documento"

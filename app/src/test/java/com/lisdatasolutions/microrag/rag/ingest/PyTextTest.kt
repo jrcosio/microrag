@@ -8,9 +8,9 @@ class PyTextTest {
 
     @Test
     fun spacesAreThoseOfStrIsspace() {
-        listOf(' ', '\t', '\n', '\u000B', '\u000C', '\r', '\u001C', '\u001F', '\u0085', ' ', ' ', ' ', '　')
+        listOf(' ', '\t', '\n', '\u000B', '\u000C', '\r', '\u001C', '\u001F', '\u0085', '\u00A0', '\u2003', '\u2028', '\u3000')
             .forEach { assertThat(PyText.isSpace(it.code)).isTrue() }
-        listOf('a', '​', '﻿', '_').forEach { assertThat(PyText.isSpace(it.code)).isFalse() }
+        listOf('a', '\u200B', '\uFEFF', '_').forEach { assertThat(PyText.isSpace(it.code)).isFalse() }
     }
 
     @Test
@@ -18,16 +18,16 @@ class PyTextTest {
         assertThat(PyText.splitLines("")).isEmpty()
         assertThat(PyText.splitLines("\n")).containsExactly("")
         assertThat(PyText.splitLines("a\nb\n")).containsExactly("a", "b").inOrder()
-        assertThat(PyText.splitLines("a\r\nb\rc\u000Bd\u000Ce\u001Cf\u0085g h i")).containsExactly("a", "b", "c", "d", "e", "f", "g", "h", "i").inOrder()
+        assertThat(PyText.splitLines("a\r\nb\rc\u000Bd\u000Ce\u001Cf\u0085g\u2028h\u2029i")).containsExactly("a", "b", "c", "d", "e", "f", "g", "h", "i").inOrder()
         assertThat(PyText.splitLines("a\n\n\nb")).containsExactly("a", "", "", "b").inOrder()
         assertThat(PyText.splitLines("a\r\r\nb")).containsExactly("a", "", "b").inOrder()
     }
 
     @Test
     fun stripAndCollapseUsePythonSpaces() {
-        assertThat(PyText.strip("  hola 　")).isEqualTo("hola")
+        assertThat(PyText.strip("\u00A0 hola \u3000")).isEqualTo("hola")
         assertThat(PyText.rstrip("  hola\t\u001F")).isEqualTo("  hola")
-        assertThat(PyText.collapseSpaces("  a   b c  ")).isEqualTo("a b c")
+        assertThat(PyText.collapseSpaces("  a \u2003 b\u00A0c  ")).isEqualTo("a b c")
         assertThat(PyText.collapseSpaces(" \t ")).isEmpty()
     }
 

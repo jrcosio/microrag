@@ -39,10 +39,10 @@ fun QueueItemDetail(item: QueueItem, onRetry: () -> Unit, onRemove: () -> Unit, 
     val typography = LisdataTheme.typography.material
     LisdataSheetContent(modifier = modifier) {
         Text(item.displayName, style = typography.titleLarge, color = colors.textPrimary, modifier = Modifier.semantics { heading() })
-        val details = listOfNotNull(sizeText(item.sizeBytes), item.format?.label())
-        if (details.isNotEmpty()) {
-            Text(details.joinToString(" · "), style = typography.bodyMedium, color = colors.textSecondary)
-        }
+        val size = sizeText(item.sizeBytes)
+        val format = item.format?.label()
+        val details = if (size != null && format != null) stringResource(R.string.ingest_sheet_meta, size, format) else size ?: format
+        if (details != null) Text(details, style = typography.bodyMedium, color = colors.textSecondary)
         val error = item.state.error
         if (error != null) {
             LisdataStatusChip(text = error.chipText(), kind = StatusKind.Error)

@@ -36,7 +36,6 @@
         <item quantity="one">%d page without text</item>
         <item quantity="other">%d pages without text</item>
     </plurals>
-    <string name="ingest_state_error">Error</string>
 
     <string name="ingest_error_unsupported_format">Unsupported format</string>
     <string name="ingest_error_unsupported_format_detail">Only PDF with text, TXT and Markdown are supported.</string>

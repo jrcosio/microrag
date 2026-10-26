@@ -37,12 +37,12 @@ DECODE = [
 
 TEXT = [
     ("text_empty", ""),
-    ("text_only_spaces", "   \n \xa0 　\n\t\n"),
+    ("text_only_spaces", "   \n \xa0 \u3000\n\t\n"),
     ("text_paragraphs", "Primera línea\nsegunda línea\n\n\n\nOtro párrafo  \n"),
     ("text_trailing_spaces", "línea con espacios   \t\n\nOtra\xa0\n"),
     ("text_indent", "  sangría inicial\n  segunda línea\n\n    otro párrafo"),
-    ("text_separators", "a\x0bb\x0cc\x1cd\x1de\x1ef\x85g h i\n\nj"),
-    ("text_blank_lines_with_spaces", "uno\n \t \ndos\n \ntres"),
+    ("text_separators", "a\x0bb\x0cc\x1cd\x1de\x1ef\x85g\u2028h\u2029i\n\nj"),
+    ("text_blank_lines_with_spaces", "uno\n \t \ndos\n\u2003\ntres"),
     ("text_leading_blank_lines", "\n\n\nTexto tras líneas vacías\n\n"),
 ]
 
@@ -64,7 +64,7 @@ MARKDOWN = [
     ("md_text_before_heading", "Preámbulo sin encabezado.\n\n# Primero\ncuerpo"),
     ("md_heading_at_end", "texto\n# Final"),
     ("md_paragraphs", "# Sección\n\nPárrafo uno\ncontinúa.\n\n\n\nPárrafo dos.   \n\n"),
-    ("md_separators", "# Sección\nuno\x85dos tres\n\ncuatro"),
+    ("md_separators", "# Sección\nuno\x85dos\u2028tres\n\ncuatro"),
 ]
 
 PDF_PAGE = [
@@ -78,7 +78,7 @@ PDF_PAGE = [
     ("pdf_not_bullets", "-sin espacio\n10.5 por ciento\nA) mayúscula\nab) dos letras"),
     ("pdf_sentence_end", "Fin de frase.\nMayúscula abre párrafo.\n2024 empieza por dígito.\nminúscula sigue: tras dos puntos\nOtra; Y punto y coma\n¿Pregunta?\nRespuesta! Final"),
     ("pdf_blank_lines", "Uno\n\n\nDos\n \nTres"),
-    ("pdf_unicode_spaces", "a b\xa0c  d\n　inicio"),
+    ("pdf_unicode_spaces", "a\u2003b\xa0c  d\n\u3000inicio"),
     ("pdf_non_bmp", "Frase.\n𝐀lfa matemática\n𝟏 dígito\nSigue"),
     ("pdf_accented_uppercase", "Termina.\nÉsta empieza con tilde.\nñandú minúscula"),
     ("pdf_crlf", "Línea uno\r\nlínea dos.\r\nLínea tres\r\n"),

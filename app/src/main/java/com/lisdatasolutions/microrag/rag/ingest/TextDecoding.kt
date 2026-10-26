@@ -28,7 +28,8 @@ object TextDecoding {
     )
 
     private fun cp1252(byte: Int): Char = if (byte in 0x80..0x9F) CP1252_HIGH[byte - 0x80] else byte.toChar()
-    private const val BOM = '﻿'
+
+    private const val BOM = '\uFEFF'
 
     /** True when the whole stream is well-formed UTF-8, as Python's strict decoder requires (RFC 3629). */
     fun isUtf8(input: InputStream): Boolean {
