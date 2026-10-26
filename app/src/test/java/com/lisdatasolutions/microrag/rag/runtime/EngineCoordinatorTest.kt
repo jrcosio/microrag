@@ -1,6 +1,7 @@
 package com.lisdatasolutions.microrag.rag.runtime
 
 import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Truth.assertWithMessage
 import com.lisdatasolutions.microrag.core.logging.DefaultAppLogger
 import com.lisdatasolutions.microrag.domain.model.ComputeBackend
 import com.lisdatasolutions.microrag.domain.model.ComputeBackend.CPU
@@ -127,5 +128,88 @@ class EngineCoordinatorTest {
 
         assertThat(events).containsAtLeast("close a", "close B")
         assertThat(coordinator.loaded.value).isEmpty()
+    }
+
+    // F07 research R4: the ingest holds its embedding engine; memory callbacks and other users respect it.
+
+    @Test
+    fun heldEngine_staysLoadedDuringTheBlockAndOnlyEmbeddingEnginesCanBeHeld() = runTest {
+        val gate = CompletableDeferred<Unit>()
+        launch { coordinator.withHeldEngine(gpuA, factory("A", GPU)) { gate.await() } }
+        runCurrent()
+        assertThat(coordinator.loaded.value).containsExactly(gpuA)
+
+        val llm = runCatching { coordinator.withHeldEngine(gpuB, factory("B", GPU)) { } }
+        assertThat(llm.exceptionOrNull()).isInstanceOf(IllegalArgumentException::class.java)
+
+        gate.complete(Unit)
+        advanceUntilIdle()
+        assertThat(coordinator.loaded.value).containsExactly(gpuA)
+    }
+
+    @Test
+    fun releaseUnheld_keepsTheHeldEngineAndClosesTheRest() = runTest {
+        coordinator.withEngine(cpuB, factory("b", CPU)) { }
+        val gate = CompletableDeferred<Unit>()
+        launch { coordinator.withHeldEngine(cpuA, factory("a", CPU)) { gate.await() } }
+        runCurrent()
+
+        coordinator.releaseUnheld()
+        assertThat(events).contains("close b")
+        assertThat(events).doesNotContain("close a")
+        assertThat(coordinator.loaded.value).containsExactly(cpuA)
+
+        gate.complete(Unit)
+        advanceUntilIdle()
+        coordinator.releaseUnheld()
+        assertThat(events).contains("close a")
+    }
+
+    @Test
+    fun releaseGenerators_closesOnlyTheLlm() = runTest {
+        coordinator.withEngine(gpuB, factory("B", GPU))  { }
+        coordinator.withEngine(cpuA, factory("a", CPU)) { }
+
+        coordinator.releaseGenerators()
+
+        assertThat(events).contains("close B")
+        assertThat(events).doesNotContain("close a")
+        assertThat(coordinator.loaded.value).containsExactly(cpuA)
+    }
+
+    @Test
+    fun anotherGpuRequest_waitsForTheHeldEngineWithoutBlockingCpuEngines() = runTest {
+        val gate = CompletableDeferred<Unit>()
+        launch { coordinator.withHeldEngine(gpuA, factory("A", GPU)) { gate.await() } }
+        runCurrent()
+
+        val llm = launch { coordinator.withEngine(gpuB, factory("B", GPU)) { events += "use B" } }
+        runCurrent()
+        assertWithMessage("the LLM waits while the ingest holds the GPU").that(events).doesNotContain("create B")
+
+        coordinator.withEngine(cpuB, factory("b", CPU)) { events += "use b" }
+        assertWithMessage("a CPU engine is not blocked meanwhile").that(events).contains("use b")
+
+        gate.complete(Unit)
+        llm.join()
+        assertThat(events).containsAtLeast("close A", "create B", "use B").inOrder()
+    }
+
+    @Test
+    fun sameKeyInUse_waitsOutsideTheLoadLock() = runTest {
+        val gate = CompletableDeferred<Unit>()
+        launch { coordinator.withHeldEngine(cpuA, factory("a", CPU)) { gate.await() } }
+        runCurrent()
+
+        val second = launch { coordinator.withEngine(cpuA, factory("a2", CPU)) { events += "use a" } }
+        runCurrent()
+        coordinator.withEngine(cpuB, factory("b", CPU)) { events += "use b" }
+        assertThat(events).contains("use b")
+        assertThat(events).doesNotContain("use a")
+
+        gate.complete(Unit)
+        second.join()
+        assertThat(events).contains("use a")
+        assertThat(events).doesNotContain("create a2")
     }
 }

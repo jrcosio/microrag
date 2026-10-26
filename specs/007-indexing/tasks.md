@@ -96,7 +96,7 @@ description: "Lista de tareas de F07 — Indexación"
   - «a.b.pdf» → «a.b»;
   - una extensión de 11 caracteres o no alfanumérica no se quita.
 - [X] T005 [P] `…/test/rag/runtime/EmbeddingOverflowTest.kt`: lee `offline/golden/embedding_overflow.jsonl` desde `sharedTest` y exige la misma secuencia de recortes (R6).
-- [ ] T006 [P] Ampliar `…/test/rag/runtime/EngineCoordinatorTest.kt` (research R4):
+- [X] T006 [P] Ampliar `…/test/rag/runtime/EngineCoordinatorTest.kt` (research R4):
   - `withHeldEngine` mantiene el engine durante el bloque y solo acepta engines de embedding;
   - `releaseUnheld` cierra los no retenidos y respeta el retenido;
   - `releaseGenerators` cierra solo los de generación;
@@ -139,7 +139,7 @@ description: "Lista de tareas de F07 — Indexación"
   - `EmbeddingInputTooLongException` y `EmbeddingEngineException`.
 
   Añadir `embedDocumentFitting(content, header)` a `TextEmbedder` y a `LiteRtTextEmbedder`: hasta 12 intentos y traducción de la excepción de LiteRT según T002. Ajustar los fakes de prueba existentes. Comprobar T005.
-- [ ] T014 Ampliar `…/microrag/rag/runtime/EngineCoordinator.kt` con `withHeldEngine`, `releaseUnheld` y `releaseGenerators`. Política: espera de GPU sin el `loadLock`. `EngineMemoryCallbacks.kt` usa `releaseUnheld` (R4). Comprobar T006.
+- [X] T014 Ampliar `…/microrag/rag/runtime/EngineCoordinator.kt` con `withHeldEngine`, `releaseUnheld` y `releaseGenerators`. Política: espera de GPU sin el `loadLock`. `EngineMemoryCallbacks.kt` usa `releaseUnheld` (R4). Comprobar T006.
 - [ ] T015 Ampliar `RagIndex` (`…/microrag/domain/rag/RagIndex.kt`, con `IndexStorageFullException`) y `DefaultRagIndex` (`…/microrag/data/rag/DefaultRagIndex.kt`):
   - `storedChunkCounts`, `storedChunkContents` y `deleteChunks` (con `notifyChanged`);
   - búsquedas con *k* + *m*, filtro `status = 'done' AND included = 1` y CTE `MATERIALIZED` (R7);
