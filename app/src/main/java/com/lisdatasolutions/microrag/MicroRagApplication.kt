@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.work.Configuration
 import com.lisdatasolutions.microrag.core.di.appModules
 import com.lisdatasolutions.microrag.core.locale.AppLocale
+import com.lisdatasolutions.microrag.debug.DebugStrictMode
 import com.lisdatasolutions.microrag.debug.debugModules
 import com.lisdatasolutions.microrag.rag.runtime.EngineCoordinator
 import com.lisdatasolutions.microrag.rag.runtime.EngineMemoryCallbacks
@@ -33,6 +34,7 @@ class MicroRagApplication : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
+        DebugStrictMode.install()
         startKoin {
             androidContext(this@MicroRagApplication)
             modules(appModules + debugModules)
