@@ -14,11 +14,16 @@ import com.lisdatasolutions.microrag.data.models.ContentResolverModelFileSource
 import com.lisdatasolutions.microrag.data.models.DefaultModelFileRepository
 import com.lisdatasolutions.microrag.data.models.ModelFileRepository
 import com.lisdatasolutions.microrag.data.onboarding.DataStoreOnboardingStore
+import com.lisdatasolutions.microrag.data.rag.DefaultRagIndex
+import com.lisdatasolutions.microrag.data.rag.RagSchema
 import com.lisdatasolutions.microrag.domain.model.NetworkKind
 import com.lisdatasolutions.microrag.domain.onboarding.DeviceResources
 import com.lisdatasolutions.microrag.domain.onboarding.ModelDownloadController
 import com.lisdatasolutions.microrag.domain.onboarding.ModelFileSource
 import com.lisdatasolutions.microrag.domain.onboarding.OnboardingStore
+import com.lisdatasolutions.microrag.domain.rag.RagIndex
+import com.lisdatasolutions.microrag.domain.rag.RagIndexConfig
+import java.io.File
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
@@ -38,6 +43,19 @@ val dataModule = module {
     }
     single<DeviceResources> { AndroidDeviceResources(androidContext(), get(), androidContext().noBackupFilesDir) }
     single<ModelFileSource> { ContentResolverModelFileSource(androidContext().contentResolver) }
+
+    // The local RAG index (F04): one connection on the database dispatcher, opened on first use.
+    single<RagIndex> {
+        val context = androidContext()
+        DefaultRagIndex(
+            dbFile = File(get<AppDirs>().index, "rag.db"),
+            schema = { RagSchema.load(context.assets) },
+            extensionPath = File(context.applicationInfo.nativeLibraryDir, "vector.so").path,
+            config = RagIndexConfig.current(),
+            dispatcher = get<AppDispatchers>().database,
+            logger = get(),
+        )
+    }
 
     // The only network access of the app (constitution I, F03 FR-026): pinned Hugging Face files.
     single<FileDownloader> { ModelDownloader(userAgent = "MicroRAG/${BuildConfig.VERSION_NAME}") }

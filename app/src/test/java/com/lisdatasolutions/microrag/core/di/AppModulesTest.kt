@@ -3,6 +3,7 @@ package com.lisdatasolutions.microrag.core.di
 import android.app.Application
 import android.content.Context
 import androidx.datastore.core.DataStore
+import com.lisdatasolutions.microrag.domain.rag.RagIndexConfig
 import java.io.File
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -20,7 +21,7 @@ class AppModulesTest {
             // Built inside their definitions: dispatchers, scopes, folders and the DataStore.
             extraTypes = listOf(
                 Context::class, Application::class, CoroutineDispatcher::class, CoroutineScope::class,
-                File::class, DataStore::class, Function0::class, String::class,
+                File::class, DataStore::class, Function0::class, String::class, RagIndexConfig::class, List::class,
             ),
         )
     }
