@@ -13,5 +13,5 @@ val featureModule = module {
     viewModel {
         SetupViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get())
     }
-    viewModel { IngestViewModel(get(), get(), get()) }
+    viewModel { IngestViewModel(get(), get(), get(), get(), get()) }
 }

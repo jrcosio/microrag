@@ -19,6 +19,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.security.MessageDigest
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.ensureActive
 
@@ -56,6 +57,12 @@ class DocumentImporter(
             ImportResult.Rejected(e.error)
         } catch (e: IndexUnavailableException) {
             ImportResult.Rejected(IngestError.INDEX_UNAVAILABLE)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            // Never let an unexpected failure escape into the import queue: it is this file's error.
+            logger.w(TAG) { "ingest import failed ${e.javaClass.simpleName}" }
+            ImportResult.Rejected(IngestError.READ_FAILED)
         }
         when (result) {
             is ImportResult.Imported -> logger.i(TAG) { "ingest import ok id=${result.documentId}" }
@@ -116,7 +123,7 @@ class DocumentImporter(
         }
         var copied = 0L
         input.use { stream ->
-            temp.outputStream().use { output ->
+            openOutput(temp).use { output ->
                 val buffer = ByteArray(BUFFER_BYTES)
                 while (true) {
                     coroutineContext.ensureActive()
@@ -132,6 +139,13 @@ class DocumentImporter(
         }
         onProgress(copied, declaredSize ?: copied)
         return digest.digest().joinToString("") { "%02x".format(it) } to copied
+    }
+
+    /** The private copy cannot be created: a storage problem, as a failed write is. */
+    private fun openOutput(temp: File): OutputStream = try {
+        temp.outputStream()
+    } catch (e: IOException) {
+        reject(IngestError.NO_SPACE)
     }
 
     private fun readBlock(stream: InputStream, buffer: ByteArray): Int = try {

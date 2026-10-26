@@ -24,6 +24,8 @@ import com.lisdatasolutions.microrag.domain.onboarding.ResolveStartDestinationUs
 import org.junit.Rule
 import com.lisdatasolutions.microrag.domain.ingest.ImportDocumentsUseCase
 import com.lisdatasolutions.microrag.domain.ingest.ObserveImportQueueUseCase
+import com.lisdatasolutions.microrag.domain.ingest.RemoveQueueItemUseCase
+import com.lisdatasolutions.microrag.domain.ingest.RetryQueueItemUseCase
 import com.lisdatasolutions.microrag.domain.ingest.StartIndexingUseCase
 import com.lisdatasolutions.microrag.feature.ingest.IngestViewModel
 import com.lisdatasolutions.microrag.testing.FakeImportQueueRepository
@@ -55,6 +57,8 @@ class NavigationTest {
                                 ObserveImportQueueUseCase(repository),
                                 ImportDocumentsUseCase(repository),
                                 StartIndexingUseCase(repository),
+                                RetryQueueItemUseCase(repository),
+                                RemoveQueueItemUseCase(repository),
                             )
                         }
                     },

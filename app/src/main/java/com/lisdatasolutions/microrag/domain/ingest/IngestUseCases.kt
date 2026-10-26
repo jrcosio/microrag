@@ -18,3 +18,13 @@ class ImportDocumentsUseCase(private val repository: ImportQueueRepository) {
 class StartIndexingUseCase(private val repository: ImportQueueRepository) {
     suspend operator fun invoke(): Int = repository.startProcessing()
 }
+
+/** Retries a failed import or a failed document (contracts I8). */
+class RetryQueueItemUseCase(private val repository: ImportQueueRepository) {
+    suspend operator fun invoke(key: QueueKey) = repository.retry(key)
+}
+
+/** Cancels an import or removes a non-indexed document with its private copy (contracts I7). */
+class RemoveQueueItemUseCase(private val repository: ImportQueueRepository) {
+    suspend operator fun invoke(key: QueueKey) = repository.remove(key)
+}

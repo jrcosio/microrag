@@ -46,6 +46,11 @@ data class IngestActions(
     val onPickFiles: () -> Unit = {},
     val onRowClick: (QueueKey) -> Unit = {},
     val onStartIndexing: () -> Unit = {},
+    val onDismissSheet: () -> Unit = {},
+    val onRetry: (QueueKey) -> Unit = {},
+    val onRemove: (QueueKey) -> Unit = {},
+    val onConfirmRemoval: () -> Unit = {},
+    val onDismissRemoval: () -> Unit = {},
 )
 
 @Composable
@@ -68,6 +73,11 @@ fun IngestRoute(onBack: () -> Unit, onStartIndexing: () -> Unit, viewModel: Inge
             onPickFiles = { picker.launch(IngestMimeTypes.ALL) },
             onRowClick = viewModel::onRowClick,
             onStartIndexing = viewModel::onStartIndexing,
+            onDismissSheet = viewModel::onDismissSheet,
+            onRetry = viewModel::onRetry,
+            onRemove = viewModel::onRemove,
+            onConfirmRemoval = viewModel::onConfirmRemoval,
+            onDismissRemoval = viewModel::onDismissRemoval,
         ),
     )
 }
@@ -123,6 +133,17 @@ fun IngestScreen(state: IngestUiState, actions: IngestActions, modifier: Modifie
             Spacer(Modifier.height(spacing.space4))
         }
         StartBar(state, actions.onStartIndexing)
+    }
+    state.selectedItem?.let { item ->
+        QueueItemSheet(
+            item = item,
+            onRetry = { actions.onRetry(item.key) },
+            onRemove = { actions.onRemove(item.key) },
+            onDismiss = actions.onDismissSheet,
+        )
+    }
+    state.removalItem?.let { item ->
+        RemovalConfirmation(item = item, onConfirm = actions.onConfirmRemoval, onDismiss = actions.onDismissRemoval)
     }
 }
 

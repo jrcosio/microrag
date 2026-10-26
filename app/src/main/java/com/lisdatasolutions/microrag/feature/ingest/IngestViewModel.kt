@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.lisdatasolutions.microrag.domain.ingest.ImportDocumentsUseCase
 import com.lisdatasolutions.microrag.domain.ingest.ObserveImportQueueUseCase
 import com.lisdatasolutions.microrag.domain.ingest.QueueKey
+import com.lisdatasolutions.microrag.domain.ingest.RemoveQueueItemUseCase
+import com.lisdatasolutions.microrag.domain.ingest.RetryQueueItemUseCase
 import com.lisdatasolutions.microrag.domain.ingest.StartIndexingUseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -28,10 +30,12 @@ class IngestViewModel(
     observeQueue: ObserveImportQueueUseCase,
     private val importDocuments: ImportDocumentsUseCase,
     private val startIndexing: StartIndexingUseCase,
+    private val retryItem: RetryQueueItemUseCase,
+    private val removeItem: RemoveQueueItemUseCase,
     backgroundDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : ViewModel() {
 
-    private data class Local(val selected: QueueKey? = null, val starting: Boolean = false)
+    private data class Local(val selected: QueueKey? = null, val confirming: QueueKey? = null, val starting: Boolean = false)
 
     private val local = MutableStateFlow(Local())
     private val events = Channel<IngestEvent>(Channel.BUFFERED)
@@ -43,6 +47,7 @@ class IngestViewModel(
             loading = false,
             queue = queue,
             selected = local.selected.takeIf { key -> queue.items.any { it.key == key } },
+            confirmingRemoval = local.confirming.takeIf { key -> queue.items.any { it.key == key } },
             starting = local.starting,
         )
     }.flowOn(backgroundDispatcher).stateIn(viewModelScope, SharingStarted.Eagerly, IngestUiState())
@@ -58,6 +63,32 @@ class IngestViewModel(
 
     fun onDismissSheet() {
         local.update { it.copy(selected = null) }
+    }
+
+    fun onRetry(key: QueueKey) {
+        local.update { it.copy(selected = null) }
+        viewModelScope.launch { retryItem(key) }
+    }
+
+    /** A registered document asks for confirmation first, because its private copy is deleted (constitution V). */
+    fun onRemove(key: QueueKey) {
+        val item = state.value.items.firstOrNull { it.key == key } ?: return
+        if (item.removalNeedsConfirmation) {
+            local.update { it.copy(selected = null, confirming = key) }
+        } else {
+            local.update { it.copy(selected = null) }
+            viewModelScope.launch { removeItem(key) }
+        }
+    }
+
+    fun onConfirmRemoval() {
+        val key = local.value.confirming ?: return
+        local.update { it.copy(confirming = null) }
+        viewModelScope.launch { removeItem(key) }
+    }
+
+    fun onDismissRemoval() {
+        local.update { it.copy(confirming = null) }
     }
 
     /** Enqueues the Ready documents once, even with repeated taps, and opens the indexing screen (FR-011). */

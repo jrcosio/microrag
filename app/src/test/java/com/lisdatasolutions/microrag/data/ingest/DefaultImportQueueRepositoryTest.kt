@@ -7,6 +7,7 @@ import com.lisdatasolutions.microrag.domain.ingest.QueueItemState
 import com.lisdatasolutions.microrag.domain.ingest.QueueKey
 import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
 import com.lisdatasolutions.microrag.testing.FakeDocumentSource
+import com.lisdatasolutions.microrag.testing.FakeFile
 import com.lisdatasolutions.microrag.testing.FakeIngestScheduler
 import com.lisdatasolutions.microrag.testing.FakePdfOpener
 import com.lisdatasolutions.microrag.testing.FakeRagIndex
@@ -140,5 +141,118 @@ class DefaultImportQueueRepositoryTest {
         assertThat(states[QueueKey.Document(1)]).isEqualTo(QueueItemState.Extracting(3, 10))
         assertThat(states[QueueKey.Document(2)]).isEqualTo(QueueItemState.Queued)
         assertThat(values.last().readyCount).isEqualTo(0)
+    }
+
+    // F06 US2 (T032): errors never stop the others; retry and remove (contracts I3, I7, I8).
+
+    @Test
+    fun anErrorDoesNotStopTheNextImports() = runTest {
+        source.add("content://bad", "falso.pdf", "no es pdf".toByteArray(), "application/pdf")
+        source.add("content://good", "bueno.txt", "texto".toByteArray(), "text/plain")
+        val repository = repository()
+        val values = collect(repository)
+
+        repository.import(listOf("content://bad", "content://good"))
+        advanceUntilIdle()
+
+        val states = values.last().items.map { it.displayName to it.state }
+        assertThat(states).containsExactly(
+            "falso.pdf" to QueueItemState.ImportFailed(IngestError.DAMAGED),
+            "bueno.txt" to QueueItemState.Ready,
+        ).inOrder()
+    }
+
+    @Test
+    fun retryingAnAttemptImportsItAgainOrReportsLostAccess() = runTest {
+        source.files["content://1"] = FakeFile(SourceInfo("a.txt", 5, "text/plain"), "texto".toByteArray(), readError = java.io.IOException("I/O"))
+        val repository = repository()
+        val values = collect(repository)
+        repository.import(listOf("content://1"))
+        advanceUntilIdle()
+        val key = values.last().items.single().key
+        assertThat(values.last().items.single().canRetry).isTrue()
+
+        source.add("content://1", "a.txt", "texto".toByteArray(), "text/plain")
+        repository.retry(key)
+        advanceUntilIdle()
+        assertThat(values.last().items.single().state).isEqualTo(QueueItemState.Ready)
+
+        source.files["content://2"] = FakeFile(SourceInfo("b.txt", 5, "text/plain"), "otro".toByteArray(), readError = java.io.IOException("I/O"))
+        repository.import(listOf("content://2"))
+        advanceUntilIdle()
+        val failed = values.last().items.first { it.displayName == "b.txt" }
+        source.files.remove("content://2")
+        repository.retry(failed.key)
+        advanceUntilIdle()
+        assertThat(values.last().items.first { it.displayName == "b.txt" }.state)
+            .isEqualTo(QueueItemState.ImportFailed(IngestError.ACCESS_LOST))
+    }
+
+    @Test
+    fun aNonRetryableErrorIsNotRetried() = runTest {
+        source.add("content://1", "hoja.xlsx", byteArrayOf(1), "application/vnd.ms-excel")
+        val repository = repository()
+        val values = collect(repository)
+        repository.import(listOf("content://1"))
+        advanceUntilIdle()
+        val item = values.last().items.single()
+
+        repository.retry(item.key)
+        advanceUntilIdle()
+
+        assertThat(item.canRetry).isFalse()
+        assertThat(source.opened).isEmpty()
+        assertThat(values.last().items.single().state).isEqualTo(QueueItemState.ImportFailed(IngestError.UNSUPPORTED_FORMAT))
+    }
+
+    @Test
+    fun retryingAFailedDocumentPutsItBackAsPending() = runTest {
+        source.add("content://1", "a.txt", "texto".toByteArray(), "text/plain")
+        val repository = repository()
+        val values = collect(repository)
+        repository.import(listOf("content://1"))
+        advanceUntilIdle()
+        index.updateStatus(1, com.lisdatasolutions.microrag.domain.rag.DocumentStatus.ERROR, error = IngestError.EXTRACTION_FAILED.code)
+        advanceUntilIdle()
+        assertThat(values.last().items.single().state).isEqualTo(QueueItemState.Failed(IngestError.EXTRACTION_FAILED))
+
+        repository.retry(QueueKey.Document(1))
+        advanceUntilIdle()
+
+        assertThat(index.docs.getValue(1).status).isEqualTo(com.lisdatasolutions.microrag.domain.rag.DocumentStatus.PENDING)
+        assertThat(index.docs.getValue(1).error).isNull()
+    }
+
+    @Test
+    fun removingADocumentDeletesItsRecordAndCopy() = runTest {
+        source.add("content://1", "a.txt", "texto".toByteArray(), "text/plain")
+        val repository = repository()
+        val values = collect(repository)
+        repository.import(listOf("content://1"))
+        advanceUntilIdle()
+        val copy = File(index.docs.getValue(1).localPath!!)
+        assertThat(copy.exists()).isTrue()
+
+        repository.remove(QueueKey.Document(1))
+        advanceUntilIdle()
+
+        assertThat(index.docs).isEmpty()
+        assertThat(copy.exists()).isFalse()
+        assertThat(values.last().items).isEmpty()
+    }
+
+    @Test
+    fun removingAFailedAttemptHidesIt() = runTest {
+        source.add("content://1", "hoja.xlsx", byteArrayOf(1), "application/vnd.ms-excel")
+        val repository = repository()
+        val values = collect(repository)
+        repository.import(listOf("content://1"))
+        advanceUntilIdle()
+
+        repository.remove(values.last().items.single().key)
+        advanceUntilIdle()
+
+        assertThat(values.last().items).isEmpty()
+        assertThat(values.last().items.none { it.removalNeedsConfirmation }).isTrue()
     }
 }

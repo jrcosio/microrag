@@ -2,8 +2,12 @@ package com.lisdatasolutions.microrag.data.ingest
 
 import com.google.common.truth.Truth.assertThat
 import com.lisdatasolutions.microrag.domain.ingest.DocumentFormat
+import com.lisdatasolutions.microrag.domain.ingest.ImportLimits
+import com.lisdatasolutions.microrag.domain.ingest.IngestError
+import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
 import com.lisdatasolutions.microrag.domain.rag.DocumentStatus
 import com.lisdatasolutions.microrag.testing.FakeDocumentSource
+import com.lisdatasolutions.microrag.testing.FakeFile
 import com.lisdatasolutions.microrag.testing.FakePdfOpener
 import com.lisdatasolutions.microrag.testing.FakeRagIndex
 import com.lisdatasolutions.microrag.testing.RecordingLogger
@@ -100,5 +104,145 @@ class DocumentImporterTest {
         assertThat(log).doesNotContain("secreto")
         assertThat(log).doesNotContain(dir.path)
         assertThat(log).doesNotContain("content://")
+    }
+
+    // F06 US2 (T031): one error per IngestError, never a temporary file left behind (research R5).
+
+    private suspend fun rejected(uri: String): IngestError? = (import(uri) as? ImportResult.Rejected)?.error
+
+    private fun assertNoTempFiles() = assertThat(dir.list().orEmpty().filter { it.endsWith(".tmp") }).isEmpty()
+
+    @Test
+    fun unsupportedFormats() = runTest {
+        source.add("content://xlsx", "hoja.xlsx", byteArrayOf(1, 2, 3), "application/vnd.ms-excel")
+        source.add("content://bin", "notas.txt", byteArrayOf(72, 0, 105), "text/plain")
+
+        assertThat(rejected("content://xlsx")).isEqualTo(IngestError.UNSUPPORTED_FORMAT)
+        assertThat(rejected("content://bin")).isEqualTo(IngestError.UNSUPPORTED_FORMAT)
+        assertThat(source.opened).containsExactly("content://bin")
+        assertNoTempFiles()
+    }
+
+    @Test
+    fun damagedAndEncryptedPdfs() = runTest {
+        source.add("content://fake", "falso.pdf", "esto no es un PDF".toByteArray(), "application/pdf")
+        source.add("content://empty", "vacío.pdf", FakePdfOpener.pdf(), "application/pdf")
+        source.add("content://broken", "roto.pdf", FakePdfOpener.pdf("x", marker = FakePdfOpener.DAMAGED), "application/pdf")
+        source.add("content://locked", "cifrado.pdf", FakePdfOpener.pdf("x", marker = FakePdfOpener.ENCRYPTED), "application/pdf")
+
+        assertThat(rejected("content://fake")).isEqualTo(IngestError.DAMAGED)
+        assertThat(rejected("content://empty")).isEqualTo(IngestError.DAMAGED)
+        assertThat(rejected("content://broken")).isEqualTo(IngestError.DAMAGED)
+        assertThat(rejected("content://locked")).isEqualTo(IngestError.ENCRYPTED)
+        assertThat(index.docs).isEmpty()
+        assertNoTempFiles()
+    }
+
+    @Test
+    fun sizeAndPageLimits() = runTest {
+        source.files["content://declared-big"] = FakeFile(SourceInfo("grande.txt", ImportLimits.MAX_FILE_BYTES + 1, "text/plain"))
+        source.add("content://exact", "exacto.txt", ByteArray(ImportLimits.MAX_FILE_BYTES.toInt()) { 'a'.code.toByte() }, "text/plain")
+        source.add("content://unknown-big", "sin tamaño.txt", ByteArray(ImportLimits.MAX_FILE_BYTES.toInt() + 1) { 'b'.code.toByte() }, "text/plain", size = null)
+        source.add("content://pages-over", "largo.pdf", FakePdfOpener.pdf("x", marker = "pages=2001"), "application/pdf")
+        source.add("content://pages-limit", "límite.pdf", FakePdfOpener.pdf("x", marker = "pages=2000"), "application/pdf")
+
+        assertThat(rejected("content://declared-big")).isEqualTo(IngestError.TOO_LARGE)
+        assertThat(source.opened).doesNotContain("content://declared-big")
+        assertThat(import("content://exact")).isInstanceOf(ImportResult.Imported::class.java)
+        assertThat(rejected("content://unknown-big")).isEqualTo(IngestError.TOO_LARGE)
+        assertThat(rejected("content://pages-over")).isEqualTo(IngestError.TOO_LARGE)
+        assertThat(import("content://pages-limit")).isInstanceOf(ImportResult.Imported::class.java)
+        assertNoTempFiles()
+    }
+
+    @Test
+    fun notEnoughSpaceBeforeCopying() = runTest {
+        source.add("content://1", "notas.txt", ByteArray(1_000) { 'a'.code.toByte() }, "text/plain")
+        free = 1_000 + ImportLimits.SPACE_MARGIN_BYTES - 1
+
+        assertThat(rejected("content://1")).isEqualTo(IngestError.NO_SPACE)
+        assertThat(source.opened).isEmpty()
+    }
+
+    @Test
+    fun aFailingWriteIsReportedAsNoSpace() = runTest {
+        source.add("content://1", "notas.txt", "texto".toByteArray(), "text/plain")
+        dir.setWritable(false)
+        try {
+            // A folder that refuses the copy is a storage problem, as a full disk is.
+            assertThat(rejected("content://1")).isEqualTo(IngestError.NO_SPACE)
+        } finally {
+            dir.setWritable(true)
+        }
+        assertNoTempFiles()
+    }
+
+    @Test
+    fun accessLostAndReadErrors() = runTest {
+        source.files["content://revoked"] = FakeFile(SourceInfo("a.txt", 10, "text/plain"), ByteArray(10), readError = null)
+        source.files["content://denied"] = FakeFile(SourceInfo("b.txt", 10, "text/plain"), ByteArray(10) { 1 }, readError = java.io.FileNotFoundException("gone"))
+        source.files["content://broken"] = FakeFile(SourceInfo("c.txt", 10, "text/plain"), ByteArray(10) { 1 }, readError = java.io.IOException("I/O"), readErrorAfter = 3)
+        source.files.remove("content://revoked")
+
+        assertThat(importer.import("content://revoked", SourceInfo("a.txt", 10, "text/plain"))).isEqualTo(ImportResult.Rejected(IngestError.ACCESS_LOST))
+        assertThat(rejected("content://denied")).isEqualTo(IngestError.ACCESS_LOST)
+        assertThat(rejected("content://broken")).isEqualTo(IngestError.READ_FAILED)
+        assertNoTempFiles()
+    }
+
+    @Test
+    fun duplicatesKeepTheExistingCopyUntouched() = runTest {
+        val bytes = "mismo contenido".toByteArray()
+        source.add("content://first", "original.txt", bytes, "text/plain")
+        source.add("content://again", "copia.txt", bytes, "text/plain")
+        val first = (import("content://first") as ImportResult.Imported).documentId
+        val copy = File(index.docs.getValue(first).localPath!!)
+        copy.setLastModified(1_000_000L)
+
+        assertThat(rejected("content://again")).isEqualTo(IngestError.DUPLICATE)
+
+        assertThat(index.docs).hasSize(1)
+        assertThat(copy.readBytes()).isEqualTo(bytes)
+        assertThat(copy.lastModified()).isEqualTo(1_000_000L)
+        assertNoTempFiles()
+    }
+
+    @Test
+    fun pdfWithoutTheSystemReader() = runTest {
+        pdf.isAvailableValue = false
+        source.add("content://1", "manual.pdf", FakePdfOpener.pdf("x"), "application/pdf")
+        source.add("content://2", "notas.md", "# Título".toByteArray(), "text/markdown")
+
+        assertThat(rejected("content://1")).isEqualTo(IngestError.PDF_UNAVAILABLE)
+        assertThat(source.opened).doesNotContain("content://1")
+        assertThat(import("content://2")).isInstanceOf(ImportResult.Imported::class.java)
+    }
+
+    @Test
+    fun anEmptyFileHasNoText() = runTest {
+        source.add("content://1", "vacío.txt", ByteArray(0), "text/plain")
+
+        assertThat(rejected("content://1")).isEqualTo(IngestError.NO_TEXT)
+        assertNoTempFiles()
+    }
+
+    @Test
+    fun anUnavailableIndexRegistersNothing() = runTest {
+        index.setCompatibility(IndexCompatibility.Incompatible("embedding_dims", "256", "768"))
+        source.add("content://1", "notas.txt", "texto".toByteArray(), "text/plain")
+
+        assertThat(rejected("content://1")).isEqualTo(IngestError.INDEX_UNAVAILABLE)
+        assertThat(source.opened).isEmpty()
+        assertThat(dir.list().orEmpty()).isEmpty()
+    }
+
+    @Test
+    fun errorLogsCarryOnlyTheCode() = runTest {
+        source.add("content://secret", "Nóminas 2024.pdf", "no es un pdf".toByteArray(), "application/pdf")
+
+        rejected("content://secret")
+
+        assertThat(logger.lines.joinToString()).doesNotContain("Nóminas")
+        assertThat(logger.lines.any { "damaged" in it }).isTrue()
     }
 }

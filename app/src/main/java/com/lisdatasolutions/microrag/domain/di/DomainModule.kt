@@ -2,6 +2,8 @@ package com.lisdatasolutions.microrag.domain.di
 
 import com.lisdatasolutions.microrag.domain.ingest.ImportDocumentsUseCase
 import com.lisdatasolutions.microrag.domain.ingest.ObserveImportQueueUseCase
+import com.lisdatasolutions.microrag.domain.ingest.RemoveQueueItemUseCase
+import com.lisdatasolutions.microrag.domain.ingest.RetryQueueItemUseCase
 import com.lisdatasolutions.microrag.domain.ingest.StartIndexingUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.BuildDownloadConfirmationUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.CompleteOnboardingUseCase
@@ -43,4 +45,6 @@ val domainModule = module {
     factoryOf(::ObserveImportQueueUseCase)
     factoryOf(::ImportDocumentsUseCase)
     factoryOf(::StartIndexingUseCase)
+    factoryOf(::RetryQueueItemUseCase)
+    factoryOf(::RemoveQueueItemUseCase)
 }

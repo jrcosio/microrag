@@ -8,7 +8,10 @@ import com.lisdatasolutions.microrag.domain.ingest.ObserveImportQueueUseCase
 import com.lisdatasolutions.microrag.domain.ingest.QueueItem
 import com.lisdatasolutions.microrag.domain.ingest.QueueItemState
 import com.lisdatasolutions.microrag.domain.ingest.QueueKey
+import com.lisdatasolutions.microrag.domain.ingest.RemoveQueueItemUseCase
+import com.lisdatasolutions.microrag.domain.ingest.RetryQueueItemUseCase
 import com.lisdatasolutions.microrag.domain.ingest.StartIndexingUseCase
+import com.lisdatasolutions.microrag.domain.ingest.IngestError
 import com.lisdatasolutions.microrag.testing.FakeImportQueueRepository
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
@@ -43,6 +46,8 @@ class IngestViewModelTest {
         ObserveImportQueueUseCase(repository),
         ImportDocumentsUseCase(repository),
         StartIndexingUseCase(repository),
+        RetryQueueItemUseCase(repository),
+        RemoveQueueItemUseCase(repository),
         backgroundDispatcher = dispatcher,
     )
 
@@ -120,5 +125,69 @@ class IngestViewModelTest {
 
         assertThat(events).isEmpty()
         assertThat(vm.state.first().starting).isFalse()
+    }
+
+    // F06 US2 (T033): detail sheet, retry and removal with confirmation.
+
+    private fun failedAttempt() = QueueItem(QueueKey.Attempt("a1"), "roto.pdf", 1_000, DocumentFormat.PDF,
+        QueueItemState.ImportFailed(IngestError.READ_FAILED))
+
+    private fun failedDocument() = QueueItem(QueueKey.Document(7), "escaneado.pdf", 5_000, DocumentFormat.PDF,
+        QueueItemState.Failed(IngestError.NO_TEXT))
+
+    @Test
+    fun theSheetOpensForTheTappedRowAndClosesWhenItLeavesTheQueue() = runTest(dispatcher) {
+        val vm = viewModel()
+        repository.state.value = ImportQueue(listOf(failedAttempt(), failedDocument()), 0, pdfSupported = true, indexAvailable = true)
+        advanceUntilIdle()
+
+        vm.onRowClick(QueueKey.Document(7))
+        advanceUntilIdle()
+        assertThat(vm.state.value.selectedItem?.displayName).isEqualTo("escaneado.pdf")
+        assertThat(vm.state.value.selectedItem?.canRetry).isFalse()
+
+        repository.state.value = ImportQueue(listOf(failedAttempt()), 0, pdfSupported = true, indexAvailable = true)
+        advanceUntilIdle()
+        assertThat(vm.state.value.selectedItem).isNull()
+    }
+
+    @Test
+    fun retryClosesTheSheetAndCallsTheUseCase() = runTest(dispatcher) {
+        val vm = viewModel()
+        repository.state.value = ImportQueue(listOf(failedAttempt()), 0, pdfSupported = true, indexAvailable = true)
+        advanceUntilIdle()
+        vm.onRowClick(QueueKey.Attempt("a1"))
+
+        vm.onRetry(QueueKey.Attempt("a1"))
+        advanceUntilIdle()
+
+        assertThat(repository.retried).containsExactly(QueueKey.Attempt("a1"))
+        assertThat(vm.state.value.selected).isNull()
+    }
+
+    @Test
+    fun removingADocumentAsksForConfirmationButAnAttemptDoesNot() = runTest(dispatcher) {
+        val vm = viewModel()
+        repository.state.value = ImportQueue(listOf(failedAttempt(), failedDocument()), 0, pdfSupported = true, indexAvailable = true)
+        advanceUntilIdle()
+
+        vm.onRemove(QueueKey.Attempt("a1"))
+        advanceUntilIdle()
+        assertThat(repository.removed).containsExactly(QueueKey.Attempt("a1"))
+
+        vm.onRemove(QueueKey.Document(7))
+        advanceUntilIdle()
+        assertThat(repository.removed).containsExactly(QueueKey.Attempt("a1"))
+        assertThat(vm.state.value.removalItem?.displayName).isEqualTo("escaneado.pdf")
+
+        vm.onDismissRemoval()
+        advanceUntilIdle()
+        assertThat(vm.state.value.removalItem).isNull()
+
+        vm.onRemove(QueueKey.Document(7))
+        vm.onConfirmRemoval()
+        advanceUntilIdle()
+        assertThat(repository.removed).containsExactly(QueueKey.Attempt("a1"), QueueKey.Document(7)).inOrder()
+        assertThat(vm.state.value.removalItem).isNull()
     }
 }
