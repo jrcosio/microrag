@@ -46,6 +46,14 @@ object IngestPreviewData {
         item(8, "Informe anual.pdf", 3_300_000, DocumentFormat.PDF, QueueItemState.Prepared(212, 3)),
     )
 
+    /** F07: embeddings in progress, a paused run and the new failures (index-ui §Ingesta). */
+    private val indexingRows = listOf(
+        item(9, "Manual de procesos.pdf", 3_300_000, DocumentFormat.PDF, QueueItemState.Indexing(1_250, 4_300)),
+        item(10, "Normativa interna.pdf", 1_800_000, DocumentFormat.PDF, QueueItemState.Paused(64, 430)),
+        item(11, "Informe anual.pdf", 2_100_000, DocumentFormat.PDF, QueueItemState.Failed(IngestError.EMBEDDING_FAILED)),
+        item(12, "Catálogo 2024.pdf", 9_600_000, DocumentFormat.PDF, QueueItemState.Failed(IngestError.INCOMPLETE)),
+    )
+
     val empty = IngestUiState(loading = false, queue = queue(emptyList()))
     val png = IngestUiState(loading = false, queue = queue(pngRows))
     val working = IngestUiState(loading = false, queue = queue(workingRows))
@@ -54,6 +62,7 @@ object IngestPreviewData {
     val confirming = working.copy(confirmingRemoval = QueueKey.Document(7))
     val noPdf = IngestUiState(loading = false, queue = queue(pngRows.drop(2), pdfSupported = false))
     val libraryUnavailable = IngestUiState(loading = false, queue = queue(emptyList(), indexAvailable = false))
+    val indexing = IngestUiState(loading = false, queue = queue(indexingRows).copy(canStart = true))
 
     val all: List<Pair<String, IngestUiState>> = listOf(
         "empty" to empty,
@@ -64,6 +73,7 @@ object IngestPreviewData {
         "confirming" to confirming,
         "noPdf" to noPdf,
         "libraryUnavailable" to libraryUnavailable,
+        "indexing" to indexing,
     )
 }
 
@@ -90,6 +100,10 @@ private fun IngestNoPdfPreview() = LisdataTheme { IngestScreen(IngestPreviewData
 @LisdataPreviews
 @Composable
 private fun IngestLibraryUnavailablePreview() = LisdataTheme { IngestScreen(IngestPreviewData.libraryUnavailable, IngestActions()) }
+
+@LisdataPreviews
+@Composable
+private fun IngestIndexingPreview() = LisdataTheme { IngestScreen(IngestPreviewData.indexing, IngestActions()) }
 
 @LisdataPreviews
 @Composable

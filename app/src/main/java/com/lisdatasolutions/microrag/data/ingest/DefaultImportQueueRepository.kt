@@ -2,6 +2,7 @@ package com.lisdatasolutions.microrag.data.ingest
 
 import android.os.SystemClock
 import com.lisdatasolutions.microrag.core.logging.AppLogger
+import com.lisdatasolutions.microrag.data.indexing.IngestRun
 import com.lisdatasolutions.microrag.data.indexing.IngestRunStore
 import com.lisdatasolutions.microrag.domain.indexing.IndexingRepository
 import com.lisdatasolutions.microrag.domain.ingest.DocumentFormat
@@ -76,7 +77,8 @@ class DefaultImportQueueRepository(
 
     private data class Pending(val attemptId: String, val uri: String, val info: SourceInfo)
 
-    private data class Loaded(val documents: List<StoredDocument>, val version: Long)
+    /** [stored] counts chunks of documents being embedded, for «Indexando · N de M» (F07 index-ui §Ingesta). */
+    private data class Loaded(val documents: List<StoredDocument>, val version: Long, val stored: Map<Long, Int> = emptyMap())
 
     private val attempts = MutableStateFlow<List<Attempt>>(emptyList())
     private val pending = Channel<Pending>(Channel.UNLIMITED)
@@ -91,13 +93,17 @@ class DefaultImportQueueRepository(
         val available = index.open() == IndexCompatibility.Compatible
         if (available && orphansCleaned.compareAndSet(false, true)) cleanOrphans()
         val documents = if (available) {
-            index.documentChanges.map { version -> Loaded(index.documents(QUEUE_STATUSES), version) }
+            index.documentChanges.map { version ->
+                val documents = index.documents(QUEUE_STATUSES)
+                val embedding = documents.filter { it.status == DocumentStatus.EMBEDDING || it.status == DocumentStatus.PARSED }
+                Loaded(documents, version, if (embedding.isEmpty()) emptyMap() else index.storedChunkCounts(embedding.map { it.id }))
+            }
         } else {
             flowOf(Loaded(emptyList(), Long.MIN_VALUE))
         }
         emitAll(
-            combine(attempts, documents, scheduler.activeDocumentIds, scheduler.progress) { attempts, loaded, active, progress ->
-                build(attempts, loaded, active, progress, available)
+            combine(attempts, documents, scheduler.activeDocumentIds, scheduler.progress, runStore.run) { attempts, loaded, active, progress, run ->
+                build(attempts, loaded, active, progress, run, available)
             },
         )
     }
@@ -201,6 +207,7 @@ class DefaultImportQueueRepository(
         loaded: Loaded,
         active: Set<Long>,
         progress: IngestProgress?,
+        run: IngestRun,
         available: Boolean,
     ): ImportQueue {
         val attemptItems = attempts
@@ -220,29 +227,48 @@ class DefaultImportQueueRepository(
                 displayName = document.displayName,
                 sizeBytes = document.sizeBytes,
                 format = DocumentFormat.fromMime(document.mimeType),
-                state = stateOf(document, active, progress),
+                state = stateOf(document, active, progress, run, loaded.stored[document.id]),
             )
         }
         val items = attemptItems + documentItems
+        val readyCount = items.count { it.state == QueueItemState.Ready }
+        // F07: also chunked or half-indexed documents with no work, and a paused run, can be started.
+        val unfinished = loaded.documents.filter { it.status == DocumentStatus.PARSED || it.status == DocumentStatus.EMBEDDING }
         return ImportQueue(
             items = items,
-            readyCount = items.count { it.state == QueueItemState.Ready },
+            readyCount = readyCount,
             pdfSupported = pdf.isAvailable,
             indexAvailable = available,
+            canStart = readyCount > 0 || unfinished.any { it.id !in active } || (run.paused && run.documentIds.isNotEmpty()),
         )
     }
 
-    private fun stateOf(document: StoredDocument, active: Set<Long>, progress: IngestProgress?): QueueItemState =
-        when (document.status) {
-            DocumentStatus.PARSED -> QueueItemState.Prepared(document.chunkCount ?: 0, document.skippedPages)
+    private fun stateOf(
+        document: StoredDocument,
+        active: Set<Long>,
+        progress: IngestProgress?,
+        run: IngestRun,
+        stored: Int?,
+    ): QueueItemState {
+        val current = progress?.takeIf { it.documentId == document.id }
+        val paused = run.paused && document.id in run.documentIds
+        return when (document.status) {
             DocumentStatus.ERROR -> QueueItemState.Failed(IngestError.fromCode(document.error) ?: IngestError.EXTRACTION_FAILED)
+            DocumentStatus.PARSED, DocumentStatus.EMBEDDING -> when {
+                paused -> QueueItemState.Paused(stored, document.chunkCount)
+                current?.chunksDone != null && current.chunksTotal != null -> QueueItemState.Indexing(current.chunksDone, current.chunksTotal)
+                document.status == DocumentStatus.EMBEDDING -> QueueItemState.Indexing(stored ?: 0, document.chunkCount ?: 0)
+                else -> QueueItemState.Prepared(document.chunkCount ?: 0, document.skippedPages)
+            }
             else -> when {
+                paused -> QueueItemState.Paused(null, null)
                 document.id !in active -> QueueItemState.Ready
                 progress?.documentId != document.id -> QueueItemState.Queued
                 progress.stage == IngestProgress.Stage.EXTRACTING -> QueueItemState.Extracting(progress.page, progress.pages)
                 else -> QueueItemState.Chunking
             }
         }
+    }
 
     private fun updateAttempt(id: String, change: (Attempt) -> Attempt) {
         attempts.update { list -> list.map { if (it.id == id) change(it) else it } }
@@ -271,6 +297,7 @@ class DefaultImportQueueRepository(
         const val TAG = "MicroRAG"
         const val DEFAULT_NAME = "documento"
         const val PROGRESS_INTERVAL_MS = 150L
-        val QUEUE_STATUSES = setOf(DocumentStatus.PENDING, DocumentStatus.PARSED, DocumentStatus.ERROR)
+        /** Every non-indexed document (D-037); done ones belong to the library (F08). */
+        val QUEUE_STATUSES = setOf(DocumentStatus.PENDING, DocumentStatus.PARSED, DocumentStatus.EMBEDDING, DocumentStatus.ERROR)
     }
 }

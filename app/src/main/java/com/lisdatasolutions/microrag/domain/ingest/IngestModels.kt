@@ -111,6 +111,8 @@ data class ImportQueue(
     val readyCount: Int,
     val pdfSupported: Boolean,
     val indexAvailable: Boolean,
+    /** «Iniciar indexación» has something to do: Ready documents, or unfinished ones without work (F07). */
+    val canStart: Boolean = readyCount > 0,
 ) {
     companion object {
         val EMPTY = ImportQueue(emptyList(), readyCount = 0, pdfSupported = true, indexAvailable = true)

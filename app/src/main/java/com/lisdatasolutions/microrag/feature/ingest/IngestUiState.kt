@@ -19,7 +19,7 @@ data class IngestUiState(
     val selectedItem: QueueItem? get() = items.firstOrNull { it.key == selected }
     val removalItem: QueueItem? get() = items.firstOrNull { it.key == confirmingRemoval }
     val pickEnabled: Boolean get() = !loading && queue.indexAvailable
-    val startEnabled: Boolean get() = !loading && !starting && queue.indexAvailable && queue.readyCount > 0
+    val startEnabled: Boolean get() = !loading && !starting && queue.indexAvailable && queue.canStart
 }
 
 /** One-off requests that need the navigation. */

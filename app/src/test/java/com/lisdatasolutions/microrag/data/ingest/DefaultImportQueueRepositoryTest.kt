@@ -4,11 +4,16 @@ import com.google.common.truth.Truth.assertThat
 import com.lisdatasolutions.microrag.data.indexing.DefaultIndexingRepository
 import com.lisdatasolutions.microrag.data.indexing.FakeThermalStatusSource
 import com.lisdatasolutions.microrag.data.indexing.InMemoryIngestRunStore
+import com.lisdatasolutions.microrag.data.indexing.RunPauseCause
 import com.lisdatasolutions.microrag.domain.ingest.ImportQueue
 import com.lisdatasolutions.microrag.domain.ingest.IngestError
+import com.lisdatasolutions.microrag.domain.ingest.IngestProgress
 import com.lisdatasolutions.microrag.domain.ingest.QueueItemState
 import com.lisdatasolutions.microrag.domain.ingest.QueueKey
+import com.lisdatasolutions.microrag.domain.rag.ChunkInput
+import com.lisdatasolutions.microrag.domain.rag.DocumentStatus
 import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
+import com.lisdatasolutions.microrag.domain.rag.NewDocument
 import com.lisdatasolutions.microrag.testing.FakeDocumentSource
 import com.lisdatasolutions.microrag.testing.FakeFile
 import com.lisdatasolutions.microrag.testing.FakeIngestScheduler
@@ -220,14 +225,14 @@ class DefaultImportQueueRepositoryTest {
         val values = collect(repository)
         repository.import(listOf("content://1"))
         advanceUntilIdle()
-        index.updateStatus(1, com.lisdatasolutions.microrag.domain.rag.DocumentStatus.ERROR, error = IngestError.EXTRACTION_FAILED.code)
+        index.updateStatus(1, DocumentStatus.ERROR, error = IngestError.EXTRACTION_FAILED.code)
         advanceUntilIdle()
         assertThat(values.last().items.single().state).isEqualTo(QueueItemState.Failed(IngestError.EXTRACTION_FAILED))
 
         repository.retry(QueueKey.Document(1))
         advanceUntilIdle()
 
-        assertThat(index.docs.getValue(1).status).isEqualTo(com.lisdatasolutions.microrag.domain.rag.DocumentStatus.PENDING)
+        assertThat(index.docs.getValue(1).status).isEqualTo(DocumentStatus.PENDING)
         assertThat(index.docs.getValue(1).error).isNull()
     }
 
@@ -273,7 +278,7 @@ class DefaultImportQueueRepositoryTest {
         val values = collect(repository)
         repository.import(listOf("content://a", "content://b", "content://c"))
         advanceUntilIdle()
-        index.updateStatus(2, com.lisdatasolutions.microrag.domain.rag.DocumentStatus.PARSED, chunkCount = 1)
+        index.updateStatus(2, DocumentStatus.PARSED, chunkCount = 1)
         scheduler.activeDocumentIds.value = setOf(3L)
 
         val inRun = repository.startProcessing()
@@ -302,7 +307,7 @@ class DefaultImportQueueRepositoryTest {
         collect(repository)
         repository.import(listOf("content://1"))
         advanceUntilIdle()
-        index.updateStatus(1, com.lisdatasolutions.microrag.domain.rag.DocumentStatus.ERROR, error = IngestError.EXTRACTION_FAILED.code)
+        index.updateStatus(1, DocumentStatus.ERROR, error = IngestError.EXTRACTION_FAILED.code)
 
         repository.retry(QueueKey.Document(1))
 
@@ -333,5 +338,53 @@ class DefaultImportQueueRepositoryTest {
         } finally {
             scope.cancel()
         }
+    }
+
+    // F07 T055 (index-ui §Ingesta): embeddings, paused runs and indexed documents in the queue.
+
+    private suspend fun registered(name: String, status: DocumentStatus, chunks: Int? = null): Long {
+        val id = index.addDocument(NewDocument(displayName = name, contentHash = name, mimeType = "text/plain"))
+        index.updateStatus(id, status, chunkCount = chunks)
+        return id
+    }
+
+    @Test
+    fun aDocumentBeingEmbedded_showsItsChunksAndAnIndexedOneLeaves() = runTest {
+        val embedding = registered("a.txt", DocumentStatus.EMBEDDING, chunks = 430)
+        index.insertChunks(embedding, (0 until 64).map { ChunkInput(it, null, null, "c", 1, FloatArray(256)) })
+        val done = registered("b.txt", DocumentStatus.DONE, chunks = 3)
+        val values = collect(repository())
+        advanceUntilIdle()
+
+        var states = values.last().items.associate { it.key to it.state }
+        assertThat(states[QueueKey.Document(embedding)]).isEqualTo(QueueItemState.Indexing(64, 430))
+        assertThat(states).doesNotContainKey(QueueKey.Document(done))
+
+        scheduler.progress.value = IngestProgress(embedding, IngestProgress.Stage.EMBEDDING, chunksDone = 100, chunksTotal = 430)
+        advanceUntilIdle()
+        states = values.last().items.associate { it.key to it.state }
+        assertThat(states[QueueKey.Document(embedding)]).isEqualTo(QueueItemState.Indexing(100, 430))
+    }
+
+    @Test
+    fun aPausedRun_showsItsDocumentsPausedAndCanBeStarted() = runTest {
+        val embedding = registered("a.txt", DocumentStatus.EMBEDDING, chunks = 10)
+        runStore.edit { it.adding(listOf(embedding)).pausedBy(RunPauseCause.USER) }
+        val values = collect(repository())
+        advanceUntilIdle()
+
+        assertThat(values.last().items.single().state).isEqualTo(QueueItemState.Paused(0, 10))
+        assertThat(values.last().readyCount).isEqualTo(0)
+        assertThat(values.last().canStart).isTrue()
+    }
+
+    @Test
+    fun chunkedDocumentsWithoutWork_canBeStarted() = runTest {
+        registered("a.txt", DocumentStatus.PARSED, chunks = 2)
+        val values = collect(repository())
+        advanceUntilIdle()
+
+        assertThat(values.last().readyCount).isEqualTo(0)
+        assertThat(values.last().canStart).isTrue()
     }
 }

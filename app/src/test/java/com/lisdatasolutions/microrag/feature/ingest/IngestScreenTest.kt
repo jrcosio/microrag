@@ -77,7 +77,7 @@ class IngestScreenTest {
 
     @Test
     fun errorRowsShowTheirReasonAndNothingReadyDisablesStarting() {
-        show(IngestPreviewData.errors.copy(queue = IngestPreviewData.errors.queue.copy(items = IngestPreviewData.errors.items.dropLast(1), readyCount = 0)))
+        show(IngestPreviewData.errors.copy(queue = IngestPreviewData.errors.queue.copy(items = IngestPreviewData.errors.items.dropLast(1), readyCount = 0, canStart = false)))
 
         listOf("Archivo cifrado", "Formato no admitido", "Sin texto", "Ya está en tu biblioteca")
             .forEach { compose.onNodeWithText(it, useUnmergedTree = true).assertExists() }
@@ -131,5 +131,18 @@ class IngestScreenTest {
     @Test
     fun thePickerOffersTheMvpTypes() {
         assertThat(IngestMimeTypes.ALL.toList()).containsExactly("application/pdf", "text/plain", "text/markdown", "text/x-markdown")
+    }
+
+    // F07 T055: the queue during indexing (index-ui §Ingesta).
+
+    @Test
+    fun indexingPausedAndFailedRows() {
+        show(IngestPreviewData.indexing)
+
+        compose.onNodeWithText("Indexando · 1.250 de 4.300 fragmentos", substring = true, useUnmergedTree = true).assertExists()
+        compose.onNodeWithText("En pausa · 64 de 430 fragmentos", substring = true, useUnmergedTree = true).assertExists()
+        compose.onNodeWithText("No se pudo indexar", useUnmergedTree = true).assertExists()
+        compose.onNodeWithText("Indexación incompleta", useUnmergedTree = true).assertExists()
+        startButton().assertIsEnabled()
     }
 }

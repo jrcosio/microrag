@@ -91,6 +91,17 @@ class IngestViewModelTest {
     }
 
     @Test
+    fun nothingReadyButARunToGoOn_enablesStarting() = runTest(dispatcher) {
+        // F07 T055: chunked or half-indexed documents without work, or a paused run (index-ui §Ingesta).
+        val vm = viewModel()
+        val paused = QueueItem(QueueKey.Document(1), "a.txt", 10, DocumentFormat.TXT, QueueItemState.Paused(64, 430))
+        repository.state.value = ImportQueue(listOf(paused), readyCount = 0, pdfSupported = true, indexAvailable = true, canStart = true)
+        advanceUntilIdle()
+
+        assertThat(vm.state.value.startEnabled).isTrue()
+    }
+
+    @Test
     fun startingTwiceEnqueuesOnceAndOpensTheIndexingScreen() = runTest(dispatcher) {
         val vm = viewModel()
         repository.state.value = ImportQueue(listOf(ready(1)), readyCount = 1, pdfSupported = true, indexAvailable = true)
