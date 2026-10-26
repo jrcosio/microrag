@@ -62,18 +62,18 @@ description: "Lista de tareas de F05 — Harness offline de evaluación"
 
 ### Tests (escribir primero)
 
-- [ ] T004 [P] `offline/tests/test_appconfig.py`: `appconfig` lee del código Kotlin el SHA-256 de EG2 270M y de Gemma 4 E2B, `DIMENSIONS`, los dos prefijos, `SpanishText.VERSION` y `RagIndexConfig.SCHEMA_VERSION`, y `expected_meta()` da las 7 claves de F04 data-model §2.
-- [ ] T005 [P] `offline/tests/test_runs.py`:
+- [X] T004 [P] `offline/tests/test_appconfig.py`: `appconfig` lee del código Kotlin el SHA-256 de EG2 270M y de Gemma 4 E2B, `DIMENSIONS`, los dos prefijos, `SpanishText.VERSION` y `RagIndexConfig.SCHEMA_VERSION`, y `expected_meta()` da las 7 claves de F04 data-model §2.
+- [X] T005 [P] `offline/tests/test_runs.py`:
   - la huella de `EvalConfig` es estable entre ejecuciones y cambia con cualquier parámetro, con la huella del índice, con la del conjunto o con la de los modelos;
   - la serialización JSON es canónica.
 
 ### Implementación
 
-- [ ] T006 [P] `offline/eval/appconfig.py` (research R5).
-- [ ] T007 [P] `offline/eval/models.py`:
+- [X] T006 [P] `offline/eval/appconfig.py` (research R5).
+- [X] T007 [P] `offline/eval/models.py`:
   - rutas de EG2, E2B y E4B en `offline/models/`;
   - verificación del SHA-256 contra `appconfig` (EG2, E2B) o contra research R7 (E4B), con caché por tamaño y fecha de modificación para no recalcular en cada ejecución.
-- [ ] T008 `offline/eval/runs.py`: `EvalConfig` (data-model §5), la referencia, la huella y las rutas de `offline/build/runs/<huella>/`. Depende de T006.
+- [X] T008 `offline/eval/runs.py`: `EvalConfig` (data-model §5), la referencia, la huella y las rutas de `offline/build/runs/<huella>/`. Depende de T006.
 
 **Checkpoint**: pruebas Python en verde.
 
