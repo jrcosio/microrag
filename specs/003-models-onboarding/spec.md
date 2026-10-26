@@ -26,6 +26,15 @@
 | EmbeddingGemma 2 270M | «Búsqueda semántica» | `embeddinggemma-2-text-270m.litertlm` | 164.626.432 bytes (≈ 165 MB) | D-025 |
 | **Total** | | | **≈ 2,75 GB** | |
 
+## Clarifications
+
+### Session 2026-10-26
+
+- Q: ¿Se ofrece también importar los modelos desde un archivo del teléfono, además de descargarlos? (G02) → A: sí. La descarga es el camino principal y la confirmación ofrece además «Seleccionar archivo del dispositivo», con la misma verificación de huella y compatibilidad.
+- Q: ¿Qué red puede usar la descarga de los modelos (≈ 2,75 GB)? → A: cualquier red disponible (Wi-Fi o datos móviles) una vez que el usuario confirma el tamaño. La confirmación indica la red actual y avisa si son datos móviles.
+- Q: ¿Cómo se presentan los pasos 2 y 3 de la Preparación, que no están maquetados, y cómo empieza la descarga? (G10) → A: en una sola pantalla, la del PNG 02. El chip «PASO N DE 3» y la barra reflejan el estado real. La descarga empieza al tocar una fila de modelo, que abre la confirmación. «Continuar» solo se habilita en el paso 3, y mientras tanto un texto explica qué falta.
+- Q: ¿Cómo se comprueba que Gemma 4 funciona en el teléfono antes de marcarlo «Listo», y qué pasa si no arranca en la GPU? → A: con una prueba real de arranque durante la preparación (≈ 17 s, que deja la caché del motor lista). Si falla en GPU, se prueba en CPU: si arranca, queda «Listo» con el aviso «Modo CPU, más lento»; si no, queda «Incompatible». EmbeddingGemma 2 se prueba en CPU.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Bienvenida y entrada al primer uso (Priority: P1)
@@ -52,7 +61,7 @@ La primera vez que se abre la app aparece la Bienvenida, tal como está en el PN
 
 ### User Story 2 - Descargar los modelos con confirmación previa (Priority: P1)
 
-En la Preparación inicial (paso 1, PNG 02) los dos modelos aparecen «Por configurar». Al tocar cualquiera de ellos, la app pide confirmación antes de empezar. Esa confirmación indica los modelos, el tamaño total (≈ 2,75 GB), el espacio libre, el tipo de red y, si procede, el aviso de memoria. Al aceptar, empiezan las descargas y la pantalla pasa al paso 2, con el progreso real de cada modelo. La descarga continúa aunque el usuario salga de la app, y una notificación muestra el progreso.
+En la Preparación inicial (paso 1, PNG 02) los dos modelos aparecen «Por configurar». Al tocar cualquiera de ellos, la app pide confirmación antes de empezar. Esa confirmación indica los modelos, el tamaño total (≈ 2,75 GB), el espacio libre, la red por la que se descargará (con aviso si son datos móviles) y, si procede, el aviso de memoria. Al aceptar, empiezan las descargas y la pantalla pasa al paso 2, con el progreso real de cada modelo. La descarga continúa aunque el usuario salga de la app, y una notificación muestra el progreso.
 
 **Why this priority**: sin los modelos no hay producto, y es la única operación de red de toda la app (constitución I).
 
@@ -119,10 +128,10 @@ Nunca vuelve a bajar lo que ya tenía.
 **Acceptance Scenarios**:
 
 1. **Given** una descarga al 50 %, **When** se mata el proceso y se vuelve a abrir la app, **Then** la descarga continúa desde ≈ 50 % y el total transferido no supera el tamaño del fichero en más de un 5 %.
-2. **Given** una descarga en curso, **When** se reinicia el teléfono, **Then** la descarga se reanuda automáticamente cuando hay red permitida, sin abrir la app.
+2. **Given** una descarga en curso, **When** se reinicia el teléfono, **Then** la descarga se reanuda automáticamente cuando hay red, sin abrir la app.
 3. **Given** una descarga en curso, **When** se pierde la conexión, **Then** la fila muestra «Esperando conexión» y la descarga continúa sola al volver la red.
 4. **Given** que el servidor no admite reanudar o que el fichero remoto ha cambiado, **When** se reanuda, **Then** la descarga vuelve a empezar desde cero de forma segura, sin mezclar datos, y la verificación de huella lo protege igualmente.
-5. **Given** datos móviles y el permiso de usarlos sin conceder, **When** la descarga está pendiente, **Then** la fila muestra «Esperando Wi-Fi» y la descarga continúa sola al conectarse a una Wi-Fi.
+5. **Given** una descarga en curso por Wi-Fi, **When** el teléfono pasa a datos móviles, **Then** la descarga continúa por datos móviles sin volver a preguntar, porque el usuario ya confirmó el tamaño.
 
 ---
 
@@ -152,7 +161,7 @@ Con ambos modelos «Listo», la app prepara el almacenamiento privado (paso 3) y
 
 Como alternativa a la descarga, el usuario elige con el selector del sistema un fichero de modelo que ya tiene en el teléfono. La app lo copia a su almacenamiento privado, lo verifica igual que una descarga y lo marca «Listo» solo si es el fichero esperado.
 
-**Why this priority**: el MD 02 lo pide para funcionar sin Internet (G02), pero la descarga cubre el caso principal. Pendiente de confirmar en clarify.
+**Why this priority**: el MD 02 lo pide para funcionar sin Internet (G02, confirmado en clarify), pero la descarga cubre el caso principal.
 
 **Independent Test**:
 1. Copiar el fichero de EmbeddingGemma 2 a «Descargas».
@@ -207,7 +216,7 @@ Como alternativa a la descarga, el usuario elige con el selector del sistema un 
 
   No tiene barra inferior ni pide permisos.
 - **FR-003**: Atrás en la Bienvenida MUST cerrar la app. Atrás en la Preparación MUST volver a la Bienvenida sin cancelar las descargas. Desde Inicio, tras completar el onboarding, Atrás MUST cerrar la app.
-- **FR-004**: El progreso del onboarding (no iniciado, iniciado, completado) y la autorización de datos móviles MUST guardarse en el almacenamiento privado, excluido de copias de seguridad, y sobrevivir a cierres y reinicios.
+- **FR-004**: El progreso del onboarding (no iniciado, iniciado, completado) MUST guardarse en el almacenamiento privado, excluido de copias de seguridad, y sobrevivir a cierres y reinicios.
 
 **Preparación inicial**
 
@@ -219,7 +228,7 @@ Como alternativa a la descarga, el usuario elige con el selector del sistema un 
   - tarjeta «Almacenamiento local / Índice vectorial y archivos privados»;
   - tarjeta «Tus documentos nunca salen de este dispositivo. / La instalación se verifica localmente.»;
   - CTA «Continuar».
-- **FR-006**: El paso MUST derivarse del estado real, en una sola pantalla:
+- **FR-006**: El paso MUST derivarse del estado real, en una sola pantalla (G10, confirmado en clarify), sin pantallas adicionales:
   - **paso 1** («PASO 1 DE 3», barra a 1/3): algún modelo está «Por configurar» y no hay ninguna operación en marcha;
   - **paso 2** («PASO 2 DE 3», 2/3): hay alguna descarga, importación, verificación o preparación en curso, en pausa, en espera o con error;
   - **paso 3** («PASO 3 DE 3», 3/3): ambos modelos están «Listo».
@@ -233,7 +242,6 @@ Como alternativa a la descarga, el usuario elige con el selector del sistema un 
   | Importando | «Importando N %» | «X MB de Y» | — |
   | En pausa | «En pausa» | «X MB de Y» | Reanuda |
   | Esperando conexión | «Esperando conexión» | «X MB de Y» | — |
-  | Esperando Wi-Fi | «Esperando Wi-Fi» | «Puedes permitir datos móviles» | Abre la confirmación |
   | Verificando | «Verificando» (con % si es fiable) | «Comprobando la huella» | — |
   | Preparando | «Preparando» (indeterminado) | «Probando el modelo en este dispositivo» | — |
   | Listo | «Listo» (éxito) | Tamaño; «Modo CPU, más lento» si aplica | — |
@@ -245,7 +253,7 @@ Como alternativa a la descarga, el usuario elige con el selector del sistema un 
 - **FR-009**: Antes de la primera descarga, la app MUST pedir confirmación. La confirmación muestra:
   - los modelos pendientes con su tamaño y el total;
   - el espacio libre actual y el que quedará;
-  - la red actual. Con datos móviles, la opción explícita de permitirlos;
+  - la red actual. Si son datos móviles, un aviso de que la descarga los usará;
   - el aviso de RAM si la total es < 7,5 GB (G31).
 
   Acciones: «Descargar», «Seleccionar archivo del dispositivo» y «Cancelar».
@@ -254,10 +262,10 @@ Como alternativa a la descarga, el usuario elige con el selector del sistema un 
 **Descarga**
 
 - **FR-011**: La app MUST descargar únicamente los ficheros del catálogo, desde sus URL fijadas a commit y por conexión cifrada. Solo MUST seguir redirecciones a dominios de Hugging Face.
-- **FR-012**: Las descargas MUST ejecutarse como trabajo largo en primer plano, con una notificación de progreso. MUST sobrevivir a que el usuario salga de la app, a la muerte del proceso y al reinicio del teléfono, reanudándose solas cuando haya una red permitida.
+- **FR-012**: Las descargas MUST ejecutarse como trabajo largo en primer plano, con una notificación de progreso. MUST sobrevivir a que el usuario salga de la app, a la muerte del proceso y al reinicio del teléfono, reanudándose solas cuando haya red.
 - **FR-013**: Al reanudar, la app MUST pedir solo los bytes que faltan. Si el servidor no admite reanudar o el fichero remoto ha cambiado, MUST empezar de cero, descartando lo parcial.
 - **FR-014**: Los modelos MUST descargarse de uno en uno: primero EmbeddingGemma 2 y después Gemma 4.
-- **FR-015**: Por defecto, la descarga MUST usar solo redes sin coste (Wi-Fi). Los datos móviles solo se usan si el usuario los permite de forma explícita en la confirmación, y esa autorización MUST poder retirarse.
+- **FR-015**: Tras la confirmación, la descarga MUST usar cualquier red disponible, Wi-Fi o datos móviles, sin volver a preguntar al cambiar de red. La confirmación MUST indicar la red actual y avisar si son datos móviles.
 - **FR-016**: Antes de empezar y antes de cada modelo, la app MUST comprobar que el espacio libre cubre los bytes que faltan más un margen de 500 MB. Si no, MUST mostrar «Sin espacio», con la cantidad necesaria, sin empezar.
 - **FR-017**: El progreso (porcentaje y bytes) MUST salir de los bytes realmente escritos y coincidir en la pantalla y en la notificación. Nunca hay porcentajes inventados ni barras que avancen solas.
 - **FR-018**: El usuario MUST poder detener una descarga desde la fila o desde la notificación. Detenerla conserva lo descargado. Tocar la fila en pausa la reanuda.
@@ -266,7 +274,7 @@ Como alternativa a la descarga, el usuario elige con el selector del sistema un 
 **Verificación y compatibilidad**
 
 - **FR-020**: Antes de marcar «Listo», la app MUST calcular el SHA-256 del fichero completo y compararlo con el del catálogo. Con una huella incorrecta, MUST eliminar el fichero, mostrar «Error» («La descarga no superó la verificación») y no cargarlo nunca.
-- **FR-021**: Tras la huella correcta, la app MUST comprobar la compatibilidad real («Preparando»):
+- **FR-021**: Tras la huella correcta, la app MUST comprobar la compatibilidad real («Preparando», confirmado en clarify):
   1. El fichero se abre con el motor de inferencia y declara los backends esperados.
   2. Gemma 4 se arranca una vez en la GPU. Si falla, se prueba en CPU: si arranca, queda «Listo» con el aviso «Modo CPU, más lento»; si no, queda «Incompatible».
   3. EmbeddingGemma 2 se arranca en CPU y produce un vector de la dimensión esperada.
@@ -278,7 +286,7 @@ Como alternativa a la descarga, el usuario elige con el selector del sistema un 
   - Si falta, MUST pasar a «Por configurar».
 - **FR-023**: Un fichero completo pero sin verificación registrada MUST verificarse antes de usarse. Los ficheros parciales de modelos que ya no están en el catálogo MUST eliminarse.
 
-**Importación desde el dispositivo** (G02, pendiente de clarify)
+**Importación desde el dispositivo** (G02)
 
 - **FR-024**: «Seleccionar archivo del dispositivo» MUST abrir el selector del sistema, sin permisos de almacenamiento amplios.
   - El fichero elegido se copia al almacenamiento privado con progreso real («Importando»).
@@ -319,8 +327,8 @@ Como alternativa a la descarga, el usuario elige con el selector del sistema un 
   - motivo, si hay error o incompatibilidad;
   - backend comprobado, si está «Listo».
 - **Verificación registrada**: huella comprobada, tamaño, fecha de modificación, backend y fecha de la comprobación. Permite el chequeo barato en cada arranque.
-- **Descarga**: modelo, bytes recibidos, total, si se puede reanudar, red permitida (solo Wi-Fi, o Wi-Fi y datos móviles) y número de reintentos.
-- **Progreso del onboarding**: no iniciado, iniciado o completado, más la autorización de datos móviles.
+- **Descarga**: modelo, bytes recibidos, total, si se puede reanudar y número de reintentos.
+- **Progreso del onboarding**: no iniciado, iniciado o completado.
 - **Almacenamiento local**: carpetas privadas preparadas, espacio libre y espacio necesario.
 
 ## Success Criteria *(mandatory)*
@@ -343,11 +351,6 @@ Como alternativa a la descarga, el usuario elige con el selector del sistema un 
 - **Origen de los modelos:** Hugging Face `litert-community`, público y sin autenticación, con la revisión fijada en el catálogo de F02 (D-011). Si el repositorio cambia, la huella fijada lo detecta.
 - **Margen de espacio:** 500 MB sobre los bytes que faltan, para que tras la descarga quede sitio para empezar a importar documentos. Se puede ajustar en el plan.
 - **Orden de descarga:** primero EmbeddingGemma 2 (≈ 165 MB), para que un modelo quede «Listo» pronto; después Gemma 4.
-- **Valores por defecto pendientes de confirmar en clarify:**
-  - Datos móviles: por defecto solo Wi-Fi, con permiso explícito para usar datos móviles.
-  - Importación desde el dispositivo (G02): se incluye como alternativa.
-  - Pasos 2 y 3: una sola pantalla cuyo paso refleja el estado real (G10).
-  - Compatibilidad: prueba real de arranque, con CPU como alternativa y aviso.
 - **Textos no maquetados:** los textos de la tabla de FR-007, de FR-008 y de la confirmación son propuestas que siguen el tono de los MD. Se aprueban con esta spec (constitución VII).
 - **Modelos ausentes tras el onboarding:** Inicio todavía es un marcador de posición. En F09, Inicio mostrará «Configuración pendiente» con acceso a la Preparación (MD 03). F03 entrega el estado real que lo hace posible y mantiene abierta la ruta a la Preparación.
 - **RAM:** el aviso con < 7,5 GB es informativo y no bloquea (constitución IV, G31).

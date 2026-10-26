@@ -336,6 +336,23 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
 
 ---
 
+## D-027 — Onboarding y descarga de modelos (clarify de F03)
+
+- **Fecha:** 2026-10-26
+- **Decisión:**
+  - **Origen de los modelos (G02):** la descarga verificada es el camino principal. La confirmación ofrece además «Seleccionar archivo del dispositivo» (selector del sistema), con la misma verificación de huella y compatibilidad.
+  - **Red:** una vez que el usuario confirma el tamaño (≈ 2,75 GB), la descarga usa cualquier red disponible, Wi-Fi o datos móviles. La confirmación indica la red actual y avisa si son datos móviles.
+  - **Pasos 2 y 3 (G10):** una sola pantalla, la del PNG 02. El chip «PASO N DE 3» y la barra reflejan el estado real. La descarga empieza al tocar una fila de modelo. «Continuar» solo se habilita con los dos modelos «Listo» y el almacenamiento preparado.
+  - **Compatibilidad:** antes de «Listo», Gemma 4 se arranca una vez en la GPU (≈ 17 s, deja la caché del motor lista). Si falla, se prueba en CPU: si arranca, queda «Listo» con el aviso «Modo CPU, más lento»; si no, queda «Incompatible». EmbeddingGemma 2 se prueba en CPU.
+- **Motivo:**
+  - La importación cubre los teléfonos sin Internet que pide el MD 02, y reutiliza el instalador verificado de F02.
+  - Una sola pantalla es la opción que menos UI no maquetada inventa (constitución VII).
+  - La prueba real cumple la constitución V («verificar de verdad la compatibilidad») y adelanta la carga en frío del primer chat (≈ 16,9 s → ≈ 5,4 s, D-023).
+- **Origen:** usuario (clarify de F03).
+- **Afecta:** F03, y también F11 (motor ya preparado; aviso de modo CPU) y F12 (gestión de modelos).
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.
