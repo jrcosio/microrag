@@ -62,5 +62,11 @@ object ModelCatalog {
         ),
     )
 
+    /**
+     * Files the product sets up during onboarding, in download order (F03 FR-014): the embedding
+     * model first, then the LLM. The other entries are only used by the debug diagnostics.
+     */
+    val required: List<ModelFile> = listOf(ModelId.EG2_270M, ModelId.GEMMA4_E2B).map { id -> all.first { it.id == id } }
+
     fun byId(id: ModelId): ModelFile = all.first { it.id == id }
 }

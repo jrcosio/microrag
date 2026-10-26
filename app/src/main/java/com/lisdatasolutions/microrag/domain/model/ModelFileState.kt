@@ -8,7 +8,7 @@ sealed interface ModelFileState {
     /** Not present in the models directory. */
     data object Missing : ModelFileState
 
-    /** Present but not hashed during this session; must be verified before loading. */
+    /** Present without a matching verification record; must be hashed before loading. */
     data class Unverified(val path: File) : ModelFileState
 
     /** SHA-256 in progress, with real byte progress. */

@@ -17,4 +17,7 @@ data class ModelFile(
     val sha256: String,
     val repository: String,
     val revision: String,
-)
+) {
+    /** Hugging Face URL pinned to [revision]: its content is immutable (D-011, F03 research R2). */
+    val downloadUrl: String get() = "https://huggingface.co/$repository/resolve/$revision/$fileName"
+}

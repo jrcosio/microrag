@@ -66,4 +66,21 @@ class ModelCatalogTest {
         }
         assertThat(all.sumOf { it.sizeBytes }).isEqualTo(5_633_540_096L)
     }
+
+    @Test
+    fun required_isTheEmbeddingModelThenTheLlm() {
+        // F03 FR-014, D-023 and D-025: EmbeddingGemma 2 270M first, then the generic Gemma 4 E2B file.
+        assertThat(ModelCatalog.required.map { it.id }).containsExactly(ModelId.EG2_270M, ModelId.GEMMA4_E2B).inOrder()
+        assertThat(ModelCatalog.required.sumOf { it.sizeBytes }).isEqualTo(2_752_774_144L)
+    }
+
+    @Test
+    fun downloadUrl_isPinnedToTheRevision() {
+        val file = ModelCatalog.byId(ModelId.EG2_270M)
+        assertThat(file.downloadUrl).isEqualTo(
+            "https://huggingface.co/litert-community/embeddinggemma-2-text-270m-litert-lm/resolve/" +
+                "9be6e8b90982095dc05c2bd162e4b954ee4dbac7/embeddinggemma-2-text-270m.litertlm",
+        )
+        all.forEach { assertThat(it.downloadUrl).startsWith("https://huggingface.co/${it.repository}/resolve/${it.revision}/") }
+    }
 }
