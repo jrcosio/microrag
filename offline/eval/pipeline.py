@@ -352,3 +352,43 @@ def run_ablations(variants, key="retrieval"):
     stored[key] = results
     ABLATIONS_FILE.write_text(json.dumps(stored, ensure_ascii=False, indent=1))
     return results
+
+
+# --- prompt budget calibration ---------------------------------------------------------------------
+
+def prompt_lengths(config, tokenizer, ctx=None):
+    """Real prompt sizes (Gemma tokens) of a retrieval run, follow-ups with the expected previous answer."""
+    from eval.selector import ContextBlock
+
+    ctx = ctx or load_context(config.build)
+    result = retrieve(dataclasses.replace(config, llm=None), ctx)
+    folder = run_dir(result["fingerprint"])
+    by_id = {q.id: q for q in live_questions()}
+    sizes = []
+    for line in (folder / "retrieval.jsonl").read_text(encoding="utf-8").splitlines():
+        row = json.loads(line)
+        q = by_id[row["id"]]
+        previous = (by_id[q.previous].question, by_id[q.previous].expected_answer or "") if q.previous in by_id else None
+        blocks = [ContextBlock(**b) for b in row["blocks"]]
+        sizes.append(len(tokenizer.tokenize(build_prompt(q.question, blocks, previous))))
+    return sizes, result
+
+
+def calibrate_budget(config, start=None, step=50, quantile=95):
+    """Largest selector budget whose prompts stay within config.prompt_limit_tokens at the given quantile."""
+    model_path = models.verify(models.LLMS["E2B"])
+    ctx = load_context(config.build)
+    budget = start or budget_tokens(dataclasses.replace(config, budget_tokens=None), index.build_info(ctx.db)["chars_per_token"])
+    trace = []
+    with open_engine(model_path, "cpu", builds.BUILD / "litert-cache") as tokenizer:
+        while budget > 0:
+            candidate = dataclasses.replace(config, budget_tokens=budget, llm=None)
+            sizes, result = prompt_lengths(candidate, tokenizer, ctx)
+            p = metrics.percentile(sizes, quantile)
+            trace.append({"budget_tokens": budget, f"p{quantile}": p, "median": metrics.percentile(sizes, 50),
+                          "blocks_recall": result["blocks_recall"]})
+            print(trace[-1])
+            if p <= config.prompt_limit_tokens:
+                return budget, trace
+            budget -= step
+    raise SystemExit("no budget fits the prompt limit")

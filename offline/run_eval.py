@@ -12,7 +12,7 @@ sys.path.insert(0, str(HERE))  # -I leaves the script directory out of sys.path
 
 COMMANDS = [
     "fetch-corpus", "sources", "build", "validate-testset", "review-sheet", "review-apply", "sample",
-    "retrieve", "generate", "ablations", "report", "chunker-golden",
+    "retrieve", "generate", "ablations", "report", "chunker-golden", "calibrate",
 ]
 
 
@@ -172,8 +172,21 @@ def ablations(args):
     for blocks in (4, 6, 8):
         for neighbors in (True, False):
             label = f"E2B, {blocks} bloques{'' if neighbors else ' sin vecinos'}"
-            variants.append((label, dataclasses.replace(base, max_blocks=blocks, neighbors=neighbors, llm="E2B")))
+            candidate = dataclasses.replace(base, max_blocks=blocks, neighbors=neighbors, budget_tokens=None)
+            # Each variant gets the largest budget whose prompts fit the limit (constitution IV, research R6).
+            budget, _ = pipeline.calibrate_budget(candidate)
+            variants.append((label, dataclasses.replace(candidate, budget_tokens=budget, llm="E2B")))
     pipeline.run_ablations(variants, key="generation")
+
+
+def calibrate(args):
+    import json
+
+    from eval import pipeline
+
+    config = parse_config(args)
+    budget, trace = pipeline.calibrate_budget(config)
+    print(json.dumps({"budget_tokens": budget, "trace": trace}, indent=1))
 
 
 def report(args):
@@ -185,7 +198,7 @@ def report(args):
 HANDLERS = {
     "fetch-corpus": fetch_corpus, "sources": sources, "build": build, "sample": sample,
     "validate-testset": validate_testset, "review-sheet": review_sheet, "review-apply": review_apply,
-    "retrieve": retrieve, "generate": generate, "ablations": ablations, "report": report,
+    "retrieve": retrieve, "generate": generate, "ablations": ablations, "report": report, "calibrate": calibrate,
 }
 
 
