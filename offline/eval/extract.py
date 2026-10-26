@@ -21,11 +21,21 @@ class RawBlock:
     page: int | None
 
 
+def decode_text(data):
+    """Text of a TXT or Markdown file as the app reads it (F06 research R8): UTF-8 with an optional
+    BOM, or Windows-1252 if that fails; CRLF and CR become LF, as Python's universal newlines did."""
+    try:
+        text = data.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        text = data.decode("cp1252", errors="replace")
+    return text.replace("\r\n", "\n").replace("\r", "\n")
+
+
 def extract(path, fmt):
     if fmt == "md":
-        return extract_markdown(path.read_text(encoding="utf-8"))
+        return extract_markdown(decode_text(path.read_bytes()))
     if fmt == "txt":
-        return extract_text(path.read_text(encoding="utf-8"))
+        return extract_text(decode_text(path.read_bytes()))
     if fmt == "pdf":
         return extract_pdf(path)
     raise ValueError(f"Unsupported format {fmt}")

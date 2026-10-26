@@ -8,7 +8,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from eval.boe import boe_to_markdown  # noqa: E402
-from eval.extract import RawBlock, extract, extract_markdown, extract_text, pdf_paragraphs  # noqa: E402
+from eval.extract import RawBlock, decode_text, extract, extract_markdown, extract_text, pdf_paragraphs  # noqa: E402
 
 
 def minimal_pdf(pages):
@@ -105,6 +105,41 @@ class BoeTest(unittest.TestCase):
         md = boe_to_markdown(self.XML, boe_id="BOE-A-1", updated="2019-03-06")
         paths = [b.heading_path for b in extract_markdown(md)]
         self.assertIn(("TÍTULO I. Ámbito", "CAPÍTULO I. Normas generales", "Artículo 1. Objeto."), paths)
+
+
+class DecodeTest(unittest.TestCase):
+    """F06 research R8: how the app and the evaluation read TXT and Markdown."""
+
+    def test_utf8_with_and_without_bom(self):
+        self.assertEqual(decode_text("Año €".encode("utf-8")), "Año €")
+        self.assertEqual(decode_text(b"\xef\xbb\xbf" + "Año".encode("utf-8")), "Año")
+
+    def test_invalid_utf8_falls_back_to_cp1252_with_replacement(self):
+        self.assertEqual(decode_text(b"A\xf1o \x80"), "Año €")
+        self.assertEqual(decode_text(b"\x81\x8d\x8f\x90\x9d\xf1"), "\ufffd" * 5 + "ñ")
+
+    def test_newlines_are_translated(self):
+        self.assertEqual(decode_text(b"a\r\nb\rc\nd"), "a\nb\nc\nd")
+
+
+class CorpusExtractionTest(unittest.TestCase):
+    """decode_text must not change the F05 extraction of the corpus (cached in build/extract)."""
+
+    def test_text_and_markdown_match_the_cache(self):
+        import json
+
+        from eval import builds, corpus
+
+        docs = [d for d in corpus.load_manifest() if d.format in ("md", "txt")]
+        cached = [d for d in docs if (builds.EXTRACT_DIR / f"{d.sha256}.json").exists()]
+        if not cached:
+            self.skipTest("no extraction cache in offline/build/extract")
+        for doc in cached:
+            stored = json.loads((builds.EXTRACT_DIR / f"{doc.sha256}.json").read_text(encoding="utf-8"))
+            fresh = [{"heading_path": list(b.heading_path), "text": b.text, "page": b.page}
+                     for b in extract(corpus.DOCS / doc.file_name, doc.format)]
+            self.assertEqual(fresh, stored, doc.id)
+        self.assertEqual(len(cached), 15)
 
 
 if __name__ == "__main__":
