@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -138,6 +139,7 @@ class DefaultImportQueueRepository(
                 val error = IngestError.fromCode(document.error)
                 if (document.status != DocumentStatus.ERROR || error?.retryable != true) return
                 index.updateStatus(key.id, DocumentStatus.PENDING, error = null)
+                scheduler.enqueue(listOf(key.id))
                 logger.i(TAG) { "ingest retry id=${key.id}" }
             }
         }
@@ -158,7 +160,14 @@ class DefaultImportQueueRepository(
         }
     }
 
-    override suspend fun startProcessing(): Int = 0
+    override suspend fun startProcessing(): Int {
+        val active = scheduler.activeDocumentIds.first()
+        val ready = index.documents(setOf(DocumentStatus.PENDING)).map { it.id }.filterNot { it in active }
+        if (ready.isEmpty()) return 0
+        scheduler.enqueue(ready)
+        logger.i(TAG) { "ingest enqueued ${ready.size}" }
+        return ready.size
+    }
 
     private fun submit(job: Pending) {
         pending.trySend(job)

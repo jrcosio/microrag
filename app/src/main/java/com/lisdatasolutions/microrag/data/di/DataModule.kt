@@ -14,6 +14,7 @@ import com.lisdatasolutions.microrag.data.ingest.DefaultImportQueueRepository
 import com.lisdatasolutions.microrag.data.ingest.DocumentFileStore
 import com.lisdatasolutions.microrag.data.ingest.DocumentImporter
 import com.lisdatasolutions.microrag.data.ingest.DocumentSource
+import com.lisdatasolutions.microrag.data.ingest.IngestRunner
 import com.lisdatasolutions.microrag.data.ingest.IngestScheduler
 import com.lisdatasolutions.microrag.data.ingest.SafDocumentSource
 import com.lisdatasolutions.microrag.data.ingest.WorkManagerIngestScheduler
@@ -33,6 +34,7 @@ import com.lisdatasolutions.microrag.domain.onboarding.ModelFileSource
 import com.lisdatasolutions.microrag.domain.onboarding.OnboardingStore
 import com.lisdatasolutions.microrag.domain.rag.RagIndex
 import com.lisdatasolutions.microrag.domain.rag.RagIndexConfig
+import com.lisdatasolutions.microrag.rag.ingest.DocumentExtractor
 import com.lisdatasolutions.microrag.rag.ingest.PdfOpener
 import java.io.File
 import org.koin.android.ext.koin.androidContext
@@ -74,6 +76,7 @@ val dataModule = module {
     single<DocumentSource> { SafDocumentSource(androidContext().contentResolver) }
     single { DocumentImporter(get(), get(), get(), get(), get<DeviceResources>()::freeBytes, get()) }
     single<IngestScheduler> { WorkManagerIngestScheduler(WorkManager.getInstance(androidContext())) }
+    single { IngestRunner(get(), DocumentExtractor(get()), get<AppDispatchers>().io, get()) }
     // Single: the import attempts live here, in the application scope (D-038).
     single<ImportQueueRepository> {
         DefaultImportQueueRepository(

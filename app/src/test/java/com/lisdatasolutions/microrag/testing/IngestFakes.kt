@@ -89,6 +89,12 @@ class FakePdfOpener(var isAvailableValue: Boolean = true) : PdfOpener {
 class FakeIngestScheduler : com.lisdatasolutions.microrag.data.ingest.IngestScheduler {
     override val activeDocumentIds = kotlinx.coroutines.flow.MutableStateFlow<Set<Long>>(emptySet())
     override val progress = kotlinx.coroutines.flow.MutableStateFlow<com.lisdatasolutions.microrag.domain.ingest.IngestProgress?>(null)
+    val enqueued = mutableListOf<List<Long>>()
+
+    override suspend fun enqueue(documentIds: List<Long>) {
+        enqueued += documentIds
+        activeDocumentIds.value = activeDocumentIds.value + documentIds
+    }
 }
 
 /** Queue repository whose queue tests set; records every call (F06 ViewModel tests). */

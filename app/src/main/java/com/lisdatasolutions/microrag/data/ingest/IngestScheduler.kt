@@ -1,8 +1,11 @@
 package com.lisdatasolutions.microrag.data.ingest
 
 import androidx.work.Data
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import androidx.work.await
 import com.lisdatasolutions.microrag.domain.ingest.IngestProgress
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -15,6 +18,9 @@ interface IngestScheduler {
 
     /** Stage of the document being processed, if any. */
     val progress: Flow<IngestProgress?>
+
+    /** Adds a processing request for [documentIds], in this order, after any request still running. */
+    suspend fun enqueue(documentIds: List<Long>)
 }
 
 class WorkManagerIngestScheduler(private val workManager: WorkManager) : IngestScheduler {
@@ -28,6 +34,16 @@ class WorkManagerIngestScheduler(private val workManager: WorkManager) : IngestS
     override val progress: Flow<IngestProgress?> = infos.map { list ->
         list.firstOrNull { it.state == WorkInfo.State.RUNNING }?.progress?.let(::progressOf)
     }.distinctUntilChanged()
+
+    override suspend fun enqueue(documentIds: List<Long>) {
+        if (documentIds.isEmpty()) return
+        val request = OneTimeWorkRequestBuilder<IngestWorker>()
+            .setInputData(Data.Builder().putLongArray(KEY_DOCUMENT_IDS, documentIds.toLongArray()).build())
+            .addTag(TAG)
+            .apply { documentIds.forEach { addTag(documentTag(it)) } }
+            .build()
+        workManager.enqueueUniqueWork(UNIQUE_NAME, ExistingWorkPolicy.APPEND_OR_REPLACE, request).await()
+    }
 
     companion object {
         const val UNIQUE_NAME = "ingest"

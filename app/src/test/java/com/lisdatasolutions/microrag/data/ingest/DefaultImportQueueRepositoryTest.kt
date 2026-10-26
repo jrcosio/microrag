@@ -255,4 +255,49 @@ class DefaultImportQueueRepositoryTest {
         assertThat(values.last().items).isEmpty()
         assertThat(values.last().items.none { it.removalNeedsConfirmation }).isTrue()
     }
+
+    // F06 US3 (T046): starting the processing enqueues only Ready documents (contracts I9).
+
+    @Test
+    fun startProcessingEnqueuesTheReadyDocumentsInOrder() = runTest {
+        listOf("a", "b", "c").forEach { source.add("content://$it", "$it.txt", it.toByteArray(), "text/plain") }
+        val repository = repository()
+        val values = collect(repository)
+        repository.import(listOf("content://a", "content://b", "content://c"))
+        advanceUntilIdle()
+        index.updateStatus(2, com.lisdatasolutions.microrag.domain.rag.DocumentStatus.PARSED, chunkCount = 1)
+        scheduler.activeDocumentIds.value = setOf(3L)
+
+        val enqueued = repository.startProcessing()
+        advanceUntilIdle()
+
+        assertThat(enqueued).isEqualTo(1)
+        assertThat(scheduler.enqueued).containsExactly(listOf(1L))
+        val states = values.last().items.associate { it.key to it.state }
+        assertThat(states[QueueKey.Document(1)]).isEqualTo(QueueItemState.Queued)
+        assertThat(states[QueueKey.Document(2)]).isEqualTo(QueueItemState.Prepared(1, null))
+        assertThat(values.last().readyCount).isEqualTo(0)
+    }
+
+    @Test
+    fun withNothingReadyNothingIsEnqueued() = runTest {
+        val repository = repository()
+
+        assertThat(repository.startProcessing()).isEqualTo(0)
+        assertThat(scheduler.enqueued).isEmpty()
+    }
+
+    @Test
+    fun retryingAFailedDocumentEnqueuesOnlyIt() = runTest {
+        source.add("content://1", "a.txt", "texto".toByteArray(), "text/plain")
+        val repository = repository()
+        collect(repository)
+        repository.import(listOf("content://1"))
+        advanceUntilIdle()
+        index.updateStatus(1, com.lisdatasolutions.microrag.domain.rag.DocumentStatus.ERROR, error = IngestError.EXTRACTION_FAILED.code)
+
+        repository.retry(QueueKey.Document(1))
+
+        assertThat(scheduler.enqueued).containsExactly(listOf(1L))
+    }
 }
