@@ -1,0 +1,33 @@
+package com.lisdatasolutions.microrag.data.download
+
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import com.lisdatasolutions.microrag.core.di.ApplicationScope
+import com.lisdatasolutions.microrag.domain.onboarding.PauseModelDownloadUseCase
+import kotlinx.coroutines.launch
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
+
+/** «Detener» from the download notification (FR-018). Not exported: only our PendingIntent reaches it. */
+class DownloadActionReceiver : BroadcastReceiver(), KoinComponent {
+
+    private val pause: PauseModelDownloadUseCase by inject()
+    private val applicationScope: ApplicationScope by inject()
+
+    override fun onReceive(context: Context, intent: Intent) {
+        if (intent.action != ACTION_PAUSE) return
+        val pending = goAsync()
+        applicationScope.scope.launch {
+            try {
+                pause()
+            } finally {
+                pending.finish()
+            }
+        }
+    }
+
+    companion object {
+        const val ACTION_PAUSE = "com.lisdatasolutions.microrag.action.PAUSE_MODEL_DOWNLOAD"
+    }
+}

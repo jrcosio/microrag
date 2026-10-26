@@ -94,6 +94,11 @@
 - La hace el ViewModel de la Preparación al hacerse visible, nunca desde `Application.onCreate`, porque el proceso también puede arrancar en segundo plano para el job.
 - Si hay modelos pedidos sin pausa y no hay ningún job pendiente o en curso, se vuelve a programar. Así se cubren el «Stop» del Administrador de tareas (que no reprograma), `force-stop` y cualquier pérdida del job.
 
+**Verificación temprana (T044, 2026-10-26):** en el emulador `Pixel_10` (API 37), `UidtDownloadSmokeTest` programó el UIDT desde la app. El job descargó EmbeddingGemma 2 (164.626.432 bytes) desde la URL fijada, a través de la redirección a `us.aws.cdn.hf.co`, y quedó verificada en `models/` en **14,1 s** de extremo a extremo. Según los logs:
+- el job se programó con éxito (`RESULT_SUCCESS`, 157 MB estimados);
+- el fichero quedó adoptado como `Verified`;
+- el resultado fue `Completed`.
+
 **A verificar en el teléfono durante la implementación (riesgo 1):**
 - Que un UIDT persistido se reanuda tras reiniciar sin abrir la app.
 - Si no ocurre, la reanudación llega al abrir la app (reconciliación), y se documenta como diferencia de US4-2.

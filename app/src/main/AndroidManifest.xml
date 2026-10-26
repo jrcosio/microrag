@@ -1,6 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Constitution I: no network permission, no backup or device transfer (contracts/platform-invariants.md). -->
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<!-- Constitution I: no backup or device transfer; network only for the verified model download
+     (F03 contracts/platform-invariants.md, closed permission list P4'). -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Model download from the pinned Hugging Face URLs only (D-011); confined to data.download. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- Download progress notification (G30) and user-initiated data transfer job on API 34+ (D-028). -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RUN_USER_INITIATED_JOBS" />
+    <!-- WorkManager foreground worker on API 31-33 (D-028). -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 
     <application
         android:name=".MicroRagApplication"
@@ -19,6 +31,35 @@
         <uses-native-library
             android:name="libvndksupport.so"
             android:required="false" />
+
+        <!-- Download queue as a user-initiated data transfer job (API 34+). -->
+        <service
+            android:name=".data.download.ModelDownloadJobService"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+
+        <!-- «Detener» action of the download notification; only our PendingIntent reaches it. -->
+        <receiver
+            android:name=".data.download.DownloadActionReceiver"
+            android:exported="false" />
+
+        <!-- WorkManager's foreground service runs the download on API 31-33 as dataSync. -->
+        <service
+            android:name="androidx.work.impl.foreground.SystemForegroundService"
+            android:foregroundServiceType="dataSync"
+            tools:node="merge" />
+
+        <!-- WorkManager is initialized on demand (MicroRagApplication), not at every launch. -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup"
+                tools:node="remove" />
+        </provider>
 
         <activity
             android:name=".MainActivity"

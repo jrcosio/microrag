@@ -28,6 +28,9 @@ fun LisdataConfirmationDialog(
     modifier: Modifier = Modifier,
     destructive: Boolean = true,
     dismissText: String = stringResource(R.string.action_cancel),
+    confirmEnabled: Boolean = true,
+    /** Replaces [body] when the dialog needs richer content, such as lines, notices or extra actions. */
+    content: (@Composable () -> Unit)? = null,
 ) {
     val colors = LisdataTheme.colors
     val cancelFocus = remember { FocusRequester() }
@@ -39,13 +42,17 @@ fun LisdataConfirmationDialog(
         textContentColor = colors.textSecondary,
         shape = LisdataTheme.shapes.card,
         title = { Text(text = title, style = LisdataTheme.typography.material.titleLarge) },
-        text = { Text(text = body, style = LisdataTheme.typography.material.bodyMedium) },
+        text = content ?: { Text(text = body, style = LisdataTheme.typography.material.bodyMedium) },
         confirmButton = {
-            TextButton(onClick = onConfirm) {
+            TextButton(onClick = onConfirm, enabled = confirmEnabled) {
                 Text(
                     text = confirmText,
                     style = LisdataTheme.typography.material.labelLarge,
-                    color = if (destructive) colors.error else colors.brandBlue,
+                    color = when {
+                        !confirmEnabled -> colors.textSecondary
+                        destructive -> colors.error
+                        else -> colors.brandBlue
+                    },
                 )
             }
         },

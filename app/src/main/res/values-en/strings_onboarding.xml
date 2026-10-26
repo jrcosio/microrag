@@ -95,12 +95,12 @@
     <string name="a11y_status_unconfigured">not set up, double tap to set up</string>
     <string name="a11y_status_queued">queued</string>
     <plurals name="a11y_status_downloading">
-        <item quantity="one">downloading, %1$d percent, %2$s of %3$s</item>
-        <item quantity="other">downloading, %1$d percent, %2$s of %3$s</item>
+        <item quantity="one">downloading, %1$d percent</item>
+        <item quantity="other">downloading, %1$d percent</item>
     </plurals>
     <plurals name="a11y_status_importing">
-        <item quantity="one">importing, %1$d percent, %2$s of %3$s</item>
-        <item quantity="other">importing, %1$d percent, %2$s of %3$s</item>
+        <item quantity="one">importing, %1$d percent</item>
+        <item quantity="other">importing, %1$d percent</item>
     </plurals>
     <string name="a11y_status_paused">paused, %1$s of %2$s, double tap to resume</string>
     <string name="a11y_status_waiting_network">waiting for connection, %1$s of %2$s</string>

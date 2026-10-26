@@ -22,8 +22,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -37,7 +40,11 @@ import com.lisdatasolutions.microrag.core.designsystem.model.StageStatus
 import com.lisdatasolutions.microrag.core.designsystem.model.StatusKind
 import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
 
-/** Model row for onboarding and settings: name, purpose, real status and optional progress. */
+/**
+ * Model row for onboarding and settings: name, purpose, real status, optional [detail] line and
+ * progress. With [accessibilityText] the row is announced as that single sentence and status changes
+ * are read politely (live region), so it must change only on meaningful steps (F03 FR-031).
+ */
 @Composable
 fun LisdataModelStatusRow(
     @DrawableRes icon: Int,
@@ -47,13 +54,22 @@ fun LisdataModelStatusRow(
     status: StatusKind,
     modifier: Modifier = Modifier,
     progress: ProgressValue? = null,
+    detail: String? = null,
+    accessibilityText: String? = null,
     onClick: (() -> Unit)? = null,
 ) {
     val colors = LisdataTheme.colors
     val spacing = LisdataTheme.spacing
     LisdataCard(modifier = modifier, onClick = onClick) {
         Row(
-            modifier = Modifier.semantics(mergeDescendants = true) {},
+            modifier = if (accessibilityText != null) {
+                Modifier.clearAndSetSemantics {
+                    contentDescription = accessibilityText
+                    liveRegion = LiveRegionMode.Polite
+                }
+            } else {
+                Modifier.semantics(mergeDescendants = true) {}
+            },
             horizontalArrangement = Arrangement.spacedBy(spacing.space4),
         ) {
             LisdataIconTile(icon = icon, style = IconTileStyle.Light)
@@ -62,6 +78,9 @@ fun LisdataModelStatusRow(
                 Text(text = purpose, style = LisdataTheme.typography.material.bodyMedium, color = colors.textSecondary)
                 LisdataStatusChip(text = statusText, kind = status, modifier = Modifier.padding(top = spacing.space2))
                 if (progress != null) LisdataLinearProgress(progress, Modifier.padding(top = spacing.space2))
+                if (detail != null) {
+                    Text(text = detail, style = LisdataTheme.typography.material.bodyMedium, color = colors.textSecondary)
+                }
             }
             if (onClick != null) {
                 LisdataIcon(

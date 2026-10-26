@@ -15,6 +15,7 @@ ic_chevron_right = chevron-right
 ic_arrow_right = arrow-right
 ic_more_horizontal = ellipsis
 ic_upload = upload
+ic_download = download
 ic_send = send
 ic_stop = square
 ic_copy = copy

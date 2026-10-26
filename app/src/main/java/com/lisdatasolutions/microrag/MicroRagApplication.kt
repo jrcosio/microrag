@@ -1,6 +1,8 @@
 package com.lisdatasolutions.microrag
 
 import android.app.Application
+import android.util.Log
+import androidx.work.Configuration
 import com.lisdatasolutions.microrag.core.di.appModules
 import com.lisdatasolutions.microrag.debug.debugModules
 import com.lisdatasolutions.microrag.rag.runtime.EngineCoordinator
@@ -12,7 +14,12 @@ import org.koin.android.ext.android.get
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 
-class MicroRagApplication : Application() {
+class MicroRagApplication : Application(), Configuration.Provider {
+
+    /** On-demand WorkManager (F03 research R1): only the API 31-33 download path touches it. */
+    override val workManagerConfiguration: Configuration
+        get() = Configuration.Builder().setMinimumLoggingLevel(if (BuildConfig.DEBUG) Log.INFO else Log.ERROR).build()
+
     override fun onCreate() {
         super.onCreate()
         startKoin {
