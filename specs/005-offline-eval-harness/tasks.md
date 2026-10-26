@@ -181,27 +181,27 @@ description: "Lista de tareas de F05 — Harness offline de evaluación"
 
 ### Tests (escribir primero)
 
-- [ ] T026 [P] [US3] `offline/tests/test_retrieval.py`:
+- [X] T026 [P] [US3] `offline/tests/test_retrieval.py`:
   - RRF con k = 60 y posiciones desde 1, con un caso calculado a mano;
   - la regla de seguimiento con los conectores del informe y el umbral de 8 tokens;
   - modos solo vector, solo FTS e híbrido;
   - el SQL es el de E5, sobre un índice pequeño en memoria con la extensión.
-- [ ] T027 [P] [US3] `offline/tests/test_selector.py`. `ContextSelector` del informe:
+- [X] T027 [P] [US3] `offline/tests/test_selector.py`. `ContextSelector` del informe:
   - como mucho 3 por documento;
   - vecino `ordinal + 1` para los 2 mejores;
   - fusión de consecutivos sin el párrafo solapado;
   - presupuesto de tokens;
   - límite de bloques;
   - orden final por documento y ordinal.
-- [ ] T028 [P] [US3] `offline/tests/test_metrics.py`: Recall@k, MRR, nDCG@10 y Recall@bloques con casos calculados a mano (research R10). Las preguntas sin respuesta se excluyen.
+- [X] T028 [P] [US3] `offline/tests/test_metrics.py`: Recall@k, MRR, nDCG@10 y Recall@bloques con casos calculados a mano (research R10). Las preguntas sin respuesta se excluyen.
 
 ### Implementación
 
-- [ ] T029 [P] [US3] `offline/eval/retrieval.py` (research R6, E5).
-- [ ] T030 [P] [US3] `offline/eval/selector.py` (research R6).
-- [ ] T031 [P] [US3] `offline/eval/metrics.py` (research R10).
-- [ ] T032 [US3] Comando `retrieve <config>`: escribe `retrieval.jsonl` y `metrics.json` en la carpeta de su huella. Medir su tiempo sobre `ref` (SC-006). Depende de T029–T031 y T025.
-- [ ] T033 [US3] Comando `ablations`, parte de recuperación. Ejecutar:
+- [X] T029 [P] [US3] `offline/eval/retrieval.py` (research R6, E5).
+- [X] T030 [P] [US3] `offline/eval/selector.py` (research R6).
+- [X] T031 [P] [US3] `offline/eval/metrics.py` (research R10).
+- [X] T032 [US3] Comando `retrieve <config>`: escribe `retrieval.jsonl` y `metrics.json` en la carpeta de su huella. Medir su tiempo sobre `ref` (SC-006). Depende de T029–T031 y T025.
+- [X] T033 [US3] Comando `ablations`, parte de recuperación. Ejecutar:
   - modo: vector, FTS e híbrido;
   - normalización: `fts_raw`, `fts_stop` y v1;
   - dimensión: 128, 256, 512 y 768;
@@ -224,8 +224,8 @@ description: "Lista de tareas de F05 — Harness offline de evaluación"
 
 ### Tests (escribir primero)
 
-- [ ] T034 [P] [US4] `offline/tests/test_prompt.py`: la plantilla del informe al carácter (reglas, fuentes numeradas «documento › ruta (p. N)», pregunta), y el bloque de conversación previa en los seguimientos, truncado a 300 y 500 caracteres.
-- [ ] T035 [P] [US4] `offline/tests/test_generate.py`, con un motor simulado: una conversación por pregunta, sampler determinista, `max_output_tokens`, reanudación sin regenerar lo guardado (FR-016, E7) y huella de configuración en la ruta.
+- [X] T034 [P] [US4] `offline/tests/test_prompt.py`: la plantilla del informe al carácter (reglas, fuentes numeradas «documento › ruta (p. N)», pregunta), y el bloque de conversación previa en los seguimientos, truncado a 300 y 500 caracteres.
+- [X] T035 [P] [US4] `offline/tests/test_generate.py`, con un motor simulado: una conversación por pregunta, sampler determinista, `max_output_tokens`, reanudación sin regenerar lo guardado (FR-016, E7) y huella de configuración en la ruta.
 
   `offline/tests/test_judge.py` (research R9):
   - normalización de datos clave, incluidas las cifras con separadores;
@@ -237,9 +237,9 @@ description: "Lista de tareas de F05 — Harness offline de evaluación"
 
 ### Implementación
 
-- [ ] T036 [P] [US4] `offline/eval/prompt.py` (research R6).
-- [ ] T037 [P] [US4] `offline/eval/judge.py` (research R9).
-- [ ] T038 [US4] `offline/eval/generate.py` y el comando `generate <config>` (E6, E7):
+- [X] T036 [P] [US4] `offline/eval/prompt.py` (research R6).
+- [X] T037 [P] [US4] `offline/eval/judge.py` (research R9).
+- [X] T038 [US4] `offline/eval/generate.py` y el comando `generate <config>` (E6, E7):
   - Gemma 4 en la GPU del Mac;
   - una conversación por pregunta;
   - tamaño real del prompt con `Engine.tokenize`;

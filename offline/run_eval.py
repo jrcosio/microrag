@@ -189,6 +189,18 @@ def calibrate(args):
     print(json.dumps({"budget_tokens": budget, "trace": trace}, indent=1))
 
 
+def chunker_golden(args):
+    from eval import chunker_golden as golden
+
+    options = argparse.ArgumentParser(prog="chunker-golden")
+    options.add_argument("--target", type=int)
+    options.add_argument("--max", type=int)
+    opts = options.parse_args(args)
+    target, maximum = (opts.target, opts.max) if opts.target else golden.decided_params()
+    cases, chunks = golden.generate(target, maximum)
+    print(f"{cases} cases, {chunks} chunks -> {golden.GOLDEN}")
+
+
 def report(args):
     from eval import report as report_module
 
@@ -198,7 +210,7 @@ def report(args):
 HANDLERS = {
     "fetch-corpus": fetch_corpus, "sources": sources, "build": build, "sample": sample,
     "validate-testset": validate_testset, "review-sheet": review_sheet, "review-apply": review_apply,
-    "retrieve": retrieve, "generate": generate, "ablations": ablations, "report": report, "calibrate": calibrate,
+    "retrieve": retrieve, "generate": generate, "ablations": ablations, "report": report, "calibrate": calibrate, "chunker-golden": chunker_golden,
 }
 
 
