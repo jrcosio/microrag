@@ -40,7 +40,7 @@ Al cerrar cada feature se entrega:
 | F03 | Modelos y primer arranque | Producto | F01, F02 | ✅ cerrada (T071 TalkBack manual abierta) |
 | F04 | Núcleo de datos RAG | Técnica | F02 | ✅ cerrada |
 | F05 | Harness offline de evaluación | Técnica | F04 | ✅ cerrada |
-| F06 | Importación y parsing | Producto | F04 | 🟨 implementada; pendiente de revisión |
+| F06 | Importación y parsing | Producto | F04 | ✅ cerrada |
 | F07 | Indexación | Producto | F02, F06 | ⬜ |
 | F08 | Biblioteca y detalle de documento | Producto | F07 | ⬜ |
 | F09 | Inicio | Producto | F03, F07, F08 | ⬜ |
@@ -319,7 +319,7 @@ También se introduce `EngineCoordinator`, que garantiza que nunca haya dos engi
 ## F06 — Importación y parsing
 
 - **Tipo:** Producto.
-- **Estado:** 🟨 implementada el 2026-10-26 en la rama `006-import-parsing`; pendiente de la revisión de cierre. Spec y clarify (D-037), plan (D-038), tareas y propuestas de UI P1–P6 aprobados. Informe de cierre en `specs/006-import-parsing/report.md`. Queda abierto el recorrido manual con TalkBack.
+- **Estado:** ✅ cerrada: implementada y aprobada por el usuario el 2026-10-26 en la rama `006-import-parsing`. Decisiones D-037 (importación) y D-038 (diseño). Informe de cierre en `specs/006-import-parsing/report.md`. Queda abierto el recorrido manual con TalkBack (T072).
 
 **Objetivo.** Importar y preparar los documentos:
 - selección múltiple con SAF;
