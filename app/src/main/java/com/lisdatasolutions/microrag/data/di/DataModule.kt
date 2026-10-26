@@ -9,6 +9,8 @@ import com.lisdatasolutions.microrag.data.download.DownloadNotifications
 import com.lisdatasolutions.microrag.data.download.FileDownloader
 import com.lisdatasolutions.microrag.data.download.ModelDownloadRunner
 import com.lisdatasolutions.microrag.data.download.ModelDownloader
+import com.lisdatasolutions.microrag.data.ingest.DocumentFileStore
+import com.lisdatasolutions.microrag.data.ingest.PlatformPdfOpener
 import com.lisdatasolutions.microrag.data.models.AppDirs
 import com.lisdatasolutions.microrag.data.models.ContentResolverModelFileSource
 import com.lisdatasolutions.microrag.data.models.DefaultModelFileRepository
@@ -23,6 +25,7 @@ import com.lisdatasolutions.microrag.domain.onboarding.ModelFileSource
 import com.lisdatasolutions.microrag.domain.onboarding.OnboardingStore
 import com.lisdatasolutions.microrag.domain.rag.RagIndex
 import com.lisdatasolutions.microrag.domain.rag.RagIndexConfig
+import com.lisdatasolutions.microrag.rag.ingest.PdfOpener
 import java.io.File
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
@@ -56,6 +59,10 @@ val dataModule = module {
             logger = get(),
         )
     }
+
+    // Document import (F06): private copies and the system PDF reader.
+    single { DocumentFileStore(get<AppDirs>().documents) }
+    single<PdfOpener> { PlatformPdfOpener() }
 
     // The only network access of the app (constitution I, F03 FR-026): pinned Hugging Face files.
     single<FileDownloader> { ModelDownloader(userAgent = "MicroRAG/${BuildConfig.VERSION_NAME}") }

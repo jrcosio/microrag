@@ -31,4 +31,23 @@ class LayeringTest {
         assertWithMessage("Files importing androidx.sqlite outside data/rag")
             .that(offenders("androidx.sqlite", allowedDir)).isEmpty()
     }
+
+    @Test
+    fun onlyTheIngestDataLayerImportsThePlatformPdfApi() {
+        val allowedDir = File("src/main/java/com/lisdatasolutions/microrag/data/ingest")
+
+        assertWithMessage("Files importing android.graphics.pdf outside data/ingest")
+            .that(offenders("android.graphics.pdf", allowedDir)).isEmpty()
+    }
+
+    @Test
+    fun theIngestScreenUsesNeitherWorkManagerNorThePdfApi() {
+        val featureDir = File("src/main/java/com/lisdatasolutions/microrag/feature/ingest")
+        val leaks = sources
+            .filter { it.canonicalPath.startsWith(featureDir.canonicalPath + File.separator) }
+            .filter { file -> listOf("import androidx.work", "import android.graphics.pdf").any { file.readText().contains(it) } }
+            .map { it.path }
+
+        assertWithMessage("feature/ingest files importing WorkManager or the PDF API").that(leaks).isEmpty()
+    }
 }
