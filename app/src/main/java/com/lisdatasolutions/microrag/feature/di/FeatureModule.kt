@@ -1,5 +1,6 @@
 package com.lisdatasolutions.microrag.feature.di
 
+import com.lisdatasolutions.microrag.feature.ingest.IngestViewModel
 import com.lisdatasolutions.microrag.feature.onboarding.setup.SetupViewModel
 import com.lisdatasolutions.microrag.feature.onboarding.welcome.WelcomeViewModel
 import org.koin.core.module.dsl.viewModel
@@ -12,4 +13,5 @@ val featureModule = module {
     viewModel {
         SetupViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get())
     }
+    viewModel { IngestViewModel(get(), get(), get()) }
 }

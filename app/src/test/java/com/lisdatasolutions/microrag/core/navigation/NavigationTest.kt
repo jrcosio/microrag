@@ -22,6 +22,12 @@ import com.lisdatasolutions.microrag.domain.model.OnboardingStage
 import com.lisdatasolutions.microrag.domain.onboarding.FakeOnboardingStore
 import com.lisdatasolutions.microrag.domain.onboarding.ResolveStartDestinationUseCase
 import org.junit.Rule
+import com.lisdatasolutions.microrag.domain.ingest.ImportDocumentsUseCase
+import com.lisdatasolutions.microrag.domain.ingest.ObserveImportQueueUseCase
+import com.lisdatasolutions.microrag.domain.ingest.StartIndexingUseCase
+import com.lisdatasolutions.microrag.feature.ingest.IngestViewModel
+import com.lisdatasolutions.microrag.testing.FakeImportQueueRepository
+import org.koin.core.module.dsl.viewModel
 import org.junit.Test
 import org.junit.rules.ExternalResource
 import org.junit.runner.RunWith
@@ -36,7 +42,30 @@ import org.koin.dsl.module
 @Config(application = Application::class)
 class NavigationTest {
 
-    @get:Rule
+    /** The import screen (F06) takes its ViewModel from Koin; a fake queue is enough for navigation. */
+    @get:Rule(order = 0)
+    val ingestGraph = object : ExternalResource() {
+        override fun before() {
+            val repository = FakeImportQueueRepository()
+            startKoin {
+                modules(
+                    module {
+                        viewModel {
+                            IngestViewModel(
+                                ObserveImportQueueUseCase(repository),
+                                ImportDocumentsUseCase(repository),
+                                StartIndexingUseCase(repository),
+                            )
+                        }
+                    },
+                )
+            }
+        }
+
+        override fun after() = stopKoin()
+    }
+
+    @get:Rule(order = 1)
     val compose = createComposeRule()
 
     private val context: Context = ApplicationProvider.getApplicationContext()
@@ -137,6 +166,19 @@ class NavigationTest {
             tab(destination).performClick()
             tab(TopLevelDestination.HOME).assertIsDisplayed()
         }
+    }
+
+    @Test
+    fun provisionalHomeEntryOpensTheImportScreen() {
+        launchShell()
+        compose.onNodeWithText(context.getString(R.string.ingest_provisional_entry)).performClick()
+        compose.waitForIdle()
+        assertThat(nav.currentDestination?.hasRoute(Ingest::class)).isTrue()
+        compose.onNodeWithText(context.getString(R.string.ingest_headline)).assertIsDisplayed()
+
+        compose.runOnUiThread { nav.popBackStack() }
+        compose.waitForIdle()
+        assertThat(nav.currentDestination?.hasRoute(Home::class)).isTrue()
     }
 
     @Test

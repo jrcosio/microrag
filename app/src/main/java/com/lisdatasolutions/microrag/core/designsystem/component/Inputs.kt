@@ -86,6 +86,7 @@ fun LisdataFilePickerCard(
     buttonText: String,
     onPick: () -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
 ) {
     val colors = LisdataTheme.colors
     val spacing = LisdataTheme.spacing
@@ -120,6 +121,6 @@ fun LisdataFilePickerCard(
             color = colors.textSecondaryOnContainer,
             textAlign = TextAlign.Center,
         )
-        LisdataGradientButton(text = buttonText, onClick = onPick)
+        LisdataGradientButton(text = buttonText, onClick = onPick, enabled = enabled)
     }
 }

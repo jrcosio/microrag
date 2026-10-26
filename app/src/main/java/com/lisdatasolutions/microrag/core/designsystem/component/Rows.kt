@@ -146,7 +146,10 @@ fun LisdataDocumentRow(
     }
 }
 
-/** Import queue row: name, size and state, optional real progress and contextual action. */
+/**
+ * Import queue row: name, size and state, optional real progress and contextual action. With
+ * [accessibilityText] the row is announced as that single sentence; [onClickLabel] names its action.
+ */
 @Composable
 fun LisdataQueueRow(
     name: String,
@@ -155,13 +158,19 @@ fun LisdataQueueRow(
     statusText: String? = null,
     status: StatusKind? = null,
     progress: ProgressValue? = null,
+    accessibilityText: String? = null,
+    onClickLabel: String? = null,
     onClick: (() -> Unit)? = null,
 ) {
     val colors = LisdataTheme.colors
     val spacing = LisdataTheme.spacing
-    LisdataCard(modifier = modifier, onClick = onClick) {
+    LisdataCard(modifier = modifier, onClick = onClick, onClickLabel = onClickLabel) {
         Row(
-            modifier = Modifier.semantics(mergeDescendants = true) {},
+            modifier = if (accessibilityText != null) {
+                Modifier.clearAndSetSemantics { contentDescription = accessibilityText }
+            } else {
+                Modifier.semantics(mergeDescendants = true) {}
+            },
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(spacing.space4),
         ) {

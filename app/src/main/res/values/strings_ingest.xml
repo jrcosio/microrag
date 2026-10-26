@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- P05 Importar documentos (F06 contracts/ingest-ui.md). Texts of PNG 05 copied literally (D-004). -->
+<resources>
+    <string name="ingest_title">Importar documentos</string>
+    <string name="ingest_eyebrow">Ingesta local</string>
+    <string name="ingest_headline">Amplía tu biblioteca</string>
+    <string name="ingest_intro">Selecciona archivos de tu dispositivo.</string>
+    <!-- G14: no drag and drop promised. -->
+    <string name="ingest_picker_title">Selecciona archivos</string>
+    <string name="ingest_picker_subtitle">Todo se procesa en tu móvil</string>
+    <string name="ingest_picker_button">Seleccionar archivos</string>
+    <string name="ingest_formats">Formatos: PDF · TXT · Markdown</string>
+    <string name="ingest_formats_no_pdf">Formatos: TXT · Markdown · PDF requiere actualizar el sistema</string>
+    <string name="ingest_queue_header">Cola de importación</string>
+    <plurals name="ingest_queue_count">
+        <item quantity="one">%d archivo</item>
+        <item quantity="other">%d archivos</item>
+    </plurals>
+    <string name="ingest_start">Iniciar indexación</string>
+
+    <string name="ingest_empty_title">Aún no hay archivos en la cola</string>
+    <string name="ingest_empty_body">Los archivos que selecciones aparecerán aquí hasta que se indexen.</string>
+    <string name="ingest_unavailable_title">La biblioteca no está disponible</string>
+    <string name="ingest_unavailable_body">No se puede importar mientras la biblioteca local no esté disponible.</string>
+
+    <!-- Row metadata: «size · state». -->
+    <string name="ingest_meta">%1$s · %2$s</string>
+    <string name="ingest_state_importing">Importando</string>
+    <string name="ingest_state_ready">Listo para procesar</string>
+    <string name="ingest_state_queued">En cola</string>
+    <string name="ingest_state_extracting">Extrayendo</string>
+    <string name="ingest_state_extracting_page">Extrayendo · página %1$d de %2$d</string>
+    <string name="ingest_state_chunking">Fragmentando</string>
+    <plurals name="ingest_state_prepared">
+        <item quantity="one">Preparado para indexar · %d fragmento</item>
+        <item quantity="other">Preparado para indexar · %d fragmentos</item>
+    </plurals>
+    <plurals name="ingest_skipped_pages">
+        <item quantity="one">%d página sin texto</item>
+        <item quantity="other">%d páginas sin texto</item>
+    </plurals>
+    <string name="ingest_state_error">Error</string>
+
+    <string name="ingest_error_unsupported_format">Formato no admitido</string>
+    <string name="ingest_error_unsupported_format_detail">Solo se admiten PDF con texto, TXT y Markdown.</string>
+    <string name="ingest_error_damaged">Archivo dañado</string>
+    <string name="ingest_error_damaged_detail">El archivo está dañado o no es un %1$s válido.</string>
+    <string name="ingest_error_damaged_detail_generic">El archivo está dañado o no se puede leer.</string>
+    <string name="ingest_error_encrypted">Archivo cifrado</string>
+    <string name="ingest_error_encrypted_detail">El PDF está protegido con contraseña. Quita la protección e impórtalo de nuevo.</string>
+    <string name="ingest_error_too_large">Demasiado grande</string>
+    <string name="ingest_error_too_large_detail">El máximo es 100 MB por archivo y 2.000 páginas por PDF.</string>
+    <string name="ingest_error_no_space">Sin espacio</string>
+    <string name="ingest_error_no_space_detail">No hay espacio suficiente en el teléfono para copiarlo.</string>
+    <string name="ingest_error_access_lost">Acceso perdido</string>
+    <string name="ingest_error_access_lost_detail">La app ya no puede leer el archivo original. Vuelve a seleccionarlo.</string>
+    <string name="ingest_error_read_failed">Error de lectura</string>
+    <string name="ingest_error_read_failed_detail">No se pudo leer el archivo.</string>
+    <string name="ingest_error_duplicate">Ya está en tu biblioteca</string>
+    <string name="ingest_error_duplicate_detail">Ya hay un documento con el mismo contenido.</string>
+    <string name="ingest_error_pdf_unavailable">PDF no disponible</string>
+    <string name="ingest_error_pdf_unavailable_detail">Este dispositivo no puede leer PDF. Actualiza el sistema e inténtalo de nuevo.</string>
+    <string name="ingest_error_no_text">Sin texto</string>
+    <string name="ingest_error_no_text_detail">Sin texto extraíble (¿documento escaneado?).</string>
+    <string name="ingest_error_extraction_failed">Error al extraer</string>
+    <string name="ingest_error_extraction_failed_detail">No se pudo extraer el texto.</string>
+    <string name="ingest_error_index_unavailable">Biblioteca no disponible</string>
+    <string name="ingest_error_index_unavailable_detail">La biblioteca local no está disponible ahora.</string>
+
+    <!-- G15: row detail sheet. -->
+    <string name="ingest_sheet_meta">%1$s · %2$s</string>
+    <string name="ingest_format_pdf">PDF</string>
+    <string name="ingest_format_txt">TXT</string>
+    <string name="ingest_format_markdown">Markdown</string>
+    <string name="ingest_retry">Reintentar</string>
+    <string name="ingest_remove">Quitar de la cola</string>
+    <string name="ingest_cancel_import">Cancelar importación</string>
+    <string name="ingest_remove_confirm_title">¿Quitar de la cola?</string>
+    <string name="ingest_remove_confirm_body">Se borrará la copia de «%1$s» que guarda la app. El archivo original de tu teléfono no cambia.</string>
+    <string name="ingest_remove_confirm">Quitar</string>
+    <string name="ingest_remove_dismiss">Cancelar</string>
+
+    <!-- Accessibility (U1, U5). -->
+    <string name="ingest_row_description">%1$s, %2$s</string>
+    <string name="ingest_row_action">Ver detalle</string>
+    <string name="ingest_progress_percent">%1$d %%</string>
+    <string name="ingest_announce_ready">%1$s listo para procesar</string>
+    <string name="ingest_announce_error">%1$s: %2$s</string>
+
+    <!-- P6: provisional entry until F09 delivers Home. -->
+    <string name="ingest_provisional_entry">Importar documentos (provisional)</string>
+</resources>

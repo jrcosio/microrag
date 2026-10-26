@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ingest_title">Import documents</string>
+    <string name="ingest_eyebrow">Local ingestion</string>
+    <string name="ingest_headline">Grow your library</string>
+    <string name="ingest_intro">Select files from your device.</string>
+    <string name="ingest_picker_title">Select files</string>
+    <string name="ingest_picker_subtitle">Everything is processed on your phone</string>
+    <string name="ingest_picker_button">Select files</string>
+    <string name="ingest_formats">Formats: PDF · TXT · Markdown</string>
+    <string name="ingest_formats_no_pdf">Formats: TXT · Markdown · PDF needs a system update</string>
+    <string name="ingest_queue_header">Import queue</string>
+    <plurals name="ingest_queue_count">
+        <item quantity="one">%d file</item>
+        <item quantity="other">%d files</item>
+    </plurals>
+    <string name="ingest_start">Start indexing</string>
+
+    <string name="ingest_empty_title">No files in the queue yet</string>
+    <string name="ingest_empty_body">The files you select will appear here until they are indexed.</string>
+    <string name="ingest_unavailable_title">The library is not available</string>
+    <string name="ingest_unavailable_body">Files cannot be imported while the local library is unavailable.</string>
+
+    <string name="ingest_meta">%1$s · %2$s</string>
+    <string name="ingest_state_importing">Importing</string>
+    <string name="ingest_state_ready">Ready to process</string>
+    <string name="ingest_state_queued">Queued</string>
+    <string name="ingest_state_extracting">Extracting</string>
+    <string name="ingest_state_extracting_page">Extracting · page %1$d of %2$d</string>
+    <string name="ingest_state_chunking">Chunking</string>
+    <plurals name="ingest_state_prepared">
+        <item quantity="one">Ready to index · %d chunk</item>
+        <item quantity="other">Ready to index · %d chunks</item>
+    </plurals>
+    <plurals name="ingest_skipped_pages">
+        <item quantity="one">%d page without text</item>
+        <item quantity="other">%d pages without text</item>
+    </plurals>
+    <string name="ingest_state_error">Error</string>
+
+    <string name="ingest_error_unsupported_format">Unsupported format</string>
+    <string name="ingest_error_unsupported_format_detail">Only PDF with text, TXT and Markdown are supported.</string>
+    <string name="ingest_error_damaged">Damaged file</string>
+    <string name="ingest_error_damaged_detail">The file is damaged or is not a valid %1$s.</string>
+    <string name="ingest_error_damaged_detail_generic">The file is damaged or cannot be read.</string>
+    <string name="ingest_error_encrypted">Encrypted file</string>
+    <string name="ingest_error_encrypted_detail">The PDF is password protected. Remove the protection and import it again.</string>
+    <string name="ingest_error_too_large">Too large</string>
+    <string name="ingest_error_too_large_detail">The limit is 100 MB per file and 2,000 pages per PDF.</string>
+    <string name="ingest_error_no_space">No space</string>
+    <string name="ingest_error_no_space_detail">There is not enough space on the phone to copy it.</string>
+    <string name="ingest_error_access_lost">Access lost</string>
+    <string name="ingest_error_access_lost_detail">The app can no longer read the original file. Select it again.</string>
+    <string name="ingest_error_read_failed">Read error</string>
+    <string name="ingest_error_read_failed_detail">The file could not be read.</string>
+    <string name="ingest_error_duplicate">Already in your library</string>
+    <string name="ingest_error_duplicate_detail">A document with the same content already exists.</string>
+    <string name="ingest_error_pdf_unavailable">PDF unavailable</string>
+    <string name="ingest_error_pdf_unavailable_detail">This device cannot read PDFs. Update the system and try again.</string>
+    <string name="ingest_error_no_text">No text</string>
+    <string name="ingest_error_no_text_detail">No extractable text (scanned document?).</string>
+    <string name="ingest_error_extraction_failed">Extraction error</string>
+    <string name="ingest_error_extraction_failed_detail">The text could not be extracted.</string>
+    <string name="ingest_error_index_unavailable">Library unavailable</string>
+    <string name="ingest_error_index_unavailable_detail">The local library is not available right now.</string>
+
+    <string name="ingest_sheet_meta">%1$s · %2$s</string>
+    <string name="ingest_format_pdf">PDF</string>
+    <string name="ingest_format_txt">TXT</string>
+    <string name="ingest_format_markdown">Markdown</string>
+    <string name="ingest_retry">Retry</string>
+    <string name="ingest_remove">Remove from queue</string>
+    <string name="ingest_cancel_import">Cancel import</string>
+    <string name="ingest_remove_confirm_title">Remove from queue?</string>
+    <string name="ingest_remove_confirm_body">The app\'s copy of “%1$s” will be deleted. The original file on your phone is not changed.</string>
+    <string name="ingest_remove_confirm">Remove</string>
+    <string name="ingest_remove_dismiss">Cancel</string>
+
+    <string name="ingest_row_description">%1$s, %2$s</string>
+    <string name="ingest_row_action">View details</string>
+    <string name="ingest_progress_percent">%1$d%%</string>
+    <string name="ingest_announce_ready">%1$s ready to process</string>
+    <string name="ingest_announce_error">%1$s: %2$s</string>
+
+    <string name="ingest_provisional_entry">Import documents (provisional)</string>
+</resources>

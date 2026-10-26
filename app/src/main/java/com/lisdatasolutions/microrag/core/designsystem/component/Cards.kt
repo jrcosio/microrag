@@ -29,11 +29,12 @@ import com.lisdatasolutions.microrag.core.designsystem.icon.LisdataIcon
 import com.lisdatasolutions.microrag.core.designsystem.model.IconTileStyle
 import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
 
-/** White card with a 1 dp outline and 16 dp corners; clickable when [onClick] is set. */
+/** White card with a 1 dp outline and 16 dp corners; clickable when [onClick] is set, with [onClickLabel] for TalkBack. */
 @Composable
 fun LisdataCard(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
+    onClickLabel: String? = null,
     contentPadding: PaddingValues = PaddingValues(LisdataTheme.spacing.cardPadding),
     content: @Composable ColumnScope.() -> Unit,
 ) {
@@ -44,7 +45,7 @@ fun LisdataCard(
             .clip(shape)
             .background(colors.surface)
             .border(LisdataTheme.spacing.borderWidth, colors.outline, shape)
-            .then(if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier)
+            .then(if (onClick != null) Modifier.clickable(onClickLabel = onClickLabel, role = Role.Button, onClick = onClick) else Modifier)
             .padding(contentPadding),
         content = content,
     )
