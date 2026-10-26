@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import android.util.Log
 import androidx.work.Configuration
+import androidx.work.ExperimentalConfigurationApi
 import com.lisdatasolutions.microrag.core.di.appModules
 import com.lisdatasolutions.microrag.core.locale.AppLocale
 import com.lisdatasolutions.microrag.debug.DebugStrictMode
@@ -19,12 +20,16 @@ import org.koin.core.context.startKoin
 
 class MicroRagApplication : Application(), Configuration.Provider {
 
-    /** On-demand WorkManager (F03 research R1): only the API 31-33 download path touches it. */
+    /** On-demand WorkManager (F03 research R1): the API 31-33 download path and the ingest (F06, F07). */
+    @OptIn(ExperimentalConfigurationApi::class)
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
             .setMinimumLoggingLevel(if (BuildConfig.DEBUG) Log.INFO else Log.ERROR)
             // Keeps WorkManager's JobScheduler ids away from the download job (3001).
             .setJobSchedulerJobIdRange(WORK_MANAGER_JOB_ID_MIN, WORK_MANAGER_JOB_ID_MAX)
+            // Every worker runs inside a JobScheduler job: the in-process scheduler could keep a worker
+            // running after its job was cancelled, and Android froze that process (F07 research R2).
+            .setGreedySchedulerEnabled(false)
             .build()
 
     /** Spanish by default for everything built from the app context, such as notifications (D-029). */

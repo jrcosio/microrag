@@ -148,14 +148,14 @@ description: "Lista de tareas de F07 — Indexación"
 
   **Adaptar las pruebas existentes que buscan sobre documentos no publicados:** `RagIndexSearchTest`, `RagIndexStrictModeTest` y `RagIndexBenchmarkTest` ponen sus documentos en `DONE`. Actualizar `FakeRagIndex` y la lista de operaciones rechazadas de `RagIndexCompatibilityTest`. Comprobar T008 y T009 en el emulador.
 - [X] T016 [P] Crear `…/microrag/data/indexing/DataStoreIngestRunStore.kt` con su interfaz `IngestRunStore` (data-model §2). Comprobar T007.
-- [ ] T017 [P] Crear `…/microrag/data/device/ThermalStatusSource.kt`: interfaz y `PowerManagerThermalStatusSource`, con `PowerManager.currentThermalStatus` y `addThermalStatusListener` como `Flow<ThermalLevel>` (`NORMAL`, `MODERATE`, `SEVERE_OR_WORSE`). Ampliar `LayeringTest`:
+- [X] T017 [P] Crear `…/microrag/data/device/ThermalStatusSource.kt`: interfaz y `PowerManagerThermalStatusSource`, con `PowerManager.currentThermalStatus` y `addThermalStatusListener` como `Flow<ThermalLevel>` (`NORMAL`, `MODERATE`, `SEVERE_OR_WORSE`). Ampliar `LayeringTest`:
   - `android.os.PowerManager` solo en `data/device`;
   - `feature/indexing` no importa WorkManager, `androidx.sqlite`, LiteRT ni `PowerManager`, como `feature/ingest`.
-- [ ] T018 En `…/microrag/MicroRagApplication.kt`, añadir `setGreedySchedulerEnabled(false)` con `@OptIn(ExperimentalConfigurationApi::class)` y un comentario que remita a research R2. Comprobar que siguen en verde:
+- [X] T018 En `…/microrag/MicroRagApplication.kt`, añadir `setGreedySchedulerEnabled(false)` con `@OptIn(ExperimentalConfigurationApi::class)` y un comentario que remita a research R2. Comprobar que siguen en verde:
   - `WorkManagerIngestSchedulerTest` de F06;
   - las pruebas de WorkManager de F03, como la descarga en API 31–33;
   - `IngestFlowTest`.
-- [ ] T019 Registrar en Koin (`DataModule`, `DomainModule`) `IngestRunStore`, `ThermalStatusSource` y el resto de definiciones nuevas, y extender `AppModulesTest` (`verify()`).
+- [X] T019 Registrar en Koin (`DataModule`, `DomainModule`) `IngestRunStore`, `ThermalStatusSource` y el resto de definiciones nuevas, y extender `AppModulesTest` (`verify()`).
 
 **Checkpoint**: tipos, índice filtrado, engines retenidos, tanda y configuración listos. JVM, lint y las instrumentadas de F04 y F06 en verde.
 

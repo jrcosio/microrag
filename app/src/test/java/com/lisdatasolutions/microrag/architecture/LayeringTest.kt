@@ -50,4 +50,31 @@ class LayeringTest {
 
         assertWithMessage("feature/ingest files importing WorkManager or the PDF API").that(leaks).isEmpty()
     }
+
+    @Test
+    fun onlyTheDeviceLayerAndTheDiagnosticsReadThePowerManager() {
+        val allowed = listOf(
+            File("src/main/java/com/lisdatasolutions/microrag/data/device"),
+            File("src/debug/java/com/lisdatasolutions/microrag/debug/feasibility"),
+        )
+        val leaks = sources
+            .filter { it.readText().contains("import android.os.PowerManager") }
+            .filterNot { file -> allowed.any { file.canonicalPath.startsWith(it.canonicalPath + File.separator) } }
+            .map { it.path }
+
+        assertWithMessage("Files importing android.os.PowerManager outside data/device").that(leaks).isEmpty()
+    }
+
+    @Test
+    fun theIndexScreenUsesNoBackendApi() {
+        val featureDir = File("src/main/java/com/lisdatasolutions/microrag/feature/indexing")
+        val forbidden = listOf("import androidx.work", "import androidx.sqlite", "import com.google.ai.edge.litertlm", "import android.os.PowerManager")
+        val leaks = sources
+            .filter { it.canonicalPath.startsWith(featureDir.canonicalPath + File.separator) }
+            .filter { file -> forbidden.any { file.readText().contains(it) } }
+            .map { it.path }
+
+        assertWithMessage("feature/indexing files importing WorkManager, SQLite, LiteRT or PowerManager").that(leaks).isEmpty()
+    }
 }
+

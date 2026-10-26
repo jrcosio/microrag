@@ -5,20 +5,24 @@ import com.lisdatasolutions.microrag.BuildConfig
 import com.lisdatasolutions.microrag.core.di.ApplicationScope
 import com.lisdatasolutions.microrag.core.dispatchers.AppDispatchers
 import com.lisdatasolutions.microrag.data.device.AndroidDeviceResources
+import com.lisdatasolutions.microrag.data.device.PowerManagerThermalStatusSource
+import com.lisdatasolutions.microrag.data.device.ThermalStatusSource
 import com.lisdatasolutions.microrag.data.download.DefaultModelDownloadController
 import com.lisdatasolutions.microrag.data.download.DownloadNotifications
 import com.lisdatasolutions.microrag.data.download.FileDownloader
 import com.lisdatasolutions.microrag.data.download.ModelDownloadRunner
 import com.lisdatasolutions.microrag.data.download.ModelDownloader
+import com.lisdatasolutions.microrag.data.indexing.DataStoreIngestRunStore
+import com.lisdatasolutions.microrag.data.indexing.IngestRunStore
 import com.lisdatasolutions.microrag.data.ingest.DefaultImportQueueRepository
 import com.lisdatasolutions.microrag.data.ingest.DocumentFileStore
 import com.lisdatasolutions.microrag.data.ingest.DocumentImporter
 import com.lisdatasolutions.microrag.data.ingest.DocumentSource
 import com.lisdatasolutions.microrag.data.ingest.IngestRunner
 import com.lisdatasolutions.microrag.data.ingest.IngestScheduler
+import com.lisdatasolutions.microrag.data.ingest.PlatformPdfOpener
 import com.lisdatasolutions.microrag.data.ingest.SafDocumentSource
 import com.lisdatasolutions.microrag.data.ingest.WorkManagerIngestScheduler
-import com.lisdatasolutions.microrag.data.ingest.PlatformPdfOpener
 import com.lisdatasolutions.microrag.data.models.AppDirs
 import com.lisdatasolutions.microrag.data.models.ContentResolverModelFileSource
 import com.lisdatasolutions.microrag.data.models.DefaultModelFileRepository
@@ -26,8 +30,8 @@ import com.lisdatasolutions.microrag.data.models.ModelFileRepository
 import com.lisdatasolutions.microrag.data.onboarding.DataStoreOnboardingStore
 import com.lisdatasolutions.microrag.data.rag.DefaultRagIndex
 import com.lisdatasolutions.microrag.data.rag.RagSchema
-import com.lisdatasolutions.microrag.domain.model.NetworkKind
 import com.lisdatasolutions.microrag.domain.ingest.ImportQueueRepository
+import com.lisdatasolutions.microrag.domain.model.NetworkKind
 import com.lisdatasolutions.microrag.domain.onboarding.DeviceResources
 import com.lisdatasolutions.microrag.domain.onboarding.ModelDownloadController
 import com.lisdatasolutions.microrag.domain.onboarding.ModelFileSource
@@ -78,6 +82,12 @@ val dataModule = module {
     single<IngestScheduler> { WorkManagerIngestScheduler(WorkManager.getInstance(androidContext())) }
     single { DocumentExtractor(get()) }
     single { IngestRunner(get(), get(), get<AppDispatchers>().io, get()) }
+
+    // Indexing (F07): the run and the device's heat.
+    single<IngestRunStore> {
+        DataStoreIngestRunStore(DataStoreIngestRunStore.create(androidContext().noBackupFilesDir, get<ApplicationScope>().scope))
+    }
+    single<ThermalStatusSource> { PowerManagerThermalStatusSource(androidContext()) }
     // Single: the import attempts live here, in the application scope (D-038).
     single<ImportQueueRepository> {
         DefaultImportQueueRepository(
