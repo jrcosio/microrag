@@ -38,7 +38,7 @@ Al cerrar cada feature se entrega:
 | F01 | Fundaciones y design system | Producto (shell y DS) | — | ✅ cerrada (T059 TalkBack manual abierta) |
 | F02 | Viabilidad on-device (fase 0) | Técnica | F01 | ✅ cerrada |
 | F03 | Modelos y primer arranque | Producto | F01, F02 | ✅ cerrada (T071 TalkBack manual abierta) |
-| F04 | Núcleo de datos RAG | Técnica | F02 | 🟨 en curso (tasks) |
+| F04 | Núcleo de datos RAG | Técnica | F02 | 🟨 en curso (analyze) |
 | F05 | Harness offline de evaluación | Técnica | F04 | ⬜ |
 | F06 | Importación y parsing | Producto | F04 | ⬜ |
 | F07 | Indexación | Producto | F02, F06 | ⬜ |
