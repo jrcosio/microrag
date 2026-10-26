@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
@@ -30,7 +31,8 @@ fun LisdataBottomSheet(
         modifier = modifier,
         containerColor = colors.surface,
         contentColor = colors.textPrimary,
-        dragHandle = { BottomSheetDefaults.DragHandle(color = colors.outline) },
+        // The handle is actionable (expand, dismiss): 48 dp of touch area around the 32 dp bar.
+        dragHandle = { BottomSheetDefaults.DragHandle(modifier = Modifier.minimumInteractiveComponentSize(), color = colors.outline) },
     ) {
         LisdataSheetContent(content = content)
     }

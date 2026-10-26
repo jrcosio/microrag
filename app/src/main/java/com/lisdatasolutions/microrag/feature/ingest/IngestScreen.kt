@@ -18,11 +18,17 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lisdatasolutions.microrag.R
@@ -37,6 +43,8 @@ import com.lisdatasolutions.microrag.core.designsystem.component.LisdataTopBar
 import com.lisdatasolutions.microrag.core.designsystem.icon.LisdataIcons
 import com.lisdatasolutions.microrag.core.designsystem.model.StatusKind
 import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
+import com.lisdatasolutions.microrag.domain.ingest.QueueItem
+import com.lisdatasolutions.microrag.domain.ingest.QueueItemState
 import com.lisdatasolutions.microrag.domain.ingest.QueueKey
 import org.koin.androidx.compose.koinViewModel
 
@@ -121,8 +129,14 @@ fun IngestScreen(state: IngestUiState, actions: IngestActions, modifier: Modifie
                 modifier = Modifier.fillMaxWidth(),
             )
             Spacer(Modifier.height(spacing.space2))
+            val announcement = queueAnnouncement(state)
             LisdataSectionHeader(
                 text = stringResource(R.string.ingest_queue_header),
+                // U5: rows that become ready or fail are read politely, without moving the focus.
+                modifier = Modifier.semantics {
+                    liveRegion = LiveRegionMode.Polite
+                    if (announcement != null) stateDescription = announcement
+                },
                 trailing = if (state.items.isNotEmpty()) {
                     { LisdataCountChip(pluralStringResource(R.plurals.ingest_queue_count, state.items.size, state.items.size)) }
                 } else {
@@ -144,6 +158,30 @@ fun IngestScreen(state: IngestUiState, actions: IngestActions, modifier: Modifie
     }
     state.removalItem?.let { item ->
         RemovalConfirmation(item = item, onConfirm = actions.onConfirmRemoval, onDismiss = actions.onDismissRemoval)
+    }
+}
+
+/** The last row that became ready or failed since the previous state, as TalkBack announces it (U5). */
+@Composable
+private fun queueAnnouncement(state: IngestUiState): String? {
+    var previous by remember { mutableStateOf<Map<QueueKey, QueueItemState>?>(null) }
+    var announced by remember { mutableStateOf<QueueItem?>(null) }
+    val current = state.items.associate { it.key to it.state }
+    LaunchedEffect(current) {
+        val before = previous
+        if (before != null) {
+            state.items.lastOrNull { item ->
+                before[item.key] != item.state && (item.state == QueueItemState.Ready || item.state.error != null)
+            }?.let { announced = it }
+        }
+        previous = current
+    }
+    val item = announced ?: return null
+    val error = item.state.error
+    return if (error == null) {
+        stringResource(R.string.ingest_announce_ready, item.displayName)
+    } else {
+        stringResource(R.string.ingest_announce_error, item.displayName, error.chipText())
     }
 }
 
