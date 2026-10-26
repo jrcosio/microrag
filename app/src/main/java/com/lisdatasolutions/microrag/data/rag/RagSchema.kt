@@ -33,5 +33,8 @@ class RagMigration(val from: Int, val statements: List<String>)
  * index incompatible.
  */
 object RagMigrations {
-    val all: List<RagMigration> = emptyList()
+    val all: List<RagMigration> = listOf(
+        // F06 (D-038): PDF pages without text that the extraction skipped.
+        RagMigration(from = 1, statements = listOf("ALTER TABLE documents ADD COLUMN skipped_pages INTEGER")),
+    )
 }

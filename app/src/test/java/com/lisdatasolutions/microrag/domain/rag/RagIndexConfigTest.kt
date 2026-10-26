@@ -14,7 +14,7 @@ class RagIndexConfigTest {
     fun current_describesTheAppVectorSpace() {
         val config = RagIndexConfig.current()
 
-        assertThat(config.schemaVersion).isEqualTo(1)
+        assertThat(config.schemaVersion).isEqualTo(2)
         assertThat(config.embeddingModelSha256).isEqualTo(ModelCatalog.byId(ModelId.EG2_270M).sha256)
         assertThat(config.dims).isEqualTo(EmbeddingMath.DIMENSIONS)
         assertThat(config.docPrefix).isEqualTo("task: search result | text: ")
@@ -28,7 +28,7 @@ class RagIndexConfigTest {
         val config = RagIndexConfig.current()
 
         assertThat(config.toMeta()).containsExactly(
-            "schema_version", "1",
+            "schema_version", "2",
             "embedding_model_sha256", config.embeddingModelSha256,
             "embedding_dims", "256",
             "embedding_doc_prefix", "task: search result | text: ",

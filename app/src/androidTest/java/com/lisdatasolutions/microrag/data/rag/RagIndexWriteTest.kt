@@ -2,6 +2,7 @@ package com.lisdatasolutions.microrag.data.rag
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Truth.assertWithMessage
 import com.lisdatasolutions.microrag.domain.rag.DocumentStatus
 import com.lisdatasolutions.microrag.domain.rag.DuplicateDocumentException
 import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
@@ -213,5 +214,76 @@ class RagIndexWriteTest {
         }
 
         assertThat(index.counts().documents).isEqualTo(1)
+    }
+
+    // F06 T008: queue operations (contracts/ingest-api.md).
+
+    @Test
+    fun documents_filterByStatusOldestFirst() = runBlocking<Unit> {
+        val first = addDoc("Primero", "h1")
+        temp.now = 2_000L
+        val second = addDoc("Segundo", "h2")
+        temp.now = 3_000L
+        val third = addDoc("Tercero", "h3")
+        index.updateStatus(second, DocumentStatus.DONE, chunkCount = 4)
+        index.updateStatus(third, DocumentStatus.ERROR, error = "no_text")
+
+        val queue = index.documents(setOf(DocumentStatus.PENDING, DocumentStatus.PARSED, DocumentStatus.ERROR))
+        assertThat(queue.map { it.id }).containsExactly(first, third).inOrder()
+        assertThat(queue.last().error).isEqualTo("no_text")
+        assertThat(index.documents(setOf(DocumentStatus.DONE)).map { it.id }).containsExactly(second)
+        assertThat(index.documents(emptySet())).isEmpty()
+    }
+
+    @Test
+    fun documentIdByHash_findsOnlyTheRegisteredHash() = runBlocking<Unit> {
+        val id = addDoc("Manual", "abc123")
+
+        assertThat(index.documentIdByHash("abc123")).isEqualTo(id)
+        assertThat(index.documentIdByHash("otro")).isNull()
+    }
+
+    @Test
+    fun documentChanges_increaseOnEveryCommittedWriteOnly() = runBlocking<Unit> {
+        index.open()
+        var last = index.documentChanges.value
+        fun assertChanged(name: String) {
+            assertWithMessage(name).that(index.documentChanges.value).isGreaterThan(last)
+            last = index.documentChanges.value
+        }
+
+        val id = addDoc()
+        assertChanged("addDocument")
+        index.updateStatus(id, DocumentStatus.PARSED, chunkCount = 2)
+        assertChanged("updateStatus")
+        index.setIncluded(id, false)
+        assertChanged("setIncluded")
+        index.insertChunks(id, listOf(chunk(0)))
+        assertChanged("insertChunks")
+
+        index.document(id)
+        index.documents(setOf(DocumentStatus.PARSED))
+        index.counts()
+        assertThat(index.documentChanges.value).isEqualTo(last)
+
+        index.deleteDocument(id)
+        assertChanged("deleteDocument")
+        assertThat(runCatching { addDoc("Otro", "h-dup") }.isSuccess).isTrue()
+        last = index.documentChanges.value
+        assertThat(runCatching { addDoc("Duplicado", "h-dup") }.exceptionOrNull()).isInstanceOf(DuplicateDocumentException::class.java)
+        assertThat(index.documentChanges.value).isEqualTo(last)
+    }
+
+    @Test
+    fun updateStatus_keepsSkippedPagesUnlessGiven() = runBlocking<Unit> {
+        val id = addDoc()
+
+        index.updateStatus(id, DocumentStatus.PARSED, chunkCount = 12, skippedPages = 3)
+        assertThat(index.document(id)!!.skippedPages).isEqualTo(3)
+
+        index.updateStatus(id, DocumentStatus.PENDING)
+        val stored = index.document(id)!!
+        assertThat(stored.skippedPages).isEqualTo(3)
+        assertThat(stored.chunkCount).isEqualTo(12)
     }
 }

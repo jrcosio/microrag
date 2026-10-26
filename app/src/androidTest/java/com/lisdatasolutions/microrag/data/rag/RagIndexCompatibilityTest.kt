@@ -8,6 +8,7 @@ import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
 import com.lisdatasolutions.microrag.domain.rag.IndexUnavailableException
 import com.lisdatasolutions.microrag.domain.rag.NewDocument
 import com.lisdatasolutions.microrag.domain.rag.RagIndex
+import com.lisdatasolutions.microrag.domain.rag.RagIndexConfig
 import com.lisdatasolutions.microrag.domain.rag.RagMetaKeys
 import com.lisdatasolutions.microrag.testing.TempRagIndex
 import com.lisdatasolutions.microrag.testing.TempRagIndex.Companion.chunk
@@ -34,6 +35,8 @@ class RagIndexCompatibilityTest {
             "meta" to { index.meta() },
             "addDocument" to { index.addDocument(NewDocument(displayName = "x", contentHash = "x")) },
             "document" to { index.document(1) },
+            "documents" to { index.documents(DocumentStatus.entries.toSet()) },
+            "documentIdByHash" to { index.documentIdByHash("h") },
             "updateStatus" to { index.updateStatus(1, DocumentStatus.DONE) },
             "setIncluded" to { index.setIncluded(1, false) },
             "deleteDocument" to { index.deleteDocument(1) },
@@ -96,10 +99,10 @@ class RagIndexCompatibilityTest {
     fun newerSchema_isIncompatibleAndUntouched() = runBlocking<Unit> {
         TempRagIndex().use { temp ->
             populated(temp)
-            temp.withRaw { it.exec("UPDATE rag_meta SET value = '2' WHERE key = ?", RagMetaKeys.SCHEMA_VERSION) }
+            temp.withRaw { it.exec("UPDATE rag_meta SET value = ? WHERE key = ?", "$NEWER", RagMetaKeys.SCHEMA_VERSION) }
             val before = temp.fileDigest()
 
-            assertThat(temp.index.open()).isEqualTo(IndexCompatibility.Incompatible(RagMetaKeys.SCHEMA_VERSION, "1", "2"))
+            assertThat(temp.index.open()).isEqualTo(IndexCompatibility.Incompatible(RagMetaKeys.SCHEMA_VERSION, "$CURRENT", "$NEWER"))
             temp.index.close()
 
             assertThat(temp.fileDigest()).isEqualTo(before)
@@ -108,13 +111,15 @@ class RagIndexCompatibilityTest {
 
     @Test
     fun olderSchema_withMigration_isMigratedAndOpened() = runBlocking<Unit> {
-        val migration = RagMigration(from = 0, statements = listOf("CREATE TABLE migrated_marker (x INTEGER)"))
-        TempRagIndex(migrations = listOf(migration)).use { temp ->
+        // The generic mechanism, from a made-up version 0: every step up to the current one must exist.
+        val migrations = listOf(RagMigration(from = 0, statements = listOf("CREATE TABLE migrated_marker (x INTEGER)"))) +
+            (1 until CURRENT).map { RagMigration(from = it, statements = emptyList()) }
+        TempRagIndex(migrations = migrations).use { temp ->
             populated(temp)
             temp.withRaw { it.exec("UPDATE rag_meta SET value = '0' WHERE key = ?", RagMetaKeys.SCHEMA_VERSION) }
 
             assertThat(temp.index.open()).isEqualTo(IndexCompatibility.Compatible)
-            assertThat(temp.index.meta()[RagMetaKeys.SCHEMA_VERSION]).isEqualTo("1")
+            assertThat(temp.index.meta()[RagMetaKeys.SCHEMA_VERSION]).isEqualTo("$CURRENT")
             assertThat(temp.index.counts().chunks).isEqualTo(2)
             assertThat(temp.withRaw { it.tableNames() }).contains("migrated_marker")
         }
@@ -127,7 +132,7 @@ class RagIndexCompatibilityTest {
             temp.withRaw { it.exec("UPDATE rag_meta SET value = '0' WHERE key = ?", RagMetaKeys.SCHEMA_VERSION) }
             val before = temp.fileDigest()
 
-            assertThat(temp.index.open()).isEqualTo(IndexCompatibility.Incompatible(RagMetaKeys.SCHEMA_VERSION, "1", "0"))
+            assertThat(temp.index.open()).isEqualTo(IndexCompatibility.Incompatible(RagMetaKeys.SCHEMA_VERSION, "$CURRENT", "0"))
             temp.index.close()
 
             assertThat(temp.fileDigest()).isEqualTo(before)
@@ -136,13 +141,14 @@ class RagIndexCompatibilityTest {
 
     @Test
     fun failingMigration_rollsBackAndLeavesTheFileUntouched() = runBlocking<Unit> {
-        val migration = RagMigration(from = 0, statements = listOf("CREATE TABLE partial_marker (x INTEGER)", "NOT SQL"))
-        TempRagIndex(migrations = listOf(migration)).use { temp ->
+        val migrations = listOf(RagMigration(from = 0, statements = listOf("CREATE TABLE partial_marker (x INTEGER)", "NOT SQL"))) +
+            (1 until CURRENT).map { RagMigration(from = it, statements = emptyList()) }
+        TempRagIndex(migrations = migrations).use { temp ->
             populated(temp)
             temp.withRaw { it.exec("UPDATE rag_meta SET value = '0' WHERE key = ?", RagMetaKeys.SCHEMA_VERSION) }
             val before = temp.fileDigest()
 
-            assertThat(temp.index.open()).isEqualTo(IndexCompatibility.Incompatible(RagMetaKeys.SCHEMA_VERSION, "1", "0"))
+            assertThat(temp.index.open()).isEqualTo(IndexCompatibility.Incompatible(RagMetaKeys.SCHEMA_VERSION, "$CURRENT", "0"))
             temp.index.close()
 
             assertThat(temp.fileDigest()).isEqualTo(before)
@@ -171,5 +177,10 @@ class RagIndexCompatibilityTest {
             assertThat(temp.index.open()).isEqualTo(IndexCompatibility.Unreadable("extension: vector.so not found"))
             assertEveryOperationIsRefused(temp.index)
         }
+    }
+
+    private companion object {
+        const val CURRENT = RagIndexConfig.SCHEMA_VERSION
+        const val NEWER = CURRENT + 1
     }
 }

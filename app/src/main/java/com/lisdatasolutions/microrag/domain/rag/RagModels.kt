@@ -42,6 +42,8 @@ data class StoredDocument(
     val localPath: String?,
     val createdAtMs: Long,
     val updatedAtMs: Long,
+    /** PDF pages without text that the extraction skipped (F06, D-038); null for TXT and Markdown. */
+    val skippedPages: Int? = null,
 )
 
 /**

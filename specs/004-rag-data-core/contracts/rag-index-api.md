@@ -61,3 +61,17 @@ class DuplicateDocumentException(val existingId: Long) : IllegalStateException()
 
 - **Fábrica:** `DefaultRagIndex(dbFile = dirs.index/"rag.db", schema = { RagSchema.load(assets) } (se lee dentro de la apertura, en el dispatcher de base de datos), extensionPath = nativeLibraryDir + "/vector.so", config = RagIndexConfig.current(), dispatcher = AppDispatchers.database, logger, migrations = RagMigrations.all, clock)`, registrada como `single<RagIndex>` en `dataModule`.
 - **Rutas de prueba:** las pruebas crean instancias con un fichero temporal en `cacheDir` y no tocan el índice real.
+
+## Ampliación de F06 (esquema v2, D-038)
+
+`specs/006-import-parsing/contracts/ingest-api.md` añade al contrato:
+
+| Operación | Comportamiento |
+|---|---|
+| `documents(statuses)` | Documentos en esos estados, ordenados por `created_at_ms` y después `id`. Un conjunto vacío devuelve una lista vacía sin consultar |
+| `documentIdByHash(hash)` | Id del documento con ese `content_hash`, o `null`. F06 lo usa para detectar duplicados antes de renombrar la copia |
+| `documentChanges` | `StateFlow<Long>` que aumenta tras cada escritura confirmada que cambia documentos o fragmentos: `addDocument`, `updateStatus`, `setIncluded`, `deleteDocument` e `insertChunks` con al menos un fragmento nuevo. Las lecturas y los duplicados rechazados no lo cambian |
+| `updateStatus(…, skippedPages)` | Como antes, con `skipped_pages = COALESCE(?, skipped_pages)` |
+
+- `StoredDocument.skippedPages` refleja `documents.skipped_pages`: páginas de PDF sin texto, o `null`.
+- `RagMigrations.all` contiene la migración `1 → 2` (`ALTER TABLE documents ADD COLUMN skipped_pages INTEGER`), probada en `RagIndexMigrationTest`.

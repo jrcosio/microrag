@@ -1,5 +1,6 @@
 package com.lisdatasolutions.microrag.data.rag
 
+import androidx.sqlite.SQLiteStatement
 import com.lisdatasolutions.microrag.core.logging.AppLogger
 import com.lisdatasolutions.microrag.domain.rag.ChunkInput
 import com.lisdatasolutions.microrag.domain.rag.ChunkView
@@ -45,6 +46,9 @@ class DefaultRagIndex(
     private val state = MutableStateFlow<IndexCompatibility>(IndexCompatibility.Closed)
     override val compatibility: StateFlow<IndexCompatibility> = state.asStateFlow()
 
+    private val changes = MutableStateFlow(0L)
+    override val documentChanges: StateFlow<Long> = changes.asStateFlow()
+
     /** Open only while the index is compatible; touched on [dispatcher] only. */
     private var connection: RagConnection? = null
 
@@ -75,54 +79,51 @@ class DefaultRagIndex(
         )
         val id = checkNotNull(db.queryOne("SELECT last_insert_rowid()") { it.getLong(0) })
         logger.i(TAG) { "rag document add id=$id" }
+        notifyChanged()
         id
     }
 
     override suspend fun document(id: Long): StoredDocument? = withIndex { db ->
-        db.queryOne(
-            """
-            SELECT id, display_name, content_hash, mime_type, uri, status, chunk_count, error, included,
-                size_bytes, page_count, local_path, created_at_ms, updated_at_ms
-            FROM documents WHERE id = ?
-            """.trimIndent(),
-            id,
-        ) { s ->
-            StoredDocument(
-                id = s.getLong(0),
-                displayName = s.getText(1),
-                contentHash = s.getText(2),
-                mimeType = s.textOrNull(3),
-                uri = s.textOrNull(4),
-                status = DocumentStatus.fromSql(s.getText(5)),
-                chunkCount = s.longOrNull(6)?.toInt(),
-                error = s.textOrNull(7),
-                included = s.getLong(8) == 1L,
-                sizeBytes = s.longOrNull(9),
-                pageCount = s.longOrNull(10)?.toInt(),
-                localPath = s.textOrNull(11),
-                createdAtMs = s.getLong(12),
-                updatedAtMs = s.getLong(13),
+        db.queryOne("SELECT $DOCUMENT_COLUMNS FROM documents WHERE id = ?", id, row = ::readDocument)
+    }
+
+    override suspend fun documents(statuses: Set<DocumentStatus>): List<StoredDocument> {
+        if (statuses.isEmpty()) return emptyList()
+        return withIndex { db ->
+            db.query(
+                "SELECT $DOCUMENT_COLUMNS FROM documents WHERE status IN (${statuses.joinToString(",") { "?" }}) " +
+                    "ORDER BY created_at_ms, id",
+                *statuses.map { it.sqlValue }.toTypedArray(),
+                row = ::readDocument,
             )
         }
     }
 
-    override suspend fun updateStatus(id: Long, status: DocumentStatus, error: String?, chunkCount: Int?) =
+    override suspend fun documentIdByHash(contentHash: String): Long? = withIndex { db ->
+        db.queryOne("SELECT id FROM documents WHERE content_hash = ?", contentHash) { it.getLong(0) }
+    }
+
+    override suspend fun updateStatus(id: Long, status: DocumentStatus, error: String?, chunkCount: Int?, skippedPages: Int?) =
         withIndex { db ->
             db.exec(
-                "UPDATE documents SET status = ?, error = ?, chunk_count = COALESCE(?, chunk_count), updated_at_ms = ? WHERE id = ?",
-                status.sqlValue, error, chunkCount, clock(), id,
+                "UPDATE documents SET status = ?, error = ?, chunk_count = COALESCE(?, chunk_count), " +
+                    "skipped_pages = COALESCE(?, skipped_pages), updated_at_ms = ? WHERE id = ?",
+                status.sqlValue, error, chunkCount, skippedPages, clock(), id,
             )
             logger.i(TAG) { "rag document status id=$id ${status.sqlValue}" }
+            notifyChanged()
         }
 
     override suspend fun setIncluded(id: Long, included: Boolean) = withIndex { db ->
         db.exec("UPDATE documents SET included = ?, updated_at_ms = ? WHERE id = ?", included, clock(), id)
+        notifyChanged()
     }
 
     override suspend fun deleteDocument(id: Long) = withIndex { db ->
         // ON DELETE CASCADE removes the chunks; their chunks_ad trigger cleans the FTS index.
         db.exec("DELETE FROM documents WHERE id = ?", id)
         logger.i(TAG) { "rag document delete id=$id" }
+        notifyChanged()
     }
 
     override suspend fun insertChunks(documentId: Long, chunks: List<ChunkInput>): Int {
@@ -152,6 +153,7 @@ class DefaultRagIndex(
                 chunkCount(db, documentId) - before
             }
             logger.i(TAG) { "rag chunks doc=$documentId inserted=$inserted of ${chunks.size} in ${elapsedMs(started)} ms" }
+            if (inserted > 0) notifyChanged()
             inserted
         }
     }
@@ -308,6 +310,29 @@ class DefaultRagIndex(
         throw RagOpenException("schema: ${e.message}", e)
     }
 
+    /** Called on [dispatcher] after a committed write that changes documents or chunks. */
+    private fun notifyChanged() {
+        changes.value += 1
+    }
+
+    private fun readDocument(s: SQLiteStatement) = StoredDocument(
+        id = s.getLong(0),
+        displayName = s.getText(1),
+        contentHash = s.getText(2),
+        mimeType = s.textOrNull(3),
+        uri = s.textOrNull(4),
+        status = DocumentStatus.fromSql(s.getText(5)),
+        chunkCount = s.longOrNull(6)?.toInt(),
+        error = s.textOrNull(7),
+        included = s.getLong(8) == 1L,
+        sizeBytes = s.longOrNull(9),
+        pageCount = s.longOrNull(10)?.toInt(),
+        localPath = s.textOrNull(11),
+        createdAtMs = s.getLong(12),
+        updatedAtMs = s.getLong(13),
+        skippedPages = s.longOrNull(14)?.toInt(),
+    )
+
     private fun readMeta(db: RagConnection): Map<String, String> =
         db.query("SELECT key, value FROM rag_meta") { it.getText(0) to it.getText(1) }.toMap()
 
@@ -354,6 +379,8 @@ class DefaultRagIndex(
         const val META_TABLE = "rag_meta"
         const val LOAD_BLOCK = 500
         const val UNIT_NORM_TOLERANCE = 1e-3
+        const val DOCUMENT_COLUMNS = "id, display_name, content_hash, mime_type, uri, status, chunk_count, error, " +
+            "included, size_bytes, page_count, local_path, created_at_ms, updated_at_ms, skipped_pages"
     }
 }
 

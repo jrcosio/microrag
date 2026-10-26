@@ -22,8 +22,26 @@ interface RagIndex {
 
     suspend fun document(id: Long): StoredDocument?
 
-    /** [error] is always written (null clears it); [chunkCount] only when not null. */
-    suspend fun updateStatus(id: Long, status: DocumentStatus, error: String? = null, chunkCount: Int? = null)
+    /** Documents in [statuses], oldest first (creation time, then id). */
+    suspend fun documents(statuses: Set<DocumentStatus>): List<StoredDocument>
+
+    /** Id of the document with this content hash, if any (F06 duplicate check). */
+    suspend fun documentIdByHash(contentHash: String): Long?
+
+    /**
+     * Increases after every committed write that changes documents or their chunks: add, status,
+     * inclusion, delete and chunk insertion. Readers reload what they show when it changes.
+     */
+    val documentChanges: StateFlow<Long>
+
+    /** [error] is always written (null clears it); [chunkCount] and [skippedPages] only when not null. */
+    suspend fun updateStatus(
+        id: Long,
+        status: DocumentStatus,
+        error: String? = null,
+        chunkCount: Int? = null,
+        skippedPages: Int? = null,
+    )
 
     suspend fun setIncluded(id: Long, included: Boolean)
 

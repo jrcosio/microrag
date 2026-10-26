@@ -1,7 +1,7 @@
--- MicroRAG index schema, version 1 (rag_meta.schema_version).
+-- MicroRAG index schema, version 2 (rag_meta.schema_version).
 -- Shared by the app and the offline Python tools. It is the RAG report schema (§Esquema SQLite)
--- plus the document columns and states of INVENTARIO G27 (F04, D-030). Always the latest version,
--- with IF NOT EXISTS; older files are upgraded by RagMigrations.
+-- plus the document columns and states of INVENTARIO G27 (F04, D-030) and skipped_pages (F06, D-038).
+-- Always the latest version, with IF NOT EXISTS; older files are upgraded by RagMigrations.
 
 PRAGMA foreign_keys = ON;
 
@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS documents (
     size_bytes      INTEGER,
     page_count      INTEGER,
     local_path      TEXT,
+    skipped_pages   INTEGER,
     created_at_ms   INTEGER NOT NULL,
     updated_at_ms   INTEGER NOT NULL
 );
