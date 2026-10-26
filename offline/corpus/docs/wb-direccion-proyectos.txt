@@ -1,0 +1,1022 @@
+Acerca de
+
+Este Wikilibro trata sobre las principales cuestiones relativas a la Dirección de proyectos. Se creó como trabajo para la asignatura Proyectos de Ingeniería en Informática de Córdoba durante el curso 2009-2010. Posteriormente, en el curso 2010-2011 fue ampliado por alumnos de la misma asignatura.
+
+Creado por:
+
+Iván Rafael Aguilera Jurado
+Carlos García Vega
+Rafael Mena Bravo
+Joaquín Alberto Pérez Mata
+Francisco José Romero Ramírez
+
+Universidad de Córdoba, Curso 2009-2010.
+
+Ampliado y revisado por:
+
+Luis del Moral Martínez mailto:i52momal@uco.es i52momal@uco.es
+Antonio José Lázaro Muñoz mailto:i12lamua@uco.es i12lamua@uco.es
+David López Fernández mailto:i52lofed@uco.es i52lofed@uco.es
+Giuseppe Procaccianti mailto:fog.angel@gmail.com fog.angel@gmail.com
+
+Universidad de Córdoba, Curso 2010-2011.
+
+Licencia:
+
+Este libro se acoge a la licencia GFDL, la cuál permite modificar o reproducir este trabajo, pero siempre manteniendo la misma licencia y citando a los creadores/revisores/etcétera citados anteriormente. Para más información acerca de esta
+licencia, visite las siguientes direcciones:
+
+http://es.wikipedia.org/wiki/Licencia_de_documentaci%C3%B3n_libre_GNU
+http://es.wikibooks.org/wiki/Wikilibros:Manual/Licencia
+
+Bibliografía
+
+Gómez-Senent, E., Capuz, S. El proyecto y su dirección y gestión. Servicio de publicaciones SPUPV. Universidad Politécnica de Valencia, 1999.
+
+Gómez, J.F., Coronel, A.J., Martínez, L., Llorente, A. Gestión de proyectos. FC Editorial. Madrid, 2000.
+
+Asociación Española de Ingeniería de Proyectos (AEIPRO). Guía de los Fundamentos de la Dirección de Proyectos. Unidad docente de proyectos. ETSII Madrid.
+
+Direcciones Web
+Teoría sobre la motivación. Último acceso: 28 Diciembre 2009.
+Introducción a la dirección de proyectos. Último acceso: 7 Enero 2010.
+Estilos de liderazgo y productividad. Último acceso: 26 Diciembre 2009.
+
+Comunicación
+
+Una comunicación efectiva se produce cuando hay una clara transferencia de conocimientos entre el director y al menos otra persona. En principio tiene una idea y la otra persona, a través de su conversación, consigue lo que está buscando. Usted recibe un e-mail y comprende lo que el interesado quiere. Propone una reunión del proyecto y su equipo de proyecto sigue su agenda, la
+información se presenta, y todos están en sintonía sobre qué hacer a continuación.
+
+La comunicación clara y precisa dentro del equipo de proyecto es vital para el éxito de un proyecto. ¿Por qué? La gestión de proyectos de software es un factor importante a tener en cuenta. A pesar de que el equipo del proyecto está haciendo la codificación real, el desarrollo, prueba y elaboración del software; el director del proyecto es quien garantiza que el trabajo se realiza de acuerdo con el alcance del proyecto y dentro del presupuesto, al mismo tiempo de cumplir los plazos del proyecto.
+
+En la gestión de proyectos el director debe ser capaz de comunicarse con el equipo del proyecto sobre muchas cosas importantes, incluyendo:
+
+Los cambios en la tecnología
+Matices del software que se creó
+Exigencias impuestas por el cliente
+Asegurar la comunicación precisa
+
+Todo el mundo, desde los miembros del equipo del proyecto a los interesados del proyecto, deben comunicarse de forma abierta y precisa. ¿Pero, cómo garantizar una comunicación correcta?
+Éstos son algunos consejos:
+
+Documentar las conversaciones en correos electrónicos, memorandos, o acta de la reunión. Si coloca los puntos de conversación por escrito, la persona con quien te estás comunicando tiene la oportunidad de entender los puntos si hay malentendidos.
+
+Cuando usted y la otra parte llegan a un acuerdo sobre cualquier tema, usted debe documentar el problema, el documento de la resolución, y asegúrese de que ambas partes firmen el documento.
+
+Documente el alcance de la aplicación, el tiempo, y compromisos de los costos. A medida que el proyecto avance, tendrá problemas, retrasos, problemas con proveedores, problemas con el equipo de proyecto, etc. Para cada uno de estos problemas, es muy probable que lleguen a algún tipo de compromiso para encontrar una solución.
+
+Establecer una agenda. Usted debe crear un programa antes de cada reunión. Un programa establece la dirección de la reunión y evita que otras cuestiones no relevantes entren en la discusión. Un programa también ayuda a que usted y el equipo del proyecto se prepare para la reunión al llevar los archivos correspondientes, los informes de estado, y otra información pertinente.
+
+Comunicación y liderazgo
+
+Para que un proyecto pueda ser adecuadamente dirigido y gestionado es imprescindible el
+nombramiento de un  jefe de proyecto con las cualidades y características perfectas para garantizar
+que los objetivos propuestos van a lograrse. El director del proyecto no debe ser exclusivamente
+mero coordinador o animador, como en algunas ocasiones puede pensarse. Esto no le permitirá
+tener fuerza suficiente para impulsar el proyecto y tomar decisiones, y consecuentemente, no podría
+llegar a ser responsable de la obtención de resultados.
+
+Las actividades del director podemos englobarlas en dos grupos: internas y externas. Entre
+las actividades internas se encuentran la división del trabajo incluyendo la fijación clara de objetivos a cada grupo de trabajo, y la programación de actividades. Además, debe establecer el sistema de información y comunicación así como definir el control más adecuado en cada caso.
+
+En cuanto a las actividades externas, el director se encuentra relacionado con el mundo exterior ya que
+representa en cierta medida a la empresa frente a organizaciones y organismos oficiales
+involucrados en el proyecto. De esta manera podemos decir que el director debe ser capaz de
+liderar, comunicar, decidir, motivar y negociar.
+
+Construcción de un efectivo plan de comunicaciones
+
+Si deseamos comunicarnos de manera efectiva hay que planificar. El proceso planificación de las comunicaciones determina las necesidades de información y comunicación de los interesados; por ejemplo, quién necesita qué información, cuándo la necesitará, cómo le será suministrada y por quién. Si bien todos los proyectos comparten la necesidad de comunicar información del proyecto, las necesidades de información y los métodos de distribución varían ampliamente.
+
+Identificar las necesidades de información de los interesados y determinar una forma adecuada de satisfacer esas necesidades es un factor importante para el éxito del proyecto.
+
+Entre los atributos de un plan de gestión de las comunicaciones se pueden incluir:
+
+Elementos de comunicación: Los documentos de comunicación son los informes, e-mails, o las reuniones programadas que usted necesita. No deben ser sólo los documentos, por ejemplo, la comunicación en las reuniones también cuenta.
+
+Propósito: Para cada documento de comunicación que incluya en su plan, usted necesita una explicación breve del documento o el propósito de reunión. Quieres saber por qué la comunicación es necesaria y en qué condiciones.
+
+Frecuencia de las comunicaciones: Definición de los hitos que se deben producir es esencial para el proceso porque se puede medir la exactitud de los costes y el tiempo hasta la fecha, y el estado general del proyecto.
+
+Métodos o tecnologías para transmitir la información. Algunas partes interesadas pueden esperar un informe de estado en papel, mientras que otra información, como actualizaciones de calendario, puede ser preferible recibirlas a través de e-mail. No hay manera correcta o incorrecta de presentar la información, pero las preferencias y las razones de la modalidad tiene que ser documentado en su plan.
+
+Personas o grupos que recibirán la información. No todas las personas necesitarán información, durante todo el proyecto, por lo que es necesario definir cuando van a participar en las comunicaciones del proyecto. Por ejemplo, un ingeniero de telecomunicaciones contratado puede estar involucrado en el proyecto durante los últimos tres meses del proyecto. Este ingeniero no necesita gran cantidad de información antes de que comience su participación en el proyecto.
+
+Responsabilidad: Un malentendido común es que el director del proyecto es responsable de cada parte de comunicación. Eso no es cierto. El director del proyecto es responsable de garantizar que la comunicación tenga lugar, pero no puede ser responsable de la comunicación real. Por ejemplo, si usted contrata a un ingeniero de telecomunicaciones, es muy probable que esa persona necesita comunicarse con sus programadores de alto nivel y no con el director.
+
+Construcción del equipo del proyecto
+
+Introducción
+Una actividad fundamental para la dirección del proyecto es concretar el tipo de organización humana que va a llevarlo a cabo, ya que no todas las organizaciones son capaces de realizar todos los proyectos.
+
+Es conveniente distinguir entre dos situaciones diferentes:
+
+Organización de la empresa que desarrolla proyectos
+Organización de la empresa en la que se desarrollan proyectos.
+
+Control
+
+Comprende las actividades de inspección de los equipos una vez han llegado a su destino. Se comprobará que los modelos, materiales, los acabados, etc. Son pactados y se asistirá a la fase de pruebas y puesta en marcha para verificar rendimientos, garantizar que se han superado las pruebas reglamentarias. De esta forma se estará en condiciones de dar el visto bueno final a las instalaciones y proceder a la firma de los certificados correspondientes.
+
+Decisión de compra
+
+Antes de optar por uno u otro proveedor se habrán analizado detalladamente las ofertas, tanto desde el punto de vista económico como técnico.
+
+Esta fase suele requerir su tiempo pues aunque en la solicitud se habrá intentado delimitar lo más posible las características, puede ser provechoso dejar una puerta abierta a sugerencias de mejoras técnicas o económicas. Lo usual es hacer un cuadro comparativo entre los distintos candidatos, donde se resumen y confrontan las características técnicas y precios de cada uno y se anotan las observaciones oportunas.
+
+El documento final del contrato recogerá las condiciones generales ya comentadas y aquellas particulares (anexos, cláusulas) que se crea oportuno incluir.
+
+Dirección de proyectos
+
+La dirección de proyectos se puede definir como la aplicación de conocimientos, aptitudes, herramientas y técnicas a las actividades del proyecto, encaminados a satisfacer o colmar las necesidades y expectativas de una organización mediante un proyecto. Para satisfacer estas necesidades de los clientes, hay que equilibrar las demandas entre: Alcance, plazos, coste y calidad.
+
+Distintas necesidades y expectativas de las diferentes entidades involucradas en el proyecto.
+Necesidades identificadas y expectativas sin identificar.
+
+Aunque la dirección de proyectos tiene una antigüedad de al menos 4.500 años, hasta muy recientemente no ha sido reconocido el papel del director del proyecto como disciplina por derecho propio. Algunas universidades están comenzando ahora a ofrecer cursos de dirección de proyectos, en algún caso con rango de doctorado.
+
+En la actualidad hay proyectos de todo tipo, como por ejemplo el desarrollo de nuevos productos, la elaboración de un plan de marketing, la construcción de un gran edificio de oficinas, etc.... Las posibilidades son casi infinitas, lo que hace de la dirección de proyectos una disciplina casi universal. Aún en el caso de actividades aparentemente repetitivas (como por ejemplo la construcción de viviendas utilizando una y otra vez los mismos diseños) hay variables que harán único cada proyecto (en el ejemplo de la construcción de viviendas podría ser el terreno sobre el que se construye, las condiciones meteorológicas, etc). Es la singularidad de cada proyecto lo que plantea demandas especiales a los directores de proyecto y convierte a la vez a la dirección de proyectos en una disciplina estimulante.
+
+Un gran problema que existe en la dirección de proyectos es el no tener claros cuáles son sus características. La dirección de proyectos no es simplemente programación; con la creciente popularidad del software de programación para ordenadores personales, muchas personas piensan que basta con comprar software y aplicarlo para hacer una buena dirección de proyectos. Luego descubren que realmente no saben cómo aplicar ese software; esto es como empezar la casa por el tejado, puesto que es muy difícil saber qué software comprar si no se tiene una idea muy clara de cómo dirigir proyectos y no se sabe exactamente lo que se va a hacer con dicho software.
+
+Durante mucho tiempo ha sido costumbre decir que la dirección de proyectos es la planificación, programación y control de actividades del proyecto para conseguir objetivos en cuanto a rendimiento, dinero y tiempo en un trabajo con un alcance determinado. Por tanto, es importante que el director del proyecto dilucide qué dos de los tres objetivos de la dirección de un proyecto (mayor rendimiento, un coste escaso y un tiempo de realización bajo) son prioritarios sobre el que resta dependiendo de las características de cada proyecto en particular.
+
+Dirección y destrezas de supervisión y gestión
+
+Gestión de compras
+Gestión del tiempo
+Planificación de los riesgos del proyecto
+Planificación de la gestión de la calidad
+Construcción del equipo del proyecto
+Gestión de RRHH: Selección de personal
+Motivación y cambio de conductas
+Gestión de conflictos
+
+Elección del estilo de dirección
+
+Hasta ahora hemos esbozado cómo responden ante los distintos estilos de dirección de una forma diferencial los mandos y los miembros del personal operativo de los Centros. Un segundo objetivo a alcanzar se refería, a la determinación de la efectividad del estilo de dirección empleado
+
+Antes de continuar, recordemos el concepto de efectividad del liderazgo. No existe un estilo óptimo para todas las situaciones, sino que un líder es más efectivo cuando adapta su comportamiento a las demandas de la situación, es decir, de la tarea, de los subordinados, de la urgencia de tiempo, etc.
+
+A continuación se muestra una tabla con la distinción de cuándo un estilo de dirección es eficaz y cuándo es ineficaz.
+
+Estilos de gestión y dirección
+
+Existen cuatro posibles estilos de dirección que indican el nivel de control que un directivo ejerce sobre los subordinados, y que se denominan:
+
+* Ordenar (E1) se caracteriza por dar instrucciones específicas y supervisar de cerca el desarrollo del trabajo.
+
+* Persuadir (E2) se caracteriza por explicar a los subordinados las decisiones ya tomadas por el superior, a la vez que explica las ventajas y/o la facilidad de cumplir con lo que se les pide.
+
+* Participar (E3), caracterizado por que el mando comparte sus ideas con sus subordinados y por facilitar el diálogo para llegar a una decisión acordada en conjunto y a una planificación también conjunta.
+
+* Delegar (E4) se caracteriza por dejar al subordinado —visto como colaborador— las decisiones sobre cómo actuar para lograr los objetivos de la institución en general y de su puesto de trabajo en particular.
+
+Estos estilos implican una integración de dos dimensiones de conducta del líder, que son la conducta de tarea y la conducta de relación. Una definición clásica de la dirección la considera como trabajar con y mediante personas y grupos para alcanzar las metas de la organización. Así, estos estilos se forman por una determinada combinación de los elementos de tarea (alcanzar los objetivos de la organización, el cumplimiento de los plazos, etc.) y de relación (cuidar los aspectos emocionales del trabajador en su puesto y en la interacción con el mando y con otros compañeros). Esas dimensiones de conducta se consideran independientes, por lo que cada estilo incluye una cantidad alta o baja de tarea y de relación. Así, Ordenar implica una alta tarea y baja relación, Persuadir se caracteriza por una alta tarea y alta relación, Participar incluye alta relación y baja tarea y Delegar manifiesta baja conducta de tarea y baja conducta de relación.
+
+Para presentar los resultados, partiremos de datos descriptivos de las distribuciones de puntuaciones en estudios realizados. En la figura se muestra una alta concentración de las elecciones en los Estilos 2 y 3 (Persuadir y Participar, respectivamente) tanto en la muestra de los mandos como en la de los subordinados. Es de destacar que el Estilo 1 (Ordenar) no fue elegido en ninguna de las situaciones por el 50.5% de la muestra de mandos y por el 61.1% de la muestra de subordinados. Por otra parte, el Estilo 4 (Delegar) no fue elegido para ninguna situación por el 50% de los mandos ni tampoco por el 66.6% del personal de los Centros.
+
+A continuación, se presentarán los resultados de los análisis para comprobar si existe una preferencia específica del personal directivo y no directivo por un determinado estilo de dirección.
+
+Determinación del estilo preferido para mandos y subordinados
+----
+
+Comenzaremos con la presentación de los resultados de cada uno de los Estilos.Como se puede observar en la siguiente tabla, en los estilos E2 y E3 se aprecian diferencias entre mandos y subordinados, es decir, Persuadir es el estilo preferido de los mandos (0.504) y Participar es el estilo preferido por los subordinados (0.398).
+
+En cualquier caso, el estilo Persuadir se caracteriza por que el líder explica a los seguidores las decisiones ya tomadas por el superior, a la vez que explica las ventajas y/o la facilidad de cumplir con lo que se les pide. Por su parte, el estilo Participar se caracteriza por que el líder comparte sus ideas con sus seguidores, por facilitar el diálogo para llegar a decisiones acordadas en conjunto y a una planificación también compartida.
+
+Este resultado, de haberse alcanzado el nivel de significación requerido, se podría interpretar como una visión distinta del modo de ejercer el mando que manifiestan las personas que tienen experiencia de coordinar y dirigir un grupo y las personas que carecen de ella. En definitiva, se puede concluir que los mandos (Jefes y Directores) tienden a optar por el estilo de dirección (E2) con mayor frecuencia que los miembros de los equipos dirigidos, que prefieren un estilo más participativo (E3).
+
+Formas de comunicación
+
+Dentro de cualquier empresa se establecen unos cauces de comunicación formales, que pueden ser ascendentes, descendentes, horizontales o diagonales. Además, existen comunicaciones informales a tener en cuenta como los rumores, conversaciones de pasillo, etc.
+
+La comunicación descendente persigue que las personas entiendas bien su trabajo y la importancia del mismo en relación con el resto, mientras que la ascendente, es el cauce por el cual los subordinados informan al director los problemas, imprevistos, dudas y resultados. La confianza en esta relación es importante para que no dejen de consultarse o transmitirse informaciones que pueden ser decisivas para la marcha del proyecto.
+
+Comunicación formal
+Si usted se comunica con los interesados en un ambiente formal, aquí se presentan las formas de comunicación que debe emplear:
+
+Presentaciones. En más que probable que tenga que exponer a los interesados un plan de proyecto, el estado del proyecto, o los problemas que arrastra el proyecto. A veces, una presentación puede ayudar a exponer su tema, y en otros momentos puede ser una distracción. El secreto de una buena presentación es estar preparado y hablar con autoridad, de forma que el público entienda lo que intenta comunicar.
+
+Informes. Tómese el tiempo necesario para garantizar por escrito la exactitud de los datos que presente, además de cuidar de la gramática que pueden llevar a confusiones.
+
+Conferencia / llamadas telefónicas: Algunas de sus partes interesadas y los miembros del equipo pueden estar dispersos por todo el mundo, así que la manera más eficaz de comunicarse con ellos es a través de llamadas. Cuando usted se comunica utilizando el teléfono, recuerde que los demás no pueden ver sus expresiones faciales para ayudar a determinar sus emociones. Es por ello necesario mantener una comunicación clara y completa a fin de no dejar mucho margen para la interpretación
+
+E-mail: E-mail puede ser una forma de comunicación formal en algunos entornos, tales como en la gestión de proyectos de software que está tratando principalmente con personas que son conocedores de TI y dependen en gran medida de correo electrónico. Si usted está presentando comunicaciones formales a través de correo electrónico, escribir tal como lo habría puesto en una carta. Deja los emoticonos y bromas. Y a continuación, guardar el correo electrónico, archivos adjuntos, y todas las respuestas.
+
+Comunicación informal
+Si usted se comunica a los interesados en un ambiente informal, aquí están los tipos de modos de comunicación que debe emplear:
+
+Email. E-mail puede ser formal o informal, dependiendo del contexto. No hay necesidad de informes, faxes o discusiones. Es siempre una buena idea para mantener todas las comunicaciones del proyecto.
+
+Encuentros informales. Las reuniones de pasillo rápido, llamadas telefónicas rápidas y charlas en el almuerzo, pueden ser algunas de las comunicaciones más eficaces. Tenga cuidado para documentar la discusión y luego un seguimiento con todos los implicados si las promesas fueron hechas en este tipo de reuniones.
+
+La mensajería instantánea. Si usted tiene un equipo disperso, este modo de comunicación puede ser especialmente útil. Es rápido y eficiente para comunicarse a través de mensajería instantánea o mediante el envío de mensajes de texto.
+
+Charlas en el café. Un tiempo para tomar un café con el equipo, puede ayudar a aliviar la tensión de un proyecto de software, dejar que el equipo descanse un poco sobre el proyecto si se desea, o simplemente reconocer al equipo el trabajo realizado. Se trata de la motivación y el desarrollo del equipo.
+
+Gestión de RRHH: Selección de personal
+
+Un proyecto requiere trabajo colaborativo de un equipo de personas, lo que supone indudables ventajas así como una serie de inconvenientes. En este sentido, el rendimiento del grupo, si funciona bien, es superior al de la suma de los rendimientos de sus miembros trabajando por separado. Igualmente, implica un tiempo dedicado a la comunicación que sólo resultará rentable si el tiempo que dedican los miembros al trabajo en el proyecto supera unos mínimos.
+
+En un proyecto trabajan conjuntamente una gran cantidad de personal: especialistas en distintas materias, técnicos y otras personalidades diversas. Por tanto, es necesaria la puesta en práctica de unas habilidades y destrezas de dirección y gestión de recursos humanos encaminados al aprovechamiento máximo de un recurso limitado, heterogéneo y variable, como es el personal del equipo de proyectos.
+
+Los procesos principales que comprende la gestión de recursos humanos son tres:
+
+Planificación de la organización: identificando, documentando y asignando las funciones, responsabilidades y relaciones jerárquicas del proyecto.
+Selección del personal: reuniendo los recursos humanos que sea necesario asignar al trabajo del proyecto.
+Desarrollo del equipo: Desarrollando las aptitudes individuales y de grupo para mejorar el desarrollo del proyecto.
+
+A lo largo de este capítulo nos centraremos exclusivamente en la selección del personal. Hay una gran cantidad de literatura relacionada con los otros dos aspectos (véase sección bibliográfica).
+
+Como se ha comentado anteriormente,  la selección del personal implica conseguir los recursos humanos (ya sea personas individuales o grupos) necesarios para ser asignados al proyecto y trabajar en él. En la mayoría de los casos puede ser que no estén disponibles los mejores recursos, y el equipo de dirección del proyecto debe prestar especial atención para asegurar que los recursos disponibles conseguirán los requerimientos del proyecto.
+
+Para realizar una buena adquisición de personal debemos de considerar una serie de información:
+
+Plan de dirección de personal.
+Descripción del grupo de personal.
+Política de selección.
+
+El plan de dirección de personal puede ser formal o informal, muy detallado o simplemente con unas ideas generales, según las necesidades del proyecto. A menudo incluye histogramas de recursos. Su objetivo principal es describir las necesidades del personal del proyecto, identificando qué tipo de aptitudes se exigen, a qué tipo de trabajadores o grupos de trabajadores y en qué periodos de tiempo.
+
+La descripción del grupo de personal necesario recopila las características del personal disponible: experiencia previa, intereses personales, características personales, disponibilidad, etc.
+
+La política de selección es simplemente el procedimiento de asignación y selección de personal.
+
+Hoy en día se utilizan diferentes técnicas para realizar una buena selección, nos centraremos en dos de las más usadas y dejamos al lector la posibilidad de ampliar este tema consultando la bibliografía relacionada.
+
+Un primer mecanismo de selección sería la negociación. Aquí el equipo de dirección del proyecto (o el grupo de recursos humanos) negociará con los distintos equipos de dirección involucrados en el desarrollo del mismo para asegurar que el proyecto recibe el personal cualificado apropiado en el periodo de tiempo necesario. La capacidad de influencia del equipo juega un papel muy importante en la negociación de la asignación de personal, por ejemplo, un director puede recibir compensación económica basada en la utilización de personal y éste puede asignar personal disponible que puede no cubrir con todas las exigencias del proyecto.
+
+Por otro lado, se puede contratar personal exterior a la organización  para obtener los servicios de personas o grupos de personal específico para desarrollar actividades del proyecto. Se recurre a esta opción cuando la organización ejecutora carece del personal propio necesario para completar el proyecto.
+
+El proyecto estará dotado de personal cuando las personas adecuadas han sido realmente asignadas para trabajar en el proyecto. Este personal se puede contratar a tiempo completo (dedicación completa), tiempo parcial o variable, según las necesidades del proyecto.
+
+Finalmente hay que elaborar un directorio del equipo del proyecto, que incluirá a todos los miembros del equipo y otras entidades clave involucradas en el mismo. Este directorio puede ser formal o informal, muy detallado o simplemente con unas ideas generales, según las necesidades del proyecto.
+
+Gestión de compras
+
+La gestión de compras, primer paso en la ejecución del proyecto, consiste en la adquisición de todos los equipos y materiales necesarios, previamente especificados en el proyecto, cumpliendo las exigencias de calidad y minimizando costes y plazos de entrega. Lógicamente, no tiene cabida en los proyectos de objeto inmaterial.
+
+Dependiendo del tipo de contrato por el que se haya optado, la gestión de compras se repartirá de una forma u otra entre proyectista, propiedad y contratista.
+
+En cualquier caso, se pueden establecer las siguientes fases en el proceso de gestión de compras:
+
+Petición de ofertas
+Decisión de compra
+Seguimiento
+Control
+
+Gestión de conflictos
+
+A lo largo de esta sección se va a desarrollar dos de los aspectos primordiales que podemos encontrar en la gestión de conflictos: la negociación y la resolución de problemas.
+
+La negociación consiste en la búsqueda de soluciones a los conflictos, entendiéndose éstos como aquellas situaciones en que los intereses de los implicados se oponen. Normalmente, en la actividad proyectual se sucederán conflictos ya que todos los miembros del equipo no estarán de acuerdo con algún tema. Por tanto, la capacidad negociadora será de gran ayuda para el director de proyectos.
+
+La negociación más importante en el ámbito del proyecto será la que tendrá lugar con el cliente respecto al contrato de servicios y sus posibles revisiones posteriores.
+
+Seguidamente se enunciarán una serie de reglas generales para llevar a cabo una buena negociación:
+
+Antes de iniciar la reunión:
+Definir claramente los objetivos, se pueden establecer contratos informales y discretos previos.
+Reflexionar sobre las posibles concesiones por ambas partes.
+Definir una estrategia.
+Prever las consecuencias de no alcanzar un acuerdo.
+Recoger toda la información posible y estructurarla de forma ordenada para tenerla a mano.
+Durante el transcurso de la reunión:
+El objetivo final debe de ser que ambas parten ganen, por lo que no es conveniente plantear la negociación centrándose exclusivamente en los propios intereses.
+Conservar la calma.
+No es aconsejable otorgar una concesión sin obtener nada a cambio, ésta será más valiosa si no se consigue fácilmente.
+Quizás sea útil dejar una concesión de poca importancia para el final con lo que la otra parte se llevará una impresión final positiva.
+Bajo ningún concepto presumir de los logros conseguidos al finalizar la negociación.
+
+Como se mencionó al comienzo de la sección, el segundo aspecto a tener en cuenta en la gestión de conflictos es la resolución de problemas. El desarrollo de una metodología en la resolución de problemas que incluya un análisis previo, una búsqueda de soluciones y la selección de una decisión final, ayuda a mejorar nuestra capacidad para resolver problemas.
+
+Un proyecto puede precisar de una o varias soluciones posibles dependiendo de su complejidad. Aquí es donde entra en juego la creatividad de la persona encargada de esta función. Para más información véase la obra de Senent Martínez.
+
+Una vez generadas varias alternativas hay que escoger la óptima y desechar el resto, en otras palabras, hay que decidir cuál es la mejor alternativa. Esta etapa conlleva un riesgo que hay que minimizar recopilando toda la información posible (lo que supondrá un mayor tiempo) basándose en la experiencia y conocimientos del proyectista y/o utilizando una herramienta de decisión. La toma de decisiones no sólo la debe de realizar el director del proyecto sino todo el equipo, aunque éste sea el mayor responsable. Obviamente, el cliente debe de estar informado y convencido de las soluciones adoptadas por el equipo.
+
+Existen multitud de técnicas de decisión que escapan fuera del alcance de este WikiLibro, para más información se remite al lector a la sección bibliográfica donde podrá encontrar una gran diversidad de fuentes dedicadas a ello.
+
+Gestión de las comunicaciones
+
+La comunicación puede romperse en cualquier momento. Nunca subestime la importancia de la comunicación, incluso con las personas que no tienen contacto directo con el proyecto. Asegúrese de que existe comunicación en todo el proyecto a todos los interesados.
+
+Es necesario mantener de forma adecuada los niveles de comunicación. En un proyecto grande fácilmente puede ser víctima de un fenómeno común de concentrar toda su atención en las partes claves del proyecto. Sin embargo debe tomar medidas adicionales para comunicar a todas las partes interesadas pertinentes, a medida que el proyecto avanza hacia su finalización.
+
+La siguiente figura, muestra la curva típica de comunicación en un proyecto. La curva tradicional representa que toda la comunicación ocurre en el inicio del proyecto: la carta del proyecto, la reunión inicial, el plan de gestión del alcance, y el análisis. ¿Y entonces usted y el equipo desaparecen para planificar, controlar y ejecutar., qué sucede? La atención se centra en hacer el trabajo y no de comunicación - hasta que el proyecto se aproxima a la finalización, representada en la final de la curva. Es decir, el final está cerca así que el pánico, conduce la comunicación.
+
+La curva de comunicación ideal se representa en la próxima figura. La comunicación es alta en el
+inicio del proyecto, inmersiones cuando el equipo del proyecto hace el trabajo, los incrementos en
+los picos de manera uniforme oportuna de informes de situación, y luego comienza a aumentar a
+medida que el proyecto se aproxima a su finalización. Por supuesto, este patrón parece lógico sobre
+el papel, pero sin un esfuerzo consciente, es difícil de aplicar en el mundo real.
+
+Gestión del cambio en el proyecto
+
+En esta área se tratarán las siguientes cuestiones:
+Planificación y gestión de los cambios en el proyecto.
+Gestión del ámbito del proyecto.
+Creación y seguimiento de un sistema de gestión del cambio.
+Resolución de variaciones en el calendario.
+Expectación y aceptación del cambio.
+
+Introducción de un grupo de control de proceso
+El grupo de control de proceso se utiliza para realizar mediciones de la planificación. Dentro de esta herramienta se controlan y monitorizan los siguientes factores:
+Ámbito.
+Calendario.
+Costes.
+Riesgo.
+Comunicación.
+Rendimiento de cada miembro del equipo.
+Administración de contrataciones.
+Calidad.
+En la dirección del proyecto una responsabilidad continua es velar por mantener el proyecto centrado en su ámbito. Por tanto, es necesario realizar una definición clara desde el principio.
+
+Creación y seguimiento de un sistema de control de cambios
+La herramienta más útil para la creación y seguimiento en un sistema de control de cambios es una tabla de control de cambios como la siguiente:
+
+Para el proyecto hay que definir el sistema de control de cambios lo antes posible. Además, es muy importante contemplar la solicitud de cambios de emergencia.
+Otros aspectos a valorar en este apartado son:
+Determinación del coste y el valor añadido que proporciona el cambio.
+Corrección de errores.
+
+Control de los costes del proyecto
+En este apartado la visión general hace reflexionar acerca de que no es posible realizar desviaciones de los costes del proyecto sin identificar que sean necesarios, y sus posibles repercusiones.
+Se trata de un proceso de documentación y justificación de gastos.
+
+Control del calendario del proyecto
+Ya que se diseña un calendario y se invierten grandes esfuerzos en su comunicación, se debe salvaguardar su cumplimiento. Es necesario velar por él, su naturaleza nos proporciona medidas útiles del rendimiento de cada actividad y baremos que pueden optimizar cada acción dentro del proyecto, desviarse sin contemplaciones del mismo, puede ser un error en sí mismo. Para ello se diseñan las variaciones que pueden comprobarse en los métodos de la gestión del tiempo (4.2).
+Para asistir a la tarea de seguimiento de los calendarios diseñados existen herramientas como:
+Sistema de control de cambios de calendario: Diseño de un sistema para este propósito: una hoja de cálculo, una pequeña base de datos o un propio software parar este fin, donde se contemplen: cambios de fechas en la solicitud de las tareas, impacto que puede producir, incidencia en otras tareas…
+Metodologías de estimación del rendimiento: Se puede realizar una aproximación para el diseño y seguimiento de índices de rendimiento de calendarios (SPI).
+Análisis de varianza: Con este apartado se determinaría dónde se encuentra el proyecto en el calendario y las diferencias con respecto al calendario previsto.
+…
+
+Otras técnicas de gestión del cambio
+Entre otras se podrían discutir las siguientes:
+Estimación del impacto del cambio en el calendario: Basado en una diagnosis y la elaboración de un informe de estimación de impacto del cambio en base a una batería de preguntas acerca del seguimiento del calendario.
+Predicción de varianzas de calendario: Basado en métodos de predicción estadística sobre el índice de predicción de calendarios (SPI).
+
+Gestión del tiempo
+
+Desde la dirección de proyectos, la gestión del tiempo dentro de los proyectos informáticos puede sintetizarse en la determinación, realización y delegación de las siguientes áreas:
+Estructuración del proyecto.
+Métodos de programación y control.
+
+Estructuración del proyecto para su programación
+Objetivos de la planificación, programación y control de proyectos
+Las técnicas de planificación, programación y control se usan de forma común ampliamente en todo el ámbito de las ingenierías.
+Por planificación se entiende la construcción de una secuencia de tareas con la lógica necesaria para llevarlas a cabo ordenadamente, y de forma óptima en el tiempo para alcanzar el objetivo del proyecto.
+La programación consiste en establecer un calendario de ejecución de las tareas a realizar, que permita conocer cuándo habrá que realizar cada cosa, y para cada instante poder decidir cuáles serán los recursos necesarios para llevarlos a cabo.
+El control hace referencia al seguimiento de la ejecución real del proyecto, serviría para detectar las desviaciones que ocurran para adoptar las medidas necesarias de cara a corregir y retomar los objetivos y costes previstos.
+Entre las Ventajas proporcionadas por la sistematización de la gestión del tiempo, se pueden citar las siguientes:
+Mejor visión de los esfuerzos y enfoque más intensivo sobre los resultados.
+Mejorar la coordinación y control de los diversos trabajos.
+Tiempos más cortos de desarrollo.
+Costes totales de ejecución inferiores.
+Mejora de la calidad y fiabilidad.
+Mayor margen de beneficios.
+
+Objetivamente, la aplicación de estas metodologías permite entre otras, resolver las siguientes cuestiones de dirección de proyectos:
+
+Orden correcto de las tareas del proyecto.
+Definición de los trabajos que existen en el proyecto.
+Cuántos y cuáles trabajos se pueden desarrollar en cada momento.
+Actividades críticas y no críticas.
+Situación actual del proyecto.
+Corrección de los errores de dirección en la gestión del tiempo.
+
+Las diferentes fases de la programación y el control son:
+
+Creación del proyecto:
+Definición de objetivos.
+División del proyecto en partes o subproyectos.
+Estimación de la duración de cada actividad.
+Establecimiento de las acciones, actividades y su orden.
+Estimación de la duración del proyecto.
+Cuadrar el programa elaborado con los recursos disponibles.
+Asignación de tareas, nominal, por roles y privilegios…
+Control del proyecto: Comienza después de la creación del proyecto y termina cuando ya se ha finalizado.
+Elaboración de informes del proyecto.
+
+Planificación de tareas
+En esencia, la planificación consiste en definir las tareas y establecer su orden de ejecución. Esto dependerá de la naturaleza de cada proyecto.
+Existen diferentes fases donde ubicar las tareas:
+Definición de requisitos.
+Diseño externo.
+Diseño Interno.
+Paso a producción.
+
+Control de proyecto
+Control es la comprobación del estado del proyecto, y la gestión sería cualquier acción encaminada a hacer que se cumple lo planificado. Posibles acciones, dependiendo del estado y la naturaleza del proyecto pueden ser:
+Aumentar el rendimiento de los recursos existentes.
+Incorporación de nuevos recursos.
+Convocatoria de reuniones de dos tipos:
+Reuniones informativas
+Para presentar o aprobar modelos.
+Informar de dificultades que impidan cumplir planificaciones realizadas.
+Informar de la planificación parcial o completa.
+Reuniones de trabajo
+Con el usuario, para tratar aspectos funcionales.
+Con responsables de otros departamentos cuando haya tareas comunes o se necesite la colaboración.
+Con el propio equipo técnico cuando sea necesario tratar asuntos técnicos o de seguimiento del desarrollo.
+
+Elaboración de informes
+Pueden ser algunos como planificación y programación de tareas, control de recursos, partes periódicos de situación del proyecto, situación de tareas y datos estadísticos o gráficos del proyecto.
+
+Métodos de programación y control de proyectos
+Las técnicas más utilizadas son las siguientes:
+Método del camino crítico o CPM (Critical Path Method).
+Método PERT (Program Evaluation and Review Technique).
+Método Roy.
+
+CPM
+Este método fue desarrollado en 1957 por Morgan R. Walker of DuPont y James E. Kelley, Jr. Este métdodo fue creado con el objetivo de planificar
+el cierre temporal de plantas químicas durante su mantenimiento y su posterior reapertura tras este. En la siguiente imágen se muestra un
+ejemplo de una red CPM:
+
+Beneficios de CPM
+El método CPM proporciona los siguientes beneficios:
+
+Proporciona una vista gráfica del proyecto.
+Predice el tiempo requerido para completar el proyecto.
+Muestra cuáles actividades son críticas para mantener la planificación y cuáles no.
+
+Pasos de la planificación CPM
+Los pasos a seguir en este método son los siguientes:
+
+   1. Especificar las actividades individuales.
+   2. Determinar la secuencia de dichas actividades.
+   3. Dibujar un diagrama en red de dichas actividades.
+   4. Estimar el tiempo de finalización para cada actividad.
+   5. Identificar el camino crítico.
+   6. Actualizar la red a medida que el proyecto avanza.
+
+Limitaciones de CPM
+CPM fue desarrollado para proyectos complejos pero rutinarios y con baja certeza de no ser finalizados antes de tiempo. En proyectos menos rutinarios la incertidumbre que rodea a los tiempos de finalización aumenta, limitando el uso de esta técnica. Una alternativa es el uso del método PERT, que premite la especificación de rangos de tiempo a la duración de las actividades.
+
+Método Pert
+Parte de la descomposición del proyecto en una serie de obras parciales llamadas actividades. Se utiliza una estructura de grafo en el que los arcos representan las actividades y los vértices, los sucesos (un suceso indica el inicio y fin de una actividad).
+La técnica se basa en una estructura de matriz, llamada matriz de encadenamiento para poder implementarse. En ella se representa el grafo PERT propiamente dicho.
+Aplicados al grafo constituido anteriormente se pueden realizar los siguientes algoritmos para extraer resultados concluyentes en la dirección de proyectos:
+Early. Se trata de asignar tiempos optimistas a cada arista del grafo, de manera que cada una de ellas sea el mínimo tiempo posible.
+Last. De forma análoga se construiría el grafo inverso.
+Cálculo de las holguras y el camino crítico. Se trataría de encontrar el camino de longitud generalizada máxima que va desde el suceso inicio del proyecto al suceso fin de proyecto.
+Métodos heurísticos. Ackoff – Sasieni.
+
+Pasos del proceso PERT
+   1. Identificar las actividades y sus hitos correspondientes.
+   2. Determinar la secuencia de ejecución correcta de las tareas.
+   3. Construir el diagrama de la red.
+   4. Estimar el tiempo requerido para cada actividad.
+   5. Determinar el camino crítico.
+   6. Actualizar la red a medida que el proyecto progresa.
+
+Beneficios
+PERT permite los siguientes aspectos:
+
+Conocimiento de una fecha de terminación esperada del proyecto.
+Probabilidad de completar el proyecto antes de una fecha dada.
+Permite identificar las actividades críticas.
+Permite representar actividades que pueden prestar recursos a otras actividades (que formen parte del camino crítico).
+Permite especificar el comienzo y el fin (en tiempos) de las tareas.
+
+Limitaciones
+Algunas de las debilidades de este método son las siguientes:
+
+Las estimaciones de tiempo son bastante subjetivas.
+Puede volverse muy complejo cuando se presentan muchas actividades con muchas relaciones entre ellas.
+Si el grafo es tan grande que se vuelve inmanejable, podría causar el descontrol del proyecto.
+
+Principios básicos de Roy
+La Diferencia básica con respecto a PERT y CPM está precisamente en la construcción del grafo, que se realiza cambiando el papel de vértices y aristas.
+En este caso los métodos serían parecidos:
+Cálculo de tiempos mínimos.
+Cálculo de tiempos máximos.
+
+Habilidades de una gestión de proyecto
+
+Funciones y Actividades
+Las funciones del director serán las de: planificación de objetivos, estrategias y recursos necesarios; organización, coordinación y control de las decisiones tomadas en virtud de la planificación anterior, y motivación encaminada a crear conciencia de grupo y voluntad de éxito en las personas que participan en el proyecto.
+
+Las actividades del director de proyectos se pueden englobar en dos grandes grupos: las internas y las externas. Entre las primeras se encuentran la división del trabajo incluyendo la fijación clara de los objetivos a cada grupo de trabajo y la programación de las actividades. Además debe establecer el sistema de información y comunicación así como definir el control más adecuado en cada caso. Ante el mundo exterior el director del proyecto es el representante de la empresa frente las distintas organizaciones y organismos oficiales involucrados en el proyecto.
+
+Perfil del director de proyecto
+Es posible resumir las capacidades más importantes en los tres grupos siguientes:
+
+Conocimientos técnicos
+El cometido de cualquier proyecto suele tener una elevada componente técnica. El dominio de las materias en cuestión le capacitará para tomar las decisiones idóneas en cuanto a diseño y ejecución, así como le permitirá ser respetado y valorado por el resto de integrantes del proyecto, debido a sus conocimientos y experiencia.
+
+Conocimientos de gestión
+No olvidemos que el cumplimiento de los objetivos técnicos es sólo uno de los tres que se persiguen, y los otros dos (plazo y coste) están más relacionados con las actividades de gestión.
+
+Habilidades de relaciones personales
+Cualquier director debe cultivar sus habilidades propias de trato y dirección de personas si quiere que sus órdenes no se fundamenten en el poder jerárquico que ostenta sino capacidades de relación interpersonal como la persuasión, la motivación o el liderazgo. Dichas habilidades son aún más importantes en el director de proyecto por el carácter temporal de su actividad y la cantidad de personas y agentes distintos con los que tiene que relacionarse.
+
+Autoridad y tipos de directores de proyectos
+Para poder afrontar con éxito todas las misiones que tiene encomendadas, el director de proyecto debe contar con una cierta autoridad efectiva derivada de la autoridad formal o legal producto de su posición, rango o jerarquía en la organización y de la autoridad informal o real donde juegan un papel fundamental su experiencia, prestigio, conocimientos técnicos y capacidad negociadora.
+
+Dependiendo de la mayor o menor autoridad de que disponga el director del proyecto se pueden establecer distintos tipos de directores que asumirán unas funciones u otras. Basada en la propuesta de clasificación realizada por Booz, Allen y Hamilton en su “Project Management Handbook, De Cos (1997) presenta una clasificación de cinco categorías de director de proyectos:
+
+*Director como centralizador de información. Aunque conoce los avances y problemas que presenta el proyecto, no tiene suficiente poder para dirigirlo y se limita a informar y asesorar a la alta dirección.
+
+*Director como unidad de comunicación del proyecto. A pesar de que carece de poder para dirigir a las personas, es el encargado de asegurar que se cumplan los plazos y de interpretar la información técnica para que sus superiores puedan tomar las decisiones correctas.
+
+*Director como unidad de control del proyecto. Es el responsable del trabajo en equipo, a pesar de que no lo dirige y realiza las funciones control del presupuesto y programación del proyecto.
+
+*Director como jefe de proyecto. Realiza todas las funciones de dirección, desde la planificación al control, establece presupuestos, dicta instrucciones y participa en la selección de personal. Sin embargo, el equipo humano no depende en su totalidad de él, ni tiene potestad para contratar o despedir personal.
+
+*Auténtico director de proyecto. Posee toda la autoridad y responsabilidad y todo el personal del proyecto depende exclusivamente de él.
+
+Introducción a la Dirección de proyectos
+
+En la dirección de proyectos se aplican conocimientos, aptitudes, herramientas y técnicas a las actividades encaminadas a satisfacer las necesidades y expectativas de una organización. En la actualidad hay proyectos de todo tipo, como por ejemplo el desarrollo de nuevos productos, la elaboración de un plan de marketing, la construcción de un gran edificio de oficinas, etc.... lo que hace de la dirección de proyectos una disciplina casi universal.
+
+En este wikilibro se mencionaran los objetivos importantes que un director de proyectos debe conocer para conseguir los objetivos de cualquier organización, así como, distinguir los objetivos prioritarios de cada proyecto en particular.
+
+Liderazgo
+
+Aunque hay para quienes "gestión " y "liderazgo" son sinónimos, debe hacerse una
+distinción entre ambos términos. Gestionar tiene que ver principalmente con “producir
+consistentemente los resultados claves que esperan los clientes”, mientras que liderar implica:
+
+* Establecer una dirección. Desarrollar tanto una visión del futuro como las estrategias para producir los cambios que sean necesario para lograr dicha visión.
+
+* Alinear a las personas. Comunicar la visión por medio de palabras y hechos a todos aquellos cuya cooperación puede ser necesaria para lograr la visión.
+
+* Motivar e inspirar. Ayudar a las personas a energizarse con el objeto de superar las barreras políticas, burocráticas y de recursos y lograr el cambio.
+
+Según el  diccionario de la Lengua Española (1986), liderazgo se define como la dirección, jefatura o conducción de un partido político, de un grupo social o de otra colectividad. El diccionario de Ciencias de la Conducta (1956), lo define como las "cualidades de personalidad y capacidad que favorecen la guía y el control de otros individuos".
+
+* En primer término, el liderazgo involucra a otras personas; a los empleados o seguidores. Los miembros del grupo; dada su voluntad para aceptar las órdenes del líder, ayudan a definir la posición del líder y permiten que transcurra el proceso del liderazgo; sino hubiera a quien mandar, las cualidades del liderazgo serían irrelevante.
+
+* En segundo el liderazgo entraña una distribución desigual del poder entre los líderes y los miembros del grupo. Los miembros del grupo no carecen de poder; pueden dar forma, y de hecho lo hacen, a las actividades del grupo de distintas maneras. Sin embargo, por regla general, el líder tendrá más poder.
+
+* El tercer aspecto del liderazgo es la capacidad para usar las diferentes formas del poder para influir en la conducta de los seguidores, de diferentes maneras.
+
+* El cuarto aspecto es una combinación de los tres primeros, pero reconoce que el liderazgo es cuestión de valores. El liderazgo moral se refiere a los valores y requiere que se ofrezca a los seguidores suficiente información sobre las alternativas para que, cuando llegue el momento de responder a la propuesta del liderazgo de un líder, puedan elegir con inteligencia.
+
+Volviendo a la influencia del líder dentro de una organización es visto que el líder también es el constructor de una cultura organizacional, la cual define como “el conjunto de valores tradiciones, creencias, hábitos, normas, actitudes y conductas que le dan identidad, personalidad, sentido y destino a una organización para el logro de sus objetivos”. De igual forma podemos afirmar que los procesos humanos de mayor importancia en términos de cultura organizacional son la comunicación, información y liderazgo.
+
+Misión y objetivos de la dirección de proyectos
+
+La gente que se queja de que la Dirección de Proyectos representa mucho coste administrativo, olvida el hecho de que el proyecto enfrentará incidencias. ¿Se quiere resolver anticipadamente estos o pensar en ellos conforme se vaya avanzando en el proyecto? El proyecto enfrentará riesgos potenciales ¿Se quiere intentar resolverlos antes de que estos se presenten o no actuar hasta que éstos sean problemas que amenazan al proyecto? ¿Se buscará establecer anticipadamente canales de comunicación o se quiere lidiar con los conflictos y la incertidumbre ocasionados por la falta de información del proyecto? ¿Se realizará una gestión adecuada del alcance o se prefiere enfrentar problemas de retrasos y sobrecostes ocasionados por hacer mas trabajo del que se había presupuestado? ¿Se integrará la calidad dentro del proceso o se prefiere corregir los problemas de una mala calidad después, cuando resolverlos es más caro y complicado?
+
+Las características del proyecto no van a cambiar si se usa un proceso formal de Dirección de Proyectos o no. Lo que cambia es la forma en que los eventos son gestionados cuando el proyecto está en curso. ¿Serán gestionados de forma descuidada y asistemática o de manera anticipada con un proceso gradual y flexible durante su ciclo de vida?
+
+Generalmente, se cree que las organizaciones que siguen buenos procesos, son más eficientes que aquellas que no lo hacen. Las organizaciones que tienen buenos procesos y los siguen, a menudo son conocidas como “Organizaciones orientadas a procesos”. Estas organizaciones procesan más trabajo, y el trabajo que gestionan tiende a ser más valioso. También tienen sistemas organizacionales para ayudar a todos sus integrantes a ser más eficientes, incluyendo a los Jefes de Proyecto.
+
+Motivación y cambio de conductas
+
+La motivación de los integrantes del proyecto es primordial si se pretende obtener el máximo rendimiento. Se puede definir motivación como un proceso que origina un determinado comportamiento, estimulando o modificando la actividad en la dirección adecuada para lograr un objetivo propuesto (véase J. Coronel y otros).
+
+Es una preocupación constante, en los equipos de proyectos, de mantener e incrementar la motivación y el compromiso de sus miembros. Una persona trabajará a gusto y dará un rendimiento elevado cuando desde su punto de vista (esto es muy importante) ocurran las siguientes circunstancias: realice una actividad satisfactoria y estimulante, las condiciones laborables sean aceptables (con lo que respecta al trato, comodidad y entorno), reciba un salario digno y se le reconozca y valore su trabajo.
+
+Hoy en día existen distintas teorías de motivación. Nosotros las vamos a clasificar en torno a cuatro grandes grupos:
+
+Necesidades humanas
+Factores ambientales y factores motivadores
+Expectativas, esfuerzos y recompensas
+Logro, poder y afiliación
+
+Entre los factores que influyen en la motivación están las necesidades humanas. En 1954 Abrahan Maslow desarrolló el concepto de jerarquía de necesidades (véase la pirámide de Maslow en la próxima figura). En dicha figura, existe una jerarquía de necesidades que van desde la fisiológica hasta la necesidad de autorrealización.
+
+Cuando las necesidades que están en el nivel más bajo de la jerarquía (alimento, agua, oxígeno, sexo) están satisfechas, surge un nuevo tipo de necesidad: seguridad. Cuando también se satisface esta necesidad aparecerán necesidades sociales tales como amor, pertenencia y afecto. Finalmente aparecerán las necesidades propias del deseo de autorrealización, según el cual el “hombre debe hacer lo que puede hacer”. Cada nivel dará lugar a un ciclo motivacional.
+
+Es importante que las empresas atiendan a estas necesidades, que tienen especial fuerza para la incorporación y la permanencia de las personas en los proyectos y que abran amplias posibilidades  para que el participar activamente y asumir responsabilidades favorezca la autoestima y la autorrealización, el lo posible, de la mayoría de sus miembros.
+
+Otra teoría, relacionada con los factores ambientales y motivadores, es estudiada por Frederick Herzberg. Distingue la existencia de factores ambientales (salario, condiciones físicas, seguridad, etc.) que no provocan poder motivacional y factores motivadores en los que sí recibe reconocimiento.
+
+Vroom plantea otra teoría de motivación basada en la relación existente entre las expectativas (lo que se quiere lograr), los esfuerzos hechos para lograrlo y las recompensas obtenidas.
+
+Para incrementar la propia motivación en los equipos de trabajo es necesario saber qué tipos de motivos predominan en cada personal involucrado y, en base a esto, intentar descubrir que rol debe desempeñar. David C. McClelland distingue tres tipos principales de motivos para desear y hacer las cosas: logro, poder y afiliación. Así, en un equipo de trabajo, quien tiene fuerte motivación por el logro debe hacerse cargo de programas y tareas que le permitan realizar, ejecutar y obtener resultados; quien se siente movido por el poder, debe tratar de asumir responsabilidades directivas; y quienes se sientan motivados por la afiliación (búsqueda de relaciones emocionales, de amistad, etc.) deben de aprovechar las oportunidades de convivencia e interacción que ofrece el proyecto.
+
+A continuación se describe qué circunstancias suelen contribuir a la falta de motivación en los proyectos para tratar de preverlas y corregirlas en la medida de lo posible:
+
+El director es el responsable del proyecto y por tanto el que debe asumir todas las críticas cuando éste fracasa. Si se pretende garantizar su motivación debe de seleccionar para el puesto a una persona capacitada para asumir dicha responsabilidad, con alta capacidad de trabajo y resistente a presiones. Además, debe de ser capaz de incrementar la motivación de todo su equipo reduciendo su carga de trabajo, así como intentar en la medida de lo posible cumplir los planes previstos para la entrega del proyecto. Por tanto, un director requiere una alta dosis de serenidad para tratar de reajustar los planes y ganar tiempo.
+
+Del mismo modo, el equipo del proyecto tiene que tener una buena motivación. De esta forma, hay que evitar de que el trabajo se convierta en algo rutinario y limite la creatividad del grupo; es conveniente no demorar el inicio del proyecto más allá de lo estrictamente necesario para que la información y las especificaciones sean claras, y advertir al cliente de que esos retrasos en los comienzos pueden repercutir en al calidad final del trabajo.
+
+Objetivos de la dirección de proyectos
+
+La propuesta de valor añadido de la Dirección de Proyectos diría algo como: dedique tiempo y esfuerzo para gestionar sus proyectos de manera anticipada, pues, este coste será mas que recuperado a lo largo del ciclo de vida del proyecto debido a que:
+
+•Se finalizan proyectos más rápido y a un menor coste: Uno de los mayores beneficios de utilizar una metodología común es el valor de la reutilización. Una vez que los procesos, procedimientos y plantillas son creados, éstos pueden ser utilizados (quizás con pequeñas modificaciones) en todos los proyectos futuros. El resultado de esto es un menor tiempo para iniciar proyectos, una menor curva de aprendizaje para los miembros del equipo de trabajo así como ahorros de tiempo al no tener que reinventar procesos y plantillas desde cero en cada proyecto.
+
+•Ahorros de tiempo y coste con una gestión anticipada del alcance: Gran cantidad de proyectos tienen dificultades en la gestión del alcance, lo que resulta en esfuerzos y costes adicionales para el proyecto. Al tener mejores procesos de Dirección de Proyectos se podrá gestionar el alcance de manera más efectiva.
+
+•Mejores soluciones que se “ajustan” a la primera a través de una mejor planificación: Gran cantidad de proyectos experimentan problemas debido a que hay brechas entre las expectativas del cliente y lo que el proyecto entrega. El uso de una metodología resulta en una mejor planificación del proyecto, la cual le da al equipo y al patrocinador del proyecto la oportunidad de asegurar que existe acuerdo en cuanto a los entregables mayores que serán producidos por el proyecto.
+
+•Resolución de problemas más rápido: Algunos equipos dedican mucho tiempo y energía enfrentando problemas debido a que no saben como deben iniciar la solución de éstos. El tener un proceso de gestión anticipada de incidencias ayuda a asegurar que los problemas son resueltos tan rápido como sea posible.
+
+•Resolver riesgos futuros antes de que se materialicen en problemas: Todas las metodologías de Dirección de Proyectos incluyen procesos para identificar y gestionar los riesgos. La gestión de los riesgos resultará en la identificación oportuna de problemas potenciales y la definición de actividades contingentes antes de que éstos ocurran.
+
+•Comunicación y Gestión de expectativas con clientes, miembros del equipo y grupos de interés más efectiva: Muchos de los problemas que se presentan en un proyecto pueden ser evitados a través de una comunicación anticipada y multifacética. Adicionalmente, muchos de los conflictos que surgen en el proyecto no son resultado de una incidencia específica sino de las sorpresas. Las metodologías estandarizadas siempre se enfocan en la comunicación formal e informal, lo que resulta en un número de sorpresas menor.
+
+•Creación de productos y servicios de mayor calidad la primera vez: Los procesos de Gestión de la Calidad ayudarán al equipo a entender las necesidades del cliente en términos de calidad. Una vez que esas necesidades son definidas, el equipo puede implementar controles de calidad y técnicas de aseguramiento de calidad que le permitan alcanzar las expectativas del cliente.
+
+•Gestión financiera mejorada: Este es el resultado de una mejor definición del proyecto, mejores estimaciones, un proceso de presupuestación más formal y un mejor seguimiento de los costes reales del proyecto contra el presupuesto. Todo este rigor resulta en una mejor previsión financiera y control. Adicionalmente, hay más información disponible que permitirá a la organización detener un “mal” proyecto con mayor oportunidad. Los “malos” proyectos son aquellos cuya justificación coste-beneficio deja de tener sentido.
+
+•Poner un alto a los “malos” proyectos con mayor prontitud: Los “malos” proyectos son aquellos en donde la justificación costo-beneficio ya no es coherente. Un proyecto puede haber iniciado con una clara justificación costo-beneficio. Sin embargo, si el proyecto toma demasiado tiempo y ha excedido su presupuesto, puede alcanzar el umbral en que el negocio ya no se justifica. La gestión efectiva de proyectos permite identificar este tipo de situación oportunamente de manera que se puedan tomar mejores decisiones para replantear el alcance o para cancelar el proyecto.
+
+•Mayor atención en los indicadores y un proceso de toma de decisiones basado en hechos: Uno de los aspectos más sofisticados de las metodologías es que éstas proporcionan guía para hacer más fácil la recolección de métricas (indicadores - medidas). Los indicadores proporcionan información que ayuda a determinar que tan efectivo y eficiente está siendo el desempeño del equipo y el nivel de calidad de los entregables.
+
+•Ambiente laboral mejorado: Si los proyectos son más exitosos, se encontrarán beneficios adicionales asociados al equipo de proyecto. Los clientes tendrán mayor implicación, el equipo tendrá más sentido de propiedad sobre el proyecto, la moral será mejor y los miembros del equipo se comportarán con mayor profesionalidad y confianza. Esto debe de ser sentido. La gente que trabaja en proyectos con problemas tiende a ser infeliz. Por otra parte, la gente que trabaja en proyectos exitosos, tiende a sentirse más satisfecha con su trabajo y con ellos mismos.
+
+Organización de la empresa en la que se desarrollan proyectos
+
+Introducción
+Define a las empresas que realizan proyectos dentro de su organización, utilizando los recursos propios.
+
+Este hecho es habitual en las empresas de fabricación cuando desarrollan un nuevo producto, o cuando una empresa dispone de departamentos propios de Investigación y Desarrollo, de Informática, etc.
+
+Cuando una empresa se enfrenta al reto de diseñar y/o ejecutar un proyecto, debe decidir sobre quién va a recaer la responsabilidad del mismo. Sin embargo este responsable va a estar sometido a las restricciones que impone el trabajar en una organización humana.
+
+Modelos clásicos de organización del personal
+Para que los recursos humanos cumplan bien una función dentro de una tarea colectiva es necesario organizarlos y crear una estructura que los relacione. La estructura organizativa de una empresa establece las relaciones jerárquicas y funcionales entre los elementos que los componen.
+
+Independientemente de su posición en el organigrama de la empresa, todos los individuos pueden ser clasificados de dos formas: según la función que desempeñan o según los proyectos en los que trabajan.
+
+La preponderancia de una u otra forma de clasificar al personal da lugar a las diferentes estructuras organizativas que es posible encontrar en las empresas:
+
+Organizaciones funcionales, en las que el personal está estructurado con arreglo a sus conocimientos en unidades funcionales que actúan de forma independiente del resto, con un superior al que debe remitir sus informes.
+Organizaciones por proyectos, donde la empresa se estructura en grupos multidisciplinares que tienen plena responsabilidad sobre un proyecto concreto. Estos grupos son dirigidos por un director de proyecto.
+Organizaciones matriciales. Representan un híbrido entre las dos estructuras anteriores ya que ambas se superponen para dar lugar a la tercera en la que cada individuo depende de dos superiores: el director del proyecto en el que participa y el director del departamento en el que se encuentra. Si la dependencia del primero es mayor, se habla de estructura matricial fuerte y en el caso contrario de estructura matricial débil.
+
+Evolución de las estructuras organizativas
+Desde la revolución industrial y la implantación de los principios taylorianos de especialización del trabajo, la estructura organizativa predominante de las empresas industriales y de servicios ha sido la funcional, donde a cada trabajador le ha sido asignada una tarea concreta y un jefe al que tenía que rendir cuentas. Para trabajos que se salían de lo habitual se constituían pequeños grupos de trabajo o “task force”.
+
+A partir de la Segunda Guerra Mundial, el escenario cambia y cada vez son necesarios más equipos de trabajo para realizar un creciente número de tareas especiales. Por eso surge la estructura matricial y la figura del director de proyecto.
+
+El aumento de la competitividad en los sectores económicos hace cada vez más inestable el entorno empresarial, con unos productos (industriales, programas informáticos, etc.) con un ciclo de vida cada vez más corto, lo que provoca que estos se asemejen más a los proyectos de construcción que a la idea tradicional de producto.
+
+Una consecuencia directa de lo anterior es el aumento de la importancia de la figura del director de proyecto dentro de la estructura matricial, hasta el punto de diluirse las unidades funcionales y empezar a utilizar el término de organización de proyectos.
+
+Organización funcional, vertical o piramidal
+Es la organización más extendida en las empresas industriales y de servicios. Su organigrama se compone de unidades funcionales dependientes de la alta dirección y compuestas de divisiones o secciones que se encargan de las actividades que les son asignadas.
+
+Este tipo de organizaciones funciona con eficacia en los casos en los que haya que realizar funciones específicas y de ellas, sólo una es la principal, por lo que existe mezcla de muchas disciplinas.
+
+Sin embargo no serán adecuadas para la ejecución de proyectos, por tratarse éstos de actividades interdisciplinares.
+
+Organizaciones en equipos de proyecto ("Task-Force"), autónomas u horizontales
+Es el tipo de organización más reciente que existe y se encuentra más desarrollado en el sector servicios que en el industrial. En él no existen las áreas funcionales tradicionales sino los denominados equipos de proyecto encargados de la realización de un proyecto concreto. Cada equipo puede desarrollar varios proyectos a la vez siempre que se precisen técnicas similares y se encuentren en distintas etapas de su desarrollo, para evitar los desequilibrios en la asignación de carga de trabajo.
+
+En proyectos de gran envergadura es frecuente la agrupación del personal por disciplinas o especialidades con técnicos de proyecto responsables de cada una de ellas.
+
+Organizaciones matriciales, mixtas o híbridas
+Las dos formas de organización anteriores constituyen dos extremos entre los que se establece un abanico de situaciones intermedias. en ellas conviven dos grandes áreas: una estructurada en equipos de proyecto y otra en unidades funcionales. El personal técnico que integra estas dos áreas es el mismo pero la dirección no lo es.
+
+Habitualmente el director de cada unidad funcional asigna el personal a cada proyecto y controla la calidad técnica del trabajo efectuado por sus subordinados, mientras que el director de proyecto como máximo responsable del mismo fija el contenido, alcance y calidad global y además se encarga de realizar la planificación, programación y presupuestos.
+
+Elementos de vital importancia para el buen funcionamiento del proyecto son los coordinadores de cada unidad funcional asignados a cada proyecto que son los interlocutores habituales de los directores de proyecto. Entre sus funciones está la de establecer los procedimientos técnicos, programaciones y presupuestos definitivos en cada una de sus áreas.
+
+Organización de la empresa que desarrolla proyectos
+
+Introducción
+Consiste en definir la estructura de las empresas de proyectos, es decir, aquellos que realizan trabajos para clientes externos, ya sean particulares u otras empresas.
+
+La actividad proyectual se enmarca habitualmente en el sector servicios. El proyectista vende ideas y soluciones a clientes, para que otros las ejecuten o construyan. La estructura organizativa de los proyectistas se denomina genéricamente Oficina Técnica de Proyectos.
+Una Oficina Técnica de Proyectos es una agrupación de profesionales, integrada o no en una empresa, cuyo objeto es  la realización de proyectos y trabajos relacionados con ellos.
+
+Una empresa de proyectos lleva a cabo, fundamentalmente, actividades de consulta o asesoramiento, diseño o proyecto y de dirección y gestión.
+
+El tamaño de las empresas de proyectos es muy variado, de menor a mayor, estas organizaciones reciben los siguientes nombres:
+
+Proyectista de ejercicio libre.
+Oficina Técnica de proyectos.
+Empresa de proyectos.
+
+Cada una de estas empresas de proyectos se diferencia de las demás en el número de personas que lo forman, la estructura organizativa, el número y la importancia de proyectos que realiza y el tamaño de las empresas que realizan los encargos.
+
+El proyectista de ejercicio libre
+Es aquél que realiza trabajos proyectuales para terceros (empresas, organismos y particulares) sin que medie relación laboral previa entre ellos.
+
+El proyectista de ejercicio libre actúa normalmente sin asociarse a otros profesionales y, por tanto, su estructura organizativa es sencilla. Asume las funciones principales de su empresa (gestión, relación con los clientes, contabilidad, relación con los proveedores, realización de los proyectos y de dirección de los mismos, etc.) si bien se rodea de colaboradores que llevan a cabo las actividades complementarias.
+
+El proyectista individual no puede llegar a  tener una cartera de proyectos muy amplia ni éstos pueden ser muy complejos porque reparte su tiempo entre todas las tareas que ha de realizar.
+
+La oficina técnica de proyectos
+Es una agrupación de profesionales para la realización de este tipo de trabajo. Su función genérica es la misma que la del proyectista de ejercicio libre pero su mayor complejidad organizativa le permite abarcar un campo proyectual más amplio.
+
+Esta agrupación está formada por profesionales de especialidades diferentes, de modo que el conjunto de de conocimientos que poseen les permite alcanzar proyectos de mayor envergadura y de variadas características.
+
+El tamaño de una oficina técnica varía según:
+
+El volumen de la cartera de clientes.
+La complejidad y diversidad de los proyectos que realiza.
+El área geográfica que cubre con sus servicios.
+La rentabilidad que alcanza en cada proyecto.
+La calidad de los trabajos que lleva a cabo.
+
+La estructura de la oficina técnica consta, como mínimo, de los siguientes bloques:
+
+Gerencia, desempeñada casi siempre por uno de los técnicos con mayor experiencia, que tiene como funciones la de relaciones con los clientes, distribución, coordinación y seguimiento de los proyectos y gestión de cobros y pagos. Propicia las relaciones de cada equipo de proyectos y contribuye a su realización sugiriendo soluciones o haciendo propuestas a nivel de diseño preliminar y básico.
+
+Jefatura de área, que ocupan técnicos experimentados en cada uno de ellas. Las áreas en las que habitualmente se estructura son las correspondientes a las diferentes tipologías o especialidades proyectuales desarrolladas. Cada jefe de área tiene a su cargo de uno a cuatro técnicos especialistas que colaboran con él en la resolución de las partes de los proyectos que tienen encomendados.
+
+Servicios auxiliares y de administración, el primero dependiente de los jefes de área y el segundo de la gerencia. Los servicios auxiliares incorporan técnicos especialistas en áreas de apoyo comunes a todos los proyectos en marcha en la oficina. El servicio de administración se encarga de la contabilidad, la correspondencia, la mecanografía de los trabajos y del archivo. El número de personas que lo integran depende del volumen de los trabajos y de los medios informáticos implementados.
+
+La responsabilidad de un proyecto suele adjudicarse a un jefe de área, comprobando que las características del proyecto se ajustan a su especialidad pero teniendo en cuenta la carga de trabajo que ya ha asumido.
+
+La empresa de proyectos
+Es una empresa de servicios con la capacidad para la realización de una amplia variedad de proyectos técnicos. Su función es semejante a la de las otras estructuras organizativas ya señaladas pero, dada su mayor envergadura, tiene la capacidad suficiente para solucionar proyectos sea cual se su especialidad. Normalmente se especializan en tecnologías y procesos determinados.
+
+Usualmente, una empresa de proyectos se estructura en unidades básicas operativas. Cada unidad puede constituir por sí misma una organización completa o formar parte de una organización más amplia. La unidad suele estar compuesta, como máximo, por 30 personas, que es el número que un director de unidad puede controlar directamente.
+
+Existen distintas clases de empresas de proyectos según distintos aspectos que las definen, como son el origen, el tamaño, la cartera y la cobertura. Por consiguiente  no hay una estructura única y sólo es posible dar una serie de principios de carácter general.
+Normalmente,  una empresa de proyectos se estructura en unidades básicas operativas. Cada unidad puede constituir por sí misma una organización completa o formar parte de una organización más amplia. Suele estar compuesta, cómo máximo, por 30 personas, que es el número que un director de unidad puede controlar directamente.
+
+El director de la unidad coordina los trabajos a nivel general mientras que los jefes de área y los proyectistas principales se responsabilizan de proyectos concretos o de partes específicas de ellos. Cada jefe de área o supervisor tiene a su mando un grupo de técnicos especialistas, no superior a 5, que se responsabilizan del diseño, desarrollo, planificación y de otras operaciones necesarias para resolver el proyecto.
+
+Los técnicos especialistas son, en general, expertos en un área de conocimiento: instalaciones, producción, marketing, informática, etc.
+
+Los principales componentes de la organización son los siguientes:
+
+El Consejo de Administración. Formado por los accionistas mayoritarios de la sociedad y por algunos de los principales directivos de la empresa, tiene por función aprobar la política de la empresa, marcando las líneas generales de la dirección y dando el visto bueno a las principales propuestas de inversión, ampliación de capital, apertura de nuevas delegaciones, etc.
+
+Las Unidades Básicas, que tiene como funciones la orientación profesional de cada proyectista para que actúe a nivel de todo el equipo y el control de calidad en la ejecución de tareas.
+
+El Director General. Cuya función es la orientación y control del trabajo de las unidades, la promoción, el establecimiento de estrategias y políticas de desarrollo y la coordinación de los servicios de la organización.
+
+El Consejo Ejecutivo. Está compuesto por el director general, altos directivos, jefes de unidades y técnicos especialistas. Su función es asesorar a la dirección y colaborar con ella en las actividades que le son propias.
+
+Petición de ofertas
+
+Consiste en definir claramente unas especificaciones para el material que se solicita: requerimientos, prestaciones, rendimientos, calidades, consumos, resistencia, etc. Dichas especificaciones se extraerán de las necesidades especificadas en el proyecto previo, detallándolas más si cabe.
+
+Con las especificaciones claras, se pasa a seleccionar según experiencia previa, dificultad y volumen del proyecto, y preferencias del cliente, los posibles proveedores o instaladores del material. Es conveniente que el número de ofertantes no sea inferior a tres ni excesivamente grandes.
+
+Seleccionados los posibles candidatos, se pasa a remitirles una carta comercial invitándoles a ofertar el proyecto, a la que se adjuntan las mencionadas especificaciones técnicas, acompañadas de los anexos, planos y detalles que se estimen oportunos y las condiciones generales de compra. Estas últimas hacen referencia a: garantía, inclusiones-exclusiones, penalizaciones, condiciones de pago, plazos de entrega, repuestos, etc.
+
+Para determinados proyectos como los de obra civil y muchas instalaciones, los planos y las mediciones del proyecto son imprescindibles para la petición de ofertas.
+
+Planificación de la gestión de la calidad
+
+Este ámbito de la planificación de calidad dentro de la dirección de proyectos se compondría de los siguientes apartados:
+Definición de la calidad en los proyectos de software.
+Política de calidad en la organización.
+Creación de un plan de gestión.
+Incidencia de la variación de tiempo y presupuesto sobre la calidad del proyecto.
+
+Criterios y definiciones de calidad
+Definición de los clientes: Lo que la expectación del cliente mantiene. Que normalmente puede tener pocos visos de realidad.
+Definición del equipo del proyecto: Se espera que se complete el trabajo según lo planeado y previsto con el menor número de errores posible.
+Definición de la dirección del proyecto: El cliente se mantiene satisfecho y se respeta el presupuesto.
+Una definición ideal: Se completa el trabajo de acuerdo a su estimación, el cliente está satisfecho, y la dirección está satisfecha por cumplir calendario y presupuesto.
+
+La calidad es todo lo aquí mencionado, pero no tanto expresado como deseo, sino como mantenimiento, utilización y seguimiento de una metodología que lo permita.
+
+Consideraciones en el ámbito del proyecto
+El ámbito del proyecto define qué se incluye y qué no dentro de la realización del proyecto. La definición de este ámbito es necesaria para usarla como herramienta de calidad. El ámbito del proyecto dibuja una línea de la que salen los cambios ocurridos en el mismo. Incluso los cambios más inocentes pueden comprometer la calidad.
+
+Políticas de calidad
+Trabajar con políticas de calidad dentro de un proyecto es una garantía, esta política marca los niveles esperados y planeados para el desenlace de un proyecto. Las políticas que se pueden adoptar puede provenir de diversas fuentes, desde políticas internas hasta políticas estandarizadas.
+
+Normas ISO
+ISO (International Organization for Standarization). Existen gran variedad de normas ISO. Aunque las más extendida y popular para la gestión de calidad es la familia ISO 9000. Una organización certificada y que mantiene activa esta norma cumple las siguientes consideraciones:
+Establece y conoce los requerimientos de calidad de los clientes.
+Alcanza la satisfacción del cliente.
+Se adoptan las normativas establecidas para cumplimiento de proyectos.
+Se toman medidas internas para mejorar el rendimiento de forma continua.
+
+TQM
+Total Quality Management se desarrolla por la marina naval estadounidense. TQM impone como requisitos a la organización, que todos los integrantes se impliquen en la gestión de calidad, la mejora de los productos, servicios y la cultura del trabajo. La idea punto de partida es que todo el mundo se involucre en la calidad en el trabajo de forma que se produzca un entorno de mejora continua.
+TQM para desarrollo de software significa que el equipo al completo ha de colaborar para desarrollar un software mejor. Para aplicar TQM al software hay que ceñirse especialmente a las 14 directrices de desarrollo software de Deming:
+
+Mantener la constancia de propósito de mejora en los productos y servicios.
+Adopción de la nueva filosofía de calidad.
+Primar la calidad y declinar la inspección.
+Considerar otras políticas a la del mejor precio.
+Llevar constantemente a la mejora continua cada proceso de planificación, producción y servicio.
+Formación especializada en desarrollo software para cada integrante del proyecto.
+Adoptar y fomentar el liderazgo.
+Eliminar posibles miedos.
+Romper barreras entre el personal.
+Eliminación de eslogan.
+Eliminar metas cuantitativas, proponer metas de calidad del trabajo.
+Eliminar recompensas por objetivos.
+Incluir un programa de mejora continua para cada integrante del proyecto.
+Delimitar una función para todos y cada uno de los integrantes de la organización para alcanzar la transformación hacia la calidad y la excelencia.
+
+Seis Sigma
+Seis Sigma es una metodología de mejora de procesos, centrada en la reducción de la variabilidad de los mismos, consiguiendo reducir o eliminar los defectos o errores en la entrega de un producto o servicio al cliente. La meta de 6 Sigma es llegar a un máximo de 3,4 defectos por millón de eventos u oportunidades (DPMO), entendiéndose como defecto cualquier evento en que un producto o servicio no logra cumplir los requisitos del cliente.
+
+Seis sigma utiliza herramientas estadísticas para la caracterización y el estudio de los procesos, de ahí el nombre de la herramienta, ya que sigma representa tradicionalmente la variabilidad en un proceso y el objetivo de la metodología seis sigma es reducir ésta de modo que el proceso se encuentre siempre dentro de los límites establecidos por los requisitos del cliente.
+
+Fue iniciado en Motorola en el año 1982 por el ingeniero Bill Smith, como una estrategia de negocios y mejora de la calidad, pero posteriormente mejorado y popularizado por General Electric.
+
+El proceso Seis Sigma (six sigma) se caracteriza por 5 etapas bien concretas:
+
+Definir el problema o el defecto
+Medir y recopilar datos
+Analizar datos
+Mejorar
+Controlar
+D (Definir): En la fase de definición se identifican los posibles proyectos Seis Sigma, que deben ser evaluados por la dirección para evitar la inadecuada utilización de recursos. Una vez seleccionado el proyecto, se prepara y se selecciona el equipo más adecuado para ejecutarlo, asignándole la prioridad necesaria. En esta fase deben responderse las siguientes cuestiones:
+¿Qué procesos existen en su área?
+¿De qué actividades (procesos) es usted el responsable?
+¿Quién o quiénes son los dueños de estos procesos?
+¿Qué personas interactúan en el proceso, directa e indirectamente?
+¿Quiénes podrían ser parte de un equipo para cambiar el proceso?
+¿Tiene actualmente información del proceso?
+¿Qué tipo de información tiene?
+¿Qué procesos tienen mayor prioridad de mejorarse?
+M (Medir): La fase de medición consiste en la caracterización del proceso identificando los requisitos clave de los clientes, las características clave del producto (o variables del resultado) y los parámetros (variables de entrada) que afectan al funcionamiento del proceso y a las características o variables clave. A partir de esta caracterización se define el sistema de medida y se mide la capacidad del proceso. En esta fase deben responderse las siguientes cuestiones:
+¿Sabe quiénes son sus clientes?
+¿Conoce las necesidades de sus clientes?
+¿Sabe qué es crítico para su cliente, derivado de su proceso?
+¿Cómo se desarrolla el proceso?
+¿Cuáles son los pasos?
+¿Qué tipo de pasos compone el proceso?
+¿Cuáles son los parámetros de medición del proceso y cómo se relacionan con las necesidades del cliente?
+¿Por qué son esos los parámetros?
+¿Cómo obtiene la información?
+¿Qué tan exacto o preciso es su sistema de medición?
+
+A (Analizar): En la fase de análisis, el equipo evalúa los datos de resultados actuales e históricos. Se desarrollan y comprueban hipótesis sobre posibles relaciones causa-efecto utilizando las herramientas estadísticas pertinentes. De esta forma el equipo confirma los determinantes del proceso, es decir las variables clave de entrada o "focos vitales" que afectan a las variables de respuesta del proceso. En esta fase deben responderse las siguientes cuestiones:
+¿Cuáles son las especificaciones del cliente para sus parámetros de medición?
+¿Cómo se desempeña el proceso actual con respecto a esos parámetros? Muestre los datos.
+¿Cuáles son los objetivos de mejora del proceso?
+¿Cómo los definió?
+¿Cuáles son las posibles fuentes de variación del proceso? Muestre cuáles y qué son.
+¿Cuáles de esas fuentes de variación controla y cuáles no?
+De las fuentes de variación que controla ¿Cómo las controla y cuál es el método para documentarlas?
+¿Monitorea las fuentes de variación que no controla?
+
+I (Mejorar): En la fase de mejora (Improve en inglés) el equipo trata de determinar la relación causa-efecto (relación matemática entre las variables de entrada y la variable de respuesta que interese) para predecir, mejorar y optimizar el funcionamiento del proceso. Por último se determina el rango operacional de los parámetros o variables de entrada del proceso. En esta fase deben responderse las siguientes cuestiones:
+¿Las fuentes de variación dependen de un proveedor? Si es así, cuáles son?
+¿Quién es el proveedor? y
+¿Qué está haciendo para monitorearlas y/o controlarlas?
+¿Qué relación hay entre los parámetros de medición y las variables críticas?
+¿Interactúan las variables críticas?
+¿Cómo lo definió? Muestre los datos.
+¿Qué ajustes a las variables son necesarios para optimizar el proceso?
+¿Cómo los definió? Muestre los datos
+
+C (Controlar): Fase, control, consiste en diseñar y documentar los controles necesarios para asegurar que lo conseguido mediante el proyecto Seis Sigma se mantenga una vez que se hayan implementado los cambios. Cuando se han logrado los objetivos y la misión se dé por finalizada, el equipo informa a la dirección y se disuelve. En esta fase deben responderse las siguientes cuestiones: Para las variables ajustadas
+¿Qué tan exacto o preciso es su sistema de medición?
+¿Cómo lo definió? Muestre los datos.
+¿Qué tanto se ha mejorado el proceso después de los cambios?
+¿Cómo lo define? Muestre los datos.
+¿Cómo hace que los cambios se mantengan?
+¿Cómo monitorea los procesos?
+¿Cuánto tiempo o dinero ha ahorrado con los cambios?
+¿Cómo lo está documentando? Muestre los datos
+
+Planificación de los riesgos del proyecto
+
+Este ámbito de la planificación de riesgos dentro de la dirección de proyectos se compondría de los siguientes apartados:
+Identificación de los riesgos del proyecto.
+Riesgos a evitar en el software.
+Análisis cuantitativo y cualitativo de riesgos.
+Elección del modelo de software a desarrollar.
+Preparación de un plan de resolución de riesgos.
+Una posible definición de riesgo puede indicar que se trata de un evento que puede tener una resolución negativa o positiva. Para la realización de cualquier actividad de riesgo, se debe calcular si la recompensa una vez realizada dicha actividad, suple y sopesa la inversión.
+Una de las tareas más duras en la gestión de proyectos es precisamente la gestión de riesgos. Los principales supuestos de riesgo en los proyectos de software son los siguientes:
+Tiempo inadecuado para completar el proyecto.
+Presupuesto inadecuado para completar el proyecto.
+Expectativas poco realistas.
+Indefinición o ambigüedad de requisitos.
+
+4.3.1 Identificación de riesgos
+El riesgo no es necesariamente una cuestión negativa en un proyecto. Además, no es posible considerar todos los imaginables riesgos dentro de un proyecto. Los riesgos positivos han de verse como oportunidades.
+Se podría hacer una pequeña clasificación que ayude a delimitar los riesgos del negocio:
+Riesgos reales o puros. Son aquellos que implican solo riesgos negativos, como la pérdida de una vida, un incendio u otra catástrofe de esta índole.
+Riesgos del negocio. Estos son realmente los que se refieren a los riesgos de la dirección de proyectos. Un ejemplo sencillo de riesgo, podría ser contratar a un trabajador con poca experiencia para que ahorre dinero del presupuesto de un proyecto.
+
+4.3.2 Evaluación de riesgos
+Los riesgos más comunes dentro de un proyecto software pueden ser los siguientes:
+Cese por cualquier causa de algún empleado en el proyecto.
+Errores en la toma requisitos.
+Software lleno de errores y fallos.
+Los requisitos del proyecto crecen pero no su presupuesto.
+La expectación acerca del tiempo, el presupuesto y el ámbito que puede alcanzar el proyecto no son realistas.
+Los clientes no son capaces de expresar los requisitos del proyecto como es necesario, y se crea una situación confusa.
+
+4.3.3 Riesgos en los proyectos software relativos a la tecnología
+Se compondrían de los siguientes tipos:
+La velocidad del desarrollo tecnológico.
+Un retraso en el calendario acorta la ventana de la necesidad del proyecto que se esté desarrollando.
+La adaptabilidad del personal a nuevos lenguajes y metodologías.
+Clientes que invierten demasiado tiempo para exponer y dilatar sus requisitos.
+Fuga de conocimiento en el capital humano del proyecto.
+Proyectos pioneros tienen riesgos intensos en investigación, incluso puede que al borde de la I+D+i, con lo que un desarrollo de este tipo puede implicar en riesgos de presupuesto y adquisición de conocimiento.
+
+4.3.4 Determinación de la tolerancia de riesgo de la organización
+La tolerancia al riesgo por parte del cliente va a oscilar en dos ejes como indica el siguiente diagrama, la posibilidad de ocurrencia frente a la dureza que pueda producir en el impacto del desarrollo del proyecto:
+
+4.3.5 Gestión de riesgos
+Cada organización tiene su propia forma de gestionar los riesgos. Algunas consideraciones fundamentales para alcanzar una gestión óptima de los riesgos se mantienen determinando los siguientes aspectos:
+Identificación de riesgos: La identificación más común en este caso puede ser el análisis cualitativo. Se trataría de crear una escala de riesgos basada en los propios riesgos identificados en el proyecto. Métodos posibles para la identificación de riesgos son los siguientes:
+Brainstorming.
+
+Método Delphi.
+Creación de una escala de riesgos: Después de identificar los riesgos se trataría de crear una matriz de riesgos. Pueden existir dos tipos:
+Ordinal. Se clasificarían sólo como alto, medio o bajo.
+Cardinal. Se clasificarían con una calificación numérica.
+Para cada riesgo el equipo de proyecto debe andar los siguientes pasos:
+Evaluación de la probabilidad del riesgo.
+Puntuar cada riesgo.
+Multiplicar la probabilidad por el impacto y obtener la matriz de puntuación.
+Un ejemplo de matriz de riesgos cualitativa podría ser:
+
+Un ejemplo de matriz de riesgos cuantitativa podría ser:
+
+4.3.6 Elección de modelos de software para la gestión de riesgos
+Dentro del desarrollo de software hay modelos que permiten más tolerancia riesgos que otros:
+Modelo en cascada. Como podría evidenciar este modelo, a pesar de su simplicidad, mantiene grandes desventajas  en el instante en que se rompa un eslabón de este modelo encadenado.
+Modelo en espiral. Este modelo es el mejor para la contingencia de riesgos. Está diseñado naturalmente para este propósito entre otros. Aunque es cierto que es más costoso en cuanto a tiempo y presupuesto para llevarlo a cabo, especialmente en proyectos pequeños, incluso en los cuales puede ser contraproducente, ya que puede existir la paradoja de que cueste más implantar el modelo de desarrollo  que el propio proyecto y los beneficios de esta adopción.
+Modelo en V. El modelo en V presenta una fase de comprobación dentro de cada fase del modelo. Se puede observar en la siguiente figura:
+
+4.3.7 Preparación de un plan de respuesta para los riesgos
+A menos que el modelo de desarrollo incluya dicho plan de respuesta, se debe de diseñar un plan de respuesta para éstos. Se pueden utilizar diferentes estrategias:
+Evitar los riesgos. Evidentemente sería la estrategia idónea para cualquier caso. Implicaría una planificación creativa, asignación de actividades clave a desarrolladores senior, y múltiples actitudes y recomendaciones óptimas para cada evento y tarea del proyecto. Por tanto, evitar los riesgos consiste en:
+  a.	Cambiar el plan de proyecto para evitar las interrupciones de los posibles riesgos.
+  b.	Usar un modelo de desarrollo contrastado y establecido preferentemente a innovaciones caseras.
+  c.	Consultar a expertos durante el desarrollo del proyecto.
+  d.	Invertir tiempo adicional necesario con los clientes para clarificar al máximo los requisitos.
+Transferir los riesgos. Consistiría en aprender de la externalización de los riesgos, ya que la organización actualmente no podría atenderlos, al menos si se podría contratar un equipo de expertos que pueda contenerlos, que además podrá servir para aprender convenientemente para nuevos proyectos.
+Minimización de riesgos. Se trataría de reducir o mitigar el impacto o la probabilidad del riesgo. Esta estrategia parte de los análisis cualitativos y cuantitativos comentados. La estrategia de minimización implica:
+  a.	Añadir comprobación redundante.
+  b.	Reducir el número de procesos, actividades, dentro del flujo de un proyecto.
+  c.	Desarrollo y prueba de prototipos.
+Aceptación de los riesgos. Al menos aceptar un riesgo implica menos impacto que encontrarlo inesperadamente. De hecho, cualquier riesgo no identificado se ha de aceptar automáticamente. Esta estrategia sería correctiva.
+
+Roles dentro de un proyecto
+
+Adoptamos la siguiente definición de proyecto:
+
+“Proyecto es el conjunto de actividades intelectuales, básicamente estructuradas y ordenadas, que establece (mediante descripciones y prescripciones) lo que hay que hacer y cómo hacerlo para resolver un problema complejo, descomponible en subproblemas relacionados entre sí. El proyecto, además, persigue la satisfacción de determinadas necesidades humanas, no siempre percibidas previamiente” (Gómez-Senent, 1998).
+
+A partir de esta definición podemos establecer los siguientes roles para el personal que participa en un proyecto:
+
+Director del proyecto
+Se puede definir al director de proyecto como el integrador de los esfuerzos internos y externos a la organización, para encaminarlos hacia el éxito del mismo; entendiendo por éxito el alcance de sus objetivos de coste, plazo de ejecución y calidad, debidamente armonizados.
+
+El director de proyecto por antonomasia es el de la organización que lo diseña, pero es conveniente aclarar que en cada una de las organizaciones que concurren en su ejecución puede existir un director de proyecto, sometido al primero, que dirigirá las actividades específicas que designe su contrato.
+
+Equipo
+La complejidad general de los proyectos hace necesario trabajar en equipo. Se ha comprobado que suelen ser mucho más efectivos los equipos integrados por individuos de personalidades dispares: sistemática y metódica, dinámica e innovadora, entusiasta y con capacidad de liderazgo, etc.
+
+De la misma forma, los miembros del equipo deben reunir cualificaciones muy diversas. Seguidamente se presenta una clasificación genérica de los miembros del equipo, basada en seis figuras diferentes, que representan las cualidades que deberían estar presentes en un equipo de proyectos ideal, pudiendo estar distribuidas entre un menor o mayor número de personas:
+
+Proyectista o diseñador. De formación eminentemente técnica complementada con capacidad creativa y experiencia, es la figura principal, pero no por ello debe sobrevalorarse, subestimando al resto.
+
+Financiero. Será la persona encargada de estudiar la viabilidad del proyecto y realizar y controlar los presupuestos.
+
+Líder. Encargado de las funciones de gestión: planificación y programación del proyecto, organización y coordinación de los trabajadores del resto.
+
+Comercial. Todo proyecto tiene su lado comercial. La bondad de una idea no basta; debe saberse vender para alcanzar su rentabilidad.
+
+Analista de información. Si se pretende que los proyectos no queden obsoletos es vital estar al corriente de las novedades tecnológicas. Esta figura se encargará de mantener al día el archivo de catálogos, adquirir y revisar libros y revistas técnicas, almacenar convenientemente la información que se genera, etc.
+
+Facilitador o creador de ambiente (propicio al trabajo en equipo). Esta figura pretende representar al miembro del equipo que , sin destacar en ningún campo específico, es una persona afable, con amplia experiencia y dotes para el trabajo en equipo, que le convierten en un catalizador de la cohesión del grupo.
+
+Las profesiones de sus integrantes serán también muy variadas. Dependiendo de la tipología concreta hablaremos de ingenieros de cualquier rama, ingenieros técnicos, investigadores, diseñadores, analistas y programadores, economistas y un largo etcétera. En ocasiones, la organización cliente puede requerir, por las características del proyecto, la presencia de algunos de sus miembros en el seno del equipo.
+
+El hecho de concurrir tal variedad de profesionales y personalidades diferentes, y el carácter temporal del proyecto son dos limitaciones para la consecución de la cohesión y motivación del equipo que el director tratará de superar.
+
+Cliente
+El cliente del proyectista, o de su organización, es quien contrata sus servicios para que éste le resuelva un problema más o menos definido. Es pues quien detecta la necesidad y, en consecuencia, fija los objetivos y establece los límites de coste, plazo y calidad.
+
+Dependiendo del proyecto, dichas especificaciones y objetivos pueden estar muy definidas de antemano o pueden requerir del asesoramiento del proyectista para concretarlas. De hecho, una de las principales fuentes de fracasos en proyectos son las especificaciones indefinidas o cambiantes. Esto es especialmente grave en los proyectos de desarrollo software, donde es común que la idea que el cliente tiene sobre los requerimientos del programa que necesita, sea tremendamente vaga al principio y vaya concretándose a medida que se avanza en él.
+
+Generalmente el cliente no es el usuario final del proyecto, sino un intermediario. Por ello los requerimientos y necesidades del usuario final deben ser cuidadosamente analizados y contemplados en el diseño. Pero el papel del cliente no termina con la definición de las necesidades; debe además decidir el inicio del proyecto, permanecer al corriente de su evolución, tomar decisiones en cuanto a modificaciones, y formalizar su finalización. La financiación del proyecto es otra de sus responsabilidades, para lo cual buscará las fuentes adecuadas y formalizará convenientemente los contratos con la organización proyectista y los proveedores (si los hay), acometiendo puntualmente los pagos asumidos.
+
+Contratista/Proveedor
+Cuando el objeto del proyecto es inmaterial no intervienen más figuras principales que las citadas, salvo, en todo caso, el mencionado usuario.
+
+En cambio, en los proyectos de contrucción y producción, es necesario que una organización con los recursos y el saber hacer correspondientes se haga cargo de materializarlo, tal y como se describe en los documentos del proyecto o en el plan de producción, y siguiendo las órdenes pertinentes del director de proyecto.
+
+Un aspecto cada vez más importante en los proyectos de productos es el papel de la subcontratación, tanto de componentes como de subconjuntos completos, a organizaciones externas.
+
+Seguimiento
+
+Denominaremos así a las actividades encaminadas a la consecución del cumplimiento de los plazos y especificaciones asumidas. Aún siendo responsabilidad del proveedor o instalador, si se quiere cumplir la programación inicial, se deberá estar encima de los responsables para asegurar el cumplimiento de las fechas de entrega parciales.
+
+Es posible que se presenten modificaciones de última hora o fallo de determinados proveedores que impongan la selección de otros, que deberán supervisarse para garantizar que no se pierde calidad.
+
+Entre proyectista y proveedor debe existir una actitud de total colaboración para resolver cualquier duda adicional que pueda surgir.
+
+Visión práctica de la dirección de proyectos
+
+Después de leer esta sección, puede surgir la pregunta de por qué no todo el mundo usa una buena práctica de Dirección de Proyectos, sus técnicas y sus procesos, O puede preguntarse a sí mismo, ¿Por qué no lo las estoy usando? Habitualmente se debe principalmente a uno o varios de los siguientes factores:
+
+•Una buena Dirección de Proyectos requiere inversión adelantada de tiempo y esfuerzo. Mucha gente se considera a sí misma como “gente de acción”. Pueden no estar tan satisfechos con sus habilidades de planificación. Muchas veces existe una tendencia a descubrir una incidencia, y correr a solucionarlo. Esto funciona bien cuando se tiene un requerimiento de cambio de cinco horas pero no es lo mismo cuando esta solicitud implica cinco mil horas de esfuerzo al proyecto. Se debe resistir la urgencia de poner manos a la obra. El proyecto terminará antes si se planifica apropiadamente por adelantado, y después se debe ser disciplinado para gestionarlo efectivamente.
+
+•La organización no está comprometida. Es difícil ser un buen Jefe de Proyecto en una organización que no valora las habilidades que implica la Dirección de Proyectos. Por ejemplo, si alguien se toma el tiempo para generar el documento de Definición de Proyecto y el cliente pregunta por que se perdió el tiempo haciéndolo, quizás el proceso de planificación del próximo proyecto no vaya a ser muy satisfactorio para esa persona. Para que sea efectivo, la organización entera debe apoyar el uso de un proceso común de Dirección de Proyectos.
+
+•No se sabe como. Se puede notar que la falta de procesos de Dirección de Proyectos no es un asunto de voluntad, sino de habilidades. Algunas veces se le pide a la gente que gestione un proyecto sin la preparación o la experiencia necesarias. En esos casos, luchan sin las herramientas adecuadas o la preparación apropiada para gestionar el proyecto adecuadamente.
+
+•La Alta Dirección piensa que la Dirección de Proyectos es un programa informático. Al hablar de la Dirección de Proyectos con algunos gerentes, inicialmente tienden a pensar que se trata de implantar una herramienta informática y así mejorar la calidad de los Jefes de Proyecto. De hecho, sí se tratara de una herramienta, se tendría más suerte al tratar de convencerlos de su valor. Aun cuando algunos aspectos de la Dirección de Proyectos, como la creación y gestión del Plan de Trabajo, pueden utilizar una herramienta, no es ahí donde está el valor de gestionar proyectos. Cuando se habla de procesos, buenas prácticas y plantillas, algunos directores piensan de inmediato en burocracia, retrasos y estorbos. Como algunos Jefes de Proyecto, no logran establecer una conexión directa con el valor que tiene implícito toda metodología.
+
+•El concepto puede haberse “quemado” (o enterrado) en el pasado. Cuando se habla de procesos, mejores prácticas y plantillas, algunos ejecutivos inmediatamente piensan en gastos, pérdida de tiempo y papeleo. No logran conectarse inmediatamente con el valor que una metodología conlleva. Una crítica que suele hacerse a las metodologías es que son engorrosas, implican burocracia y le quitan atención el trabajo propiamente dicho. Algunas veces estas críticas se derivan del primer punto expuesto anteriormente. Otras ocasiones, esta preocupación es legítima, provocada por no adecuar el uso de la metodología a las características del proyecto. Un ejemplo sería exigir de jefe de proyecto que produzca una definición de proyecto de 15 hojas para un proyecto de 250 horas de esfuerzo. Sin embargo, esto no se debe necesariamente a la metodología en sí, sino a una mala aplicación de la misma.
+
+•Existe aversión al control en el equipo de trabajo. A una gran cantidad de gente le gusta hacer su trabajo de manera creativa y con un mínimo de supervisión. Este tipo de gente teme que el uso de técnicas formales de Dirección de Proyectos resulte en un riguroso control que eliminará la creatividad y diversión del trabajo. Hasta cierto punto tienen razón. Sin embargo, el uso de procesos y procedimientos comunes eliminarán algo de la creatividad en áreas donde probablemente la organización no desee ser creativa. No se necesita mucha creatividad al enfrentar cambios en el alcance, por ejemplo. Solo es necesario apegarse a los procesos estandarizados que ya existen en la organización.
+
+•Existe temor a perder el control por parte de la gerencia media o alta dirección. Si realmente se desea implementar efectivamente una disciplina de Dirección de Proyectos en la organización, es necesario otorgar un cierto nivel de control y autoridad al Jefe de Proyecto. En algunas organizaciones, particularmente la gerencia media, no desea perder ese control. Quizás quieren que los Jefes de Proyecto coordinen los proyectos, pero la gerencia media quiere tomar todas las decisiones y ejercer todo el control. La Dirección de Proyectos formal no será posible en organizaciones en donde este temor prevalezca.
+
+Algunos de estos temores son naturales y lógicos, mientras que otros son emocionales e irracionales. Aunque estas pueden ser razones para estar indeciso acerca de utilizar procesos formales de Dirección de Proyectos, éstas deben ser superadas. El tema central en dirección de proyectos es: Si el resultado de la gestión de proyectos fuera el que éstos se desarrollaran mas despacio, costaran mas y tuvieran mala calidad, no tendría sentido usarla. De hecho, todo lo contrario es cierto: usando técnicas y procesos claros de Dirección de Proyectos existirá una mayor probabilidad de que el proyecto finalice a tiempo, dentro de presupuesto y con aceptable nivel de calidad.
+
+Dicho lo anterior, cuando se use un proceso de Dirección de proyectos, se debe ser inteligente. No construya procesos para proyectos de 10 millones de euros si el proyecto solo cuesta 5 mil euros. Además se deben considerar todos los aspectos respecto a como gestionar un proyecto, las características particulares del proyecto y en función de ello, construir los procesos específicos que se ajusten a éste lo mejor posible.

@@ -58,3 +58,28 @@ Los índices construidos con la versión anterior quedan incompatibles hasta rei
 ## Cambiar el modelo de embeddings o LiteRT-LM
 
 Se regenera `golden/embedding_golden.jsonl` con el nuevo modelo o la nueva versión de `litert-lm-api`, y se vuelve a ejecutar `EmbeddingGoldenTest` en cada teléfono de prueba (constitución VI).
+
+## Evaluación (F05)
+
+El pipeline de `offline/eval/` mide en el escritorio la recuperación y las respuestas con los mismos artefactos que la app. El índice usa:
+- `schema.sql`, el normalizador, los prefijos y el truncado;
+- SQLite-Vector 1.1.2 y Gemma 4 E2B.
+
+Contratos en `specs/005-offline-eval-harness/contracts/`. Todo se ejecuta con `offline/.venv/bin/python -I offline/run_eval.py <comando>`.
+
+| Paso | Comando |
+|---|---|
+| Corpus (solo descarga lo que falta y verifica huellas) | `fetch-corpus` y `sources` |
+| Índices (`ref`, `chunk250`, `chunk500`, `nohdr`, `dim128/512/768`, `fts_raw`, `fts_stop`) | `build all` |
+| Muestra para redactar preguntas | `sample` |
+| Validación del conjunto (reglas T1–T9) | `validate-testset` (`--pre-review` antes de la revisión) |
+| Revisión del usuario (hoja `testset/review.csv`) | `review-sheet` y, tras rellenarla, `review-apply` |
+| Una ejecución de recuperación o de generación | `retrieve key=valor…` y `generate llm=E2B key=valor…` |
+| Ablaciones | `ablations` (recuperación) y `ablations --generation --base …` |
+| Informe | `report` → `reports/eval-report.md` |
+
+**Corpus:** documentos públicos (BOE, Agencia Tributaria y Wikilibros). Se versionan con su origen, licencia, atribución y transformaciones en `corpus/manifest.json` y `corpus/SOURCES.md` (D-032). Un documento nuevo se añade al manifiesto con `"sha256": "pending"` y se registra con `fetch-corpus --record`.
+
+**Fuera de git** (`offline/build/`): índices, extracciones, cachés y ejecuciones. Cada ejecución vive en `build/runs/<huella>/`. La huella identifica la configuración, el índice, el conjunto de prueba y los modelos, y una generación interrumpida se reanuda donde se quedó.
+
+**Modelos:** `offline/models/` enlaza a `$HOME/MicroRAG-models`, con EmbeddingGemma 2 270M, Gemma 4 E2B y, para la comparación, Gemma 4 E4B. Cada modelo se verifica por SHA-256 antes de usarse.

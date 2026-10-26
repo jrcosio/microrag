@@ -1,0 +1,1230 @@
+[
+  {
+    "id": "boe-lau",
+    "title": "Ley 29/1994, de 24 de noviembre, de Arrendamientos Urbanos",
+    "format": "md",
+    "kind": "normativa",
+    "source_url": "https://www.boe.es/buscar/act.php?id=BOE-A-1994-26003",
+    "publisher": "Agencia Estatal Boletín Oficial del Estado",
+    "license": "BOE: reutilización con atribución",
+    "attribution": "Basado en datos de la Agencia Estatal Boletín Oficial del Estado (www.boe.es). Texto consolidado de carácter informativo.",
+    "source_updated": "2026-10-13",
+    "retrieved": "2026-10-26",
+    "transformations": "XML consolidado de la API de datos abiertos del BOE → Markdown: títulos, capítulos y artículos como encabezados; última versión de cada bloque; sin notas de modificación ni firma",
+    "fetch": {
+      "type": "boe",
+      "boe_id": "BOE-A-1994-26003"
+    },
+    "sha256": "71693605dd37ef53641966339d23e5b3d7fd27b4304bfdf8fcdef22f9831bacb"
+  },
+  {
+    "id": "boe-lph",
+    "title": "Ley 49/1960, de 21 de julio, sobre propiedad horizontal",
+    "format": "md",
+    "kind": "normativa",
+    "source_url": "https://www.boe.es/buscar/act.php?id=BOE-A-1960-10906",
+    "publisher": "Agencia Estatal Boletín Oficial del Estado",
+    "license": "BOE: reutilización con atribución",
+    "attribution": "Basado en datos de la Agencia Estatal Boletín Oficial del Estado (www.boe.es). Texto consolidado de carácter informativo.",
+    "source_updated": "2026-10-05",
+    "retrieved": "2026-10-26",
+    "transformations": "XML consolidado de la API de datos abiertos del BOE → Markdown: títulos, capítulos y artículos como encabezados; última versión de cada bloque; sin notas de modificación ni firma",
+    "fetch": {
+      "type": "boe",
+      "boe_id": "BOE-A-1960-10906"
+    },
+    "sha256": "d7fa8fd542b57efd9a7a6df33e1e76ff766a639d8ac31163f773e48ccc423619"
+  },
+  {
+    "id": "boe-prl",
+    "title": "Ley 31/1995, de 8 de noviembre, de Prevención de Riesgos Laborales",
+    "format": "md",
+    "kind": "normativa",
+    "source_url": "https://www.boe.es/buscar/act.php?id=BOE-A-1995-24292",
+    "publisher": "Agencia Estatal Boletín Oficial del Estado",
+    "license": "BOE: reutilización con atribución",
+    "attribution": "Basado en datos de la Agencia Estatal Boletín Oficial del Estado (www.boe.es). Texto consolidado de carácter informativo.",
+    "source_updated": "2026-10-23",
+    "retrieved": "2026-10-26",
+    "transformations": "XML consolidado de la API de datos abiertos del BOE → Markdown: títulos, capítulos y artículos como encabezados; última versión de cada bloque; sin notas de modificación ni firma",
+    "fetch": {
+      "type": "boe",
+      "boe_id": "BOE-A-1995-24292"
+    },
+    "sha256": "c72630e483a03e656b990dc57871e2f359db097262ee0d12dda8b62ba5e31aca"
+  },
+  {
+    "id": "boe-lssi",
+    "title": "Ley 34/2002, de 11 de julio, de servicios de la sociedad de la información y de comercio electrónico",
+    "format": "md",
+    "kind": "normativa",
+    "source_url": "https://www.boe.es/buscar/act.php?id=BOE-A-2002-13758",
+    "publisher": "Agencia Estatal Boletín Oficial del Estado",
+    "license": "BOE: reutilización con atribución",
+    "attribution": "Basado en datos de la Agencia Estatal Boletín Oficial del Estado (www.boe.es). Texto consolidado de carácter informativo.",
+    "source_updated": "2025-12-18",
+    "retrieved": "2026-10-26",
+    "transformations": "XML consolidado de la API de datos abiertos del BOE → Markdown: títulos, capítulos y artículos como encabezados; última versión de cada bloque; sin notas de modificación ni firma",
+    "fetch": {
+      "type": "boe",
+      "boe_id": "BOE-A-2002-13758"
+    },
+    "sha256": "682270dbb3e523d532362be9f01eba1a922c5a2713f22a866176704fb01fd087"
+  },
+  {
+    "id": "boe-lopdgdd",
+    "title": "Ley Orgánica 3/2018, de 5 de diciembre, de Protección de Datos Personales y garantía de los derechos digitales",
+    "format": "md",
+    "kind": "normativa",
+    "source_url": "https://www.boe.es/buscar/act.php?id=BOE-A-2018-16673",
+    "publisher": "Agencia Estatal Boletín Oficial del Estado",
+    "license": "BOE: reutilización con atribución",
+    "attribution": "Basado en datos de la Agencia Estatal Boletín Oficial del Estado (www.boe.es). Texto consolidado de carácter informativo.",
+    "source_updated": "2026-10-08",
+    "retrieved": "2026-10-26",
+    "transformations": "XML consolidado de la API de datos abiertos del BOE → Markdown: títulos, capítulos y artículos como encabezados; última versión de cada bloque; sin notas de modificación ni firma",
+    "fetch": {
+      "type": "boe",
+      "boe_id": "BOE-A-2018-16673"
+    },
+    "sha256": "03d3f62560a03c8637495990f7a7ce21371e8496153e5692ce530202d9653633"
+  },
+  {
+    "id": "boe-autonomos",
+    "title": "Ley 20/2007, de 11 de julio, del Estatuto del trabajo autónomo",
+    "format": "md",
+    "kind": "normativa",
+    "source_url": "https://www.boe.es/buscar/act.php?id=BOE-A-2007-13409",
+    "publisher": "Agencia Estatal Boletín Oficial del Estado",
+    "license": "BOE: reutilización con atribución",
+    "attribution": "Basado en datos de la Agencia Estatal Boletín Oficial del Estado (www.boe.es). Texto consolidado de carácter informativo.",
+    "source_updated": "2026-09-02",
+    "retrieved": "2026-10-26",
+    "transformations": "XML consolidado de la API de datos abiertos del BOE → Markdown: títulos, capítulos y artículos como encabezados; última versión de cada bloque; sin notas de modificación ni firma",
+    "fetch": {
+      "type": "boe",
+      "boe_id": "BOE-A-2007-13409"
+    },
+    "sha256": "d54f7ea2467222ef20c5db4f90f41a0aa523a1192e3c555272c64a1fc0be4745"
+  },
+  {
+    "id": "boe-facturacion",
+    "title": "Real Decreto 1619/2012, de 30 de noviembre, por el que se aprueba el Reglamento por el que se regulan las obligaciones de facturación",
+    "format": "pdf",
+    "kind": "normativa",
+    "source_url": "https://www.boe.es/buscar/pdf/2012/BOE-A-2012-14696-consolidado.pdf",
+    "publisher": "Agencia Estatal Boletín Oficial del Estado",
+    "license": "BOE: reutilización con atribución",
+    "attribution": "Fuente de los datos: Agencia Estatal Boletín Oficial del Estado (www.boe.es). Texto consolidado de carácter informativo.",
+    "source_updated": "2026-03-31",
+    "retrieved": "2026-10-26",
+    "transformations": "Ninguna: PDF consolidado original",
+    "fetch": {
+      "type": "pdf",
+      "url": "https://www.boe.es/buscar/pdf/2012/BOE-A-2012-14696-consolidado.pdf"
+    },
+    "sha256": "a1c2a0fdc4e936a32a2febf159a67dafe07f2584e1d39d44861e88fd75253bb8"
+  },
+  {
+    "id": "boe-teletrabajo",
+    "title": "Ley 10/2021, de 9 de julio, de trabajo a distancia",
+    "format": "pdf",
+    "kind": "normativa",
+    "source_url": "https://www.boe.es/buscar/pdf/2021/BOE-A-2021-11472-consolidado.pdf",
+    "publisher": "Agencia Estatal Boletín Oficial del Estado",
+    "license": "BOE: reutilización con atribución",
+    "attribution": "Fuente de los datos: Agencia Estatal Boletín Oficial del Estado (www.boe.es). Texto consolidado de carácter informativo.",
+    "source_updated": "2025-12-20",
+    "retrieved": "2026-10-26",
+    "transformations": "Ninguna: PDF consolidado original",
+    "fetch": {
+      "type": "pdf",
+      "url": "https://www.boe.es/buscar/pdf/2021/BOE-A-2021-11472-consolidado.pdf"
+    },
+    "sha256": "0cd3f47cfc8618cc38cc3b6415159388c163e3d43ae3966322b292f71d08d362"
+  },
+  {
+    "id": "boe-comercio",
+    "title": "Ley 7/1996, de 15 de enero, de Ordenación del Comercio Minorista",
+    "format": "pdf",
+    "kind": "normativa",
+    "source_url": "https://www.boe.es/buscar/pdf/1996/BOE-A-1996-1072-consolidado.pdf",
+    "publisher": "Agencia Estatal Boletín Oficial del Estado",
+    "license": "BOE: reutilización con atribución",
+    "attribution": "Fuente de los datos: Agencia Estatal Boletín Oficial del Estado (www.boe.es). Texto consolidado de carácter informativo.",
+    "source_updated": "2026-02-11",
+    "retrieved": "2026-10-26",
+    "transformations": "Ninguna: PDF consolidado original",
+    "fetch": {
+      "type": "pdf",
+      "url": "https://www.boe.es/buscar/pdf/1996/BOE-A-1996-1072-consolidado.pdf"
+    },
+    "sha256": "96b0428c2faa5c5df2bb823460290cd2868a5fa5394edf004feb2974266e5462"
+  },
+  {
+    "id": "aeat-verifactu",
+    "title": "Guía de usuario de la aplicación gratuita de facturación de la AEAT (VERI*FACTU)",
+    "format": "pdf",
+    "kind": "guia",
+    "source_url": "https://sede.agenciatributaria.gob.es/static_files/Sede/Biblioteca/Manual/Practicos/Manual_facturacion/Manual_Usuario_Verifactu_Accesible.pdf",
+    "publisher": "Agencia Estatal de Administración Tributaria",
+    "license": "AEAT: RD 1495/2011",
+    "attribution": "Fuente: Agencia Estatal de Administración Tributaria (sede.agenciatributaria.gob.es).",
+    "source_updated": "2025-10-10",
+    "retrieved": "2026-10-26",
+    "transformations": "Ninguna: PDF original",
+    "fetch": {
+      "type": "pdf",
+      "url": "https://sede.agenciatributaria.gob.es/static_files/Sede/Biblioteca/Manual/Practicos/Manual_facturacion/Manual_Usuario_Verifactu_Accesible.pdf"
+    },
+    "sha256": "bac4894726d6b1b3445ae8ffe4f308adae6b01bdc936986539a5fc1322c80292"
+  },
+  {
+    "id": "aeat-cuadernos-ata",
+    "title": "Tutorial sobre el uso de cuadernos ATA en formato digital para operadores",
+    "format": "pdf",
+    "kind": "guia",
+    "source_url": "https://sede.agenciatributaria.gob.es/static_files/Sede/Biblioteca/Manual/Practicos/Aduanas/Cuardernos_ATA_operadores.pdf",
+    "publisher": "Agencia Estatal de Administración Tributaria",
+    "license": "AEAT: RD 1495/2011",
+    "attribution": "Fuente: Agencia Estatal de Administración Tributaria (sede.agenciatributaria.gob.es).",
+    "source_updated": "2026",
+    "retrieved": "2026-10-26",
+    "transformations": "Ninguna: PDF original",
+    "fetch": {
+      "type": "pdf",
+      "url": "https://sede.agenciatributaria.gob.es/static_files/Sede/Biblioteca/Manual/Practicos/Aduanas/Cuardernos_ATA_operadores.pdf"
+    },
+    "sha256": "449a9c9c49c994c351c715927a8b9c45fee48e6e96d7af09a549aff34f7aa2fb"
+  },
+  {
+    "id": "aeat-facturacion-2011",
+    "title": "Manual práctico de facturación y libros registro del IVA (2011)",
+    "format": "pdf",
+    "kind": "guia",
+    "source_url": "https://sede.agenciatributaria.gob.es/static_files/Sede/Biblioteca/Manual/Practicos/Facturacion_y_libros_registro_IVA/manual_facturacion_2011_es_es.pdf",
+    "publisher": "Agencia Estatal de Administración Tributaria",
+    "license": "AEAT: RD 1495/2011",
+    "attribution": "Basado en datos de la Agencia Estatal de Administración Tributaria (sede.agenciatributaria.gob.es).",
+    "source_updated": "2011-06",
+    "retrieved": "2026-10-26",
+    "transformations": "Páginas 10–67 del PDF original (nota previa, obligaciones de facturación y libros registro), extraídas con pypdf",
+    "fetch": {
+      "type": "pdf",
+      "url": "https://sede.agenciatributaria.gob.es/static_files/Sede/Biblioteca/Manual/Practicos/Facturacion_y_libros_registro_IVA/manual_facturacion_2011_es_es.pdf",
+      "pages": [
+        10,
+        67
+      ]
+    },
+    "sha256": "f94cbe3fca62063f1435024d569d1a9b3bc8fe8c9742ddd1e0cf7a1f4b0fbb84"
+  },
+  {
+    "id": "wb-excursionismo",
+    "title": "Excursionismo (Wikilibros)",
+    "format": "txt",
+    "kind": "manual",
+    "source_url": "https://es.wikibooks.org/wiki/Excursionismo",
+    "publisher": "Wikilibros (Wikimedia Foundation)",
+    "license": "CC BY-SA 4.0",
+    "attribution": "«Excursionismo», Wikilibros. Autores: ver el historial de cada página en es.wikibooks.org. Licencia CC BY-SA 4.0.",
+    "source_updated": "2026-09-07",
+    "retrieved": "2026-10-26",
+    "transformations": "Wikitexto de 15 subpáginas en revisiones fijas → texto plano: sin plantillas, tablas, imágenes, referencias ni marcado; cada subpágina precedida de su título; páginas en orden alfabético",
+    "fetch": {
+      "type": "wikibooks",
+      "book": "Excursionismo",
+      "pages": [
+        {
+          "title": "Excursionismo/Alimentación",
+          "revid": 432844
+        },
+        {
+          "title": "Excursionismo/Apéndices",
+          "revid": 432845
+        },
+        {
+          "title": "Excursionismo/Campamento",
+          "revid": 432846
+        },
+        {
+          "title": "Excursionismo/Diez elementos básicos de supervivencia",
+          "revid": 432847
+        },
+        {
+          "title": "Excursionismo/Expediciones",
+          "revid": 60092
+        },
+        {
+          "title": "Excursionismo/Incursionando en la naturaleza",
+          "revid": 432848
+        },
+        {
+          "title": "Excursionismo/Marcha",
+          "revid": 424737
+        },
+        {
+          "title": "Excursionismo/Organización",
+          "revid": 432849
+        },
+        {
+          "title": "Excursionismo/Orientación",
+          "revid": 432850
+        },
+        {
+          "title": "Excursionismo/Primeros auxilios",
+          "revid": 432851
+        },
+        {
+          "title": "Excursionismo/Seguridad",
+          "revid": 432852
+        },
+        {
+          "title": "Excursionismo/Supervivencia",
+          "revid": 432853
+        },
+        {
+          "title": "Excursionismo/Técnicas adicionales",
+          "revid": 432854
+        },
+        {
+          "title": "Excursionismo/Vestimenta",
+          "revid": 432855
+        },
+        {
+          "title": "Excursionismo/Ética y cuidado ambiental",
+          "revid": 432856
+        }
+      ]
+    },
+    "sha256": "3768b945d6bc1570d5d681bcd63f31a5a4c661ca6c18f4c9ac9331fa587a8f70"
+  },
+  {
+    "id": "wb-administracion-tiempo",
+    "title": "Administración de tiempo (Wikilibros)",
+    "format": "txt",
+    "kind": "manual",
+    "source_url": "https://es.wikibooks.org/wiki/Administraci%C3%B3n_de_tiempo",
+    "publisher": "Wikilibros (Wikimedia Foundation)",
+    "license": "CC BY-SA 4.0",
+    "attribution": "«Administración de tiempo», Wikilibros. Autores: ver el historial de cada página en es.wikibooks.org. Licencia CC BY-SA 4.0.",
+    "source_updated": "2026-02-02",
+    "retrieved": "2026-10-26",
+    "transformations": "Wikitexto de 21 subpáginas en revisiones fijas → texto plano: sin plantillas, tablas, imágenes, referencias ni marcado; cada subpágina precedida de su título; páginas en orden alfabético",
+    "fetch": {
+      "type": "wikibooks",
+      "book": "Administración de tiempo",
+      "pages": [
+        {
+          "title": "Administración de tiempo/Administración de actividades",
+          "revid": 424727
+        },
+        {
+          "title": "Administración de tiempo/Causas de la morosidad",
+          "revid": 217872
+        },
+        {
+          "title": "Administración de tiempo/Como ocupar \"tiempo muerto\"",
+          "revid": 182542
+        },
+        {
+          "title": "Administración de tiempo/Desperdiciadores de tiempo",
+          "revid": 405747
+        },
+        {
+          "title": "Administración de tiempo/Eficiencia en la oficina",
+          "revid": 199053
+        },
+        {
+          "title": "Administración de tiempo/El beneficio de la planificación",
+          "revid": 246639
+        },
+        {
+          "title": "Administración de tiempo/El uso del tiempo",
+          "revid": 303660
+        },
+        {
+          "title": "Administración de tiempo/El valor económico del tiempo laborable personal",
+          "revid": 306634
+        },
+        {
+          "title": "Administración de tiempo/Enlaces",
+          "revid": 238192
+        },
+        {
+          "title": "Administración de tiempo/Establecer fechas de seguimiento",
+          "revid": 182547
+        },
+        {
+          "title": "Administración de tiempo/Evaluación periódica",
+          "revid": 395768
+        },
+        {
+          "title": "Administración de tiempo/Identificación de hábitos personales",
+          "revid": 405448
+        },
+        {
+          "title": "Administración de tiempo/Info",
+          "revid": 337372
+        },
+        {
+          "title": "Administración de tiempo/Introducción",
+          "revid": 360209
+        },
+        {
+          "title": "Administración de tiempo/Organizar las actividades",
+          "revid": 202190
+        },
+        {
+          "title": "Administración de tiempo/Planear las actividades",
+          "revid": 368829
+        },
+        {
+          "title": "Administración de tiempo/Poniendo prioridades",
+          "revid": 224222
+        },
+        {
+          "title": "Administración de tiempo/Página de edición",
+          "revid": 183083
+        },
+        {
+          "title": "Administración de tiempo/Realizar las actividades planeadas sin descuidar los objetivos",
+          "revid": 182554
+        },
+        {
+          "title": "Administración de tiempo/Resumen y conclusiones prácticas",
+          "revid": 404395
+        },
+        {
+          "title": "Administración de tiempo/Tiempo de calidad",
+          "revid": 422527
+        }
+      ]
+    },
+    "sha256": "13bf375307a08539251d39c7f61ddaf5b6fbfc56c839a7cb6975802dac13665f"
+  },
+  {
+    "id": "wb-montanismo",
+    "title": "Montañismo (Wikilibros)",
+    "format": "txt",
+    "kind": "manual",
+    "source_url": "https://es.wikibooks.org/wiki/Monta%C3%B1ismo",
+    "publisher": "Wikilibros (Wikimedia Foundation)",
+    "license": "CC BY-SA 4.0",
+    "attribution": "«Montañismo», Wikilibros. Autores: ver el historial de cada página en es.wikibooks.org. Licencia CC BY-SA 4.0.",
+    "source_updated": "2026-07-18",
+    "retrieved": "2026-10-26",
+    "transformations": "Wikitexto de 19 subpáginas en revisiones fijas → texto plano: sin plantillas, tablas, imágenes, referencias ni marcado; cada subpágina precedida de su título; páginas en orden alfabético",
+    "fetch": {
+      "type": "wikibooks",
+      "book": "Montañismo",
+      "pages": [
+        {
+          "title": "Montañismo/Acercamiento",
+          "revid": 428157
+        },
+        {
+          "title": "Montañismo/Acondicionamiento fisico",
+          "revid": 60109
+        },
+        {
+          "title": "Montañismo/Acondicionamiento físico",
+          "revid": 428156
+        },
+        {
+          "title": "Montañismo/Alimentación",
+          "revid": 428160
+        },
+        {
+          "title": "Montañismo/Apéndices",
+          "revid": 428170
+        },
+        {
+          "title": "Montañismo/Avance en montaña",
+          "revid": 428162
+        },
+        {
+          "title": "Montañismo/Calzado y vestimenta",
+          "revid": 428159
+        },
+        {
+          "title": "Montañismo/Campamento y vivac",
+          "revid": 428161
+        },
+        {
+          "title": "Montañismo/Equipo",
+          "revid": 428158
+        },
+        {
+          "title": "Montañismo/Equipo y vestido",
+          "revid": 60486
+        },
+        {
+          "title": "Montañismo/Expediciones",
+          "revid": 428169
+        },
+        {
+          "title": "Montañismo/Las protecciones",
+          "revid": 428164
+        },
+        {
+          "title": "Montañismo/Nudos",
+          "revid": 428166
+        },
+        {
+          "title": "Montañismo/Organización",
+          "revid": 428155
+        },
+        {
+          "title": "Montañismo/Peligros",
+          "revid": 428167
+        },
+        {
+          "title": "Montañismo/Peligros objetivos y subjetivos",
+          "revid": 60490
+        },
+        {
+          "title": "Montañismo/Primeros auxilios",
+          "revid": 428168
+        },
+        {
+          "title": "Montañismo/Técnicas de descenso",
+          "revid": 428165
+        },
+        {
+          "title": "Montañismo/Técnicas especiales",
+          "revid": 428163
+        }
+      ]
+    },
+    "sha256": "fe651137286aa0ea8bb560e0e60340128b9413689b0c7f67d3257f67fe89529d"
+  },
+  {
+    "id": "wb-direccion-proyectos",
+    "title": "Dirección de Proyectos (Wikilibros)",
+    "format": "txt",
+    "kind": "manual",
+    "source_url": "https://es.wikibooks.org/wiki/Direcci%C3%B3n_de_Proyectos",
+    "publisher": "Wikilibros (Wikimedia Foundation)",
+    "license": "CC BY-SA 4.0",
+    "attribution": "«Dirección de Proyectos», Wikilibros. Autores: ver el historial de cada página en es.wikibooks.org. Licencia CC BY-SA 4.0.",
+    "source_updated": "2026-08-23",
+    "retrieved": "2026-10-26",
+    "transformations": "Wikitexto de 33 subpáginas en revisiones fijas → texto plano: sin plantillas, tablas, imágenes, referencias ni marcado; cada subpágina precedida de su título; páginas en orden alfabético",
+    "fetch": {
+      "type": "wikibooks",
+      "book": "Dirección de Proyectos",
+      "pages": [
+        {
+          "title": "Dirección de Proyectos/Acerca de",
+          "revid": 432242
+        },
+        {
+          "title": "Dirección de Proyectos/Bibliografía",
+          "revid": 432243
+        },
+        {
+          "title": "Dirección de Proyectos/Comunicación",
+          "revid": 432244
+        },
+        {
+          "title": "Dirección de Proyectos/Comunicación y liderazgo",
+          "revid": 432245
+        },
+        {
+          "title": "Dirección de Proyectos/Construcción de un efectivo plan de comunicaciones",
+          "revid": 432246
+        },
+        {
+          "title": "Dirección de Proyectos/Construcción del equipo del proyecto",
+          "revid": 432247
+        },
+        {
+          "title": "Dirección de Proyectos/Control",
+          "revid": 432248
+        },
+        {
+          "title": "Dirección de Proyectos/Decisión de compra",
+          "revid": 432249
+        },
+        {
+          "title": "Dirección de Proyectos/Dirección de proyectos",
+          "revid": 432250
+        },
+        {
+          "title": "Dirección de Proyectos/Dirección y destrezas de supervisión y gestión",
+          "revid": 432251
+        },
+        {
+          "title": "Dirección de Proyectos/Elección del estilo de dirección",
+          "revid": 432252
+        },
+        {
+          "title": "Dirección de Proyectos/Estilos de gestión y dirección",
+          "revid": 432253
+        },
+        {
+          "title": "Dirección de Proyectos/Formas de comunicación",
+          "revid": 432254
+        },
+        {
+          "title": "Dirección de Proyectos/Gestión de RRHH: Selección de personal",
+          "revid": 432258
+        },
+        {
+          "title": "Dirección de Proyectos/Gestión de compras",
+          "revid": 432255
+        },
+        {
+          "title": "Dirección de Proyectos/Gestión de conflictos",
+          "revid": 432256
+        },
+        {
+          "title": "Dirección de Proyectos/Gestión de las comunicaciones",
+          "revid": 432257
+        },
+        {
+          "title": "Dirección de Proyectos/Gestión del cambio en el proyecto",
+          "revid": 432259
+        },
+        {
+          "title": "Dirección de Proyectos/Gestión del tiempo",
+          "revid": 432260
+        },
+        {
+          "title": "Dirección de Proyectos/Habilidades de una gestión de proyecto",
+          "revid": 432261
+        },
+        {
+          "title": "Dirección de Proyectos/Introducción a la Dirección de proyectos",
+          "revid": 432262
+        },
+        {
+          "title": "Dirección de Proyectos/Liderazgo",
+          "revid": 432263
+        },
+        {
+          "title": "Dirección de Proyectos/Misión y objetivos de la dirección de proyectos",
+          "revid": 432264
+        },
+        {
+          "title": "Dirección de Proyectos/Motivación y cambio de conductas",
+          "revid": 432265
+        },
+        {
+          "title": "Dirección de Proyectos/Objetivos de la dirección de proyectos",
+          "revid": 432266
+        },
+        {
+          "title": "Dirección de Proyectos/Organización de la empresa en la que se desarrollan proyectos",
+          "revid": 432267
+        },
+        {
+          "title": "Dirección de Proyectos/Organización de la empresa que desarrolla proyectos",
+          "revid": 432268
+        },
+        {
+          "title": "Dirección de Proyectos/Petición de ofertas",
+          "revid": 432269
+        },
+        {
+          "title": "Dirección de Proyectos/Planificación de la gestión de la calidad",
+          "revid": 432270
+        },
+        {
+          "title": "Dirección de Proyectos/Planificación de los riesgos del proyecto",
+          "revid": 432271
+        },
+        {
+          "title": "Dirección de Proyectos/Roles dentro de un proyecto",
+          "revid": 432272
+        },
+        {
+          "title": "Dirección de Proyectos/Seguimiento",
+          "revid": 432273
+        },
+        {
+          "title": "Dirección de Proyectos/Visión práctica de la dirección de proyectos",
+          "revid": 432274
+        }
+      ]
+    },
+    "sha256": "081f634d212c979051f8868dd364a0b3bef01adf4b26bf9a7aa974394654639e"
+  },
+  {
+    "id": "wb-telegram",
+    "title": "Telegram Messenger (Wikilibros)",
+    "format": "txt",
+    "kind": "manual",
+    "source_url": "https://es.wikibooks.org/wiki/Telegram_Messenger",
+    "publisher": "Wikilibros (Wikimedia Foundation)",
+    "license": "CC BY-SA 4.0",
+    "attribution": "«Telegram Messenger», Wikilibros. Autores: ver el historial de cada página en es.wikibooks.org. Licencia CC BY-SA 4.0.",
+    "source_updated": "2025-08-14",
+    "retrieved": "2026-10-26",
+    "transformations": "Wikitexto de 17 subpáginas en revisiones fijas → texto plano: sin plantillas, tablas, imágenes, referencias ni marcado; cada subpágina precedida de su título; páginas en orden alfabético",
+    "fetch": {
+      "type": "wikibooks",
+      "book": "Telegram Messenger",
+      "pages": [
+        {
+          "title": "Telegram Messenger/API",
+          "revid": 395585
+        },
+        {
+          "title": "Telegram Messenger/Aplicaciones",
+          "revid": 288838
+        },
+        {
+          "title": "Telegram Messenger/Bots",
+          "revid": 414251
+        },
+        {
+          "title": "Telegram Messenger/Bots y servicios",
+          "revid": 376464
+        },
+        {
+          "title": "Telegram Messenger/Canales",
+          "revid": 385042
+        },
+        {
+          "title": "Telegram Messenger/Canales oficiales",
+          "revid": 422590
+        },
+        {
+          "title": "Telegram Messenger/Clientes",
+          "revid": 423458
+        },
+        {
+          "title": "Telegram Messenger/Contactos y chats",
+          "revid": 385041
+        },
+        {
+          "title": "Telegram Messenger/Cuenta de usuario",
+          "revid": 395161
+        },
+        {
+          "title": "Telegram Messenger/Enlaces",
+          "revid": 388041
+        },
+        {
+          "title": "Telegram Messenger/Grupos",
+          "revid": 388040
+        },
+        {
+          "title": "Telegram Messenger/Info",
+          "revid": 239810
+        },
+        {
+          "title": "Telegram Messenger/Introducción",
+          "revid": 413673
+        },
+        {
+          "title": "Telegram Messenger/Preferencias",
+          "revid": 290307
+        },
+        {
+          "title": "Telegram Messenger/Página de edición",
+          "revid": 376465
+        },
+        {
+          "title": "Telegram Messenger/Registro",
+          "revid": 385040
+        },
+        {
+          "title": "Telegram Messenger/Stickers",
+          "revid": 387716
+        }
+      ]
+    },
+    "sha256": "8968d233f42a7233504dd195b4d500adae7ff2f565ffd31a2f1748cbb9a04e06"
+  },
+  {
+    "id": "wb-firefox",
+    "title": "Mozilla Firefox (Wikilibros)",
+    "format": "txt",
+    "kind": "manual",
+    "source_url": "https://es.wikibooks.org/wiki/Mozilla_Firefox",
+    "publisher": "Wikilibros (Wikimedia Foundation)",
+    "license": "CC BY-SA 4.0",
+    "attribution": "«Mozilla Firefox», Wikilibros. Autores: ver el historial de cada página en es.wikibooks.org. Licencia CC BY-SA 4.0.",
+    "source_updated": "2026-08-14",
+    "retrieved": "2026-10-26",
+    "transformations": "Wikitexto de 43 subpáginas en revisiones fijas → texto plano: sin plantillas, tablas, imágenes, referencias ni marcado; cada subpágina precedida de su título; páginas en orden alfabético",
+    "fetch": {
+      "type": "wikibooks",
+      "book": "Mozilla Firefox",
+      "pages": [
+        {
+          "title": "Mozilla Firefox/Anexo",
+          "revid": 166752
+        },
+        {
+          "title": "Mozilla Firefox/Anexos",
+          "revid": 220921
+        },
+        {
+          "title": "Mozilla Firefox/Anexos/Bibliografía",
+          "revid": 431162
+        },
+        {
+          "title": "Mozilla Firefox/Anexos/Comparación de versiones",
+          "revid": 224630
+        },
+        {
+          "title": "Mozilla Firefox/Carrusel",
+          "revid": 233693
+        },
+        {
+          "title": "Mozilla Firefox/Configuración",
+          "revid": 193606
+        },
+        {
+          "title": "Mozilla Firefox/Configuración/Crear un complemento de Personas",
+          "revid": 431157
+        },
+        {
+          "title": "Mozilla Firefox/Configuración/Crear una extensión para Firefox 3",
+          "revid": 256805
+        },
+        {
+          "title": "Mozilla Firefox/Configuración/Cómo configurar el navegador",
+          "revid": 426471
+        },
+        {
+          "title": "Mozilla Firefox/Configuración/Personalización CSS",
+          "revid": 431163
+        },
+        {
+          "title": "Mozilla Firefox/Configuración/Portabilización",
+          "revid": 431165
+        },
+        {
+          "title": "Mozilla Firefox/Configuración/Usando about:config",
+          "revid": 431161
+        },
+        {
+          "title": "Mozilla Firefox/Configuración/Usando programas externos",
+          "revid": 431173
+        },
+        {
+          "title": "Mozilla Firefox/Configuración/Usando protocolo HTTPS",
+          "revid": 431164
+        },
+        {
+          "title": "Mozilla Firefox/Crear una extensión para Firefox 3",
+          "revid": 165654
+        },
+        {
+          "title": "Mozilla Firefox/Enlaces",
+          "revid": 431151
+        },
+        {
+          "title": "Mozilla Firefox/Extensiones",
+          "revid": 165668
+        },
+        {
+          "title": "Mozilla Firefox/Extensiones/User Agents",
+          "revid": 120030
+        },
+        {
+          "title": "Mozilla Firefox/Historia",
+          "revid": 220924
+        },
+        {
+          "title": "Mozilla Firefox/Info",
+          "revid": 220919
+        },
+        {
+          "title": "Mozilla Firefox/Interfaz",
+          "revid": 168474
+        },
+        {
+          "title": "Mozilla Firefox/Introducción",
+          "revid": 427594
+        },
+        {
+          "title": "Mozilla Firefox/Introducción/Historia",
+          "revid": 220916
+        },
+        {
+          "title": "Mozilla Firefox/Introducción/Origen",
+          "revid": 431155
+        },
+        {
+          "title": "Mozilla Firefox/Introducción/¿De qué están hechas las aplicaciones Mozilla?",
+          "revid": 194073
+        },
+        {
+          "title": "Mozilla Firefox/Programas aparte",
+          "revid": 165802
+        },
+        {
+          "title": "Mozilla Firefox/Página de edición",
+          "revid": 426475
+        },
+        {
+          "title": "Mozilla Firefox/Utilización",
+          "revid": 239926
+        },
+        {
+          "title": "Mozilla Firefox/Utilización/Accesibilidad",
+          "revid": 431152
+        },
+        {
+          "title": "Mozilla Firefox/Utilización/Administracción de complementos",
+          "revid": 431158
+        },
+        {
+          "title": "Mozilla Firefox/Utilización/Atajos de acceso rápido",
+          "revid": 431160
+        },
+        {
+          "title": "Mozilla Firefox/Utilización/Atajos de teclado",
+          "revid": 167523
+        },
+        {
+          "title": "Mozilla Firefox/Utilización/Extensiones",
+          "revid": 431168
+        },
+        {
+          "title": "Mozilla Firefox/Utilización/Iniciar Firefox",
+          "revid": 427762
+        },
+        {
+          "title": "Mozilla Firefox/Utilización/Instalación",
+          "revid": 426474
+        },
+        {
+          "title": "Mozilla Firefox/Utilización/Navegación avanzada",
+          "revid": 426478
+        },
+        {
+          "title": "Mozilla Firefox/Utilización/Navegación básica",
+          "revid": 431153
+        },
+        {
+          "title": "Mozilla Firefox/Utilización/Plugins",
+          "revid": 431154
+        },
+        {
+          "title": "Mozilla Firefox/Utilización/Sicronización",
+          "revid": 431166
+        },
+        {
+          "title": "Mozilla Firefox/Utilización/Temas",
+          "revid": 431156
+        },
+        {
+          "title": "Mozilla Firefox/Utilización/Usos frecuentes",
+          "revid": 167537
+        },
+        {
+          "title": "Mozilla Firefox/Utilización/Ventana de preferencias",
+          "revid": 431159
+        },
+        {
+          "title": "Mozilla Firefox/¿De qué están hechas las aplicaciones Mozilla?",
+          "revid": 165879
+        }
+      ]
+    },
+    "sha256": "6ddba398deaddc62c5c8ceb85471a34b267cf5fa09e9541e156e5695cf008d82"
+  },
+  {
+    "id": "wb-analisis-sensorial",
+    "title": "Análisis Sensorial de Alimentos (Wikilibros)",
+    "format": "txt",
+    "kind": "manual",
+    "source_url": "https://es.wikibooks.org/wiki/An%C3%A1lisis_Sensorial_de_Alimentos",
+    "publisher": "Wikilibros (Wikimedia Foundation)",
+    "license": "CC BY-SA 4.0",
+    "attribution": "«Análisis Sensorial de Alimentos», Wikilibros. Autores: ver el historial de cada página en es.wikibooks.org. Licencia CC BY-SA 4.0.",
+    "source_updated": "2026-08-03",
+    "retrieved": "2026-10-26",
+    "transformations": "Wikitexto de 19 subpáginas en revisiones fijas → texto plano: sin plantillas, tablas, imágenes, referencias ni marcado; cada subpágina precedida de su título; páginas en orden alfabético",
+    "fetch": {
+      "type": "wikibooks",
+      "book": "Análisis Sensorial de Alimentos",
+      "pages": [
+        {
+          "title": "Análisis Sensorial de Alimentos/Bibliografía",
+          "revid": 417881
+        },
+        {
+          "title": "Análisis Sensorial de Alimentos/Conceptos generales del análisis sensorial",
+          "revid": 358966
+        },
+        {
+          "title": "Análisis Sensorial de Alimentos/Coordinando la edición",
+          "revid": 430416
+        },
+        {
+          "title": "Análisis Sensorial de Alimentos/Desarrollo histórico",
+          "revid": 115707
+        },
+        {
+          "title": "Análisis Sensorial de Alimentos/El director del panel de catadores",
+          "revid": 347243
+        },
+        {
+          "title": "Análisis Sensorial de Alimentos/Enlaces",
+          "revid": 417889
+        },
+        {
+          "title": "Análisis Sensorial de Alimentos/Formación del panel",
+          "revid": 389723
+        },
+        {
+          "title": "Análisis Sensorial de Alimentos/Hoja de vaciado de datos",
+          "revid": 348065
+        },
+        {
+          "title": "Análisis Sensorial de Alimentos/Info",
+          "revid": 417885
+        },
+        {
+          "title": "Análisis Sensorial de Alimentos/Instalaciones de prueba",
+          "revid": 405652
+        },
+        {
+          "title": "Análisis Sensorial de Alimentos/Instrumentos del análisis sensorial",
+          "revid": 365543
+        },
+        {
+          "title": "Análisis Sensorial de Alimentos/Introducción",
+          "revid": 417886
+        },
+        {
+          "title": "Análisis Sensorial de Alimentos/La degustación",
+          "revid": 191114
+        },
+        {
+          "title": "Análisis Sensorial de Alimentos/Marco teórico",
+          "revid": 358962
+        },
+        {
+          "title": "Análisis Sensorial de Alimentos/Número de jueces para la prueba",
+          "revid": 366789
+        },
+        {
+          "title": "Análisis Sensorial de Alimentos/Página de edición",
+          "revid": 115844
+        },
+        {
+          "title": "Análisis Sensorial de Alimentos/Selección y entrenamiento",
+          "revid": 370029
+        },
+        {
+          "title": "Análisis Sensorial de Alimentos/Significado de análisis sensorial",
+          "revid": 358968
+        },
+        {
+          "title": "Análisis Sensorial de Alimentos/Tipos de pruebas",
+          "revid": 417887
+        }
+      ]
+    },
+    "sha256": "e3bf092f1f1fc155a7c1707610da69578b646a74101f99659ea2c9504240eb3c"
+  },
+  {
+    "id": "wb-natacion",
+    "title": "Apuntes de Natación (Wikilibros)",
+    "format": "txt",
+    "kind": "manual",
+    "source_url": "https://es.wikibooks.org/wiki/Apuntes_de_Nataci%C3%B3n",
+    "publisher": "Wikilibros (Wikimedia Foundation)",
+    "license": "CC BY-SA 4.0",
+    "attribution": "«Apuntes de Natación», Wikilibros. Autores: ver el historial de cada página en es.wikibooks.org. Licencia CC BY-SA 4.0.",
+    "source_updated": "2026-07-18",
+    "retrieved": "2026-10-26",
+    "transformations": "Wikitexto de 7 subpáginas en revisiones fijas → texto plano: sin plantillas, tablas, imágenes, referencias ni marcado; cada subpágina precedida de su título; páginas en orden alfabético",
+    "fetch": {
+      "type": "wikibooks",
+      "book": "Apuntes de Natación",
+      "pages": [
+        {
+          "title": "Apuntes de Natación/El estilo braza",
+          "revid": 428185
+        },
+        {
+          "title": "Apuntes de Natación/El estilo crawl",
+          "revid": 428186
+        },
+        {
+          "title": "Apuntes de Natación/El estilo espalda",
+          "revid": 428187
+        },
+        {
+          "title": "Apuntes de Natación/El estilo mariposa",
+          "revid": 428188
+        },
+        {
+          "title": "Apuntes de Natación/Enlaces",
+          "revid": 428193
+        },
+        {
+          "title": "Apuntes de Natación/Info",
+          "revid": 428178
+        },
+        {
+          "title": "Apuntes de Natación/Introducción",
+          "revid": 428190
+        }
+      ]
+    },
+    "sha256": "db7dec5393c9a9e1daa7f35dd0e48eba629e003460d5f54277a3c85025586273"
+  },
+  {
+    "id": "wb-ajedrez",
+    "title": "Ajedrez (Wikilibros)",
+    "format": "txt",
+    "kind": "manual",
+    "source_url": "https://es.wikibooks.org/wiki/Ajedrez",
+    "publisher": "Wikilibros (Wikimedia Foundation)",
+    "license": "CC BY-SA 4.0",
+    "attribution": "«Ajedrez», Wikilibros. Autores: ver el historial de cada página en es.wikibooks.org. Licencia CC BY-SA 4.0.",
+    "source_updated": "2026-09-29",
+    "retrieved": "2026-10-26",
+    "transformations": "Wikitexto de 33 subpáginas en revisiones fijas → texto plano: sin plantillas, tablas, imágenes, referencias ni marcado; cada subpágina precedida de su título; páginas en orden alfabético",
+    "fetch": {
+      "type": "wikibooks",
+      "book": "Ajedrez",
+      "pages": [
+        {
+          "title": "Ajedrez/Aprendiendo Ajedrez",
+          "revid": 281984
+        },
+        {
+          "title": "Ajedrez/Aprendiendo Ajedrez/Aperturas populares",
+          "revid": 432467
+        },
+        {
+          "title": "Ajedrez/Aprendiendo Ajedrez/Ejercicios",
+          "revid": 432470
+        },
+        {
+          "title": "Ajedrez/Aprendiendo Ajedrez/Estrategia",
+          "revid": 432468
+        },
+        {
+          "title": "Ajedrez/Aprendiendo Ajedrez/Iniciación del juego",
+          "revid": 432466
+        },
+        {
+          "title": "Ajedrez/Aprendiendo Ajedrez/Mates elementales",
+          "revid": 432469
+        },
+        {
+          "title": "Ajedrez/Enlaces",
+          "revid": 281985
+        },
+        {
+          "title": "Ajedrez/Info",
+          "revid": 414017
+        },
+        {
+          "title": "Ajedrez/Información",
+          "revid": 169295
+        },
+        {
+          "title": "Ajedrez/Información/Algunos grandes jugadores",
+          "revid": 432491
+        },
+        {
+          "title": "Ajedrez/Información/Anotando un juego",
+          "revid": 432490
+        },
+        {
+          "title": "Ajedrez/Información/Historia",
+          "revid": 432488
+        },
+        {
+          "title": "Ajedrez/Información/Léxico",
+          "revid": 434982
+        },
+        {
+          "title": "Ajedrez/Introducción",
+          "revid": 414018
+        },
+        {
+          "title": "Ajedrez/Página de edición",
+          "revid": 281978
+        },
+        {
+          "title": "Ajedrez/Técnica",
+          "revid": 169282
+        },
+        {
+          "title": "Ajedrez/Técnica/El alfil en detalle",
+          "revid": 432481
+        },
+        {
+          "title": "Ajedrez/Técnica/El caballo en detalle",
+          "revid": 432484
+        },
+        {
+          "title": "Ajedrez/Técnica/El peón en detalle",
+          "revid": 432485
+        },
+        {
+          "title": "Ajedrez/Técnica/El rey en detalle",
+          "revid": 432483
+        },
+        {
+          "title": "Ajedrez/Técnica/Elementos técnicos",
+          "revid": 432472
+        },
+        {
+          "title": "Ajedrez/Técnica/La captura de las piezas",
+          "revid": 432486
+        },
+        {
+          "title": "Ajedrez/Técnica/La dama en detalle",
+          "revid": 432482
+        },
+        {
+          "title": "Ajedrez/Técnica/La partida de ajedrez",
+          "revid": 432471
+        },
+        {
+          "title": "Ajedrez/Técnica/La torre en detalle",
+          "revid": 432480
+        },
+        {
+          "title": "Ajedrez/Técnica/Las piezas de ajedrez",
+          "revid": 432479
+        },
+        {
+          "title": "Ajedrez/Técnica/Los flancos",
+          "revid": 432477
+        },
+        {
+          "title": "Ajedrez/Técnica/Movimientos extraordinarios",
+          "revid": 432487
+        },
+        {
+          "title": "Ajedrez/Técnica/Teoría de las glorietas",
+          "revid": 432476
+        },
+        {
+          "title": "Ajedrez/Técnica/Teoría de los cuadrantes",
+          "revid": 432478
+        },
+        {
+          "title": "Ajedrez/Técnica/Vías de tránsito principales",
+          "revid": 432473
+        },
+        {
+          "title": "Ajedrez/Técnica/Vías de tránsito secundarias",
+          "revid": 432474
+        },
+        {
+          "title": "Ajedrez/Técnica/Zonas geográficas del tablero",
+          "revid": 432475
+        }
+      ]
+    },
+    "sha256": "1b8fbc48a71b8938fb3d94a2c7fc90040b8352ced76f13c8464db98ffe1fcdab"
+  }
+]

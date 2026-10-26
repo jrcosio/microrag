@@ -1,0 +1,1307 @@
+Aperturas populares
+
+¿Por qué es importante la apertura?
+
+La disposición inicial de las piezas en el tablero de ajedrez no es la mejor para poder capturar el rey enemigo. Los peones, de movimiento lento, forman una fila justo delante de las piezas más poderosas, entorpeciéndolas.
+Es importante desplegar las piezas lo antes posible, haciendo avanzar los peones hasta posiciones más útiles y dejando paso libre a las piezas más poderosas.
+Las formas más eficientes de hacer esto, a lo largo de los años, se han ido catalogando y son las que se conocen como "aperturas".
+Es habitual, en las partidas de jugadores expertos, que los primeros movimientos se hagan casi sin pensar, porque simplemente eligen mentalmente de su catálogo de aperturas la que consideran mejor.
+
+Antes de mirar alguna de las aperturas más populares jugadas hoy en día, es importante mencionar los objetivos de esta fase tan importante de la partida de ajedrez.
+En algunos casos, un jugador sacrificará un peón (gambito) para obtener algunos de los elemento listados abajo.
+
+Desarrollo
+
+Siempre que sea posible, debemos intentar traer nuestras piezas a ocupar posiciones lejos de su casilla de inicio para que así participen de modo más activo en el juego. Obviamente un Caballo en c3 es más efectivo tanto defensiva como ofensivamente que en b1. También evitaremos mover más de una vez la misma pieza. Generalmente se recomienda evitar los movimientos tempranos con la Dama, pues esta puede regalarle tiempo al contrario al ser amenzada.
+
+Control del Centro
+
+Las cuatro casillas centrales son sin duda las más asediadas y transitadas durante toda la partida, por lo que un control temprano de estas permite una mayor movilidad de las piezas propias y restringe las maniobras enemigas, tanto defensivas como ofensivas.
+
+Tradicionalmente, esto se hace mediante la ocupación central, que consiste en la colocación de uno o dos peones en e4 y d4 para las blancas y en e5 y d5 para las negras. No suelen ponerse piezas en dichas casillas, pues estas podrían ser amenazadas por peones rivales, obligándolas a regresar y así perder tiempo. En vez de esto, las piezas apoyan la ocupación central propia e intentarán eliminar la del oponente.
+
+Ventaja de espacio
+
+Ya de por sí, la ocupación central constituye una pequeña ventaja de espacio. Ahora, imaginemos que nosotros ganamos casillas para maniobrar con nuestras piezas al tiempo que restringimos aun más las piezas contrarias, llegará el momento en que sus piezas no puedan trasladarse o coordinar adecuadamente su defensa. Esto es la ventaja de espacio.
+
+Iniciativa
+
+Supongamos ahora que jugamos una partida de ajedrez en la que pudiera decirse "paso" como en los naipes, y que pasáramos el comienzo de la partida ubicando de modo óptimo nuestras piezas al tiempo que el contrario "por la falta de tiempo" sólo se dedicara a "pasar". Llegaría un momento en que la desigualdad en la actividad de nuestras piezas nos permitiría obtener ventajas decisivas, esto es lo que se pretende con la iniciativa. Es decir, mediante la secuencia ordenada y continua de amenzas, obligar al rival a defenderse ubicando sus piezas en posiciones pasivas e incluso incómodas para que en cierto modo nos devuelva el tiempo invertido y nosotros usarlo en la generación de nuevas amenazas y una mejor disposición de nuestas figuras. A esto es lo que llamamos iniciativa.
+
+Elasticidad
+
+Cada vez son más populares las aperturas donde un bando hace jugadas, aparentemente de espera, pero que en realidad sirven para la mayoría de las situaciones posibles. Es decir, optan por no definir la ubicación de las piezas esenciales en la posición dada, para hacerlo en función de la definición de las piezas contrarias.
+
+Apertura Española
+Parece necesario sugerir un repertorio para el jugador principiante. Es tentador seleccionar una apertura menos complicada. Sin embargo, el estudio de la Ruy López, como también se le llama, permitirá al jugador adentrarse en el mundo de conceptos que envuelve al juego así como en arte del análisis táctico y estratégico del ajedrez.
+
+Es importante recordar que este es un manual para aquellos que desean iniciarse en el ajedrez o aquellos principantes que desean mejorar su juego. Por tanto aquí sólo se mencionan algunas ideas básicas que con el tiempo y el aporte de otros usuarios irá mejorando. Pero de ninguna manera constituye una tratado sobre la apertura más conocida y amplia del ajedrez.
+
+1.e4 e5 2.Cf3 Cc6 3. Ab5
+
+Pone al alfil en una casilla muy activa y da paso al rey para enrocar pronto.
+
+3...a6 4.Aa4
+
+A primera vista parece que las blancas pueden tomar el caballo de c6 y luego de 4...dxc6 5.Cxe5 ganando el peón central de la negras. Sin embargo, luego de 5...Dd4 las negras recuperan el peón con una simplificación de la posición muy favorable.
+
+4...Cf6
+
+Una jugada activa tratando de ganar tiempo por la amenaza de eliminación del peón central blanco.
+
+5.0-0
+
+La defensa más activa del peón de e4, pues luego de 5...Cxe4 6.d4 b5 (si 6...exd4 7.Te1 d5 8.Cxd4 Ad6 9.Cxc6 y las blancas tienen la mejor parte) 7.Ab3 no es posible retener el peón extra.
+
+5...Ae7
+
+Las negras renuevan la amenaza sobre el peón de e4 y preparan el enroque corto.
+
+6.Te1
+
+Aquí se revela uno de los principales planes del blanco. Traer a la torre de h1 a una columna central que posiblemente tendrá mucho juego. Evitar jugadas como Cc3 y d3, pues desea preparar la eliminación de e5 con las jugadas c3 y d4. La dama permanece en d1 para apoyar el avance d4. También avivan la presión en e5 al amenazar 7.Axc6 dxc6 8.Cxe5 ganando el peón.
+
+6...b5 7.Ab3 d6
+
+Alivia de modo momentáneo la presión en el centro y esta listo para enrocar.
+
+8.c3
+
+Da una casilla a su alfil de casillas claras contra la molesta Ca5 y prepara la fuerte jugada d4.
+
+8...0-0
+
+Permanecer en el centro ya no será cómodo para el monarca negro.
+
+9.h3
+
+Profilaxis contra Ag4, aunque es posible 9.d4 son más agradables para el bando blanco las posiciones donde el caballo no esta clavado. Además complica el desarrollo del alfil de c8.
+
+Ejercicios
+
+El objetivo principal del Nivel 1 es introducirnos al ajedrez y aprender jugadas básicas, que todo ajedrecista debe saber. Además, enseñaremos los movimientos de las piezas, algunas aperturas de gran valor, y formas de dar mate. También enseñaremos algunos términos usados en ajedrez para describir tácticas especiales.
+
+¿Qué seremos capaces de resolver?
+Al final de este tema, serás capaz de resolver estos ejercicios (si los resuelves todos, ¡ya puedes subir de nivel!)
+
+Ejercicios preliminares
+¿Fáciles? ¿Complicados? ¿Cómo les parecieron? Si estudian este capítulo les aseguramos que si se vuelven a pasar por aquí, serán capaces de resolverlo.
+
+Estrategia
+
+Partiendo de su definición: En un proceso regulable, conjunto de las reglas que aseguran una decisión óptima en cada momento.
+
+A dichas reglas en ajedrez se le conocen como conceptos, entonces diremos que la estrategia en ajedrez es el conjunto de conceptos aplicables a una posición dada que nos ayuda a optimizar nuestras decisiones.
+
+Material
+El material lo constituyen todas las piezas de un jugador ubicadas sobre el tablero en un momento determinado de la partida. Tener más material que el oponente se traduce en más piezas disponibles para atacar y defender, y generalmente control de más espacio.
+
+Es fácil notar que no todas las piezas tienen el mismo valor en la partida, así una Dama suele valer más que un peón, o una torre más que un caballo. Existen excepciones donde el valor se ve afectado por las características estructurales de la posición. Lo cual se verá más adelante. Para decidir si cambia o no una pieza por otra el ajedrecista suele basarse entre otras cosas por una tabla de valores arbitraria, la cual se presenta a continuación.
+
+Decimos que un bando posee ventaja de material cuando el valor de su material excede en al menos '1' al del rival.
+
+Al Rey suele asignarsele un valor infinito pues su captura implica la consumación de la partida.
+
+Veamos algunos ejemplos.
+En la posición de la derecha las blancas acaban de jugar 7.d5, en su siguiente jugada amenazan con tomar el caballo de c6 con su peón, no temiendo la recaptura bxc6 pues su peón tiene menor valor. Esto desequilibraría el material en favor del primer bando.
+
+Suponiendo que deseen eliminar el peón jugando 7...Cxd5 debe suponerse que el blanco contestará 8.cxd5. Este cambio tampoco es bueno para el negro, ya que igual entregan un caballo a cambio de un peón.
+
+El juego continuo 7...Axf3 8.gxf3. Revisemos este cambio de piezas. Las dos valen 3 puntos por lo que en principio este cambio lo consideramos correcto.
+
+Tiempo
+Tiempo es el número de jugadas efectivas necesarias para llegar a una posición en el tablero. El derecho a mover permite a un bando mediante una jugada mejorar su posición. Sin embargo a cambio de utilizarlo, uno esta obligado a otorgarlo al bando contrario. Por eso es muy importante el correcto uso del tiempo en el ajedrez. Mover la misma pieza dos veces cuando con un solo movimiento pudo obtenerse la misma posición final costituye la forma más común de pérdida de tiempo.
+
+En el final de la partida, el derecho a mover no siempre constituye una ventaja como se verá más adelante en situaciones denominadas Zugzwang. Estos casos, aunque numerosos, no son tan frecuentes como aquellas posiciones donde es preferible cuidar el tiempo.
+
+El orden más común para llegar a la posición del diagrama es: 1.e4 e5. Aquí la continuación más común corre por: 2.Cf3 Cc6 3.Ab5 aumentando la presión sobre el peón de e5. Supongamos el orden: 1.e3?! e5 2.e4. Es la misma posición, sin embargo es el turno de las negras y no de las blancas. Ahora con 2...Cf6 3.Cc3 Ab4 son las negras las que presionan al peón de e4.
+
+Iniciativa
+Este término lo introdujo por primera vez el GM Jose Raul Capablanca, el cual lo denomino como la capacidad un jugador de ejecutar las primeras secuencias de amenazas y/o ataque antes de que lo haga su contrincante.
+
+En la posición del diagrama las blancas acaban de realizar 10.Da4. Quizás debieron preferir 10.Te1. Ahora las negras inician una secuencia de amenazas que concluye con la obtención de la pareja de alfiles en una posición abierta, cierta ventaja de espacio así como una buena disposición de sus piezas.
+
+10...f6 amenazando capturar al alfil de g5 11.Ah4 Af5  intentando cambiar su alfil malo por el alfil bueno del blanco 12. Ab5 a6 ahora ofrece su caballo por el alfil más activo de las blancas 13.Ae2 Cg6 busca la csilla f4, ganando tiempo por la amenaza sobre el alfil de h4 14.Ag3 Cf4 otro intento sobre el alfil de casillas blancas 15.Af4 si 15.Te1 el juego pudo seguir con 15...Cxe2 16.Txe2 The8 17.Tae1 Txe2 18.Txe2 Af8!? conservando la pareja de alfiles y luego continuar con g5 y h5 ganando espacio. 15...Af4 16.Cb3 Ante la aparente calma el blanco se reagrupa, pero el negro ya tiene una ligera ventaja basada en la mayor movilidad de su alfil de casillas negras que dicho sea de paso no tiene rival.
+
+La partida continuó con:...Ce5 amenazando con cambiar las damas 17.Da5 Cc4 presionando a la dama 18.Ac4 dxc4 Ahora se amenaza al caballo 19.Cc5 Dd5 Ahora eran las blancas las que intentaban tomar la iniciativa pero esto no se logra al no poder continuar con más amenazas. La posición de las negras es dominante, mientras las blancas no pueden coordinar un buen ataque y será muy difícil la defensa sobre su monarca. El juego terminó pronto con: 20.b4 Ag4 21.b5 Axf3 22.bxa6 b6 23.Da4 Axh2 24.Rh2 Dh5.
+
+Este juego es instructivo pues nos muestra como mediante amenazas bien estructuradas el bando negro puede seguir ubicando sus piezas en las mejores casillas como si el bando blanco no jugara. Es decir, pareciera que al negro se le devuelve el tiempo usado en su jugada anterior. Esto es la iniciativa.
+
+en:Chess/Strategy
+it:Scacchi/Strategie
+pt:Xadrez/Estratégia
+
+Iniciación del juego
+
+Disposición de tablero y piezas
+Ajedrez clásico
+En el diagrama de la derecha, puede verse la disposición inicial en una partida de ajedrez clásico. Debe tenerse primero que nada en cuenta que el tablero ha de ubicarse de un cierto modo, ya que no da igual ponerlo de cualquier manera. La regla de colocación del tablero indica que:
+
+A la casilla del ángulo a la derecha de cada jugador debe de ser una casilla blanca. Esta regla debe ser siempre cumplida.
+
+Muchos tableros incluyen las letras y números que forman en su entorno un sistema de coordenadas. En tal caso, las piezas blancas se colocan en la fila 1 y sus peones en la 2, y las del negro en la fila 8 y sus peones en la 7.
+
+Es importante ahora entender cuál es la correcta colocación del rey. La norma usualmente se enuncia así:
+
+El rey debe de estar siempre en una casilla de color opuesto al propio.
+
+Es decir, si el rey es blanco, debe de estar colocado en la casilla negra. Algunas personas hallan más fácil recordar que la Dama debe estar en una casilla de su mismo color. Si se cuenta con un tablero con coordenadas, el Rey va en la columna indicada por la letra "e" y la Dama en la de la letra "d".
+
+Por lo demás, hay que colocar las piezas tal y como están dispuestas.
+
+Ajedrez "Random-Fischer"
+Además del ajedrez clásico, existen lo que se conoce como "variantes" del ajedrez. Una de ellas se conoce como Ajedrez Aleatorio de Fischer, Ajedrez 960, o en inglés como Random Fischer, por su creador, el ex campeón mundial Bobby Fischer.
+
+Se caracteriza esta variante porque la disposición inicial de las piezas se determina en forma aleatoria, entre las 960 posibles combinaciones de inicio que podrían ocurrir, respetando ciertas limitaciones, como que cada jugador tiene que tener un alfil en las casillas blancas y el otro en las negras. Vale agregar que ambos jugadores disponen sus piezas en forma simétrica.
+
+Exponemos esto porque es otro tipo de posición de inicio, pero no se recomienda que cuando uno está apenas comenzando la práctica del ajedrez le preste demasiada antención. Más adelante, puede ser un interesante modo de practicar conceptos tácticos.
+
+Movimiento de las piezas
+El peón
+Su movimiento será únicamente en línea recta hacia las piezas del adversario y rigiéndose bajo las dos reglas básicas:
+
+- Si aún no se ha movido, puede elegir entre moverse una casilla o dos casillas
+
+- Si ya tuvo algún movimiento solo podrá avanzar una casilla por turno
+
+La forma de capturar del peón es en diagonal y por solo una casilla (ver Capturar al paso) y la podemos mostrar así:
+
+Los peones se encuentran en diagonal uno con otro y posteriormente el peón negro captura
+al peón blanco.
+
+El Alfil
+Este se mueve en líneas diagonales. Debido a que las líneas diagonales están constituidas con casillas de un mismo color, aquel alfil que inicie en una casilla clara, siempre se mantendrá en casillas claras. Lo mismo para el alfil de casillas oscuras. El alcance de sus movimientos se ve limitado por los bordes del tablero, por las piezas compañeras y por las del adversario, pudiendo capturar a estas últimas.
+
+El Caballo
+Quizás la pieza más conflictiva de describir. Hay dos maneras de describir el movimiento de esta pieza menor, la manera "vulgar" de describirlo, o la manera "oficial". Pero, es mejor verlo a través de imágenes
+
+La descripción oficial es la siguiente: el caballo se mueve a la casilla más cercana que no esté en la fila, columna o diagonales de donde está. Es cierto que es más cómodo decir que mueve como una L, no obstante, es incorrecto ya que no pasa por las casillas intermedias. Como no pasa dichas casillas se dice que salta, es decir, su movimiento no puede ser bloqueado colocando piezas entre él y la casilla de destino. Son capturadas las piezas rivales ubicadas en la casilla de destino.
+
+La torre
+Describe movimientos perpendiculares a los bordes del tablero; Es decir sobre columnas y filas. Puede capturar a la primera pieza contraria que se ubique en su trayecto. No salta piezas propias ni hostiles. Excepto durante el enroque.
+
+La dama
+Mueve y captura como una torre o como un alfil, pero no en la misma jugada; no puede saltar sobre otras piezas.
+
+El rey
+Mueve a todas las casillas inmediatas a él, excepto por el enroque donde avanza dos casillas. El rey no puede mover a ninguna casilla controlada por una pieza rival. Captura a las piezas rivales ubicadas en las mismas casillas a las cuales pueda mover.
+
+Otros movimientos
+El enroque
+Existe una sola jugada donde es posible mover dos piezas al mismo tiempo y a esta se le denomina enroque. El rey se desplaza dos lugares hacia la torre y la torre salta a la casilla por la que el rey paso.
+
+Este solo puede realizarse si se cumplen todos los siguientes requisitos:
+El rey no se ha movido antes.
+La torre tampoco se ha movido, de haberlo hecho se conserva el derecho a enrocar con la otra torre. A menos claro, que también se haya movido.
+No hay ninguna pieza en el recorrido de la torre hacia el rey.
+El rey no esta en jaque.
+Las casillas de paso y destino del rey no están amenazadas por piezas rivales.
+
+Las últimas tres condiciones son temporales, ya que puede eliminarse el factor que no permite enrocar.
+
+Captura al paso
+Es una situación en la cual un peón puede capturar de modo diferente al descrito antes. Un peón ubicado en la quinta fila de su bando (5 para las blancas y 4 para las negras) puede capturar a un peón enemigo ubicado en alguna de las columnas adyacentes que en su movimiento inmediato anterior, avanzó 2 casillas. Y lo hace como si  aquel hubiese avanzado solo una casilla.
+
+Sin embargo esta jugada solo puede ser realizada como réplica, es decir en el turno inmediato del bando que captura. Pues de no hacerlo, se pierde el derecho de éste a capturar al paso.
+
+en:Chess/Playing The Game
+it:Scacchi/Le regole del gioco
+ms:Catur/Bermain
+nl:Schaken/Spelregels
+pt:Xadrez/Regras
+ro:Şah/Reguli de bază
+zh:国际象棋/规则
+
+Mates elementales
+
+Se dice que la mejor manera para iniciarse en el ajedrez es a través del estudio de los finales. Llamaremos mates elementales a aquellos que se realizan con pocas piezas sobre el tablero.
+
+Rey y Dama vs Rey
+Veámoslo a partir de la posición del diagrama.
+Para poder dar mate primero debemos conducirlo a uno de los bordes del tablero.
+
+1.Dc6
+
+Cortando las casillas disponibles para el rey contrario.
+
+1...Rd3
+
+En caso de 1...Re5 2. Dd7 cortando ahora en la columna d.
+
+2.Dc5
+
+La dama siempre se coloca a una jugada de caballo del rey rival. No sirve ponerse a dar jaques que no llevan a ninguna parte.
+
+2...Re4 3.Dd6
+
+Es mala 3.Dc3 Rd5 pues el rey continua disfrutando su estancia en el centro. Debe imaginarse que la dama divide el tablero en 4 cuadrantes al trazar una línea vertical y otra horizontal. La clave para ejecutar el mate, es siempre mantener al rey contrario en el mismo cuadrante.
+
+3...Re3 4.Dd5 Rf4 5.De6 Rg3 6.Df6 Rh3
+
+Obsérvese como la Dama solo 'imita' los movimientos del Rey contrario.
+
+7.Dg6
+
+Aquí debe evitarse 7.Dg5 pues quedaría ahogado el Rey y el resultado es tablas.
+
+7 ...Rh4
+
+Ya limitado el Rey contrario, se procede a acercar el propio desde el frente.
+
+8.Rf2
+
+El Rey blanco se coloca frente al negro y esta listo para apoyar a la Dama en el mate.
+
+8 ...Rh3 9.Dg3++
+
+Resumiendo podemos decir que el mate se divide en tres etapas:
+Colocar la Dama a una jugada de Caballo.
+Imitar los movimientos del Rey para guíarlo al borde del tablero.
+Acercar al rey propio para terminar la maniobra.
+
+Rey y Torre vs Rey
+Este mate es un poco más complicado que el anterior.
+Ya que para envíar al rey contrario a uno de los lados del tablero es necesario el uso conjunto del rey y la torre.
+Existen 2 métodos y la combinación de ambos para lograrlo. Pero debido a que parece más fácil aprender, se explicará primero el más largo.
+A partir del diagrama.
+
+1.Th4
+
+Las blancas limitan las casillas del rey enemigo, ahora solo tiene disponible las filas 5, 6, 7 y 8.
+
+1...Rd5
+
+el negro no quiere perde más filas sin antes pelear, que seria el caso si jugara, por ejemplo: l...Re6. Lo cual seria contestado con 2.Th5.
+
+2.Rf2
+
+El rey tiene que cooperar pues la torre no puede "sola".
+
+2...Re5 3.Rf3 Rd5
+
+En caso de 3...Rf5 4.Th5+ restando más filas al rey negro. Vemos porque el blanco evitó 3.Re5.
+
+4.Re3 Rc5 5.Rd3 Rb5 6.Rc3 Ra5
+
+Se terminan las jugadas que eluden la situación buscada por las blancas.
+
+7.Rb3
+
+El blanco esta listo para ese jaque gana más casillas en su camino hacia el borde del tablero.
+
+7...Rb5 8.Th5+
+
+Justo ahora, obligándolo a retroceder.
+
+8...Rc6
+
+En caso de 8...Ra6 9.Rb4 facilita mucho el trabajo para las blancas. Algo similar ocurre con 8...Rb6 9.Rc4, buscando siempre el mismo esquema.
+
+9.Rc4
+
+Nótese la diferencia con la jugada 3.Rf3 de las blancas, ahora 3.Rb4 no es tan recomendable. Pues se empuja al rey hacia la torre, lo cual obligará a perder un tiempo cuando ésta sea alcanzada por el rey negro.
+
+9...Rd6
+
+Contra 9...Rb6 10.Tg5, perdiendo un tiempo, 10...Ra6 11.Rb4 y el rey negro debe retroceder.
+
+10.Ta5
+
+Reubicando la torre, para evitar que sea incomodada por el rey rival. El resto de la maniobra es sólo repetición de lo ya expuesto.
+
+10...Re6 11.Rd4 Rf6 12.Re4 Rg6 13.Rf4 Rh6 14.Rg4 Rg6 15.Ta6 Rf7 16.Rf5 Rg7 17.Tb6 Rh7 18.Rg5 Rg7 19.Tb7 Rf8 20.Rf6 Re8 21. Th7 Rd8 22.Re6 Rc8 23.Rd6 Rb8 24.Rc6 Ra8 25.Rb6 Rb8 26.Th8++
+
+Rey y Pareja de Alfiles vs Rey
+La ejecución de este mate es aún más difícil, aquí se propone un modelo; que no necesariamente es el camino más corto, pero si es un método infalible para lograrlo. Las fases son:
+Ubicar a nuestro monarca en una casilla central.
+Colocar ambos alfiles, en casillas adyacentes entre sí y centrales. Encerrando al rey rival frente a ellos.
+Maniobrar para colocar forzar al rey a una esquina.
+Terminar el mate.
+
+1. Re2
+
+Inicia su ruta hacia el centro.
+
+1...Re6 2.Rd3
+
+2.Rd3 también funciona, pero preferiremos esta pues no bloquea la trayectoria del alfil. Además es difícil evitar que el rey blanco se instale en c4.
+
+2... Re5 3. Rc4 Re6 4.Ad4
+
+Con el rey centralizado ahora los alfiles son llevados al centro.
+
+4...Rf5
+
+Contra 4... Rd6 5. Ad5 Re7 (5... Rd7 6.Ac5) 6. Rc5 Rd7 7. Rf6 con posición muy similar. Y contra 4... Re7 5.Ad5 Rd6 6.Af6 Rd7 7. Rc5 Rc7 8. Ac6.
+
+5.Rd5 Rf4 6. Ae4 Rg4
+
+6... Rg5 7. Re5 Rh4 (7... Rg4 8. Af2) 8. Rf4 Rh5 9. Ag7
+
+7.Ae3
+
+Está posición es clave. Y es fácil de forzar.
+
+7...Rg3 8.Re5 Rg4
+
+Observe como el Rey blanco desplaza poco a poco a su rival a una de las esquinas.
+
+9.Af2
+
+El momento justo.
+
+9...Rg5 10. Af5 Rh6
+
+Es lo mismo 10...Rh5 11.Rf6 Rh6 12.Ag4.
+
+11. Rf6 Rh5 12. Ag3
+
+Jugada de espera. A partir de este punto, el resto es bastante intuitivo.
+
+12...Rh6 13. Ag4 Rh7 14. Rf7 Rh8 15. Af4
+
+Por supuesto si 15.Af5?? el juego sería tablas.
+
+Rh7 16. Af5+ Rh8 17. Ae5++
+
+Rey, Alfil y Caballo vs Rey
+1. Rb2 Rc5 2. Rc3 Rd6 3. Rd4 Re6 4. Ae4
+
+Solo después de centralizar al rey, las piezas menores vienen a ayudar.
+
+Rf6 5. Cc7 Rg7
+
+El mate solo puede ser forzado en las esquinas del color del alfil por lo que el monarca huye hacia una esquina oscura.
+
+En caso de 5...Re7 6. Re5 Rd7 7. Ce6 Re8 8.Cc5 Re7 9. Ac4 Rf8 10. Rf6 Re8 11. Re6 Rf8 12. Cd7+ Rg7 13. Rf5 Rh6 14. Ae2 Rg7 15. Ce5 Rf8 16. Rf6 igual que en la partida.
+
+6.Re5 Rg8
+
+Tratar de escapar con 6 ...Rh6 7. Rf6 Rh5 8. Ce6 Rg4 no resulta por 9. Ae4 Rg3 10. Rf5 Rf2 11. Cd4 Re3 12. Cb3 Re2 13. Rf4 Rf2 14. Af3 Rf1 15. Cd4. Esta variante es muy interesante, pues nos muestra que el Rey blanco es quien maniobra alrededor del alfil, para evitar los escapes hacia el centro y el caballo "tapa" los huecos de color contrario al alfil en la periferia.
+
+7. Rf6 Rf8 8.Af5
+
+Jugada de espera. Hay que reubicar al caballo pero la inmediata 8.Ce6 es contestada con 8...Re8.
+
+Rg8 9. Ce6 Rh8 10. Cg5 Rg8
+
+Única.
+
+11. Cf7
+
+Posición clave. Veamos sus características.
+El rey negro se encuentra en uno de los bordes del tablero.
+El rey blanco junto con su alfil cubren 5 casillas de la segunda línea.
+El caballo ubicado en una casilla del mismo color que el alfil bloquea las casillas de fuga del rey.
+Notese además la posición en línea recta de las figuras blancas.
+
+ 11...Rf8 12. Ah7
+
+Con esta jugada se inicia el traslado del rey hacia a8.
+
+ 2...Re8 13.Ce5
+
+Buscando colocarse ahora en d7. Esta y la anterior jugada del alfil siempre se hacen en orden sucesivo.
+
+13...Rd8
+
+A 13... Rf8 seguría 14. Cd7+ Re8 15. Re6 Rd8 16. Rd6. Alcanzando
+la posición señalada como clave.
+
+14. Re6 Rc7 15. Cd7 Rb7
+
+Intentando huir de la custodia del rey blanco.
+
+16. Ad3
+
+Justo a tiempo para evitar la fuga.
+
+ Rc6 17. Ac4
+
+También servía cualquier jugada de espera sobre la diagonal f1-a6.
+
+Rc7 18. Ad5
+
+Es más rápida 18. Ab5 pero luego de Rd8 19. Cc5 Rc7 es necesario hacer 20. Ca4 Rd8 21. Rd6 Rc8 22. Cc5 saliendo un poco del esquema, para luego de Rd8 23. Cb7+ Rc8 volver con 24. Rc6. Lo anterior solo complica la ejecución del mate, mientras la jugada 18.Ad5 es más sencilla.
+
+18... Rc8 19. Rd6 Rd8
+
+Compárese esta posición con la obtenida tras la jugada 11 de las negras.
+
+20. Af7 Rc8 21. Cc5 Rd8 22. Cb7+ Rc8 23. Rc6 Rb8 24. Rb6
+
+Esta es la jugada más directa.
+
+24...Rc8 25. Ae6+ Rb8 26. Cc5 Ra8 27. Af5
+
+Jugada de espera.
+
+27...Rb8 28. Ca6+ Ra8 29. Ae4++
+Mate Pastor
+En ajedrez, el mate del pastor (también llamado mate pastor, jaque mate del pastor o jaque mate pastor) es un jaque mate que ocurre tras las jugadas blancas (en notación algebraica) 1.e4 2.Ac4 3.Dh5 4.Dxf7# o similares. Se pueden jugar en un orden diferente o con ligeras variaciones, pero la idea básica es que la dama y el alfil cooperen para atacar el punto f7
+
+Enlaces
+
+Créditos
+
+Info
+
+El ajedrez se juega en la modalidad de partidas entre dos
+o más personas puestas en equilibrio.
+Su campo de juego es el tablero y es la representación de
+un campo de batalla donde se enfrentan dos ejércitos. El
+objetivo final es la captura del rey adversario.
+
+Algunos grandes jugadores
+
+A continuación se presenta la lista de los campeones del mundo de ajedrez oficiales:
+
+Wilhelm Steinitz, 1886–1894, Austria/USA
+Emanuel Lasker, 1894–1921, Alemania
+José Raúl Capablanca, 1921–1927, Cuba
+Alexander Alekhine, 1927–1935, Rusia/Francia
+Max Euwe, 1935–1937, Países Bajos
+Mijaíl Botvínnik, 1948–1957, Unión Soviética
+Vasili Smyslov, 1957–1958, Unión Soviética
+Mijaíl Tal, 1960–1961, Unión Soviética
+Tigran Petrosian, 1963–1969, Unión Soviética
+Borís Spassky, 1969–1972, Unión Soviética
+Robert James Fischer, 1972–1975, Estados Unidos
+Anatoly Karpov, 1975–1985, Unión Soviética
+Garry Kaspárov, 1985–1993, Unión Soviética/Rusia
+Vladímir Krámnik, 2000–2006, Rusia
+Alexandr Jálifman, 1999–2000, Rusia
+Viswanathan Anand, 2000–2002, India
+Ruslan Ponomariov, 2002–2004, Ucrania
+Rustam Kasimdzhanov, 2004–2005, Uzbekistán
+Veselin Topalov, 2005–2006, Bulgaria
+
+Anotando un juego
+
+La posibilidad de anotar los movimientos de una partida de ajedrez es indispensable para su posterior análisis, así como para transmitir conocimientos en ajedrez.
+
+Existen dos formas distintas de anotar el movimiento de las piezas: Notación descriptiva y Notación algebraica. Por ahora, la Notación descriptiva está en desuso, y en torneos se prefiere usar notación algebraica. Es por eso que vamos a enseñar cómo anotar los movimientos en Notación algebraica y no en descriptiva.
+
+Notación Algebraica
+Existen varias formas de anotar las jugadas. Aquí mostraremos la considerada estándar y oficial para la mayoría de las federaciones de ajedrez.
+
+Primero diremos que cada casilla tiene una referencia única. Ésta se obtiene asignando a cada una de las columnas, de izquierda a derecha desde la perspectiva blanca, las letras: a, b, c, d, e, f, g y h. Y a cada fila, de la más cercana (siempre desde la perspectiva blanca) a la más lejana, los números: 1, 2, 3, 4, 5, 6, 7 y 8.
+
+El nombre se forma uniendo ambas referencias, como si de un sistema de coordenadas plano se tratara, siempre poniendo la letra antes que el número.
+
+Así, en la posición del diagrama de la derecha podemos decir que hay un Alfil blanco en c4, o que la Dama negra se encuentra en d8. También que tenemos peones negros en a7, b7, c7, d6, e5, f7, g7 y h7.
+
+Ahora bien, el interés recae sobre la pieza que se mueve en una posición dada y la casilla de destino de dicha pieza. Las piezas se nombran mediante las siguientes letras:
+R para el Rey
+D para la Dama o Reina
+T para la Torre
+C para el Caballo
+A para el Alfil
+
+Nótese que todas están en mayúsculas, mientras las referencias de las columnas siempre van en minúsculas. Las letras mayúsculas varían de un idioma a otro, correspondiendo normalmente a la inicial de la pieza correspondiente en dicho idioma. Al peón no se le asigna letra mayúscula alguna, de forma que para anotar una jugada de peón sólo se indica la casilla de destino, o bien la columna de origen y la casilla de destino en caso de una captura.
+
+Ya podemos construir una jugada. Por ejemplo, si el Alfil que está en c1 jugara a a3 diríamos: "Aa3". Esta información es suficiente para saber que es ese alfil y no otro el que se va a mover. También basta con decir "h3" para señalar que el peón que se encuentra en h2 avanza un escaque.
+
+El jaque se representa con el símbolo "+" y el jaque mate con ++ o "#", colocando el símbolo al final de la jugada.
+
+El signo de captura es "x" (se lee por), y se pone justo antes de la referencia a la casilla de destino. En el caso de una captura con peón, antes de la "x" pondremos la letra de la columna en que se encontraba originalmente el peón.
+
+Veamos dos ejemplos sencillos:
+Axf7+, el Alfil de c4 toma en f7 con jaque.
+dxe5, el peón de d4 captura en e5.
+
+Situémonos ahora en la posición del «diagrama 2».
+Aquí deseamos anotar que la siguiente jugada negra es Cf6, pero enseguida surge la confusión de cuál es el caballo que se desplaza a dicha casilla. En estos casos se recurre a las siguientes reglas que evitan la ambigüedad:
+Se anota la columna de origen justo después de la letra de la pieza.
+Si lo anterior falla, se anota la fila de origen justo después de la letra de la pieza.
+Si lo anterior falla, se anota la referencia completa justo después de la letra de la pieza.
+
+Entonces diremos Cgf6 o Cdf6, según sea el caso.
+
+Los movimientos suelen numerarse, considerándose una jugada completa a aquélla que se refiere a un movimiento de pieza por parte de las blancas, junto con la correspondiente respuesta por parte de las negras. Debemos de recordar que siempre comienzan a jugar las blancas. Así tenemos que, desde la posición inicial, el siguiente orden de movidas lleva al diagrama de la derecha:
+
+Cuando en una secuencia de jugadas la primera corresponde a las piezas negras, ésta suele anotarse con "..." (puntos suspensivos) después del número de movimiento y antes de especificar la jugada. Así podríamos decir que la posición del diagrama se alcanza después de 4...Cf6.
+
+Es éste un buen momento para mostrar cómo se anota el enroque:
+
+Por lo tanto, podemos decir que la siguiente jugada blanca es 5.O-O.
+
+La promoción se escribe poniendo, justo después de la casilla de destino, el símbolo "=" seguido de la letra mayúscula de la pieza obtenida, aunque también es posible omitir dicho símbolo. Opcionalmente podría haber un signo de jaque o de jaque mate justo detrás de la inicial de la pieza obtenida. Veámoslo con algún ejemplo:
+
+Se llega a la siguiente posición tras: 1. e4 e6 2. d4 d5 3. Cc3 Cf6 4. Ag5 Ab4 5. e5 h6 6. exf6 hxg5 7. fxg7 Tg8 8. h4 gxh4 9. Dg4 Ae7 10. g3 c5 11. gxh4 cxd4 12. h5 dxc3 13. h6 cxb2 14. Tb1 Da5+ 15. Re2 Dxa2 16. h7 Dxb1
+
+Si aquí el peón de h7 avanza a h8 y se convierte en Caballo, escribiríamos 17.h8=C o bien 17.h8C.
+
+Y si toma en g8 y se promociona a Dama, pondríamos 17.hxg8=D+ o bien 17.hxg8D+.
+
+Para terminar, algunos símbolos adicionales que se pueden añadir detrás de cada movimiento, ya sea de las blancas o de las negras (nota que es de mal gusto poner estos símbolos al contrario durante la partida, éstos se colocan cuando la analizas de forma concienzuda en casa), son los siguientes:
+
+También es posible incluir en nuestros análisis todos los comentarios, variantes o subvariantes que se deseen, normalmente entre paréntesis, llaves o corchetes para distinguirlos de las jugadas de la partida. Un sencillo ejemplo de notación de una partida sería el siguiente:
+
+e4 e5
+Ac4 Cc6
+Dh5!? Cf6?? (se puede evitar el mate con 3...g6, 3...De7 o 3...Df6)
+Dxf7#
+
+Éste es el conocido Mate del pastor.
+
+Más
+Los espacios donde se cruzan las 8 columnas con las 8 filas forman e identifican con claridad las 64 casillas.
+
+Identificación de las casillas: cada una de las 64 casillas del tablero de ajedrez está identificada con una letra minúscula de la a hasta la h, identificando la localización vertical; seguida por un número del 1 al 8, identificando su localización horizontal.
+
+Por consiguiente, cada una de las 64 casillas está identificada de forma inconfundible por un conjunto de una letra en minúscula seguida por un número.
+
+Veamos algunos ejemplos:
+La casilla h1, siempre deberá estar ubicada a la derecha del jugador que conduce las piezas blancas.
+La casilla h8, siempre deberá estar ubicada a la izquierda del jugador que conduce las piezas negras.
+La columna e está formada por ocho casillas. Cuatro casillas negras: e1, e3, e5, e7 y cuatro casillas blancas e2, e4, e6, y e8
+
+La fila 4 está formada por ocho casillas. Cuatro casillas blancas: a4, c4, e4, g4, y cuatro casillas negras: b4, d4, f4 y h4.
+
+Historia
+
+Al igual que muchos deportes, el ajedrez nació en forma de ritos culturales. La mitología griega atribuye el origen del ajedrez al amor y la guerra. Como resultado de la fuerte atracción celestial entre el dios de la guerra, ares, y la diosa del amor, afrodita: nace la hermosa diosa del ajedrez a la que llamaron Caissa. La bellísima divinidad encargada de seducir a los mortales por los caminos del ajedrez.
+A través de la historia ha sufrido grandes cambios y transformaciones, cambios culturales y deportivos, siempre reflejando las angustias de las derrotas y las alegrías que traen las victorias. Es por lo tanto, la lucha del día a día del hombre por superarse.
+Sus primeros vestigios en la historia, fueron localizados en la india en el siglo v, con el juego conocido como el padre del ajedrez, el chaturanga. Se jugaba entre cuatro ejércitos que movían las piezas al son de los dados. Elefantes, jinetes, carros y soldados de a pie, un rey y un general, que más tarde se transformen Persia, por el año 600 de la era cristiana.
+Luego, con el paso del tiempo, se estructura y se fundamenta. Sus normas se aplican y difunden en las tertulias de las grandes cortes, en las que los mejores ajedrecistas eran invitados y gozaban de grandes privilegios. En esta época, el ajedrez era el rey de los juegos y el juego de los reyes.
+Los árabes lo modifican y lo llevan a través de sus conquistas y rutas de comercio por Africa y luego a Europa. En el año 821 llega a España, donde se transformó en el ajedrez moderno. Son los conquistadores quienes lo traen al nuevo continente americano.
+
+Historia de los campeones del mundo
+El ajedrez se empieza a perfilar como deporte a mediados del siglo XX y en el año 1924, en París, se constituye la federación mundial de ajedrez ( FIDE).
+Entre los jugadores más destacados en la historia del ajedrez en el mundo se encuentran:
+Wilhelm Steinitz, Austria, primer campeón del mundo 1886-1894. Steinitz fue el creador de la escuela científica.
+Emanuel Lasker, alemán, defendió el título mundial durante 27 años, de 1894 a 1921. Utilizó la psicología en las partidas de ajedrez.
+El cubano José Raúl Capablanca y Graupera, fue el primer latino campeón del mundo. Se guiaba por la lógica del juego de posición y el sentido común.
+Alexander Alexandrovich Alekhine, ruso-francés, fue el primer campeón de la unión de repúblicas socialistas Soviéticas. Fue el primero en establecer los fundamentos de la táctica.
+
+Mijael Moiseevich Botvinnik, soviético, campeón del mundo en tres oportunidades 1948-1957, 1958-1960, 1961-1963. Botvinnik, fue el fundador de la escuela soviética de ajedrez.
+Mijael Nekhemievich Tal, soviético. El más breve y brillante campeón del mundo. En su estilo predominó la creatividad, la imaginación y la táctica.
+Boris Spassky, ruso-francés. Campeón del mundo en la época dorada de la escuela soviética de ajedrez, fue su más digno representante. Considerado una leyenda.
+Robert James Fischer, estadounidense, campeón del mundo en el periodo 1972-1975. Considerado el genio más grande que ha dado el ajedrez y el precursor del actual desarrollo del ajedrez en el mundo.
+Garry Kimovich Kasparov, ruso. Campeón del mundo 1985-1993. Obtiene el título en Sevilla, España, al derrotar en una maratónica prueba en tres encuentros al ruso Anatoli Karpov, tras seis meses y 48 partidas.
+
+En el año 2008, el indio Viswanathan Anand, vence a Vladimir Kramnik, convirtiéndose en el décimo quinto campeón del mundo. Se destaca por su creatividad en los finales, su forma de juego es similar a la del cubano Capablanca: sencillo, lógico, con gran sentido común y una gran innovación en el repertorio de aperturas.
+
+Historia del campeonato mundial de ajedrez femenino
+La primera campeona mundial de ajedrez fue vera Menchik-Stevenson de Rusia, obtuvo el título en 1927 y lo defendió hasta 1944.
+
+Vale la pena destacar que la fuerza del desarrollo del ajedrez femenino fue demostrada por la húngara Zsuzsa Polgar, octava campeona del mundo, ubicándose entre los 10 mejores jugadores del mundo en la rama masculina.
+
+Actualmente China y Rusia se disputan la supremacía en la rama femenina. China con Xu Yuhua y Rusia con Aleksandra Kosteniuk.
+
+Historia del ajedrez colombiano
+A mediados de los años 40, se reúne en Bogotá, un selecto grupo de aficionados al ajedrez para crear la asociación colombiana de ajedrez, actualmente Fecodaz. Siendo el primer campeón nacional, en el año 1946, el maestro internacional Miguel Cuéllar Gacharná.
+
+La Federación Colombiana, en la rama masculina, cuenta con 4 grandes maestros, 21 maestros internacionales y 20 maestros FIDE, aspirantes a maestros internacionales. En la rama femenina, cuenta con 8 maestras internacionales y 7 maestras FIDE, aspirantes a maestras internacionales
+
+Fecodaz adopta en su estructura organizativa programas de formación y entrenamiento para participar en los juegos nacionales, torneos internacionales administrados por organismos internacionales como la CCA, juegos panamericanos y torneos intercontinentales. Así como los organizados por la Federación Iberoamericana de Ajedrez y los campeonatos mundiales de la FIDE.
+
+La Fecodaz se ha comprometido con la FIDE, la FIBDA y la CCA, en la organización de la enseñanza del ajedrez como una disciplina deportiva que desarrolla en los jóvenes las actividades lúdicas, artísticas, matemáticas y pedagógicas. Este compromiso abarca las categorías establecidas por edades para los dos géneros: sub 8; sub 10; sub 12; sub 14; sub 16, sub 18 y sub 20.
+
+Léxico
+
+Por táctica se entiende que son los métodos o pasos que se dan, con el fin de alcanzar un objetivo que se desea. Es fundamental siempre tener un plan en mente, y mover en consecuencia. En el ajedrez, la táctica es la serie de movimientos de tus piezas, y existen varios tipos de objetivos, cada uno debe de tener una táctica distinta.
+
+A grandes rasgos, podemos dividir los planes fundamentales en dos: debilitar la seguridad del rey enemigo, y garantizar la propia. No obstante, es importante remarcar que no siempre se alcanzará la victoria por medio de la seguridad del rey. En este sentido, podemos definir como variables tácticas el valor posicional y el valor material, siendo el primero la seguridad de ambos reyes, el desarrollo de las piezas, entre otros, mientras que el segundo refiere a las piezas con las que se cuenta o no se cuenta por parte del rival o uno mismo, ambos factores que influyen considerablemente en la partida, a modo de desarrollo de tácticas o bien como consecuencia de estas últimas.
+
+Existen distintos términos en ajedrez para describir tácticas especiales.
+
+Términos
+Clavada
+Una pieza clavada es una pieza que no puede mover porque expondría un ataque de una pieza rival sobre una pieza propia generalmente de mayor valor que la pieza atacante. Las clavadas pueden ser absolutas o relativas y serán absolutas cuando la pieza cubierta sea el rey.
+
+A diferencia de las clavadas absolutas, las relativas dejan la opción a una desclavada. Es decir, en ocasiones podemos mover la pieza clavada no importándonos la captura de la pieza que se encuentra detrás; esto a cambio de una ventaja mayor, como iniciar una combinación de mate, o de un cambio que simplifique la posición. ese es el método
+
+Clavada Inversa o Enfilada
+Ocurre cuando, en lugar de atacar a la pieza de mayor valor que está detrás de la pieza clavada por medio de Rayos X, la pieza de mayor valor se encuentra delante, por lo que obligamos al rival a retirarla para de esta manera capturar la pieza que se encuentra detrás.
+
+Ataque doble
+Es una de las tácticas más simples del ajedrez y consiste en atacar a dos piezas al mismo tiempo. Esto generalmente deriva en la entrega de material por parte del rival o en una jugada defensiva poco cómoda. Existen diferentes tipos de doble Ataque , por ejemplo la horquilla, aquí abajo explicada. Otra forma de doble ataque puede ser descubrir una pieza tuya que antes estaba cubierta por otra pieza tuya, por ejemplo, quitar de delante de una torre un alfil y amenazar con el alfil una pieza y con la torre a otra que antes no amenazaba porque el alfil estaba delante.
+
+Horquilla o Tenedor
+Cuando una misma pieza ataca a dos piezas rivales a la vez decimos que ejecuta una horquilla. Todas las piezas pueden hacerlo, sin embargo, el caballo prácticamente "a eso se dedica".
+
+Horquilla con jaque
+Cuando en una horquilla una de las piezas amenazadas es el rey, generalmente el bando atacado termina entregando la otra pieza, pues no es posible ignorar la amenaza sobre el rey. En este tipo de horquillas se nota aún más el poder del caballo.
+
+Ataque al descubierto
+Esto sucede cuando al mover una pieza la que esta atrás da jaque al rey.
+Jaque doble
+Esto sucede cuando al mover una pieza que da jaque al rey descubrimos otra que también da jaque al rey en la misma jugada. A esto se la llama jaque doble, y obliga al rival a mover el rey en lugar de simplemente bloquear o capturar la pieza que da el jaque.
+
+Rayos X
+Los Rayos X suceden cuando se ejerce presión o protección en una determinada columna, fila, o diagonal que actualmente se encuentra obstruida por una pieza intermedia propia o del rival, haciendo uso de una pieza de largo alcance como son las torres o los alfiles.
+
+Sobrecarga
+Sucede cuando una misma pieza protege dos casillas amenazadas, de manera que capturar en una deja desprotegida la otra.
+
+Atracción
+La atracción es una táctica poderosa que consiste en atraer una pieza enemiga, generalmente el rey, a una casilla específica para aprovechar una ventaja táctica. Esta táctica se utiliza para ejecutar mates, ganar material o posicionar al oponente en una situación desfavorable. Ejemplos de atracción incluyen sacrificios, jaques, amenazas directas y capturas forzadas.
+
+Defensores Clave
+Entiéndase por Defensores Clave como aquellas piezas que protegen de una jugada devastadora, y que mantienen la posición del rival jugable. La estrategia consiste en eliminar al defensor por medio de una captura, sacrificio, distracción o amenaza, de modo que la casilla que antes defendían quede desprotegida y lista para atacarse.
+
+Distracción
+De manera similar a la atracción, ocurre cuando se lleva a una pieza clave a otro lugar en donde deja de tener actividad ofensiva o defensiva, permitiéndonos ejecutar tácticas que previamente no eran posibles.
+
+Jugada intermedia
+Una jugada intermedia es aquella jugada que permite realizar uno de los anteriores temas tácticos que antes no podían realizarse debido a varias razones. Por ejemplo que una pieza propia obstruya a otra, y que nosotros la retiremos a otra casilla.
+
+Introducción
+
+El ajedrez es un deporte mental de dos jugadores el cual se realiza en un tablero, como muchos otros juegos de mesa. El tablero es de 8×8 con casillas de colores alternos, claras y oscuras, normalmente blancas y negras.
+Cada jugador —denominado comúnmente como «ajedrecista»— representa a un bando: el «bando blanco» y el «bando negro». Los dos bandos se componen de una serie de piezas; la más importante es el «Rey». El deporte consiste en darle jaque mate al Rey del jugador rival y para ello se utilizan los diversos tipos de trebejos o piezas así como los movimientos.
+
+Al comienzo de la partida cada jugador dispondrá de las siguientes piezas:
+Un «Rey»
+Una «Dama» o «Reina»
+Dos «Alfiles»
+Dos «Caballos»
+Dos «Torres»
+Ocho «Peones»
+
+El alfil en detalle
+
+El alfil representa a los asesores espirituales o de guerra de los reyes.
+
+El ícono utilizado en los diagramas proviene del gorro de los obispos, “la mitra”.
+
+Los alfiles son “armas” muy eficaces para crear amenazas y ataques a larga distancia, para lograrlo requieren de diagonales abiertas.
+
+Igualmente son utilizados frecuentemente por los maestros en la defensa y en el ataque.
+
+Al comienzo de la partida cada jugador cuenta con dos alfiles. Uno ubicado en el flanco dama, Ac1 y Ac8, y se denomina el alfil de dama; el otro se ubica en el flanco rey, Af1 y Af8, llamado alfil de rey.
+
+El alfil utiliza en su desplazamiento como vías principales las diagonales. Es el responsable de cuidar las casillas de color por donde se desplaza y no le está permitido cambiar de color de diagonal.
+
+El valor numérico de un alfil es ligeramente superior a tres peones.
+
+El desplazamiento del alfil es en diagonal y sin límite de casillas. Su radio de acción está dirigido en cuatro direcciones: por la diagonal mayor hacia adelante y atrás y de igual manera, por la diagonal menor. Formando la gráfica en su andar del signo matemático x
+
+El alfil se designa con la letra a para el registro de las partidas, utilizando el sistema algebraico.
+
+Veamos algunos ejemplos de esta pieza menor y su radio de acción, colocada en tres situaciones ilustrativas diferentes: en el centro, en un borde y en una esquina del tablero.
+
+El alfil en el centro:
+colocado en la casilla blanca e4, se puede mover únicamente por las diagonales blancas a cualquiera de las trece casillas que ataca o controla. Es decir, se puede desplazar por la diagonal mayor en línea recta a cualquiera de las casillas finales que la forman, hacia delante o atrás, y de la misma manera por la diagonal menor.
+
+Es importante tener en cuenta que el alfil situado en e4 ataca 13 casillas.
+
+El alfil en un borde del tablero:
+ubicado en la casilla blanca d1, se puede mover a cualquiera de las 7 casillas que ataca o controla. El Ad1, casilla de origen, se puede mover en ambas diagonales y en línea recta: a las 4 casillas finales que forman la diagonal mayor (e2, f3, g4 y h5) o a cualquiera de las tres casillas finales que forman la diagonal menor (c2, b3 y a4).
+
+Es importante tener en cuenta que el alfil situado en ad1 ataca 7 casillas.
+
+El alfil en una esquina del tablero:
+ubicada en la casilla negra a1, se puede mover a cualquiera de las 7 casillas que ataca. El Aa1, casilla de origen, se puede mover a cualquiera de las 7 casillas que forman la gran diagonal en línea recta (b2, c3, d4, e5, f6, g7 y h8).
+
+Es importante tener en cuenta que el alfil situado en un ángulo como a1, ataca 7 casillas.
+
+Estrategia del alfil:
+la fuerza de los alfiles radica en el control de las casillas del color por donde se desplaza. Su debilidad radica en lo que no pueden hacer o controlar, sus puntos vulnerables son utilizados por las piezas del adversario, principalmente por las columnas, filas o los saltos de caballo, así como los encierros y aislamientos de la zona activa.
+
+Al comienzo de la partida observamos que los dos alfiles están ubicados frente a su oponente. En la columna c para los alfiles del flanco dama y columna f para los alfiles del sector del rey.
+
+Cada jugador dispone dos alfiles: uno que se desplaza por las casillas blancas, llamado alfil blanco, cuya misión es controlar y vigilar los cuadros de dicho color. El otro, por su parte, se desplaza por las casillas negras, llamado alfil negro, su misión es controlar las casillas de dicho color.
+
+Los alfiles están ubicados de tal forma que, en los acontecimientos del juego, el alfil del rey blanco se enfrenta contra el alfil de la dama negra y el alfil de dama blanco se pueda enfrentar contra el alfil de rey negro. Con el fin de debilitar las casillas y diagonales del bando contrario.
+
+En la estrategia moderna obtener mediante el cambio la pareja de alfiles otorga una pequeña ventaja, principalmente si en el transcurso del juego se logra cambiar y desaparecen los peones centrales, generando el juego en posiciones abiertas.
+
+El caballo en detalle
+
+Los caballos representan a los caballeros reales en el combate, son nobles escoltas y fieles escuderos que defienden al rey incluso con su vida.
+
+El desplazamiento de los caballos es saltando sobre todo tipo de obstáculos, piezas propias y piezas enemigas.
+
+Al comienzo de la partida, cada jugador cuenta con dos caballos. Uno colocado en el flanco dama columna b, Cb1 para el bando blanco y Cb8 para el bando negro, éstos se denominan el caballo de dama. El otro caballo se coloca en el flanco del rey, situado en la columna g, Cg1 para el bando blanco y Cg8 para el bando negro, éstos son llamados caballos de rey.
+
+El caballo ataca únicamente la casilla final, que siempre es de color contrario al de la casilla donde está ubicado inicialmente. Su forma de salto se ejecuta de la siguiente manera: se levanta el caballo de la casilla de origen, se avanza en línea recta en dirección similar a la torre pero únicamente una casilla por la columna o por la fila; luego continúa con el movimiento alejándose en forma diagonal sólo una casilla, para ser ésta la casilla final controlada o atacada por el caballo.
+
+Otra forma de indicar su desplazamiento es moviéndolo dos casillas hacia adelante, atrás, la derecha o la izquierda y luego un cuadro hacia un lado.
+
+El caballo no requiere que las vías por donde se desplaza estén libres de piezas propias o del adversario.
+
+El valor de un caballo es ligeramente superior a tres peones y aproximadamente igual a un alfil.
+
+Los alfiles y los caballos, por su poca movilidad, forman el grupo de las piezas menores.
+
+El caballo en el centro:
+ubicado en la casilla e4, puede atacar ocho casillas. Es decir, el Ce4 se puede ubicar en las casillas, de color oscuro: f2, g3, g5, f6, d6, c5, c3 y d2.
+
+El caballo en el borde del tablero:
+ubicado en la casilla d1, puede saltar a 4 casillas: f2, e3, c3 y b2.
+
+El caballo en una esquina del tablero:
+ubicado en la casilla a1 puede, saltar únicamente a dos casillas: c2 y b3.
+
+Estrategia del caballo
+Al comienzo de la partida observamos que los caballos están ubicados en la columna b, los caballos del flanco dama, y la columna g, los caballos del sector del rey.
+
+Al desplazar los caballos en los primeros movimientos, se logra controlar, por amenaza, las casillas centrales de color contrario al sitio donde han quedado finalmente ubicados los corceles.
+
+Los caballos atacan las casillas de color contrario a la que están situados: sí están ubicados en casilla negra atacan las casillas blancas y si están colocados en casilla blanca atacan las casillas negras.
+
+Con los primeros movimientos debemos considerar cuáles son las casillas ideales para ubicar nuestras piezas, con el objetivo de poder disponer de los mejores lugares para las operaciones futuras de ataque y defensa.
+
+Los caballos están bien ubicados en c3 y f3. Estas nuevas casillas hacen parte de la glorieta central, de ahí que en estas posiciones optimizan su valor y luchan por el control de las casillas centrales.
+
+El caballo de rey blanco cumple, entre otras funciones, la importante misión al inicio del juego de controlar por amenaza y vigilar los cuadros negros de la zona central d4 y e5. El caballo dama blanco, cumple la misión, al inicio de la partida, de controlar por amenaza las casillas blancas de la zona central: e4 y d5.
+
+Observe que el caballo rey blanco está controlando por amenaza las dos casillas centrales negras d4 y e5 y el caballo de dama negro, ubicado en la casilla c6, controla por amenaza las casillas d4 y e5, contrarrestando las acciones bélicas iniciadas por el blanco en la lucha por el dominio del centro.
+
+Los caballos son “armas” muy eficaces para crear amenazas y ataques a corta distancia y cuando hay muchas piezas a sus alrededores. Esto los convierte en las piezas más eficaces cuando la posición está bloqueada.
+
+Los caballos son utilizados por los maestros con frecuencia y preferencia, en los juegos cerrados o de bloqueo. Igualmente, estas piezas adquieren un valor agregado cuando se pueden mantener en una casilla central o en coordinación con la dama, mientras se efectúan ataques directos contra el rey adversario.
+
+La debilidad de los caballos radica en su escasa fuerza y lentitud de movimiento. El caballo es débil en las partidas con líneas abiertas y en particular cuando hay fuerte lucha en ambos flancos y diferentes zonas del tablero.
+
+Es una pieza que necesita de muchas jugadas para ser traslada de una zona a otra. Por ejemplo: para que un caballo pueda moverse por las cuatro zonas del tablero de ajedrez, en especial recorriendo las casillas de las esquinas del tablero, se requiere que un jugador deba realizar 20 movimientos como mínimo. Otra de sus debilidades es que requieren un número par de movimientos para ser trasladados de una casilla blanca a otra del mismo color.
+
+El peón en detalle
+
+El peón es la unidad dinámica y fundamental de las piezas, pero contradictoriamente es la pieza más débil en su accionar y más lenta en su andar, representa a los soldados de un ejército en las batallas.
+
+El peón es la única pieza que no puede retroceder, su nombre proviene del latín pes, que significa ir a pie.
+
+Al comienzo de la partida, cada jugador cuenta con ocho peones, cuatro en el flanco dama, en las columnas a, b, c, d; y cuatro en el flanco de rey, columnas e, f, g y h.
+
+El peón avanza por las casillas de las columnas en donde se encuentra ubicado, avanza desde la posición inicial, si lo desea el jugador, una o dos casillas y a partir del segundo movimiento avanza sólo una casilla por movimiento hasta llegar a la última fila donde se transforman en otra pieza diferente al peón o al rey.
+
+El peón captura en forma diferente a como se mueve: avanza de frente y captura en diagonal, ataca hacia adelante las dos casillas contiguas diagonalmente.
+
+El peón requiere para su desplazamiento que la casilla a la que se ha de mover esté libre (despejada de piezas propias y/o del adversario). El peón ataca por las diagonales y se mueve por la columna una sola casilla, siempre que no esté obstruida, formando la gráfica en su accionar para las blancas de una “v” y en su andar una flecha corta ascendente y para las negras, formando la gráfica en su accionar de una “v” y en su andar una flecha corta descendente. El peón se mueve por la columna y captura en diagonal hacia adelante, nunca puede retroceder
+
+El valor del peón es equivalente a la unidad.
+
+Se designa con la letra en minúscula de la columna en la que está ubicado para el registro de las partidas, utilizando el sistema algebraico.
+
+Veamos algunos ejemplos del radio de acción de esta pieza colocada en situaciones diferentes: en el centro, en el flanco dama y en el flanco rey.
+
+El peón en el centro:
+ubicado en la casilla e4, ataca diagonalmente dos casillas (d5 y f5) y se puede mover por la columna e una casilla (e5).
+
+El peón en el flanco dama:
+ubicado en la casilla b2, siendo ésta su posición inicial, ataca diagonalmente dos casillas (a3 y c3) y puede moverse por la columna b una o dos casillas (b3 o b4).
+
+El peón en el flanco rey:
+ubicado en la casilla h2, siendo ésta su posición inicial, ataca diagonalmente una casilla negra (g3) y se puede mover por la columna h una o dos casillas (h3 o h4).
+
+Estrategia de los peones
+El peón es la pieza más débil por acción y movilidad. Sin embargo, en coordinación con otros peones forma las estructuras, que son el esqueleto de la posición, convirtiéndose en un elemento técnico de gran importancia.
+
+Algunos grandes maestros los han llegado incluso a valorar como las piezas más importantes en la estrategia del ajedrez.
+
+Su función durante el juego es expulsar las piezas del adversario del centro y de los puntos cruciales de juego, para brindar apoyo y permitir el paso a las propias.
+
+Su fuerza se incrementa al formar grupos dinámicos que funcionen como estructuras o bases fundamentales en los ataques y la defensa.
+
+Son utilizados en grupo para invadir y facilitar el asalto con las piezas menores y las piezas mayores en los ataques a la fortaleza del adversario.
+
+La debilidad de los peones radica en su lentitud y su escaso radio de acción, la mejor manera estratégica de defenderlo es con otro peón. Sus puntos vulnerables están formados por las casillas laterales y la casilla del frente, todas las casillas de color opuesto a la casilla donde está situado.
+
+Estas casillas son débiles cuando no pueden ser defendidas por los peones y porque pueden ser aprovechadas por las piezas del adversario para ser tomadas como bastiones de ataque. Generalmente aumenta la debilidad si están situadas en la tercera fila para las blancas y la sexta fila para las negras. Estos puntos se denominan “huecos”, son casillas no protegidas por peones. Estos huecos serán utilizados por las piezas contrarias para crear un puesto avanzado que será ocupado por el adversario para convertirlo en un punto de penetración.
+
+Otra debilidad importante se presenta cuando está separado del grupo, un peón aislado es un peón que no puede contar con otros para que lo defiendan en las columnas contiguas. En este caso son aún más vulnerables y se hace muy difícil su defensa, ya que habría que destinar una pieza de mayor valor para esclavizarla en la defensa de este peón débil.
+
+Algunos maestros prefieren sacrificarlos en el momento oportuno, a cambio de una mayor actividad para sus piezas.
+
+El movimiento de los peones fortifica o debilita las posiciones, un peón puede cambiar totalmente el curso de una partida. Estas piezas tienen el papel fundamental de coordinar y ganar el espacio para darle un valor agregado a las piezas.
+
+La otra tarea fundamental de estas piezas, es iniciar los ataques, sobre ellos recae la tarea de las rupturas y abrir líneas de ataque para las piezas mayores.
+
+Al peón se le asigna el mayor peso de la defensa, deben impedir el acercamiento de las piezas enemigas a la zona central y proteger las casillas, estableciendo un bloqueo que impida la apertura de las vías de acceso a la zona donde se encuentra ubicado el rey.
+
+En la parte final de la partida, el peón adquiere una gran importancia, convirtiéndose en la pieza fundamental del final de juego. Su valor radica en la opción de ser cambiado por una pieza de mayor valor, al llegar a la primera línea de su adversario, de esta forma logra cambiar el balance material a favor. Su fuerza radica en la velocidad para llegar a la última casilla y así promoverse en una pieza de mayor valor, generalmente una dama, rompiendo el equilibrio material y asegurando la victoria.
+
+El rey en detalle
+
+El rey es la pieza fundamental de la partida de ajedrez, es el objetivo final de la batalla y es una pieza irremplazable.
+
+Los dos reyes no podrán, durante la partida, estar ubicados en casillas contiguas. Siempre debe haber por lo menos una casilla libre, u ocupada por otra pieza, entre ellos.
+
+Por ser el objetivo del juego, esta pieza debe estar fuertemente custodiada por todas las demás.
+
+El rey se desplaza en línea recta una sola casilla por movimiento, su radio de acción o puntos está dirigido en ocho direcciones, por la columna, la fila y las dos diagonales. Formando la gráfica del movimiento de la dama, pero limitado a una sola casilla (*).
+
+Para su desplazamiento requiere que las vías por donde se ha de mover estén libres de piezas propias o del adversario.
+
+Al ser la pieza indispensable del juego, es imposible asignarle un valor numérico, por esta razón se le atribuye el valor de infinito o absoluto. Pero si pudiéramos evaluar su acción en los finales de partida para el ataque, podríamos decir que es equivalente a 4 peones.
+
+El rey se designa con la letra r para el registro de las partidas, utilizando el sistema algebraico.
+
+Veamos algunos ejemplos de esta pieza tan importante y su radio de acción, colocada en tres situaciones ilustrativas diferentes: en el centro, en un borde y en una esquina del tablero.
+
+El rey en el centro:
+ubicado en la casilla blanca e4, se puede mover por la columna, la fila, la diagonal mayor o la diagonal menor, a cualquiera de las ocho casillas que circundan la casilla e4. Es decir, se puede desplazar por la columna e, la fila 4, por la diagonal mayor o por la diagonal menor.
+
+Es importante tener en cuenta que el rey situado en el centro, Re4, ataca 8 casillas.
+
+El rey en un borde del tablero:
+ubicado en la casilla blanca d1, se puede mover por la columna, la fila o las diagonales a cualquiera de las 5 casillas contiguas a la casilla de origen. Es decir, el Rd1 se puede mover a la casilla final que forma la columna d o por la primera fila a la casilla e1 o c1, así como por las diagonales e2 o c2.
+
+Es importante tener en cuenta que el rey situado en el borde: Rd1 ataca 5 casillas
+
+El rey en una esquina del tablero:
+ubicado en la casilla a1, únicamente se puede mover por la columna, la fila o por la gran diagonal negra a cualquiera de las 3 casillas que lindan con la esquina a1.
+Es importante tener en cuenta que el rey situado en un ángulo ataca 3 casillas.
+
+Estrategia del rey:
+La estrategia del rey radica en su valor. Al ser la pieza esencial del juego y tener poca movilidad, cualquiera de los dos jugadores puede, en el momento que considere oportuno, efectuar una serie de movimientos, incluso con un gran derroche de material, con el objetivo de capturar esa valiosa pieza. Con ello se da por finalizada la partida y se obtiene el triunfo.
+
+La pérdida del rey ocasiona la derrota. Razón por la cual los grandes campeones del mundo lo mantienen bien protegido durante casi toda la partida, incluso, le construyen una fortaleza especial, “el enroque”, para defenderlo y rechazar los ataques del contrario. El rey sólo sale al final de las escaramuzas para dirigir personalmente el jaque mate al rey contrario y obtener la victoria.
+
+Cuando los jugadores no logran obtener una situación de jaque mate al rey adversario, se considera el empate para ambos jugadores denominado por costumbre “tablas”.
+
+Elementos técnicos
+
+El tablero
+Es el campo de batalla, representado por un cuadrado formado por 64 cuadrados o casillas: 32 de color claro, llamadas casillas blancas y 32 de color oscuro, denominadas casillas negras.
+
+La casilla:
+La casilla, blanca o negra, es la unidad básica del tablero y es el espacio o lugar donde se puede ubicar una sola pieza por cada movimiento.
+
+Las casillas aumentan de valor e importancia a medida que se acercan al centro y disminuyen a medida que se alejan de él.
+
+Las casillas de mayor valor son aquellas que forman el cuadrado central y las casillas de menor valor son aquellas que forman las esquinas del tablero.
+
+Colocación del tablero:
+El tablero se coloca de modo que cada uno de los jugadores tenga a su derecha la casilla blanca.
+La disposición de las casillas dentro del tablero da origen a las vías de tránsito, que son los caminos por donde se desplazan las piezas.
+
+La captura de las piezas
+
+Ahora que sabemos cómo se mueven las piezas y las casillas que atacan, veremos qué ocurre cuando las vías de tránsito están bloqueadas.
+
+El rey, la dama, la torre, el alfil y el caballo, capturan de la misma manera que se mueven; sólo los peones lo hacen de forma diferente. Cuando las vías de tránsito están obstruidas por piezas del bando contrario existe la alternativa de realizar la captura de la pieza enemiga que obstaculiza el paso. Sin embargo, no es obligatorio realizar la captura, simplemente es una opción más.
+
+La captura se debe hacer de la siguiente forma: se retira la pieza que ocupa la casilla que está obstruyendo la vía, la pieza del bando contrario es retirada del tablero y en su lugar se ubica la pieza propia.
+
+Sabemos que sólo los peones capturan en forma diferente a como se desplazan, pero el fundamento técnico para la captura es el mismo.
+
+Veamos algunos ejemplos para establecer diversas capturas con 5 piezas blancas diferentes: rey, caballo, alfil, dama y la torre, cuando algunas vías están bloqueadas por piezas del bando contrario.
+El rey blanco situado en e1 puede
+capturar la pieza ubicada en d2.
+El caballo situado en c3 puede capturar
+la pieza ubicada en d5.
+La Dama en f3 puede capturar las
+piezas ubicadas en f7 o en a8.
+El caballo de f6 captura al caballo
+de d5 sacrificando temporalmente
+la dama.
+
+En busca de otras rutas por obstrucción en las vías
+Cuando hay piezas propias obstruyendo las vías de tránsito decimos que están bloqueadas, ¿qué podríamos hacer en esta situación? Contamos con dos alternativas. La primera es despejar la vía, moviendo la pieza que obstruye temporalmente el paso para que podamos avanzar. La segunda alternativa es establecer una nueva ruta por un camino alterno para llegar a ocupar la casilla determinada.
+
+Veamos con algunos ejemplos ilustrativos para establecer diversas rutas con el fin de llegar a la casilla final lo antes posible, utilizando el mismo número de movimientos.
+
+Partiendo de la casilla e1, establecemos rutas alternativas hacia la casilla final e8 con 5 piezas blancas diferentes, rey, caballo, alfil, dama y torre. Algunas vías están bloqueadas por las siguientes piezas propias blancas situadas en: c2, f2, ce4, g5, Td3.
+
+El Rey debe ubicarse en la casilla final e8, ¿posibles rutas? El rey cuenta con diversas vías para acceder en siete movimientos a la casilla final e8.
+
+Para que Ce1 pueda llegar en el menor número de movimientos hasta la casilla final e8 le hace falta ejecutar cinco movimientos y cuenta con diferentes rutas.
+
+Ae1 no puede llegar. Las casillas de origen y final son de diferente color. De1 para llegar hasta e8, requiere tres movimientos y tiene diversas rutas.
+
+Te1 para llegar hasta e8, requiere de tres movimientos tiene 16 rutas.
+
+La dama en detalle
+
+La reina o dama, como la llaman los jugadores de ajedrez, es la compañera del rey. Es, después del rey, la segunda pieza de mayor valor en la partida de ajedrez. Sin embargo, por su movilidad y ataque, es la pieza más fuerte del ajedrez. La gran ventaja de esta poderosa “arma”, estriba en su fuerza, el número de casillas que ataca y su gran movilidad. Así como en su velocidad de desplazamiento, facilidad de trasladar toda la potencia de una sola pieza de la zona de dama a la zona de rey, en el menor número de movimientos, ganando ventaja de tiempos.
+La dama se desplaza en línea recta sin límites de casillas. Su radio de ataque está dirigido en ocho direcciones: las cuatro direcciones de la torre, por las columnas y filas, las cuatro del alfil, por las diagonales.
+
+El movimiento de la dama es muy potente y está dirigido en todas las direcciones, se representa gráficamente por la suma de los movimientos de torre y del alfil es decir, los signos matemáticos + y x, obteniendo como resultado un asterisco (*) o una estrella.
+
+Las damas y las torres, las piezas de mayor movilidad sobre el tablero, forman el grupo de las piezas mayores y son las más fuertes que tiene cada bando para concretar los ataques, de largo y corto alcance, contra el rey adversario.
+
+La dama, al igual que la torre y el alfil, requiere para su desplazamiento que las vías por donde se ha de mover, estén libres de piezas propias o del adversario
+
+El valor de una dama es equivalente aproximadamente a diez peones.
+
+Veamos algunos ejemplos de esta pieza mayor y su radio de acción, colocada en tres situaciones ilustrativas diferentes: en el centro, en un borde y en una esquina del tablero.
+
+La dama se designa con la letra d para el registro de las partidas, utilizando el sistema algebraico.
+
+La dama en el centro:
+Ubicada en la casilla e4, se puede mover en línea recta a cualquiera de las veintisiete (27) casillas finales que ataca: en las cuatro direcciones como lo hace la torre y en las cuatro direcciones como lo hace el alfil. Es decir, la De4, casilla de origen, se puede desplazar por la columna e a las casillas finales o por la fila 4. También puede moverse por la diagonal blanca a cualquiera de las trece casillas finales que ataca y por la diagonal menor hacia adelante o atrás.
+Es importante tener en cuenta que la dama situada en el centro, De4, ataca 27 casillas. Su silueta es una gran estrella.
+
+La dama en un borde del tablero:
+ubicada en la casilla d1, se puede mover, al igual que la torre, a la columna d o la fila 1. Adicionalmente se puede mover, al igual que el alfil, se puede mover a las 4 casillas que forman la diagonal mayor: e2, f3, g4 y h5 o a cualquiera de las tres casillas que forman la diagonal menor:
+c2, b3 y a4. Es importante tener en cuenta que la dama ubicada en el borde, Dd1, ataca 21 casillas.
+
+La dama en una esquina del tablero:
+Ubicada en la casilla a1, al igual que la torre, se puede mover a cualquiera de las casillas que forman la columna a y la fila 1. Y, como el alfil, se puede desplazar por las casillas que forman la gran diagonal: b2, c3, d4, e5, f6, g7 y h8.
+
+Es importante tener en cuenta que la dama ubicada en la esquina: da1 ataca 21 casillas.
+
+Estrategia de la dama
+Al afirmar que la dama se mueve como lo hace la torre y como lo hace el alfil, surge una pregunta: ¿el valor de la dama es igual al valor de la torre y al valor del alfil? La respuesta es no. Al tratarse de dos piezas, la torre y el alfil, desplazarlas requiere dos movimientos. La dama, por su parte, permite ser trasladada en una sola jugada para reubicar toda la potencia en la zona de ataque. La segunda diferencia radica en que el alfil sólo domina la mitad de las casillas del tablero, por el contrario, la dama domina diagonalmente todo el tablero, ya que puede cambiar de diagonal.
+
+La debilidad de la dama radica, contradictoriamente, en ser la pieza más fuerte del tablero y en lo que no puede hacer. Sus puntos vulnerables son principalmente aprovechados por las piezas del adversario, utilizando todas las vías de tránsito: columnas, filas, diagonales y los saltos de caballo, así como encierros y aislamientos de las zonas activas.
+
+Sin embargo, es muy importante resaltar que las piezas más fuertes, las de mayor valor, son las que tienen que huir o protegerse de los ataques de las piezas contrarias. Esto la hace vulnerable cuando la exponemos prematuramente en las escaramuzas del juego. Por esta razón, un buen estratega, deja la dama para ser movida después de controlar el centro, desarrollar las piezas menores y colocar al rey en un sitio seguro.
+
+La partida de ajedrez
+
+La partida de ajedrez se juega individualmente o por equipos, entre dos adversarios que mueven alternadamente sus propias piezas sobre el tablero de ajedrez.
+
+Antes de dar inicio a la partida de ajedrez se sortean las piezas. El jugador al que le corresponden las piezas blancas realiza el primer movimiento.
+El primer movimiento tiene ventaja, se conoce como la iniciativa. Está establecido por normativa de la FIDE que ha de ser efectuado por el jugador que conduce las piezas blancas. Los movimientos deben ser efectuados sobre el tablero, son libres y a voluntad de cada jugador.
+
+La partida de ajedrez se desarrolla por medio de un número determinado de jugadas: una jugada está formada por dos movimientos.
+
+En cada movimiento se podrá mover una sola pieza desde su punto de origen hasta la casilla final. Con la obligación de mover con una sola mano la primera pieza tomada: “pieza tocada, pieza movida”.
+
+Posteriormente, el jugador que conduce las piezas negras realizará el segundo movimiento, seleccionando y moviendo una sola pieza desde el punto de origen hasta la nueva casilla de ubicación. Igualmente, debe realizar dicho movimiento con una sola mano. Con estos dos primeros movimientos se da por finalizada la primera jugada y se procederá a realizar la segunda, bajo idénticas condiciones que la primera jugada; correspondiéndole de nuevo hacer el movimiento al jugador que conduce las piezas blancas y posteriormente al jugador que conduce las piezas negras y así sucesivamente. Cada bando realizará su movimiento en forma alterna, hasta lograr colocar al rey contrario en una situación de jaque mate, finalizando así la partida.
+
+Se dice que un jugador está en juego cuando su adversario ha realizado la jugada y ha detenido el funcionamiento de su reloj.
+
+La torre en detalle
+
+Las torres representan a los castillos y fortalezas medievales y los carros de combate que eran usados para invadir y facilitar el asalto a los castillos de los adversarios.
+
+Al comienzo de la partida cada jugador tiene dos torres. Una colocada en el flanco dama, propiamente en la columna a (Ta1 y Ta8), se designa como la torre de dama y la otra, colocada en el flanco rey, ubicadas en la columna h (Th1 y Th8), llamada torre de rey.
+
+El valor numérico de una torre es equivalente a cinco peones.
+
+Las torres son la segunda pieza de mayor movilidad sobre el tablero, después de las damas. Son las piezas más fuertes de que dispone cada bando para concretar los ataques contra el rey adversario.
+
+La torre se desplaza en línea recta sin límite de casillas. Su radio de acción, o puntos que controla y/o ataca, están dirigidos en cuatro direcciones. Por la columna hacia delante y atrás, y por la fila hacia la derecha y la izquierda.
+
+La torre requiere para su desplazamiento que las vías por donde se ha de mover estén libres de piezas propias y del adversario. Recorren las columnas y filas, sin límites de casillas, siempre que no encuentren obstáculos. Formando la gráfica en su andar del signo matemático más (+)
+
+Cuando la torre está ubicada en una columna en la que no hay piezas de ningún bando, se dice que controla la columna abierta y ejerce una gran actividad. Mientras que si hay alguna pieza del bando contrario, la torre ocupa una columna semi-abierta y también controla la columna. Por el contrario, cuando la torre está ubicada en una columna en la que se encuentra un peón propio y un peón contrario está realizando una obstrucción, se cuenta con una columna cerrada o bloqueada. En este caso su actividad agresora estará reducida por lo que le corresponde utilizar la fila como vía alterna en busca de una columna abierta.
+
+La torre se designa con la letra T para el registro de las partidas, utilizando el sistema algebraico.
+
+Veamos algunos ejemplos del radio de acción de esta pieza mayor, colocada en tres situaciones ilustrativas diferentes: el centro, un borde y una esquina del tablero.
+
+La torre en el centro:
+ubicada en la casilla blanca e4, se puede mover por la columna y por la fila a cualquiera de las catorce casillas que ataca y/o controla. Es decir, la Te4, casilla de origen, se puede desplazar por la columna e a las casillas finales y por la fila 4.
+
+Es importante tener en cuenta que la torre situada en el centro, Te4, ataca 14 casillas.
+
+La torre en un borde del tablero:
+ubicada en la casilla d1, se puede mover por la columna y por la fila a cualquiera de las 14 casillas que ataca y/o controla. Es decir, la Td1, casilla de origen, se puede mover a las casillas finales que forman la columna d y por la primera fila.
+
+Es importante tener en cuenta que la torre situada en una casilla del borde, Td1, ataca 14 casillas
+
+La torre en una casilla de la esquina del tablero:
+ubicada en la casilla a1, se puede mover por la columna y por la fila a cualquiera de las 14 casillas que ataca o controla. La Ta1 se puede mover a las casillas finales que conforman la columna a y por la primera fila.
+
+Es importante tener en cuenta que la torre situada en un ángulo del tablero, Ta1, ataca 14 casillas
+
+Estrategia de la torre:
+la torre es un “arma” de gran alcance y requiere de líneas abiertas; razón por la cual los maestros las utilizan desde el inicio del juego para ubicarlas en columnas abiertas antes que su adversario y obtener transitoriamente una pequeña ventaja de desarrollo.
+
+Las torres son más fuertes cuando controlan las columnas abiertas. La debilidad de las torres radica en lo que no pueden hacer, sus puntos vulnerables son principalmente aprovechados por las piezas del adversario. Las diagonales, los saltos de caballo, encierros y aislamientos de las zonas activas.
+
+Su movimiento es para todas partes excepto en diagonal.
+
+Las piezas de ajedrez
+
+El juego de ajedrez es una forma lúdica de representar artísticamente una batalla de ideas entre dos ejércitos iguales. Dirigidos por dos mentes preparadas para lograr un objetivo final que consiste en conducir las piezas y atacar al rey adversario, dejándolo en una situación indefensa, denominada “jaque mate”; que en persa significa “el rey esta atrapado”.
+
+Al inicio de la partida de ajedrez cada jugador dispone de igual número de piezas colocadas en oposición.
+
+Las 16 piezas de color claro se denominan piezas blancas, distribuidas en las filas 1 y 2. Las 16 piezas de color oscuro se llaman piezas negras, dispuestas en las filas 7 y 8.
+
+Las dos torres blancas se sitúan frente a las dos torres negras en oposición y se colocan en las esquinas del tablero.
+
+Los caballos se ubican al lado de las torres. Los dos alfiles se ubican al lado de los caballos.
+
+La dama se coloca en la casilla central de su color, la casilla central blanca para la dama blanca y la casilla central negra para la dama negra.
+
+El rey blanco se sitúa en la casilla central negra y el rey negro se ubica en la casilla central blanca.
+
+Los peones blancos se colocan en la segunda fila y en la séptima fila se ubican los peones negros.
+
+Esta disposición de piezas al inicio del juego se llama posición inicial.
+
+El diseño Staunton de ajedrez es el modelo de piezas utilizado por la federación mundial de ajedrez, FIDE, para los diferentes torneos internacionales.
+
+Piezas blancas:
+piezas de mesa - piezas mural
+Un rey = R.
+Una dama = D.
+Dos torres = T.
+Dos alfiles = A.
+Dos caballos = C.
+Ocho peones = se designan cada uno con la letra minúscula de la columna donde se encuentren ubicados.
+
+Piezas negras:
+Un rey = R.
+Una dama = D.
+Dos torres = T.
+Dos alfiles = A.
+Dos caballos = C.
+Ocho peones = se designan cada uno con la letra minúscula de la columna donde se encuentren ubicados.
+
+Cómo anotar y guardar el registro de los movimientos en las partidas de ajedrez.
+Para el estudio y perfeccionamiento del juego de ajedrez es indispensable anotar las partidas de ajedrez y posteriormente en compañía del profesor o entrenador estudiarlas para saber que errores se cometieron, cuáles son nuestros puntos débiles y cuáles nuestros puntos fuertes.
+
+Iniciemos conociendo la planilla de anotación de partidas y algunos signos complementarios para el registro de los movimientos.
+
+Signos complementarios utilizados para el registro de la partida:
+
+a8=D = el peón de a8 coronó una dama.
+a8=T = el peón de a8 coronó una torre.
+a8=A = el peón de a8 coronó un alfil.
+a8=C = el peón de a8 coronó un caballo.
+X= captura.
++= jaque.
+= jaque mate.
+++=jaque mate.
+0-0= enroque corto.
+0-0-0=enroque largo.
+a.p.= al paso
+1.?= juegan las blancas.
+1…?= juegan las negras.
++ - = ganan las blancas.
+- + = ganan las negras.
+!= buen jugada.
+?=mala jugada.
+!?=jugada interesante.
+?!=jugada dudosa.
+!!=excelente jugada.
+??=error decisivo.
+1:0= ganan las blancas.
+0:1=ganan las negras.
+½:½= tablas.
+= posición igual..
+estos pason son indispensables para fortalecer una partida de ajedrez..
+
+Ejemplo de cómo se registra una partida de ajedrez:
+1. e4 – Las blancas mueven el peón a e4.
+1... c5 – Las negras responden moviendo el peón a c5.
+2. Cf3 – El caballo blanco se mueve a f3.
+2... d6 – Las negras mueven el peón a d6.
+
+↓
+
+Los flancos
+
+En el ajedrez se forman dos sectores o flancos, el del rey y el de la dama.
+
+El flanco del rey está formado por las casillas que integran las columnas e, f, g y h, formando un rectángulo cuyas esquinas son h1, e1, h8 y e8. En este sector se colocan las piezas en la posición inicial para ambos jugadores: el rey, el alfil del rey, el caballo del rey y la torre del rey.
+
+El flanco de dama está formado por las casillas que integran las columnas a, b, c y d, formando un rectángulo cuyas esquinas son d1, a1, d8 y a8. En este sector se colocan las piezas en la posición inicial para ambos jugadores: la dama, el alfil de dama, el caballo de dama y la torre de dama.
+
+Campo de juego inicial:
+El campo de juego inicial del ajedrecista que conduce las piezas blancas es el espacio del tablero formado por las primeras cuatro filas, es decir, el rectángulo h1, a1, a4 y h4.
+
+La fila 1, donde están ubicadas las piezas en la posición inicial: el rey, la dama, los alfiles, los caballos y las torres. La fila 2, donde se ubican los peones y las filas 3 y 4. Siendo éste el espacio donde se permite con gran facilidad la disposición de las piezas blancas.
+
+El campo de juego inicial del ajedrecista que conduce las piezas negras es el espacio del tablero formado por las últimas cuatro filas, es decir el rectángulo h8, a8, a5 y h5.
+
+La fila 8, donde se ubican las piezas en la posición inicial: el rey, la dama, los alfiles, los caballos, las torres. La fila 7, donde se ubican los peones, y las filas 6 y 5. Siendo éste el espacio donde se permite con gran facilidad para el bando negro el desplazamiento de sus piezas.
+
+El límite:
+es la línea imaginaria que separa el campo de juego inicial de ambos ajedrecistas.
+
+Movimientos extraordinarios
+
+En el juego de ajedrez existen tres movimientos extraordinarios que pueden cambiar el curso de la partida: dos para los peones y uno para la seguridad del rey.
+
+Captura del peón al paso.
+Corona o promoción del peón.
+Enroque.
+
+La captura del peón al paso
+La captura del peón al paso se puede realizar siempre que se cumplan dos condiciones simultáneamente:
+
+El peón que será capturado debe encontrarse en la columna contigua a la del peón que capturará y debe haber avanzado dos casillas desde su posición inicial.
+El peón que puede realizar la captura al paso debe encontrarse localizado una casilla posterior a la línea imaginaria del límite. Para las blancas en la fila 5 y para las negras en la fila 4.
+
+Ninguna otra pieza puede capturar al paso. La captura al paso es un movimiento extraordinario exclusivo de los peones.
+
+La captura del peón al paso es un solo movimiento y se debe hacer de inmediato, no se puede postergar.
+
+Este movimiento es de libre elección y se utiliza según la voluntad y conveniencia de cada uno de los participantes.
+
+La captura del peón al paso se representa en el sistema algebraico colocando al final de la captura las letras iniciales en minúsculas a.p, se lee: al paso.
+
+La corona o promoción del peón
+La promoción del peón se logra cuando el peón llega por la columna a la última casilla de la fila.
+
+Se realiza en dos fases de la siguiente forma:
+
+El bando que logra llegar a la última fila con cualquier peón procederá a anunciar con claridad la pieza a colocar. Por lo general, para obtener supremacía de material se prefiere coronar una dama, una torre, un alfil o un caballo.
+Se retira del tablero el peón, en su lugar se ubica la nueva pieza obtenida. Es aquí cuando termina la jugada.
+
+Es importante tener en cuenta que el peón que corona no puede ser sustituido por el rey u otro. Y que la corona es un solo movimiento y se debe hacer de inmediato.
+
+Se permite promocionar cuantas veces se logre llegar a la última fila con los peones. Si un jugador logra llegar a la última fila con los ocho peones, los puede coronar en 8 piezas siempre que sean 8 damas, 8 torres, 8 alfiles u 8 caballos.
+
+No está permitido el cambio de casilla, sin haber captura en el momento de realizar la corona.
+
+El enroque
+Es un movimiento exclusivo del rey y tiene como objetivo fortalecer su seguridad.
+
+El enroque significa “poner al rey detrás de las rocas”, protegerlo de la zona de combate.
+
+Veamos en primer lugar cómo se efectúa el enroque. El rey se desplaza desde su posición inicial dos casillas por la fila, hacia el flanco rey, éste se llama enroque corto y se registra en el sistema algebraico con el símbolo: 0-0.
+
+También puede realizar el enroque hacia el flanco de dama, llamado enroque largo, y se registra en el sistema algebraico con el símbolo: 0-0-0, en este caso.
+
+La torre del flanco que fuera elegido se sitúa en la casilla contigua al rey.
+
+La zona del enroque:
+está demarcada por cinco casillas. Para las blancas las casillas c1, d1, e1, f1 y g1. Para las negras las casillas: c8, d8, e8, f8 y g8.
+Para realizar el enroque corto (0-0), el rey blanco puede desplazarse hacia el flanco del rey pasando por las dos casillas f1 y g1, mientras que el rey negro puede desplazarse hacia el flanco del rey pasando por las dos casillas f8 y g8
+
+Igualmente el jugador podría haber seleccionado el otro flanco, para efectuar el enroque largo (0-0-0). El rey blanco puede desplazarse hacia el flanco de dama pasando por las dos casillas d1 y c1. El rey negro al desplazarse hacia el flanco dama pasa por las casillas d8, y c8.Y ese movimiento hace que el rey se libre del jaque mate.
+
+Condiciones para poder efectuar el enroque
+Para realizar el enroque existen cuatro condiciones previas que deben cumplirse simultáneamente:
+
+El rey y la torre del flanco donde se ha de realizar el enroque deben estar colocados en la posición inicial y no haber efectuado ningún movimiento con anterioridad.
+El espacio ubicado entre el rey y la torre debe estar libre de piezas.
+El rey no debe estar en jaque.
+La casilla en la que está situado el rey y las dos casillas de la fila por donde se ha de mover deben estar libres de ataques de las piezas adversarias.
+
+Las casillas que, en el caso del enroque corto de las blancas, no pueden estar atacadas por las piezas negras son e1, f1 y g1. En el caso del enroque largo, las casillas son e1, d1 y c1.
+En el caso de las piezas negras, las casillas que deben estar libres de ataque para el enroque corto, son e8, f8 y g8. Para el enroque largo las casillas deben ser e8, d8 y c8.
+
+Si estas condiciones se cumplen y le corresponde el turno de mover, el bando puede hacer el enroque, que es un sólo movimiento, en el que se mueve primero el rey y luego la torre.
+
+Es importante tener en cuenta que el enroque es el único movimiento del ajedrez en el que está permitido mover dos piezas en un solo movimiento.
+
+Teoría de las glorietas
+
+Con el procedimiento “imaginario” para activar o colocar las piezas en las casillas centrales al inicio, durante y al final de la partida, nos podemos guiar por una serie de glorietas, que se inician desde los bordes hasta el centro del tablero, así podemos trasladar las piezas desde su posición inicial con dirección hacia el centro y al finalizar la partida haremos el procedimiento contrario, de la glorieta central hasta los bordes del tablero.
+
+Glorieta central: esta glorieta está formada por doce casillas: c3, d3, e3, f3, f4, f5, f6, e6, d6, c6, c5 y c4. Es la vía principal que bordea la zona central y sirve para la orientación o identificación de las casillas vitales para ubicar las piezas.
+
+Las piezas entran, recorren y salen de la glorieta con el objetivo de poder establecer una pieza en una casilla central como base de operaciones permanente. Afectando la coordinación de fuerzas propias y restringiendo al adversario.
+
+Las piezas localizadas en alguna de estas casillas, reflejan un mayor potencial y repercuten directamente sobre los cuadros centrales.
+
+Su mayor control permite el acceso y la penetración al territorio adversario, obteniendo ventaja de espacio y permitiendo a las piezas disponer de una mayor movilidad.
+
+Glorieta exterior:
+esta glorieta está formada por las casillas adyacentes a la glorieta central. Es el cuadrado en el que se ubican los peones y las piezas para el ataque y la defensa.
+
+Se utiliza como vía preparatoria o de rodeo preliminar para el ataque. Se le considera como el espacio de mayor vulnerabilidad para ambos bandos.
+
+Por esta vía se desplazan las piezas para invadir los sectores del territorio enemigo. Las piezas reflejan una gran fuerza agresora teniendo incidencia y repercusión directa en los ataques por los flancos y reflejando una acción indirecta sobre las casillas centrales.
+
+El borde exterior:
+se identifican a la columna a y h y las filas 1 y 8 como el borde del tablero.
+
+Estas cuatro líneas laterales forman el sendero que bordea el tablero y se utiliza como línea lateral de ataque y de rodeo, especialmente con las torres y las damas, para penetrar en el terreno adversario.
+
+Es la vía preparatoria o preliminar para efectuar los ataques al rey contrario por la retaguardia.
+
+Los bordes, por ser líneas finales, no disponen de casillas de retirada. Son las líneas principales e indispensables para finalizar los planes propuestos en la ejecución del rey contrario con el menor número de piezas posibles.
+
+Teoría de los cuadrantes
+
+Imaginariamente podemos dividir el tablero de ajedrez en cuatro partes iguales. Esta división facilita la comprensión y el aprendizaje, es por lo tanto una herramienta creativa y pedagógica, que permite formular criterios fiables para la elaboración de ideas y planes.
+
+Los cuadrantes permitirán realizar ejercicios de aprendizaje, que sólo cambiarán en ubicación y color de las piezas.
+
+Formación: al interceptar los dos flancos con los dos territorios, se forman en el tablero de ajedrez, cuatro cuadrados iguales, cada uno con 16 casillas.
+
+Estos cuadrantes también se denominan zonas y las diferenciamos por su ubicación, nombre del flanco y nombre del territorio donde se sitúan:
+
+Cuadrante o zona del rey blanco: h1, e1, e4, h4.
+Cuadrante o zona de la dama blanca: a1, d1, d4, a4.
+Cuadrante o zona del rey negro: h8, h5, e8, e5.
+Cuadrante o zona de la dama negra: a8, a5, d5, d8.
+
+La centralización:
+Las cuatro zonas cuentan con una casilla de integración localizada en el centro del tablero de ajedrez y están unidas por las cuatro casillas de sus vértices que forman el cuadrado del centro.
+
+Una pieza situada en cualquiera de estas cuatro casillas centrales; e4, d4, e5 y d5; despliega su influencia directa en el cuadrante o la zona de su ubicación e incide fuertemente en todo el tablero, afectando las piezas localizadas en los otros tres cuadrantes.
+
+Esto nos permite formular una ley que establece que una pieza situada en el centro del tablero de ajedrez ejerce una acción directa e indirecta sobre todas las casillas del tablero, ubicadas en cualquier flanco. Esto es la centralización.
+
+En la práctica podremos resaltar que las estructuras de peones centrales, es decir, un peón ubicado en e4 y otro en d4, crean una barrera que impide el acceso de las piezas del adversario y al mismo tiempo amplían el espacio para ubicar nuestras piezas en estas casillas estratégicas. Causando así el mayor estrago en el campo de juego del adversario.
+
+Vías de tránsito principales
+
+En orden de importancia, las vías por donde se desplazan las piezas son: las columnas y las filas.
+
+Las columnas.
+
+Importancia de las columnas: las ocho columnas son las vías principales del tablero de ajedrez, por estos caminos se desplazan la mayoría de las piezas.
+
+Forma: las ocho columnas están formadas por ocho casillas cada una: cuatro casillas blancas y cuatro casillas negras. Se ubican en forma vertical de frente a cada jugador.
+
+Identificación de las 8 columnas: las 8 columnas que forman el tablero de ajedrez se denominan con letras en minúsculas, de la a hasta la h.
+
+Valor de las columnas:
+las columnas aumentan de valor e importancia a medida que se acercan al centro del tablero y disminuyen a medida que se alejan.
+
+Columnas de mayor valor:
+son las dos columnas que cruzan por la mitad del tablero, la columna d y la e. Se les llama columnas centrales.
+
+Columnas de menor valor:
+son las que forman los bordes del tablero, la columna a y la h. A estas columnas se les conoce como bordes del tablero
+
+Las filas.
+Importancia de las filas:
+las ocho filas son las vías secundarias del tablero de ajedrez y son senderos alternos. Por estas vías se desplazan la mayoría de las piezas cuando las columnas están obstruidas por piezas propias o del adversario.
+
+Forma:
+las ocho filas están formadas por ocho casillas cada una, cuatro casillas blancas y cuatro casillas negras. Se ubican en forma horizontal con respecto a cada jugador.
+
+Identificación de las filas:
+las ocho filas que forman el tablero de ajedrez se identifican con números del 1 al 8.
+
+Valor de las filas:
+las filas aumentan de valor e importancia a medida que se acercan al centro del tablero de ajedrez y disminuyen a medida que se alejan
+
+Filas de mayor valor:
+las dos filas de mayor valor e importancia son las que cruzan por el centro del tablero, la fila 4 y 5. Se les denomina filas centrales.
+
+Filas de menor valor:
+las dos filas de menor valor e importancia son las que están situadas en el borde del tablero y forman los espacios donde se sitúan las piezas de cada bando inicialmente. Son la fila 1, donde se sitúan las piezas blancas, y la fila 8, donde se colocan las piezas negras.
+
+Vías de tránsito secundarias
+
+Las 26 diagonales son las vías de menor valor e importancia en el tablero de ajedrez. Son los caminos formados por casillas de un mismo color. Por estos senderos se desplaza un número menor de piezas.
+
+Forma: las 26 diagonales se caracterizan por tener las casillas unidas por sus vértices. Se identifican por el color de las casillas que la forman, diagonales blancas y diagonales negras. Se ubican en forma oblicua en ambas direcciones. Las diagonales se cruzan perpendicularmente cuando son interceptadas por diagonales formadas por casillas de un mismo color.
+
+Identificación de las diagonales:
+las 26 diagonales que forman el tablero de ajedrez se identifican con el nombre de la casilla de origen seguido de un guión y el nombre de la casilla final.
+
+Valor de las diagonales:
+las 13 diagonales blancas y las 13 negras aumentan de valor e importancia a medida que están formadas por un mayor número de casillas y pasan por el centro del tablero. Disminuyen de valor e importancia gradualmente a medida que se alejan del centro del tablero.
+
+Diagonales de mayor valor:
+son las que están compuestas por ocho casillas, atraviesan y pasan por el centro del tablero de ajedrez y se identifican como la gran diagonal blanca h1-a8 y la gran diagonal negra a1-h8.
+
+Las diagonales de menor valor:
+son las diagonales que están formadas por el menor número de casillas. El tablero de ajedrez tiene cuatro diagonales formadas por dos casillas cada una. Dos diagonales blancas: h7-g8 y b1-a2 y dos diagonales negras: g1-h2 y a7- b8.
+
+Zonas geográficas del tablero
+
+El maestro de ajedrez, divide imaginariamente el campo de batalla para establecer leyes que regulen el valor de las casillas, el valor de las piezas y el valor de acuerdo a su relación. Esta división le sirve como herramienta creativa y pedagógica para establecer criterios fiables en la creación de ideas y planes.
+Zona central
+Súper centro:
+está formado por la glorieta central y las cuatro casillas del centro.
+Este espacio vital, integrado por ocho casillas blancas y ocho negras es la fuerza y debilidad de todo el campo de batalla.
+Es un cuadrante en el centro del tablero integrado por dos glorietas con características bien definidas: el cuadrado central formado por las casillas f3, c3, c6 y f6 y el cuadrado central formado por las cuatro casillas centrales: e4, d4, d5 y e5.
+
+El centro:
+es el cuadrado de mayor importancia en el tablero, formado por dos casillas blancas, e4 y d5, y dos negras, d4 y e5. Estas cuatro casillas predominan en rango, importancia y ubicación.
+
+Podemos afirmar que la fuerza de un jugador de ajedrez, se mide por la rapidez con la que logra controlar estas casillas y la habilidad para manejarlas durante las partidas de juego.
+
+¿En qué radica la importancia del control y manejo del centro?
+Imaginemos que a cada una de las cuatro casillas centrales le damos un valor numérico equivalente al 25%.
+
+En el transcurso de los acontecimientos, el bando blanco obtiene el dominio de las dos casillas centrales blancas y el bando negro obtiene el dominio de las dos casillas negras.
+
+Esto quiere decir que ambos bandos tienen el 50% de probabilidades de obtener la victoria.
+
+Pero veamos qué pasa cuando el bando negro posteriormente pierde el control de una de estas dos casillas negras; esta pérdida “irreparable” cambia las probabilidades por completo.
+
+El bando blanco cuenta ahora con el 75% de probabilidades de obtener la victoria, contra un 25% de probabilidades para el bando negro.
+
+En la práctica, si un maestro conduce las piezas blancas, el bando negro ya podría rendirse sin esperar los acontecimientos posteriores. Ha perdido el dominio del centro y ha perdido la partida.

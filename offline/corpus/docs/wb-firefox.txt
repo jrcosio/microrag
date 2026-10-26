@@ -1,0 +1,1474 @@
+Anexo
+
+REDIRECCIÓN Mozilla Firefox/Anexos
+
+Anexos
+
+Comparación de versiones
+2004 - 2010
+2010 - 2014
+Bibliografía
+
+Bibliografía
+
+Nota: ésta es la biibliografía especificada. La lista simplificada está en la página Enlaces.
+
+Comparación de versiones
+
+En este capítulo mencionaremos diversas versiones del navegador desde su gran actualización en el 2005. Aquí se especifica las características e interfaz de la misma. Al final de cada sección, se deja un apartado de enlaces para desarrolladores (en inglés) como referencias en cada versión. Los requisitos para el sistema está relacionado con el soporte de los sistemas operativos durante este periodo.
+
+Versión 1.5
+Lanzamiento: 23 de junio de 2005 con el nombre en clave Deer Park.
+Versión Gecko: 1.8
+Requisitos: Mac OS X 10.1 (Puma) o posterior, sin embargo el primero mencionado no es aconsejable, pues ya no recibe soporte.
+Actualizaciones: Dos alfas, dos betas, dos candidatas y 12 estables (fuente).
+Características: Soporte RSS/Atom, mejoras con avisos de error (fuente).
+Cortesía: Firefox para desarrolladores
+
+Versión 2.0
+Lanzamiento: 24 de octubre de 2006 con el nombre en clave Bon Echo.
+Versión Gecko: 1.8.1
+Requisitos: Windows NT 4.0, Windows 98, y Windows ME o superior.
+Actualizaciones: 3 alfas, 2 betas, 3 candidatas, 20 estables (fuente).
+Características: navegación por pestañas, sesión de restauración, corrector ortográfico y una característica anti-phishing la cual fue implementada por Google como una extensión (fuente).
+Cortesía: Firefox para desarrolladores
+
+Versión 3.0
+Lanzamiento: 17 de junio de 2008 con el nombre en clave Gran Paradiso.
+Versión Gecko: 1.9
+Requisitos: Windows 2000 o superior.
+Características: mejora el cumplimiento de estándares, y aplica nuevas APIs web (fuente). Otras nuevas características son el rediseño del gestor de descargas, un nuevo lugar para almacenar los marcadores y el historial, y temas diferentes para cada sistema operativo.
+Actualizaciones: 8 alfas, 5 betas, 3 candidatas, 19 estables (fuente).
+Descargas: 8 millones de descargas en un dia.
+Cortesía: Firefox para desarrolladores
+
+Versión 3.5
+Lanzamiento: 30 de junio de 2009 con el nombre en clave Shiretoko.
+Versión Gecko: 1.9.1
+Requisitos: Windows 2000 o superior, incluido Vista y 7.
+Características: nuevo logo, con una interfaz mejorada y el motor TraceMonkey. Nuevas etiquetas para HTML 5.
+Actualizaciones: Bajo la denominación Firefox 3.1 tuvo 2 alfas y 3 betas. Al cambio, existió una beta y una preview y 3 candidatas y 19 estables (fuente).
+Cortesía: Firefox para desarrolladores
+
+Versión 3.6
+Lanzamiento: 21 de enero de 2010 con el nombre en clave Namoroka  y en algunos casos Lorentz para las actualizaciones de seguridad.
+Versión Gecko: 1.9.2
+Requisitos: Windows 2000 o superior, incluido Vista y 7.
+Características: Mejora de estabilidad con temas incluyendo el complemento Personas y se elimina el sistema de API.
+Actualizaciones: 1 alfa, 5 betas, 2 candidatas, 18 estables.
+Cortesía: Firefox para desarrolladores
+
+Versión 4.0
+Lanzamiento: 22 de marzo de 2011 con el nombre en clave Tumucumaque.
+Versión Gecko: 1.9.3 (para alfas) 2.0 (beta)
+Requisitos: Windows 2000 o superior, incluido Vista y 7. Se deja de dar soporte a PowerPC.
+Características: Nueva interfaz e integración, videos WebM, motor JägerMonkey. Se adopta el modo antrirastreo.
+Actualizaciones: 6 alfas para Firefox 3.7, 12 betas, 2 betas y 2 candidatas.
+Cortesía: Firefox para desarrolladores
+
+Versión 5.0
+Lanzamiento: 21 de junio de 2011, tres meses después.
+Versión Gecko: 5.0
+Requisitos: Similar a la 4.
+Características: Se optimiza la velocidad y otras características anteriores. Se acelera el proceso de desarrollo mediante 4 fases.
+Actualizaciones: 2 alfas para Firefox, 1 entre cambio y 7 betas.
+Cortesía: Firefox para desarrolladores
+
+Versión 6.0 en adelante
+Lanzamiento: Cada 6 semanas, sin contar actualizaciones menores.
+Versión Gecko: Van coincidiendo cada versión.
+Requisitos: Mínimos, aunque se requiere equipos estables a la fecha.
+Características: Cada versión tiene su historial de versiones.
+Actualizaciones: Sólo 1 por mes, salvo las versiones para empresas que son mínimas (10.0.1, 10.0.2, etcétera).
+Cortesía: Notas de lanzamiento,página de referencia.
+
+Carrusel
+
+Consejos semanales
+Esta página contiene todos los consejos semanales, la idea es que puedan ser leídos desde la portada para los curiosos que deseen aprender acerca del navegador Mozilla Firefox (agradecemos al libro Manual wiki por la inspiración).
+Estamos en la semana ; el consejo de esta semana es:
+-----
+
+----
+
+En esta página se archivan los consejos de la semana, aparecerán en la portada del Mozilla Firefox y se cambiarán automáticamente con la fecha.
+
+Deben ser de no más de 10 renglones para no llenar la portada con mucho texto.
+
+Puede ayudar a ingresar estos consejos de noticias y libro de desarrolladores.
+
+Cuando crees un consejo agrégale esta línea al final:
+
+Así los iremos reuniendo aquí, reemplaza ## por el número del consejo en dos dígitos.
+
+Consejo: 01
+Manual wiki/Carrusel/Consejo01; los otros proyectos Wikimedia
+
+Consejo: 02
+Manual wiki/Carrusel/Consejo02; todas las páginas de un libro
+
+Consejo: 03
+Manual wiki/Carrusel/Consejo03
+
+Consejo: 04
+Manual wiki/Carrusel/Consejo04
+
+Consejo: 05
+Manual wiki/Carrusel/Consejo05
+
+Consejo: 06
+Manual wiki/Carrusel/Consejo06
+
+Consejo: 07
+Manual wiki/Carrusel/Consejo07
+
+Consejo: 08
+Manual wiki/Carrusel/Consejo08
+
+Consejo: 09
+Manual wiki/Carrusel/Consejo09
+
+Consejo: 10
+Manual wiki/Carrusel/Consejo10
+
+Consejo: 11
+Manual wiki/Carrusel/Consejo11
+
+Consejo: 12
+Manual wiki/Carrusel/Consejo12
+
+Consejo: 13
+Manual wiki/Carrusel/Consejo13
+
+Consejo: 14
+Manual wiki/Carrusel/Consejo14
+
+Consejo: 15
+Manual wiki/Carrusel/Consejo15
+
+Consejo: 16
+Manual wiki/Carrusel/Consejo16
+
+Consejo: 17
+Manual wiki/Carrusel/Consejo17
+
+Consejo: 18
+Manual wiki/Carrusel/Consejo18
+
+Consejo: 19
+Manual wiki/Carrusel/Consejo19
+
+Consejo: 20
+Manual wiki/Carrusel/Consejo20
+
+Consejo: 21
+Manual wiki/Carrusel/Consejo21
+
+Consejo: 22
+Manual wiki/Carrusel/Consejo22
+
+Consejo: 23
+Manual wiki/Carrusel/Consejo23
+
+Consejo: 24
+Manual wiki/Carrusel/Consejo24
+
+Consejo: 25
+Manual wiki/Carrusel/Consejo25
+
+Consejo: 26
+Manual wiki/Carrusel/Consejo26
+
+Consejo: 27
+Manual wiki/Carrusel/Consejo27
+
+Consejo: 28
+Manual wiki/Carrusel/Consejo28
+
+Consejo: 29
+Manual wiki/Carrusel/Consejo29
+
+Consejo: 30
+Manual wiki/Carrusel/Consejo30
+
+Consejo: 31
+Manual wiki/Carrusel/Consejo31
+
+Consejo: 32
+Manual wiki/Carrusel/Consejo32
+
+Consejo: 33
+Manual wiki/Carrusel/Consejo33
+
+Consejo: 34
+Manual wiki/Carrusel/Consejo34
+
+Consejo: 35
+Manual wiki/Carrusel/Consejo35
+
+Consejo: 36
+Manual wiki/Carrusel/Consejo36
+
+Consejo: 37
+Manual wiki/Carrusel/Consejo37
+
+Consejo: 38
+Manual wiki/Carrusel/Consejo38
+
+Consejo: 39
+Manual wiki/Carrusel/Consejo39
+
+Consejo: 40
+Manual wiki/Carrusel/Consejo40
+
+Consejo: 41
+Manual wiki/Carrusel/Consejo41
+
+Consejo: 42
+Manual wiki/Carrusel/Consejo42
+
+Consejo: 43
+Manual wiki/Carrusel/Consejo43
+
+Consejo: 44
+Manual wiki/Carrusel/Consejo44
+
+Consejo: 45
+Manual wiki/Carrusel/Consejo45
+
+Consejo: 46
+Manual wiki/Carrusel/Consejo46
+
+Consejo: 47
+Manual wiki/Carrusel/Consejo47
+
+Consejo: 48
+Manual wiki/Carrusel/Consejo48
+
+Consejo: 49
+Manual wiki/Carrusel/Consejo49
+
+Consejo: 50
+Manual wiki/Carrusel/Consejo50
+
+Consejo: 51
+Manual wiki/Carrusel/Consejo51
+
+Consejo: 52
+Manual wiki/Carrusel/Consejo52
+
+Configuración
+
+Cómo configurar el navegador
+Usando la página de configuración
+Crear una extensión para Firefox 3
+Crear un complemento de Personas
+Usando archivos CSS
+Usando páginas de cifrado
+Usar en el USB sin instalación
+Usando programas externos
+
+Crear un complemento de Personas
+
+Para crear un complemento de Persona, cortesía del sitio web, intenta primero crear un "encabezado" y un "pie" visualizado en tu navegador.
+
+Con ello, puedes publicar el tema con otros. Ten en cuenta que si quieres publicar al sitio oficial, es necesario que sea un trabajo propio y distributivo.
+Cómo crear un encabezado y un pie
+Primero crea una imagen (sea una fotografía o un dibujo) y guardalos como PNG o JPG.
+Asegúrate que sean propias y que no cause ningún conflicto legal. Es recomendable que tengan una resolución de 3000 píxeles de ancho por 200 píxeles de largo, en el caso de encabezado y 100 en el caso de pie de diseño.
+Intenta optimizar tu imágen comprimiéndola u optimizándola con Photoshop, GIMP, etc. La ubicación de la imagen debe ser entendida de derecha a izquierda, eso se debe al resaltamiento de la parte derecha  dependiendo de la resolución del navegador ocultando el lado izquierdo.
+
+Cómo previsualizar en el navegador
+Utiliza la extención Personas Plus, véase el capítulo Temas. Dirígete al icono de un zorro y sigue los pasos.
+Clic en "Preferencias"
+Activa el casillero Mostrar Persona personalizado en menú.
+Regresa nuevamente a dicho ícono y pasa el puntero a Personal > Editar.
+Completa los datos para visualizar el complemento.
+Lecturas adicionales
+
+Crear una extensión para Firefox 3
+
+En esta parte te explicaremos paso a paso como llevar a cabo el desarrollo de una extensión personalizada para Firefox 3. De esta forma el lector podrá generar de forma fácil extensiones que le permitan personalizar su Firefox, teniendo en cuenta que serán compatibles a partir de Firefox3.0 en adelante.
+
+En el primer capítulo se dará una breve introducción a las extensiones para Firefox. A continuación se discutirán algunos temas a tener en cuenta respecto a la compatibilidad entre distinas versiones de Firefox. En el seguno capítulo se comenzará a describir paso a paso como desarrollar una extensión. Por último, se explicará como generar el instalador de la extensión y los pasos a seguir para su instalación.
+
+La compatibilidad
+En la siguiente sección te daremos una breve introducción de que son las extensiones y las funcionalidades que las mismas brindan. También se tratará el tema de la compatibilidad.
+
+Cómo verificarlo
+Dado el rápido avance que ha tenido Firefox en los últimos meses, algunas funciones de JavaScript han dejado de ser compatibles con Firefox. A su vez, se han modificado las estructuras que los archivos manifiest han de tener. Las referencias al browser.xul también se ha modificado. Es importante que el lector se encuentre al tanto de dichos cambios, de lo contrario su extensión no será compatible con las últimas versiones de Firefox.
+Otro punto que se debe considerar, es el tema de los Managers que Firefox posee (ejemplo: loginManager). Los mismos también han sido modificados para las versiones 3.0.*.
+Por mas información se puede visitar la siguiente página:
+Updating extensions for Firefox 3
+
+Comenzando a crear una extensión
+El siguiente paso te ayudaremos a iniciar tu creación de extensión básica. Se indicarán los archivos que se deberán crear, la estructura de las carpetas y el directorio raíz donde las mismas deben ser guardadas.
+
+Estructura de las carpetas
+Existe una estructura obligatoria definida que las extensiones deberán cumplir. Dicha estructura define el nombre de las carpetas, la estructura jerárquica, el tipo de archivos que contendrá cada una y el lugar donde se deberán almacenar para que sean reconocidas por Firefox.
+
+La carpeta raíz
+Al comenzar se deberá crear una carpeta con el nombre identificador de la extensión. Dicho nombre deberá ser único y corresponder con el nombre definido en el archivo de instalación.
+Existen dos formas de nombrar la carpeta raíz de la extensón. Como se mencionó, este nombre debe de ser único, por lo tanto la primera alternativa es generar un identificador GUID para la misma. Para poder generar un identificador único en Windows existe el comando guidgen y en Linux uuidgen.
+Por ejemplo: {1ca6f699-f8f3-479b-983b-20775f09f755}
+
+La segunda alternativa es generar el nombre con formato de correo electrónico, no se recomienda que sea un correo personal sino que tan solo corresponda la estructura. Por ejemplo, llamaremos a nuestra extensión con el siguiente nombre: miextension@undominio.
+Dentro de la carpeta raíz se creará toda la estructura correspondiente a la extensión.
+
+La carpeta Chrome
+La siguiente carpeta que crearemos será chrome. El chrome se utiliza para cargar los archivos XUL del navegador. El objetivo que se buscó al crear chrome es que los archivos XUL se almacenen bajo un path que no varíe de plataforma en plataforma sino que sea estándar para todas las implementaciones, independientemente del sistema operativo subyacente. Por ejemplo el browser del navegador Firefox lo podemos encontrar en chrome://browser/content/browser.xul.
+
+A su vez el chrome le indica al navegador Firefox, que lo que se encuentra debajo de ella deberá ser interpretado por el navegador y gestionado de forma especial.
+
+Dentro de la carpeta chrome, se encontraran los archivos correspondientes a la definición de la interfaz de la exensión (XUL), la lógica (js) y estilos (css) que esta utilice.
+
+miextension@undominio/chrome/
+
+Carpeta content:
+La carpeta content contendrá todo el código de definición de interfaz (archivos XUL), y toda la lógica necesaria para implementar el comportamiento de la extensión. La lógica puede ser desarrollada principalmente a través de Javascript.
+
+miextension@undominio/chrome/content/
+
+Carpeta locale:
+La carpeta locale es utilizada para almacenar los dtd u archivos de configuración de los distintos idiomas. De esta forma se permite generar una extensión multilenguaje, traduciendo la interfaz y los mensajes por pantalla a un idioma determinado.
+
+miextension@undominio/chrome/locale/
+
+Carpeta skin:
+Dentro de la carpeta skin se guardan los estilos css a ser utilizados en la interfaz. También se encuentran almacenadas las imágenes a desplegar.
+
+miextension@undominio/chrome/skin/
+
+La carpeta Default
+La carpeta default permite definir los textos y mensajes que serán utilizados en la extensión. La carpeta en cuestión no es obligatoria, ya que los textos y mensajes pueden ser embebidos dentro del código js. La idea detrás de tener un archivo de propiedades, es facilitar el mantenimiento y la actualización de los mensajes, textos e imágenes.
+
+Carpeta libs
+La carpeta donde se guardarán las librerías utilizadas por la extensión será libs. No existe una ubicación determinada para la misma, pero es recomendable colocarla al mismo nivel de la carpeta chrome o al mismo nivel de las carpetas content y locale
+
+La carpeta Profile
+En carpeta profile, Firefox almacena todos los datos referente al usuario, ya sea información personal, marcadores, extensiones y configuración general del usuario. Dentro de la carpeta profile del usuario, se encuentra la carpeta extensions, bajo la cual se guardan las extensiones.
+
+Para que Firefox vea la extensión en desarrollo, la estructura de carpetas que recién se mencionó, se deberá colocar debajo de la carpeta extensions. Cuando se instala una extensión, Firefox la coloca debajo de la dicha carpeta de forma automática, pero para poder ir probando la extensión en desarrollo, se deberá colocar de forma manual.
+
+En windows la carpeta profile se encuentra en Documents and Settings/myuser/Aplication Data/Mozilla/Firefox/Profiles.
+
+En windows Vista, la carpeta profile esta en Users\[nombre usuario]\AppData\Roaming\Mozilla\Firefox\Profiles.
+
+Dentro de la capeta profile deberemos navegar hasta encontrar la carpeta extensions. Debajo de extensions guardaremos la extensión en desarrollo: .../Profiles/<carpeta profile del usuario>/extensions/miextension@undominio
+
+En Ubuntu encontramos la carpeta en el siguiente path: /home/myuser/.mozilla/firefox/defaults/<carpeta profile del usuario>/extensions/miextension@undominio. En Ubuntu se deberán tener en cuenta los permisos de los archivos a ejecutar.
+
+Archivos de configuración
+Dentro de la siguiente sección se describirán dos de los archivos mas importantes dentro de una extensión: el manifiest y el archivo de instalación. El archivo manifiest se denomina chrome.manifiest y el archivo de configuración de instalación se llama install.rdf.
+
+Install.rdf
+El archivo install.rdf representa el “activador” de la extensión. El mismo contiene información sobre la extensión a instalar. Define los metadatos, las versiones compatibles, las actualizaciones, la plataforma, los desarrolladores entre otras. El mismo se debe encontrar en la carpeta raíz y no dentro de otra carpeta: miextension@undominio/install.rdf.
+
+Ejemplo de un archivo install.rdf:
+
+<em:des>
+ <?xml version="1.0"?>
+ <RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+ xmlns:em="http://www.mozilla.org/2004/em-rdf#">
+    <Description about="urn:mozilla:install-manifest">
+    <em:id>miextension@undominio</em:id>
+    <em:name>Nombre de la Extensión</em:name>
+    <em:version>1.0</em:version>
+    <em:description>Descripción de la extensión</em:description>
+    <em:creator>Nombre del autor/res</em:creator>
+    <em:targetApplication>
+      <Description>
+        <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
+        <em:minVersion>Versión Mínima soportada</em:minVersion>
+        <em:maxVersion>Versión Máxima soportada</em:maxVersion>
+      </Description>
+    </em:targetApplication>
+  </Description>
+ </RDF>
+</em:des>
+
+id: El identificador, debe ser un identificadór único. Como se ha mencionado, el mismo puede ser un GUID o un identificador con formato de correo electrónico. En el ejemplo presentado tiene formato de correo electrónico. Al ser único se evita problemas de conflictos entre extensiones.
+
+name: Es el nombre completo de la Extensión.
+
+version: Identifica la versión de la extensión, ejemplo: minVersion= 3.0 y maxVersion=3.0.* que quiere decir de la versión 3.0 en adelante.
+
+description: Permite definir una descripción para la extensión.
+
+creator: El nombre del autor/es de la extensión.
+
+GUID de la Aplicación: Es el identificador de la aplicación sobre la cual la extensión va a correr:
+
+<em:aplic>
+                          Firefox 	{ec8030f7-c20a-464f-9b0e-13a3a9e97384}
+                          Mozilla Suite {86c18b42-e466-45a9-ae7a-9b95ba6f5640}
+                          SeaMonkey 	{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}
+                          Sunbird 	{718e30fb-e89b-41dd-9da7-e25a45638b28}
+                          Netscape  	{3db10fab-e461-4c80-8b97-957ad5f8ea47}
+                          Flock         {a463f10c-3994-11da-9945-000d60ca027b}
+                          Instantbird   {33cb9019-c295-46dd-be21-8c4936574bee}
+</em:aplic>
+
+minVersion: Indica la compatibilidad de la extensión con respecto a una versión minima de Firefox.
+
+maxVersion: Indica la compatibilidad con una versión máxima de Firefox.
+
+Chrome.manifiest
+Dentro del archivo se declarará el tipo de material que se encuentra dentro de un paquete chrome, el nombre del paquete y la ruta hacia el mismo. También se define cual es el archivo XUL que se va a fusionar con el archivo del navegador que viene por defecto con firefox (browser.xul).
+
+<em:aplic>
+El tipo de material que se define puede ser:
+
+         content: como se ha mencionado son los archivos XUL, js, XBLs entre otros que
+         forman parte de la estructura de la extensión definiendo la interfaz como su comportamiento.
+
+         locale:  son los archivos de definición de idiomas, DTD y archivos de
+         definición de propiedades (.properties) entre otros.
+
+         skin: son los archivos css e imágenes que conforman el diseño de la interfaz.
+</em:aplic>
+
+NOTA: Como se mencionó en la sección Estructura de las Carpetas, cada uno de los tipos de material correponen a las carpetas a definir dentro de la carpeta chrome.
+
+Para poder declarar el material asociado a la extensión se debe seguir la siguiente sintaxis: chrome://miextension/content/unArchivo.XUL. Con esto estamos diciendo que se deberá cargar la interfaz definida en el archivo unArchivo.XUL en la sección de content de la extensión miextension. Si el material a definir es por ejemplo una imagen lo podemos declarar de la siguiente manera: chrome://miextension/skin/miImagen.jpg, donde estamos diciendo que se cargue la imagen miImagen.jpg en la sección skin de la extensión miextension.
+
+Sintaxis del archivo: ejemplo chrome.manifiest de la extensión miextension.
+
+<em:aplic>
+
+ # Registro del tipo de material que contiene la extensión.
+ # Tipo de material - Nombre del paquete chrome (nombre de la extension) - Ubicación de los archivos.
+  content miextension chrome/content/
+  locale miextension chrome/locale/
+  skin miextension chrome/skin/
+
+ # Fusión del navegador browser.XUL de Firefox con la interfaz de la extensión.
+ overlay chrome://browser/content/browser.xul chrome://miextension/content/menuPrincipal.xul
+
+</em:aplic>
+
+La interfaz de usuario y el comportamiento
+Ahora te explicaremos sobre los lenguajes para la implementación de las interfaces de usuarios y la implementación del comportamiento. En el mismo no se extenderá sobre los lenguajes a mencionar dado a que en wikibooks existen tutoriales que hablan y detallan sobre los mismos.
+
+Interfaz de Usuario:
+XUL es un lenguaje de interfaz que proviene del XML. Dicho lenguaje es el utilizado por Mozilla Firefox, entre otros, para la implementación de sus interfaces gráficas. Dada las facilidades que brinda XUL como lenguaje netamente orientado a la definición de interfaces y que el mismo ya es implementado por Firefox, el lenguaje a utilizar para la generación de las interfaces gráficas de las extensiones también será XUL.
+
+Los archivos XUL de definición de interfáz de la extensión se deberán guardar dentro de la carpeta content. De esta manera se comienza a dar forma a la extensión. El comportamiento de las interfaces se implementa a través de JavaScript.
+XUL permite la integración con JavaScript de forma muy transparente. Se puede embeber código js en el archivo XUL o el mismo puede hacer referencia a un archivo js y en los eventos llamar a las funciones definidas.
+
+Màs Información en: XUL
+
+JavaScript:
+Como ya se ha mencionado, el lenguaje utilizado para la implementación de la lógica es Javascipt. Javascript es un lenguaje (de sintaxis similar a C y Java) que permite la programación de aplicaciones interactivas y principalmente aplicaciones web.
+
+Màs Información en:  Programación en JavaScript
+
+A su vez, para poder realizar una integración óptima y consumir servicios web, podemos implementar Ajax en nuestra lógica.
+Ajax, Asynchronus Javascript and XML, es una técnica de desarrollo para crear aplicaciones interactivas. Comunmente se utiliza para realizar cambios sobre las páginas web sin necesidad de recargarlas aumentando la interactibidad, velocidad y usabilidad de las aplicaciones.
+
+Ajax a su vez brinda un objeto especial para la comunicación asincrónica con un servidor Web. Dicho objeto es XMLHttpRequest. A través del mismo se lleva a cabo una petición HTTP o HTTPS al servidor web, permitiendo crear contenido dinámico y actualizaciones asincrónicas. A su vez dicho objeto provee métodos para verificar el estado de la petición y redireccionar comportamientos en función del mismo.
+
+Generar el instalador
+Una vez alistado el proceso de archivo, debes generar un instalador de la extensión e instalarlo en el navegador Mozilla Firefox.
+
+En un principio existe la opción de generar un archivo .jar que contenga todo el material bajo la carpeta chrome. Queda a decisión del desarrollador dejar los archivos tal cual o generar un jar.
+
+Generación del .jar: La implementación del jar consta de dos pasos. En primer instancia para generar el .jar se deberá crear un archivo .zip con el nombre de la extensión y que contenga todo el contenido de la carpeta chrome (no comprimir la carpeta chrome, sino que su contenido), luego este se renombra para .jar. Ejemplo: miextension.jar cuyo contenido son las carpetas content, locale y skin.
+
+En segunda instancia, se deberá modificar el archivo chrome.manifiest, para registrar el .jar:
+
+Cambiar:
+<em:aplic>
+ content miextension chrome/content/
+ locale miextension chrome/locale/
+ skin miextension chrome/skin/
+
+por:
+
+ content	miextension	jar:chrome/miextension.jar!/content/miextension/
+ locale 	miextension	jar:chrome/miextension.jar!/locale/miextension/
+ skin   	miextension	jar:chrome/miextension.jar!/skin/miextension/
+</em:aplic>
+
+Luego de generado el .jar, se creará el instalador. Los archivos de instalación son archivos .xpi. Los mismos son ficheros zip que contienen los archivos de configuración, archivos de instalación y el manifiest, por lo tanto todo el contenido de la extensión.
+
+Para la generación del archivo .xpi, se debe generar un archivo .zip con todo el contenido debajo de la carpeta raíz con el nombre de la extensión y luego renombrarlo a .xpi, miextension.zip a miextension.xpi:
+
+<em:aplic>
+ miextension.xpi:
+                 chrome/
+                    miextension.jar
+                 defaults/
+                 components/
+                 libs/
+                 install.rdf
+                 chrome.manifiest
+</em:aplic>
+
+Instalación: Para instalarlo, tan solo se deberá abrir el archivo con Firefox, ya sea botón derecho sobre el archivo .xpi, Abrir con/Firefox o abrir el navegador y en Archivo/Abrir archivo/seleccionar miextension.xpi
+
+De esta forma ya tenemos la extensión instalada en Firefox. Para poder visualizarla ir a Herramientas/Complementos/Extensiones.
+
+Más información
+A continuación se mencionarán algunos enlaces que tratan el mismo tema y bajo los cuales se puede obtener más información.
+
+Install.rdf
+Getting started with extensions development
+Crear un panel lateral en Firefox (extensión)
+Popup Menus in XUL
+Context Menus in XUL
+Updating extensions for Firefox 3
+XMLHttpRequest adopted by Mozilla
+Ajax MDC
+Extensiones
+
+Cómo configurar el navegador
+
+En el capítulo anterior, Utilización, mencionamos diversas características que se pueden modificar. Esto es usado gracias a la ventana de preferencias que viene por defecto con diversas opciones.
+
+Sin embargo, existe también otras maneras de modificar, muchos de ellas son usados frecuentemente por hackers y programadores.
+
+Preparando el experimento
+Para saber que es editar primero hay que averiguar la diferencias entre "programar mediante un lenguaje" y "configurar con tan solo ver las opciones". Si deseas modificar tu navegador, no es necesario hacerlo. En cambio, si deseas copilar y arreglar mediante este sistema, puedes leer el wikilibro siguiente Fundamentos de programación.
+
+Otra cosa a considerar, está en saber instalar los programas. Para crear programas, los desarrolladores eligen herramientas de programación que sirven de gran utilidad. Por ejemplo, el programa Gambas para GNU/Linux, sería una alternativa herramienta de ejecución gratuita, con la funcionalidad para lenguaje BASIC y javascript.
+
+Para tener seguro el programa, es de gran necesidad saber preparar el equipo frente a posibles amenazas y ataques al equipo. Crear una copia de seguridad, bastaría para recuperar la información en caso de perder los datos.
+
+El protocolo "chrome"
+En algunas extensiones existen la raíz local "chrome" usado para abrir las propias páginas dentro del archivo. Prácticamente, si ejecutas la página "chrome://browser/content/browser.xul" creará un subprograma que emula Firefox propiamente.
+
+El protocolo "about"
+Al ejecutar el navegador, existe una raíz llamada "about". Si escribes "about:about" se mencionará diversas páginas de ayuda, de ella se puede ir a diversas páginas relacionadas (para ver la información, como ejemplo, está la página about:support).
+
+Base de datos
+Cada versión puede contener una cierta cantidad de archivos del directorio que son conocidos como código fuente. Después de la instalación, se pueden ubicar normalmente por defecto suele decirse Archivos de programa.
+
+Cada fichero depende de varios factores. Por ejemplo, en la rama 5.x ejecutándose en Windows XP, podemos ver las carpetas usadas en el sistema operativo Windows. Ten en cuenta que se ubica en C:\Archivos de programa\Mozilla Firefox sin incluir otros archivos:
+
+Fuente: Código fuente por los desarrolladores de Mozilla
+
+Personalización CSS
+
+Para editar interfaz existen algunas formas de hacerlo. La hoja de estilo (CSS) permite modificar el diseño del navegador o de web a su gusto. En este apartado, podrás configurar mediante un archivo userChrome.css o por una extensión  por ti mismo o por terceros.
+
+Los archivos de estilo
+Hay dos formas de editarlo mediante una carpeta del navegador o una extensión que te administra:
+El directorio por defecto
+Dependiendo de la versión y el idioma de tu sistema operativo, encontrarás un directorio donde se le conoce el perfil de usuario. La carpeta (siendo [profile-name] cualquier nombre) representa a toda la información almacenada abajo.
+Para Windows 95/98/ME (Phoenix): C:\windows\Application Data\Phoenix\Profiles\[profile-name]\[#s].slt\chrome\
+Windows NT (Phoenix): %UserProfile%\Application Data\Phoenix\Profiles\[profile-name]\[#s].slt\chrome\
+Windows 2000/XP: C:\Documents and Settings\[USARIO]\Application Data\Mozilla\Firefox\Profiles\default.tea\chrome\
+Windows Vista/7: %APPDATA%\Mozilla\Firefox\Profiles\[profile-name]\chrome\
+Unix Like: ~/.phoenix/[profile-name]/[#s].slt/chrome/
+Mac OS X: ~/Library/Application Support/Firefox/Profiles/[profile-name]/chrome/
+Fuente: Ayuda de Firefox.
+
+En dicha carpeta existe 2 tipos de diseño CSS que no vienen incluidas. Si usas por primera vez, aparecerá un arhivo ejemplo como se explica abajo:
+userChrome.css: es el archivo dedicado al diseño de Firefox. Esta centrado en la interfaz como sitios web.
+userContent.css: es otro archivo dedicado al funcionamiento de sitios web de Firefox. Se puede usar como recurso nativo para desaparecer páginas.
+Fuente: shallowsky.com.
+
+Administrarlo por extensión
+Es lo más recomendable tener un gestionador de archivos. Algunos casos, existen extensiones que reducen el riesgo de modificar el sistema del navegador. Si usas Stylish o su derivado User Style Manager, por ejemplo, puede facilitar la introducción de datos sin necesidad que accedas fuera del navegador, permitiéndote crear dentro del administrador de complementos.
+
+El funcionamiento de este último es sencillo, desde el menú Firefox > Estilos de usuario podrás gestionar que estilos puedes usarlas o bien las que tienes instaladas.
+
+¿Cómo se hace?
+Aquí te explicamos el procedimiento, y si quieres los ejemplos para crear los tuyos:
+Sintaxis
+Para un correcto funcionamiento, el código debe tener tres instructores:
+El código @-moz-document para indicar que lo estás realizando dentro de Mozilla, o específicamente Firefox. Por ejemplo, el prefijo @-moz-document url("about:blank") indica que se edita en una página en blanco.
+El @namespace url(http://www.w3.org/1999/xhtml); como cabecera para indicar la base.
+El CSS. Dependiendo de cuántas características admiten el navegador, te aconsejamos dar una breve repasada sobre la sintaxis: el punto (.) es la operación, el numeral (#) es la identificación, los dos puntos (:) para una variante, un signo de admiración (!, como !important) para reconocerlo, etc.
+
+El código más sencillo tiene a esta apareciencia:
+
+@namespace url(http://www.w3.org/1999/xhtml);
+@-moz-document url("about:blank") {
+empty:not([style]):not([text]):not([class]):not([onresize]) {
+background: #fff url(chrome://browser/skin/sync-bg.png) repeat-x center -80px;
+}
+}
+
+Aquí se ve a un fondo de nube (o cualquier otra imagen) al abrir en una nueva pestaña. El mando inicia con una llave ({) y termina con otra cerrada Las características se inician con dos puntos como:empty:not([style]). Puedes ver el trabajo terminado, desarrollado por los usuarios de Userstyles.
+Conseguir un estilo
+Si deseas estar almodeando tu personalidad, dirigéte a userstyles.com
+Crear el tuyo
+Para empezar a modificar dirígete a la siguiente dirección chrome://browser/content/browser.xul (notas que estás en chrome:, carpeta local) y después a Firefox > Desarrollo web > Inspeccionar.
+
+Referencias
+
+Portabilización
+
+Aparte de las versiones de USB, Firefox puede ser llevado donde nunca se ha podido llevar. En Windows, existe una aplicación llamada Firefox Portable, donde no se necesita mucho conocimiento para utilizarlo. Tampoco se necesita instalar de fondo o pedir autorización del usuario (permisos de administrador), aunque se necesite dispositivos de alta velocidad para usar.
+Por ahora hay buenos trucos para aprovecharlo con él por el momento para Windows y Wine, donde podremos emular el propio Windows en Mac y distros Linux (Ubuntu).
+Instalación
+Para instalar, se accede desde portableapps.com y después ir a Firefox Portable. Al final, se instala la aplicación. Para instalar multilingue hay que dirigir a Other languages, y seleccionar español (en este caso). Cuando se instala debe salir una aplicación tipo FirefoxPortable_[versión]_[idioma].paf.exe, asegurándonos la firma correspondiente para prevenir instalaciones falsificadas que aumentan los riesgos discretos.
+
+Cuando se instala, seguimos los pasos, por defecto se creará una carpeta al costado del archivo de instalación. Los conveniente, es realizarlo en una carpeta visible.
+Procedimiento
+Es similar a las versiones normales a los de escritorio. Antes de usar, como costumbre, ten en cuenta que:
+La computadora donde se va a ejecutar esté desinfectada y actualizada. Si conectas y está infectada, se malogrará y causa grandes pérdidas.
+No posea aplicaciones de riesgo. Eliminando aplicaciones espía, quitando rápido como se pueda.
+Trata de mantener la mejor seguridad posible usando el protocolo de seguridad HTTPS. Por ejemplo h-t-t-p-s-:-/-/-w-w-w- en vez del conocido h-t-t-p-:-/-/-w-w-w (separado por barras para mayor detalle).
+Cuando dejes de usar el USB, intenta retirarlo con seguridad. Eso evita la pérdida de datos.
+
+Inicio
+Para iniciar, no te dirijas al menú principal. Arranca desde tu dispositivo y ejecuta FirefoxPortable.exe desde el archivo principal. Si tienes la situe que trae el programa, eso viene por separado, lo puedes ejecutar desde el menú del programa. Aunque mejor es usarlo desde la aplicación que viene por defecto.
+
+Cambios
+No hay cambios en su uso, aunque para guardar el historial se realiza en una carpeta en vez de los archivos dentro del sistema.
+
+Usando las carpetas
+Las carpetas almacenan los archivos que permiten la ejecución del programa. Por defecto se encuentran en X:/FirefoxPortable y están compuesto de la siguiente manera:
+/ (Base): El archivo de arranque FirefoxPortable y el archivo help para la página de ayuda.
+/App: Se encuentran los archivos de arranque, por lo que modificarlo adulteraría su funcionamiento. Está conformado de otras dos subcarpetas:
+/AppInfo: Información del programa Firefox Portable, los archivos de instalación como el logo y el nombre comercial.
+/Bin: Solo se encuentra el ejecutable de base de datos sqlite.exe.
+/DefaultData: Información de restauración.
+/Firefox: La carpeta propiamente dicha, donde alberga los archivos del programa (similar a la versión fija desde C:/Archivos del sistema/Mozilla Firefox)
+/Data: La información personal del usuario, como sesiones, historial, extensiones, etcétera
+/Other : Página de ayuda y los localizadores de la versión portable.
+
+Lecturas recomendadas
+
+Usando about:config
+
+Debido a su personalización del Firefox, este programa se basa de una serie de códigos personalizables. Esto es gracias al archivo about:config. En esta capítulo te enseñaremos a editar responsablemente el sistema de codificación para modificar las características cautelosamente.
+
+Al iniciar anunciará que está página es una "zona hostil para manazas", para comenzar haz clic en  y te dirigirás a una lista de preferencias junto a un filtro de búsqueda.
+Clasificación
+Aquí se menciona los configuradores, se listan en 4:
+Nombre de preferencia: Son las denominaciones para ser ejecutados, el espaciado es reemplazado por unos puntos. Por ejemplo, para evitar que autorecarge la página escribimos accessibility.blockautorefresh.
+Estado: Situación de modificación, puede que sea editado o venga por defecto.
+Tipo: Modo de codificación, puede ser:
+Lógico (Boolean): Es el activador mediante valores como true (encendido) o false (apagado).
+Entero (Integer): Es el valor numérico expresado enteramente, por ejemplo se escribe "1234".
+Cadena (String): Es el valor alfanumérico expresado en claves como "security.mode" entre otros.
+Valor: Campo donde da un valor a la preferencia. Tal como mencionamos la anterior.
+
+Ejemplos
+Aquí se menciona varios ejemplos, mencionados por Mozilla Zine sobre las diferentes entradas del navegador. Aquí se agrupa por la primera palabra que denomina:
+Accessibility: Accesibilidad
+Advanced: Avanzado
+Alerts: Alertas
+App: Aplicaciones
+Bidi
+Browser: Navegación
+Config: Configuración
+Content: Contenido
+DOM: Modelo de objetos del documento
+Editor: Edición de CSS.
+Extensions: Modificación de extensiones.
+Font: Modificación tipográfica.
+Geo: Configuración geográfica.
+General: Preferencias generales.
+Intl
+Javascript: Configuración del código script.
+Keyword.URL: Cuando Mozilla no puede discernir qué dirección URL quería el usuario
+Layout: Textura
+Network: Redes
+NGLayout
+Plugin
+Print: Visualización
+Privacy: Configuración de privacidad.
+Security: Estándares de seguridad.
+UI
+Update: Junto a Update_notifications, se notifican las actualizaciones.
+XPInstall: Instalación del formato .xpi
+
+Lecturas adicionales
+What's That Preference?, extensión de Firefox para consultar las preferencias. Complementos de Mozilla, 19 de mayo de 2010.
+Notas al pie
+
+Usando programas externos
+
+Además de Firefox, hay diversos programas pueden ayudarnos a hacer nuestro navegador más rápido o adecuado a las características de nuestro equipo o conexión. Hay dos clasificaciones: las versiones diferentes y los complementos de programación.
+
+Otras versiones de Firefox
+Algunas empresas han modificado su código fuente para adaptar a tus necesidades. A diferencia del original, sólo pueden funcionar independientemente (o algo así).
+
+Firefox Portable
+Si lo que piensas usar es algo más práctico y no instalable al sistema, usado en USB, se puede probar la versión portátil de Firefox. Fue creada por iniciativa del editor John T. Haller y el programa PortableApps. Para su funcionamiento directo, utiliza el archivo que ha sido extraído del instalador a tu carpeta preferida y ejecuta FirefoxPortable.exe. La versión que sólo está disponible para Windows se puede conseguir desde su sitio web.
+
+Pale Moon
+Según NeoTeo. Existe una versión alternativa con funcionalidades cautelosamente seleccionadas que aumenta la velocidad sin interferir a los sitios web que se navegan. El programa exclusivamente diseñado para Windows y es multilingue, puede ayudar a arreglar diversos problemas usando el código fuente. La diferencia exactamente está en su comunidad (desde el sitio web) y la licencia privada basado en la MPL.
+
+Programas complementarios a Firefox
+Los programas mostrados permiten configurar externamente antes de usar Firefox. Aunque puedan tener conocimiento en estos temas mejoran la eficacia del navegador:
+
+Firefox Preloader
+Disponible sólo para Windows, con licencia GPL. Mientras que Internet Explorer se carga más rápido porque Windows usa componentes internos al inicio, Firefox Preloader usa la misma "trampa". Y, si bien puede retrasar un poco la carga del sistema, es mejor tener toda la espera junta.
+
+Por desgracia, sólo funciona Firefox 3. El programa se puede descargar desde  Sourceforge.net
+
+SpeedyFox
+Disponible en Windows y Mac, se puede emplear sin instalación. Esta aplicación trata de optimizar la base de datos, que hace más lento al navegador al emplear demasiada información. Esta herramienta es efectiva, y no requiere de componentes adicionales. Se consigue desde el sitio de CrystalIdea
+
+FirefeVox
+Este programa permite leer y dar comandos de voz para las mejoras de su uso. Por ejemplo FirefeVox puede ayudar a pronunciar palabras en el navegador sin dificultad alguna. Es necesario los requisitos adicionales para emplear la aplicación.
+
+CCleaner
+CCleaner es una aplicación gratuita que puede ser instalable. El programa elimina el historial, las contraseñas u otra información mediante limpieza completa que evita pérdidad tiempo al realizar tareas como reinstalar el sistema. Se puede emplear para eliminar base de datos dañados o si quieres desaparecer tu información privada frente a otros usos. Se puede descargar desde Pirform.
+
+En Mozilla Zine existe una lista de compatiblidad (en inglés) para cualquier sistema operativo.
+
+Lecturas adicionales
+
+Usando protocolo HTTPS
+
+El protocolo HTTPS es una característica adicional que permite mejorar la navegación de Firefox, en este capítulo existen algunos consejos para mantener seguro de ataques indeseados.
+
+Funcionando el protocolo
+Para utilizar la herramienta dirígete al cuadro de Opciones, en la pestaña Avanzado, suiguiendo a cifrado. En la primera parte te encotrarás con dos tipos de codificación, el SSL (Capa de conexión segura) y el TLS (capa de transporte segura) que permite usar dicho protocolo al activarlos. Otra parte se encuentra la lista de los certificados. Los certificados representa al "agente de seguridad" usado en los servidores web.
+
+Probando el protocolo
+La manera práctica de reconocer esta en usar el prefijo https. Por ejmplo si navegamos en el sitio web http://laweb.com ésta no se identifica por lo que se puede ver a cualquiera que acceda a ella (como las contraseñas). En el navegador, el icono mostrado en la parte izquierda de la caja web aparecerá sin infomración de identidad al hacer clic en ella.
+
+No obstante, si dicho sitio contiene una página segura llamada https://seguro.laweb.com, con el https: mencionado indica que está en dicho sitio. El fondo sujeto al icono se verá de color azul cuando sólo posea el certificado o verde cuando indica el propietario, en este caso La Web S.A., necesario para verificar el sitio.
+
+Por defecto, por limitaciones técnicas no están obligados a usarlo, excepto en bancos o lugares relacionados para recopilar información personal (con el contenimiento del mismo). Algunos países o fundaciones como EFF (vea lecturas recomendadas) exigen usarlas con el fin de erradicar el phishing.
+Lecturas adicionales
+
+Crear una extensión para Firefox 3
+
+REDIRECCIÓN Mozilla Firefox/Configuración/Crear una extensión para Firefox 3
+
+Extensiones
+
+REDIRECCIÓN Mozilla Firefox/Utilización/Extensiones
+
+User Agents
+
+Los siguientes agentes de usuario se pueden usar para simular diversos programas y plataformas con UserAgent Switcher:
+
+Internet Explorer 8 en Windows Vista -últimas versiones de Microsoft.
+Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.0)
+
+Para Windows Seven basta con cambiar Windows NT 6.0 por Windows NT 7.0
+
+Google bot
+
+Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)
+
+Da al navegador lo mismo que a un bot de Google. Puede fallar al ver páginas de Google como el caché -error http 403.
+
+Una combinación imposible
+
+Mozilla/4.0 (compatible; MSIE 8.0; X11; U; Linux; i686; es-WS; rv:1.6)  Debian/1.6-7
+
+Internet Explorer en la distribución GNU/Linux Debian. Sólo sería posible con wine, y aun así IE "creería" estar en Windows.
+
+Historia
+
+REDIRECCIÓN Mozilla Firefox/Introducción/Origen
+
+Info
+
+Firefox es un navegador web multiplataforma (Microsoft Windows, Mac OS X y GNU/Linux), libre y de código abierto (GNU GPL/GNU LGPL/MPL), que puede ser personalizado con extensiones, temas y plugins.
+
+Inicialmente era una aplicación independiente de una suite de Internet (hasta hoy se conserva con el nombre SeaMonkey), lanzado en el 2004 por la fundación Mozilla. Sus constantes modificaciones y mejoras de seguridad que motivan a usar muchos usuarios, eran heredadas de su hermano lejano Netscape, administrada por una empresa.
+
+Su fama motivó a otros desarrolladores emplear derivaciones en los ámbitos académicos y económicos. Además posee una diversidad de complementos, estilos e inovadoras opciones que hacen una útil y cómoda forma de navegar Internet.
+
+¿Has imaginado usar un navegador para ver videos, usar las redes sociales o jugar? El avance de la versión 4, en el 2011, cambió radicalmente su finalidad: una plataforma diaria de disfrutar las necesidades con los servicios de la Internet.
+
+Interfaz
+
+REDIRECCIÓN Mozilla Firefox/Anexos
+
+Introducción
+
+Tecnología
+Su personalización ilimitada es casi relacionado a la edición de páginas web (entre ellas XUL, JavaScript y CSS).
+Está programada en C++ que se derivó del navegador web Netscape
+Tanto Netscape como Firefox siguieron coexistiendo hasta finales del 2000, bajo amparo de Google.
+Orígenes
+Fue en el 2002 que Dave Hyatt y Blake Ross decidieron dividir la suite de Internet a un browser y un cliente de correo.
+AOL quiso que Mozilla/Browser sea un éxito. Sufrió cambios como el nombre, la organización y su finalidad.
+En el 2005 se hizo público su inaguración, que tuvo una gran influencia por diversos medios en los Estados Unidos.
+
+Texto completo
+
+en:Using Firefox/Introduction
+fr:Firefox/Introduction
+it:Mozilla Firefox/Introduzione
+
+Historia
+
+REDIRECCIÓN Mozilla Firefox/Introducción/Origen
+
+Origen
+
+En sus comienzos, la historia de la navegación web tuvo altos y bajos desde el proyecto ARPANET hasta el nuevo milenio. Antes del célebre Internet Explorer, los navegadores tuvieron que desplazarse por el texto, seguido de imágenes y animaciones. El auge de las empresas hechas en Silicon Valley motivó que la alguna vez HyperCard fuera el precursor comercial para sugir avances fusionados; y Mosaic, el gran impulsor.
+
+Un grupo de colaboradores de Mozilla Dave Hyatt y Blake Ross decidieron aisalar la rama matriz para centrarse en un solo proyecto para la navegación web. Previamente, la multinacional estadounidense AOL quiso que Netscape, que perdía interés con el paso del tiempo, no pusiera mucha atención en en Internet Explorer, si no en un prototipo multiusos: Chat IRC, e-mail y navegador web. Una de las motivaciones para promover un modelo de desesarrollo distinto fue mediante el libro The Cathedral and the Bazaar (La catedral y el bazar) de Eric S. Raymond. El libro, que motiva a las personas en mantener el equipo con otras más, cita que tratar a los usuarios como colaboradores es la forma más apropiada de mejorar el código, y la más efectiva de depurarlo..
+
+El nombre Mozilla, desarrollada como fase experimental entre 1992 y 2002, fue inspirada en un moustro capaz de devorar todo (Godzilla) y el navegador veterano Mosaic. Ahora organización, mantiene a muchos intereses en la web: Sistemas operativos, desarrollo de aplicaciones en el navegador, control cooperativo, neutralidad de la Internet, etcétera. También tiene una empresa con su nombre en la propia Silicon Valley.
+
+Inicios
+Mozilla con Hyatt, Ross, Hewitt y Chanial decidieron, en la primavera de 2002, cancelar el proyecto y liberar su código para seguir la filosfía del código libre y abierto. El nombre original del proyecto era Mozilla/Browser, aunque cambiado por Phoenix. Con la espectativa de la versión 1.0 el 9 de noviembre de 2004, Firefox ya había atraído la atención de ciertos medios de comunicación, incluyendo a Forbes y el Wall Street Journal.
+
+Con más de 25 millones de descargas en los 99 días siguientes a la publicación de la versión 1.0, Firefox se convirtió en una de las aplicaciones libres más descargadas, especialmente entre los usuarios domésticos. El 19 de octubre de 2005, Firefox había alcanzado la cifra de 100 millones de descargas en menos de un año (344 días). La versión 1.5 llegó el 29 de noviembre de 2005, superándose la cota de los 2 millones de descargas en las primeras 36 horas.TIENE 450 PESOS
+
+Nombramiento
+El nombre Phoenix duró hasta el 14 de abril de 2003, cuando, por razones legales, debió ser cambiado al estar ya registrado por el desarrollador de BIOS Phoenix Technologies. El nombre elegido fue «Firebird» (Pájaro de Fuego).
+
+El nuevo nombre pronto se hizo polémico al comprobarse la coincidencia del nombre con el de otro proyecto de código abierto, la base de datos Firebird. A finales de abril de 2003, la Fundación Mozilla publicó un comunicado en el que se indicaba que era necesario referirse al navegador utilizando el nombre Mozilla Firebird para evitar la confusión.
+
+Sin embargo, la presión constante de la comunidad forzó a que, tras barajar otros nombres como Firebird Browser y Mozilla Firebird, el 9 de febrero de 2004 Mozilla Firebird finalmente se rebautizó como Firefox (panda rojo (Ailurus fulgens), y literalmente Zorro de Fuego). Este nombre se eligió por su semejanza con «Firebird» y por ser único en la industria informática. Para garantizar la estabilidad del nuevo nombre, la Fundación Mozilla había empezado ya en diciembre de 2003 el procedimiento de registro del nombre Firefox como una marca depositada en Estados Unidos.
+
+Aunque muestra una evidente inconsistencia con los nombres de los proyectos hermanos de Mozilla mencionados anteriormente, el nuevo nombre y logotipo del navegador fueron rápidamente aceptados. Mientras algunos usuarios se irritaron por estos cambios de nombre sucesivos, otros lo tomaron como filosofía.
+
+Lecturas recomendadas
+
+¿De qué están hechas las aplicaciones Mozilla?
+
+Mozilla es una compañía sin afán de lucro, para desarrollar sus aplicaciones cuyos componentes son (técnicamente hablando):
+Binarios: ejecutables y bibliotecas resultantes de una compilación.
+Archivos empaquetadores: archivos JAR, XPI y ZIP.
+Archivos de texto (fácilmente modificables)
+
+Los componentes
+Cómo cualquier otro programa, Firefox y sus derivaciones (Seamonkey, Thuderbird, Songbird, etcétera) poseen características básicas en sus archivos que lo hace personalizable:
+
+Los binarios
+Los archivos binarios son la base de casi cualquier aplicación. Proporcionan la capacidad de abrir sockets para transmitir información por red, recurrir a la API para proporcionar una interfaz gráfica a partir de otros archivos...
+
+Los archivos empaquetadores
+Son ficheros JAR, usados internamente para guardar ficheros de texto y, ocasionalmente, bibliotecas. Tienen una jerarquía interna de directorios, ubicados dentro de los archivos de instalación como: chrome para el contenido, locales para las traducciones y skin para los temas.
+
+Los archivos de texto
+Proporcionan datos para la interfaz gráfica. Esto es lo que hace que sea tan extensible, aunque se sacrifique algo de velocidad. Dentro de ello, se realizan ajustes de bloqueo, interfaz, scripts entre otros.
+
+El magnífico XUL
+El lenguaje principal para la personalización dentro del navegador. Basado en XML, proporciona la base sobre la que trabajarán los demás documentos. Sus etiquetas incluyen botones, cajas, entradas de texto, etc. El código sirve para la creación de extensiones para aumentar la potencia del navegador.
+
+¿Cómo lo programan? Para hacer el clásico "Hola mundo" sería:
+
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+
+<window
+   title="XUL"
+   orient="horizontal"
+   xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+<label>Hola mundo!</label>
+</window>
+
+Sabiendo que: Usan como versión 1.0, realizan en una carpeta chrome:, pueden usar como base el sitio web del código (the.is.only.xul). Los recursos del HTML colaboran dentro de él.
+
+CSS
+Al igual que en diseño web, el CSS proporciona estilos a los documentos base. Sin embargo, este CSS incluye muchas extensiones que ni siquiera han sido propuestas al W3C, dado que con frecuencia carecerían de sentido fuera de una aplicación.
+
+JavaScript
+El lenguaje estrella. Proporciona funcionalidad real a todo lo anterior. Se aplica igual que en diseño web, tanto en DOM como para AJAX. Para trabajar como aplicación (modificar archivos, por ejemplo) se emplea el modelo de objetos XPCOM, al que tienen acceso los archivos "privilegiados", en el registro chrome.
+
+DTD
+Son declaraciones de XML, con la extensión .properties, que definen entidades. Por decirlo, definen las comunicaciones en relación a las opciones del sistema. Al hacer una llamada a una entidad XML, el programa busca la correspondiente al código doble de idioma (p.ej.: es-AR para español de Argentina y en-UK para inglés británico). Así se consiguen centralizar las traducciones, y no se requieren múltiples documentos XUL para cada idioma.
+
+Por tanto, podemos ver que hacer una interfaz gráfica del usuario en un XUL es muy similar a una web dinámica.
+
+Otros
+También debemos nombrar los archivos .manifest, que contienen una lista de documentos privilegiados con acceso al XPCOM.
+
+Distribución de extensiones
+Las extensiones se proporcionan en formato zip, renombrado a .xpi. Contiene una jerarquía de carpetas interna, que se copiará en las carpetas del programa. Además tiene un archivo install.rdf, que indica con qué versiones y aplicaciones es compatible. Algunas incluyen un install.js, por motivos de compatibilidad con versiones antiguas. Otros incluyen un jetpack para instalarlo sin reiniciar el navegador.
+
+Finalmente los temas se distribuyen directamente en un JAR. Por lo tanto, la flexibilidad de un navegador está resumida en extensiones.
+
+Programas aparte
+
+REDIRECCIÓN Mozilla Firefox/Configuración/Usando programas externos
+
+Página de edición
+
+Este es una página de edición del libro Mozilla Firefox. Con ello, todos los colaboradores pueden guiarse de todas las secciones, instrucciones wiki y marcar huella a este proyecto. Solo pedimos que te concentres en la aplicación de Firefox. Para otros temas relacionados con la fundación Mozilla puedes surgerir en la página de discusión o aportar en sus libros relacionados.
+Guía de estilo
+Encabezado y pie
+Cada página debe incluir un encabezado y un pie de la siguiente forma:
+
+Las etiquetas  evitarían ser visualizadas al ver los capítulos en texto completo.
+
+Tips
+La plantilla más apropiada a usar es . No obstante, para errores críticos en el mantenimiento del sistema (es decir en el capítulo configuración), se recomienda usar .
+
+Para entrenar a los lectores sobre los temas expuestos, en el apartado Ejercicios, se usa .
+
+Adjuntar páginas por tema
+Para jearquizar los temas y subtemas del libro, asegúrate de incluirlo dentro de cada "sección" que mostramos en la sección "dentro del libro". Así los que deseen imprimir el libro, podrán tenerlo sin faltas. Esto es la codificación:
+
+Utilización
+==Instalación==
+Texto de entrada
+===Subsección===
+Texto de subsección
+[...]
+representa un pequeño espacio de sangría entre los párrafos.
+
+Para evitar confusiones, el texto completo que es el "volumen" de primer orden. Si no sabes cómo usar los títulos wiki, añade cierta cantidad de signos de igualdad, en este caso usamos 1, sobre el texto: =Título de volumen=. Esto se aplica también con el título del capítulo, con dos signos de igualdad (==Título de capítulo==) y así sucesivamente.
+
+En el caso de capítulos, que son inferiores al anterior, se considera como tercer o de menor orden: ===Título===.
+
+Dentro del libro
+Seciones principales
+Nota: Revisa los pasos en la guía de estilo (arriba).
+Mozilla Firefox/Info (para portada)
+Mozilla Firefox/Introducción (texto completo)
+Mozilla Firefox/Utilización (texto completo)
+Mozilla Firefox/Configuración (texto completo)
+Mozilla Firefox/Anexos (texto completo)
+Discusión:Mozilla Firefox (para debatir y surgerir mejoras)
+Mozilla Firefox/Página de edición
+
+Colaboradores
+Diego Sanguinetti Rodríguez.
+Si deseas colaborar, inscribe con tu nombre aquí
+
+Utilización
+
+Cómo instalar
+Cómo iniciar
+Cómo navegar
+Navegación a profundidad
+Complementos de Mozilla:
+Las extensiones
+User Agents
+Los plugins
+Los temas de estilo
+Modo accesible
+Ajustar características
+Sicronizar en la nube
+Atajos de acceso rápido
+Preguntas frecuentes
+
+Accesibilidad
+
+Aparte de lo mencionado, para personalizar una Navegación avanzada Firefox incluyen otro tipo de accesiblidad para su uso en la red.
+
+En este caso se puede consultar diversos métodos para modificar. Inclusive puedes adaptarlo para aquellos que tienen problemas de visión (pérdida total o parcial), o una capacidad limitada para usar un teclado o ratón (mouse).
+
+Usando el teclado
+Si deseas sabes las teclas de acceso. Véase el capítulo Atajos de uso.
+Usar siempre los cursores del teclado para navegar por las páginas
+Usar siempre las teclas del cursor para navegar dentro de las páginas te permite moverte a través del contenido web como si estuvieses en el interior de un editor de sólo lectura. Puedes usar el teclado para seleccionar contenido web y copiarlo al portapapeles. Puedes activar esta característica en Herramientas > Opciones y marcas la opción Usar siempre las teclas del cursor para navegar dentro de las páginas.
+
+Puedes pulsar F7 en cualquier momento para activar y desactivar esta característica. Cuando pulses F7, Firefox te preguntará si realmente quieres activar esta característica. Puedes desactivar esta pregunta si seleccionas No volver a mostrar este diálogo.
+Buscar texto mientras se escribe
+Buscar texto mientras se escribe (Buscar en el texto cuando comience a tipear en es-AR) te permite navegar rápidamente por el texto o hipervínculos (enlaces en es-AR) de una página web. Esta característica tiene dos modos. Pulsa / y comienza a escribir para buscar en todo el texto de la página actual, o bien, pulsa ' antes de la cadena a buscar para hacerlo únicamente en los hipervínculos (enlaces en es-AR). Firefox resaltará el texto o hipervínculos (enlaces en es-AR) que coincidan con tu búsqueda a medida que escribas.
+
+Los siguientes atajos del teclado controlan esta característica:
+
+Escribe más caracteres para refinar tu búsqueda. Firefox resaltará el siguiente texto o hipervínculo (enlace en es-AR) coincidente o te avisará si no hay ninguna coincidencia.
+Pulsa + ó  para encontrar la próxima cadena de búsqueda actual.
+Pulsa ++ ó + para encontrar la cadena de búsqueda anterior.
+Pulsa  para eliminar el último carácter que has escrito. Firefox regresará al texto previamente resaltado.
+Pulsa  para cancelar la búsqueda. También puedes cancelar la búsqueda al cambiar el foco, o simplemente puedes esperar hasta alcanzar el tiempo de caducidad.
+
+Puedes cambiar el comportamiento predeterminado de esta característica en Herramientas > Opciones. Abres el panel Avanzado (Avanzadas en es-AR), seleccionas la pestaña General y marcas la opción Buscar texto mientras se escribe (Buscar en el texto cuando comience a tipear en es-AR). Si esta opción ya está marcada, puedes comenzar a escribir en cualquier momento para iniciar automáticamente la búsqueda en el texto. En forma predeterminada, las búsquedas automáticas examinan todo el texto en la página. De todos modos, podrás pulsar ' ó / para comenzar a buscar en un modo o en el otro.
+
+Puedes usar esta característica para acceder a los botones, las cajas de texto y otros controles de formularios. Busca el texto que precede inmediatamente al control de formulario que buscas y pulsa . Al pulsar , la búsqueda termina automáticamente y fija el foco en el siguiente campo o botón de formulario después del texto resaltado.
+
+Tipos de fuentes y colores
+En la siguiente parte se muestra su configuración de tipos y colores de las fuentes.
+Reemplazar la tipografía de la página
+Algunos sitios web pueden mostrar el texto con tipografía que resulta difícil de leer. Otros sitios pueden basarse en los tipos de letra predeterminados del navegador. Puedes configurar tus tipos de letra predeterminados en Herramientas > Opciones. Seleccionas el panel Contenido y luego seleccionas un tipo y un tamaño de letra en la sección Tipos y colores (Fuentes y colores en es-AR).
+
+Puedes definir tipos de letra predeterminados para diferentes estilos, incluyendo serif, sans-serif y monoespaciado, al pulsar el botón Avanzadas (Avanzado en es-AR). Sin embargo, muchas páginas web definen sus propios tipos de letra y por lo tanto, tu selección no surtirá efecto en esas páginas. Para reemplazar la tipografía definida por esas páginas, desmarca la opción Permitir a las páginas elegir sus propios tipos de letra, en vez de mi selección anterior (Permitir a las páginas elegir sus propias fuentes en lugar de mis selecciones hechas arriba en es-AR).
+
+Observa que algunas páginas web pueden mostrarse de manera incorrecta, según la tipografía predeterminada que hayas elegido.
+
+Fijar un tamaño mínimo de letra
+Algunos sitios web pueden mostrar texto en tamaño demasiado pequeño como para leerlo cómodamente. Para hacer que estas páginas sean más fáciles de leer, puedes definir un tamaño de letra mínimo. Cuando las páginas web intenten mostrar texto menor que este tamaño, Firefox agrandará el texto al tamaño que hayas escogido.
+
+Para establecer un tamaño de letra mínimo, ve a Herramientas > Opciones y selecciona el panel Contenido, haz clic en el botón Avanzadas (Avanzado en es-AR) en la sección Tipos y colores (Fuentes y colores en es-AR). Puedes definir un tamaño de letra en el menú desplegable.
+
+Observa que algunas páginas web pueden mostrarse de manera incorrecta, según el tamaño de letra mínimo que hayas elegido.
+
+Redimensionar el texto de las páginas
+Los siguientes atajos del teclado te permitirán modificar el tamaño del texto:
+
+Pulsa Ctrl++ para aumentar el tamaño del texto.
+Pulsa Ctrl+- para disminuir el tamaño del texto.
+Pulsa Ctrl+0 restablecer el tamaño del texto al indicado originalmente por la página web.
+
+Observa que algunas páginas web pueden mostrarse de manera incorrecta si aumentas o disminuyes el tamaño del texto.
+
+Reemplazar los colores de la página
+Algunos sitios web pueden mostrar colores de texto y fondo que son difíciles de leer, y otros pueden basarse en los colores predeterminados del navegador. Puedes definir tus colores predeterminados en Herramientas > Opciones, seleccionas el panel Contenido y luego haces clic en el botón Colores de la sección Tipografía y colores (Fuentes y colores en es-AR). Puedes definir colores predeterminados para texto y fondo, así como para hipervínculos (enlaces en es-AR) visitados y no visitados. También puedes especificar se subrayarán los hipervínculos (enlaces en es-AR).
+
+Sin embargo, muchas páginas web definen sus propios colores, y por lo tanto, las opciones que hayas seleccionado no surtirán efecto. Para reemplazar los colores definidos por las páginas web, desmarca la opción Permitir a las páginas elegir sus propios colores, en vez de mi selección anterior (Permitir a las páginas elegir sus propios colores, en lugar de esta selección en es-AR).
+
+Usar un tema de alto contraste
+Firefox detecta automáticamente si estás usando un tema de alto contraste y muestra todo en tu esquema de color de alto contraste. Esto prevalece sobre cualquier otra configuración del navegador o de las páginas web y afecta a la interfaz de Firefox en sí misma (todos los menús, las ventanas y las cajas de diálogo) y al contenido de cualquier página web que visites.
+
+Para usar un tema de alto contraste, ve a Menú de Inicio > Panel de control > Opciones de accesibilidad > Pantalla y marca la opción Utilizar contraste alto.
+Controlar los scripts de Java
+Bloquear las ventanas emergentes
+Para más información sobre cómo bloquear las ventanas emergentes, ingresa en Controlar ventanas emergentes.
+
+Desactivar funcionamiento de Java
+Algunas páginas funcionan con muchos recursos a través de los applets de Java. Sin embargo, algunos usuarios que optan por la navegación con teclado pueden experimentar problemas con algunos applets de Java que obtienen el foco en forma automática y no ofrecen una manera de salir del applet y navegar por el resto de la página web. Si tienes ese problema, puedes desactivar Java en Herramientas > Opciones, seleccionas Contenido y desmarcas la opción Activar Java (Habilitar Java en es-AR).
+
+Limitar el comportamiento de JavaScript
+Puedes desactivar JavaScript por completo en Herramientas > Opciones. Seleccionas el panel Contenido y desmarcas Activar JavaScript (Habilitar JavaScript en es-AR). Algunas páginas web utilizan JavaScript y pueden no funcionar correctamente si JavaScript está desactivado.
+
+Si no quieres desactivar JavaScript por completo, también encontrarás un conjunto de preferencias avanzadas de JavaScript para restringir el comportamiento de los scripts. A la derecha de la casilla Activar JavaScript (opción Habilitar JavaScript en es-AR), pulsa el botón Avanzado para abrir la ventana Parámetros avanzados de JavaScript (Configuración avanzada de Javascript en es-AR). Puedes controlar si se le permitirá a los scripts mover o redimensionar ventanas existentes, traerlas a primer plano o llevarlas al fondo, desactivar o reemplazar menús contextuales, ocultar la barra de estado o cambiar el texto de la barra de estado.
+
+Activar tecnologías adaptadas a usuarios con necesidades especiales
+Cada tecnología este de acuerdo a un uso externo. Sin embargo, existen programas que pueden ayudar a mejorar la interfaz. Para una breve lista véase Programas externos.
+La información más reciente sobre compatibilidad con este tipo de tecnologías asistenciales de terceros se encuentra en Compatibilidad con tecnologías adaptadas a usuarios con necesidades especiales.
+
+Lecturas recomendadas
+
+Administracción de complementos
+
+En esta parte, aprenderás a usar complementos (o agregados en algunos países). En español, se interpreta como "un objeto que se añade a otro para unificar a uno completo" (DRAE).
+
+Para abrir, puedes ir a Herramientas > Complementos.
+
+Interfaz
+La interfaz del navegador incluye la barra de búsqueda y un botón de configuración. En versiones anteriores a la 3.6 está vista en una ventana, tiempo despúes aparece en una pestaña (cuyo url es about:addons).
+Clasificaciones
+En esta ventana te encontrarás 3 tipos de complementos (vistos en la solapas). Están calsificados según el desarrollo de las mismas. La explicación detallada se encuentra enlos próximos capítulos.
+
+Plugins: Son aplicaciones de gran consumo, usados compartidamente con otro software. En Windows, por ejemplo, son ejecutables y requieren más consumo de memoria.
+
+Extensiones: Son mini-aplicaciones que consume mucho menos. Utilizan los recursos nativos de navegador mediante el archivo .xpi y pueden identificarse con sus propias funciones. Se consiguen gratuitamente en Mozilla Add-ons, sitio oficial para catalogar en el navegador.
+
+Temas: No son aplicaciones, si no complementos de estilo que mejora la experiencia del navegador. Se componen en diseños y fondos (Personas).
+
+Barra de complementos
+Dentro de la barra de estado, en versiones anteriores a la 4, se puede visualizar los complementos en la parte inferior. Por defecto, ahora se incluye sólo los commplementos para mejorar la estética.
+
+Una de las ventajas está en que puedes accesder rápidamente con tan sólo usar o modificar su estado.
+Lecturas recomendadas
+
+Atajos de acceso rápido
+
+En esta parte encontrarás sobre los atajos más frecuentes en el navegador.
+Windows
+Página anterior:  +  o
+Página posterior:  +  o  +
+Página posterior:  +
+Abrir archivo:  +  o
+Actualizar:  +  o  +
+Purgar (sin la caché):  +  +
+Detener:
+Mac OS X
+Página anterior:  +  o
+Página posterior:  +  o  +
+Abrir archivo:  +
+Actualizar:  +
+Purgar (sin la caché):  +  +
+Detener:
+Linux
+Página anterior:  +
+Página posterior:  +
+Página posterior:  +
+Abrir archivo:  +  o
+Actualizar:  +  o  +
+Purgar (sin la caché):  +  +
+Detener:
+Mouse
+Página anterior:  + Giro atrás
+Página posterior:  + Giro adelante
+Ampliar:  + Giro atrás
+Reducir:  + Giro adelante
+Cerrar pestaña: Boton medio sobre una pestaña
+
+Lecturas adicionales
+
+Atajos de teclado
+
+REDIRECCIÓN Mozilla Firefox/Utilización/Atajos de acceso rápido
+
+Extensiones
+
+Las extensiones son sub-aplicaciones, que se integran con el navegador Firefox -hay extensiones para todos los programas de Mozilla-, se encuentran en el archivo about:addons. El problema viene cuando instalamos demasiadas extensiones, llegando a 40 incluso. Si este es tu caso, seguro que cuando las instalaste estabas pensando "a la larga me van a venir bien". No suele ser así. Sólo ocupan espacio en disco y RAM al arrancar y durante la ejecución.
+
+¿Que son las extensiones?
+Una extensión es una nueva funcionalidad que se integra a Firefox. La misma puede ser desarrollada de forma independiente al navegador y a la plataforma. Por lo tanto se puede decir que las extensiones permiten añadir nuevas funcionalidades y comportamientos al navegador adaptadas a los requerimientos del usuario.
+
+Las extensiones no son lo mismo que un plug-in. Un plug-in permiten mostrar dentro de una página web contenidos pdfs, flash, sonidos y videos entre otros, que el navegador no puede mostrar por sí mismo.
+
+Además las extensiones son portátiles y fáciles de instalar, sin embargo, no te puede asegurar la compatibilidad con la versión del navegador.
+
+Cómo lo veo
+Desde tu navegador para ver la lista, dirigite al menú Herramientas y después elige Complementos. En la ventana si es de 3.6 o en la ventana (desde 4), eliga extensiones. Allí puedes ver cuales son, sus propiedades y la descripción. Si es posible verifique si esta actualizado presionando con el botón derecho al complemento.
+Cómo consigo un complemento
+Dentro de los complementos existe un sitio que recopila ellos. Desde tu navegador, en la página de administración puedes buscar uno de ellos; o bien escribe desde la barra de navegación: https://addons.mozilla.org/es-ES/firefox/.
+Complementos útiles
+Si no sabes eligir cuáles son realmente útiles, lo mejor es leer la siguiente parte. El nombre de cada extensión será un enlace a Wikipedia o, en su defecto, a su página en  el sitio de recopilatorio. Al final de la página estarán los links de descarga.
+
+Adblock Plus Posiblemente la más popular de las extensiones de Firefox. Bloquea anuncios tanto en imagen como en flash -tipo Hotmail-. Para ello usa listas de fragmentos de URL. Estas listas se pueden obtener en complementos-Adblock Plus-Opciones-Filtros-Añadir suscripción de filtros.
+
+Chatzilla Es un cliente IRC. Viene como parte de la suite Seamonkey. Útil para contactar en tiempo real con wikipedistas en el canal IRC de Wikipedia (por ejemplo).
+
+DownThemAll! DtA! es un completo gestor de descargas intgrado con Firefox. Cuando Firefox reciba un archivo para descargar dará, además de la opción "Abrir con" y "Guardar como...", la opción "DownThemAll!", que lleva a una ventana donde configurar diversas opciones avanzadas, y "DtA One Click". Al desplegar el menú de esta opción nos ofrecerá los últimos directorios usados en DtA. Por ello es recomendable estructurar una carpeta como /descargas/archivos y /descargas/programas. Así ofrecerá estos dos directorios. Dentro organizar como, por ejempo, /descargas/archivos/zip o /descargas/archivos/odt. A este tercer nivel no ha de llegar DtA, pero se debe ubicar en ellos las descargas justo al acabar. Mientras descarga, se halla un archivo .dtapart.
+
+FEBE (Firefox Environment Backup Extension, Extensión para la Copia de seguridad/backup del Entorno de Firefox): Permite convertir extensiones en el archivo xpi correspondiente, guardar contraseñas, preferencias, marcdores... Hay también una opción para guardar el perfil completo en un archivo .fbu -Firefox Backup, que en realidad es un zip. Por tanto, se puede utilizar cuaquier descompresor para extraer todos los archivos. Para ello, desplegar el menú contextual del .fbu y seleccionar en las opciones del compresor "Extraer en profile/", o algo similar -para ver la carpeta en que debe extraerse, ver en Programas aparte-.
+
+Firebug: Imprescindible para desarrolladores web y de interfaces XUL. Incuye depurador de JavaScript (consola JS), análisis y modificación en tiempo real del HTML, DOM y CSS, monitorización del tráfico HTTP...
+
+SkipScreen Especialmente preparado para MegaUpload, Rapidshare, etc. Nos libra de "las tediosas páginas de castigo para usuarios tacaños"
+
+User Agent Switcher Permite modificar el agente de usuario -cadena de texto que identifica el navegador en los pedidos http- por cualquier otro. Así, usando Firefox en GNU/Linux puedes pasar por Internet Explorer 8 en Windows Vista usando la cadena Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.0)
+Lecturas recomendadas
+
+Iniciar Firefox
+
+Firefox puede iniciarse como aplicación, cuya imagen es representada por zorro rojo que avanza en giro de reloj a un planeta azul. En Windows, no es tanto sacrificio ubicarlo en la barra de tareas como también la aplicación firefox.exe.
+
+Ahora como hemos comprendido en el capítulo "Instalación" los requisitos del sistema, sería buena verificar si cumple las óptimas condiciones en su funcionamiento.
+
+Para los equipos de oficina
+Si tu equipo de es de tu casa, parece que estás en buen camino; sin embargo, si estás usando de una corporación u organización no sería recomendable usar las versiones normales. En su lugar, usaremos las versiones tienen un soporte de plazo extendido de 9 meses, y aunque no está enfocado a nuevas características puede evitar gastos adicionales en instalación. En este caso, recurriremos a página principal para organizaciones.
+
+Fuente: Sitio oficial para organizaciones.
+
+Evitando que el equipo tenga inconvenientes
+Cuando tu equipo inicia incorrectamente, hay posibilidades de que otros programas también empleen el mismo efecto. Suele ocurrir por motivos de descuido por algún virus o por bloqueo del sistema. Por eso, hay unos consejos:
+
+Actualiza tu antivirus y diagnóstica en busca de programas no deseados. Eso evitará que salga daños inesperados en el futuro:
+Si usas cortafuegos, asegúrate en alojar como excepción en el tráfico si es que está bloqueado la conexión.
+Si está ejecutando demasiadas aplicaciones, podría saturar el equipo. Jamás ejecutes otros programas pesados a la vez (como videojuegos 3D), ya que el navegador dejaría de responder.
+Si sufre un problema de ancho de banda o de Internet, consulta a tu proveedor.
+
+Fuente: Ayuda de Firefox esta página (ayuda técnica).
+
+Comprueba el funcionamiento del navegador
+Asegúrate e comprobar los complementos para video. Para esto el navegador bloqueará ciertas extensiones para que tu eligas, como las barras adicionales o la revisión del antivirus. Todo eso depende de ti.
+Para cambiar el idioma, si es que el lenguaje no es el español, utiliza las extensiones de idioma. En Ubuntu y algunas distribuciones Linux, se puede escoger del repositiorio de archivos; escogiendo el lenguaje que prefieras (ES-ES es el español de españa). Segundo, instala la extensión Locale Switcher de Benjamin Smedberg para simplificar el proceso y selecciona el idioma que necesites. Paso final, reinicia el navegador.
+
+Fuentes: Ayuda de Firefox Complementos de Mozilla.
+
+Instalación
+
+Instalar Firefox es sencillo, existen varios métodos para su instalar. El sitio web oficial es firefox.com que posee además su portal para instalaciones multilingues (en inglés). Para las aplicaciones móviles, como Android, está ubicado en la sección Mobile.
+
+Para computadoras
+Requerimientos mínimos para la instalacion
+Antes de instalar el navegador, fíjese en los requisitos recomendables ofrecidos en sus versiones recientes:
+Sistema operativo: Desde Windows 2000 hasta 7. En Mac OS X, se recomienda la versión 10.4 o superior.
+En el caso de Linux se recomienda estos paquetes:
+GNOME 2.16 o superior (éste es el más usual en Ubuntu)
+NetworkManager 0.7 o superior
+DBus 1.0 o superior
+HAL 0.5.8 o superior
+No obstante en Linux mismo, no se recomienda usar:
+GTK+ 2.10 o superior
+GLib 2.12 o superior
+Pango 1.14 o superior
+X.Org 1.0 o superior
+Memoria RAM de 256 MB o superior, (En Windows ejecuta 64 MB, y en Mac el doble)
+Disco duro de 1GB o superior. El archivo se instalará con 52 MB en Windows o 200 MB en Mac.
+
+Fuente: Ayuda de Firefox (en inglés)
+
+Windows XP o superior
+Seleccione el archivo que está etiquetado como setup, eso si no lo hiciste o no lo sabes dónde está. Por ejemplo para Firefox 12.0, elige Firefox Setup 12.0.exe. Esto suele acompañarse con el idioma localizado.
+Te da la bienvenida, presiona siguiente.
+Selecciona el tipo de descarga, estándar o personalizada, presiona siguiente.
+Si seleccionaste estándar, aparecerá el archivo por defecto. Caso contrario, elige donde descargarás.
+En el siguiente paso, presionando siguiente. Si eligiste personalizado, dí como lo descargarás: en el escritorio o en la barra de herramientas.
+Espera un momento. Y presiona finalizar con el modo de ejecutar Firefox. Recuerda que si actualizas ejecutando otro tipo de Firefox no funcionará, hasta que cierres las ventanas que abriste.
+
+Fuente: Ayuda de Firefox
+
+Windows 95 a 2000
+Lamentablemente, por razones de rendimiento los desarrolladores dejan fuera de soporte. Como los sistema operativos tienen un ciclo de vida determinado, sería mejor optar por los más recientes y económicos. Para no alargar las cosas, puedes usar una ditribución Linux, como el popular Ubuntu, cuyos pasos para instalarlo se explican abajo, o el amigable Puppy Linux, una distribución liviana y gratuita para estos casos.
+
+Fuentes: Ayuda de Firefox, Overview and Getting Started, Puppy Linux.
+
+GNU/Linux
+Cada paquete de esta versión ya viene listo para su instalaciónpor ejemplo en Ubuntu. Asegúrate que esté en uso, ya que puede tener problemas de lenguaje o errores de copilación si es que no estuviera actualizado.
+Si no lo encuentras, puedes buscar desde Opensuse aquí o de sitio de base de datos como Up to Down (si suele haber problemas con el sitio oficial).
+También, ten en cuenta en actualizar las librerías necesarias para un correcto funcionamiento, como la interfaz principal GNOME (web) o Unity (por defecto Ubuntu).
+Si piensas hacerlo en USB en Puppy Linux usando el "Puppy Package Manager" (administrador de paquetes Puppy), te resultará algo complicado entrar en el juego. Tienes que revisar si contiene ciertas librerías para un óptimo funcionamiento.
+
+Fuente: Ayuda de Firefox
+
+Mac OS X
+Primero descarga la imagen de disco (cuya extensión es .dmg) desde el sitio web ya explicado.
+Aparecerá una ventana del Finder, que contiene la aplicación de Firefox. Arrastra el icono de Firefox a la carpeta Aplicaciones.
+Arrastalo y explusa el disco para extraerlo e instalarlo.
+A partir de la versión llamada Leopard, Firefox puede ser instalado automáticamente una vez descargado asumiendo que lo hicistes las distribuciones oficiales. Solo haz clic en Abrir.
+Fuente: Ayuda de Firefox (parte de ella bajo CC-BY-SA 3.0)
+
+Para móviles
+Para Android
+En el caso de los móviles a partir Android (2.2 a más) se puede acceder desde http://www.mozilla.com/es-ES/m/. Técnicamente el último requiere la versión 6 o 7 del ARM y 20 MB de almacenamiento como mínimo (ya que el motor Gecko viene en su instalación).
+Para iPhone/iPad
+Puedes usar un navegador con capacidad de sicronizar los datos usando Firefox Sync para verlos más tarde. Pese a que Mozilla tuvo su propia versión, existen alternativas comerciales como 360 de Digital Poke para iPhone o gratuitas como FoxBrowser para iPads.
+Recuerda que para Windows Phone, no existen versiones debido a los problemas de licencia que detenieron al desarrollo del navegador.
+
+Fuente: Ayuda de Firefox, Mozilla Wiki, sitio oficial de Firefox Home
+
+Versiones en desarrollo
+De igual manera, existen otras versiones para probar, evaluar o realizar mantenimiento del producto. Desde la versión 5, Mozilla usa cilos de actualizaciones enfocados a los sectores de desarrollo (puedes dirigir a estos enlaces para mayor información):
+Firefox Nightly, canal de desarrollo para el diseño de la nueva versión. Esto es recomendado sólo para desarrolladores de programación que particularmente están afiliados en la comunidad.
+Canal de distribución de versiones final, beta y aurora de Firefox. Las versiones mencionadas varían de acuerdo al nivel de desarrollo que utilizan.
+Firefox Beta for mobile versión beta para celulares.
+
+Navegación avanzada
+
+Ahora como ya sabes usar los menúes para sus respectivos usos, existen otras herramientas aparentemente ocultas que permite un mejor orden de tu navegador.
+
+Biblioteca
+En el capítulo anterior, te decíamos sobre la navegación básica necesaria para utilizar con seguridad tu navegador, como la barra de menú mostrados en la parte superior. Ahora, en este capítulo te explicaremos con detalle los servicios usados en Firefox.
+
+Para detalles adicionales, vea la sección Adaptando los servicios.
+Historial
+El historial es una de las herramientas dedicadas a tu lista de seguimiento. Se encuentra en el menú de mismo nombre (Historial), donde viene todas las opcionalidades sobre tu seguimiento.
+
+En esta parte, hay varios modos: modo atrás y adelante, la lista que visitaste recientemente (hay 10) y los modos de restauración (de sesión, ventana o pestaña). En los dos primeros modos de restauración muestra las últimas ventanas/pestañas que cerraste en esta sesión.
+
+Firefox viene por defecto este modo, sin embargo, se aconseja usarlo sólo en máquinas personales o domésticas. Si quieres eliminar tu rastro dirígete a  Herramientas > Limpiar el historial reciente y selecciona la lista (incluida el cache y las preferencias) para eliminar.
+
+No obstante, si quieres abrir una nueva sesión de tu navegador sin registrar datos ni eliminar las anteriores puedes usar el modo Navegación privada.
+
+Marcadores
+Los marcadores, comparando con el historia, visualiza sobre las actividades favoritas en tus páginas. Está en el menú de mismo nombre y puedes monitoriar desde tu barra de marcadores. Tiene tres funciones en este servicio:
+RSS, para ver lo que sucede en la página. Para añadirlo revisa si el sitio muestra esta opción.
+En el menú tiene una simulación de barra. Por defecto está la sección Últimas noticias que ve las últimas actividades realizadas en esta página. El noticiero incluido es 20 minutos sólo en la versión en española y Clarín en la argentina.
+El botón "mostrar todos los marcadores" para revisar lo que elegiste.
+En uno de los menúes contiene las últimas actividades realizadas basadas en tu seguimiento.
+
+Administrador de descarga
+Otro especialidad está en la administracción de archivos descargados, se encuentra desde Firefox > Descargas. Es muy simplificada y práctica al momento de bajar desde sitios web. Por defecto tiene pocos comandos: para buscar, detener y borrar archivos.
+
+Fuente: Ayuda de Firefox
+
+Sicronización
+Una de las características adicionales, está en la sicronización de información personal. Firefox Sync es una herramienta nativa, que no genera interferencia, que se puede acceder gratuitamente en la nube o por tu propia cuenta. Por ahora, no es necesario, pero puede que lo necesites más adelante (véase Sicronización).
+
+Fuente: Ayuda de Firefox
+
+Personalización
+Complementos
+Los complementos son artefactos adicionales que permiten dar más características a tu navegador. Los complementos los puedes encontrar dirigiendo a Herramientas > Complementos. En esta ventana se clasifican en 4 tipos:
+
+Las extensiones son miniartefactos que ejecutan sólo en el navegador, ya que no requiere reiniciar el equipo ni registrar al sistema. Se instalan como aplicación .xpi y pueden identificarse con sus propias funciones. Si has instalado desde el servicio de Mozilla Add-ons, se actualizan automáticamente.
+
+Por ejemplo, fijémonos en Adblock Plus que consume poco recursos. Se instala rápidamente desde el sitio y necesita reiniciarse. Para su funcionamiento sólo se usa la base de datos de Firefox y la regla de bloqueo propia. Una vez que se añada el registro, el contenido se personalizará mediante la reglas de bloqueo las cuales impiden ser visualizados y ejecutados en el sitio web.
+
+Algo similar son los plugins. Son programas que estandarizan a un sistema de codificación que se aplican en cualquier navegador. Tales casos son el ejecutador de Java de Sun Microsystems y el Adobe Flash player. A diferencia de las extensiones, requieren ajustes mayores como el registro del sistema o reiniciar el equipo.
+
+Por último, están los temas gráficos. Son complementos dedicados al diseño del navegador. Los estilos pueden modificar el estado total (pestañas, botones, menúes, etc). Esta característica incluye a Personas, fondos de imagen que dan mayor estética a tu navegador.
+
+Fuente: Ayuda de Firefox
+
+Barra de estado
+La barra de estado hasta la versión 3.6 cumplía la funcionalidad de  guiar el uso del navegador. Parte de la barra se muestra el estado de descarga, el enlace donde se dirigirá. No obstante, en la otra versión 4 de Firefox varias características se han fusionado donde sólo queda la de complementos.
+
+Adaptando los servicios
+Para configurar, que no es lo mismo llamarlo personalizar eso veremos en los próximos capítulos, estos servicios dirígete el menú Herramientas > Opciones. Allí elegimos como se configura del defecto. Aunque no es necesario, te explicaremos en el próximo capítulo. Por ahora, esto lo verás en el capítulo Accesibilidad.
+
+Navegación básica
+
+Al momento de iniciar, es necesario saber la interfaz donde se puede realizar acciones. De la imagen guíada (para Firefox 3.6) existe funcionalidades agrupadas por los tipos de barras.
+
+Interfaz por defecto
+Barra de pestañas
+Las pestañas, que se pueden visualizar en la parte superior (como si fueran portafolios, aunque se pueden trasladar al final), es una de las características que ayuda a navegar varios sitios a la vez. Cada pestaña contiene un título con un ícono para su identificación.
+Para añadir una pestaña haz clic en el ícono + (más) situado en la parte derecha.
+Para cerra una, diríjase a la pestaña correspondiente y presione el ícono en x (equis).
+Para visualizar la lista de pestañas ubica la parte derecha hasta buscar un ícono con la flecha abajo (Windows) o similar.
+En otras versiones hay una capacidad para administrar interactivamente, el Firefox Panorama, está al costado del ícono para múltiples pestañas (vea paso anterior).
+
+Barra central
+Los botones son los elementos que representa en la barra. Cada botón tiene una función. Es personalizable a cada uno de ellos. A continuación los botones generales:
+Botones anterior y siguiente.
+La barra de dirección URL. Contiene el ícono del título, el sitio y el marcador.
+El botón recargar. Para actualizar.
+El botón detener. Este último está incorporado automáticamente en Fx 4.
+La barra de búsqueda: Aparece con un ícono y el nombre de buscador. Por defecto es Google y se ve en forma de "g".
+El botón inicio. Aparece con el símbolo de una casa.
+El botón desplegable marcadores. Viene por defecto, pero si activas la barra del mismo nombre dejará de visualizarse.
+
+Barra de menúes
+En esta parte, cada versión tiene típicamente una barra de menúes. Fíjese guiando de esta imagen:
+Archivo: Funciones básicas como abrir archivos y cerrar.
+Editar: Selecciones, copia y pega para la página.
+Ver: Puede visualizar el modo de la página desde agrandar o achicar el texto inclusive ver las pestañas (en la versión 4).
+Historial: Representa la lista de página que has visitado. Se ubica en el menú historial. Además, se puede restaurar pestañas y catalogar el seguimiento.
+Marcadores: Visualiza tus páginas preferidas similar a la barra de marcadores.
+Herramientas: Modificación a tu navegador. Entre sus opciones están la navegación privada y complementos.
+Ayuda: Con la información del navegador y el modo de actualizar (esto ha sido fusionado en la ventana Acerca de Firefox).
+
+Interfaz complementaria
+En ésta parte sólo se complementa en la interfaz. Si quieres saber algunas características adicionales. Continué el siguiente paso: Navegación avanzada.
+Barra de marcadores
+La barra de marcadores es una de las característas adicionales para poder ver archivos, páginas RSS y las más visitadas. También se puede añadir marcadores, separadores y otros.
+
+Barra de complementos
+En algunos casos, la barra de complementos (antiguamente la barra de estado) se puede ver los diversas situaciones que se están comportando los llamados complementos (para ser espcíficos extensiones) que permite ajustar a la mano de las necesidades. Para cerra solo basta hacer clic en esa equis.
+
+Lecturas adicionales
+
+Plugins
+
+A diferencia de las externsiones, los plugins realizan tareas adicionales provenientes de ciertos programas de terceros que el navegador no los pueden hacer para ahorrar rendimiento. Para demostrarlo, permiten ejecutar por separado cualquier aplicación externa en el navegador. Además, se realizan en formatos independientementes del HTML. Por ejemplo, Adobe Systems ofrece un plugin (coamo programa) para gestionar el contenido de las animaciones en formato Flash usado en la visualización de videos como YouTube.
+
+No obstante, esos dependerán de ellos mismos, y ejecutan en mayor plano. Se pueden actualizar, pero sin requerir la intervención del navegador, por lo que sería ideal saber usarlos.
+
+Por qué usar los plugins
+Un plugin es una pieza de software que garantiza la visualización del contenido en Internet que no está diseñado para que lo procese Firefox. En versiones pasadas (véase 3.6), usanformatos de archivos "propietarios por la empresa" como: vídeos, audio, juegos en línea, presentaciones y otros. Los plugins son creados y distribuidos por otras compañías ajenas. Por desgracia, no todo es positivo, no hay una distribución descentralizada para actualizar por ser comerciales y competitivos.
+
+Cómo instalar
+Algunos ejemplos que se descargan popularmente están abajo. Algunos lo necesitarás instalar manualmente dentro de una aplicación .exe (Windows) o paquete .deb (Ubuntu Linux).
+Adobe Flash Player que ejecuta los archivos SWF usados en la animación complementaria (como juegos o videos) en código cerrado. Se puede conseguir aquí.
+Adobe Reader que lee en Firefox el documento PDF. Lo puedes conseguir aquí para lecturas avanzadas.
+Java Runtime Environment, que ejecuta el lenguaje con cierta relación a lo que realiza javascript (el lenguaje de programación es muy distinto, no confundirse). Lo puedes conseguir aquí.
+
+Cómo actualizar
+Es muy extraño que se actualicen íntegramente como mencionamos antes. Si no sabes de donde provienen, debes comprobar si existe algún parche de seguridad sobre el plugin más reciente. Una manera es buscando en el sitio de actualizaciones de plugins populares (en varios idiomas). También se puede hacer desde "Administrador de complementos" > Plugins.
+
+Cómo reconocer y prevenir una vulnerabilidad
+Por razones de seguridad, no todos son seguros y estables para funcionar; sean obsoletas o que ya no sirven a favor de tecnologías como el HTML5. Así mismo, no son extensiones (.xpi, no confundir) entrando una infección si es engañado. Ten en cuenta, que no son estándares abiertos, por lo que puede ser víctima de fraude en caso que desconozcas de ellos.
+
+Por ejemplo, entre los más vulnerables para usar en el navegador están:
+Microsoft DRM (Digital Rights Manager)
+Windows Presentation Foundation (disponible desde Windows XP)
+Extensión NET Framerwork Assistant (ayuda como complemento para ejecutar aplicaciones)
+
+Cómo desabilitarlos
+Si deseas desabilitar un plugin puedes ir a Administrador de complementos  y te diriges a plugins. Haz clic en desabilitar para dejar de funcionar una vez que hayas actualizado la página. No obstante, no se pueden quitar automáticamente el programa, si se trata de desinstalar hay que quitar los componentes primero.
+
+Lecturas recomendadas
+
+Sicronización
+
+Firefox ​Sync​ te permite llevar toda la información de Firefox (como tus marcadores, historial, contraseñas, complementos y pestañas abiertas) contigo adonde quiera vayas. Simplemente ten activado en tu equipo de casa y tu información de Firefox quedará guardada de forma segura en nuestros servidores (o en los tuyos) y sincronizada automáticamente​ a partir de entonces. Después, cuando configures Firefox Sync en tu equipo de trabajo (o incluso en tu dispositivo móvil con Firefox), tu información de ​Firefox se sincronizará automáticamente con tu equipo de casa.
+
+Funcionamiento
+Sync, anteriormente conocido como Weave, fue creado como un experimento del proyecto Mozilla Labs, conocido por realizar pruebas de usuario sobre las funcionalidades que puede aprovechar ante el crecimiento del navegador Chrome. Este cambio significativo, buscó la integración y movilidad de datos sin requerir de servicios de terceros usando sólo el programa cliente. Fue lanzado oficialmente como extensión en el 2010, y actualmente está incorporado a partir de la versión 4.
+
+Cuando incies, Firefox crea una caja fuerte de seguridad en tu ordenador, tal que es invisible almacenar en los servidores y que puede ser eliminada a tu gusto. Por defecto sólo tienes 25MB de datos, aunque el 99% de los usuarios usan menos de esa cantidad ¿para qué preocuparte? Además, para acceder a ello necesitarás una clave de recuperación, ésta genera de forma que se necesitarían miles de ordenadores trabajando conjuntamente durante varios años para poder clonar tu clave, abrir tu caja fuerte y poder ver los datos que tienes guardados en su interior. Sólo tú tendrás esta llave, y no tenerla podrías perderla para siempre.
+
+Instrucciones para computadoras
+Crear una cuenta
+En la parte superior de la ventana de Firefox, haz clic en el botón Firefox y selecciona Configurar Sync.... (si usas Windows XP, puedes dirigirte del menú herramientas).
+Haz clic en el botón Crear una nueva cuenta.
+Rellena los datos necesarios para tu cuenta:
+Tu correo (obligatorio)
+Tu contraseña (dos veces, mayor de 6 caracteres)
+Necesitas confirmar que no seas robot, escribe el CAPTCHA.
+Como vas a guardar tu caja fuerte en los servidores de Mozilla, necesitarás aceptar los términos de servicio.
+Una vez que diga "Instalación completa", empezará a crear una "copia de seguridad" cifrada, una vez lista se enviará como caja fuerte en la nube. Siempre tu datos serán privados. El proceso se realizará en segundo plano.
+
+Acceder con tu cuenta en computadoras
+En la parte superior de la ventana de Firefox, haz clic en el botón Firefox y selecciona Configurar Sync.... (si usas Windows XP, puedes dirigirte del menú herramientas).
+Haz clic en el botón Tengo una cuenta.
+Hay dos formas:
+Asignación por códigos: Firefox enviará un código para que tu puedas asignar a otro equipo, como un móvil. Escribe tal como indica en tu equipo/movil que tenga configurado Sync.
+No tengo el dispositivo conmigo: Puedes acceder usando una cuenta de correo, una contraseña y una clave de recuperación (necesaria para descifrar la caja fuerte).
+Acceder en la versión móvil
+En la página principal, dirígete al enlace Configurar Firefox Sync.
+Tienes dos modos:
+Asignación por códigos: Te mostrará un código de acceso rápido, es el modo más cómodo para acceder a tu cuenta. Cuando tu móvil te envíe un código de 12 caracteres, desde el enlace "Emparejar dispositivo" en la pestaña Sync de tu computadora escribe tal como está indicado. Ten en cuenta que el código es indicado al azar por tu móvil, para mejorar tu privacidad, en vez que lo hiciera la computadora con la cuenta abierta.
+Configuración avanzada: Puedes acceder usando una cuenta de correo, una contraseña y una clave de recuperación (necesaria para descifrar la caja fuerte). Asegúrate de coincidir la misma clave para un exitoso funcionamiento.
+Recomendaciones
+Asegúrate de que tu cuenta sea verdadera para usar el servicio, puedes recuperar la contraseña cuando accedas.
+La clave de sicronización es como si fuera la llave de la caja fuerte, tu sólo podrás tener y duplicar cuando lo necesites.
+Escoge cuáles pueden sicronizarse, si no quieres envíar tu historial (por ejemplo) dirígete al boton Administrar cuenta > Reestablecer Sync.
+En caso que falle por algún error, sígue este enlace (a Mozilla Services) para verificar algún error que tenga en la central de datos.
+Para desactivarlo dirígete al enlace "Desvincular este dispositivo", esto no significa que elimines tu cuenta tus datos se mantienen intactos.
+Lecturas adicionales
+
+Temas
+
+A diferencia de las extensiones, que son modificables, los estilos también lo son. Conocidos como temas, son complementos dedicados a la configuración del estilo del navegador. Su uso es rápido y no necesita cambios mayores.
+
+Cambios y diferencias
+Los temas se clasifican en dos: Temas completos (diseñana completamente) y personas (sólo añaden máscaras).
+
+Un tema completo es de uso total. Cambia la interfaz y se necesita reiniciar el navegador. Por defecto se le conoce como Predeterminado y varía en cada versión (Starta en Windows). En cambio un Persona (palabra griega que significa máscara) sólo afecta a la barra de menúes. Su sencillez se ejecuta en un toque.
+
+Cómo elegir
+Estos se consiguen desde el sitio de complementos para Firefox. Ahí puedes encontrar lo necesario según la compatibilidad del navegador. Después haz clic e instálalo y después en Reiniciar Firefox.
+
+Para cambiar uno, sólo sigue el mismo paso y dirígete desde la columna a Temas (identificado con una paleta).
+
+¿Puedo usarlos juntos?
+Esto es una buena pregunta, sin embargo desde la versión 3.6 se ha dejado de usar ambos por razones de seguridad de tu equipo.
+
+Una vez que hayas instalado no habrá algún problema. Si cambias un tema por un persona, debes reiniciar el navegador. Para evitar eso, con mucho cuidado configura esto:
+Escribe 'about:config' en la barra URL, presiona . Asegúrate de estar seguro con lo hecho.
+Presiona con el botón derecho dentro de la lista de preferencias.
+Clic en Nuevo > Lógico (o Boolean como quieras llamarlo)
+Escribe como título "lightweightThemes.forceSkinning" (sin comillas).
+Escribe como valor positivo true (verdadero).
+
+Cómo deshabilitarlos
+Si deseas deshabilitar un tema o Persona, dirígete en Administrador de complementos , temas. Sólo haz clic en en el tema predeterminado, ya que no se puede hacerlo entre sí. Además puedes eliminar con el botón lateral de la lista.
+
+Hay que considerar que los temas no se actualizan por sí mismo, salvo las extensiones Personas.
+Lecturas recomendadas
+
+Usos frecuentes
+
+Para terminar con todo este llamdo "tutorial", te aconsejamos usar algunas características adicionales. Obviamnete no están incluidas en el apartado Navegación avanzada, ya que sólo te explica la definición de los servicios y no tus inquietudes.
+
+Cómo actualizar Firefox
+Para actualizar Firefox, primero se comprueba si tiene disponible una nueva versión. Por defecto es automático, por lo que puede dificultar la velocidad de navegación en operadores de baja velocidad. Hay tres consideraciones:
+
+Son secundarias en donde también actualiza los complementos. No obstante, es necesario para la estabilidad al utilizar.
+Además, contiene un tamaño de archivo reducido (un 25% menos) aplicado en versiones similares (si es diferente como la actualización de Firefox 3 a 4 como Actualización de softwar), y se instala al momento de reiniciar tu navegador.
+Si al momento de descargar aún no se ha instalado dentro de 24 horas, te notificará urgentemente.
+Ten en cuenta que si no se actualiza siga el paso Instalación.
+Fuente: Ayuda de Firefox
+
+Cómo importar mis archivos a Firefox
+Para importar tu información sea como Internet Explorer a tu perfil que almacena tus archivos, sólo necesitar seguir tres pasos
+Abre el menú Archivo y elige Importar....
+Elige al navegador externo que existe.
+Revisa cuáles quieres copiar a tu navegador Opciones de Internet, cookies, historial y marcadores (favoritos).
+Ten en cuenta que sólo puedes importar un navegador. Fuente: Ayuda de Firefox
+
+Ventana de preferencias
+
+A continuación se muestra la ventana de preferencias usado en la navegación. También llamado Opciones, existen varios paneles de elección.
+
+Para ingresar, en Windows debes ir al menú Herramientas > Opciones. En Linux, dirigete a la barra de menú, haz clic en el menú Firefox, y selecciona Preferencias. Como dato adicional, en versiones recientes (17), se puede acceder desde la página about:preferences.
+
+Panel General
+El panel General (panel Principal en Firefox 3.6) contiene las opciones relacionadas con las configuraciones más usadas, como la página que se abre al iniciar Firefox o cómo Firefox maneja los archivos descargados.
+
+Panel Pestañas
+El panel Pestañas contiene las opciones relacionadas con la navegación por pestañas. En Windows 7, se puede mostrar las pestañas en vista previa desde la barra de tareas.
+
+Panel Contenido
+El panel Contenido contiene las opciones relacionadas sobre cómo son mostrados los sitios web. También puedes modificar la fuente o el uso de javascript.
+
+Panel Aplicaciones
+El panel Aplicaciones (en inglés Applications) te ayuda a decidir cómo firefox debe manejar diferentes tipos de archivos (p.e. archivos PDF o de sonido). Te muestra una lista de tipos de contenido y te permite seleccionar una acción para cada tipo, como abrir una aplicación, abrirlo en Firefox usando un plugin, o guardar el archivo. Para ello debes tener una aplicación instalada para que pueda ser ejecutado a través de un plugin, en caso que no tengas Firefox tratará de previsualizando en el navegador.
+
+Panel Privacidad
+El panel Privacidad contiene las opciones relacionadas con tu privacidad. Mientras navegas por la web, se guarda información acerca de dónde has estado, las páginas que has visitado, etc. Una de ellas está la opción de Do Not Track o No quiero ser rastreado para retirar los anuncios personalizados en la web o evitar la búsqueda en burbuja (Burble Search).
+
+Panel Seguridad
+El panel Seguridad contiene las opciones relacionadas con el mantenimiento de la seguridad mientras navegas. Puedes bloquear sitios web falsos o dañinos.
+
+Panel Avanzado
+El panel Avanzado contiene las opciones para configuraciones que no son usadas regularmente, como la comprobación de si Firefox es el navegador predeterminado, la limpieza de la caché del disco, configuración sobre la actualización de Firefox, y varias preferencias avanzadas que sólo algunas personas puedan necesitar.
+
+Está clasificado en cada pestaña lo siguiente:
+General: Donde alberga las opciones poco corrientes, como el envío de errores a Mozilla (no habilitada), o la acceleración de hardware.
+Red: Alberga la configuración para conectarse a Internet mediante proxy, y la información almacenada como la caché o la conexión offline.
+Actualizar: Está las opciones de actualización del programa, como recomendado déjalo que se instale por su cuenta (primera opción).
+Cifrado: Puedes revisar los certificados de autoridad para ofrecer una comunicación segura en páginas web. También puedes añadir los tuyos si usas una intranet de tu oficina, o los programas de identificación (dispositivos de seguridad).
+
+Panel Sync
+El panel Sync es la parte opcional de la configuración, puedes guardar tus opciones a través de una cuenta de Firefox Sync. Además te permite crear una "caja fuerte" donde está almacenada tu información: historial, contraseñas, etc. EL uso es opcional, pero te hará mucho más fácil realizarlo sin tanto esfuerzo.
+
+Lo puedes leer en el siguiente capítulo Sicronización.
+
+Lecutas recomendadas
+Parte de ella bajo CC-BY 3.0
+
+¿De qué están hechas las aplicaciones Mozilla?
+
+REDIRECCIÓN Mozilla Firefox/Introducción/¿De qué están hechas las aplicaciones Mozilla?

@@ -1,0 +1,708 @@
+API
+
+Para crear la creación de otras aplicaciones es indispensable saber el mecanismo de la infraestructura llamada MTProto, este permite comunicarse con los clientes de Telegram entre usuarios. Aquí puedes revisar la documentación al respecto. También incluímos una librería para que puedas crear en poco tiempo.
+
+Descripción general
+MTProto está estructurado, de forma sencilla en:
+El componente de alto nivel: Usado para convertir las solicitudes y respuestas API en mensajes binarios.
+La capa de autorización criptográfica: El mecanismo para codificar mensajes.
+Componente de transporte: Donde se define un medio o protocolo red para que el cliente puede comunicarse (como http, https, tcp, udp).
+Se recomienda usar a HTTP/1.1 (con keepalive)
+Para la comunicación se utiliza como conector a TCP en el puerto 80 (aceptable en los cortafuegos)
+Para prevenir la falsa sensación de seguridad, no se permite el HTTPS para reducir los procesos descritos en la capa de autorización criptográfica
+
+Los mensajes usan parámetros, incluyendo la identificación, la clave de cifrado y el tiempo de envío:
+server salt (64 bits)
+session id
+message sequence number
+message length
+time
+
+Las directrices para crear aplicaciones son:
+Cada aplicación usa una api_id para su autentificación.
+No se permite el uso de Telegram como nombre principal.
+Si usas con fines demostrativos es necesario mencionar como "No oficial".
+No usar el logotipo de Telegram (en especial, su fundo azul y blanco).
+Documentar su funcionamiento en la política de privacidad.
+Aconsejar que se utiliza la infraestructura de Telegram (mejor dicho "es compatible con clientes de Telegram").
+
+Desarrollo de aplicaciones
+Para crear tu cliente de Telegram para usar como bot o para enviar o recibir mensajes, tienes la siguiente documentación:
+
+Librería TDlib
+Página web
+Anuncio oficial
+Código fuente
+Documentación
+
+Requisitos para desarrollo
+Corresponde a la versión 1.4: (cortesía de Tecnonucleous)
+
+Para Windows tener:
+C++14 y versiones similares
+OpenSSL y zlib (cifrado y compresión)
+Herramientas para compilado: gperf y CMake
+Para Linux:
+Linux 4.12 o superior
+OpenSSL 1.0.2g o superior
+Instalar dependencias: g++ ccache openssl cmake gperf make git libssl-dev libreadline-dev zlib1g zlib1g-dev
+Clonar: https://github.com/tdlib/td.git
+
+Administrar aplicaciones
+Para crear aplicaciones es necesario registrarte desde https://my.telegram.org/ y escoger "Apps".
+Utiliza la misma cuenta de usuario de Telegram.
+Cada aplicación posee un api_id (identificación) and api_hash (una especie de contraseña)
+Es recomendable que utilices tu número telefónico y actualizarlo si lo necesitas.
+Puedes utilizar la API del código fuente de Telegram e inspirarte desde allí.
+
+Ejemplo de software que usa la API
+Plus Messenger (clon del original de Telegram, código fuente)
+Más información
+API en Telegram
+Explicación de algunos clientes participantes de la segunda Telegram Challange (en ruso)
+Cómo compilar TDlib: para Linux o para Windows
+
+Aplicaciones
+
+REDIRECCIÓN Telegram Messenger/Clientes
+
+Bots
+
+Los bots son usuarios diseñados para tareas complejas y masivas. Ellos actuan como aplicaciones u operadores que pueden recibir órdenes y procesarlas.
+
+Características
+Un bot tiene algunas rasgos que distinguen a los usuarios reales:
+Usan comandos y opciones. Algunas utilizan una barra diagonal como el comando /start.
+No dicen si están en línea y no poseen un almacenamiento permanente. Eso no quiere decir que estén desconectados.
+Son mencionados como bot y tiene en el alias terminado en bot (@StoreBot, por ejemplo).
+Pueden enviarte notificaciones siempre que tengas consentimiento.
+Permiten el uso de archivos multimedia para simplificarte la vida.
+
+Interfaz
+La interfaz de un bot es lo siguiente.
+Comandos: Los comandos permiten realizar acciones por defecto.
+Inicio: /start (para iniciar una conversación)
+Fin: /stop (para notificaciones)
+Ayuda: /help (para ver los comandos posibles)
+Comandos específicos /search café (para búsquedas)
+Comandos en grupos: /start@talBot (para chat en grupo)
+Comandos cerrados: Permite la interacción rápida a través de un teclado personalizado.
+
+Tipos y usos
+Existen varios tipos de bots: Como servicios, de interacción, minisitios, etcétera. El uso puede variar de acuerdo a tus necesidades.
+
+Cómo crear un bot
+Para desarrollar un bot es necesario crear un alias. Primero debes consultar con el usuario de soporte @BotFather. El motivo es que éste te permite gestionar los bots para operar con tranquilidad. Puedes asignar un nombre, una descripción, un alias y un token de acceso (para la compatibilidad con otros servicios).
+
+Una vez registrado tu bot, tendrás que conseguir una manera de “mecanizarlo”. Puedes arrendar o comprar un servidor web. Si no tienes tiempo para mantener los gastos, puedes conseguir un servicio para asesorarte.
+
+Crear tu propio servidor
+Si te sientes aventurero en el tema informático, puedes configurar Telegram para los microservidores Raspberry Pi. Puedes consultar los tutoriales de fácil instalación para la interfaz de sólo texto en Linux.
+
+Tnstructables
+Spark.ru
+HAC
+
+En varios casos, puedes instalar software de un idioma fácil de dominar como Python y que facilita la integración con la API de Telegram. Por ejemplo pyTelegramBotAPI:
+git clone https://github.com/eternnoir/pyTelegramBotAPI.git
+cd pyTelegramBotAPI
+python setup.py install
+O, de forma sencilla con un gestor de software:
+
+pip install pyTelegramBotAPI
+
+Usando servicios prefabricados
+En cambio, en especial a los casuales, existen servicios que permiten cumplir las necesidades básicas. Si quieres ahorrar trabajo, intenta alojar a tu bot para que notifique algún suceso y esté estructurado con minipáginas de exploración. Por ejemplo, puedes utilizar los servicios Paquetbot, Manybot o tbotify para gestionar los mensajes y emplear subpáginas. Algunos servicios permiten enviar noticias vía RSS o mensajes de Twitter dependiendo de su integración y su costo.
+
+Comandos y hola mundo
+Las API permiten dar una mayor cercanía entre el usuario y el bot. Estos son algunos ejemplos para interactuar:
+getUpdates: Para las actualizaciones. Se emplea los Webhooks.
+Tipos de interacción como receptor. Está adaptado al formato JSON para identificarlos:
+Fuente: User, GroupChat.
+Mensajes: Message, Audio, Document, Sticker y Video, Contact, Location.
+Teclado personalizado: ReplyKeyboardMarkup
+Tipos de respuesta, como emisor:
+Mensaje: sendMessage, forwardMessage
+Mensaje multimedia: sendPhoto, sendAudio, sendDocument, sendSticker, sendVideo, sendLocation
+Estado: sendChatAction
+
+Por ejemplo, para el caso de un bot de Telegram en Python desde cero mostramos estos parámetros del "Hola mundo":
+
+ import telegram
+ import time
+ bot_token =
+ chat_id =
+ bot = telegram.Bot(token=bot_token)
+ print(bot.get_me())
+ while True:
+   bot.send_message(chat_id=chat_id, text='Hola mundo, este nuestro primer programa con la api de telegram')
+   time.sleep(5)
+
+Fuente:  Telegram API, Geektheory y Tutoriales de programación
+
+==Más información==
+Anuncio oficial
+Documentación para crear bot sin conocimiento técnico por Nathanaël Khodl
+Documentación en ruso para desarrollar bots con JavaScript y Python (en ruso)
+Bots para desarrolladores
+
+Bots y servicios
+
+En esta sección apéndice describen a todos los tipos de bots que se pueden emplear usando los servicios propios (juegos y utilitarios) y externos (redes sociales). Es recomendado para los que quieren usar Telegram de forma única a pesar que algunos fueron creados de forma experimental. Aquí se mencionan los más importantes incluidas las no oficiales:
+
+Soporte oficial
+Servicios de terceros
+Juegos y utilitarios
+Bots oficiales de noticias
+Nota: Es indispensable indicar la fuente del bot para garantizar la verificabilidad del medio. No se aplican con canales.
+
+La tienda de bots
+Aunque aquí te mostramos lo más importante en Telegram ofrecen una tienda dedicada a buscar y averiguar otros servicios. La tienda es llamada “StoreBot” (cuyo alias es @storebot y tiene sitio web http://storebot.me/).
+
+Está tienda te permite ver las categorías filtrar contenido inadecuado, notificar sobre nuevo material, y evaluar a los bots. Este recopilatorio almacena y publica frecuentemente.
+
+==Más información==
+Lista de bots en Reddit.
+Página oficial de Telegram Bot Store
+Bots for Telegram, recopilatorio no oficial con información detallada de cada bot.
+
+Canales
+
+Después de la creación de grupos, existe un método más rudimentario haciéndote el único emisor. Los Canales, te permite llevar a otro nivel la forma que compartes con tus amigos o el público. Es como enviar en el muro alguna anécdota o imágen que quieres oferecer. También resultan útiles para que los medios de comunicación anuncien últimas noticias.
+
+Como curiosidad, esta característica se llamó Lista de difusión y tenía limitaciones como el máximo de 100 usuarios, sin respaldo en la nube y sin alias para ser usado públicamente. Si has actualizado tu Telegram desde noviembre de 2015, estas limitaciones se anulan.
+
+Administración
+Crear canal
+Para crear un canal público o privado en Iphone/iPad:
+Dirígete a contactos,
+Selecciona "Crear Canal" y añade un nombre,
+Puedes escoger dos formas:
+Privado: Establece tu lista de contactos, un ícono y un enlace de invitación (opcional).
+Público: Establece un ícono, el alias y los contactos.
+Puedes establecer los administradores del grupo si fuera necesario.
+
+En Android es casi similar:
+Añade una nueva conversación.
+Selecciona "Crear Canal" y añade un nombre,
+Puedes escoger dos formas:
+Privado: Establece tu lista de contactos, un ícono y un enlace de invitación (opcional).
+Público: Establece un ícono, el alias (tipo telegram.me/micanal) y los contactos.
+Puedes establecer los administradores del grupo si fuera necesario.
+
+Añadir contenido
+Si creaste tu canal o eres administrador del mismo, puedes añadir contenido de la misma forma que estuvieras chateando al público. Llevas incluso un icono de campana para indicar si deseas notificar a tus seguidores o dejar en modo silencioso. Si activaste la opción para firmar desde los ajustes, verás el nombre del autor que envió la publicación en ese momento.
+
+Eliminar o dejar canal
+Para eliminar o dejar canal dependerá de cómo lo hayas creado. Si lo creaste y no tienes otro coadministrador puedes eliminar en cualquier momento seleccionando "Eliminar canal" en la sección "propiedades". Para los coadministradores, los pasos se repiten. En cambio, si te has suscrito, pero no eres administrador o creador, puede dejar el canal de la forma similar.
+
+Añadir comentarios
+Si deseas añadir una caja de comentarios, intenta usar los bots (puedes acceder a sus páginas web y los bots para conocer más sobre su funcionamiento):
+
+comments.bot: alias del bot @commentsbot. Necesitas escribir un mensaje al bot para asignar una caja y reenviar a tu canal manualmente.
+
+comments.app: alias del bot @discussbot. Basta con asignar al bot como moderador para crear una caja cada vez que publiques un mensaje.
+
+Vincular a un grupo
+Puedes vincular con un grupo para realizar discusiones. Disponible en la propiedades del canal. Funciona con un grupo público o privado.
+
+Diferencias con canales públicos y privados
+En los canales privados (lo que era también las difusiones) permiten el envío de contenido restringido como si fuera un grupo de tus contactos, pese que tus seguidores no responderán mensajes contigo. En los chats públicos, cada usuario puede suscribirse o dejar de hacerlo. Ambos tienen un contador de visitas y una cantidad de miembros.
+
+==Más información==
+Explicación en Androidphoria.com
+Explicación en Telegram.org
+
+Canales oficiales
+
+En esta sección apéndice listamos los canales oficiales de Telegram, autoridades y otros medios de comunicación autorizados. Esto facilita conseguir las últimas noticias al instante y, por ende, reducir los bulos. La lista está clasificada en tres: "Telegram", "Medios de comunicación" y "Autoridades". Animamos a ellos a verificar su cuenta desde el bot @Verifybot, cuyas instrucciones se muestran en el sitio web.
+
+Canales de Telegram
+Canales de medios de información en español
+Medios de comunicación en otros idiomas
+Autoridades
+
+Más información
+Listados de canales en Reddit (incluyen no oficiales y comunitarios).
+
+Clientes
+
+Telegram permite comunicarte con cualquiera de sus clientes. Antes de empezar, escoge cualquier versión disponible. No te preocupes si tu dispositivo no es compatible, siempre lo tendrás a la mano. Después escoge un número propio y un teléfono con tu chip para recibir el mensaje. Es posible que algunas funciones varíen en cada aplicación o cliente.
+
+Para facilitarte las cosas: Dirígete a una de las secciones. El primero viene a ser la más recomendada; mientras que la siguiente, la más fiable en caso que tu dispositivo tenga poco almacenamiento o no funcione correctamente.
+
+En caso que no puedas acceder a la tienda de aplicaciones, puedes conseguirlos manualmente. No te fies ciegamente, busca desde un sitio fiable (en Android está Apk Mirror) y que esté certificado por los desarrolladores (en caso que quieras la versión oficial).
+
+Teléfonos inteligentes y tablets
+Opción 1
+Busca "Telegram" o "Telegram Messenger" en sus respectivas tiendas de aplicaciones. Las características son los siguientes:
+Apple App Store, para iOS desde la versión 6.0 (recomendado desde la versión 8). Al instalar es posible que pide permisos de contactos, tomar fotos, grabar audio y compartir GPS. En la versión 3.0, pesa 30 MB.
+Google Play Store, para Android desde 2.2 (recomendado desde la versión 4.x). Los permisos son similares a iOS. De la misma versión, pesa entre 9 y 13 MB.
+Windows Phone (serecomienda usar la versión 8 o 10). Pesa 17 MB.
+Instala la aplicación. Algunos ofrecen la posibilidad de guardar en la memoria SD.
+En Android o iPhone, la aplicación oficial de Telegram incluye la posibilidad de comunicarte desde un smartwatch.
+
+Opción 2
+Abre tu navegador web. Para mejores resultados, el programa debe funcionar las notificaciones y permita la ejecución de forma independiente; en pocas palabras, permita las webapp.
+Dirígete al website (http://web.telegram.org) sin iniciar sesión.
+Haz lo siguiente (dependiendo de tu navegador).
+Chrome 39 o superior (Android): Seleccionar "Add to homescreen" o "Añadir al escritorio".
+Firefox (Android): Selecciona "Página" y después "Añadir al escritorio".
+Safari (iOS 8 o superior): Dirígete al icono de compartir y después "Añadir al escritorio".
+Explorador web (Windows Phone): Selecciona más opciones y haz un "anclaje" (similar al "Pin to start").
+Una vez configurado ingresa desde esa webapp. Allí puedes acceder sin comprometerte al funcionamiento principal del navegador.
+
+Opción 3 (si deseas)
+Es posible que existan clientes modificados o “tuneados” para la plataforma de Telegram. Como el servicio tiende a ser de código abierto, los desarrolladores pueden usar versiones mejoradas para adecuar a sus necesidades; de otra manera, ellos pueden usar clientes no oficiales que son compatibles con MTProto ("la casa" en donde te comunicas).
+
+Un ejemplo es Plus Messenger, creado por el desarrollador de WhatsApp Plus donde fue llamado anteriormente Telegram Plus. Este te permite usarlo de forma más personalizable y con funciones más prácticas. Si te animas, infórmate de su funcionamiento y revisa si tiene información de contacto para cualquier inquietud.
+
+Teléfonos básicos
+Única opción
+Para los dispositivos basados en la arquitectura JavaME, una versión básica de Java para dispositivos menores, es recomendable usar desde un navegador con acceso directo.
+Instala un micronavegador web compatible (Opera Browser, UC Browser u otro que soporte HTML, CSS, y JavaScript lo mejor posible).
+Añade un acceso directo con el sitio web web.telegram.org (debe estar activada la opción de usar cookies).
+Antes de iniciar sesión, comprueba si el sistema de autenticación funciona. Es posible que demore algunos minutos.
+Activa el modo compresión y reduce la calidad de las imágenes si fuera necesario. Eso puede ahorrar tráfico y recursos en esos dispositivos.
+
+Escritorio
+Opción 1
+Descarga el instalador según el sistema operativo donde quieres utilizar (recomendamos ejecutar como administrador). Existen dos versiones:
+Escritorio para Windows XP+, Linux (núcleo 2.3 o superior) y Mac OS X (10.7 o superior). Posee un sistema de notificaciones nativo y ofrece modo portátil para llevarlo a llaveros USB.
+Versión original para Mac OS X (10.8 o superior). Con sistema de notificaciones optimizado. Disponible en  App Store.
+Instala.
+
+Opción 2
+Si no puedes instalar, debido a las limitaciones de tu sistema operativo, tendrás que usar Telegram mediante tu navegador. Tu navegador debe soportar al menos HTML4/5 con Javascript y cookies activados (puedes revisar en el HTML5Test).
+Intenta usar accesos directos para Telegram para acceder al sitio web en pocos clics.
+Firefox: https://addons.mozilla.org/es-ES/firefox/addon/telegram-desktop/ (es una extensión no oficial, pero se recomienda).
+Chrome: https://chrome.google.com/webstore/detail/telegram/clhhggbfdinjmjhajaheehoeibfljjno?hl=es
+Opera: https://addons.opera.com/es/extensions/details/telegramtm-desktop/?display=es
+Internet Explorer: Puedes añadir al escritorio desde el sitio web.
+Safari: Casi similar a la versión móvil.
+Una vez instalado puedes iniciar allí y revisar los mensajes mientras navegas.
+
+Uso en cabinas públicas
+En cualquier caso, siempre es posible navegar en la versión web, ingresando desde https://web.telegram.org/. Recomendamos usar desde un navegador (Opera, Firefox, Chrome e IE 10) con la opción de "modo privado" (llamado también "modo incógnito"). Este modo puede tener algunas limitaciones, sobre todo si accedes en computadoras antiguas.
+Otra manera para usar en cibercafés, siempre que esté bajo el sistema operativo Windows, es preparar la aplicación en tu USB sin instalar nada. Puedes ejecutarlo a solas o integrar a la suite de aplicaciones como PortableApps.com.
+Navega hacia http://desktop.telegram.org
+Consigue la versión portable (portátil) y guárdalo a una unidad removible (USB Flash u otro)
+Abre la aplicación e ingresa sesión ahí
+
+Preguntas frecuentes
+P: ¿Cómo saber si es un Telegram original?
+R: Para prevenir falsas aplicaciones que dañan tu equipo revisa la documentación y el sitio oficial. Puedes averiguar desde Wikipedia.
+P: No puedo instalar Telegram desde PC, ¿qué sucede?
+R: Es posible que un antivirus bloquee la instalación. También sucede por una falta de optimización o por el uso de aplicaciones que pueden tener errores en tu PC.
+P: ¿Puedo instalar Telegram manualmente desde Android?
+R: Si usas Android y tienes problemas en instalar en la Play Store puedes obtener el archivo APK para instalar de forma manual (siempre que esté marcado la opción Instalar desde orígenes desconocidos). En APK Mirror (del portal web AndroidPolice, por ejemplo) puedes conseguir una copia legal de forma gratuita.
+P: ¿Cómo actualizar Telegram?
+R: Puedes realizar desde la tienda de aplicaciones o desde su sitio web.
+P: Si termino de actualizar la aplicación, éste no responde ¿qué hago?
+R: Tranquilo/a, mucho más si has respaldado tus archivos. Desinstala la aplicación, limpia la caché con una aplicación de tu preferencia (TuneUp, CCleaner, etcétera) y reinicia el equipo/dispositivo. Reinstala e ingresa tu número.
+P: ¿Tiene algunos inconvenientes usar Telegram en cabinas públicas?
+R: Depende del servicio que ofrezcan. Algunas computadoras pueden ser susceptibles a keyloggers (registro del teclado) o phishing (secuestro por suplantación). La mejor manera es usar desde una unidad extraíble y cerrar sesión en caso si ya no deseas usar más.
+P: ¿Cómo arreglar las notificaciones en teléfonos con Android y iOS?
+R: Hay un listado de notificaciones en la página. Asegúrate que: no esté en modo avión ni bajo un cortafuegos estricto, actives la sincronización (si es posible), permitas a Telegram a la lista blanca del administrador de tareas (alias task killer, en especial si tienes poca memoria RAM).
+
+Más información
+Lista de clientes en Wikipedia
+Guía de webapps para Google Chrome
+Guia de webapps para Safari
+
+Contactos y chats
+
+Los chats es punto central de la mensajería instantánea. Dependiendo de las actualizaciones las posibilidades aumentan. Allí puedes interactuar tus contactos enviando mensajes o archivos y previsualizar. Es ideal si utilizan varios equipos a la vez. En esta sección podrás apreciar cómo hacer un chat.
+
+Dependiendo del tamaño de la pantalla, los contactos y los mensajes que tengas almacenado la interfaz varía: En las más pequeñas, solo se muestra historial o el chat específico uno a la vez; mientras que en la más grandes (tabletas, PC), ambos son mostrados al mismo tiempo.
+
+Abrir un chat
+Para abrir un chat en Android 2.2 o superior:
+Selecciona el botón con lápiz.
+Escoge a un contacto.
+Toca y escribe un mensaje
+
+Para abrir un chat en iPhone/iPad :
+Selecciona "Contactos".
+Escoge a un contacto.
+Toca y escribe un mensaje.
+
+Para abrir un chat en la edición Desktop (escritorio):
+Selecciona "Contactos" en la parte superior.
+Escoge a uno.
+Escribe un mensaje.
+
+En la versión web, los pasos tienden a ser similares.
+
+Interactuar el chat en móviles
+Para comunicarte, sabes de las posibilidades para enviar contenido en Telegram. Varios ejemplos son tus fotos de vacaciones, en familia, las grabaciones, trabajos grupales de la universidad, entre otros. Dependiendo del sistema operativo pueden cambiar las opciones.
+
+De esta manera, hemos dividido en cuatro: Los mensajes de texto, de audio, los multimedia y los archivos.
+
+Escribir un mensaje de texto
+Puedes escribir un mensaje con cualquier teclado compatible. Obviamente, está en un cuadro en blanco. No hay una cantidad limitada de caracteres y es posible usar emoticonos.
+
+Hacer un mensaje de audio
+Puedes enviar un mensaje de audio, sin límite de tiempo. Mantenlo pulsado el botón "micrófono" e indicará con un círculo rojo y un cronómetro. Si estás en lo correcto, suéltalo, de lo contrario, desliza a la izquierda.
+
+Enviar mensaje multimedia
+Puedes enviar varios tipos de mensajes en el servicio. Estos se conforman de: Tomar una foto o un vídeo, elegir una foto o un vídeo, buscar imágenes y animaciones GIF por Internet, difundir la ubicación y enviar información de contacto.
+
+Una manera más práctica de seleccionar está en la parte superior de las opciones (como en la imagen para el iPhone).
+
+Para enviar un mensaje multimedia en Android 2.2 o superior:
+Selecciona el clip.
+Para tomar selecciona "Tomar foto"
+Para seleccionar de la galería, escoge el mismo nombre.
+Para el video, escoge video.
+Para enviar un archivo, escoge "documento".
+Para enviar un lugar, escoge localización.
+
+Para enviar un mensaje multimedia en iPhone/iPad:
+Selecciona el clip.
+Escoge uno de los tipos.
+Para hacer una foto o vídeo, activa la cámara y/o micrófono.
+Para elegir, selecciona cualquiera de ellos. Debes conceder el permiso de acceder el carril primero.
+Para buscar imágenes, escoge esta opción y realiza una búsqueda.
+Para enviar una localización cercana, activa el GPS o selecciona desde el explorador.
+Para enviar un contacto, elige a uno de la agenda.
+
+Para enviar un mensaje multimedia en Desktop:
+Haz clic en el ícono del clip y selecciona la foto
+
+Enviar una secuencia animada
+Opcionalmente, puedes encontrar imágenes de situaciones graciosas cortesía de Giphy o encontrar contenido externo mediante un buscador de imágenes web. En Android está ubicado en la sección "Galería" y posee un navegador integrado. En iPhone/iPad se puede encontrar en la secciones "Imagen", "Buscar" y "GIF".
+
+Enviar un archivo
+En el caso de los archivos, los pasos son similares aunque se diferencian con los multimedia. Enviar cada adjunto tendrás hasta un máximo de 1.5 GB (1576 MB). Ese archivo no se visualiza por defecto, en especial si envías formatos distintos a los multimedia (MP4, OGG, RAR, etcétera). Las imágenes GIF son considerados también como archivos.
+
+Abrir un chat secreto
+Los chats secretos se caracterizan por enviar a dos dispositivos mensajes que se autodestruyen. No pueden reenviarse a otros dispositivos ni a otros contactos. La ventaja del cifrado es que se genera una clave secreta y compartida entre dos, para comunicaciones discretas de punto a punto.
+
+Para abrir un chat secreto en Android L:
+Selecciona el botón con lápiz.
+Toca en "Chat secreto".
+Escoge a un contacto.
+Toca y escribe un mensaje.
+Enviarás una solicitud, espera que te acepte.
+
+Para abrir un chat en iPhone/iPad :
+Selecciona "Contactos".
+Toca en "Chat secreto".
+Escoge a un contacto.
+Toca y escribe un mensaje.
+Enviarás una solicitud, espera que te acepte.
+
+En la versión para Mac OS X, los pasos son similares a de la versión iPad.
+
+Esos chats pueden ser autoeliminarse mediante un tiempo establecido. Así, al leer un archivo tendrás un tiempo limitado sin la posibilidad de filtrarse. Solo puedes usar dos a la vez, con los mismos dispositivos y puedes terminar en cualquier momento.
+
+Preguntas frecuentes
+P: Para Android no permite usar añadir contactos. ¿Qué hago?
+R: Activa la opción de sincronización automática desde la barra de notificaciones o la sección "Personal" en "Ajustes".
+P: En la PC, la lista está en blanco.
+P: Es normal que ocurra en la PC. Para eso tendrás que añadir a tus contactos manualmente.
+P: Ninguno de mis compañeros lo usa, ¿puedo invitar a que los utilicen?
+R: Por supuesto. En Android/iPhone está la opción invitar por SMS. También puedes hacer por otros servicios de mensajería.
+P: ¿Cómo invitar a mis contactos a usar Telegram por correo electrónico?
+R: Selecciona "Invitar a amigos" desde la barra lateral (Android L) o la sección "Ajustes". El texto tiene un enlace. Puedes añadir sus características o dar ejemplos para motivarlos. Recuerda el requisito de tener su número telefónico, aparecerá una notificación cuando tu amigo se registre.
+P: No puedo ver un GIF (de un gato jugando), ¿por qué?
+R: Para poder ver una animación es necesario que esté descargado primero, puedes activando la opción de descargar automáticamente un archivo en las opciones.
+
+Cuenta de usuario
+
+En Telegram puedes establecer un perfil de usuario. Anteriormente, en el paso sobre cómo registrarte, solo necesitabas ingresar de algún modo para comunicarte de inmediato. Ahora en esta sección, puedes ver los detalles de tu cuenta de usuario y como administrarlo.
+
+La cuenta matriz
+Tu cuenta de usuario, en general, está conformada por:
+El número telefónico: Donde podrán contactarte contigo cuando añadan a la libreta de contactos
+Si usas tu alias, el público te encontrará sin revelar tu número telefónico.
+El nombre: Nombre y apellidos o sólo el nombre corporativo.
+Imagen de perfil: Imagen pública.
+Última sesión: Este puede ser ocultada al público en general.
+Nivel: Tu usuario se adaptará si eres un usuario común, uno de soporte o un bot.
+
+Almacenamiento para los usuarios comunes
+A diferencia de la cuenta matriz, esta información es almacenada de forma privada, y puedes administrar de la siguiente manera:
+Usar tus contactos: Necesario para sincronizar cuentas.
+Lista de grupos: Si estás incluido en ellos.
+Mensajes: Las conversaciones entre contactos. No pueden ser eliminados de forma mutua.
+Ten en cuenta que tus chats secretos no pueden ser almacenados una vez leídos.
+Almacenar las sesiones de usuario, incluye:
+Tu IP
+Nombre del cliente (si es oficial o no)
+Agente de usuario (navegador o sistema operativo)
+
+Protegiendo tu cuenta
+Para autentificar tu sesión, tu cuenta puede asegurarle de:
+Una contraseña para la verificación en dos pasos (opcional).
+Cerrar sesión de forma remota.
+Tiempo de expiración. Por defecto son 6 meses y puede ampliarse a un año o reducirlo a un mes.
+
+Eliminar tu cuenta
+Para eliminar tu cuenta, en caso que exista un duplicado o que otra persona reutilice tu número:
+Accede a la página de desactivación
+Usar el código asignado en el mensaje vía Telegram.
+Añadir el código al sitio web.
+Añadir un comentario como retroalimentación (opcional).
+
+Más información
+Autentificación de dos pasos
+
+Enlaces
+
+Avisamos que Wikilibros no tiene relación directa con Telegram; para más información se encuentran los enlaces oficiales.
+
+Enlaces oficiales de Telegram
+Sitio web oficial
+Blog oficial
+Cuenta de Twitter oficial (en español)
+
+Enlaces de ayuda:
+
+Preguntas frecuentes
+Cuenta de Twitter de Telegram Login Help
+[mailto:support@telegram.org Correo de soporte técnico]
+
+Canales oficiales
+Telegram News (versión en español)
+Clientes:
+Telegram Desktop
+Telegram X
+Concursos:
+Instant View Contest
+Canal de diseñadores de interfaz
+Selección de temas (para escritorio, para móvil)
+
+Grupos de apoyo oficiales
+Traducción al español
+
+Lectura adicional
+Páginas web de comunidades de canales y/o grupos. Advertimos que este libro no se responsabiliza de la calidad de otros autores y sus intenciones.
+
+tlgrm.es
+telegramchannels.me/
+forexsignaltelegram.com/
+
+Lectura adicional
+Cómo usar Telegram de Laptomag
+A Beginner’s Guide to Telegram, the High-Security Messaging Service Biting at the Heels of WhatsApp por Yahoo Tech
+Guía de uso de Telegram para Android con instalación y trucos por FAQs Android
+BotsforTelegram, recopilatorio de bots de Telegram. Contiene información de comandos y autores en el sitio web.
+
+Grupos
+
+En Telegram, la comunicación puede ser entre dos, aunque también puede ampliarse a más. En esta parte, puedes intercambiar mensajes con varios usuarios. Para ello puedes establecer un "círculo más amplio" llamado grupo. Los equipos son establecidos con un administrador a mando y los usuarios pueden invitar a otros entre sus contactos o por enlace.
+
+En versiones anteriores a la 3.2 en Android y iOS, los grupos cumplían la misma finalidad con la difusión (ahora Canales), solo que en conjunto y recíprocas. También te permite interactuar a los bots para realizar apuntes, encuestas, búsquedas de una fiesta, etcétera. El límite de usuarios es de 200.
+
+Actividades
+En el grupo puedes:
+Compartir un enlace: Este enlace puede ser modificable y permite añadir a otros usuarios sin necesidad de invitación.
+Responder a un usuario: Muy útil para avisar al usuario en caso que esté silenciado al resto.
+Menciones: Casi similar a las respuestas, siendo más abiertas y con más usuarios.
+Hashtag: Para etiquetar un mensaje y etiquetarla como si fuera favorita. Puedes consultar en el buscador más adelante.
+Administrar las descargas: Sin necesidad de configurar.
+Notificaciones: De forma personal, puedes decidir hasta cuantos mensajes puede avisarte en una hora.
+
+Administrar un grupo
+Crear un grupo
+Para crear un grupo se aplica el mismo procedimiento con las difusiones. Para Android/iOS:
+Selecciona la pestaña "Chats"
+Ir a "Nuevo mensaje",
+Hacer un "nuevo grupo".
+
+Para la versión Desktop:
+Selecciona el ícono de "lápiz" al costado del buscador.
+Selecciona a los contactos,
+Hacer un "nuevo grupo".
+
+Dejar un grupo
+Para dejar un grupo, selecciona el icono y escoge "Dejar grupo".
+
+Invitar o expulsar un integrante al grupo
+De forma similar. Puedes añadir o eliminar integrantes. Es preferible tener en tu lista de contactos para agregarlos.  Para expulsar selecciona al integrante y selecciona "Expulsar del grupo".
+
+==Más información==
+Usos adicionales a los grupos
+Invitar enlaces
+Explicación adicional sobre los grupos
+
+Info
+
+Este es un recopilatorio de instrucciones de la aplicación de mensajería instantánea. El coleccionario de Telegram está adaptado para todas las plataformas de forma gratuita.
+
+Introducción
+
+Cada día es indispensable tener que estar conversando entre amigos; sea en el trabajo, en la casa o con círculos cercanos. La necesidad de la mensajería escrita ayudó a tener mejor lazo en zonas distanciadas. Aunque el correo fue uno de esos medios más prolongados (y mejorados con la inclusión a la era digital), los mensajes de texto hicieron abaratar los costes de mantenimiento y redujo esperas entre un mensaje a otro mediante celulares. El resto es historia, en especial los servicios de mensajería instantánea como la recordada Windows Live Messenger.
+
+Internet es la plataforma que más se distanció a otros medios de comunicación: más amplia, más extendida y adoptada por muchos equipos electrónicos. No obstante, los constantes cambios y adopciones a nuevas generaciones provocaron que algunos servicios estuvieran entre la "espada y la pared". Cuando desapareció el veterano Live Messenger existieron otras alternativas para llenar el vacío o satisfacer al público joven, que convirtieron en un mercado saturado. En este libro hablaremos de Telegram, una de las tantas plataformas de mensajería que emula su función. Si te acostumbraste de servicios "más prácticos" como el MMS (sucesor SMS) o Whatsapp (que aumentó su cuota comercial) supondrás, ¿hasta que punto puede dar Telegram si en la vida solo envío mensajes de texto o archivo multimedia?
+
+Telegram nació en el 2013 por Nikolai y Pavel Durov, hermanos rusos, que propusieron un servicio multiplataforma basada en la nube (cloud computing) apoyado en el código abierto. Y aunque suele ser joven, la trayectoria de los Durov no llega a ser reciente. Ellos fueron destacándose con la creación de VK, una red social conocida por tener gran expectativa gran parte de Europa y Rusia y por ser competidora directa de Facebook.
+
+En esta guía creada por la comunidad de Wikilibros, te enseñamos a sacar provecho de las herramientas de Telegram y algunas modificaciones desarrolladas por la comunidad, eso sin dejar de lado algunos añadidos interesantes. Uno de ellos, por ejemplo, es el chat secreto, que permite transmitir mensajes a solas, con la posibilidad de autodestruirse. Está disponible para los sistemas operativos móviles Android, iOS y Windows Phone, y también para ordenadores, así como versiones para ejecutar en el navegador.
+
+Más información
+Telegram en Wikipedia
+Imágenes de Telegram en Commons
+
+Preferencias
+
+En Telegram puedes configurar tu aplicación. Aunque es posible personalizarla puedes establecer ajustes a continuación:
+
+Android 2.2 o superior
+Selecciona desde la barra lateral
+Ir a "Configuración"
+
+Las configuraciones son:
+Usar la foto de perfil (usando el ícono de fotografía)
+Ver los ajustes
+Notificaciones y sonidos
+Privacidad y seguridad
+Fondo de chat
+Idioma
+Animaciones
+Descarga automática de multimedia
+Mensajes
+Stickers
+Recibir asistencia
+
+iPhone/iPad
+Selecciona la pestaña "Ajustes"
+Tocar en editar (para tu perfil) o elegir una de las categorías
+
+Las configuraciones son:
+Puedes ver tu perfil.
+Configurar "Notificaciones y sonidos".
+Para los mensajes, con sonido y aviso.
+Para los grupos, con sonido y aviso.
+Para tareas relacionadas.
+Establecer reglas de "Privacidad y seguridad".
+Bloquear usuarios.
+Última conexión.
+Cerrar sesión en otros dispositivos.
+Autodestruir mi cuenta.
+"Ajustes de chat".
+Cambiar de número.
+Asociar con un alias.
+Hacer una pregunta/Preguntas frecuentes.
+Guardar en el carrete las fotos recibidas.
+
+Desktop
+Selecciona la opción "Ajustes" en la parte superior
+Puedes editar tu foto de perfil por el momento.
+
+Página de edición
+
+Este es una página de edición del libro Telegram Messenger. Con ello, todos los colaboradores pueden guiarse de todas las secciones, instrucciones wiki y marcar huella a este proyecto. Solo pedimos que te concentres en la aplicación de Telegram. Para otros temas relacionados con la organización puedes surgerir en la página de discusión o aportar en sus libros relacionados.
+
+Para añadir información en un nuevo capítulo solo añade al final de la hoja de la siguiente manera:
+
+No te olvides de revisar el libro completo y la lista de capítulos.
+Dentro del libro
+Colaboradores
+Diego Sanguinetti Rodríguez.
+Giovanni Alfredo Garciliano Diaz
+Si deseas colaborar, inscribe con tu nombre aquí
+
+Registro
+
+En Telegram, necesitarás registrarte utilizando un número telefónico. Ese número viene acompañado de un mensaje o llamada de confirmación. Presta atención al momento de usar el código que te envían desde Telegram.
+
+Para los que usan servicios similares (como Whatsapp o Viber), es posible migrar los contactos sin restricciones. Eso sí, es necesario usar tu línea telefónica para ser asignada a tu "cuenta de usuario"; el número de verificación será una especie de "contraseña temporal" donde podrás reforzarla con la autentificación en dos pasos.
+
+Requisitos
+Consiste en:
+Un móvil que reciba el código de autenticación (el servicio mensajes o llamadas de tu teléfono).
+Un cliente de Telegram (la aplicación obviamente).
+
+Opcionalmente puedes:
+Añadir dispositivos adicionales (otros clientes).
+Usar una contraseña y un correo para la validación complementaria.
+
+Primeros pasos
+Una vez que cumplas los requisitos, sigue las instrucciones:
+Activa tu línea móvil (tu chip no debe estar bloqueado).
+Abre la aplicación de Telegram (no importa donde lo estés usando).
+Ingresa tu número (el formato debe ser del tipo +1 999 333 333).
+Confirma tu número.
+Escribe el número de verificación en la aplicación.
+El primero aparece en un SMS, es preferible revisar desde el gestor de mensajes.
+El segundo es una llamada telefónica, una vez aceptada una operadora dictará el número.
+
+Iniciar sesión
+Para (volver a) iniciar tu cuenta de Telegram en computadoras, celulares y más los pasos son similares:
+Ten a la mano tu móvil para llamar o recibir mensajes. También puedes usar desde un cliente vinculado a tu cuenta.
+Abre la aplicación de Telegram donde inicias sesión.
+Ingresa tu número.
+Escribe el número de verificación descrito en el primer paso.
+El mensaje también puede ser recibido vía notificaciones de Telegram.
+
+Después de registrarte
+Una vez creado, es posible que necesites añadir un nombre y una foto de perfil. En el nombre puedes añadir tus apellidos o el nombre de una empresa. Al iniciar por primera vez en un celular con Telegram y el chip colocado, tu dispositivo será el "principal". Más adelante podrás activar una contraseña adicional para proteger tu cuenta en caso que tu dispositivo se pierda. Además, necesitarás usar en otras plataformas "secundarias", que pueden ayudarte como "salvavidas".
+
+En caso que te encuentres con una "cuenta previamente registrada" o, que viene a ser lo mismo, un número usado, es probable que algunos contactos malintencionados se aprovechen contigo. En algunos casos, los usuarios puedan dejar "abandonados" sus cuentas, en los cuales son autodestruidos pasado de un plazo tolerable; por defecto, un máximo de seis meses inactivo. Si el usuario que uso el número vuelve a recuperar su cuenta, éste podrá remontar los datos suyos como los tuyos (al menos que esté protegido por una contraseña).
+
+Preguntas frecuentes
+Número nuevo
+P: ¿Cuál es mi número?
+R: Tu número sigue un formato internacional. El signas más un número de 2 a 4 dígitos representa al código de país, mientras que el resto forma tu número (en ocasiones pueden ser exclusivos para redes privadas virtuales o móviles).
+P: ¿Cúal es el código de país (+123) de mi número?
+R: De la pregunta anterior, el código internacional está relacionado con el país donde compraste tu SIM. Puedes consultar más información en Wikipedia.
+P: Estoy usando Telegram en un celular y quiero ingresar directamente, ¿cómo consigo mi número?
+R: Si quieres confirmar tendrás que consultar a tu operador o buscador de Internet "mi numero [operador] [país]". Recuerda que no debe incluir caracteres no numéricos (nada de almohadillas ni asteriscos).
+P: Mi número es de otro país, ¿puedo registrarme?
+R: Si eres consciente que necesitas acerca de los tarifa de datos por itinerancia, no hay problema.
+P: ¿Debo hacer alguna mejora antes de registrarme?
+R: Asegúrate de tener la última versión oficial, tu sistema operativo actualizado y tu línea activada.
+P ¿No logro registrarme? ¿Qué hago?
+R: Comunica al equipo desde su pagina de contacto o la cuenta de Twitter (en inglés). Asegúrate de mencionar el sistema operativo, la versión de la aplicación y la línea telefónica.
+P ¿Qué pasa si mi número está bloqueado?
+R: Es posible que ese número fuese registrado muchas veces en poco tiempo. Espere unos días o dirígete a la pagina de contacto.
+
+Número usado
+P: Ya me registré, ¿debo pagar para seguir usando el servicio?
+R: No, incluso haya pasado el tiempo. Es aconsejable usar desde Wi-Fi para no generar gastos extra por consumo de datos. De lo contrario, si usas desde Internet móvil, contrata un paquete ilimitado a tu gusto.
+P: ¿Cómo saber si mi dispositivo inició sesión?
+R: Cuando confirmaste por SMS o llamada (por primera vez) con tu número.
+P: Estoy usando Telegram desde el móvil y ahora quiero vincular mi cuenta en una laptop. ¿Es posible?
+R: Sí, siempre que puedas recibir el código de acceso en el dispositivo asignado con tu número telefónico.
+P: Puedo usar dos dispositivos al mismo tiempo.
+R: Sí, excepto recibir los chats secretos fuera del dispositivo.
+P: Cuando me registré, aparecen usuarios en mi historial que no conozco. ¿Hay una forma de combatirlo?
+R: Sí. La mejor opción es destruir la cuenta y crearla desde cero. Revisa la sección Cuenta de usuario para seguir las instrucciones. También puedes bloquear a contactos no deseados y eliminarlos desde Contactos y chats (para los Bots, el proceso es similar).
+P: Telegram me dice que necesito añadir una contraseña. ¿Será que está registrado? ¿Cómo eliminar esa cuenta?
+R: Por desgracia, no es posible saltar ni eliminar desde allí. Consulta al antiguo propietario del número para que revele la contraseña y puedas acceder sin problemas.
+
+Stickers
+
+Como dato anecdótico, en Telegram puedes usar los stickers. Los stickers o pegatinas son muy distintos a los multimedia. Es gráfica condensada que reemplaza a los textos con emojis (o emoticonos). Para efectos prácticos, solo puedes enviar uno a la vez. Úsalo con precaución.
+
+Sticker
+Una pegatina tiene varias características:
+Es grande y puede abarcar varias líneas de texto. En otros términos, los stickers llegan a los 512 píxeles de longitud.
+En el paquete por defecto se muestra el fondo y delineado de color azulino.
+Puede utilizar el formato WEBP, de código abierto.
+Son estáticos (por el momento).
+
+Usar stickers
+Hay dos maneras de usar los stickers:
+Desde el teclado, seleccionando a un emoticono. Los stickers deben ser acordes a sus respectivos estados emocionales. Si el sticker está asignado a un emoticono genérico puede que sea difícil de buscar.
+En la pestaña dedicada. En la versión 3: en Android, y clientes similares, puedes usar una pestaña exclusiva para pegatinas.
+
+Paquete de stickers
+Los paquetes representan a un conjunto que distinguen a las imágenes tradicionales. Por ejemplo, "Great Minds", incluido en el cliente oficial, donde incluyen a personalidades destacadas con sus expresiones. No es necesario reiniciar Telegram.
+
+Aunque no hay un directorio oficial para conseguirlos, no hace falta instalar otras aplicaciones. Puedes encontrarlos en varios sitios web. Cada paquete lleva un enlace preparado a telegram.me/addsticker/nombredepaquete listo para agregar. También puedes añadir alguno pulsando a un sticker en medio de una conversación. Para administrarlos, dirigete a los ajustes de Telegram, luego hacia stickers, y adáptalos a tus necesidades.
+
+Crear y subir stickers
+Si quieres publicar tus propios paquetes, existen varias opciones para añadirlos:
+Interactuar con el usuario @stickers.
+Usar los comandos /newstickerpack y luego /addstickerspara crear un paquete propio.
+Y subirlos allí bajo el formato WebP. Se recomienda seguir con las directrices del paquete Great Minds.
+
+Más información
+Post original sobre el pack de stickers "Grandes mentes"
+Post actualizado sobre el desarrollo de stickers por terceros
+Cómo añadir stickers por conectica.com.mx
+Cómo diseñar stickers con Gimp e Inkscape por Aprenderconlibertad
