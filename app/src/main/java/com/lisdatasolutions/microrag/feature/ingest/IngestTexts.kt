@@ -43,8 +43,17 @@ fun QueueItemState.stateText(): String? = when (this) {
         val skipped = skippedPages?.takeIf { it > 0 }
         if (skipped == null) prepared else "$prepared · " + pluralStringResource(R.plurals.ingest_skipped_pages, skipped, skipped)
     }
+    is QueueItemState.Indexing -> stringResource(R.string.ingest_state_indexing, done.grouped(), total.grouped())
+    is QueueItemState.Paused -> if (done != null && total != null) {
+        stringResource(R.string.ingest_state_paused, done.grouped(), total.grouped())
+    } else {
+        stringResource(R.string.ingest_state_paused_unknown)
+    }
     is QueueItemState.ImportFailed, is QueueItemState.Failed -> null
 }
+
+/** «1.250» in Spanish, «1,250» in English. */
+private fun Int.grouped(): String = java.text.NumberFormat.getIntegerInstance().format(this)
 
 val QueueItemState.error: IngestError?
     get() = when (this) {
@@ -68,6 +77,8 @@ fun QueueItemState.progress(): ProgressValue? = when (this) {
             ProgressValue.Indeterminate
         }
     QueueItemState.Chunking -> ProgressValue.Indeterminate
+    is QueueItemState.Indexing ->
+        if (total > 0) ProgressValue.Determinate((done.toFloat() / total).coerceIn(0f, 1f)) else ProgressValue.Indeterminate
     else -> null
 }
 
@@ -88,6 +99,8 @@ private fun IngestError.chipRes(): Int = when (this) {
     IngestError.NO_TEXT -> R.string.ingest_error_no_text
     IngestError.EXTRACTION_FAILED -> R.string.ingest_error_extraction_failed
     IngestError.INDEX_UNAVAILABLE -> R.string.ingest_error_index_unavailable
+    IngestError.EMBEDDING_FAILED -> R.string.ingest_error_embedding_failed
+    IngestError.INCOMPLETE -> R.string.ingest_error_incomplete
 }
 
 /** Sentence of the detail sheet (G15). */
@@ -106,6 +119,8 @@ fun IngestError.detailText(format: DocumentFormat?): String = when (this) {
     IngestError.NO_TEXT -> stringResource(R.string.ingest_error_no_text_detail)
     IngestError.EXTRACTION_FAILED -> stringResource(R.string.ingest_error_extraction_failed_detail)
     IngestError.INDEX_UNAVAILABLE -> stringResource(R.string.ingest_error_index_unavailable_detail)
+    IngestError.EMBEDDING_FAILED -> stringResource(R.string.ingest_error_embedding_failed_detail)
+    IngestError.INCOMPLETE -> stringResource(R.string.ingest_error_incomplete_detail)
 }
 
 @Composable

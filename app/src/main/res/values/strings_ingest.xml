@@ -65,6 +65,13 @@
     <string name="ingest_error_extraction_failed_detail">No se pudo extraer el texto.</string>
     <string name="ingest_error_index_unavailable">Biblioteca no disponible</string>
     <string name="ingest_error_index_unavailable_detail">La biblioteca local no está disponible ahora.</string>
+    <string name="ingest_state_indexing">Indexando · %1$s de %2$s fragmentos</string>
+    <string name="ingest_state_paused">En pausa · %1$s de %2$s fragmentos</string>
+    <string name="ingest_state_paused_unknown">En pausa</string>
+    <string name="ingest_error_embedding_failed">No se pudo indexar</string>
+    <string name="ingest_error_embedding_failed_detail">Falló el cálculo de los vectores. Puedes reintentarlo.</string>
+    <string name="ingest_error_incomplete">Indexación incompleta</string>
+    <string name="ingest_error_incomplete_detail">Faltan fragmentos por guardar. Puedes reintentarlo.</string>
 
     <!-- G15: row detail sheet. -->
     <string name="ingest_sheet_meta">%1$s · %2$s</string>

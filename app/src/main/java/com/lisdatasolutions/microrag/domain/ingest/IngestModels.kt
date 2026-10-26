@@ -1,5 +1,7 @@
 package com.lisdatasolutions.microrag.domain.ingest
 
+import com.lisdatasolutions.microrag.domain.model.ComputeBackend
+
 /** Formats of the MVP (constitution, technical constraints). [extension] names the private copy. */
 enum class DocumentFormat(val mimeType: String, val extension: String) {
     PDF("application/pdf", "pdf"),
@@ -29,6 +31,12 @@ enum class IngestError(val code: String, val retryable: Boolean) {
     NO_TEXT("no_text", false),
     EXTRACTION_FAILED("extraction_failed", true),
     INDEX_UNAVAILABLE("index_unavailable", true),
+
+    /** The engine failed twice, also on CPU, or a text did not fit after the D-036 cuts (F07 research R4, R6). */
+    EMBEDDING_FAILED("embedding_failed", true),
+
+    /** At closing, the stored chunks did not match the chunking (F07 research R9). */
+    INCOMPLETE("incomplete", true),
     ;
 
     companion object {
@@ -67,6 +75,12 @@ sealed interface QueueItemState {
     data class Extracting(val page: Int?, val pages: Int?) : QueueItemState
     data object Chunking : QueueItemState
     data class Prepared(val chunks: Int, val skippedPages: Int?) : QueueItemState
+
+    /** Calculating embeddings: [done] stored chunks of [total] (F07 index-ui §Ingesta). */
+    data class Indexing(val done: Int, val total: Int) : QueueItemState
+
+    /** In a paused run; the counts are known once the document is chunked. */
+    data class Paused(val done: Int?, val total: Int?) : QueueItemState
     data class Failed(val error: IngestError) : QueueItemState
 }
 
@@ -103,7 +117,24 @@ data class ImportQueue(
     }
 }
 
-/** Progress of the processing work for one document (WorkInfo progress, contracts/ingest-api.md). */
-data class IngestProgress(val documentId: Long, val stage: Stage, val page: Int?, val pages: Int?) {
-    enum class Stage { EXTRACTING, CHUNKING }
+/**
+ * Progress of the processing work for one document (WorkInfo progress, F06 contracts/ingest-api.md and
+ * F07 data-model §5). [page] and [pages] belong to extraction; the chunk counts, [chunksPerSecond] and
+ * [backend] to the embeddings. [waiting] is apart from the stage, so the real stage is still shown.
+ */
+data class IngestProgress(
+    val documentId: Long,
+    val stage: Stage,
+    val page: Int? = null,
+    val pages: Int? = null,
+    val chunksDone: Int? = null,
+    val chunksTotal: Int? = null,
+    /** Chunks per second of the last two batches, only while it is steady (F07 research R8). */
+    val chunksPerSecond: Double? = null,
+    val backend: ComputeBackend? = null,
+    val waiting: WaitReason? = null,
+) {
+    enum class Stage { EXTRACTING, CHUNKING, EMBEDDING, CLOSING }
+
+    enum class WaitReason { THERMAL }
 }

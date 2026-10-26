@@ -62,6 +62,13 @@
     <string name="ingest_error_extraction_failed_detail">The text could not be extracted.</string>
     <string name="ingest_error_index_unavailable">Library unavailable</string>
     <string name="ingest_error_index_unavailable_detail">The local library is not available right now.</string>
+    <string name="ingest_state_indexing">Indexing · %1$s of %2$s chunks</string>
+    <string name="ingest_state_paused">Paused · %1$s of %2$s chunks</string>
+    <string name="ingest_state_paused_unknown">Paused</string>
+    <string name="ingest_error_embedding_failed">Could not index</string>
+    <string name="ingest_error_embedding_failed_detail">Computing the vectors failed. You can try again.</string>
+    <string name="ingest_error_incomplete">Incomplete indexing</string>
+    <string name="ingest_error_incomplete_detail">Some chunks were not saved. You can try again.</string>
 
     <string name="ingest_sheet_meta">%1$s · %2$s</string>
     <string name="ingest_format_pdf">PDF</string>

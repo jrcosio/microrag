@@ -124,13 +124,13 @@ description: "Lista de tareas de F07 — Indexación"
 
 ### Implementation
 
-- [ ] T010 Ampliar `…/microrag/domain/ingest/IngestModels.kt` (data-model §3):
+- [X] T010 Ampliar `…/microrag/domain/ingest/IngestModels.kt` (data-model §3):
   - `IngestError.EMBEDDING_FAILED` e `INCOMPLETE`, reintentables;
   - `QueueItemState.Indexing` y `Paused`;
   - `IngestProgress` con las etapas `EMBEDDING` y `CLOSING`, `waiting: WaitReason?` aparte, `chunksDone`, `chunksTotal`, `chunksPerSecond` y `backend`.
 
   Ajustar los `when` exhaustivos de `feature/ingest` con textos provisionales; los definitivos van en T058.
-- [ ] T011 [P] Crear en `…/microrag/domain/indexing/`:
+- [X] T011 [P] Crear en `…/microrag/domain/indexing/`:
   - `IndexingModels.kt`: `IndexingState`, `RunProgress`, `CurrentDocument`, `PauseReason` y `FailedDocument`;
   - `IndexingRepository.kt` (contracts/indexing-api.md).
 - [X] T012 [P] Crear `…/microrag/domain/rag/DocumentTitle.kt` (R11). Comprobar T004.
