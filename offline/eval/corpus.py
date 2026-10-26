@@ -83,6 +83,9 @@ def sha256_bytes(data):
     return hashlib.sha256(data).hexdigest()
 
 
+PENDING = "pending"
+
+
 def fetch(docs, docs_dir=DOCS, fetcher=None):
     """Downloads the missing documents; a hash that differs from the manifest stops everything."""
     fetcher = fetcher or default_fetcher
@@ -91,12 +94,30 @@ def fetch(docs, docs_dir=DOCS, fetcher=None):
         target = docs_dir / doc.file_name
         if target.exists():
             continue
+        if doc.sha256 == PENDING:
+            raise SystemExit(f"{doc.id}: not recorded yet; run fetch-corpus --record")
         data = fetcher(doc)
         found = sha256_bytes(data)
         if found != doc.sha256:
             raise SystemExit(f"{doc.id}: sha256 {found} does not match the manifest")
         target.write_bytes(data)
         print(f"fetched {doc.id} ({len(data)} bytes)")
+
+
+def record(manifest=MANIFEST, docs_dir=DOCS, fetcher=None):
+    """Adds a newly selected document: downloads entries marked `pending` and writes their hash."""
+    fetcher = fetcher or default_fetcher
+    entries = json.loads(manifest.read_text(encoding="utf-8"))
+    docs_dir.mkdir(parents=True, exist_ok=True)
+    for entry in entries:
+        if entry.get("sha256") != PENDING:
+            continue
+        doc = parse_manifest([entry])[0]
+        data = fetcher(doc)
+        (docs_dir / doc.file_name).write_bytes(data)
+        entry["sha256"] = sha256_bytes(data)
+        manifest.write_text(json.dumps(entries, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        print(f"recorded {doc.id} ({len(data)} bytes)")
 
 
 def verify(docs, docs_dir=DOCS):
@@ -155,6 +176,7 @@ def fetch_pdf(spec, doc):
     if not pages:
         return data
     from pypdf import PdfReader, PdfWriter
+    from pypdf.generic import ArrayObject, ByteStringObject
 
     reader = PdfReader(io.BytesIO(data))
     writer = PdfWriter()
@@ -163,7 +185,8 @@ def fetch_pdf(spec, doc):
         writer.add_page(reader.pages[number - 1])
     # Fixed metadata and file id, so the same page range always gives the same bytes.
     writer.add_metadata({"/Title": doc.title, "/Producer": "MicroRAG eval (pypdf)"})
-    writer._ID = [hashlib.md5(doc.id.encode()).digest()] * 2  # noqa: SLF001 (deterministic id)
+    file_id = ByteStringObject(hashlib.md5(doc.id.encode()).digest())
+    writer._ID = ArrayObject([file_id, file_id])  # noqa: SLF001 (deterministic id)
     out = io.BytesIO()
     writer.write(out)
     return out.getvalue()

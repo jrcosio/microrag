@@ -32,13 +32,22 @@ def _kt_is_whitespace(char):
     return char in _KOTLIN_CONTROL_SPACES or unicodedata.category(char) in ("Zs", "Zl", "Zp")
 
 
-def kt_trim(text):
-    start, end = 0, len(text)
-    while start < end and _kt_is_whitespace(text[start]):
+def kt_trim_start(text):
+    start = 0
+    while start < len(text) and _kt_is_whitespace(text[start]):
         start += 1
-    while end > start and _kt_is_whitespace(text[end - 1]):
+    return text[start:]
+
+
+def kt_trim_end(text):
+    end = len(text)
+    while end > 0 and _kt_is_whitespace(text[end - 1]):
         end -= 1
-    return text[start:end]
+    return text[:end]
+
+
+def kt_trim(text):
+    return kt_trim_end(kt_trim_start(text))
 
 
 def chunk_params(tokens, chars_per_token, max_input_chars):
