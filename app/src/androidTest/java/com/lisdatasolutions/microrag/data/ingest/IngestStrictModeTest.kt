@@ -89,13 +89,13 @@ class IngestStrictModeTest {
             val scheduler = object : IngestScheduler {
                 override val activeDocumentIds = MutableStateFlow(emptySet<Long>())
                 override val progress = MutableStateFlow<IngestProgress?>(null)
-            override val work = MutableStateFlow(IngestWork.NONE)
-            override suspend fun replace(documentIds: List<Long>) = Unit
-            override suspend fun cancel() = Unit
+                override val work = MutableStateFlow(IngestWork.NONE)
                 val requests = mutableListOf<List<Long>>()
                 override suspend fun enqueue(documentIds: List<Long>) {
                     requests += documentIds
                 }
+                override suspend fun replace(documentIds: List<Long>) = Unit
+                override suspend fun cancel() = Unit
             }
             val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
             val runs = InMemoryIngestRunStore()

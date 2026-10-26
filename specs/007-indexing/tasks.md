@@ -426,7 +426,7 @@ description: "Lista de tareas de F07 — Indexación"
 
 ## Phase 8: Polish & Cross-Cutting Concerns
 
-- [ ] T061 [P] Crear `…/androidTest/data/indexing/IndexingStrictModeTest.kt`: `start`, la observación del estado, `pause` y `resume` llamados desde el hilo principal, con el runner y `FakeTextEmbedder`, sin violaciones de disco. Con control negativo, como F06 (SC-009).
+- [X] T061 [P] Crear `…/androidTest/data/indexing/IndexingStrictModeTest.kt`: `start`, la observación del estado, `pause` y `resume` llamados desde el hilo principal, con el runner y `FakeTextEmbedder`, sin violaciones de disco. Con control negativo, como F06 (SC-009).
 - [ ] T062 [P] Ampliar `…/androidTest/data/rag/RagIndexBenchmarkTest.kt` (R7):
   - **10k fragmentos, *m* = 0:** p95 vectorial y BM25 comparados con F04 (umbral: +2 ms en el teléfono);
   - ***m* = 4.300:** registrar. Si, sumado al embedding de consulta (≈ 120 ms), supera 150 ms, consultar.
