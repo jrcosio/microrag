@@ -148,7 +148,7 @@ Con documentos listos en la cola, el usuario pulsa «Iniciar indexación». La a
 6. **Given** el troceado de un documento, **When** termina, **Then**:
    - los fragmentos tienen `ordinal` consecutivo desde 0;
    - un encabezado nuevo siempre abre fragmento;
-   - ningún fragmento supera el máximo, salvo una frase sin puntuación más larga que el máximo;
+   - ningún párrafo supera el máximo, salvo una frase sin puntuación más larga que él. Un fragmento puede superarlo solo por el solape arrastrado (el último párrafo corto del anterior), como en el algoritmo del informe y en el golden de F05. Los excesos en el embedding los cubre D-036;
    - se repite el último párrafo del fragmento anterior cuando es corto (solape).
 
 ---
@@ -253,12 +253,12 @@ La pantalla Importar documentos reproduce el PNG 05 con los ajustes aprobados, e
 
   El estado MUST salir del estado persistido y del progreso real del trabajo, nunca de valores inventados (constitución V). Un documento con el troceado terminado se muestra como «Preparado para indexar» hasta que F07 lo indexa.
 - **FR-007**: La cabecera de la cola MUST mostrar el número real de documentos que contiene («N archivos»).
-- **FR-008**: La cola MUST persistir en el índice local y reconstruirse desde él al recrear la Activity, al reabrir la app y tras la muerte del proceso.
+- **FR-008**: Los documentos de la cola MUST persistir en el índice local y reconstruirse desde él al recrear la Activity, al reabrir la app y tras la muerte del proceso. Los archivos que aún se están copiando, o que fallaron antes de registrarse, MUST sobrevivir a la recreación de la Activity. Tras la muerte del proceso pueden desaparecer, sin dejar copias a medias (US4-2, D-038).
 - **FR-009**: Cada fila MUST permitir, según su estado:
   - Reintentar, en los errores recuperables;
   - Quitar de la cola, en cualquier estado no indexado.
 
-  Quitar MUST borrar el registro y la copia privada y detener su procesamiento si estaba en curso.
+  Quitar un documento MUST pedir confirmación (constitución V), borrar el registro y la copia privada, y detener su procesamiento si estaba en curso. Quitar un archivo que no llegó a registrarse no pide confirmación.
 - **FR-010**: El chevron de cada fila MUST abrir su detalle (G15), con el estado, el motivo del error y las acciones disponibles.
 
 **Procesamiento en segundo plano**
@@ -283,15 +283,15 @@ La pantalla Importar documentos reproduce el PNG 05 con los ajustes aprobados, e
   - las líneas de una página se unen en párrafos con la misma regla que el extractor del escritorio de F05 (`pdf_paragraphs`): línea en blanco, viñeta o fin de frase seguido de mayúscula abren párrafo; se unen los guiones de fin de línea y se quitan los números de página sueltos.
 - **FR-016**: El texto de los PDF MUST extraerse con la capacidad de PDF del propio sistema, sin bibliotecas de PDF añadidas al APK. En un dispositivo cuyo sistema no la ofrece, los PDF MUST rechazarse con el error «Este dispositivo no puede leer PDF», con la indicación de actualizar el sistema, y TXT y Markdown MUST funcionar igual.
 - **FR-017**: Las páginas de un PDF sin texto extraíble MUST omitirse y contarse. Un PDF sin ninguna página con texto MUST terminar en error «Sin texto extraíble». El reconocimiento óptico de caracteres queda fuera del MVP.
-- **FR-018**: Markdown: los encabezados `#` a `######` MUST formar la ruta de encabezados, que se reinicia por nivel. El cuerpo de cada sección MUST conservar los párrafos separados por líneas en blanco.
-- **FR-019**: TXT MUST producir un único bloque sin ruta, con los párrafos separados por líneas en blanco.
+- **FR-018**: Markdown: los encabezados `#` a `######` MUST formar la ruta de encabezados, que se reinicia por nivel. El cuerpo de cada sección MUST conservar los párrafos separados por líneas en blanco. Una sección muy larga puede entregarse en varios bloques consecutivos con la misma ruta, siempre que el troceado resultante sea idéntico al de un único bloque.
+- **FR-019**: TXT MUST producir bloques sin ruta, con los párrafos separados por líneas en blanco: uno solo, como el extractor del escritorio, o varios consecutivos si el texto es muy largo, con un troceado idéntico al de un único bloque.
 - **FR-020**: La extracción de TXT y Markdown, y la unión de líneas en párrafos de PDF, MUST producir lo mismo que el extractor del escritorio de F05 (`offline/eval/extract.py`). Lo garantiza un golden compartido generado desde Python. Así, la evaluación de F05 representa lo que hace la app.
 
 **Troceado**
 
 - **FR-021**: El troceado MUST implementar el `Chunker` del informe con los parámetros de `RagParameters`: objetivo de 1.594 caracteres, máximo de 2.113 y longitudes medidas como en el escritorio. MUST reproducir al carácter los 27 casos y 162 fragmentos de `offline/golden/chunker_golden.jsonl`.
 - **FR-022**: El troceado MUST cumplir las reglas del informe:
-  - párrafos enteros; solo se parte por frases un párrafo que supera el máximo;
+  - párrafos enteros; solo se parte por frases un párrafo que supera el máximo. Un fragmento puede superar el máximo por el solape arrastrado (ver US3-6);
   - un cambio de encabezado abre fragmento;
   - el último párrafo se repite en el fragmento siguiente si es corto (solape);
   - cada fragmento lleva su página de inicio y su ruta;

@@ -100,7 +100,8 @@ description: "Lista de tareas de F06 — Importación y parsing"
 - [ ] T008 [P] Ampliar `…/androidTest/data/rag/RagIndexWriteTest.kt`:
   - `documents(statuses)` filtra y ordena por creación;
   - `documentChanges` aumenta tras `addDocument`, `updateStatus`, `setIncluded`, `deleteDocument` e `insertChunks`, y no cambia con lecturas;
-  - `updateStatus(skippedPages)` con `COALESCE`.
+  - `updateStatus(skippedPages)` con `COALESCE`;
+  - `documentIdByHash` devuelve el id o `null`.
 - [ ] T009 [P] Ampliar `…/test/architecture/LayeringTest.kt` con dos reglas:
   - `android.graphics.pdf` solo en `…/microrag/data/ingest`;
   - `…/microrag/feature/ingest` no importa `androidx.work` ni `android.graphics.pdf`.
@@ -124,7 +125,7 @@ description: "Lista de tareas de F06 — Importación y parsing"
   - `RagIndexConfig.SCHEMA_VERSION = 2`.
 
   Comprobar que T006 y T007 pasan.
-- [ ] T013 Ampliar `RagIndex` en `…/microrag/domain/rag/RagIndex.kt` y `RagModels.kt` (`StoredDocument.skippedPages`), y `DefaultRagIndex` en `…/microrag/data/rag/DefaultRagIndex.kt`, con `documents(statuses)`, `documentChanges` y `updateStatus(…, skippedPages)` (contracts/ingest-api.md). Actualizar el contrato de F04 en `specs/004-rag-data-core/contracts/rag-index-api.md` con la ampliación. Comprobar T008.
+- [ ] T013 Ampliar `RagIndex` en `…/microrag/domain/rag/RagIndex.kt` y `RagModels.kt` (`StoredDocument.skippedPages`), y `DefaultRagIndex` en `…/microrag/data/rag/DefaultRagIndex.kt`, con `documents(statuses)`, `documentIdByHash`, `documentChanges` y `updateStatus(…, skippedPages)` (contracts/ingest-api.md). Actualizar el contrato de F04 en `specs/004-rag-data-core/contracts/rag-index-api.md` con la ampliación. Comprobar T008.
 - [ ] T014 [P] Crear `…/microrag/domain/ingest/IngestModels.kt` (`DocumentFormat`, `IngestError`, `ImportLimits`, `QueueKey`, `QueueItem`, `QueueItemState`, `ImportQueue` e `IngestProgress`) y `ImportQueueRepository.kt` (data-model §3, contracts/ingest-api.md).
 - [ ] T015 [P] Crear `…/microrag/rag/ingest/Extraction.kt`:
   - `RawBlock`, `Chunk`, `ExtractionSummary`, `ExtractionLimits.MAX_BLOCK_CHARS = 256 * 1024`;
@@ -172,7 +173,7 @@ description: "Lista de tareas de F06 — Importación y parsing"
 ### Implementación
 
 - [ ] T022 [P] [US1] Crear `…/microrag/data/ingest/SafDocumentSource.kt`: el nombre visible y el tamaño (`OpenableColumns`), con el último segmento de la URI como respaldo, y `openInputStream`, todo en `AppDispatchers.io`.
-- [ ] T023 [US1] Crear `…/microrag/data/ingest/DocumentImporter.kt` con los pasos 1–8 de research R5 para el caso de éxito: formato, límites, copia con `DigestInputStream`, validación de cabecera y páginas con `PdfOpener`, renombrado y `addDocument`. Sin registros de nombres en los logs (I10). Comprobar T019.
+- [ ] T023 [US1] Crear `…/microrag/data/ingest/DocumentImporter.kt` con los pasos 1–9 de research R5 para el caso de éxito: formato, límites, copia con `DigestInputStream`, validación de cabecera y páginas con `PdfOpener`, comprobación de duplicado antes de renombrar, renombrado y `addDocument`. Sin registros de nombres en los logs (I10). Comprobar T019.
 - [ ] T024 [US1] Crear `…/microrag/data/ingest/IngestScheduler.kt`:
   - la interfaz, con `activeDocumentIds: Flow<Set<Long>>` y `progress: Flow<IngestProgress?>`;
   - `WorkManagerIngestScheduler`, que los deriva de `getWorkInfosForUniqueWorkFlow("ingest")` (etiquetas `ingest-doc:<id>` y claves de progreso; contracts/ingest-api.md).
@@ -223,12 +224,12 @@ description: "Lista de tareas de F06 — Importación y parsing"
   - `NO_SPACE`: espacio previo insuficiente y error de escritura;
   - `ACCESS_LOST`: `SecurityException` y `FileNotFoundException`;
   - `READ_FAILED`;
-  - `DUPLICATE`: con el índice y dentro de la misma selección, sin borrar la copia del existente;
+  - `DUPLICATE`: con el índice y dentro de la misma selección, detectado antes de renombrar; la copia del existente queda intacta, con los mismos bytes y la misma fecha de modificación;
   - `PDF_UNAVAILABLE`: sin copiar;
   - `NO_TEXT`: archivo de 0 bytes;
   - `INDEX_UNAVAILABLE`.
 
-  En todos los errores, comprobar que no queda ningún temporal.
+  En todos los errores, comprobar que no queda ningún temporal. Con un `AppLogger` falso, comprobar que ningún mensaje contiene el nombre visible, la ruta ni el contenido (I10, constitución I).
 - [ ] T032 [P] [US2] Ampliar `…/test/data/ingest/DefaultImportQueueRepositoryTest.kt`:
   - un error no detiene la importación de los siguientes (I3);
   - `retry` de un intento repite la importación, y sin acceso a la URI da `ACCESS_LOST` (I8);
@@ -273,7 +274,7 @@ description: "Lista de tareas de F06 — Importación y parsing"
   - no se corta a mitad de frase salvo en párrafos que superan el máximo;
   - un encabezado abre fragmento;
   - el solape del último párrafo corto;
-  - el máximo;
+  - ningún párrafo supera el máximo, salvo una frase indivisible, y un fragmento solo lo supera por el solape arrastrado (como máximo, el máximo más objetivo/3 más 2);
   - el `ordinal` consecutivo;
   - la página de inicio;
   - la API con estado (`add`/`finish`) da lo mismo que `chunk(list)`.
@@ -291,7 +292,8 @@ description: "Lista de tareas de F06 — Importación y parsing"
   - un documento borrado o no `pending` se salta;
   - el progreso se publica (etapa, página y páginas);
   - reprocesar da el mismo resultado (I6);
-  - la parada entre páginas deja el documento `pending`.
+  - la parada entre páginas deja el documento `pending`;
+  - los logs no llevan nombres, rutas ni texto (I10).
 - [ ] T046 [P] [US3] Ampliar `…/test/data/ingest/DefaultImportQueueRepositoryTest.kt` y crear `…/test/data/ingest/WorkManagerIngestSchedulerTest.kt` (`work-testing`):
   - `startProcessing` encola solo los `Ready`, con las etiquetas y los ids en orden (I9);
   - con un trabajo activo, los `pending` etiquetados se ven como `Queued` y los no etiquetados como `Ready`;
@@ -309,13 +311,15 @@ description: "Lista de tareas de F06 — Importación y parsing"
 - [ ] T050 [US3] Crear `…/microrag/rag/ingest/PlainTextExtractor.kt`, `MarkdownExtractor.kt` (analizador manual de `HEADING`, research R8) y `PdfExtractor.kt` (`pdfParagraphs` con el analizador manual de `BULLET`, y recorrido por páginas). Emiten `Sequence<RawBlock>` con partición por párrafo según `MAX_BLOCK_CHARS`. Comprobar T040 en la JVM y en el emulador.
 - [ ] T051 [US3] Crear `…/microrag/rag/ingest/Chunker.kt`, port literal del informe con estado (`add`/`finish`), longitudes UTF-16, `trim` de Kotlin y regex ASCII. Constructor por defecto con `RagParameters.CHUNK_TARGET_CHARS` y `CHUNK_MAX_CHARS`. Comprobar T041, T042 y T043.
 - [ ] T052 [US3] Crear `…/microrag/rag/ingest/DocumentExtractor.kt`: elige el extractor por `DocumentFormat`, abre el PDF con `PdfOpener` y devuelve los bloques y el `ExtractionSummary`. Comprobar T044.
-- [ ] T053 [US3] Crear `…/microrag/data/ingest/IngestRunner.kt` (research R7) e `IngestWorker.kt` (`CoroutineWorker` con Koin, `setProgress` como mucho cada 250 ms, `isStopped` entre páginas y siempre `success`). Comprobar T045.
+- [ ] T053 [US3] Crear `…/microrag/data/ingest/IngestRunner.kt` (research R7; extracción en `AppDispatchers.io`, índice en `database`) e `IngestWorker.kt` (`CoroutineWorker` con Koin, `setProgress` como mucho cada 250 ms, `isStopped` entre páginas y siempre `success`). Comprobar T045.
 - [ ] T054 [US3] Añadir `enqueue(ids)` a `IngestScheduler` y a `WorkManagerIngestScheduler`: `APPEND_OR_REPLACE`, `inputData`, etiquetas. Añadir `startProcessing` a `DefaultImportQueueRepository`, con el mapeo completo de estados de data-model §3, y `StartIndexingUseCase`. Registrar el runner en Koin. Comprobar T046.
 - [ ] T055 [US3] En `…/microrag/feature/ingest/` (ViewModel, textos y pantalla): habilitar la CTA con `readyCount > 0`, bloquearla mientras se encola y navegar a `Index`. Añadir los estados de fila `Queued`, `Extracting` (progreso determinado de páginas, o indeterminado), `Chunking` y `Prepared` (contracts/ingest-ui.md). Comprobar T047.
 - [ ] T056 [US3] Crear `…/androidTest/data/ingest/IngestFlowTest.kt` con WorkManager real (`WorkManagerTestInitHelper`) y URIs `file://` de los fixtures copiados a `cacheDir`:
   - se importan los 8 fixtures, más un TXT y un MD con encabezados;
   - al procesarlos, los válidos acaban `parsed` con su `chunk_count`, y `partially_scanned` con `skipped_pages > 0`;
-  - `scanned` acaba `error(no_text)`, `encrypted` en `ENCRYPTED`, `truncated` y `fake` en `DAMAGED` (SC-003).
+  - `scanned` acaba `error(no_text)`, `encrypted` en `ENCRYPTED`, `truncated` y `fake` en `DAMAGED` (SC-003);
+  - importar `text_3_pages` por segunda vez da `DUPLICATE`;
+  - borrar el original tras importarlo no impide procesarlo (US1-3).
 
   Ejecutarla en el emulador y en el teléfono.
 
@@ -384,7 +388,8 @@ description: "Lista de tareas de F06 — Importación y parsing"
   - CTA deshabilitada sin `Ready`;
   - P1, P4 y P5 deshabilitan lo que corresponde;
   - el chevron abre la hoja;
-  - P6 en Inicio.
+  - P6 en Inicio;
+  - el selector se lanza con `IngestMimeTypes` (`application/pdf`, `text/plain`, `text/markdown`, `text/x-markdown`; FR-001).
 
 ### Implementación
 

@@ -102,7 +102,7 @@ Quitar un **intento** fallido o cancelar una importación en curso no pide confi
   - En curso, la misma fila del PNG con una barra fina de progreso debajo de la línea de metadatos.
   - Con error, la línea de metadatos solo lleva el tamaño, y debajo va `LisdataStatusChip(StatusKind.Error)` con los tokens `error` y `errorContainer`.
 - **P3 — Hoja de detalle (G15):** como en §Hoja.
-- **P4 — Dispositivo sin soporte de PDF:** la línea de formatos pasa a «Formatos: TXT · Markdown · PDF requiere actualizar el sistema». El selector deja de ofrecer `application/pdf`, y un PDF que llegue de todos modos termina en `PDF_UNAVAILABLE`.
+- **P4 — Dispositivo sin soporte de PDF:** la línea de formatos pasa a «Formatos: TXT · Markdown · PDF requiere actualizar el sistema». El selector sigue ofreciendo PDF, y cada PDF elegido termina en `PDF_UNAVAILABLE` con su explicación (spec FR-016 y caso borde).
 - **P5 — Biblioteca no disponible** (índice `Incompatible` o `Unreadable`, F04):
   - en lugar de la cola, `LisdataErrorState` con el título «La biblioteca no está disponible» y el texto «No se puede importar mientras la biblioteca local no esté disponible.»;
   - «Seleccionar archivos» y la CTA, deshabilitados.

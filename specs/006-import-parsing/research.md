@@ -87,8 +87,9 @@ Sin soporte:
    - `IOException` es `DAMAGED`;
    - más de 2.000 páginas es `TOO_LARGE`;
    - 0 páginas es `DAMAGED`;
-7. renombrar el temporal a `documents/<sha256>.<ext>`;
-8. `RagIndex.addDocument`. `DuplicateDocumentException` es `DUPLICATE`, y entonces se borra el fichero recién renombrado salvo que sea el de un documento existente.
+7. si `RagIndex.documentIdByHash(sha256)` existe, es `DUPLICATE` y solo se borra el temporal. **Nunca** se renombra sobre la copia de un documento existente, que tiene el mismo nombre (`<sha256>.<ext>`);
+8. renombrar el temporal a `documents/<sha256>.<ext>`. Si ya existe, es un huérfano: se sustituye, porque tiene el mismo contenido;
+9. `RagIndex.addDocument`. Una `DuplicateDocumentException` en este punto solo puede venir de una carrera, imposible con la importación secuencial. Si ocurre, es `DUPLICATE` y no se borra nada, porque el fichero es el del documento existente.
 
 Ante cualquier error se borra el temporal.
 

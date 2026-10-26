@@ -101,7 +101,7 @@ Las dos se miden en el teléfono de referencia.
 - 1 repositorio y 5 casos de uso.
 - 1 worker.
 - 3 extractores y el `Chunker`.
-- 1 golden nuevo (unos 70 casos) y 8 fixtures PDF.
+- 1 golden nuevo (unos 120 casos) y 8 fixtures PDF.
 - 1 migración de esquema.
 
 ## Constitution Check
@@ -218,8 +218,9 @@ offline/
    3. soporte de PDF;
    4. copia con huella;
    5. validación;
-   6. renombrado;
-   7. `addDocument`.
+   6. duplicado (`documentIdByHash`);
+   7. renombrado;
+   8. `addDocument`.
 
    Si sale bien, el intento desaparece y el documento aparece como `Ready` al emitir `documentChanges`. Si no, queda `ImportFailed(error)`.
 2. **Observar.** `queue` combina los intentos, `RagIndex.documents({pending, parsed, error})` (recargado con `documentChanges`), las etiquetas activas y el progreso de `ingest`. La primera suscripción del proceso ejecuta `cleanOrphans`.

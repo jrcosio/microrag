@@ -36,6 +36,9 @@ Casos de uso (`IngestUseCases.kt`, como en F03): `ObserveImportQueueUseCase`, `I
 /** Documents in [statuses], oldest first (created_at_ms, id). */
 suspend fun documents(statuses: Set<DocumentStatus>): List<StoredDocument>
 
+/** Id of the document with this content hash, if any (duplicate check before renaming, research R5). */
+suspend fun documentIdByHash(contentHash: String): Long?
+
 /** Increments after every committed write that changes `documents`: add, status, inclusion, delete, chunk insert. */
 val documentChanges: StateFlow<Long>
 
@@ -52,7 +55,7 @@ suspend fun updateStatus(id: Long, status: DocumentStatus, error: String? = null
 | Clase | Responsabilidad |
 |---|---|
 | `DefaultImportQueueRepository` | Combina los intentos en memoria, `RagIndex.documents` (recargado con `documentChanges`) y `WorkManager.getWorkInfosForUniqueWorkFlow("ingest")` |
-| `DocumentImporter` | Los pasos 1–8 de research R5 para un archivo; devuelve `Imported(id)` o `Rejected(IngestError)` |
+| `DocumentImporter` | Los pasos 1–9 de research R5 para un archivo; devuelve `Imported(id)` o `Rejected(IngestError)` |
 | `SafDocumentSource` | Nombre visible, tamaño y `openInputStream` de una URI (`ContentResolver`), siempre en `AppDispatchers.io` |
 | `DocumentFileStore` | Rutas, temporales, renombrado, borrado y `cleanOrphans` en `AppDirs.documents` |
 | `PlatformPdfOpener`, `PdfSupport` | `PdfRendererPreV` (`@RequiresExtension(S, 13)`) → `PdfPages`; comprobación de la extensión (research R2–R3) |
@@ -88,7 +91,7 @@ suspend fun updateStatus(id: Long, status: DocumentStatus, error: String? = null
 | # | Regla |
 |---|---|
 | I1 | Nunca se registra un documento cuya copia no esté completa en su ruta final (R5: renombrar y después registrar) |
-| I2 | La identidad de un documento es su SHA-256. Un duplicado no crea ni registro ni copia, y no borra la copia del documento existente |
+| I2 | La identidad de un documento es su SHA-256. El duplicado se detecta con `documentIdByHash` antes de renombrar: no crea ni registro ni copia, y nunca toca la copia del documento existente |
 | I3 | Los errores son por archivo o por documento. Un fallo nunca detiene la importación ni el procesamiento de los demás |
 | I4 | La importación es secuencial, en el orden de selección. El procesamiento es secuencial, en orden de creación |
 | I5 | Toda E/S de ficheros y de `ContentResolver` va en `AppDispatchers.io`. Todo el índice va en `AppDispatchers.database` (F04). Nada en el hilo principal (SC-009) |
