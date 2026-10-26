@@ -442,6 +442,21 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
 
 ---
 
+## D-033 — Revisión del conjunto de prueba por el asistente (implementación de F05)
+
+- **Fecha:** 2026-10-26
+- **Decisión:** la revisión del conjunto de prueba (al menos 100 preguntas) y la muestra del juicio manual las hace Claude, el asistente de desarrollo, en lugar del usuario. Modifica D-032 en ese punto.
+- **Motivo:** indicación del usuario: «no tengo tiempo de revisar así que hazlo tú».
+- **Cómo se compensa la pérdida de independencia:**
+  - las preguntas las redactaron agentes separados, y la revisión la hace la sesión principal, que no las había visto;
+  - los criterios son explícitos: pregunta realista y no ambigua, respuesta deducible de la evidencia, y preguntas sin respuesta comprobadas con búsquedas en el corpus;
+  - los veredictos quedan registrados en `offline/testset/` (campo `review` y nota).
+- **Resultado:** 100 preguntas de la hoja aceptadas. Además se revisaron 12 que los agentes habían marcado como dudosas: 9 aceptadas y 3 descartadas por poco realistas.
+- **Origen:** usuario.
+- **Afecta:** F05.
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.

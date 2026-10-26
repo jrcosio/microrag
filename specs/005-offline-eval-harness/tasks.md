@@ -87,13 +87,13 @@ description: "Lista de tareas de F05 — Harness offline de evaluación"
 
 ### Tests (escribir primero)
 
-- [ ] T009 [P] [US1] `offline/tests/test_corpus.py` y `offline/tests/test_extract.py`:
+- [X] T009 [P] [US1] `offline/tests/test_corpus.py` y `offline/tests/test_extract.py`:
   - corpus (FR-020): cada entrada del manifest tiene todos sus campos y una licencia permitida; una huella distinta hace fallar `fetch-corpus`; `SOURCES.md` se genera desde el manifest;
   - Markdown: los encabezados `#`, `##` y `###` forman la ruta y los párrafos se separan por línea en blanco;
   - TXT: sin ruta;
   - PDF: un PDF pequeño generado en la prueba con `pypdf` da páginas y párrafos con la heurística de research R3;
   - BOE: un XML mínimo con la forma de la API pasa a Markdown con títulos, capítulos y artículos; usa la última versión de cada bloque y omite `nota_pie`.
-- [ ] T010 [P] [US1] `offline/tests/test_chunker.py`. Port del `Chunker` del informe:
+- [X] T010 [P] [US1] `offline/tests/test_chunker.py`. Port del `Chunker` del informe:
   - un cambio de ruta abre fragmento;
   - el objetivo y el máximo se respetan;
   - el solape del último párrafo solo se aplica si mide menos de `target/3`;
@@ -101,7 +101,7 @@ description: "Lista de tareas de F05 — Harness offline de evaluación"
   - los ordinales son consecutivos;
   - `start` y `end` localizan el contenido en el texto extraído;
   - es determinista.
-- [ ] T011 [P] [US1] `offline/tests/test_index.py`, con un corpus de 3 documentos sintéticos y un embedder simulado (sin modelo):
+- [X] T011 [P] [US1] `offline/tests/test_index.py`, con un corpus de 3 documentos sintéticos y un embedder simulado (sin modelo):
   - el esquema es el de `schema.sql`;
   - `rag_meta` es igual a `expected_meta()`;
   - `title_norm` y `body_norm` se calculan como en la app;
@@ -112,33 +112,33 @@ description: "Lista de tareas de F05 — Harness offline de evaluación"
 
 ### Implementación
 
-- [ ] T012 [US1] **Selección del corpus** (research R2, D-032): elegir entre 25 y 40 documentos en español de BOE (legislación consolidada de dominios variados), la Agencia Tributaria (guías en PDF con texto) y Wikilibros (manuales). Por cada documento:
+- [X] T012 [US1] **Selección del corpus** (research R2, D-032): elegir entre 25 y 40 documentos en español de BOE (legislación consolidada de dominios variados), la Agencia Tributaria (guías en PDF con texto) y Wikilibros (manuales). Por cada documento:
   - comprobar el aviso legal;
   - anotar en `offline/corpus/manifest.json` el título, el formato, el tipo, la URL, el editor, la licencia, la atribución, la fecha del original y las transformaciones.
 
   Objetivo: 1.500–3.000 fragmentos de 350 tokens y un corpus de 30 MB como mucho.
-- [ ] T013 [P] [US1] `offline/eval/boe.py`: XML consolidado del BOE → Markdown (research R3).
-- [ ] T014 [P] [US1] `offline/eval/extract.py`: MD, TXT y PDF → `RawBlock` (research R3).
-- [ ] T015 [P] [US1] `offline/eval/chunker.py`:
+- [X] T013 [P] [US1] `offline/eval/boe.py`: XML consolidado del BOE → Markdown (research R3).
+- [X] T014 [P] [US1] `offline/eval/extract.py`: MD, TXT y PDF → `RawBlock` (research R3).
+- [X] T015 [P] [US1] `offline/eval/chunker.py`:
   - port literal del `Chunker` del informe, que además devuelve `start` y `end`;
   - `chunk_params(tokens, chars_per_token)` según research R4.
-- [ ] T016 [US1] `offline/eval/corpus.py` y los comandos `fetch-corpus` y `sources`:
+- [X] T016 [US1] `offline/eval/corpus.py` y los comandos `fetch-corpus` y `sources`:
   - descarga verificada por huella;
   - conversión de los documentos del BOE;
   - `SOURCES.md` generado con atribuciones y licencias.
 
   Ejecutarlos y versionar `offline/corpus/`. Depende de T012 y T013.
-- [ ] T017 [US1] `offline/eval/fts_variants.py`:
+- [X] T017 [US1] `offline/eval/fts_variants.py`:
   - `fts_raw`: minúsculas sin quitar nada;
   - `fts_stop`: palabras vacías sin stemmer.
 
   Son solo de evaluación; `normalizer.py` v1 no cambia.
-- [ ] T018 [US1] `offline/eval/index.py` y el comando `build <variante>` (data-model §3, contracts/eval-cli.md E1–E4):
+- [X] T018 [US1] `offline/eval/index.py` y el comando `build <variante>` (data-model §3, contracts/eval-cli.md E1–E4):
   - `ref`, `chunk250`, `chunk500` y `nohdr` desde el corpus;
   - `dim128`, `dim512`, `dim768`, `fts_raw` y `fts_stop` derivadas de `ref`;
   - medición de `chars_per_token` con `Engine.tokenize` de E2B;
   - informe de construcción (E4).
-- [ ] T019 [US1] Construir `ref` dos veces y comprobar que es idéntico (SC-001). Comprobar `rag_meta` frente a `expected_meta()` (SC-002) y que las pruebas de los golden de F04 siguen pasando. Anotar los recuentos para el informe.
+- [X] T019 [US1] Construir `ref` dos veces y comprobar que es idéntico (SC-001). Comprobar `rag_meta` frente a `expected_meta()` (SC-002) y que las pruebas de los golden de F04 siguen pasando. Anotar los recuentos para el informe.
 
 **Checkpoint**: índice de referencia reproducible.
 
@@ -152,7 +152,7 @@ description: "Lista de tareas de F05 — Harness offline de evaluación"
 
 ### Tests (escribir primero)
 
-- [ ] T020 [P] [US2] `offline/tests/test_testset.py`:
+- [X] T020 [P] [US2] `offline/tests/test_testset.py`:
   - cada regla T1–T9 de contracts/testset.md con un caso válido y uno inválido;
   - derivación de relevantes: evidencia completa en un fragmento, evidencia partida (frase más larga) y cambio de variante;
   - `review-sheet` (≥ 100, estratificado, con semilla, sin repetir);
@@ -160,14 +160,14 @@ description: "Lista de tareas de F05 — Harness offline de evaluación"
 
 ### Implementación
 
-- [ ] T021 [US2] `offline/eval/testset.py` y los comandos `validate-testset`, `review-sheet` y `review-apply`.
-- [ ] T022 [US2] **Muestreo:** comando interno que elige ≈ 300 fragmentos de `ref` estratificados por documento y tipo de contenido, con semilla fija, y los vuelca para la redacción (en `offline/build/`, sin versionar).
-- [ ] T023 [US2] **Redacción del conjunto** (D-032), en `offline/testset/questions.jsonl`:
+- [X] T021 [US2] `offline/eval/testset.py` y los comandos `validate-testset`, `review-sheet` y `review-apply`.
+- [X] T022 [US2] **Muestreo:** comando interno que elige ≈ 300 fragmentos de `ref` estratificados por documento y tipo de contenido, con semilla fija, y los vuelca para la redacción (en `offline/build/`, sin versionar).
+- [X] T023 [US2] **Redacción del conjunto** (D-032), en `offline/testset/questions.jsonl`:
   - por fragmento muestreado, una pregunta realista sin frases copiadas, con la respuesta esperada, de 1 a 4 datos clave y la evidencia literal;
   - 50 preguntas sin respuesta en el corpus, del mismo dominio, comprobadas con una búsqueda;
   - 40 seguimientos («¿y…?») encadenados a preguntas con respuesta, con su propia evidencia.
-- [ ] T024 [US2] `validate-testset` hasta 0 errores. Generar `offline/testset/review.csv` con `review-sheet` y **pedir la revisión al usuario**, que es un bloqueo externo. Mientras tanto se avanza en US3.
-- [ ] T025 [US2] Aplicar la revisión con `review-apply`, rehacer las preguntas marcadas como «corregir» y repetir hasta tener ≥ 100 revisadas. Volver a validar (SC-003).
+- [X] T024 [US2] `validate-testset` hasta 0 errores. Generar `offline/testset/review.csv` con `review-sheet` y **pedir la revisión al usuario**, que es un bloqueo externo. Mientras tanto se avanza en US3.
+- [X] T025 [US2] Aplicar la revisión con `review-apply`, rehacer las preguntas marcadas como «corregir» y repetir hasta tener ≥ 100 revisadas. Volver a validar (SC-003).
 
 **Checkpoint**: conjunto de prueba validado y revisado.
 

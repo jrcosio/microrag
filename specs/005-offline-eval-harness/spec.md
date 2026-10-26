@@ -210,7 +210,7 @@ Con las cifras, se elige la configuración y se registra en DECISIONS: dimensió
   - fragmentos relevantes `(huella del documento, ordinal)` en la configuración de referencia.
 
   En otras variantes de troceado, los relevantes se derivan de la evidencia.
-- **FR-008**: Las preguntas MUST distribuirse entre documentos y tipos de contenido (texto, listas, tablas o datos numéricos, procedimientos) y no copiar frases literales del texto. Las redacta el asistente de desarrollo a partir de fragmentos muestreados (confirmado en clarify), y el usuario revisa al menos 100, que quedan marcadas como revisadas, corregidas o descartadas.
+- **FR-008**: Las preguntas MUST distribuirse entre documentos y tipos de contenido (texto, listas, tablas o datos numéricos, procedimientos) y no copiar frases literales del texto. Las redacta el asistente de desarrollo a partir de fragmentos muestreados (confirmado en clarify). Al menos 100 quedan revisadas y marcadas como revisadas, corregidas o descartadas. Las revisa el asistente, por indicación del usuario (D-033).
 - **FR-009**: El conjunto MUST validarse automáticamente:
   - las evidencias aparecen en sus documentos;
   - los seguimientos apuntan a preguntas existentes;
@@ -251,7 +251,7 @@ Con las cifras, se elige la configuración y se registra en DECISIONS: dimensió
   - **Negativa correcta:** la respuesta coincide con la frase fijada, tras normalizar mayúsculas, puntuación y espacios.
   - **Cita correcta:** el bloque citado contiene la evidencia de la pregunta.
 
-  Estas reglas se aplican a todas las variantes. En la configuración elegida, el asistente de desarrollo juzga a mano todas las respuestas y el usuario revisa una muestra. El informe da el acuerdo entre reglas y juicio manual, y las cifras finales usan el juicio manual.
+  Estas reglas se aplican a todas las variantes. En la configuración elegida, el asistente de desarrollo juzga a mano todas las respuestas; la muestra que iba a revisar el usuario también la revisa el asistente (D-033). El informe da el acuerdo entre reglas y juicio manual, y las cifras finales usan el juicio manual.
 - **FR-016**: La generación MUST poder reanudarse tras una interrupción sin repetir las respuestas ya obtenidas con la misma configuración, y guardar cada respuesta con su prompt, sus bloques y su juicio.
 
 **Informe y decisiones**
