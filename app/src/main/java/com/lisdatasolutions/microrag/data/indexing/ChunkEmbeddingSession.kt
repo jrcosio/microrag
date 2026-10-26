@@ -29,7 +29,7 @@ interface ChunkEmbedder {
 /** Opens the embedding engine for a stretch of indexing work. */
 interface EmbeddingSessions {
     /** The embedding model is installed and verified (F03), so a session can open. */
-    fun modelReady(): Boolean
+    suspend fun modelReady(): Boolean
 
     /**
      * Runs [block] with an embedder. If the engine fails, it is reloaded once and [block] runs again;
@@ -43,7 +43,8 @@ interface EmbeddingSessions {
 class ChunkEmbeddingSession(
     private val coordinator: EngineCoordinator,
     private val factory: EngineFactory,
-    private val modelPath: () -> File?,
+    /** The verified model file, or null; may scan the models folder (the worker can start in a fresh process). */
+    private val modelPath: suspend () -> File?,
     private val runStore: IngestRunStore,
     private val appVersion: Long,
     private val logger: AppLogger,
@@ -52,7 +53,7 @@ class ChunkEmbeddingSession(
 
     private val model = ModelCatalog.byId(ModelId.EG2_270M)
 
-    override fun modelReady(): Boolean = modelPath() != null
+    override suspend fun modelReady(): Boolean = modelPath() != null
 
     override suspend fun <R> use(block: suspend (ChunkEmbedder) -> R): R {
         // Never the LLM and the ingest at once (constitution IV).

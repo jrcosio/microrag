@@ -91,10 +91,12 @@ val dataModule = module {
     }
     single<ThermalStatusSource> { PowerManagerThermalStatusSource(androidContext()) }
     single<EmbeddingSessions> {
+        val models = get<ModelFileRepository>()
         ChunkEmbeddingSession(
             coordinator = get(),
             factory = get(),
-            modelPath = { get<ModelFileRepository>().pathOf(ModelId.EG2_270M) },
+            // A process started for the work has not scanned the models folder yet.
+            modelPath = { models.pathOf(ModelId.EG2_270M) ?: models.refresh().let { models.pathOf(ModelId.EG2_270M) } },
             runStore = get(),
             appVersion = BuildConfig.VERSION_CODE.toLong(),
             logger = get(),

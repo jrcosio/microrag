@@ -19,7 +19,7 @@ class FakeEmbeddingSessions(
     var opened = 0
         private set
 
-    override fun modelReady(): Boolean = ready
+    override suspend fun modelReady(): Boolean = ready
 
     override suspend fun <R> use(block: suspend (ChunkEmbedder) -> R): R {
         opened++

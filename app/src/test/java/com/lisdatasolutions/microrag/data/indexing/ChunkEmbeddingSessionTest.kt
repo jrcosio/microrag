@@ -160,7 +160,7 @@ class ChunkEmbeddingSessionTest {
     }
 
     @Test
-    fun withoutTheModel_itIsNotReady() {
+    fun withoutTheModel_itIsNotReady() = runTest {
         assertThat(session(modelPath = null).modelReady()).isFalse()
         assertThat(session().modelReady()).isTrue()
     }
