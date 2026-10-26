@@ -183,4 +183,59 @@ class DefaultIndexingRepositoryTest {
         assertThat(repository().start()).isEqualTo(0)
         assertThat(scheduler.enqueued).isEmpty()
     }
+
+    // T039: reconciliation when the app becomes visible (research R12, rule N14).
+
+    @Test
+    fun reconcile_enqueuesARunLeftWithoutWork() = runTest {
+        val id = doc("A.txt", DocumentStatus.EMBEDDING, chunks = 9)
+        runStore.edit { it.adding(listOf(id)) }
+
+        repository().reconcile()
+
+        assertThat(scheduler.enqueued).containsExactly(listOf(id))
+    }
+
+    @Test
+    fun reconcile_replacesWorkWaitingForTheSystem() = runTest {
+        val id = doc("A.txt", DocumentStatus.EMBEDDING, chunks = 9)
+        runStore.edit { it.adding(listOf(id)) }
+        scheduler.work.value = IngestWork(unfinished = true, running = false, waitingForSystem = true)
+
+        repository().reconcile()
+
+        assertThat(scheduler.replaced).containsExactly(listOf(id))
+        assertThat(scheduler.enqueued).isEmpty()
+    }
+
+    @Test
+    fun reconcile_leavesRunningWorkPausedRunsAndAnUnavailableIndexAlone() = runTest {
+        val id = doc("A.txt", DocumentStatus.EMBEDDING, chunks = 9)
+        runStore.edit { it.adding(listOf(id)) }
+        val repository = repository()
+
+        scheduler.work.value = IngestWork(unfinished = true, running = true, waitingForSystem = false)
+        repository.reconcile()
+
+        scheduler.work.value = IngestWork.NONE
+        runStore.edit { it.pausedBy(RunPauseCause.USER) }
+        repository.reconcile()
+
+        runStore.edit { it.resumed() }
+        index.setCompatibility(IndexCompatibility.Unreadable("broken"))
+        repository.reconcile()
+
+        assertThat(scheduler.enqueued).isEmpty()
+        assertThat(scheduler.replaced).isEmpty()
+    }
+
+    @Test
+    fun heatOverridesAWaitForTheSystem() = runTest {
+        val id = doc("A.txt", DocumentStatus.EMBEDDING, chunks = 9)
+        runStore.edit { it.adding(listOf(id)) }
+        scheduler.work.value = IngestWork(unfinished = true, running = false, waitingForSystem = true)
+        thermal.level.value = ThermalLevel.SEVERE_OR_WORSE
+
+        assertThat((state() as IndexingState.Active).pause).isEqualTo(PauseReason.THERMAL)
+    }
 }

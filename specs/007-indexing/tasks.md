@@ -298,14 +298,14 @@ description: "Lista de tareas de F07 — Indexación"
 
 ### Tests for User Story 2
 
-- [ ] T037 [P] [US2] `…/test/data/indexing/IndexingNotificationsTest.kt` (Robolectric, R3):
+- [X] T037 [P] [US2] `…/test/data/indexing/IndexingNotificationsTest.kt` (Robolectric, R3):
   - canal `indexing` de importancia baja;
   - textos sin nombres de archivo;
   - progreso determinado e indeterminado;
   - acción «Pausar» con `PendingIntent` explícito e inmutable;
   - toque → `MainActivity` con `ACTION_OPEN_INDEXING`.
-- [ ] T038 [P] [US2] Crear `…/test/data/ingest/IngestWorkerTest.kt` (`work-testing`, R1): si `setForeground` lanza `ForegroundServiceStartNotAllowedException`, el worker sigue, publica la notificación normal y lo reintenta en el siguiente lote.
-- [ ] T039 [P] [US2] Tests de `reconcile` en `DefaultIndexingRepositoryTest` (R12, N14):
+- [X] T038 [P] [US2] Crear `…/test/data/ingest/IngestWorkerTest.kt` (`work-testing`, R1): si `setForeground` lanza `ForegroundServiceStartNotAllowedException`, el worker sigue, publica la notificación normal y lo reintenta en el siguiente lote.
+- [X] T039 [P] [US2] Tests de `reconcile` en `DefaultIndexingRepositoryTest` (R12, N14):
   - tanda sin trabajo → encola;
   - trabajo `ENQUEUED` con causa del sistema → `replace`;
   - `RUNNING` → no toca;
@@ -313,16 +313,18 @@ description: "Lista de tareas de F07 — Indexación"
   - índice no disponible → nada.
 
   Añadir también la tabla de data-model §7: `SYSTEM_LIMIT` desde `WorkInfo` y `THERMAL` con temperatura grave aunque el sistema haya parado el trabajo.
-- [ ] T040 [P] [US2] `…/test/MainActivityRoutingTest.kt` (Robolectric):
+- [X] T040 [P] [US2] `…/test/MainActivityRoutingTest.kt` (Robolectric):
   - con el onboarding completado, `ACTION_OPEN_INDEXING` abre `Index` al crear y en `onNewIntent` sin otra instancia (`singleTop`);
   - sin onboarding, la acción se ignora.
 
+  *Hecho en `NavigationTest`*: la apertura de `Index` sobre Inicio y el filtro del onboarding (`MainActivity.indexingRequestsFor`). La instancia única por `singleTop` se comprueba en el dispositivo (T045).
+
 ### Implementation for User Story 2
 
-- [ ] T041 [US2] Crear `…/microrag/data/indexing/IndexingNotifications.kt` e `IndexingActionReceiver.kt` (no exportado, en el manifiesto), con los textos de P11 en `strings_indexing.xml` (es y en). Comprobar T037.
-- [ ] T042 [US2] Añadir a `IngestWorker` el primer plano `dataSync` (`setForeground` al empezar y en cada lote) y la notificación normal si falla (R1). Comprobar T038.
-- [ ] T043 [US2] Implementar `reconcile` en `DefaultIndexingRepository` y `ReconcileIndexingUseCase`, y la causa `SYSTEM_LIMIT`/`THERMAL` en `state`. Llamar a `reconcile` desde `MainActivity.onStart` en el *scope* de la aplicación. Comprobar T039.
-- [ ] T044 [US2] `MainActivity` en `launchMode="singleTop"`, con `ACTION_OPEN_INDEXING` atendida en `onCreate` y `onNewIntent` solo con el onboarding completado (R3). Atrás desde esa entrada → Inicio. Comprobar T040.
+- [X] T041 [US2] Crear `…/microrag/data/indexing/IndexingNotifications.kt` e `IndexingActionReceiver.kt` (no exportado, en el manifiesto), con los textos de P11 en `strings_indexing.xml` (es y en). Comprobar T037.
+- [X] T042 [US2] Añadir a `IngestWorker` el primer plano `dataSync` (`setForeground` al empezar y en cada lote) y la notificación normal si falla (R1). Comprobar T038.
+- [X] T043 [US2] Implementar `reconcile` en `DefaultIndexingRepository` y `ReconcileIndexingUseCase`, y la causa `SYSTEM_LIMIT`/`THERMAL` en `state`. Llamar a `reconcile` desde `MainActivity.onStart` en el *scope* de la aplicación. Comprobar T039.
+- [X] T044 [US2] `MainActivity` en `launchMode="singleTop"`, con `ACTION_OPEN_INDEXING` atendida en `onCreate` y `onNewIntent` solo con el onboarding completado (R3). Atrás desde esa entrada → Inicio. Comprobar T040.
 - [ ] T045 [US2] **Verificación temprana en los dispositivos** (quickstart §4, riesgo 1). Con la app real en el teléfono y en el emulador:
   - anotar la latencia de arranque sin planificador en proceso (umbral: 5 s), también pulsando Inicio justo después de «Iniciar indexación»;
   - comprobar que el proceso es servicio en primer plano y que la notificación avanza;

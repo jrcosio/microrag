@@ -16,6 +16,7 @@ import com.lisdatasolutions.microrag.data.indexing.ChunkEmbeddingSession
 import com.lisdatasolutions.microrag.data.indexing.DataStoreIngestRunStore
 import com.lisdatasolutions.microrag.data.indexing.DefaultIndexingRepository
 import com.lisdatasolutions.microrag.data.indexing.EmbeddingSessions
+import com.lisdatasolutions.microrag.data.indexing.IndexingNotifications
 import com.lisdatasolutions.microrag.data.indexing.IngestRunStore
 import com.lisdatasolutions.microrag.data.ingest.DefaultImportQueueRepository
 import com.lisdatasolutions.microrag.data.ingest.DocumentFileStore
@@ -92,6 +93,7 @@ val dataModule = module {
         DataStoreIngestRunStore(DataStoreIngestRunStore.create(androidContext().noBackupFilesDir, get<ApplicationScope>().scope))
     }
     single<ThermalStatusSource> { PowerManagerThermalStatusSource(androidContext()) }
+    single { IndexingNotifications(androidContext()) }
     single<EmbeddingSessions> {
         val models = get<ModelFileRepository>()
         ChunkEmbeddingSession(

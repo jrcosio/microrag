@@ -18,10 +18,12 @@ import com.google.common.truth.Truth.assertThat
 import com.lisdatasolutions.microrag.MainActivity
 import com.lisdatasolutions.microrag.R
 import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
+import com.lisdatasolutions.microrag.core.di.ApplicationScope
 import com.lisdatasolutions.microrag.domain.indexing.IndexingRepository
 import com.lisdatasolutions.microrag.domain.indexing.IndexingState
 import com.lisdatasolutions.microrag.domain.indexing.ObserveIndexingUseCase
 import com.lisdatasolutions.microrag.domain.indexing.PauseIndexingUseCase
+import com.lisdatasolutions.microrag.domain.indexing.ReconcileIndexingUseCase
 import com.lisdatasolutions.microrag.domain.indexing.ResumeIndexingUseCase
 import com.lisdatasolutions.microrag.domain.indexing.RetryIndexingUseCase
 import com.lisdatasolutions.microrag.domain.ingest.ImportDocumentsUseCase
@@ -30,11 +32,15 @@ import com.lisdatasolutions.microrag.domain.ingest.RemoveQueueItemUseCase
 import com.lisdatasolutions.microrag.domain.ingest.RetryQueueItemUseCase
 import com.lisdatasolutions.microrag.domain.ingest.StartIndexingUseCase
 import com.lisdatasolutions.microrag.domain.model.OnboardingStage
+import com.lisdatasolutions.microrag.domain.model.StartDestination
 import com.lisdatasolutions.microrag.domain.onboarding.FakeOnboardingStore
 import com.lisdatasolutions.microrag.domain.onboarding.ResolveStartDestinationUseCase
 import com.lisdatasolutions.microrag.feature.indexing.IndexViewModel
 import com.lisdatasolutions.microrag.feature.ingest.IngestViewModel
 import com.lisdatasolutions.microrag.testing.FakeImportQueueRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Rule
 import org.junit.Test
@@ -99,12 +105,12 @@ class NavigationTest {
     private val context: Context = ApplicationProvider.getApplicationContext()
     private lateinit var nav: TestNavHostController
 
-    private fun launchShell() {
+    private fun launchShell(openIndexing: Int = 0) {
         compose.setContent {
             nav = TestNavHostController(LocalContext.current).apply {
                 navigatorProvider.addNavigator(ComposeNavigator())
             }
-            LisdataTheme { MicroRagAppShell(navController = nav) }
+            LisdataTheme { MicroRagAppShell(navController = nav, openIndexing = openIndexing) }
         }
     }
 
@@ -219,6 +225,26 @@ class NavigationTest {
         compose.onNodeWithText(context.getString(R.string.index_idle_title)).assertIsDisplayed()
     }
 
+    // F07 T040 (research R3): the indexing notification opens Index over Home, only after onboarding.
+
+    @Test
+    fun theIndexingNotificationOpensIndexOverHome() {
+        launchShell(openIndexing = 1)
+        compose.waitForIdle()
+        assertThat(nav.currentDestination?.hasRoute(Index::class)).isTrue()
+
+        compose.runOnUiThread { nav.popBackStack() }
+        compose.waitForIdle()
+        assertThat(nav.currentDestination?.hasRoute(Home::class)).isTrue()
+    }
+
+    @Test
+    fun theIndexingNotificationIsIgnoredBeforeOnboardingEnds() {
+        assertThat(MainActivity.indexingRequestsFor(StartDestination.HOME, 2)).isEqualTo(2)
+        assertThat(MainActivity.indexingRequestsFor(StartDestination.WELCOME, 2)).isEqualTo(0)
+        assertThat(MainActivity.indexingRequestsFor(StartDestination.SETUP_OVER_WELCOME, 2)).isEqualTo(0)
+    }
+
     @Test
     fun n6_bottomBarHiddenWhileKeyboardIsVisible() {
         TopLevelDestination.entries.forEach { destination ->
@@ -244,12 +270,26 @@ class NavigationTest {
 @Config(application = Application::class)
 class NavigationRestorationTest {
 
-    /** Since F03 the activity asks Koin where to start: Home, with the onboarding completed. */
+    /** Since F03 the activity asks Koin where to start: Home, with the onboarding completed; since F07 it reconciles the run. */
     @get:Rule(order = 0)
     val completedOnboarding = object : ExternalResource() {
         override fun before() {
+            val indexing = object : IndexingRepository {
+                override val state = MutableStateFlow<IndexingState>(IndexingState.Idle(emptyList()))
+                override suspend fun start() = 0
+                override suspend fun pause() = Unit
+                override suspend fun resume() = Unit
+                override suspend fun retry(documentId: Long) = Unit
+                override suspend fun reconcile() = Unit
+            }
             startKoin {
-                modules(module { factory { ResolveStartDestinationUseCase(FakeOnboardingStore(OnboardingStage.COMPLETED)) } })
+                modules(
+                    module {
+                        factory { ResolveStartDestinationUseCase(FakeOnboardingStore(OnboardingStage.COMPLETED)) }
+                        factory { ReconcileIndexingUseCase(indexing) }
+                        single { ApplicationScope(CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)) }
+                    },
+                )
             }
         }
 

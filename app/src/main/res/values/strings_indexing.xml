@@ -59,4 +59,10 @@
     <string name="index_announce_document_started">Indexando %1$s</string>
     <string name="index_announce_paused">Indexación en pausa: %1$s</string>
     <string name="index_announce_failed">%1$s: %2$s</string>
+    <!-- P11: notification, without file names (research R3). -->
+    <string name="index_channel_name">Indexación de documentos</string>
+    <string name="index_channel_description">Progreso de la indexación local de tus documentos.</string>
+    <string name="index_notification_title">Indexando documentos</string>
+    <string name="index_notification_chunks">%1$s de %2$s fragmentos</string>
+    <string name="index_notification_pause">Pausar</string>
 </resources>

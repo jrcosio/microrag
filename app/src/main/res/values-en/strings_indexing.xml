@@ -52,4 +52,9 @@
     <string name="index_announce_document_started">Indexing %1$s</string>
     <string name="index_announce_paused">Indexing paused: %1$s</string>
     <string name="index_announce_failed">%1$s: %2$s</string>
+    <string name="index_channel_name">Document indexing</string>
+    <string name="index_channel_description">Progress of the local indexing of your documents.</string>
+    <string name="index_notification_title">Indexing documents</string>
+    <string name="index_notification_chunks">%1$s of %2$s chunks</string>
+    <string name="index_notification_pause">Pause</string>
 </resources>

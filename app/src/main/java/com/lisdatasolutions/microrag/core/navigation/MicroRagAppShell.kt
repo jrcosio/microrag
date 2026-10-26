@@ -37,6 +37,8 @@ fun MicroRagAppShell(
     startDestination: StartDestination = StartDestination.HOME,
     initialRoute: Any? = null,
     navController: NavHostController = rememberNavController(),
+    /** Grows with every tap on the indexing notification that should open Index (F07 research R3). */
+    openIndexing: Int = 0,
 ) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val tabRoot = backStackEntry?.destination?.asTopLevelRoot()
@@ -74,6 +76,13 @@ fun MicroRagAppShell(
         navController.currentBackStackEntryFlow.first()
         setupRestored = true
         navController.navigate(Setup)
+    }
+
+    LaunchedEffect(openIndexing) {
+        if (openIndexing == 0) return@LaunchedEffect
+        navController.currentBackStackEntryFlow.first()
+        // Back from it leads to Home, the root once onboarding is done.
+        navController.navigate(Index) { launchSingleTop = true }
     }
 
     var initialRouteHandled by rememberSaveable { mutableStateOf(false) }
