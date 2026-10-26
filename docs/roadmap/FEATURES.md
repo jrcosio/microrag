@@ -38,7 +38,7 @@ Al cerrar cada feature se entrega:
 | F01 | Fundaciones y design system | Producto (shell y DS) | — | ✅ cerrada (T059 TalkBack manual abierta) |
 | F02 | Viabilidad on-device (fase 0) | Técnica | F01 | ✅ cerrada |
 | F03 | Modelos y primer arranque | Producto | F01, F02 | ✅ cerrada (T071 TalkBack manual abierta) |
-| F04 | Núcleo de datos RAG | Técnica | F02 | 🟨 en curso (analyze; pendiente de revisión) |
+| F04 | Núcleo de datos RAG | Técnica | F02 | 🟨 implementada; pendiente de revisión |
 | F05 | Harness offline de evaluación | Técnica | F04 | ⬜ |
 | F06 | Importación y parsing | Producto | F04 | ⬜ |
 | F07 | Indexación | Producto | F02, F06 | ⬜ |
@@ -227,7 +227,9 @@ También se introduce `EngineCoordinator`, que garantiza que nunca haya dos engi
 ## F04 — Núcleo de datos RAG
 
 - **Tipo:** Técnica. Sin UI; diagnóstico de la base opcional en debug.
-- **Estado:** 🟨 en curso: spec y clarify aprobados el 2026-10-26 (`specs/004-rag-data-core/`, D-030). Plan, tareas (52) y analyze terminados, con las correcciones aplicadas; pendientes de revisión.
+- **Estado:** 🟨 implementada el 2026-10-26 y pendiente de revisión. Informe de cierre en `specs/004-rag-data-core/report.md`.
+  - **Decisiones:** D-030 (clarify) y D-031 (extracción de nativas).
+  - **Teléfono de referencia:** golden del normalizador al 100 % (367 pares); golden de embeddings con coseno mínimo 1,000000 en CPU y 0,992992 en GPU; búsqueda vectorial con 10k fragmentos con p95 de 23,1 ms; 0 violaciones del modo estricto.
 
 **Objetivo.** Construir la capa de datos del RAG:
 - `schema.sql` en `assets/`, ampliado según G27;
@@ -632,6 +634,8 @@ Con esos datos se decide: INT8 sí o no, número de bloques y perfil de modelo.
 
 **Dependencias.** F10 y F11.
 
+**Dato de partida (F04):** con 10k fragmentos sintéticos, la búsqueda vectorial exacta da un p95 de 23,1 ms en el teléfono de referencia, ya por encima de los 20 ms del criterio 2 (`specs/004-rag-data-core/report.md` §4).
+
 **Criterios de aceptación.**
 1. `benchmarks.md` con cifras reales, dispositivo y versiones, que sustituyen los presupuestos del informe.
 2. Si el p95 vectorial supera 20 ms: INT8 + preload implementado, con Recall@20 de INT8 frente a F32 ≥ 0,97. Si no, la decisión de quedarse en F32 queda documentada.
@@ -655,6 +659,7 @@ Con esos datos se decide: INT8 sí o no, número de bloques y perfil de modelo.
 - modo oscuro revisado;
 - modo avión y test de bloqueo de red tras el onboarding;
 - logs sin contenido privado;
+- lecturas de disco en el hilo principal al arrancar, detectadas por StrictMode en F04 (`AppDirs`, DataStore y `DefaultModelDownloadController`);
 - reglas de R8 para LiteRT-LM, SQLite-Vector y el parser de PDF;
 - firma de release sin secretos en el repo;
 - avisos de licencias OSS (Lucide ISC, Google Sans OFL y librerías);

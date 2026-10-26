@@ -404,6 +404,26 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
 
 ---
 
+## D-031 — Extracción de las bibliotecas nativas para cargar SQLite-Vector (implementación de F04)
+
+- **Fecha:** 2026-10-26
+- **Decisión:** `packaging.jniLibs.useLegacyPackaging = true`, equivalente a `extractNativeLibs="true"`. Al instalar, las bibliotecas nativas se extraen a `nativeLibraryDir`, y el índice carga `nativeLibraryDir/vector.so` con el punto de entrada `sqlite3_vector_init`.
+- **Motivo:**
+  - SQLite carga las extensiones desde una ruta del sistema de ficheros;
+  - por defecto, Android deja las nativas dentro del APK;
+  - `vector.so` no lleva el prefijo `lib`.
+
+  Comprobado en el emulador API 37, en la AVD API 33 y en el teléfono de referencia (API 35): `vector.so` se extrae y `vector_version()` devuelve `1.1.2` (F04 research R2, T003).
+- **Coste medido:**
+  - APK de release de 45,7 MB (F03: 57,4 MB), porque ahora las nativas van comprimidas;
+  - descarga estimada de 24,0 MB;
+  - ≈ 69,1 MB instalados (+11,7 MB frente a F03), por los 23,4 MB de nativas extraídas.
+- **Alternativa descartada:** renombrar a `libvector.so` y cargarla sin extraer. No hace falta, porque la extracción funciona en todos los dispositivos probados.
+- **Origen:** plan de F04, aprobado por el usuario.
+- **Afecta:** F04, y F15 (tamaño y R8).
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.

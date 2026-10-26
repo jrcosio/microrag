@@ -43,7 +43,12 @@ El sistema extrae la biblioteca aunque no lleve el prefijo `lib`. La guía Andro
 - `packaging { jniLibs { useLegacyPackaging = true } }`, que equivale a `extractNativeLibs="true"`;
 - ruta de la extensión: `applicationInfo.nativeLibraryDir + "/vector.so"`, con el punto de entrada `sqlite3_vector_init`.
 
-**Coste:** las nativas pasan a ir comprimidas en el APK (descarga más pequeña) y se extraen al instalar. El tamaño instalado crece en ≈ 23 MB, sobre todo por `liblitertlm_jni.so` extraída. Se mide al cerrar y se reevalúa en F15.
+**Coste:** las nativas pasan a ir comprimidas en el APK (descarga más pequeña) y se extraen al instalar. Medido al cerrar (report §4):
+- APK de release de 45,7 MB, frente a 57,4 MB en F03;
+- 23,4 MB de nativas extraídas;
+- ≈ 69,1 MB instalados, +11,7 MB frente a F03.
+
+Se reevalúa en F15 (D-031).
 
 **Verificación temprana en la implementación:** cargar la extensión y ejecutar `SELECT vector_version()` en el teléfono de referencia (API 35) y en el emulador antes de construir el resto.
 

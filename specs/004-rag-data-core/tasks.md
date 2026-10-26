@@ -73,7 +73,7 @@ description: "Lista de tareas de F04 — Núcleo de datos RAG"
 
 ### Tests (escribir primero)
 
-- [ ] T005 [P] `…/test/rag/text/SpanishTextTest.kt`:
+- [X] T005 [P] `…/test/rag/text/SpanishTextTest.kt`:
   - ejemplos del informe: `clientes → client`, `cliente → client`, `motores → motor`, `luces → luz`, `R-1234 → r-1234`;
   - minúsculas y eliminación de marcas tras NFD (`canción → cancion`, `año → ano`, `pingüino → pinguin`);
   - fuera las palabras vacías y los tokens de un carácter;
@@ -85,21 +85,21 @@ description: "Lista de tareas de F04 — Núcleo de datos RAG"
     - como mucho 16 términos;
     - solo palabras vacías da cadena vacía;
   - `SpanishText.VERSION == 1`.
-- [ ] T006 [P] `…/test/domain/rag/RagIndexConfigTest.kt`:
+- [X] T006 [P] `…/test/domain/rag/RagIndexConfigTest.kt`:
   - `RagIndexConfig.current()` lleva `schemaVersion = 1`, el SHA-256 de `ModelCatalog.byId(EG2_270M)`, `dims = EmbeddingMath.DIMENSIONS`, los prefijos de `EmbeddingPrefixes` (con el espacio final) y `SpanishText.VERSION`;
   - `toMeta()` devuelve exactamente las 7 claves de data-model §2, con `quant_dirty = "1"`.
-- [ ] T007 [P] `…/test/domain/rag/IndexCompatibilityCheckerTest.kt` (research R7):
+- [X] T007 [P] `…/test/domain/rag/IndexCompatibilityCheckerTest.kt` (research R7):
   - metadatos iguales a la configuración: `Compatible`;
   - modelo, dimensiones, prefijo de documento (incluido un prefijo sin el espacio final), prefijo de consulta o versión del normalizador distintos: `Incompatible(campo, esperado, encontrado)`;
   - clave ausente: `Incompatible("missing:<clave>", …)`;
   - `schema_version` no numérica o mayor que la de la app: `Incompatible`;
   - `schema_version` menor con una cadena completa de migraciones: `NeedsMigration(from)`. Si falta un eslabón: `Incompatible`;
   - `quant_dirty` no se valida.
-- [ ] T008 [P] `…/test/data/rag/RagSchemaTest.kt`. Lee `src/main/assets/schema.sql`:
+- [X] T008 [P] `…/test/data/rag/RagSchemaTest.kt`. Lee `src/main/assets/schema.sql`:
   - la división da 9 sentencias, en este orden: 1 `PRAGMA`, 3 `CREATE TABLE`, 1 `CREATE INDEX`, 1 `CREATE VIRTUAL TABLE` y 3 `CREATE TRIGGER`, con los cuerpos `BEGIN … END` enteros;
   - los valores SQL de `DocumentStatus` coinciden exactamente con el `CHECK` de `status`;
   - `RagMigrations.all` está vacía y, en general, ordenada por `from` sin repetidos.
-- [ ] T009 [P] `…/test/data/rag/VectorBlobsTest.kt`:
+- [X] T009 [P] `…/test/data/rag/VectorBlobsTest.kt`:
   - ida y vuelta `FloatArray` ↔ BLOB sin pérdida;
   - orden *little-endian* (`1.0f` → `00 00 80 3F`);
   - 256 componentes ocupan 1.024 bytes;
@@ -107,21 +107,21 @@ description: "Lista de tareas de F04 — Núcleo de datos RAG"
 
 ### Implementación
 
-- [ ] T010 [P] Crear `…/microrag/domain/rag/RagModels.kt` y `…/microrag/domain/rag/RagIndex.kt`:
+- [X] T010 [P] Crear `…/microrag/domain/rag/RagModels.kt` y `…/microrag/domain/rag/RagIndex.kt`:
   - tipos de data-model §3, con `DocumentStatus.sqlValue`;
   - la interfaz `RagIndex`, `IndexUnavailableException` y `DuplicateDocumentException`, según contracts/rag-index-api.md.
-- [ ] T011 [P] Crear `…/microrag/rag/text/SpanishText.kt`:
+- [X] T011 [P] Crear `…/microrag/rag/text/SpanishText.kt`:
   - el código del informe (§Búsqueda léxica en español), literal;
   - más `const val VERSION = 1` y un KDoc que remita al golden y a la regla de subir la versión.
-- [ ] T012 Crear `…/microrag/domain/rag/RagIndexConfig.kt` e `…/microrag/domain/rag/IndexCompatibilityChecker.kt`. Depende de T010 y T011:
+- [X] T012 Crear `…/microrag/domain/rag/RagIndexConfig.kt` e `…/microrag/domain/rag/IndexCompatibilityChecker.kt`. Depende de T010 y T011:
   - `RagIndexConfig` con `current()` y `toMeta()`;
   - `IndexCompatibilityChecker.check(config, meta, migrations)` como función pura, que devuelve `CompatibilityDecision`: `Compatible`, `NeedsMigration(from)` o `Incompatible(field, expected, found)`.
-- [ ] T013 [P] Crear `app/src/main/assets/schema.sql` y `…/microrag/data/rag/RagSchema.kt`:
+- [X] T013 [P] Crear `app/src/main/assets/schema.sql` y `…/microrag/data/rag/RagSchema.kt`:
   - el esquema de data-model §1, con los tres triggers copiados literalmente del informe (§Esquema SQLite);
   - `RagSchema`: lectura desde `AssetManager` y división en sentencias (data-model §1);
   - `RagMigration(from: Int, statements: List<String>)` y `RagMigrations.all = emptyList()`, con un KDoc que explique la estrategia (research R7).
-- [ ] T014 [P] Crear `…/microrag/data/rag/VectorBlobs.kt`, con `FloatArray.toLeBlob()` y `ByteArray.toFloatArrayLe()`.
-- [ ] T015 Crear `…/microrag/data/rag/RagConnection.kt` (research R8). Depende de T013:
+- [X] T014 [P] Crear `…/microrag/data/rag/VectorBlobs.kt`, con `FloatArray.toLeBlob()` y `ByteArray.toFloatArrayLe()`.
+- [X] T015 Crear `…/microrag/data/rag/RagConnection.kt` (research R8). Depende de T013:
   - `open(dbFile, extensionPath, statements)`:
     1. `BundledSQLiteDriver().addExtension(extensionPath, "sqlite3_vector_init")`;
     2. abrir con lectura, escritura y creación;
@@ -133,7 +133,7 @@ description: "Lista de tareas de F04 — Núcleo de datos RAG"
   - Ayudas para ejecutar y consultar con parámetros.
   - `transaction { }`: `BEGIN IMMEDIATE`, después `COMMIT`, o `ROLLBACK` ante cualquier error.
   - `close()`.
-- [ ] T016 Crear `…/microrag/data/rag/DefaultRagIndex.kt`. Depende de T010, T012, T014 y T015. Su constructor sigue el contrato (§Configuración e inyección), más `migrations: List<RagMigration> = RagMigrations.all` y un reloj inyectable. En esta fase incluye:
+- [X] T016 Crear `…/microrag/data/rag/DefaultRagIndex.kt`. Depende de T010, T012, T014 y T015. Su constructor sigue el contrato (§Configuración e inyección), más `migrations: List<RagMigration> = RagMigrations.all` y un reloj inyectable. En esta fase incluye:
   - `open()` idempotente y perezoso (`ensureOpen()` desde cada operación), siempre en el dispatcher de base de datos;
   - crea la carpeta del fichero si falta;
   - lee el esquema de *assets* dentro de la apertura, nunca en el hilo de quien llama;
@@ -144,7 +144,7 @@ description: "Lista de tareas de F04 — Núcleo de datos RAG"
   - `meta()`;
   - `close()`, que vuelve a `Closed` (la siguiente operación reabre);
   - los logs solo llevan ids, recuentos y tiempos (A10).
-- [ ] T017 Crear `…/androidTest/testing/TempRagIndex.kt`. Es el ayudante de las pruebas instrumentadas:
+- [X] T017 Crear `…/androidTest/testing/TempRagIndex.kt`. Es el ayudante de las pruebas instrumentadas:
   - un `DefaultRagIndex` sobre `cacheDir/rag-test-<uuid>.db`, con el esquema real de *assets*, la extensión real, `RagIndexConfig.current()`, un dispatcher de un solo hilo y un `AppLogger` que captura los mensajes;
   - `raw()`: una conexión independiente con la extensión, para inspeccionar o alterar el fichero;
   - limpieza de `.db`, `-wal` y `-shm`;
@@ -162,7 +162,7 @@ description: "Lista de tareas de F04 — Núcleo de datos RAG"
 
 ### Tests (escribir primero)
 
-- [ ] T018 [US1] `…/androidTest/data/rag/RagIndexWriteTest.kt`, con `TempRagIndex`:
+- [X] T018 [US1] `…/androidTest/data/rag/RagIndexWriteTest.kt`, con `TempRagIndex`:
   - **Escenario 1:** índice nuevo, `compatibility == Compatible`. `sqlite_master` contiene las 3 tablas, el índice, `chunks_fts` y los 3 triggers. `rag_meta` tiene las 7 claves con los valores esperados.
   - **Documentos:**
     - `addDocument` devuelve el id, con `source = 'user'`, `pending`, `included = true` y las fechas;
@@ -189,17 +189,17 @@ description: "Lista de tareas de F04 — Núcleo de datos RAG"
 
 ### Implementación
 
-- [ ] T019 [US1] En `…/microrag/data/rag/DefaultRagIndex.kt`:
+- [X] T019 [US1] En `…/microrag/data/rag/DefaultRagIndex.kt`:
   - `addDocument`, con `DuplicateDocumentException` ante un `content_hash` existente (A11);
   - `document`, `updateStatus` (`error` se escribe siempre y `chunkCount` solo si no es null), `setIncluded` y `deleteDocument`;
   - `counts()`, con `ftsRows` contado en `chunks_fts_docsize`, que es el índice real (en una tabla FTS5 de contenido externo, `count(*)` sobre `chunks_fts` lee `chunks`).
-- [ ] T020 [US1] En `…/microrag/data/rag/DefaultRagIndex.kt`, `insertChunks`:
+- [X] T020 [US1] En `…/microrag/data/rag/DefaultRagIndex.kt`, `insertChunks`:
   - valida antes de la transacción (A3): 256 componentes, norma unitaria, documento existente y ordinales distintos;
   - `INSERT OR IGNORE … vector_as_f32(?)` dentro de `transaction { }`, con `UPDATE rag_meta SET value = '1' WHERE key = 'quant_dirty'` en la misma transacción (A4);
   - `title_norm` y `body_norm` se calculan dentro, como en data-model §4;
   - devuelve el número de filas insertadas (`changes()`).
-- [ ] T021 [US1] Registrar `single<RagIndex>` en `…/microrag/data/di/DataModule.kt`, según el contrato (`AppDirs.index/"rag.db"`, `nativeLibraryDir + "/vector.so"`, `RagIndexConfig.current()`, `AppDispatchers.database`). Actualizar `extraTypes` en `…/test/core/di/AppModulesTest.kt` si hace falta, y ejecutar `testDebugUnitTest`.
-- [ ] T022 [US1] Ejecutar `RagIndexWriteTest` y `VectorExtensionLoadTest` en el emulador y en el teléfono (quickstart §3).
+- [X] T021 [US1] Registrar `single<RagIndex>` en `…/microrag/data/di/DataModule.kt`, según el contrato (`AppDirs.index/"rag.db"`, `nativeLibraryDir + "/vector.so"`, `RagIndexConfig.current()`, `AppDispatchers.database`). Actualizar `extraTypes` en `…/test/core/di/AppModulesTest.kt` si hace falta, y ejecutar `testDebugUnitTest`.
+- [X] T022 [US1] Ejecutar `RagIndexWriteTest` y `VectorExtensionLoadTest` en el emulador y en el teléfono (quickstart §3).
 
 **Checkpoint**: US1 completa. El índice guarda y borra datos de forma fiable en los dos dispositivos.
 
@@ -213,7 +213,7 @@ description: "Lista de tareas de F04 — Núcleo de datos RAG"
 
 ### Tests (escribir primero)
 
-- [ ] T023 [US2] `…/androidTest/data/rag/RagIndexSearchTest.kt`, con `TempRagIndex`:
+- [X] T023 [US2] `…/androidTest/data/rag/RagIndexSearchTest.kt`, con `TempRagIndex`:
   - **Escenario 1 (SC-003):**
     - con 20 fragmentos de vectores aleatorios con semilla, la consulta con el vector de cada uno lo devuelve el primero, en el 100 % de los casos;
     - como mucho `k` resultados, con la distancia en orden ascendente;
@@ -229,12 +229,12 @@ description: "Lista de tareas de F04 — Núcleo de datos RAG"
 
 ### Implementación
 
-- [ ] T024 [US2] En `…/microrag/data/rag/DefaultRagIndex.kt`:
+- [X] T024 [US2] En `…/microrag/data/rag/DefaultRagIndex.kt`:
   - `vectorSearch` (A5): `vector_full_scan` con el BLOB LE, y rechazo de vectores que no tengan 256 componentes o no sean unitarios;
   - `textSearch` (A6): `SpanishText.ftsQuery`; si sale vacía, devuelve una lista vacía sin consultar;
   - `loadChunks` (A7): `JOIN` con `documents`, en bloques de como mucho 500 ids;
   - `neighbor`.
-- [ ] T025 [US2] Ejecutar `RagIndexSearchTest` en el emulador y en el teléfono (SC-003).
+- [X] T025 [US2] Ejecutar `RagIndexSearchTest` en el emulador y en el teléfono (SC-003).
 
 **Checkpoint**: US1 y US2 completas. F10 ya tiene sus bloques de búsqueda.
 
@@ -248,26 +248,26 @@ description: "Lista de tareas de F04 — Núcleo de datos RAG"
 
 ### Tests (escribir primero)
 
-- [ ] T026 [P] [US3] `offline/tests/test_normalizer.py` (`unittest`):
+- [X] T026 [P] [US3] `offline/tests/test_normalizer.py` (`unittest`):
   - ejemplos del informe y los casos de T005, escritos a mano;
   - las sutilezas de research R4: longitudes en UTF-16, `Nd` solo del plano básico, separadores;
   - coincidencia exacta con `golden/normalizer_golden.jsonl`;
   - el generador es determinista: dos ejecuciones sobre un directorio temporal dan los mismos bytes;
   - SHA-256 del golden fijado para `VERSION = 1` (escenario 3).
-- [ ] T027 [P] [US3] `…/test/rag/text/NormalizerGoldenTest.kt` (JVM):
+- [X] T027 [P] [US3] `…/test/rag/text/NormalizerGoldenTest.kt` (JVM):
   - lee `../offline/golden/normalizer_golden.jsonl` desde el módulo;
   - al menos 300 pares;
   - 100 % de coincidencia exacta con `SpanishText.normalize`, mostrando los 20 primeros fallos;
   - el SHA-256 del fichero coincide con el fijado para `SpanishText.VERSION` (un mapa versión → huella). Si cambia el golden sin subir la versión, la prueba falla (escenario 3).
-- [ ] T028 [P] [US3] `…/androidTest/rag/text/NormalizerGoldenInstrumentedTest.kt`: el mismo criterio, leyendo el fichero de los *assets* del APK de prueba (`InstrumentationRegistry.getInstrumentation().context.assets`), con la ICU de Android.
+- [X] T028 [P] [US3] `…/androidTest/rag/text/NormalizerGoldenInstrumentedTest.kt`: el mismo criterio, leyendo el fichero de los *assets* del APK de prueba (`InstrumentationRegistry.getInstrumentation().context.assets`), con la ICU de Android.
 
 ### Implementación
 
-- [ ] T029 [US3] Crear `offline/normalizer.py` (regla O1, research R4):
+- [X] T029 [US3] Crear `offline/normalizer.py` (regla O1, research R4):
   - solo biblioteca estándar;
   - `VERSION = 1`, la misma lista de palabras vacías y el mismo stemmer;
   - `tokens`, `normalize` y `fts_query`.
-- [ ] T030 [P] [US3] Crear `offline/golden/normalizer_inputs.txt` con al menos 300 entradas escritas a mano, con comentarios `#` por categoría, que cubran FR-019:
+- [X] T030 [P] [US3] Crear `offline/golden/normalizer_inputs.txt` con al menos 300 entradas escritas a mano, con comentarios `#` por categoría, que cubran FR-019:
   - ejemplos del informe;
   - plural y género;
   - tildes, diéresis, `ñ` y `ç`;
@@ -279,8 +279,8 @@ description: "Lista de tareas de F04 — Núcleo de datos RAG"
   - párrafos completos.
 
   Sin caracteres posteriores a Unicode 15.0 (research R4).
-- [ ] T031 [US3] Crear `offline/gen_normalizer_golden.py` (regla O2): orden estable, sin duplicados, y falla si salen menos de 300 pares. Generar `offline/golden/normalizer_golden.jsonl` y comprobar que volver a ejecutarlo no cambia `git diff`. Fijar la huella en T026 y T027.
-- [ ] T032 [US3] Ejecutar las pruebas Python, `NormalizerGoldenTest` y `NormalizerGoldenInstrumentedTest` en el emulador y en el teléfono (SC-001). **Si hay diferencias:** investigarlas antes de tocar el golden (riesgo R10-3).
+- [X] T031 [US3] Crear `offline/gen_normalizer_golden.py` (regla O2): orden estable, sin duplicados, y falla si salen menos de 300 pares. Generar `offline/golden/normalizer_golden.jsonl` y comprobar que volver a ejecutarlo no cambia `git diff`. Fijar la huella en T026 y T027.
+- [X] T032 [US3] Ejecutar las pruebas Python, `NormalizerGoldenTest` y `NormalizerGoldenInstrumentedTest` en el emulador y en el teléfono (SC-001). **Si hay diferencias:** investigarlas antes de tocar el golden (riesgo R10-3).
 
 **Checkpoint**: el normalizador es idéntico en los tres entornos.
 
@@ -294,17 +294,17 @@ description: "Lista de tareas de F04 — Núcleo de datos RAG"
 
 ### Tests (escribir primero)
 
-- [ ] T033 [P] [US4] `offline/tests/test_embedding_text.py`:
+- [X] T033 [P] [US4] `offline/tests/test_embedding_text.py`:
   - la entrada de consulta es `QUERY + texto.strip()`;
   - la de documento es `DOCUMENT + "\n".join(cabecera y contenido sin vacíos)`, con y sin cabecera;
   - el truncado da 256 componentes float32 con norma 1 (tolerancia 1e-6);
   - un vector de norma 0 o de menos de 256 componentes da error.
-- [ ] T034 [P] [US4] `…/test/rag/runtime/EmbeddingGoldenFileTest.kt` (JVM), que lee `../offline/golden/embedding_golden.jsonl`:
+- [X] T034 [P] [US4] `…/test/rag/runtime/EmbeddingGoldenFileTest.kt` (JVM), que lee `../offline/golden/embedding_golden.jsonl`:
   - `meta.model_sha256` es el de `ModelCatalog.byId(EG2_270M)` y `meta.dims == 256`;
   - hay 50 entradas, 25 de consulta y 25 de documento;
   - cada `input` es igual a `EmbeddingPrefixes.query(text)` o a `EmbeddingPrefixes.document(text, header)`;
   - cada `v256` tiene 256 componentes y norma 1 (tolerancia 1e-5).
-- [ ] T035 [US4] `…/androidTest/rag/runtime/EmbeddingGoldenTest.kt`, con `@RequiresModels`:
+- [X] T035 [US4] `…/androidTest/rag/runtime/EmbeddingGoldenTest.kt`, con `@RequiresModels`:
   - `assumeTrue` si `no_backup/models/embeddinggemma-2-text-270m.litertlm` no existe;
   - si el SHA-256 del fichero (con `Sha256.of`) no es el de `meta`, la prueba falla con «el modelo no coincide» y no compara (escenario 3);
   - **CPU y después GPU**, con `LiteRtEngineFactory` y un solo motor a la vez (cerrado antes del siguiente): embebe cada texto con `embedQuery` o `embedDocument(text, header)` y calcula el coseno con `v256`;
@@ -314,21 +314,21 @@ description: "Lista de tareas de F04 — Núcleo de datos RAG"
 
 ### Implementación
 
-- [ ] T036 [P] [US4] Crear `offline/embedding_text.py`:
+- [X] T036 [P] [US4] Crear `offline/embedding_text.py`:
   - construcción de entradas como `EmbeddingPrefixes`;
   - truncado a 256 con L2 en doble precisión y redondeo a float32 con `struct`, como `EmbeddingMath` (research R5).
-- [ ] T037 [P] [US4] Crear `offline/golden/embedding_texts.jsonl` con 50 textos:
+- [X] T037 [P] [US4] Crear `offline/golden/embedding_texts.jsonl` con 50 textos:
   - `q01`–`q25` de consulta y `d01`–`d25` de documento con cabecera `Documento › Sección`;
   - sintéticos en español y fragmentos del informe, sin documentos de usuarios;
   - longitudes variadas, siempre por debajo de 512 tokens con el prefijo.
-- [ ] T038 [US4] Crear `offline/gen_embedding_golden.py` (regla O3):
+- [X] T038 [US4] Crear `offline/gen_embedding_golden.py` (regla O3):
   - verifica el SHA-256 de `offline/models/embeddinggemma-2-text-270m.litertlm` contra la constante del catálogo;
   - `cache_dir` en `offline/build/litert-cache`, que crea si falta;
   - `Backend.CPU()`, `max_input_length=512` y `EmbeddingOptions(normalize=False)`;
   - escribe la cabecera `meta` y una línea por texto.
 
   Generar `offline/golden/embedding_golden.jsonl` y comprobar que una segunda ejecución da el mismo fichero.
-- [ ] T039 [US4] Ejecutar las pruebas Python y `EmbeddingGoldenFileTest`. Después, `EmbeddingGoldenTest` en el teléfono (quickstart §3), y anotar el mínimo y la media de CPU y de GPU para el informe. **Si la GPU queda por debajo de 0,99:** parar e informar al usuario (D-030, D-024).
+- [X] T039 [US4] Ejecutar las pruebas Python y `EmbeddingGoldenFileTest`. Después, `EmbeddingGoldenTest` en el teléfono (quickstart §3), y anotar el mínimo y la media de CPU y de GPU para el informe. **Si la GPU queda por debajo de 0,99:** parar e informar al usuario (D-030, D-024).
 
 **Checkpoint**: compatibilidad de embeddings demostrada en el teléfono de referencia (SC-002).
 
@@ -342,7 +342,7 @@ description: "Lista de tareas de F04 — Núcleo de datos RAG"
 
 ### Tests (escribir primero)
 
-- [ ] T040 [US5] `…/androidTest/data/rag/RagIndexCompatibilityTest.kt`, con `TempRagIndex` y `raw()`:
+- [X] T040 [US5] `…/androidTest/data/rag/RagIndexCompatibilityTest.kt`, con `TempRagIndex` y `raw()`:
   - **Escenario 1:** índice recién creado, `Compatible`, y las búsquedas funcionan.
   - **Escenario 2 (SC-006):** con `raw()`, cambiar por turnos el SHA del modelo, `embedding_dims`, el prefijo de documento (quitando el espacio final), el de consulta y `normalizer_version`, y borrar una clave. Al reabrir:
     - `Incompatible(field, expected, found)` con el campo correcto;
@@ -360,12 +360,12 @@ description: "Lista de tareas de F04 — Núcleo de datos RAG"
 
 ### Implementación
 
-- [ ] T041 [US5] En `…/microrag/data/rag/DefaultRagIndex.kt`, la ruta `NeedsMigration(from)`:
+- [X] T041 [US5] En `…/microrag/data/rag/DefaultRagIndex.kt`, la ruta `NeedsMigration(from)`:
   - aplica las migraciones en orden, con sus sentencias y la nueva `schema_version`, en una única transacción;
   - después vuelve a validar;
   - si una migración falla, hace *rollback* y publica `Incompatible("schema_version", …)`.
-- [ ] T042 [US5] En `…/microrag/data/rag/DefaultRagIndex.kt` y `RagConnection.kt`: `RagOpenException` (extensión que no carga, fichero que no es una base de datos o `vector_init` que falla) se convierte en `Unreadable(reason)`. Se cierra la conexión parcial y nunca se borra ni se modifica el fichero (lo deciden F07/F12).
-- [ ] T043 [US5] Ejecutar `RagIndexCompatibilityTest` en el emulador y en el teléfono.
+- [X] T042 [US5] En `…/microrag/data/rag/DefaultRagIndex.kt` y `RagConnection.kt`: `RagOpenException` (extensión que no carga, fichero que no es una base de datos o `vector_init` que falla) se convierte en `Unreadable(reason)`. Se cierra la conexión parcial y nunca se borra ni se modifica el fichero (lo deciden F07/F12).
+- [X] T043 [US5] Ejecutar `RagIndexCompatibilityTest` en el emulador y en el teléfono.
 
 **Checkpoint**: todas las historias completas.
 
@@ -375,43 +375,43 @@ description: "Lista de tareas de F04 — Núcleo de datos RAG"
 
 **Purpose**: modo estricto, capas, medición, puertas de calidad, verificación del release y cierre.
 
-- [ ] T044 [P] Modo estricto en depuración (research R8):
+- [X] T044 [P] Modo estricto en depuración (research R8):
   - `app/src/debug/java/com/lisdatasolutions/microrag/debug/DebugStrictMode.kt`: `ThreadPolicy` con `detectDiskReads`, `detectDiskWrites` y `penaltyLog`;
   - `app/src/release/java/com/lisdatasolutions/microrag/debug/DebugStrictMode.kt`: stub sin efecto;
   - llamada en `MicroRagApplication.onCreate()`, antes de `startKoin`.
 
   Arrancar la app en el emulador y anotar en el informe las violaciones ajenas a F04 que aparezcan. No se corrigen aquí.
-- [ ] T045 [P] `…/androidTest/data/rag/RagIndexStrictModeTest.kt` (SC-007):
+- [X] T045 [P] `…/androidTest/data/rag/RagIndexStrictModeTest.kt` (SC-007):
   - en el hilo principal, instala una `ThreadPolicy` con `penaltyListener` que acumula las violaciones;
   - desde ese hilo, ejecuta todas las operaciones de `RagIndex`: apertura, documentos, lote, búsquedas, carga, vecino, borrado y recuentos;
   - exige 0 violaciones y restaura la política anterior.
-- [ ] T046 [P] Ampliar `…/test/architecture/LayeringTest.kt`: solo `…/microrag/data/rag/` importa `androidx.sqlite` (constitución II).
-- [ ] T047 [P] Completar `offline/README.md`:
+- [X] T046 [P] Ampliar `…/test/architecture/LayeringTest.kt`: solo `…/microrag/data/rag/` importa `androidx.sqlite` (constitución II).
+- [X] T047 [P] Completar `offline/README.md`:
   - entorno y enlace del modelo;
   - cómo regenerar los dos golden y cómo comprobarlos;
   - el determinismo;
   - un cambio del normalizador obliga a subir `VERSION` en los dos lados, regenerar y actualizar las huellas fijadas.
-- [ ] T048 `…/androidTest/data/rag/RagIndexBenchmarkTest.kt` (SC-008, research R9):
+- [X] T048 `…/androidTest/data/rag/RagIndexBenchmarkTest.kt` (SC-008, research R9):
   - 10.000 fragmentos sintéticos (vectores unitarios con semilla fija y texto en español generado con una lista fija de palabras), en lotes de 64, registrando el tiempo total de inserción;
   - 100 búsquedas vectoriales (*k* = 50) y 100 léxicas;
   - p50 y p95 con `Percentiles` (source set `debug`), registrados como `MicroRAG benchmark …`.
 
   Ejecutarla en el teléfono y anotar las cifras.
-- [ ] T049 Puertas de calidad (quickstart §1–§3):
+- [X] T049 Puertas de calidad (quickstart §1–§3):
   - `./gradlew :app:assembleDebug :app:assembleRelease :app:lintDebug :app:lintRelease :app:testDebugUnitTest`;
   - pruebas Python;
   - suite instrumentada completa en el emulador y en el teléfono, sin `RequiresModels` ni `RequiresNetwork`, incluida `NoTrafficInstrumentedTest`;
   - en el teléfono, además, `EmbeddingGoldenTest` y `RagIndexBenchmarkTest` (quickstart §3).
 
   Todo en verde.
-- [ ] T050 WorkManager con `androidx.sqlite` 2.7.1 en un dispositivo (riesgo R10-1): arrancar la AVD `MicroRAG_API33` y ejecutar `ModelDownloadSmokeTest` como en F03. Debe acabar en `SUCCESS` por la ruta WorkManager.
-- [ ] T051 Verificación del release (quickstart §4):
+- [X] T050 WorkManager con `androidx.sqlite` 2.7.1 en un dispositivo (riesgo R10-1): arrancar la AVD `MicroRAG_API33` y ejecutar `ModelDownloadSmokeTest` como en F03. Debe acabar en `SUCCESS` por la ruta WorkManager.
+- [X] T051 Verificación del release (quickstart §4):
   - `apkanalyzer` muestra `lib/arm64-v8a/vector.so` y `libsqliteJni.so`;
   - `schema.sql` está en `assets/` y los golden no están en el APK;
   - los permisos siguen siendo los 9 de F03;
   - en el teléfono, `vector.so` aparece en `lib/arm64/`;
   - tamaño del APK y tamaño instalado frente a F03 (57,4 MB), con el coste de la extracción de nativas (research R2).
-- [ ] T052 Documentación de cierre:
+- [X] T052 Documentación de cierre:
   - `docs/roadmap/DECISIONS.md`: D-031, la extracción de nativas (`useLegacyPackaging`) para cargar `vector.so`, con su coste medido;
   - `specs/004-rag-data-core/report.md`: resumen, resultados de build, lint y tests, cifras con dispositivo y versiones (golden CPU y GPU, medición con 10k, tamaños; constitución VI), diferencias frente al plan y pendientes. Incluye cómo quedan cubiertos los casos límite sin prueba propia: disco lleno (el *rollback* de A4) y borrado durante una búsqueda (un solo hilo de base de datos);
   - estado de F04 en `docs/roadmap/FEATURES.md`;

@@ -76,7 +76,7 @@ CREATE VIRTUAL TABLE IF NOT EXISTS chunks_fts USING fts5(
 | `normalizer_version` | `1` (`SpanishText.VERSION`) | Igual o incompatible |
 | `quant_dirty` | `1` al crear y tras cada lote | No se valida (D-030: INT8 en F14) |
 
-Un índice **nuevo** es uno que no tiene ninguna fila en `rag_meta`: se escriben todas las claves en la misma transacción que crea el esquema. Uno **existente** al que le falte alguna clave es incompatible (campo `missing:<clave>`).
+Un índice **nuevo** es un fichero sin tablas propias. SQLite-Vector crea `_sqliteai_vector` en cuanto se carga, así que esa tabla no cuenta (research R3). Se escriben todas las claves en la misma transacción que crea el esquema. Uno **existente** al que le falte alguna clave es incompatible (campo `missing:<clave>`).
 
 ## 3. Tipos de dominio (`domain/rag`)
 
