@@ -4,7 +4,7 @@
 
 **Rama:** `003-models-onboarding`
 
-**Estado:** implementada; pendiente de la revisión del usuario.
+**Estado:** cerrada; aprobada por el usuario el 2026-10-26.
 
 **Abierto:** recorrido manual con TalkBack (T071).
 
