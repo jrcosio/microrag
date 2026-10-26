@@ -2,7 +2,10 @@ package com.lisdatasolutions.microrag.core.di
 
 import android.app.Application
 import android.content.Context
+import androidx.datastore.core.DataStore
+import java.io.File
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import org.junit.Test
 import org.koin.core.annotation.KoinExperimentalAPI
 import org.koin.dsl.module
@@ -14,8 +17,11 @@ class AppModulesTest {
     @Test
     fun appModules_dependencyGraphIsComplete() {
         module { includes(appModules) }.verify(
-            // AppDispatchers is built by its factory, not by constructor injection.
-            extraTypes = listOf(Context::class, Application::class, CoroutineDispatcher::class),
+            // Built inside their definitions: dispatchers, scopes, folders and the DataStore.
+            extraTypes = listOf(
+                Context::class, Application::class, CoroutineDispatcher::class, CoroutineScope::class,
+                File::class, DataStore::class,
+            ),
         )
     }
 }
