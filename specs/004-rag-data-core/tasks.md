@@ -38,10 +38,10 @@ description: "Lista de tareas de F04 — Núcleo de datos RAG"
 
 **Purpose**: dependencias verificadas, empaquetado de la extensión y verificación temprana de que `vector.so` carga en los dos dispositivos.
 
-- [ ] T001 Añadir a `gradle/libs.versions.toml` (research R1):
+- [X] T001 Añadir a `gradle/libs.versions.toml` (research R1):
   - versiones `sqliteBundled = "2.7.1"` y `sqliteVector = "1.1.2"`;
   - librerías `androidx-sqlite-bundled` (`androidx.sqlite:sqlite-bundled`) y `sqlite-vector` (`ai.sqlite:vector`).
-- [ ] T002 En `app/build.gradle.kts`:
+- [X] T002 En `app/build.gradle.kts`:
   - `implementation` de las dos librerías;
   - `packaging { jniLibs { useLegacyPackaging = true } }`, con un comentario que remita a research R2;
   - añadir `../offline/golden` a los *assets* del source set `androidTest` (research R6), con la sintaxis de AGP 9.3 verificada en su documentación.
@@ -50,13 +50,13 @@ description: "Lista de tareas de F04 — Núcleo de datos RAG"
   1. ejecutar `./gradlew :app:dependencies --configuration debugRuntimeClasspath` y anotar en research R1 las versiones resueltas de `androidx.sqlite:sqlite`, `sqlite-framework` y `room-runtime`;
   2. comprobar `assembleDebug` y `lintDebug` en verde;
   3. ejecutar los tests JVM de WorkManager (`ModelDownloadWorkerTest` y `DefaultModelDownloadControllerTest`) con `androidx.sqlite` 2.7.1 (riesgo R10-1). Si fallan, parar y fijar la línea compatible antes de seguir.
-- [ ] T003 **Verificación temprana** (plan, riesgo 1): crear `…/androidTest/data/rag/VectorExtensionLoadTest.kt`. Comprueba:
+- [X] T003 **Verificación temprana** (plan, riesgo 1): crear `…/androidTest/data/rag/VectorExtensionLoadTest.kt`. Comprueba:
   - `File(applicationInfo.nativeLibraryDir, "vector.so")` existe;
   - con `BundledSQLiteDriver().addExtension(<esa ruta>, "sqlite3_vector_init")`, una base temporal en `cacheDir` abre y `SELECT vector_version()` devuelve `1.1.2`;
   - `SELECT sqlite_compileoption_used('ENABLE_FTS5')` devuelve 1.
 
   Ejecutarla en el emulador y en el teléfono (quickstart §3). **Si falla en el teléfono:** aplicar el plan B de research R2 y avisar al usuario antes de seguir.
-- [ ] T004 [P] Crear el esqueleto de `offline/` (contracts/offline-golden.md):
+- [X] T004 [P] Crear el esqueleto de `offline/` (contracts/offline-golden.md):
   - `offline/requirements.txt` con una sola línea, `litert-lm-api==0.18.1`;
   - `offline/README.md` inicial (propósito y entorno; se completa en T047);
   - `offline/tests/__init__.py` vacío.
