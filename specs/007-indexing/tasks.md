@@ -103,7 +103,7 @@ description: "Lista de tareas de F07 — Indexación"
   - **otra petición de GPU mientras hay una retenida:** espera sin bloquear el `loadLock`, así que una petición de CPU en paralelo se atiende;
   - la regla de una sola GPU sigue vigente;
   - `EngineMemoryCallbacks` con `TRIM_MEMORY_UI_HIDDEN` ya no cierra un engine retenido.
-- [ ] T007 [P] `…/test/data/indexing/DataStoreIngestRunStoreTest.kt` (data-model §2):
+- [X] T007 [P] `…/test/data/indexing/DataStoreIngestRunStoreTest.kt` (data-model §2):
   - altas sin duplicados y en orden;
   - bajas;
   - descarte de terminados y vaciado en una sola edición;
@@ -147,7 +147,7 @@ description: "Lista de tareas de F07 — Indexación"
   - traducción de `SQLITE_FULL` a `IndexStorageFullException` (R10).
 
   **Adaptar las pruebas existentes que buscan sobre documentos no publicados:** `RagIndexSearchTest`, `RagIndexStrictModeTest` y `RagIndexBenchmarkTest` ponen sus documentos en `DONE`. Actualizar `FakeRagIndex` y la lista de operaciones rechazadas de `RagIndexCompatibilityTest`. Comprobar T008 y T009 en el emulador.
-- [ ] T016 [P] Crear `…/microrag/data/indexing/DataStoreIngestRunStore.kt` con su interfaz `IngestRunStore` (data-model §2). Comprobar T007.
+- [X] T016 [P] Crear `…/microrag/data/indexing/DataStoreIngestRunStore.kt` con su interfaz `IngestRunStore` (data-model §2). Comprobar T007.
 - [ ] T017 [P] Crear `…/microrag/data/device/ThermalStatusSource.kt`: interfaz y `PowerManagerThermalStatusSource`, con `PowerManager.currentThermalStatus` y `addThermalStatusListener` como `Flow<ThermalLevel>` (`NORMAL`, `MODERATE`, `SEVERE_OR_WORSE`). Ampliar `LayeringTest`:
   - `android.os.PowerManager` solo en `data/device`;
   - `feature/indexing` no importa WorkManager, `androidx.sqlite`, LiteRT ni `PowerManager`, como `feature/ingest`.

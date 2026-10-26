@@ -34,8 +34,7 @@ Fichero: `noBackupFilesDir/datastore/ingest_run.preferences_pb`.
 | Clave | Tipo | Significado |
 |---|---|---|
 | `document_ids` | `String` (ids separados por comas, en orden) | Documentos que el usuario mandó indexar y que pertenecen a la tanda actual |
-| `paused` | `Boolean` | La tanda está pausada y no debe programarse trabajo |
-| `pause_cause` | `String?` | `user`, `no_space` o `model_missing`. Solo con `paused = true` |
+| `pause_cause` | `String?` | `user`, `no_space` o `model_missing`. Si existe, la tanda está pausada y no debe programarse trabajo |
 | `gpu_check` | `String?` | Resultado de la validación de la GPU (research R4): `<sha256 del modelo>|<versionCode>|ok` o `…|cpu`. Se repite si cambia el modelo o la app |
 
 **Reglas:**
