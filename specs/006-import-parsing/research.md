@@ -51,6 +51,24 @@ Sin soporte:
 
 **Verificación temprana:** leer `getprop build.version.extensions.s` en el teléfono (API 35), en el emulador `Pixel_10` (API 37) y en la AVD API 33. Si la AVD API 33 no llega a 13, se usa para probar el camino «sin soporte».
 
+**Resultado** (T004, 2026-10-26, `PdfPlatformProbeTest`):
+
+| Dispositivo | API | Extensión S | Resultado |
+|---|---|---|---|
+| Emulador `Pixel_10` | 37 | 22 | 4/4 |
+| AVD `MicroRAG_API33` | 33 | 5 | Sin soporte: se salta (camino «sin soporte» de la spec) |
+| Teléfono A063 | 35 | pendiente | Pendiente |
+
+- **Saltos de línea:** PDFium separa las líneas con `\r\n` y no añade línea vacía al final de la página. `splitlines()` / `pySplitLines` lo trata igual que el `\n` de pypdf.
+- **Excepciones:**
+  - `encrypted.pdf`: `SecurityException("Password required to access document")`;
+  - `truncated.pdf` y `fake.pdf`: `IOException("Unable to load the document!")`;
+  - `restricted.pdf` (solo contraseña de propietario): se lee.
+- **Páginas escaneadas:** dan texto vacío.
+- **Aislamiento de clases.** En un dispositivo sin la extensión, una clase cuyos métodos (incluidos los sintéticos de una lambda) mencionan `PdfPageTextContent` en la firma falla con `NoClassDefFoundError` al inspeccionarla por reflexión. Le pasó a la primera versión de la prueba en la API 33. Por eso:
+  - el adaptador de producción encierra los tipos de `android.graphics.pdf` en una clase propia que solo se carga si hay soporte;
+  - recorre los contenidos con bucles, nunca con lambdas no `inline`.
+
 ## R4. Selector, tipos y permisos
 
 **Decisión:**

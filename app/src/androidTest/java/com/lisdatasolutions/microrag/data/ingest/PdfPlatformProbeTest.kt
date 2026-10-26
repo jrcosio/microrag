@@ -84,7 +84,11 @@ class PdfPlatformProbeTest {
         return ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY).use { fd ->
             PdfRendererPreV(fd).use { renderer ->
                 (0 until renderer.pageCount).map { index ->
-                    renderer.openPage(index).use { page -> page.textContents.joinToString("") { it.text } }
+                    renderer.openPage(index).use { page ->
+                        // No lambda over PdfPageTextContent: its synthetic method would break reflection on
+                        // devices without the extension (research R3).
+                        buildString { for (content in page.textContents) append(content.text) }
+                    }
                 }
             }
         }
