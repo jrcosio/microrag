@@ -509,6 +509,31 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
 
 ---
 
+## D-037 — Importación de documentos (clarify de F06)
+
+- **Fecha:** 2026-10-26
+- **Decisión:**
+  1. **Extractor de PDF (G38):** la API de PDF del sistema. Se usa `PdfRenderer` en Android 15+ y `PdfRendererPreV` en Android 12–14 con la extensión S ≥ 13; las dos son PDFium y se actualizan con el sistema. No se añade pdfbox-android ni ninguna otra biblioteca de PDF. En un dispositivo sin esa capacidad, los PDF se rechazan con un mensaje claro, y TXT y Markdown funcionan igual.
+  2. **Límites:** 100 MB por archivo y 2.000 páginas por PDF. Por encima, «Demasiado grande».
+  3. **Cola de importación:** muestra todos los documentos aún no indexados, también los de sesiones anteriores, hasta que se indexan o el usuario los quita.
+  4. **PDF con contraseña de apertura:** se rechaza como «Archivo cifrado». No se pide ni se guarda ninguna contraseña.
+- **Motivo:**
+  - pdfbox-android no publica desde el 2023-01-02 y añade 3,25 MB más BouncyCastle 1.72;
+  - la API del sistema no pesa nada y la mantiene Google;
+  - el teléfono de referencia tiene Android 15.
+
+  Los límites cubren manuales y normativa largos sin indexaciones interminables. Pedir contraseñas obligaría a guardarlas o a pedirlas de nuevo al reindexar, porque F07 vuelve a extraer.
+- **Alternativas descartadas:**
+  - pdfbox-android, solo o como respaldo;
+  - androidx.pdf 1.0.0-beta01, en beta y con un servicio en otro proceso;
+  - límites de 50 MB y 1.000 páginas, o de 200 MB y 5.000;
+  - una cola limitada a la sesión;
+  - pedir la contraseña.
+- **Origen:** usuario (clarify de F06).
+- **Afecta:** F06; F07 (vuelve a extraer al indexar); F08 (la Biblioteca solo muestra lo indexado).
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.

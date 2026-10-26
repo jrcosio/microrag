@@ -40,7 +40,7 @@ Al cerrar cada feature se entrega:
 | F03 | Modelos y primer arranque | Producto | F01, F02 | ✅ cerrada (T071 TalkBack manual abierta) |
 | F04 | Núcleo de datos RAG | Técnica | F02 | ✅ cerrada |
 | F05 | Harness offline de evaluación | Técnica | F04 | ✅ cerrada |
-| F06 | Importación y parsing | Producto | F04 | 🟨 en curso (specify) |
+| F06 | Importación y parsing | Producto | F04 | 🟨 en curso (clarify; pendiente de revisión) |
 | F07 | Indexación | Producto | F02, F06 | ⬜ |
 | F08 | Biblioteca y detalle de documento | Producto | F07 | ⬜ |
 | F09 | Inicio | Producto | F03, F07, F08 | ⬜ |
@@ -319,7 +319,7 @@ También se introduce `EngineCoordinator`, que garantiza que nunca haya dos engi
 ## F06 — Importación y parsing
 
 - **Tipo:** Producto.
-- **Estado:** ⬜
+- **Estado:** 🟨 en curso: spec y clarify terminados el 2026-10-26 (`specs/006-import-parsing/`, D-037); pendientes de revisión.
 
 **Objetivo.** Importar y preparar los documentos:
 - selección múltiple con SAF;
@@ -356,7 +356,7 @@ También se introduce `EngineCoordinator`, que garantiza que nunca haya dos engi
 8. La UI es fiel al PNG 05 con los ajustes aprobados.
 
 **Riesgos.**
-- `pdfbox-android` sin mantenimiento (G38) y peso en el APK.
+- ~~`pdfbox-android` sin mantenimiento (G38) y peso en el APK.~~ Resuelto con D-037, que usa la API de PDF del sistema. Riesgo nuevo: los dispositivos con Android 12–14 sin la extensión S ≥ 13 no leen PDF.
 - PDF complejos (tablas, columnas).
 - Memoria con PDF grandes (200 páginas).
 

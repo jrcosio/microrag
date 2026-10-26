@@ -57,6 +57,15 @@
   - la extracción va en un servicio en otro proceso;
   - arrastra `pdf-viewer`.
 
+## Clarifications
+
+### Session 2026-10-26
+
+- Q: ¿Con qué se extrae el texto de los PDF en el teléfono (G38)? → A: con la API de PDF del sistema: `PdfRenderer` en Android 15+ y `PdfRendererPreV` en Android 12–14 con la extensión S ≥ 13. No se añade pdfbox-android ni ninguna biblioteca de PDF. En un dispositivo sin esa capacidad, los PDF se rechazan con un mensaje claro y TXT y Markdown siguen funcionando.
+- Q: ¿Qué límites se aplican a cada archivo importado? → A: 100 MB por archivo y 2.000 páginas por PDF. Por encima, error «Demasiado grande».
+- Q: ¿Qué documentos muestra la Cola de importación? → A: todos los documentos aún no indexados (listos, en proceso, preparados y con error), también los de sesiones anteriores, hasta que se indexan y pasan a la Biblioteca o el usuario los quita.
+- Q: ¿Qué se hace con un PDF protegido con contraseña de apertura? → A: se rechaza como «Archivo cifrado». No se pide ni se guarda ninguna contraseña.
+
 ## User Scenarios & Testing *(mandatory)*
 
 **Actores:**
@@ -198,7 +207,9 @@ La pantalla Importar documentos reproduce el PNG 05 con los ajustes aprobados, e
   - dos archivos distintos con el mismo nombre: los dos se importan, porque la identidad es el contenido y no el nombre.
 - **Codificación:** un TXT o MD que no es UTF-8 válido se lee con la codificación de respaldo que fije el plan y nunca muestra caracteres de sustitución en masa. Un BOM UTF-8 se ignora.
 - **Tamaño:** un PDF muy grande se procesa página a página, sin cargar el documento entero en memoria.
-- **Protección:** un PDF con restricciones de permisos (sin contraseña de apertura) se importa con normalidad.
+- **Protección:** un PDF con restricciones de permisos (sin contraseña de apertura) se importa con normalidad; uno con contraseña de apertura es «Archivo cifrado».
+- **Dispositivo sin extracción de PDF:** en Android 12–14 sin la actualización del sistema necesaria, cada PDF elegido termina en «Este dispositivo no puede leer PDF» y los TXT y MD de la misma selección se importan con normalidad.
+- **Límites exactos:** un archivo de exactamente 100 MB o un PDF de exactamente 2.000 páginas se aceptan; uno más, no.
 - **Índice incompatible:** si el índice local está bloqueado por incompatible (F04), la importación no registra nada y la pantalla explica que la biblioteca no está disponible.
 - **Ritmo de uso:**
   - el usuario puede seguir importando mientras se procesa;
@@ -226,15 +237,16 @@ La pantalla Importar documentos reproduce el PNG 05 con los ajustes aprobados, e
   - archivo por encima del límite de tamaño o de páginas;
   - espacio libre insuficiente;
   - acceso perdido al original durante la copia;
-  - duplicado.
+  - duplicado;
+  - PDF en un dispositivo cuyo sistema no ofrece extracción de texto de PDF.
 
-  Un error MUST afectar solo a su archivo.
+  Un error MUST afectar solo a su archivo. Un PDF con contraseña de apertura MUST rechazarse como «Archivo cifrado», sin pedir ni guardar contraseñas.
 - **FR-004**: Un archivo cuyo SHA-256 ya existe en el índice (en la cola o en la biblioteca), o que se repite en la misma selección, MUST mostrarse como duplicado («Ya está en tu biblioteca»), sin crear documento ni copia.
-- **FR-005**: El límite de tamaño por archivo y de páginas por PDF MUST ser constante y documentarse en DECISIONS. Un archivo por encima del límite MUST rechazarse antes de copiarlo, cuando el tamaño se conoce de antemano.
+- **FR-005**: Los límites son 100 MB por archivo y 2.000 páginas por PDF, constantes y registrados en DECISIONS. Un archivo por encima de ellos MUST terminar en «Demasiado grande». Si el tamaño se conoce de antemano, MUST rechazarse antes de copiarlo.
 
 **Cola de importación**
 
-- **FR-006**: La cola MUST mostrar, para cada documento aún no indexado:
+- **FR-006**: La cola MUST mostrar todos los documentos aún no indexados, también los de sesiones anteriores, hasta que se indexan (pasan a la Biblioteca, F07/F08) o el usuario los quita. Para cada uno MUST mostrar:
   - nombre;
   - tamaño;
   - estado: Importando, Listo para procesar, En cola, Extrayendo, Fragmentando, Preparado para indexar (con su número de fragmentos), o Error con su motivo.
@@ -269,15 +281,16 @@ La pantalla Importar documentos reproduce el PNG 05 con los ajustes aprobados, e
   - se extrae página a página, sin cargar el documento entero en memoria;
   - cada bloque lleva su número de página (desde 1);
   - las líneas de una página se unen en párrafos con la misma regla que el extractor del escritorio de F05 (`pdf_paragraphs`): línea en blanco, viñeta o fin de frase seguido de mayúscula abren párrafo; se unen los guiones de fin de línea y se quitan los números de página sueltos.
-- **FR-016**: Las páginas de un PDF sin texto extraíble MUST omitirse y contarse. Un PDF sin ninguna página con texto MUST terminar en error «Sin texto extraíble». El reconocimiento óptico de caracteres queda fuera del MVP.
-- **FR-017**: Markdown: los encabezados `#` a `######` MUST formar la ruta de encabezados, que se reinicia por nivel. El cuerpo de cada sección MUST conservar los párrafos separados por líneas en blanco.
-- **FR-018**: TXT MUST producir un único bloque sin ruta, con los párrafos separados por líneas en blanco.
-- **FR-019**: La extracción de TXT y Markdown, y la unión de líneas en párrafos de PDF, MUST producir lo mismo que el extractor del escritorio de F05 (`offline/eval/extract.py`). Lo garantiza un golden compartido generado desde Python. Así, la evaluación de F05 representa lo que hace la app.
+- **FR-016**: El texto de los PDF MUST extraerse con la capacidad de PDF del propio sistema, sin bibliotecas de PDF añadidas al APK. En un dispositivo cuyo sistema no la ofrece, los PDF MUST rechazarse con el error «Este dispositivo no puede leer PDF», con la indicación de actualizar el sistema, y TXT y Markdown MUST funcionar igual.
+- **FR-017**: Las páginas de un PDF sin texto extraíble MUST omitirse y contarse. Un PDF sin ninguna página con texto MUST terminar en error «Sin texto extraíble». El reconocimiento óptico de caracteres queda fuera del MVP.
+- **FR-018**: Markdown: los encabezados `#` a `######` MUST formar la ruta de encabezados, que se reinicia por nivel. El cuerpo de cada sección MUST conservar los párrafos separados por líneas en blanco.
+- **FR-019**: TXT MUST producir un único bloque sin ruta, con los párrafos separados por líneas en blanco.
+- **FR-020**: La extracción de TXT y Markdown, y la unión de líneas en párrafos de PDF, MUST producir lo mismo que el extractor del escritorio de F05 (`offline/eval/extract.py`). Lo garantiza un golden compartido generado desde Python. Así, la evaluación de F05 representa lo que hace la app.
 
 **Troceado**
 
-- **FR-020**: El troceado MUST implementar el `Chunker` del informe con los parámetros de `RagParameters`: objetivo de 1.594 caracteres, máximo de 2.113 y longitudes medidas como en el escritorio. MUST reproducir al carácter los 27 casos y 162 fragmentos de `offline/golden/chunker_golden.jsonl`.
-- **FR-021**: El troceado MUST cumplir las reglas del informe:
+- **FR-021**: El troceado MUST implementar el `Chunker` del informe con los parámetros de `RagParameters`: objetivo de 1.594 caracteres, máximo de 2.113 y longitudes medidas como en el escritorio. MUST reproducir al carácter los 27 casos y 162 fragmentos de `offline/golden/chunker_golden.jsonl`.
+- **FR-022**: El troceado MUST cumplir las reglas del informe:
   - párrafos enteros; solo se parte por frases un párrafo que supera el máximo;
   - un cambio de encabezado abre fragmento;
   - el último párrafo se repite en el fragmento siguiente si es corto (solape);
@@ -286,18 +299,18 @@ La pantalla Importar documentos reproduce el PNG 05 con los ajustes aprobados, e
 
 **Pantalla**
 
-- **FR-022**: La pantalla MUST reproducir el PNG 05 con los ajustes aprobados:
+- **FR-023**: La pantalla MUST reproducir el PNG 05 con los ajustes aprobados:
   - G14: «Selecciona archivos» en lugar de «Arrastra o selecciona archivos»;
   - G15: detalle de la fila;
   - estado vacío de la cola y estados de error, que el PNG no maqueta;
   - textos en `strings.xml` en español y en inglés (D-029);
   - claro y oscuro.
-- **FR-023**: Accesibilidad (constitución VII):
+- **FR-024**: Accesibilidad (constitución VII):
   - áreas táctiles de al menos 48 dp;
   - etiquetas para TalkBack en cada fila, con nombre, tamaño y estado, y en cada acción;
   - contraste AA;
   - la pantalla sigue siendo usable con el tamaño de letra al 200 %.
-- **FR-024**: Hasta que exista Inicio (F09) o Biblioteca (F08), MUST haber un acceso provisional a Importar documentos desde la pantalla provisional de Inicio, identificado como tal y que se retira cuando llegue el definitivo.
+- **FR-025**: Hasta que exista Inicio (F09) o Biblioteca (F08), MUST haber un acceso provisional a Importar documentos desde la pantalla provisional de Inicio, identificado como tal y que se retira cuando llegue el definitivo.
 
 ### Key Entities *(include if feature involves data)*
 
@@ -331,12 +344,8 @@ La pantalla Importar documentos reproduce el PNG 05 con los ajustes aprobados, e
 
 ## Assumptions
 
-- **Extractor de PDF (G38):** se decide en clarify. La recomendación de partida es la API de plataforma `android.graphics.pdf`:
-  - está mantenida por el sistema y no añade peso;
-  - el teléfono de referencia tiene Android 15;
-  - en Android 12–14 hace falta la extensión S ≥ 13, que llega por las actualizaciones del sistema de Google Play.
-- **Límites:** la propuesta de partida es 100 MB por archivo y 2.000 páginas por PDF, a confirmar en clarify.
-- **PDF con contraseña de apertura:** la propuesta es rechazarlo como «cifrado», como dice el `.md` de la pantalla. Pedir la contraseña añadiría una UI sin mockup.
+- **Extractor de PDF (G38), decidido en clarify:** la API de PDF del sistema, mantenida con el sistema y sin peso en el APK. El teléfono de referencia tiene Android 15. En Android 12–14 hace falta la extensión S ≥ 13, que llega por las actualizaciones del sistema de Google Play; el plan verifica cómo se comprueba en tiempo de ejecución.
+- **Límites y contraseñas, decididos en clarify:** 100 MB por archivo y 2.000 páginas por PDF. Un PDF con contraseña de apertura se rechaza como «Archivo cifrado», como dice el `.md` de la pantalla, sin UI nueva.
 - **Codificación:** UTF-8, ignorando el BOM. Si no es UTF-8 válido, se lee con una codificación de respaldo para Europa occidental (Windows-1252), que se fija en el plan.
 - **Validación de texto en la importación:** al importar, un PDF se abre para comprobar que es legible, que no pide contraseña y cuántas páginas tiene. La ausencia total de texto se confirma al extraerlo, en el trabajo, y deja el documento en error. No se extrae dos veces el documento entero.
 - **Detalle de la fila (G15):** la propuesta del INVENTARIO es una hoja inferior con el estado, el error y las acciones (Quitar o Reintentar).

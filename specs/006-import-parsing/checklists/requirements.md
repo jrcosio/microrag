@@ -37,10 +37,12 @@
   - los golden compartidos con el escritorio, que garantizan que la evaluación de F05 representa a la app.
 
   La spec no fija bibliotecas, clases ni estructura de código. Las opciones de extractor de PDF del bloque «Verificado al redactar» son datos para el clarify, no una decisión.
-- **Sin marcadores.** Las decisiones abiertas tienen una propuesta de partida en «Assumptions» y se resuelven en `/speckit-clarify`:
-  - extractor de PDF (G38);
-  - límites de tamaño y páginas;
-  - PDF con contraseña;
-  - contenido de la cola;
-  - detalle de la fila (G15).
+- **Resuelto en `/speckit-clarify`** (sesión 2026-10-26, D-037):
+  - extractor de PDF del sistema, sin bibliotecas añadidas (FR-016);
+  - límites de 100 MB y 2.000 páginas (FR-005);
+  - la cola muestra todo lo no indexado (FR-006);
+  - un PDF con contraseña de apertura se rechaza como cifrado (FR-003).
+
+  El detalle de la fila (G15) sigue la propuesta del INVENTARIO: una hoja inferior.
+- Re-validación tras el clarify: 16/16, sin cambios de estado.
 - **Alcance frente a F07:** F06 deja los documentos en `parsed` con su número de fragmentos. Los embeddings, la inserción, la notificación en primer plano y la pantalla `index` son de F07 (FR-011, FR-012 y Assumptions).
