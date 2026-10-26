@@ -83,3 +83,29 @@ Contratos en `specs/005-offline-eval-harness/contracts/`. Todo se ejecuta con `o
 **Fuera de git** (`offline/build/`): índices, extracciones, cachés y ejecuciones. Cada ejecución vive en `build/runs/<huella>/`. La huella identifica la configuración, el índice, el conjunto de prueba y los modelos, y una generación interrumpida se reanuda donde se quedó.
 
 **Modelos:** `offline/models/` enlaza a `$HOME/MicroRAG-models`, con EmbeddingGemma 2 270M, Gemma 4 E2B y, para la comparación, Gemma 4 E4B. Cada modelo se verifica por SHA-256 antes de usarse.
+
+## Importación y parsing (F06)
+
+La app extrae TXT, Markdown y las líneas de PDF exactamente como `eval/extract.py`, que es lo que evaluó F05. Para que no se separen, todo esto se genera desde Python y se comprueba en la app (contratos en `specs/006-import-parsing/contracts/extraction-golden.md`).
+
+| Fichero | Generador | Lo comprueba |
+|---|---|---|
+| `golden/extraction_golden.jsonl`: decodificación, TXT, Markdown y páginas de PDF, a mano y del corpus | `gen_extraction_golden.py` (`--check` para verificar) | `ExtractionGoldenTest` (JVM) e `IngestGoldenInstrumentedTest` (dispositivo) |
+| `golden/chunker_golden.jsonl` (F05) | `run_eval.py chunker-golden` | `ChunkerGoldenTest` e `IngestGoldenInstrumentedTest` |
+| `app/src/main/java/.../rag/ingest/PyTables.kt`: espacios, saltos de línea y dígitos de Python | `gen_pytext_tables.py` | `tests/test_pytext_tables.py` |
+| `app/src/androidTest/assets/pdf/*.pdf`: fixtures deterministas (texto, escaneado, cifrado, restringido, truncado, falso y 200 páginas) | `gen_pdf_fixtures.py` | `tests/test_pdf_fixtures.py` y las pruebas instrumentadas |
+
+**Lectura de texto:** `extract.py` lee con `decode_text`: UTF-8 (sin BOM si lo hay) o, si no es UTF-8 válido, Windows-1252 con sustitución, con los saltos `\r\n` y `\r` convertidos a `\n`. Cambiar `extract.py` obliga a regenerar el golden en el mismo commit; si no, fallan las pruebas Python y las de la app.
+
+**Comparación con el teléfono:** la extracción de PDF del teléfono (PDFium) frente a pypdf, medida con las evidencias del conjunto de prueba:
+
+```bash
+ADB_DIR=/sdcard/Android/data/com.lisdatasolutions.microrag/files/corpus
+adb shell mkdir -p $ADB_DIR && adb push offline/corpus/docs/*.pdf $ADB_DIR/
+adb shell am instrument -w -e class com.lisdatasolutions.microrag.data.ingest.CorpusPdfExtractionTest \
+  com.lisdatasolutions.microrag.test/androidx.test.runner.AndroidJUnitRunner
+adb pull $ADB_DIR/device-extraction.jsonl offline/build/
+offline/.venv/bin/python -I offline/run_eval.py device-extraction offline/build/device-extraction.jsonl
+```
+
+**Esquema v2:** F06 añade `documents.skipped_pages` (D-038). Los índices de evaluación ya construidos son v1: antes de volver a evaluar, reconstrúyelos con `run_eval.py build ref` y las variantes que se necesiten.
