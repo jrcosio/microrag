@@ -64,7 +64,7 @@ description: "Lista de tareas de F06 — Importación y parsing"
   - que es determinista;
   - que pypdf lee el texto de los de texto y detecta el cifrado;
   - que el total pesa menos de 1 MB (X3).
-- [ ] T004 **Verificación temprana** (plan, riesgo 1): crear `…/androidTest/data/ingest/PdfPlatformProbeTest.kt`. Usa `PdfRendererPreV` directamente sobre los fixtures de T003:
+- [X] T004 **Verificación temprana** (plan, riesgo 1): crear `…/androidTest/data/ingest/PdfPlatformProbeTest.kt`. Usa `PdfRendererPreV` directamente sobre los fixtures de T003:
   - registra `SdkExtensions.getExtensionVersion(S)` y el texto de cada página, con los separadores escapados;
   - comprueba:
     - `encrypted` → `SecurityException`;
@@ -349,7 +349,7 @@ description: "Lista de tareas de F06 — Importación y parsing"
   - el `ViewModel` no guarda estado propio de la cola.
 
   Documentar en el KDoc de `DefaultImportQueueRepository` qué sobrevive a qué (D-038).
-- [ ] T060 [US4] Recorrido manual en el teléfono (quickstart §6, paso 6): girar, salir y volver, y `adb shell am kill` con el trabajo en marcha. Anotar el resultado para el informe de cierre.
+- [X] T060 [US4] Recorrido manual en el teléfono (quickstart §6, paso 6): girar, salir y volver, y `adb shell am kill` con el trabajo en marcha. Anotar el resultado para el informe de cierre.
 
 **Checkpoint**: robustez comprobada en la JVM, en el dispositivo y a mano.
 
@@ -395,7 +395,7 @@ description: "Lista de tareas de F06 — Importación y parsing"
 
 - [X] T063 [US5] Completar en `IngestScreen.kt` los estados P1, P4 y P5. Añadir la semántica de U1 y U5 (resumen con `liveRegion = Polite`). Ajustar la fuente al 200 % (U4). Comprobar T061 y T062.
 - [X] T064 [P] [US5] Crear `…/microrag/feature/ingest/IngestPreviews.kt` con previews de todos los estados en claro y en oscuro, con datos de ejemplo etiquetados como tales (constitución V).
-- [ ] T065 [US5] Capturar en el teléfono los estados vacío, listo (como el PNG), en curso, preparado, error y hoja. Compararlos con el PNG 05 y listar las diferencias para el informe de cierre (constitución VII).
+- [X] T065 [US5] Capturar en el teléfono los estados vacío, listo (como el PNG), en curso, preparado, error y hoja. Compararlos con el PNG 05 y listar las diferencias para el informe de cierre (constitución VII).
 
 **Checkpoint**: UI cerrada y accesible.
 
@@ -404,12 +404,12 @@ description: "Lista de tareas de F06 — Importación y parsing"
 ## Phase 8: Polish & Cross-Cutting Concerns
 
 - [X] T066 [P] Crear `…/androidTest/data/ingest/IngestStrictModeTest.kt`. Importa y procesa los fixtures con la política de `DebugStrictMode` en el hilo principal, con un control negativo como en F04, y exige 0 violaciones (SC-009).
-- [ ] T067 [P] Crear `…/androidTest/data/ingest/IngestBenchmarkTest.kt` (research R12):
+- [X] T067 [P] Crear `…/androidTest/data/ingest/IngestBenchmarkTest.kt` (research R12):
   - **SC-004:** genera con `PdfDocument` un PDF de 10 MB (texto y ruido) y mide desde la entrega de la URI hasta `Ready`;
   - **SC-005:** extrae y trocea `text_200_pages` y mide el tiempo y el máximo crecimiento del PSS (`Debug.getPss()` cada 100 ms).
 
   Registra las cifras con la etiqueta `ingest-benchmark`. Solo aplica los umbrales si `Build.MODEL` es el del teléfono de referencia. Ejecutarla en el teléfono.
-- [ ] T068 [P] Crear `…/androidTest/data/ingest/CorpusPdfExtractionTest.kt`:
+- [X] T068 [P] Crear `…/androidTest/data/ingest/CorpusPdfExtractionTest.kt`:
   - se salta con `assumeTrue` si no existe `getExternalFilesDir("corpus")`;
   - si existe, escribe `device-extraction.jsonl` con el texto por página de cada PDF.
 
@@ -420,7 +420,7 @@ description: "Lista de tareas de F06 — Importación y parsing"
   - G15: hoja inferior implementada;
   - G22: copia privada implementada;
   - ficha P05: estados implementados.
-- [ ] T071 Puertas de calidad:
+- [X] T071 Puertas de calidad:
   - pruebas Python;
   - `./gradlew :app:assembleDebug :app:assembleRelease :app:lintDebug :app:lintRelease :app:testDebugUnitTest`;
   - suite instrumentada en el emulador y en el teléfono (quickstart §3);
@@ -428,7 +428,8 @@ description: "Lista de tareas de F06 — Importación y parsing"
 
   Todo en verde. Comprobar que el APK de release no incluye fixtures ni golden (X4).
 - [ ] T072 Recorrido manual completo en el teléfono (quickstart §6), incluido el `.md` en el selector (research R4) y TalkBack.
-- [ ] T073 Documentación de cierre:
+  > Estado: recorrido hecho en el teléfono el 2026-10-26 (report.md §3.1 y §5), con el `.md` elegible en el selector. **Queda abierto TalkBack**, que necesita a una persona escuchando la voz, como T059 de F01 y T071 de F03.
+- [X] T073 Documentación de cierre:
   - `specs/006-import-parsing/report.md`, con resumen, puertas, validación por historia, cifras (SC-004, SC-005 y la comparación con pypdf), diferencias frente al PNG, desviaciones del plan y pendientes;
   - estado de F06 en `docs/roadmap/FEATURES.md`;
   - tareas marcadas `[X]`.

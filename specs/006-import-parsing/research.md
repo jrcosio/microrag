@@ -57,9 +57,10 @@ Sin soporte:
 |---|---|---|---|
 | Emulador `Pixel_10` | 37 | 22 | 4/4 |
 | AVD `MicroRAG_API33` | 33 | 5 | Sin soporte: se salta (camino «sin soporte» de la spec) |
-| Teléfono A063 | 35 | pendiente | Pendiente |
+| Teléfono A063 | 35 | 23 | 4/4, con el mismo texto y las mismas excepciones que el emulador |
 
 - **Saltos de línea:** PDFium separa las líneas con `\r\n` y no añade línea vacía al final de la página. `splitlines()` / `pySplitLines` lo trata igual que el `\n` de pypdf.
+- **Corpus de F05** (`CorpusPdfExtractionTest`): el texto por página que sale en el teléfono es idéntico byte a byte al del emulador API 37.
 - **Excepciones:**
   - `encrypted.pdf`: `SecurityException("Password required to access document")`;
   - `truncated.pdf` y `fake.pdf`: `IOException("Unable to load the document!")`;
