@@ -562,6 +562,29 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
 
 ---
 
+## D-039 — Indexación (clarify de F07)
+
+- **Fecha:** 2026-10-26
+- **Decisión:**
+  1. **Backend de la ingesta:** los embeddings se calculan en la GPU, como propone D-024. Si la GPU no carga el engine, se usa la CPU y se registra. El usuario no elige el backend.
+  2. **Pausa:** un solo botón pausa y reanuda toda la tanda, como en el PNG 08. No hay «Cancelar» global; un documento concreto se cancela con «Quitar de la cola» de la Ingesta.
+  3. **Pausas automáticas:** la indexación se pausa si el sistema informa una temperatura grave o superior (`THERMAL_STATUS_SEVERE`) y sigue sola al bajar a moderada o menos. La batería no la pausa. «Solo mientras carga» y la sección de recursos quedan en el backlog (G21).
+  4. **Volumen:** sin límite de fragmentos por tanda ni aviso previo. Tras el primer lote se muestra el tiempo restante estimado con el ritmo medido en el teléfono, marcado como aproximado.
+- **Motivo:**
+  - la GPU es unas 2,5 veces más rápida en la ingesta (D-024) y la mezcla de vectores CPU/GPU está validada;
+  - el PNG solo tiene un botón, y «Quitar de la cola» ya cancela un documento con confirmación;
+  - el sistema ya limita el trabajo con el ahorro de batería, y una pausa por batería alargaría las indexaciones sin necesidad;
+  - una estimación previa no sería fiable antes de medir el ritmo en el propio teléfono (constitución V).
+- **Alternativas descartadas:**
+  - solo CPU, o que el usuario elija el backend;
+  - «Cancelar todo», o pausa por documento;
+  - pausar también con batería baja, o pausar ya en temperatura moderada;
+  - un aviso previo por encima de 1 h, o un límite de fragmentos por tanda.
+- **Origen:** usuario (clarify de F07).
+- **Afecta:** F07; F11 (el coordinador de engines decide si el chat necesita la GPU durante una indexación); F12 (no hay ajuste de backend).
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.

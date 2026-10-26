@@ -41,7 +41,7 @@ Al cerrar cada feature se entrega:
 | F04 | Núcleo de datos RAG | Técnica | F02 | ✅ cerrada |
 | F05 | Harness offline de evaluación | Técnica | F04 | ✅ cerrada |
 | F06 | Importación y parsing | Producto | F04 | ✅ cerrada |
-| F07 | Indexación | Producto | F02, F06 | ⬜ |
+| F07 | Indexación | Producto | F02, F06 | 🟨 en curso (clarify; pendiente de revisión) |
 | F08 | Biblioteca y detalle de documento | Producto | F07 | ⬜ |
 | F09 | Inicio | Producto | F03, F07, F08 | ⬜ |
 | F10 | Recuperación híbrida | Técnica | F05, F07 | ⬜ |
@@ -365,7 +365,7 @@ También se introduce `EngineCoordinator`, que garantiza que nunca haya dos engi
 ## F07 — Indexación
 
 - **Tipo:** Producto.
-- **Estado:** ⬜
+- **Estado:** 🟨 en curso: spec y clarify del 2026-10-26 (`specs/007-indexing/`, D-039), pendientes de revisión.
 
 **Objetivo.** `IngestWorker` (`CoroutineWorker` en primer plano, reanudable):
 - extrae, fragmenta, embebe y persiste en lotes transaccionales de 64;

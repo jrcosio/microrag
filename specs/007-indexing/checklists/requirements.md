@@ -32,4 +32,4 @@
 ## Notes
 
 - Las cifras técnicas que aparecen (256 componentes, norma L2, lotes de 64, prefijos, recorte al 90 %) son restricciones del dominio fijadas por la constitución (III) y por DECISIONS (D-034, D-036), no elecciones de implementación; el cómo (WorkManager, tipo de servicio, filtro de búsqueda) queda para el plan.
-- Sin marcadores [NEEDS CLARIFICATION]: las decisiones abiertas (backend de la ingesta, semántica de la pausa, pausas automáticas, volumen) tienen un valor por defecto en Assumptions o en FR-013/FR-027 y se preguntan en `/speckit-clarify`.
+- Sin marcadores [NEEDS CLARIFICATION]. Clarify (2026-10-26, D-039) resolvió el backend de la ingesta, la pausa, las pausas automáticas y el volumen; la spec ya no tiene decisiones abiertas.

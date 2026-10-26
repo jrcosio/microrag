@@ -56,6 +56,15 @@
 - **Búsquedas de F04:** hoy no filtran por estado del documento; devuelven fragmentos de cualquier documento guardado.
 - **D-036** está decidida pero no implementada en la app: hoy un fragmento demasiado largo para el modelo daría error.
 
+## Clarifications
+
+### Session 2026-10-26
+
+- Q: ¿Con qué procesador se calculan los embeddings al indexar? → A: con la GPU, como propone D-024. Si la GPU no carga el engine, se usa la CPU y se registra. Se pueden mezclar vectores de CPU y de GPU en el índice. El usuario no elige el backend.
+- Q: ¿Cómo funciona «Pausar indexación» y hay un «Cancelar»? → A: un solo botón pausa y reanuda toda la tanda, como en el PNG 08. No hay «Cancelar» global; para cancelar un documento concreto se usa «Quitar de la cola» de la Ingesta.
+- Q: ¿Cuándo se pausa sola la indexación y cuándo sigue? → A: se pausa si el sistema informa una temperatura grave o superior, y sigue sola al bajar a moderada o menos. La batería no pausa la indexación. «Solo mientras carga» queda en el backlog (G21).
+- Q: ¿Se limita o se avisa según el volumen de una tanda? → A: no hay límite ni aviso previo. Tras el primer lote, la pantalla muestra el tiempo restante estimado con el ritmo medido en el teléfono, marcado como aproximado.
+
 ## User Scenarios & Testing *(mandatory)*
 
 **Actores:**
@@ -113,7 +122,7 @@ El usuario abre Estado de indexación y ve, como en el PNG 08: el porcentaje com
 
 1. **Given** una indexación en curso con el total conocido, **When** se abre la pantalla, **Then** muestra el porcentaje y «N / M fragmentos» de toda la tanda, la etapa actual y el documento que se procesa.
 2. **Given** que el total aún no se conoce, **When** se abre la pantalla, **Then** muestra «Procesando...» con una barra indeterminada y ningún porcentaje.
-3. **Given** el ritmo medido en este teléfono, **When** es estable, **Then** se puede mostrar el tiempo restante estimado, marcado como aproximado. Si no hay medida fiable, no se muestra.
+3. **Given** el primer lote guardado, **When** el ritmo medido en este teléfono es estable, **Then** la pantalla muestra el tiempo restante estimado, marcado como aproximado. Si no hay medida fiable, no se muestra.
 4. **Given** que no hay nada que indexar, **When** se abre la pantalla, **Then** muestra «Todo actualizado».
 5. **Given** la pantalla abierta, **When** la app se cierra y se vuelve a abrir, **Then** el progreso mostrado es el real del momento, no se reinicia a 0.
 
@@ -132,7 +141,7 @@ El usuario puede pausar la indexación y reanudarla después; lo ya guardado no 
 1. **Given** una indexación en curso, **When** el usuario pulsa «Pausar indexación», **Then** el trabajo se detiene tras terminar el fragmento en curso, sin perder fragmentos guardados, y la pantalla muestra «En pausa» con «Reanudar».
 2. **Given** la indexación en pausa, **When** el usuario pulsa «Reanudar», **Then** continúa por el primer fragmento no guardado, sin recalcular los guardados. La pausa sobrevive al cierre de la app.
 3. **Given** un documento con error que se puede reintentar, **When** el usuario pulsa «Reintentar», **Then** ese documento vuelve a la tanda y se procesa.
-4. **Given** el teléfono alcanza una temperatura grave, **When** ocurre durante la indexación, **Then** el trabajo se pausa con la causa visible, y continúa solo cuando la temperatura baja.
+4. **Given** el sistema informa una temperatura grave o superior durante la indexación, **When** ocurre, **Then** el trabajo se pausa con la causa visible, y continúa solo cuando la temperatura baja a moderada o menos.
 5. **Given** el almacenamiento libre no basta para seguir escribiendo, **When** ocurre, **Then** el trabajo se detiene de forma segura, el documento en curso no se publica a medias y la pantalla avisa y orienta al usuario.
 6. **Given** el modelo de embeddings no está instalado o no pasa la verificación, **When** se inicia la indexación, **Then** los documentos quedan esperando, la pantalla lo explica y ofrece ir a la preparación de modelos.
 
@@ -196,7 +205,7 @@ La pantalla Estado de indexación reproduce el PNG 08 y cubre los estados del `.
 **Motores y recursos**
 
 - **FR-012**: Durante la indexación MUST estar cargado solo el engine de embedding; nunca el LLM a la vez en la GPU (constitución IV). El engine MUST liberarse al terminar o al pausar.
-- **FR-013**: Los embeddings de la ingesta MUST calcularse con el backend decidido en clarify (D-024 propone GPU). Si ese backend no carga, la app MUST usar la CPU y registrarlo.
+- **FR-013**: Los embeddings de la ingesta MUST calcularse en la GPU (D-024). Si la GPU no carga el engine, la app MUST usar la CPU y registrarlo. El usuario no elige el backend.
 - **FR-014**: Los embeddings MUST calcularse en serie sobre un engine ya cargado, nunca varios a la vez (informe, Embeddings).
 - **FR-015**: Antes de procesar, la app MUST comprobar que el modelo de embeddings está instalado y verificado (F03). Si no, los documentos quedan esperando y la pantalla lo explica.
 
@@ -212,14 +221,14 @@ La pantalla Estado de indexación reproduce el PNG 08 y cubre los estados del `.
 
 - **FR-021**: El progreso global MUST ser fragmentos guardados sobre fragmentos totales de la tanda, solo cuando el total se conoce. Si no, MUST mostrarse como indeterminado.
 - **FR-022**: El total MUST conocerse pronto: en segundos tras empezar, no al terminar cada documento.
-- **FR-023**: El tiempo restante solo MUST mostrarse si sale del ritmo medido en este teléfono y es estable, marcado como aproximado. Nunca se muestran cifras de ejemplo ni interpoladas (constitución V).
+- **FR-023**: Tras el primer lote, la pantalla MUST mostrar el tiempo restante estimado con el ritmo medido en este teléfono, marcado como aproximado, y solo mientras ese ritmo sea estable. Nunca se muestran cifras de ejemplo ni interpoladas (constitución V). No hay límite de volumen ni aviso previo.
 - **FR-024**: El progreso MUST restaurarse al reabrir la app y tras una reanudación.
 
 **Control**
 
-- **FR-025**: El usuario MUST poder pausar y reanudar la indexación. La pausa MUST hacerse efectiva tras el fragmento en curso y sobrevivir al cierre de la app.
+- **FR-025**: El usuario MUST poder pausar y reanudar toda la tanda con un solo botón. La pausa MUST hacerse efectiva tras el fragmento en curso y sobrevivir al cierre de la app. No hay «Cancelar» global; un documento concreto se cancela con «Quitar de la cola» (FR-029).
 - **FR-026**: El usuario MUST poder reintentar un documento con error que se pueda reintentar, desde el Estado de indexación y desde la cola de Ingesta.
-- **FR-027**: Con temperatura grave, la app MUST pausar la indexación con la causa visible y reanudarla sola cuando baje (umbrales a decidir en clarify).
+- **FR-027**: Si el sistema informa una temperatura grave o superior, la app MUST pausar la indexación con la causa visible, y reanudarla sola cuando baje a moderada o menos. La batería no pausa la indexación.
 - **FR-028**: Si falta espacio para seguir escribiendo, la app MUST detenerse sin publicar el documento en curso, avisar y orientar al usuario. Reanudar MUST ser posible cuando haya espacio.
 - **FR-029**: Quitar de la cola un documento a medio indexar MUST detener su procesamiento y borrar sus fragmentos, su registro y su copia.
 
@@ -230,7 +239,7 @@ La pantalla Estado de indexación reproduce el PNG 08 y cubre los estados del `.
 - **FR-032**: La pantalla MUST cubrir los estados del `.md`: sin tareas («Todo actualizado»), en curso, total desconocido («Procesando...»), en pausa por el usuario, pausa automática por temperatura o por límite del sistema, sin espacio, error con el documento y la causa, modelo ausente e índice no disponible. Las propuestas visuales de los estados no maquetados se aprueban en el plan, como en F06.
 - **FR-033**: La acción principal MUST cambiar según el estado: «Pausar indexación», «Reanudar» o «Reintentar». Sin tareas, no hay acción.
 - **FR-034**: La pantalla MUST abrirse desde la CTA «Iniciar indexación» de la Ingesta, desde la notificación y desde un acceso provisional en Inicio hasta F09.
-- **FR-035**: Sección de recursos y «Solo mientras carga» (G21) quedan fuera de esta feature, salvo que clarify diga lo contrario.
+- **FR-035**: La sección de recursos y «Solo mientras carga» (G21) quedan fuera de esta feature, en el backlog.
 
 **Cola de Ingesta (F06)**
 
@@ -273,10 +282,10 @@ La pantalla Estado de indexación reproduce el PNG 08 y cubre los estados del `.
 
 - **Título de la cabecera contextual:** el nombre del documento sin la extensión («Manual técnico» para «Manual técnico.pdf»). Es lo más parecido a los títulos del corpus de F05, que no llevan extensión.
 - **Qué se indexa:** al pulsar «Iniciar indexación» se indexan todos los documentos no indexados de la cola, como en F06. No hay selección parcial.
-- **Cancelar:** no hay un «Cancelar» global. Pausar conserva lo hecho, y «Quitar de la cola» (F06) cancela un documento concreto.
+- **Cancelar:** no hay un «Cancelar» global (clarify). Pausar conserva lo hecho, y «Quitar de la cola» (F06) cancela un documento concreto.
 - **Modelo:** EmbeddingGemma 2 de 270M (D-025), instalado y verificado en el onboarding de F03.
 - **INT8:** sigue aplazado a F14 (D-030). El cierre del documento no reconstruye ningún índice cuantizado.
 - **Inclusión en la búsqueda:** todo documento indexado entra incluido; excluirlo es cosa de F08.
-- **Batería:** la indexación no exige estar cargando. «Solo mientras carga» queda en el backlog (G21), salvo que clarify diga lo contrario.
-- **Mezcla de vectores:** se pueden mezclar vectores de CPU y de GPU en el mismo índice (D-024).
-- **Volumen:** no hay límite de fragmentos por tanda; los límites de F06 por archivo (100 MB y 2.000 páginas) siguen vigentes, salvo que clarify añada un aviso o un límite.
+- **Batería:** la indexación no exige estar cargando ni se pausa por batería baja (clarify). «Solo mientras carga» queda en el backlog (G21).
+- **Mezcla de vectores:** se pueden mezclar vectores de CPU y de GPU en el mismo índice (D-024), por ejemplo cuando la GPU no carga y se usa la CPU.
+- **Volumen:** no hay límite de fragmentos por tanda ni aviso previo (clarify); los límites de F06 por archivo (100 MB y 2.000 páginas) siguen vigentes.
