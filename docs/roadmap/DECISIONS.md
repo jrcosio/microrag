@@ -353,6 +353,24 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
 
 ---
 
+## D-028 — Descarga en segundo plano: UIDT en Android 14+ y WorkManager en 12–13 (plan de F03)
+
+- **Fecha:** 2026-10-26
+- **Decisión:**
+  - En API ≥ 34, la descarga de modelos usa *user-initiated data transfer jobs* (`JobScheduler` con `setUserInitiated(true)`).
+  - En API 31–33 usa WorkManager con un servicio en primer plano `dataSync`.
+  - Las dos rutas ejecutan el mismo `ModelDownloadRunner`.
+  - Es una desviación aprobada de la constitución II («WorkManager para trabajo largo»), justificada en el Complexity Tracking del plan de F03.
+  - Se aprueba instalar una AVD API 33 arm64 para validar la ruta WorkManager.
+- **Motivo:**
+  - Android recomienda UIDT para descargas largas que inicia el usuario.
+  - No hay librería Jetpack que lo soporte.
+  - Android 15 limita `dataSync` a 6 h cada 24 h, y Android 16 somete los workers largos a las cuotas de jobs (research R3 de F03).
+- **Origen:** usuario (aprobación del analyze de F03).
+- **Afecta:** F03. También F07, que evaluará la misma pregunta para la indexación.
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.

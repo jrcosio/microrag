@@ -37,7 +37,7 @@ Al cerrar cada feature se entrega:
 |---|---|---|---|---|
 | F01 | Fundaciones y design system | Producto (shell y DS) | — | ✅ cerrada (T059 TalkBack manual abierta) |
 | F02 | Viabilidad on-device (fase 0) | Técnica | F01 | ✅ cerrada |
-| F03 | Modelos y primer arranque | Producto | F01, F02 | 🟨 en curso (analyze; pendiente de revisión) |
+| F03 | Modelos y primer arranque | Producto | F01, F02 | 🟨 en curso (implement) |
 | F04 | Núcleo de datos RAG | Técnica | F02 | ⬜ |
 | F05 | Harness offline de evaluación | Técnica | F04 | ⬜ |
 | F06 | Importación y parsing | Producto | F04 | ⬜ |
@@ -180,7 +180,7 @@ También se introduce `EngineCoordinator`, que garantiza que nunca haya dos engi
 ## F03 — Modelos y primer arranque
 
 - **Tipo:** Producto.
-- **Estado:** 🟨 en curso: spec y clarify aprobados el 2026-10-26 (`specs/003-models-onboarding/`, D-027). Plan, tasks y analyze hechos y pendientes de revisión.
+- **Estado:** 🟨 en curso: spec y clarify aprobados el 2026-10-26 (`specs/003-models-onboarding/`, D-027). Plan, tasks y analyze aprobados el 2026-10-26 (D-028); implementación en curso.
 
 **Objetivo.** Onboarding real: Bienvenida → Preparación (3 pasos, G10) → Inicio.
 - Descarga reanudable y verificada de los dos modelos (D-011).
