@@ -22,6 +22,7 @@ import com.lisdatasolutions.microrag.core.designsystem.component.LisdataBottomBa
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataBottomBarItem
 import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
 import com.lisdatasolutions.microrag.domain.model.StartDestination
+import kotlinx.coroutines.flow.first
 
 /**
  * App shell: navigation graph plus the bottom bar on tab roots (FR-017, FR-020). [startDestination]
@@ -67,6 +68,8 @@ fun MicroRagAppShell(
     var setupRestored by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(startDestination) {
         if (startDestination != StartDestination.SETUP_OVER_WELCOME || setupRestored || initialRoute != null) return@LaunchedEffect
+        // The NavHost sets its graph in the Scaffold's subcomposition, after this effect starts.
+        navController.currentBackStackEntryFlow.first()
         setupRestored = true
         navController.navigate(Setup)
     }
@@ -74,6 +77,7 @@ fun MicroRagAppShell(
     var initialRouteHandled by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(initialRoute) {
         if (initialRoute == null || initialRouteHandled) return@LaunchedEffect
+        navController.currentBackStackEntryFlow.first()
         initialRouteHandled = true
         val tab = TopLevelDestination.entries.firstOrNull { it.routeClass.isInstance(initialRoute) && it.route == initialRoute }
         if (tab != null) navController.navigateToTopLevel(tab) else navController.navigate(initialRoute)

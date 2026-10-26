@@ -7,6 +7,7 @@ import android.content.Context
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.os.Build
+import androidx.annotation.ChecksSdkIntAtLeast
 import androidx.annotation.RequiresApi
 import androidx.work.Constraints
 import androidx.work.ExistingWorkPolicy
@@ -40,18 +41,18 @@ class DefaultModelDownloadController(
 
     override fun schedule(pendingBytes: Long) {
         runner.resetOutcomes()
-        if (sdkInt >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) scheduleTransferJob(pendingBytes) else scheduleWorker()
+        if (usesTransferJobs()) scheduleTransferJob(pendingBytes) else scheduleWorker()
     }
 
     override fun cancel() {
-        if (sdkInt >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+        if (usesTransferJobs()) {
             jobScheduler.cancel(JOB_ID)
         } else {
             WorkManager.getInstance(context).cancelUniqueWork(UNIQUE_WORK)
         }
     }
 
-    override suspend fun isScheduledOrRunning(): Boolean = if (sdkInt >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+    override suspend fun isScheduledOrRunning(): Boolean = if (usesTransferJobs()) {
         jobScheduler.getPendingJob(JOB_ID) != null
     } else {
         WorkManager.getInstance(context).getWorkInfosForUniqueWorkFlow(UNIQUE_WORK).first().any { !it.state.isFinished }
@@ -63,6 +64,10 @@ class DefaultModelDownloadController(
         val expected = ModelCatalog.required.map { dirs.partial(it).name }.toSet()
         dirs.downloads.listFiles()?.filter { it.isFile && it.name !in expected }?.forEach { it.delete() }
     }
+
+    /** User-initiated data transfer jobs exist from Android 14 (API 34). */
+    @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+    private fun usesTransferJobs(): Boolean = sdkInt >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE
 
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     private fun scheduleTransferJob(pendingBytes: Long) {

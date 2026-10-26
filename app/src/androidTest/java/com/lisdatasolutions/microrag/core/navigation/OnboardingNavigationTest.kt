@@ -1,19 +1,18 @@
 package com.lisdatasolutions.microrag.core.navigation
 
-import android.content.Context
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.lifecycle.Lifecycle
-import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.Espresso
 import com.google.common.truth.Truth.assertThat
 import com.lisdatasolutions.microrag.MainActivity
 import com.lisdatasolutions.microrag.R
 import com.lisdatasolutions.microrag.domain.model.OnboardingStage
 import com.lisdatasolutions.microrag.testing.OnboardingStageRule
+import com.lisdatasolutions.microrag.testing.ReadyModelsRule
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -29,13 +28,14 @@ class OnboardingNavigationTest(private val stage: OnboardingStage) {
     private val compose = createAndroidComposeRule<MainActivity>()
 
     @get:Rule
-    val rules: TestRule = RuleChain.outerRule(stageRule).around(compose)
+    val rules: TestRule = RuleChain.outerRule(stageRule).around(ReadyModelsRule()).around(compose)
 
-    private val context: Context = ApplicationProvider.getApplicationContext()
+    // Labels as the app shows them (Spanish by default, D-029).
+    private fun string(id: Int) = compose.activity.getString(id)
 
-    private fun text(id: Int) = compose.onNodeWithText(context.getString(id))
+    private fun text(id: Int) = compose.onNodeWithText(string(id))
 
-    private fun homeTab() = compose.onNodeWithText(context.getString(TopLevelDestination.HOME.label))
+    private fun homeTab() = compose.onNodeWithText(string(TopLevelDestination.HOME.label))
 
     private fun assertActivityFinished() {
         compose.waitForIdle()
@@ -75,6 +75,18 @@ class OnboardingNavigationTest(private val stage: OnboardingStage) {
         assertThat(stageRule.store.stage.value).isEqualTo(OnboardingStage.STARTED)
         Espresso.pressBack()
         text(R.string.welcome_title_line1).assertIsDisplayed()
+    }
+
+    /** T062: with both models ready, «Continuar» completes onboarding and Home becomes the root. */
+    @Test
+    fun continueOpensHomeAndBackLeavesTheApp() {
+        if (stage != OnboardingStage.STARTED) return
+        text(R.string.setup_continue).performClick()
+
+        compose.waitUntil(5_000) { stageRule.store.stage.value == OnboardingStage.COMPLETED }
+        homeTab().assertIsDisplayed()
+        Espresso.pressBackUnconditionally()
+        assertActivityFinished()
     }
 
     companion object {

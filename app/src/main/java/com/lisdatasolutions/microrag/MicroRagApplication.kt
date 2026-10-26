@@ -20,7 +20,11 @@ class MicroRagApplication : Application(), Configuration.Provider {
 
     /** On-demand WorkManager (F03 research R1): only the API 31-33 download path touches it. */
     override val workManagerConfiguration: Configuration
-        get() = Configuration.Builder().setMinimumLoggingLevel(if (BuildConfig.DEBUG) Log.INFO else Log.ERROR).build()
+        get() = Configuration.Builder()
+            .setMinimumLoggingLevel(if (BuildConfig.DEBUG) Log.INFO else Log.ERROR)
+            // Keeps WorkManager's JobScheduler ids away from the download job (3001).
+            .setJobSchedulerJobIdRange(WORK_MANAGER_JOB_ID_MIN, WORK_MANAGER_JOB_ID_MAX)
+            .build()
 
     /** Spanish by default for everything built from the app context, such as notifications (D-029). */
     override fun attachBaseContext(base: Context) {
@@ -39,3 +43,6 @@ class MicroRagApplication : Application(), Configuration.Provider {
         )
     }
 }
+
+private const val WORK_MANAGER_JOB_ID_MIN = 10_000
+private const val WORK_MANAGER_JOB_ID_MAX = 19_999

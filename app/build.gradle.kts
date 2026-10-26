@@ -44,6 +44,10 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+    bundle {
+        // The app picks its own language (D-029): every locale must be installed, not only the device's.
+        language { enableSplit = false }
+    }
     buildFeatures {
         compose = true
         buildConfig = true
