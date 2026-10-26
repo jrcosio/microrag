@@ -2,6 +2,7 @@ package com.lisdatasolutions.microrag.core.navigation
 
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
@@ -59,7 +60,8 @@ fun MicroRagAppShell(
     ) { padding ->
         MicroRagNavHost(
             navController = navController,
-            modifier = Modifier.padding(padding),
+            // Consumed so a screen's own navigationBarsPadding() does not add the inset a second time.
+            modifier = Modifier.padding(padding).consumeWindowInsets(padding),
             startDestination = if (startDestination == StartDestination.HOME) Home else Welcome,
         )
     }
