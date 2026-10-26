@@ -59,6 +59,7 @@ object IndexPreviewData {
         "runningWithErrors" to runningWithErrors,
         "idle" to idle,
         "idleWithErrors" to idleWithErrors,
+        "idleWithOneRetryable" to idleWithOneRetryable,
         "unavailable" to unavailable,
         "loading" to loading,
     )
@@ -86,6 +87,10 @@ private fun IndexThermalPreview() = LisdataTheme { IndexScreen(IndexPreviewData.
 
 @LisdataPreviews
 @Composable
+private fun IndexWaitingForSystemPreview() = LisdataTheme { IndexScreen(IndexPreviewData.waitingForSystem, IndexActions()) }
+
+@LisdataPreviews
+@Composable
 private fun IndexNoSpacePreview() = LisdataTheme { IndexScreen(IndexPreviewData.noSpace, IndexActions()) }
 
 @LisdataPreviews
@@ -94,8 +99,24 @@ private fun IndexModelMissingPreview() = LisdataTheme { IndexScreen(IndexPreview
 
 @LisdataPreviews
 @Composable
-private fun IndexIdlePreview() = LisdataTheme { IndexScreen(IndexPreviewData.idleWithErrors, IndexActions()) }
+private fun IndexRunningWithErrorsPreview() = LisdataTheme { IndexScreen(IndexPreviewData.runningWithErrors, IndexActions()) }
+
+@LisdataPreviews
+@Composable
+private fun IndexIdlePreview() = LisdataTheme { IndexScreen(IndexPreviewData.idle, IndexActions()) }
+
+@LisdataPreviews
+@Composable
+private fun IndexIdleWithErrorsPreview() = LisdataTheme { IndexScreen(IndexPreviewData.idleWithErrors, IndexActions()) }
+
+@LisdataPreviews
+@Composable
+private fun IndexIdleWithOneRetryablePreview() = LisdataTheme { IndexScreen(IndexPreviewData.idleWithOneRetryable, IndexActions()) }
 
 @LisdataPreviews
 @Composable
 private fun IndexUnavailablePreview() = LisdataTheme { IndexScreen(IndexPreviewData.unavailable, IndexActions()) }
+
+@LisdataPreviews
+@Composable
+private fun IndexLoadingPreview() = LisdataTheme { IndexScreen(IndexPreviewData.loading, IndexActions()) }

@@ -404,13 +404,13 @@ description: "Lista de tareas de F07 — Indexación"
   - los chips y frases de `embedding_failed` e `incomplete`;
   - un `done` sale de la cola;
   - la CTA se habilita con `parsed` o `embedding` sin trabajo y con la tanda en pausa.
-- [ ] T056 [P] [US5] Crear `…/androidTest/feature/indexing/IndexScreenAccessibilityTest.kt`, parametrizada como la de F06: todos los estados de `IndexPreviewData`, en claro y en oscuro, con la fuente al 200 % (SC-008).
+- [X] T056 [P] [US5] Crear `…/androidTest/feature/indexing/IndexScreenAccessibilityTest.kt`, parametrizada como la de F06: todos los estados de `IndexPreviewData`, en claro y en oscuro, con la fuente al 200 % (SC-008).
 
 ### Implementation for User Story 5
 
 - [X] T057 [US5] Completar en `IndexScreen` P6 y P8, y la semántica U1–U3 (`liveRegion = Polite` en un resumen invisible). Comprobar T054.
 - [X] T058 [US5] Ampliar `DefaultImportQueueRepository`, `IngestTexts` e `IngestScreen` con los estados de index-ui §Ingesta: documentos `embedding` en la cola, `Indexing`, `Paused` y los motivos nuevos en es y en. Comprobar T055.
-- [ ] T059 [P] [US5] Crear `…/microrag/feature/indexing/IndexPreviews.kt` con `IndexPreviewData` (datos de ejemplo etiquetados, constitución V) para todos los estados, en claro y en oscuro. Ampliar `IngestPreviews` con «Indexando» y «En pausa». Comprobar T056 en el emulador.
+- [X] T059 [P] [US5] Crear `…/microrag/feature/indexing/IndexPreviews.kt` con `IndexPreviewData` (datos de ejemplo etiquetados, constitución V) para todos los estados, en claro y en oscuro. Ampliar `IngestPreviews` con «Indexando» y «En pausa». Comprobar T056 en el emulador.
 - [ ] T060 [US5] Capturar en el teléfono, en claro y en oscuro:
   - en curso (como el PNG);
   - en pausa;
