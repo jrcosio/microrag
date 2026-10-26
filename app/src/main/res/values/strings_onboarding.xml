@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- F03 onboarding (contracts/onboarding-ui.md). Texts visible in PNG 01/02 are literal (D-004). -->
+<resources>
+    <!-- P01 Welcome -->
+    <string name="welcome_chip">100% EN TU DISPOSITIVO</string>
+    <string name="welcome_title_line1">Tu conocimiento.</string>
+    <string name="welcome_title_line2">Solo tuyo.</string>
+    <string name="welcome_body_line1">Pregunta a tus documentos con IA.</string>
+    <string name="welcome_body_line2">Sin nube. Sin comprometer tu privacidad.</string>
+    <string name="welcome_cta">Comenzar</string>
+    <string name="welcome_footer">PRIVADO · INTELIGENTE · LOCAL</string>
+
+    <!-- P02 Setup -->
+    <string name="setup_title">Preparación inicial</string>
+    <string name="setup_headline">Tu IA, en tu móvil.</string>
+    <string name="setup_intro">Configura los modelos para empezar a consultar documentos sin conexión.</string>
+    <string name="setup_model_gemma_name">Gemma 4</string>
+    <string name="setup_model_gemma_purpose">Modelo de respuestas</string>
+    <string name="setup_model_embedding_name">EmbeddingGemma 2</string>
+    <string name="setup_model_embedding_purpose">Búsqueda semántica</string>
+    <string name="setup_storage_title">Almacenamiento local</string>
+    <string name="setup_storage_body">Índice vectorial y archivos privados</string>
+    <string name="setup_storage_offline">Offline</string>
+    <string name="setup_storage_no_space">Sin espacio</string>
+    <string name="setup_storage_preparing">Preparando</string>
+    <string name="setup_privacy_title">Tus documentos nunca salen de este dispositivo.</string>
+    <string name="setup_privacy_body">La instalación se verifica localmente.</string>
+    <string name="setup_notifications_denied">Activa las notificaciones para ver el progreso fuera de la app.</string>
+    <string name="setup_continue">Continuar</string>
+
+    <!-- Why «Continuar» is disabled (FR-008) -->
+    <string name="setup_blocker_models">Configura los dos modelos para continuar.</string>
+    <string name="setup_blocker_in_progress">Esperando a que termine la descarga.</string>
+    <string name="setup_blocker_attention">Revisa los modelos marcados para continuar.</string>
+    <string name="setup_blocker_no_space">Libera espacio para continuar.</string>
+
+    <!-- Model row status chips (FR-007) -->
+    <string name="model_status_unconfigured">Por configurar</string>
+    <string name="model_status_queued">En cola</string>
+    <string name="model_status_downloading">Descargando %1$d %%</string>
+    <string name="model_status_importing">Importando %1$d %%</string>
+    <string name="model_status_paused">En pausa</string>
+    <string name="model_status_waiting_network">Esperando conexión</string>
+    <string name="model_status_verifying">Verificando</string>
+    <string name="model_status_preparing">Preparando</string>
+    <string name="model_status_ready">Listo</string>
+    <string name="model_status_no_space">Sin espacio</string>
+    <string name="model_status_incompatible">Incompatible</string>
+    <string name="model_status_failed">Error</string>
+
+    <!-- Model row details -->
+    <string name="model_detail_queued_after">Empezará al terminar %1$s</string>
+    <string name="model_detail_bytes">%1$s de %2$s</string>
+    <string name="model_detail_paused">%1$s de %2$s · Toca para reanudar</string>
+    <string name="model_detail_verifying">Comprobando la huella · %1$d %%</string>
+    <string name="model_detail_preparing">Probando el modelo en este dispositivo</string>
+    <string name="model_detail_ready_cpu">%1$s · Modo CPU, más lento</string>
+    <string name="model_detail_no_space">Faltan %1$s · Toca para liberar espacio</string>
+    <string name="model_detail_incompatible">%1$s · Toca para elegir otra opción</string>
+    <string name="model_detail_failed">%1$s · Toca para reintentar</string>
+
+    <!-- Failure reasons -->
+    <string name="model_reason_hash_mismatch">La descarga no superó la verificación</string>
+    <string name="model_reason_download_failed">No se pudo descargar (%1$s)</string>
+    <string name="model_reason_forbidden_origin">Origen de descarga no permitido</string>
+    <string name="model_reason_storage">No se pudo guardar el archivo</string>
+    <string name="model_reason_wrong_file">El archivo no corresponde a %1$s</string>
+    <string name="model_reason_device_incompatible">Este dispositivo no puede ejecutar el modelo</string>
+    <string name="model_reason_network">sin conexión</string>
+
+    <!-- Download confirmation (FR-009, FR-010) -->
+    <string name="confirm_title">Descargar modelos</string>
+    <string name="confirm_model_line">%1$s · %2$s</string>
+    <string name="confirm_total">Total: %1$s</string>
+    <string name="confirm_free_space">Espacio libre: %1$s (quedarán %2$s)</string>
+    <string name="confirm_network_wifi">Red: Wi-Fi</string>
+    <string name="confirm_network_mobile">Red: datos móviles</string>
+    <string name="confirm_network_none">Sin conexión: empezará al conectarte</string>
+    <string name="confirm_mobile_warning">La descarga usará tus datos móviles.</string>
+    <string name="confirm_low_ram">Este dispositivo tiene menos de 7,5 GB de memoria. Las respuestas pueden ser más lentas.</string>
+    <string name="confirm_notification_notice">Te pediremos permiso para mostrarte el progreso en una notificación.</string>
+    <string name="confirm_no_space">Faltan %1$s</string>
+    <string name="confirm_download">Descargar</string>
+    <string name="confirm_pick_file">Seleccionar archivo del dispositivo</string>
+
+    <!-- Download notification -->
+    <string name="download_channel_name">Descarga de modelos</string>
+    <string name="download_channel_description">Progreso de la descarga de los modelos de IA</string>
+    <string name="download_notification_title">Descargando %1$s</string>
+    <string name="download_notification_text">%1$d %% · %2$s de %3$s</string>
+    <string name="download_notification_starting">Preparando la descarga</string>
+
+    <!-- Accessibility (FR-031) -->
+    <string name="a11y_model_row">%1$s, %2$s, %3$s</string>
+    <string name="a11y_status_unconfigured">por configurar, doble toque para configurar</string>
+    <string name="a11y_status_queued">en cola</string>
+    <string name="a11y_status_downloading">descargando, %1$d por ciento, %2$s de %3$s</string>
+    <string name="a11y_status_importing">importando, %1$d por ciento, %2$s de %3$s</string>
+    <string name="a11y_status_paused">en pausa, %1$s de %2$s, doble toque para reanudar</string>
+    <string name="a11y_status_waiting_network">esperando conexión, %1$s de %2$s</string>
+    <string name="a11y_status_verifying">verificando, %1$d por ciento</string>
+    <string name="a11y_status_preparing">preparando, probando el modelo en este dispositivo</string>
+    <string name="a11y_status_ready">listo</string>
+    <string name="a11y_status_ready_cpu">listo, modo CPU, más lento</string>
+    <string name="a11y_status_no_space">sin espacio, faltan %1$s, doble toque para liberar espacio</string>
+    <string name="a11y_status_incompatible">incompatible: %1$s, doble toque para elegir otra opción</string>
+    <string name="a11y_status_failed">error: %1$s, doble toque para reintentar</string>
+</resources>
