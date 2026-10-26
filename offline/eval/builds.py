@@ -74,16 +74,41 @@ def tokenizer_ratio(docs):
     return ratio, prefix_tokens
 
 
-def embedder():
-    """EmbeddingGemma 2 on CPU, as the golden of F04; returns the raw 768-component vector of a text."""
-    from litert_lm import Backend, EmbeddingEngine, EmbeddingOptions
+class Embedder:
+    """EmbeddingGemma 2 on CPU, as the golden of F04; returns the raw 768-component vector of a text.
 
-    cache = BUILD / "litert-cache"
-    cache.mkdir(parents=True, exist_ok=True)
-    engine = EmbeddingEngine(str(models.verify(models.EMBEDDING)), backend=Backend.CPU(), cache_dir=str(cache),
-                             max_input_length=MAX_INPUT_TOKENS)
-    options = EmbeddingOptions(normalize=False)
-    return engine, (lambda text: engine.compute_embedding(text, options).embedding)
+    LiteRT-LM 0.18.1 rejects inputs longer than 512 tokens and its Android API has no overflow strategy,
+    so the app needs a rule too: the embedded text is cut to 90 % of its length, at a space, until the
+    model accepts it. Only the embedded text is cut, never the stored chunk. [truncated] counts the cuts.
+    """
+
+    RETRIES = 12
+
+    def __init__(self):
+        from litert_lm import Backend, EmbeddingEngine, EmbeddingOptions
+
+        cache = BUILD / "litert-cache"
+        cache.mkdir(parents=True, exist_ok=True)
+        self.engine = EmbeddingEngine(str(models.verify(models.EMBEDDING)), backend=Backend.CPU(), cache_dir=str(cache),
+                                      max_input_length=MAX_INPUT_TOKENS)
+        self.options = EmbeddingOptions(normalize=False)
+        self.truncated = 0
+
+    def __call__(self, text):
+        for attempt in range(self.RETRIES):
+            try:
+                vector = self.engine.compute_embedding(text, self.options).embedding
+                self.truncated += attempt > 0
+                return vector
+            except RuntimeError:
+                cut = text[: int(len(text) * 0.9)]
+                text = cut[: cut.rfind(" ")] if " " in cut else cut
+        raise RuntimeError("embedding input still too long after truncation")
+
+
+def embedder():
+    model = Embedder()
+    return model.engine, model
 
 
 def build(variant):
@@ -98,6 +123,10 @@ def build(variant):
             index.derive_dims(source, target, spec["dims"])
         else:
             index.derive_fts(source, target, spec["fts"])
+        db = index.connect(target)
+        index._write_build(db, {**index.build_info(db), "variant": variant})  # noqa: SLF001
+        db.commit()
+        db.close()
         return {"variant": variant, **spec}
 
     docs = corpus.load_manifest()
@@ -126,8 +155,9 @@ def build(variant):
     finally:
         del engine
     info["seconds"] = round(time.time() - started, 1)
+    info["truncated_inputs"] = embed.truncated
     db = index.connect(target)
-    index._write_build(db, {**index.build_info(db), "seconds": info["seconds"]})  # noqa: SLF001
+    index._write_build(db, {**index.build_info(db), "seconds": info["seconds"], "truncated_inputs": embed.truncated})  # noqa: SLF001
     db.commit()
     db.close()
     return info
