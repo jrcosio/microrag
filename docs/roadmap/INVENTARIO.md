@@ -510,12 +510,14 @@ Abreviaturas de componentes: ver §4. «No maquetado» significa que el estado l
   - batería baja o temperatura elevada;
   - almacenamiento insuficiente;
   - total desconocido: «Procesando...» con barra indeterminada, sin porcentajes inventados.
+
+  Implementados en F07 con las propuestas aprobadas P1–P12 (`specs/007-indexing/contracts/index-ui.md`), también la espera por el sistema, el modelo ausente y la biblioteca no disponible. La batería no pausa (D-039).
 - **Navegación:**
   - **entra** desde el tile Índice de Inicio, la CTA de Ingesta y la fila «Índice y rendimiento» de Ajustes;
   - Atrás.
 - **Diferencias con el MD:**
-  - falta la sección de recursos («Solo mientras carga», espacio usado, estado térmico) (G21);
-  - no se muestra el número de documentos en cola.
+  - falta la sección de recursos («Solo mientras carga», espacio usado, estado térmico) (G21, fuera del MVP por D-039);
+  - no se muestra el número de documentos en cola. F07 lo añade bajo «Procesando ahora» (P9).
 
 ### P09 — Configuración (Ajustes)
 
@@ -735,8 +737,8 @@ La columna **Estado** indica si está resuelto y por quién, o si sigue pendient
 | G25 | Idiomas | PNG: app ES/EN; respuesta Automático/Español | MD: + Português (app), + English (respuesta) y tarjeta de detección. Informe: prompt fijo en español | UI → PNG; prompt → informe | Opciones del PNG. «Automático» se resuelve con una instrucción al LLM («responde en el idioma de la pregunta»), sin detector. El FTS sigue siendo español (normalizador v1) y la búsqueda multilingüe depende del vector | 🟡 Pendiente · Base del idioma de la app hecha en F03 (D-029: español por defecto, inglés elegible por app); el selector y el idioma de respuesta siguen en F12 |
 | G26 | Texto de negativa | Informe: «No encuentro esa información en los documentos disponibles.» (frase exacta en el prompt) | MD Chat: «No encuentro información suficiente en tus documentos» | Prompt → informe; UI → MD | El LLM emite la frase del informe como centinela; la UI la detecta y muestra el texto del MD localizado, sin citas | 🟡 Pendiente |
 | G27 | Esquema frente a UI | Informe: `documents` sin inclusión, tamaño, páginas ni ruta local; estados `pending…done/error` | UI: switch de inclusión, tamaño, páginas, «Pausado» y «Cancelado» | Informe (base) + UI | Ampliar `schema.sql`: `included INTEGER`, `size_bytes`, `page_count`, `local_path` y estados `paused`/`cancelled`. Mantener `source` (siempre `'user'`) por compatibilidad | ✅ D-030 (F04) |
-| G28 | Exclusión en la búsqueda vectorial | UI: excluir documentos | Informe: `vector_full_scan` top-k sobre toda la tabla | Informe | Sobre-recuperar (k × factor) y filtrar por `included = 1 AND status = 'done'`, o usar el filtro de SQLite-Vector si lo admite (se verifica en F10) | 🟡 Pendiente (F10) |
-| G29 | Etapas frente a lotes | PNG 08: 4 etapas secuenciales | Informe: embeddings y escritura intercalados por lotes de 64 | — | «Persistencia vectorial» = cierre del documento (`status=done`, optimize FTS y rebuild INT8 si aplica). Durante los lotes se muestra «Generación de embeddings: en curso» | 🟡 Pendiente |
+| G28 | Exclusión en la búsqueda vectorial | UI: excluir documentos | Informe: `vector_full_scan` top-k sobre toda la tabla | Informe | Sobre-recuperar (k × factor) y filtrar por `included = 1 AND status = 'done'`, o usar el filtro de SQLite-Vector si lo admite (se verifica en F10) | ✅ D-040: resuelto en F07 con top-(*k* + *m*) y el filtro `status = 'done' AND included = 1` en las dos búsquedas (*m* = fragmentos guardados no buscables); F10 hereda las búsquedas filtradas |
+| G29 | Etapas frente a lotes | PNG 08: 4 etapas secuenciales | Informe: embeddings y escritura intercalados por lotes de 64 | — | «Persistencia vectorial» = cierre del documento (`status=done`, optimize FTS y rebuild INT8 si aplica). Durante los lotes se muestra «Generación de embeddings: en curso» | ✅ D-040: «Persistencia vectorial» = cierre del documento (`status = done`), sin optimize de FTS; INT8 aplazado a F14 (D-030) |
 | G30 | Permiso de notificaciones | Informe: worker en primer plano (requiere notificación) | PNG/MD: no tratan permisos | — | Pedir `POST_NOTIFICATIONS` (API 33+) con una explicación justo antes de la primera descarga o indexación. Si se deniega, la tarea sigue y la UI lo advierte | ✅ Aprobado con la spec de F03 (FR-007, FR-009, FR-010) |
 | G31 | RAM y tamaño de descarga | Informe: aviso con < 7,5 GB de RAM; descarga ≈2–2,6 GB + embeddings | PNG: sin UI | — | `LisdataInfoCard` de aviso en el paso 1 o 2 y confirmación del tamaño antes de descargar | ✅ Aprobado con la spec de F03 (FR-007, FR-009, FR-010) |
 | G32 | Marca y nombre | Doc y PNG: «LISDATA» (avatar, CTA «Entrar en LISDATA») | Proyecto: «MicroRAG» (`app_name` «MIcroRAG») | — | Etiqueta del launcher y marca en UI: **pregunta al usuario** | ✅ Usuario (D-014): «MicroRAG» |

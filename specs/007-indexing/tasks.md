@@ -441,7 +441,7 @@ description: "Lista de tareas de F07 — Indexación"
   - SC-001 (≤ 5 min en GPU), solo en el A063.
 
   Ejecutarla en el teléfono.
-- [ ] T064 Actualizar `docs/roadmap/INVENTARIO.md`:
+- [X] T064 Actualizar `docs/roadmap/INVENTARIO.md`:
   - **G28** (exclusión en la búsqueda vectorial): resuelto en F07 con *k* + *m* y filtro (D-040);
   - **G29:** etapas resueltas (D-040);
   - **ficha P08:** estados implementados con P1–P12.
