@@ -38,15 +38,15 @@ description: "Lista de tareas de F03 — Modelos y primer arranque"
 
 **Purpose**: dependencias verificadas y recursos de texto.
 
-- [ ] T001 Añadir a `gradle/libs.versions.toml` (research R1):
+- [X] T001 Añadir a `gradle/libs.versions.toml` (research R1):
   - versiones `work = "2.12.0"`, `datastore = "1.2.1"` y `mockwebserver = "5.5.1"`;
   - librerías `androidx-work-runtime-ktx`, `androidx-work-testing`, `androidx-datastore-preferences` y `mockwebserver3` (`com.squareup.okhttp3:mockwebserver3`).
-- [ ] T002 En `app/build.gradle.kts`:
+- [X] T002 En `app/build.gradle.kts`:
   - `implementation` de work-runtime-ktx y datastore-preferences;
   - `testImplementation` de work-testing y mockwebserver3.
 
   Ejecutar `./gradlew :app:dependencies --configuration debugRuntimeClasspath` y anotar en research R1 las versiones resueltas de `room-runtime`, `kotlinx-coroutines-android` y `core`. Comprobar `assembleDebug` y `lintDebug` en verde.
-- [ ] T003 [P] Crear `app/src/main/res/values/strings_onboarding.xml` (es) y `app/src/main/res/values-en/strings_onboarding.xml` (en) con **todos** los textos de `contracts/onboarding-ui.md`:
+- [X] T003 [P] Crear `app/src/main/res/values/strings_onboarding.xml` (es) y `app/src/main/res/values-en/strings_onboarding.xml` (en) con **todos** los textos de `contracts/onboarding-ui.md`:
   - Bienvenida;
   - Preparación;
   - estados de fila, detalles y motivos;
@@ -69,35 +69,35 @@ description: "Lista de tareas de F03 — Modelos y primer arranque"
 
 ### Tests (escribir primero)
 
-- [ ] T004 [P] Ampliar `…/test/domain/model/ModelCatalogTest.kt`:
+- [X] T004 [P] Ampliar `…/test/domain/model/ModelCatalogTest.kt`:
   - `ModelCatalog.required` es `[EG2_270M, GEMMA4_E2B]`, en ese orden;
   - `downloadUrl` de cada fichero es `https://huggingface.co/<repo>/resolve/<revision>/<fileName>`;
   - tamaños y huellas de D-023 y D-025.
-- [ ] T005 [P] `…/test/domain/onboarding/ModelSetupStatusResolverTest.kt`. Tabla de prioridades de data-model §2. Incluye la prueba **exhaustiva de SC-001**: recorre todas las combinaciones de `ModelFileState` × progreso × preparación × preferencias × red y comprueba que `Ready` aparece **solo** con `Verified` y backend preparado. Comprueba también:
+- [X] T005 [P] `…/test/domain/onboarding/ModelSetupStatusResolverTest.kt`. Tabla de prioridades de data-model §2. Incluye la prueba **exhaustiva de SC-001**: recorre todas las combinaciones de `ModelFileState` × progreso × preparación × preferencias × red y comprueba que `Ready` aparece **solo** con `Verified` y backend preparado. Comprueba también:
   - el porcentaje (`floor`, como mucho 100);
   - `SetupRowAction` de cada estado.
-- [ ] T006 [P] `…/test/domain/model/SetupStepResolverTest.kt`:
+- [X] T006 [P] `…/test/domain/model/SetupStepResolverTest.kt`:
   - paso 1, 2 y 3 según data-model §8;
   - `ContinueBlocker` de cada caso;
   - `continueEnabled` solo con los dos `Ready` y el almacenamiento `Offline`.
-- [ ] T007 [P] `…/test/data/models/VerificationRecordStoreTest.kt`:
+- [X] T007 [P] `…/test/data/models/VerificationRecordStoreTest.kt`:
   - lectura y escritura atómica;
   - fichero ausente o corrupto, que se trata como vacío;
   - entradas con un SHA-256 distinto del catálogo, que se ignoran.
-- [ ] T008 [P] Ampliar `…/test/data/models/DefaultModelFileRepositoryTest.kt`:
+- [X] T008 [P] Ampliar `…/test/data/models/DefaultModelFileRepositoryTest.kt`:
   - `adopt`: con coincidencia, `rename` y `Verified`, sin copia (el fichero de origen desaparece y el inode es el mismo, o la ruta cambia sin duplicar espacio); con 1 byte alterado, `Mismatch` y fichero borrado;
   - `installFromStream`: con coincidencia, `.part` y `rename`; con discrepancia, nada en `models/`;
   - `markPrepared` y `preparedBackend`;
   - `refresh` con registro válido: `Verified` sin calcular hash (contador de lecturas a 0);
   - `refresh` con otro `lastModified` o tamaño: `Unverified`;
   - `refresh` no borra `models/downloads/*.download`.
-- [ ] T009 [P] `…/test/data/onboarding/DataStoreOnboardingStoreTest.kt`, con DataStore en `TemporaryFolder`:
+- [X] T009 [P] `…/test/data/onboarding/DataStoreOnboardingStoreTest.kt`, con DataStore en `TemporaryFolder`:
   - valores por defecto;
   - transiciones de `stage`;
   - `requestDownload` (añade, `confirmed = true`, `paused = false`);
   - `setPaused` y `clearRequest`;
   - persistencia al recrear el store.
-- [ ] T010 [P] `…/test/architecture/NetworkConfinementTest.kt` (research R9). Recorre `src/main/java` y `src/debug/java` y falla si un fichero fuera de `data/download/` importa:
+- [X] T010 [P] `…/test/architecture/NetworkConfinementTest.kt` (research R9). Recorre `src/main/java` y `src/debug/java` y falla si un fichero fuera de `data/download/` importa:
   - `java.net.`, excepto `java.net.URI`;
   - `javax.net.`;
   - `okhttp3.`;
@@ -108,29 +108,29 @@ description: "Lista de tareas de F03 — Modelos y primer arranque"
 
 ### Implementación
 
-- [ ] T011 [P] En `…/microrag/domain/model/`:
+- [X] T011 [P] En `…/microrag/domain/model/`:
   - `ModelCatalog.required` y la propiedad `ModelFile.downloadUrl` (data-model §1);
   - `OnboardingStage.kt`, `NetworkKind.kt` y `StartDestination.kt`;
   - `DownloadProgress.kt` con `DownloadOutcome` y `DownloadError`;
   - `ModelSetupStatus.kt`, con `SetupRowAction`;
   - `SetupStep.kt`, con `SetupStepResolver`, `ContinueBlocker` y `StorageStatus`.
-- [ ] T012 [P] Interfaces de dominio en `…/microrag/domain/onboarding/`: `OnboardingStore.kt`, `DeviceResources.kt` y `ModelDownloadController.kt` (contracts/download-api.md § Dominio). También `PreparationState` en `ModelSetupStatus.kt` o en un fichero propio.
-- [ ] T013 `…/microrag/domain/onboarding/ModelSetupStatusResolver.kt`: función pura según data-model §2. Hace pasar T005 y T006, junto con `SetupStepResolver` de T011.
-- [ ] T014 [P] `…/microrag/data/models/AppDirs.kt` (`models/`, `models/downloads/`, `documents/` e `index/` bajo `noBackupFilesDir`, data-model §10) y `VerificationRecordStore.kt` (kotlinx-serialization, `tmp` + `rename`). Hace pasar T007.
-- [ ] T015 Ampliar `ModelFileRepository` y `DefaultModelFileRepository` con `adopt`, `installFromStream`, `markPrepared`, `preparedBackend` y el chequeo con registro en `refresh` (data-model §4 y §7).
+- [X] T012 [P] Interfaces de dominio en `…/microrag/domain/onboarding/`: `OnboardingStore.kt`, `DeviceResources.kt` y `ModelDownloadController.kt` (contracts/download-api.md § Dominio). También `PreparationState` en `ModelSetupStatus.kt` o en un fichero propio.
+- [X] T013 `…/microrag/domain/onboarding/ModelSetupStatusResolver.kt`: función pura según data-model §2. Hace pasar T005 y T006, junto con `SetupStepResolver` de T011.
+- [X] T014 [P] `…/microrag/data/models/AppDirs.kt` (`models/`, `models/downloads/`, `documents/` e `index/` bajo `noBackupFilesDir`, data-model §10) y `VerificationRecordStore.kt` (kotlinx-serialization, `tmp` + `rename`). Hace pasar T007.
+- [X] T015 Ampliar `ModelFileRepository` y `DefaultModelFileRepository` con `adopt`, `installFromStream`, `markPrepared`, `preparedBackend` y el chequeo con registro en `refresh` (data-model §4 y §7).
   - `installVerified` y `verify` también escriben el registro.
   - `refresh` limpia solo los `.part` de `models/`.
 
   Hace pasar T008 y mantiene en verde los tests de F02 (`DevModelImporterTest`, suite de diagnóstico).
-- [ ] T016 [P] `…/microrag/data/onboarding/DataStoreOnboardingStore.kt`, con `PreferenceDataStoreFactory` en `noBackupFilesDir/datastore/onboarding.preferences_pb` (research R6). Hace pasar T009.
-- [ ] T017 [P] `…/microrag/data/device/AndroidDeviceResources.kt`:
+- [X] T016 [P] `…/microrag/data/onboarding/DataStoreOnboardingStore.kt`, con `PreferenceDataStoreFactory` en `noBackupFilesDir/datastore/onboarding.preferences_pb` (research R6). Hace pasar T009.
+- [X] T017 [P] `…/microrag/data/device/AndroidDeviceResources.kt`:
   - `totalRamBytes`, de `ActivityManager.MemoryInfo`;
   - `freeBytes`, de `StatFs(noBackupFilesDir)`;
   - `currentNetwork`;
   - `hasInternet`, un `callbackFlow` con `ConnectivityManager.registerDefaultNetworkCallback`.
 
   No importa APIs de red (T010).
-- [ ] T018 DI: en `…/microrag/data/di/DataModule.kt`, registrar `AppDirs`, `VerificationRecordStore`, `OnboardingStore` y `DeviceResources`, y pasar el registro a `DefaultModelFileRepository`. Actualizar `…/test/core/di/AppModulesTest.kt` (`verify()` con los `extraTypes` necesarios) y comprobarlo en verde.
+- [X] T018 DI: en `…/microrag/data/di/DataModule.kt`, registrar `AppDirs`, `VerificationRecordStore`, `OnboardingStore` y `DeviceResources`, y pasar el registro a `DefaultModelFileRepository`. Actualizar `…/test/core/di/AppModulesTest.kt` (`verify()` con los `extraTypes` necesarios) y comprobarlo en verde.
 
 **Checkpoint**: `./gradlew :app:testDebugUnitTest :app:lintDebug` en verde. F02 sigue funcionando: diagnóstico en el emulador sin modelos.
 
@@ -148,14 +148,14 @@ description: "Lista de tareas de F03 — Modelos y primer arranque"
 
 ### Tests for User Story 1 ⚠️
 
-- [ ] T019 [P] [US1] `…/test/domain/onboarding/ResolveStartDestinationUseCaseTest.kt`: `NOT_STARTED` → `Welcome`, `STARTED` → `SetupOverWelcome`, `COMPLETED` → `Home`. Más `StartOnboardingUseCase` → `STARTED`.
+- [X] T019 [P] [US1] `…/test/domain/onboarding/ResolveStartDestinationUseCaseTest.kt`: `NOT_STARTED` → `Welcome`, `STARTED` → `SetupOverWelcome`, `COMPLETED` → `Home`. Más `StartOnboardingUseCase` → `STARTED`.
 - [ ] T020 [P] [US1] `…/androidTest/core/navigation/OnboardingNavigationTest.kt`, con un `OnboardingStore` falso:
   - el destino inicial de cada etapa;
   - «Comenzar» → `Setup`;
   - Atrás en `Setup` → `Welcome`;
   - Atrás en `Welcome` cierra la actividad;
   - pila `[Welcome, Setup]` al arrancar en `STARTED`.
-- [ ] T021 [P] [US1] `…/androidTest/feature/onboarding/WelcomeScreenAccessibilityTest.kt`:
+- [X] T021 [P] [US1] `…/androidTest/feature/onboarding/WelcomeScreenAccessibilityTest.kt`:
   - ATF en claro y oscuro;
   - la CTA mide ≥ 48 dp;
   - el logo tiene descripción y la ilustración no expone semántica;
@@ -163,10 +163,10 @@ description: "Lista de tareas de F03 — Modelos y primer arranque"
 
 ### Implementation for User Story 1
 
-- [ ] T022 [P] [US1] `ResolveStartDestinationUseCase.kt` y `StartOnboardingUseCase.kt` en `…/microrag/domain/onboarding/`. Hace pasar T019.
-- [ ] T023 [P] [US1] `…/microrag/feature/onboarding/welcome/WelcomeIllustration.kt`: órbitas, documento y tiles con `ic_file_text`, `ic_sparkle` e `ic_shield_check`, usando solo tokens y `clearAndSetSemantics {}`. Se escala o se oculta según la altura disponible (contracts/onboarding-ui.md).
-- [ ] T024 [US1] `…/microrag/feature/onboarding/welcome/WelcomeScreen.kt` y `WelcomePreviews.kt`. Composición del PNG 01 con `gradients.welcome`, `LisdataLogo`, el chip sobre oscuro, el H1 en dos colores, los textos, `LisdataGradientButton` y el pie. Contenido desplazable. Previews en claro, oscuro, compacta y fuente 2.0.
-- [ ] T025 [US1] Arranque:
+- [X] T022 [P] [US1] `ResolveStartDestinationUseCase.kt` y `StartOnboardingUseCase.kt` en `…/microrag/domain/onboarding/`. Hace pasar T019.
+- [X] T023 [P] [US1] `…/microrag/feature/onboarding/welcome/WelcomeIllustration.kt`: órbitas, documento y tiles con `ic_file_text`, `ic_sparkle` e `ic_shield_check`, usando solo tokens y `clearAndSetSemantics {}`. Se escala o se oculta según la altura disponible (contracts/onboarding-ui.md).
+- [X] T024 [US1] `…/microrag/feature/onboarding/welcome/WelcomeScreen.kt` y `WelcomePreviews.kt`. Composición del PNG 01 con `gradients.welcome`, `LisdataLogo`, el chip sobre oscuro, el H1 en dos colores, los textos, `LisdataGradientButton` y el pie. Contenido desplazable. Previews en claro, oscuro, compacta y fuente 2.0.
+- [X] T025 [US1] Arranque:
   - `MainActivity.kt`: splash de la plataforma retenida con `OnPreDrawListener` hasta resolver `StartDestination` (research R10);
   - `MicroRagAppShell` y `MicroRagNavHost`: reciben el destino inicial, `Welcome` usa `WelcomeScreen` y `Setup` sigue como marcador hasta T047;
   - la pila `[Welcome, Setup]` para `STARTED`;
