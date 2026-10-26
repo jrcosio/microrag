@@ -246,9 +246,9 @@ description: "Lista de tareas de F05 — Harness offline de evaluación"
   - `answers.jsonl` incremental y reanudable;
   - juicio automático;
   - muestra de 50 repetida en CPU.
-- [ ] T039 [US4] Generación con E2B para 4, 6 y 8 bloques, con y sin vecinos, sobre la recuperación elegida en US3 (spec FR-012). Registrar la mediana y el p95 de los tokens de prompt de cada variante y descartar las que superen 2.000 en el p95 (SC-005). Elegir la configuración.
-- [ ] T040 [US4] Descargar `gemma-4-E4B-it.litertlm` de la revisión fijada en research R7 a `$HOME/MicroRAG-models`, verificar su SHA-256 y enlazarlo. Generar el conjunto con E4B en la configuración elegida.
-- [ ] T041 [US4] **Juicio manual** de la configuración elegida con E2B (D-032):
+- [X] T039 [US4] Generación con E2B para 4, 6 y 8 bloques, con y sin vecinos, sobre la recuperación elegida en US3 (spec FR-012). Registrar la mediana y el p95 de los tokens de prompt de cada variante y descartar las que superen 2.000 en el p95 (SC-005). Elegir la configuración.
+- [X] T040 [US4] Descargar `gemma-4-E4B-it.litertlm` de la revisión fijada en research R7 a `$HOME/MicroRAG-models`, verificar su SHA-256 y enlazarlo. Generar el conjunto con E4B en la configuración elegida.
+- [X] T041 [US4] **Juicio manual** de la configuración elegida con E2B (D-032):
   - juzgo cada respuesta (correcta, incorrecta o parcial) y cada cita (sostiene o no lo afirmado) en `offline/reports/manual-judgement.csv`;
   - preparo una muestra de 50 para el usuario en la misma hoja y **pido su revisión**;
   - calculo el acuerdo entre las reglas y el juicio manual.
@@ -265,11 +265,11 @@ description: "Lista de tareas de F05 — Harness offline de evaluación"
 
 ### Tests (escribir primero)
 
-- [ ] T042 [P] [US5] `app/src/test/java/com/lisdatasolutions/microrag/domain/rag/RagParametersTest.kt` (P2): lee `../offline/config/rag_parameters.json` y exige igualdad campo a campo con `RagParameters`, más `dims == EmbeddingMath.DIMENSIONS` y `normalizer_version == SpanishText.VERSION`.
+- [X] T042 [P] [US5] `app/src/test/java/com/lisdatasolutions/microrag/domain/rag/RagParametersTest.kt` (P2): lee `../offline/config/rag_parameters.json` y exige igualdad campo a campo con `RagParameters`, más `dims == EmbeddingMath.DIMENSIONS` y `normalizer_version == SpanishText.VERSION`.
 
 ### Implementación
 
-- [ ] T043 [US5] `offline/eval/report.py` y el comando `report` (E8). Genera `offline/reports/eval-report.md` con:
+- [X] T043 [US5] `offline/eval/report.py` y el comando `report` (E8). Genera `offline/reports/eval-report.md` con:
   - el corpus (documentos, tipos y licencias);
   - el conjunto de prueba;
   - la referencia y todas las ablaciones frente a los umbrales;
@@ -277,17 +277,17 @@ description: "Lista de tareas de F05 — Harness offline de evaluación"
   - el acuerdo entre reglas y juicio manual;
   - la comparación de E2B y E4B;
   - la configuración elegida.
-- [ ] T044 [US5] **Umbrales** (FR-022):
+- [X] T044 [US5] **Umbrales** (FR-022):
   - si la configuración elegida cumple SC-004, sigue con T045;
   - si no, probar las palancas (trigramas como tercera lista de RRF, troceado, cabecera, candidatos, plantilla), documentar su efecto en el informe y, si aun así falta algún umbral, **parar y consultar al usuario** con las cifras y las opciones.
-- [ ] T045 [US5] Registrar en `docs/roadmap/DECISIONS.md` una entrada por parámetro decidido (P1), con la cifra y las alternativas descartadas. Crear `offline/config/rag_parameters.json` (contracts/rag-parameters.md).
-- [ ] T046 [US5] Crear `app/src/main/java/com/lisdatasolutions/microrag/domain/rag/RagParameters.kt` con las constantes decididas y su KDoc (P2). Si `dims` ≠ 256, aplicar P3:
+- [X] T045 [US5] Registrar en `docs/roadmap/DECISIONS.md` una entrada por parámetro decidido (P1), con la cifra y las alternativas descartadas. Crear `offline/config/rag_parameters.json` (contracts/rag-parameters.md).
+- [X] T046 [US5] Crear `app/src/main/java/com/lisdatasolutions/microrag/domain/rag/RagParameters.kt` con las constantes decididas y su KDoc (P2). Si `dims` ≠ 256, aplicar P3:
   - cambiar `EmbeddingMath.DIMENSIONS`;
   - regenerar el golden de embeddings;
   - ejecutar `EmbeddingGoldenTest` en el teléfono.
 
   Si `contextual_header` es `false`, anotar P4 para F07.
-- [ ] T047 [US5] Comando `chunker-golden` → `offline/golden/chunker_golden.jsonl`, con los parámetros decididos, casos sintéticos (fronteras, solape, párrafos largos) y 20 documentos reales del corpus recortados. Añadir una prueba Python que lo regenera y compara.
+- [X] T047 [US5] Comando `chunker-golden` → `offline/golden/chunker_golden.jsonl`, con los parámetros decididos, casos sintéticos (fronteras, solape, párrafos largos) y 20 documentos reales del corpus recortados. Añadir una prueba Python que lo regenera y compara.
 
 **Checkpoint**: parámetros decididos y propagados.
 
@@ -295,13 +295,13 @@ description: "Lista de tareas de F05 — Harness offline de evaluación"
 
 ## Phase 8: Polish & Cross-Cutting Concerns
 
-- [ ] T048 [P] Ampliar `offline/README.md` con la sección «Evaluación»: comandos, corpus y licencias, revisión del conjunto, reanudación y cómo repetir el informe.
-- [ ] T049 Puertas de calidad:
+- [X] T048 [P] Ampliar `offline/README.md` con la sección «Evaluación»: comandos, corpus y licencias, revisión del conjunto, reanudación y cómo repetir el informe.
+- [X] T049 Puertas de calidad:
   - pruebas Python (`$E -I -m unittest discover -s offline/tests`);
   - `./gradlew :app:assembleDebug :app:assembleRelease :app:lintDebug :app:lintRelease :app:testDebugUnitTest`.
 
   Si cambió `dims`, también la suite instrumentada en el teléfono. Todo en verde.
-- [ ] T050 Documentación de cierre:
+- [X] T050 Documentación de cierre:
   - `specs/005-offline-eval-harness/report.md`, con resumen, cifras, decisiones, diferencias frente al plan y pendientes;
   - estado de F05 en `docs/roadmap/FEATURES.md`;
   - INVENTARIO si procede;
