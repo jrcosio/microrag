@@ -2,7 +2,7 @@
 <!-- F03 onboarding (contracts/onboarding-ui.md). -->
 <resources>
     <!-- P01 Welcome -->
-    <string name="welcome_chip">100% ON YOUR DEVICE</string>
+    <string name="welcome_chip" formatted="false">100% ON YOUR DEVICE</string>
     <string name="welcome_title_line1">Your knowledge.</string>
     <string name="welcome_title_line2">Only yours.</string>
     <string name="welcome_body_line1">Ask your documents with AI.</string>
@@ -94,11 +94,20 @@
     <string name="a11y_model_row">%1$s, %2$s, %3$s</string>
     <string name="a11y_status_unconfigured">not set up, double tap to set up</string>
     <string name="a11y_status_queued">queued</string>
-    <string name="a11y_status_downloading">downloading, %1$d percent, %2$s of %3$s</string>
-    <string name="a11y_status_importing">importing, %1$d percent, %2$s of %3$s</string>
+    <plurals name="a11y_status_downloading">
+        <item quantity="one">downloading, %1$d percent, %2$s of %3$s</item>
+        <item quantity="other">downloading, %1$d percent, %2$s of %3$s</item>
+    </plurals>
+    <plurals name="a11y_status_importing">
+        <item quantity="one">importing, %1$d percent, %2$s of %3$s</item>
+        <item quantity="other">importing, %1$d percent, %2$s of %3$s</item>
+    </plurals>
     <string name="a11y_status_paused">paused, %1$s of %2$s, double tap to resume</string>
     <string name="a11y_status_waiting_network">waiting for connection, %1$s of %2$s</string>
-    <string name="a11y_status_verifying">verifying, %1$d percent</string>
+    <plurals name="a11y_status_verifying">
+        <item quantity="one">verifying, %1$d percent</item>
+        <item quantity="other">verifying, %1$d percent</item>
+    </plurals>
     <string name="a11y_status_preparing">preparing, testing the model on this device</string>
     <string name="a11y_status_ready">ready</string>
     <string name="a11y_status_ready_cpu">ready, CPU mode, slower</string>

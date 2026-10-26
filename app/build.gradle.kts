@@ -63,6 +63,7 @@ android {
     }
     lint {
         abortOnError = true
+        lintConfig = file("lint.xml")
         checkDependencies = false
         // Constitution: release ships ARM64 only (x86_64 is debug-only for the emulator).
         disable += "ChromeOsAbiSupport"

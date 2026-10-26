@@ -2,7 +2,7 @@
 <!-- F03 onboarding (contracts/onboarding-ui.md). Texts visible in PNG 01/02 are literal (D-004). -->
 <resources>
     <!-- P01 Welcome -->
-    <string name="welcome_chip">100% EN TU DISPOSITIVO</string>
+    <string name="welcome_chip" formatted="false">100% EN TU DISPOSITIVO</string>
     <string name="welcome_title_line1">Tu conocimiento.</string>
     <string name="welcome_title_line2">Solo tuyo.</string>
     <string name="welcome_body_line1">Pregunta a tus documentos con IA.</string>
@@ -94,11 +94,23 @@
     <string name="a11y_model_row">%1$s, %2$s, %3$s</string>
     <string name="a11y_status_unconfigured">por configurar, doble toque para configurar</string>
     <string name="a11y_status_queued">en cola</string>
-    <string name="a11y_status_downloading">descargando, %1$d por ciento, %2$s de %3$s</string>
-    <string name="a11y_status_importing">importando, %1$d por ciento, %2$s de %3$s</string>
+    <plurals name="a11y_status_downloading">
+        <item quantity="one">descargando, %1$d por ciento, %2$s de %3$s</item>
+        <item quantity="many">descargando, %1$d por ciento, %2$s de %3$s</item>
+        <item quantity="other">descargando, %1$d por ciento, %2$s de %3$s</item>
+    </plurals>
+    <plurals name="a11y_status_importing">
+        <item quantity="one">importando, %1$d por ciento, %2$s de %3$s</item>
+        <item quantity="many">importando, %1$d por ciento, %2$s de %3$s</item>
+        <item quantity="other">importando, %1$d por ciento, %2$s de %3$s</item>
+    </plurals>
     <string name="a11y_status_paused">en pausa, %1$s de %2$s, doble toque para reanudar</string>
     <string name="a11y_status_waiting_network">esperando conexión, %1$s de %2$s</string>
-    <string name="a11y_status_verifying">verificando, %1$d por ciento</string>
+    <plurals name="a11y_status_verifying">
+        <item quantity="one">verificando, %1$d por ciento</item>
+        <item quantity="many">verificando, %1$d por ciento</item>
+        <item quantity="other">verificando, %1$d por ciento</item>
+    </plurals>
     <string name="a11y_status_preparing">preparando, probando el modelo en este dispositivo</string>
     <string name="a11y_status_ready">listo</string>
     <string name="a11y_status_ready_cpu">listo, modo CPU, más lento</string>
