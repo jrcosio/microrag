@@ -1,28 +1,22 @@
 <!--
 Sync Impact Report
-- Versión: plantilla sin ratificar → 1.0.0. Primera ratificación; se sustituyen todos los marcadores.
-- Principios (la plantilla traía 5 marcadores; ahora son 8 principios concretos):
-  - [PRINCIPLE_1_NAME] → I. 100 % on-device y privacidad (NO NEGOCIABLE)
-  - [PRINCIPLE_2_NAME] → II. Stack y arquitectura
-  - [PRINCIPLE_3_NAME] → III. RAG según el informe técnico (NO NEGOCIABLE)
-  - [PRINCIPLE_4_NAME] → IV. Rendimiento y recursos
-  - [PRINCIPLE_5_NAME] → V. Veracidad del estado
-  - Nuevo: VI. Calidad y pruebas
-  - Nuevo: VII. UI fiel a los mockups y accesible
-  - Nuevo: VIII. Idioma, proceso y trazabilidad
-- Secciones añadidas:
-  - Restricciones técnicas ([SECTION_2_NAME])
-  - Flujo de desarrollo y puertas de calidad ([SECTION_3_NAME])
-  - Gobernanza ([GOVERNANCE_RULES])
+- Versión: 1.0.0 → 1.1.0 (MINOR). Cambia de forma material un presupuesto del principio IV y se resuelven los TODO diferidos de la 1.0.0 con decisiones ya aprobadas.
+- Principios modificados (sin cambios de título):
+  - IV. Rendimiento y recursos: el presupuesto «primer token ≤ 3 s con 6 bloques» pasa a «≤ 5 s de extremo a extremo con un prompt de ≈ 2.000 tokens (6 bloques)», con la cifra medida en F02 (G44, opción (b) elegida por el usuario; DECISIONS D-026).
+- Secciones modificadas:
+  - Restricciones técnicas: minSdk 31 (D-017); teléfono de referencia Nothing Phone (1) (D-022); fichero genérico de Gemma 4 E2B en GPU (D-023); EmbeddingGemma 2 de 270M de solo texto (D-025).
+- Secciones añadidas: ninguna.
 - Secciones eliminadas: ninguna.
 - Plantillas dependientes:
   - ✅ .specify/templates/plan-template.md: su «Constitution Check» lee este fichero en tiempo de ejecución; no requiere cambios.
-  - ✅ .specify/templates/spec-template.md: sin referencias a principios concretos; no requiere cambios.
-  - ✅ .specify/templates/tasks-template.md: los tests son obligatorios por el principio VI; las tareas de test se generan desde el plan. No requiere cambios.
-  - ✅ .claude/skills/speckit-*: sin referencias a agentes concretos que actualizar.
-- TODO diferidos:
-  - minSdk definitivo: ≥ 26 obligatorio, propuesta 31; se confirma en el clarify de F01 (DECISIONS D-006).
-  - Teléfono de referencia concreto: se fija en F02.
+  - ✅ .specify/templates/spec-template.md: sin referencias a presupuestos concretos; no requiere cambios.
+  - ✅ .specify/templates/tasks-template.md: sin referencias a presupuestos concretos; no requiere cambios.
+  - ✅ .claude/skills/speckit-*: sin referencias a presupuestos concretos.
+- Documentos dependientes:
+  - ✅ docs/roadmap/FEATURES.md: criterios de TTFT de F11 y F14 alineados con el nuevo presupuesto.
+  - ✅ docs/roadmap/DECISIONS.md: D-026; G44 sale de «Pendientes de decisión».
+  - ✅ docs/roadmap/INVENTARIO.md: G44 resuelto.
+- TODO diferidos: ninguno. Los de la 1.0.0 quedan resueltos (minSdk por D-017 y teléfono de referencia por D-022).
 -->
 
 # Constitución de MicroRAG
@@ -115,7 +109,7 @@ Los parámetros de este principio solo cambian con una evaluación documentada (
   - El LLM se libera durante la ingesta y en `onTrimMemory` con nivel `TRIM_MEMORY_UI_HIDDEN` o superior.
   - El embedding de consulta va en CPU salvo que una medición justifique otra cosa.
 - Presupuestos en el teléfono de referencia:
-  - primer token ≤ 3 s con 6 bloques;
+  - primer token ≤ 5 s de extremo a extremo (de enviar la pregunta a ver el primer token) con un prompt de ≈ 2.000 tokens (6 bloques). Base medida en F02: TTFT de 4,53 s en el motor y 4,75 s de reloj con 1.986 tokens, más el embedding de consulta y la búsqueda (D-026). F05 fija el número de bloques dentro de este presupuesto y F14 evalúa palancas para bajarlo;
   - embedding de consulta < 150 ms;
   - INT8 + preload solo si el p95 de la búsqueda vectorial supera 20 ms.
 - Si la RAM total es < 7,5 GB, se muestra un aviso.
@@ -200,13 +194,14 @@ Los parámetros de este principio solo cambian con una evaluación documentada (
 - **Dispositivos y ABIs:**
   - ABIs: `arm64-v8a`; `x86_64` solo para el emulador.
   - Dispositivos de prueba: ARM64 con 8 GB o más de RAM.
-- **SDK:** minSdk ≥ 26, exigido por el AAR de SQLite-Vector. El valor definitivo (propuesta 31) se fija en F01. targetSdk según el scaffold vigente.
+  - Teléfono de referencia: Nothing Phone (1), A063. Snapdragon 778G+ (SM7325), Adreno 642L, 12 GB de RAM y Android 15 (D-022).
+- **SDK:** minSdk 31 (D-017). El mínimo absoluto es 26, que exige el AAR de SQLite-Vector. targetSdk según el scaffold vigente.
 - **Runtime:**
   - LiteRT-LM 0.18.x (Google Maven) en Android.
   - `litert-lm-api` 0.18.x en Python offline.
 - **Modelos:**
-  - LLM: Gemma 4 E2B instruction-tuned, en GPU.
-  - Embeddings: EmbeddingGemma 2 a 256D; la variante se elige por evaluación.
+  - LLM: Gemma 4 E2B instruction-tuned, fichero genérico `gemma-4-E2B-it.litertlm`, en GPU (D-023).
+  - Embeddings: EmbeddingGemma 2 de 270M de solo texto (`embeddinggemma-2-text-270m.litertlm`) a 256D (D-025).
 - **Motor vectorial:** SQLite-Vector (coseno, `normalized=1`, `vector_init` en cada conexión) sobre SQLite bundled con FTS5.
 - **Formatos del MVP:** PDF con texto extraíble, TXT y Markdown. Los PDF sin texto se detectan y se informa al usuario. OCR, HTML, DOCX y exportar/restaurar están fuera del MVP (backlog).
 - **Pipeline Python offline (`offline/`):** solo para evaluación, ajuste y generación de golden. **No** distribuye índices.
@@ -236,4 +231,4 @@ Los parámetros de este principio solo cambian con una evaluación documentada (
   - PATCH: aclaraciones y redacción.
 - **Cumplimiento:** se verifica en el *Constitution Check* de `/speckit-plan` y en `/speckit-analyze`. Un incumplimiento no justificado bloquea `/speckit-implement`.
 
-**Version**: 1.0.0 | **Ratified**: 2026-10-25 | **Last Amended**: 2026-10-25
+**Version**: 1.1.0 | **Ratified**: 2026-10-25 | **Last Amended**: 2026-10-26

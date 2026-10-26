@@ -2,7 +2,7 @@
 
 Registro vivo con fecha, decisión, motivo, origen y alcance. Cada decisión nueva se añade al final con el siguiente identificador. Las decisiones no se borran: si una se sustituye, se marca como «Sustituida por D-XXX».
 
-Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G42).
+Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
 
 ---
 
@@ -314,16 +314,29 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G42).
 
 ---
 
-## Pendientes de decisión
+## D-026 — Presupuesto de primer token: ≤ 5 s con ≈ 2.000 tokens (G44)
 
-- **G44 — Presupuesto de TTFT (constitución IV) frente a lo medido.**
-  - **Medición:** con un prompt de 1.986 tokens, el TTFT es de 4,53 s (D-023). El presupuesto «primer token ≤ 3 s con 6 bloques» no se cumple en el teléfono de referencia.
-  - **Criterio de salida de la fase 0:** se cumple, porque pedía medir el TTFT.
-  - **Opciones a decidir con el usuario antes de F10 y F11:**
-    - (a) reducir el contexto a ≈ 1.200 tokens (3–4 bloques) para acercarse a 3 s;
-    - (b) aceptar ≈ 4,5 s en este teléfono y enmendar el presupuesto con la cifra medida (constitución VI);
-    - (c) evaluar palancas en F14: decodificación especulativa, plantilla más corta y E4B frente a E2B.
-  - **Decode:** a 8,8 tok/s, una respuesta de 128 tokens tarda ≈ 15 s en completarse. El streaming lo mitiga.
+- **Fecha:** 2026-10-26
+- **Decisión:**
+  - Se enmienda la constitución a la **v1.1.0** (principio IV). El presupuesto «primer token ≤ 3 s con 6 bloques» pasa a **≤ 5 s de extremo a extremo** (de enviar la pregunta a ver el primer token) con un prompt de ≈ 2.000 tokens (6 bloques) en el teléfono de referencia.
+  - No se recorta el contexto ahora. F05 fija el número de bloques con datos de calidad, dentro de este presupuesto.
+  - Las palancas para bajar el TTFT (decodificación especulativa, plantilla más corta, E4B frente a E2B) se evalúan en F14 como mejora.
+- **Motivo:**
+  - El objetivo de 3 s del informe era un presupuesto previo a la medición. La constitución VI dice que las cifras medidas sustituyen a los presupuestos.
+  - **Medido en F02 (D-023):** TTFT de 4,53 s en el motor y 4,75 s de reloj con un prompt de 1.986 tokens y 6 fuentes.
+  - **De extremo a extremo** hay que sumar el embedding de consulta (p95 de 120 ms, D-024) y la búsqueda (≤ 20 ms p95, constitución IV): ≈ 4,9 s.
+  - Con un prefill de 450 tok/s, cada bloque de ≈ 350 tokens cuesta ≈ 0,8 s. Si F05 elige menos bloques, el TTFT baja en proporción.
+  - **Opciones descartadas:**
+    - (a) reducir el contexto a ≈ 1.200 tokens: sacrifica calidad de recuperación sin datos de F05;
+    - (c) como única vía (mantener 3 s hasta F14): dejaría F10 y F11 sin un presupuesto alcanzable. Se conserva como mejora posterior.
+- **Origen:** usuario, al cerrar F02 (opción (b) de G44). En el mismo punto de control aprueba F02 y confirma D-023, D-024 y D-025.
+- **Afecta:**
+  - la constitución (IV, y Restricciones técnicas alineadas con D-017, D-022, D-023 y D-025);
+  - F05 (número de bloques), F11 (criterio de TTFT) y F14 (sesión sostenida y palancas).
+
+---
+
+## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.
 

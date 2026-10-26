@@ -4,9 +4,9 @@
 
 **Rama:** `002-ondevice-feasibility`
 
-**Estado:** implementada; pendiente de la revisión del usuario.
+**Estado:** cerrada; aprobada por el usuario el 2026-10-26.
 
-**Abierto:** decisión G44 sobre el presupuesto de TTFT (ver §5).
+**G44:** resuelto con la opción (b) en D-026 (constitución v1.1.0, ver §5).
 
 ## 1. Qué se ha implementado
 
@@ -102,10 +102,7 @@ Datos comunes:
 - **D-023 (G35):** se usa el fichero **genérico** de Gemma en GPU. El fichero `-gpu` genera texto incoherente en la Adreno 642L con fp16, su precisión por defecto. Con FP32 funciona, pero es casi 3 veces más lento (R14).
 - **D-024:** consulta en **CPU**. La ingesta puede usar la **GPU**, que es unas 2,5 veces más rápida, y se pueden mezclar vectores de ambos backends (coseno ≥ 0,99, con poco margen).
 - **D-025 (G36):** se usa la variante **270M**. Las tres variantes dan vectores de texto idénticos (coseno 1,0, R15). F05 deja de comparar variantes.
-- **G44, pendiente de decidir contigo:** el TTFT de 4,5 s con unos 2.000 tokens supera el presupuesto de 3 s de la constitución (IV). Opciones en DECISIONS:
-  - reducir el contexto;
-  - enmendar el presupuesto con la cifra medida;
-  - evaluar palancas en F14.
+- **G44, resuelto (D-026):** el TTFT de 4,5 s con unos 2.000 tokens superaba el presupuesto de 3 s de la constitución (IV). El usuario eligió enmendar el presupuesto con la cifra medida: la constitución v1.1.0 fija ≤ 5 s de extremo a extremo con ≈ 2.000 tokens. F05 elige el número de bloques y F14 evalúa palancas para bajarlo.
 
   Decode de 8,8 tok/s.
 - **Otros hallazgos:**
@@ -122,4 +119,4 @@ Datos comunes:
 
 ## 7. Estado en el roadmap
 
-F02 queda ✅ implementada en `docs/roadmap/FEATURES.md`, pendiente de tu revisión. G35 y G36 quedan resueltos en INVENTARIO; G44 queda abierto.
+F02 queda ✅ cerrada en `docs/roadmap/FEATURES.md`. G35, G36 y G44 quedan resueltos en INVENTARIO.

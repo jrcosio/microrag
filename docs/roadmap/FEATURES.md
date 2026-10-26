@@ -35,8 +35,8 @@ Al cerrar cada feature se entrega:
 
 | ID | Feature | Tipo | Depende de | Estado |
 |---|---|---|---|---|
-| F01 | Fundaciones y design system | Producto (shell y DS) | — | ✅ implementada (pendiente de revisión del usuario; T059 TalkBack manual abierta) |
-| F02 | Viabilidad on-device (fase 0) | Técnica | F01 | ✅ implementada (pendiente de revisión; G44 abierto) |
+| F01 | Fundaciones y design system | Producto (shell y DS) | — | ✅ cerrada (T059 TalkBack manual abierta) |
+| F02 | Viabilidad on-device (fase 0) | Técnica | F01 | ✅ cerrada |
 | F03 | Modelos y primer arranque | Producto | F01, F02 | ⬜ |
 | F04 | Núcleo de datos RAG | Técnica | F02 | ⬜ |
 | F05 | Harness offline de evaluación | Técnica | F04 | ⬜ |
@@ -85,7 +85,7 @@ flowchart LR
 ## F01 — Fundaciones y design system
 
 - **Tipo:** Producto. Shell y design system; sin pantallas de producto finales.
-- **Estado:** ✅ implementada el 2026-10-25 en la rama `001-foundations-design-system`. Informe de cierre en `specs/001-foundations-design-system/report.md`. Queda abierto el recorrido manual con TalkBack (T059).
+- **Estado:** ✅ cerrada: implementada el 2026-10-25 en la rama `001-foundations-design-system` y aprobada por el usuario el mismo día. Informe de cierre en `specs/001-foundations-design-system/report.md`. Queda abierto el recorrido manual con TalkBack (T059).
 
 **Objetivo.** Dejar una base compilable y verificable sobre la que montar el resto:
 - configuración del proyecto;
@@ -140,7 +140,7 @@ flowchart LR
 ## F02 — Viabilidad on-device (fase 0)
 
 - **Tipo:** Técnica. Pantalla de diagnóstico interna, solo en debug.
-- **Estado:** ✅ implementada el 2026-10-26, pendiente de revisión. Informe de cierre en `specs/002-ondevice-feasibility/report.md` y cifras en `benchmarks.md`. Decisiones D-023 (Gemma genérico en GPU), D-024 (consulta en CPU; GPU apta para la ingesta) y D-025 (EmbeddingGemma 2 de 270M). Queda abierto **G44**, el presupuesto de TTFT: 4,53 s medidos con 1.986 tokens frente a los ≤ 3 s de la constitución. Teléfono de referencia: Nothing Phone (1) (D-022).
+- **Estado:** ✅ cerrada: implementada el 2026-10-26 en la rama `002-ondevice-feasibility` y aprobada por el usuario el mismo día. Informe de cierre en `specs/002-ondevice-feasibility/report.md` y cifras en `benchmarks.md`. Decisiones D-023 (Gemma genérico en GPU), D-024 (consulta en CPU; GPU apta para la ingesta), D-025 (EmbeddingGemma 2 de 270M) y D-026 (G44: presupuesto de primer token ≤ 5 s con ≈ 2.000 tokens; constitución v1.1.0). Teléfono de referencia: Nothing Phone (1) (D-022).
 
 **Objetivo.** Demostrar que Gemma 4 E2B y EmbeddingGemma 2 funcionan en el teléfono de referencia con LiteRT-LM 0.18.1, y medir:
 - `initialize()` en frío de cada engine;
@@ -274,7 +274,7 @@ También se introduce `EngineCoordinator`, que garantiza que nunca haya dos engi
 - tamaño de chunk (250, 350 o 500 tokens);
 - cabecera contextual sí o no;
 - normalización FTS;
-- bloques finales (4, 6 u 8, con o sin vecinos);
+- bloques finales (4, 6 u 8, con o sin vecinos), dentro del presupuesto de primer token (≤ 5 s con ≈ 2.000 tokens de prompt, D-026);
 - E2B frente a E4B en calidad de respuesta.
 
 **Pantallas y mockups.** Ninguna.
@@ -531,7 +531,7 @@ También se introduce `EngineCoordinator`, que garantiza que nunca haya dos engi
 2. Ninguna cita sale sin un `documentId`/`chunkId` real. Un `[n]` fuera de rango se descarta (test).
 3. Sin evidencia se muestra el mensaje del MD, sin citas.
 4. Cita → detalle con el fragmento resaltado → Atrás vuelve al chat conservando el scroll.
-5. TTFT ≤ 3 s con 6 bloques en el teléfono de referencia, medido y reportado. Si no se cumple, se ajustan bloques o tokens.
+5. Primer token ≤ 5 s de extremo a extremo con los bloques que fije F05 (prompt de ≈ 2.000 tokens como máximo) en el teléfono de referencia, medido y reportado (constitución IV, D-026). Si no se cumple, se ajustan bloques o tokens.
 6. Cancelar detiene la generación y conserva el texto parcial, marcado como cancelado.
 7. El teclado no tapa el compositor.
 8. Prompts y respuestas no aparecen en los logs de release.
@@ -618,7 +618,8 @@ También se introduce `EngineCoordinator`, que garantiza que nunca haya dos engi
 - extremo a extremo;
 - RSS, heap, tamaño del `.db`, batería y temperatura;
 - sesión sostenida de 20–30 minutos;
-- E2B frente a E4B.
+- E2B frente a E4B;
+- palancas para bajar el primer token por debajo de 5 s (D-026): decodificación especulativa y plantilla más corta.
 
 Con esos datos se decide: INT8 sí o no, número de bloques y perfil de modelo.
 
@@ -631,7 +632,7 @@ Con esos datos se decide: INT8 sí o no, número de bloques y perfil de modelo.
 **Criterios de aceptación.**
 1. `benchmarks.md` con cifras reales, dispositivo y versiones, que sustituyen los presupuestos del informe.
 2. Si el p95 vectorial supera 20 ms: INT8 + preload implementado, con Recall@20 de INT8 frente a F32 ≥ 0,97. Si no, la decisión de quedarse en F32 queda documentada.
-3. En la sesión sostenida se mantiene TTFT ≤ 3 s, o hay una decisión documentada.
+3. En la sesión sostenida se mantiene el primer token ≤ 5 s de extremo a extremo (constitución IV), o hay una decisión documentada.
 4. Todas las decisiones se registran en DECISIONS.
 
 **Riesgos.**
