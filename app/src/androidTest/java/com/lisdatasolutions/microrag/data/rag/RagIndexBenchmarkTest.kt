@@ -19,6 +19,7 @@ import org.junit.runner.RunWith
 /**
  * SC-008 (research R9): p50/p95 of exact vector search and BM25 search over 10,000 synthetic chunks.
  * A reference for F10 and F14 (INT8 only if the vector p95 exceeds 20 ms), not a threshold of F04.
+ * Since F07 (research R7) searches skip unpublished chunks: measured with none and with 4,300 of them.
  */
 @RunWith(AndroidJUnit4::class)
 class RagIndexBenchmarkTest {
@@ -53,6 +54,23 @@ class RagIndexBenchmarkTest {
             Log.i(TAG, "benchmark device=${Build.MODEL} api=${Build.VERSION.SDK_INT} chunks=${DOCUMENTS * CHUNKS_PER_DOCUMENT} insert=%.1f s db=%.1f MB".format(Locale.ROOT, insertSeconds, dbMb))
             Log.i(TAG, "benchmark vector k=50 ${summary(vectorMs)}")
             Log.i(TAG, "benchmark text k=50 ${summary(textMs)}")
+
+            // F07 research R7: m = 4,300 chunks of a 2,000-page PDF half indexed, stored but not searchable.
+            val halfIndexed = index.addDocument(NewDocument(displayName = "A medias", contentHash = "bench-hidden"))
+            index.updateStatus(halfIndexed, DocumentStatus.EMBEDDING, chunkCount = HIDDEN_CHUNKS)
+            (0 until HIDDEN_CHUNKS).chunked(BATCH).forEach { ordinals ->
+                index.insertChunks(
+                    halfIndexed,
+                    ordinals.map { o -> chunk(o, content = sentence(random, WORDS_PER_CHUNK), vector = unitVector(HIDDEN_SEED + o)) },
+                )
+            }
+            val hiddenVectorMs = measure { index.vectorSearch(unitVector(-1 - it), k = 50) }
+            val hiddenTextMs = measure { index.textSearch(sentence(random, 4), k = 50) }
+            // Its own vector is the nearest one, and it is still not found.
+            val found = index.loadChunks(index.vectorSearch(unitVector(HIDDEN_SEED), k = 50).map { it.id })
+            assertThat(found.values.map { it.documentId }).doesNotContain(halfIndexed)
+            Log.i(TAG, "benchmark vector k=50 m=$HIDDEN_CHUNKS ${summary(hiddenVectorMs)}")
+            Log.i(TAG, "benchmark text k=50 m=$HIDDEN_CHUNKS ${summary(hiddenTextMs)}")
         }
     }
 
@@ -81,6 +99,8 @@ class RagIndexBenchmarkTest {
         const val WORDS_PER_CHUNK = 120
         const val WARMUP = 5
         const val RUNS = 100
+        const val HIDDEN_CHUNKS = 4_300
+        const val HIDDEN_SEED = 500_000
 
         val WORDS = """
             motor bomba válvula filtro presión caudal temperatura sensor tubería junta aceite revisión

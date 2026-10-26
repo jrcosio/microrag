@@ -432,6 +432,8 @@ description: "Lista de tareas de F07 — Indexación"
   - ***m* = 4.300:** registrar. Si, sumado al embedding de consulta (≈ 120 ms), supera 150 ms, consultar.
 
   Ejecutarla en el teléfono. **Si el p95 con *m* = 0 sube más de 2 ms, revisar la consulta antes de seguir.**
+
+  *Código hecho. Emulador API 37, orientativo (2026-10-27):* con *m* = 0, p95 vectorial 20,8 ms y BM25 21,2 ms; con *m* = 4.300, 46,1 ms y 45,7 ms. Falta la ejecución en el teléfono.
 - [ ] T063 [P] Crear `…/androidTest/data/indexing/IndexingBenchmarkTest.kt` (`@RequiresModels`, R13). Con `text_200_pages.pdf`, el runner real, `ChunkEmbeddingSession` y un índice temporal:
   - tiempo total y fragmentos por segundo en GPU y en CPU (backend forzado);
   - muestreo de `EngineCoordinator.loaded` durante la tanda, que nunca contiene el LLM (SC-007);
