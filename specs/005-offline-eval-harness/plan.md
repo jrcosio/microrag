@@ -68,7 +68,7 @@ F05 construye en `offline/` el pipeline de escritorio que fija con medidas los p
 **Constraints**:
 - Las únicas descargas son el corpus (una vez, con huella) y el modelo E4B. Las dos son de desarrollo; la app sigue sin red (constitución I).
 - Mismos artefactos que la app (constitución III).
-- Presupuesto de prompt ≈ 2.000 tokens (constitución IV).
+- Prompt de 2.000 tokens o menos en el p95 (constitución IV, D-026); el presupuesto de contexto del informe se ajusta a ese límite (research R6).
 - Atribuciones y licencias del corpus (R2).
 
 **Scale/Scope**:
@@ -86,7 +86,7 @@ F05 construye en `offline/` el pipeline de escritorio que fija con medidas los p
 | I. On-device y privacidad | Nada cambia en la app. Las descargas del corpus y de E4B son herramientas de desarrollo en el Mac, no tráfico de la app. Corpus público: sin datos privados (D-032) | ✅ |
 | II. Stack y arquitectura | Solo se añade `RagParameters` (dominio, constantes puras). Las versiones están verificadas (R1) | ✅ |
 | III. RAG según el informe | Es la evaluación documentada que el principio exige para fijar parámetros. Usa el mismo esquema, normalizador, prefijos, cabecera, truncado y SQLite-Vector que la app, y RRF k = 60 con el selector del informe. Las decisiones van a DECISIONS (P1) | ✅ |
-| IV. Rendimiento | El número de bloques se elige dentro del presupuesto de prompt de ≈ 2.000 tokens, medido con el tokenizador real. La latencia en el teléfono sigue siendo de F14 | ✅ |
+| IV. Rendimiento | El número de bloques se elige con un prompt de 2.000 tokens o menos en el p95 (D-026), medido con el tokenizador real. La latencia en el teléfono sigue siendo de F14 | ✅ |
 | V. Veracidad del estado | El juicio de citas exige que el bloque citado contenga la evidencia. Las cifras finales usan el juicio manual, y el informe da el acuerdo con las reglas | ✅ |
 | VI. Calidad y pruebas | Pruebas unitarias del pipeline y una prueba JVM de las constantes. Construcción reproducible. Si cambia `dims`, se repiten el golden de embeddings y su prueba en el teléfono (P3) | ✅ |
 | VII. UI | Sin UI | N/A |

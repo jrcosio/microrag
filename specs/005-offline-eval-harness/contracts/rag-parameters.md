@@ -17,14 +17,14 @@ Es la fuente única de los parámetros que decide F05 (constitución III). La le
   "follow_up_rule": true,
   "max_blocks": 6,
   "max_per_document": 3,
-  "budget_tokens": 2200,
+  "budget_tokens": 1750,
   "expand_top": 2,
   "llm_model": "GEMMA4_E2B",
   "max_output_tokens": 512
 }
 ```
 
-Los valores del ejemplo son los de la referencia; los definitivos salen del informe de evaluación.
+Los valores del ejemplo son orientativos (con `budget_tokens` ajustado a 2.000 tokens de prompt, research R6); los definitivos salen del informe de evaluación.
 
 ## Reglas
 

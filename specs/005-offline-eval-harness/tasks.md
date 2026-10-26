@@ -87,7 +87,8 @@ description: "Lista de tareas de F05 — Harness offline de evaluación"
 
 ### Tests (escribir primero)
 
-- [ ] T009 [P] [US1] `offline/tests/test_extract.py`:
+- [ ] T009 [P] [US1] `offline/tests/test_corpus.py` y `offline/tests/test_extract.py`:
+  - corpus (FR-020): cada entrada del manifest tiene todos sus campos y una licencia permitida; una huella distinta hace fallar `fetch-corpus`; `SOURCES.md` se genera desde el manifest;
   - Markdown: los encabezados `#`, `##` y `###` forman la ruta y los párrafos se separan por línea en blanco;
   - TXT: sin ruta;
   - PDF: un PDF pequeño generado en la prueba con `pypdf` da páginas y párrafos con la heurística de research R3;
@@ -207,7 +208,7 @@ description: "Lista de tareas de F05 — Harness offline de evaluación"
   - cabecera: con y sin;
   - tamaño: 250, 350 y 500;
   - regla de seguimiento: con y sin;
-  - bloques: 4, 6 y 8, con y sin vecinos (Recall@bloques).
+  - bloques: 4, 6 y 8, con y sin vecinos (Recall@bloques), cada uno con `budget_tokens` ajustado a un prompt de 2.000 tokens (research R6).
 
   Anotar la menor dimensión dentro del 1 % de nDCG@10 de 768.
 
@@ -224,7 +225,9 @@ description: "Lista de tareas de F05 — Harness offline de evaluación"
 ### Tests (escribir primero)
 
 - [ ] T034 [P] [US4] `offline/tests/test_prompt.py`: la plantilla del informe al carácter (reglas, fuentes numeradas «documento › ruta (p. N)», pregunta), y el bloque de conversación previa en los seguimientos, truncado a 300 y 500 caracteres.
-- [ ] T035 [P] [US4] `offline/tests/test_judge.py` (research R9):
+- [ ] T035 [P] [US4] `offline/tests/test_generate.py`, con un motor simulado: una conversación por pregunta, sampler determinista, `max_output_tokens`, reanudación sin regenerar lo guardado (FR-016, E7) y huella de configuración en la ruta.
+
+  `offline/tests/test_judge.py` (research R9):
   - normalización de datos clave, incluidas las cifras con separadores;
   - negativa exacta frente a negativa seguida de texto;
   - las formas de cita `[n]`, `[n, m]` y `[n][m]`;
@@ -243,7 +246,7 @@ description: "Lista de tareas de F05 — Harness offline de evaluación"
   - `answers.jsonl` incremental y reanudable;
   - juicio automático;
   - muestra de 50 repetida en CPU.
-- [ ] T039 [US4] Generación con E2B para 4, 6 y 8 bloques, con y sin vecinos, sobre la mejor recuperación de US3. Registrar la mediana y el p95 de los tokens de prompt de cada variante y descartar las que no caben en ≈ 2.000 tokens (SC-005). Elegir la configuración.
+- [ ] T039 [US4] Generación con E2B para 4, 6 y 8 bloques, con y sin vecinos, sobre la recuperación elegida en US3 (spec FR-012). Registrar la mediana y el p95 de los tokens de prompt de cada variante y descartar las que superen 2.000 en el p95 (SC-005). Elegir la configuración.
 - [ ] T040 [US4] Descargar `gemma-4-E4B-it.litertlm` de la revisión fijada en research R7 a `$HOME/MicroRAG-models`, verificar su SHA-256 y enlazarlo. Generar el conjunto con E4B en la configuración elegida.
 - [ ] T041 [US4] **Juicio manual** de la configuración elegida con E2B (D-032):
   - juzgo cada respuesta (correcta, incorrecta o parcial) y cada cita (sostiene o no lo afirmado) en `offline/reports/manual-judgement.csv`;

@@ -120,10 +120,13 @@ Ports literales del informe, que serán la referencia de F10 y F11:
   - FTS top-50 con `bm25(chunks_fts, 3.0, 1.0)` y `fts_query` de `normalizer.py`;
   - RRF con k = 60 (posiciones desde 1);
   - `isFollowUp`: menos de 8 tokens normalizados, o empieza por «y », «¿y », «pero », «entonces», «¿y si» o «y si ».
-- **`selector.py`:** `ContextSelector`, con `maxBlocks`, `maxPerDoc = 3`, presupuesto de 2.200 tokens, `expandTop = 2` y fusión sin el solape. El orden final es por documento y ordinal.
+- **`selector.py`:** `ContextSelector`, con `maxBlocks`, `maxPerDoc = 3`, presupuesto de tokens ajustado (abajo), `expandTop = 2` y fusión sin el solape. El orden final es por documento y ordinal.
 - **`prompt.py`:** `PromptBuilder` con la plantilla del informe. El seguimiento lleva la pregunta y la respuesta anteriores, truncadas a 300 y 500 caracteres.
 
-El presupuesto de 2.200 tokens del selector usa `token_estimate`. El tamaño real del prompt se mide con `Engine.tokenize` y se compara con ≈ 2.000 (constitución IV).
+**Presupuesto de tokens.** El selector usa `token_estimate`.
+- Con el presupuesto de contexto del informe (2.200 tokens), la plantilla y las cabeceras de las fuentes, el prompt ronda los 2.350 tokens. Eso supera los 2.000 con los que se midió el primer token de la constitución IV (D-026: 4,75 s con 1.986 tokens).
+- Manda la constitución: `budget_tokens` = 2.000 − (plantilla + cabeceras + pregunta, medidos con `Engine.tokenize`) − un margen del 5 % por el error de `token_estimate`.
+- El tamaño real de cada prompt se mide y su p95 debe quedar en 2.000 o menos (SC-005).
 
 ## R7 — Generación en el escritorio
 

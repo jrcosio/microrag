@@ -62,7 +62,7 @@ CREATE TABLE eval_build (key TEXT PRIMARY KEY, value TEXT NOT NULL);  -- config,
 |---|---|---|
 | `ref` | Desde el corpus | Referencia: 350 tokens, con cabecera, 256 dims, normalizador v1 |
 | `chunk250`, `chunk500` | Desde el corpus | Tamaño de fragmento |
-| `nohdr` | Desde el corpus | Sin cabecera contextual en el texto embebido |
+| `nohdr` | Desde el corpus | Sin cabecera contextual en el texto embebido. `title_norm` y el FTS no cambian |
 | `dim128`, `dim512`, `dim768` | Copia de `ref` | `embedding` y `vector_init` |
 | `fts_raw`, `fts_stop` | Copia de `ref` | `title_norm` y `body_norm` (y la consulta) |
 
@@ -96,7 +96,7 @@ EvalConfig(
   follow_up_rule: bool,
   candidates: 50, rrf_k: 60,
   max_blocks: 4 | 6 | 8, neighbors: bool (expand_top 2 | 0),
-  max_per_document: 3, budget_tokens: 2200,
+  max_per_document: 3, budget_tokens: 2000 − plantilla − margen (research R6),
   llm: "E2B" | "E4B" | None,             # None: solo recuperación
   max_output_tokens: 512,
 )

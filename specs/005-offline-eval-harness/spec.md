@@ -142,7 +142,7 @@ Se compara 4, 6 y 8 bloques, con y sin vecinos, dentro del presupuesto de primer
 **Acceptance Scenarios**:
 
 1. **Given** la configuración elegida, **When** se generan las respuestas, **Then** se informa del porcentaje de respuestas correctas sobre las preguntas con respuesta (umbral ≥ 80 %), de negativas correctas sobre las preguntas sin respuesta (≥ 85 %) y de citas correctas (≥ 90 %).
-2. **Given** 4, 6 y 8 bloques, con y sin vecinos, **When** se construyen los prompts, **Then** se informa del tamaño real del prompt en tokens (mediana y p95) y de si cabe en ≈ 2.000 tokens (constitución IV). Una variante que no cabe se descarta para el móvil aunque responda mejor.
+2. **Given** 4, 6 y 8 bloques, con y sin vecinos, **When** se construyen los prompts, **Then** se informa del tamaño real del prompt en tokens (mediana y p95) y de si su p95 cabe en 2.000 tokens (constitución IV, SC-005). Una variante que no cabe se descarta para el móvil aunque responda mejor.
 3. **Given** una respuesta que no sigue el formato (sin citas, o con citas a fuentes inexistentes), **When** se evalúa, **Then** cuenta como cita incorrecta y queda en el informe.
 4. **Given** E2B y E4B, **When** se comparan en la misma configuración, **Then** se informa de la diferencia en los tres porcentajes y del tiempo de generación en el escritorio.
 
@@ -233,9 +233,9 @@ Con las cifras, se elige la configuración y se registra en DECISIONS: dimensió
   - cabecera contextual: con y sin;
   - tamaño de fragmento: 250, 350 y 500 tokens;
   - regla de seguimiento: con y sin;
-  - contexto final: 4, 6 y 8 bloques, con y sin vecinos.
+  - contexto final: 4, 6 y 8 bloques, con y sin vecinos. El presupuesto de tokens del contexto se ajusta para que el prompt completo quepa en 2.000 tokens (SC-005).
 
-  Cada variante cambia un solo parámetro respecto a la referencia.
+  Las variantes de recuperación cambian un solo parámetro respecto a la referencia. Las de contexto final y modelo se ejecutan sobre la recuperación elegida con esas cifras.
 
 **Respuesta de extremo a extremo**
 
@@ -302,7 +302,7 @@ Con las cifras, se elige la configuración y se registra en DECISIONS: dimensió
   - respuestas correctas ≥ 80 %;
   - negativa correcta ≥ 85 %;
   - citas correctas ≥ 90 %.
-- **SC-005**: La configuración elegida tiene un prompt de ≈ 2.000 tokens o menos en el p95, el presupuesto de primer token de la constitución IV.
+- **SC-005**: La configuración elegida tiene un prompt de 2.000 tokens o menos en el p95. Es el tamaño con el que se midió el presupuesto de primer token de la constitución IV (D-026: 4,75 s con 1.986 tokens); por encima se superan los 5 s.
 - **SC-006**: Una iteración de evaluación de recuperación (una variante, con los índices ya construidos) termina en menos de 10 minutos en el Mac del proyecto, para que ajustar sea cuestión de minutos, como plantea el informe.
 - **SC-007**: Cada parámetro elegido tiene una entrada en DECISIONS con su cifra justificativa, y las constantes de la app coinciden con ella con las pruebas de la app en verde.
 
@@ -311,9 +311,9 @@ Con las cifras, se elige la configuración y se registra en DECISIONS: dimensió
 - **Corpus** (confirmado en clarify): documentos públicos en español, en los formatos del MVP (PDF con texto, TXT y Markdown), de tipos variados (normativa, guías y manuales) para parecerse a lo que importarán los usuarios. Se descargan una vez en el escritorio y se versionan con su URL de origen, su huella y su licencia. Al ser públicos, no hay datos privados en el repositorio ni en los informes.
 - **Generación de preguntas y juicio** (confirmado en clarify): las preguntas las redacta el asistente de desarrollo sobre el corpus público y el usuario revisa al menos 100. Las respuestas se juzgan con reglas automáticas en todas las variantes y a mano en la configuración elegida (FR-021).
 - **Extracción de texto:** se usa la mejor disponible en el escritorio para los formatos del MVP. El texto que obtenga la app en F06 puede diferir; F06 lo compara.
-- **Tokens:** los tamaños en tokens se traducen a caracteres con la relación del informe (≈ 4 caracteres por token en español). El tamaño real de los prompts se mide con el tokenizador del propio modelo cuando sea posible.
+- **Tokens:** los tamaños en tokens se traducen a caracteres con la relación medida con el tokenizador del modelo sobre el corpus. Una medida inicial dio 4,52 caracteres por token, frente a los ≈ 4 del informe (research R4). El tamaño real de los prompts se mide con el mismo tokenizador.
 - **Generación en el escritorio:** usa los mismos ficheros de modelo y la misma plantilla que el móvil. Las diferencias numéricas entre el escritorio y el teléfono no afectan a la calidad de forma apreciable (F04 midió un coseno ≥ 0,99 en embeddings). La latencia no se mide aquí, sino en F14.
-- **Configuración de referencia:** la del informe y F04, es decir 256 dimensiones, fragmentos de unos 350 tokens, cabecera contextual, normalizador v1, híbrido con RRF, regla de seguimiento y 6 bloques con vecinos. Las ablaciones cambian un parámetro cada vez respecto a ella.
+- **Configuración de referencia:** la del informe y F04, es decir 256 dimensiones, fragmentos de unos 350 tokens, cabecera contextual, normalizador v1, híbrido con RRF, regla de seguimiento y 6 bloques con vecinos. El presupuesto de contexto del informe (2.200 tokens) más la plantilla supera los 2.000 tokens de prompt de la constitución IV. Manda la constitución, así que el presupuesto se ajusta (SC-005).
 - **Índice de evaluación:** solo existe en el escritorio y no se distribuye (D-002). Los documentos llevan `source = 'user'`, como en la app.
 - **Fuera de alcance:**
   - la ingesta y la recuperación de producto (F06, F07, F10 y F11);

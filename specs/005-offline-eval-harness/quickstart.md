@@ -50,7 +50,7 @@ $E -I offline/run_eval.py report            # → offline/reports/eval-report.md
 **Esperado:**
 - cada variante de recuperación tarda < 10 min (SC-006);
 - el informe tiene todas las ablaciones frente a los umbrales (SC-004);
-- la configuración elegida tiene un prompt p95 ≤ ≈ 2.000 tokens (SC-005).
+- la configuración elegida tiene un prompt p95 ≤ 2.000 tokens (SC-005).
 
 ## 4. App
 
