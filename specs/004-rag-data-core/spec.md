@@ -29,6 +29,15 @@
 - SQLite bundled 2.7.1: estable.
 - `litert-lm-api` 0.18.1: publica ruedas para macOS ARM64, Linux y Windows.
 
+## Clarifications
+
+### Session 2026-10-26
+
+- Q: ¿Se amplía el esquema de documentos como propone el inventario (G27)? → A: sí, tal como G27. Se añaden inclusión en búsquedas, tamaño, páginas y ruta de la copia privada, y los estados pausado y cancelado. Se mantiene el origen, que vale siempre «usuario», por compatibilidad con el informe.
+- Q: ¿Se implementa ya la cuantización INT8 con precarga o se aplaza a F14? → A: se aplaza a F14. F04 guarda la marca `quant_dirty` y busca siempre en F32 exacto; si F14 mide un p95 superior a 20 ms, añade la cuantización y la precarga.
+- Q: En el teléfono, ¿contra qué backend se valida la referencia de embeddings del escritorio? → A: la CPU es obligatoria y la GPU también. La prueba exige coseno ≥ 0,99 en los dos. Si la GPU no lo cumple en un teléfono, ese teléfono indexa en CPU (D-024).
+- Q: ¿Se añade una pantalla de diagnóstico de la base en depuración? → A: no. Las pruebas automatizadas y los registros cubren F04; el diagnóstico de búsqueda llega en F10, con datos reales.
+
 ## User Scenarios & Testing *(mandatory)*
 
 Los actores son las features que vienen después y quien desarrolla. La ingesta (F06/F07), la recuperación (F10) y el chat (F11) usan esta capa sin conocer su implementación. Quien desarrolla mantiene la compatibilidad entre el móvil y el escritorio.
@@ -128,7 +137,7 @@ Un conjunto de 50 textos de referencia, de consulta y de documento (con prefijos
 
 **Acceptance Scenarios**:
 
-1. **Given** la referencia generada en el escritorio, **When** el teléfono embebe los mismos textos con el mismo modelo, prefijos, cabecera y truncado, **Then** cada par tiene un coseno ≥ 0,99 y se informan el mínimo y la media.
+1. **Given** la referencia generada en el escritorio, **When** el teléfono embebe los mismos textos con el mismo modelo, prefijos, cabecera y truncado, en CPU y en GPU, **Then** cada par tiene un coseno ≥ 0,99 en los dos backends y se informan el mínimo y la media de cada uno.
 2. **Given** que algún par queda por debajo de 0,99, **When** termina la prueba, **Then** falla e indica qué textos han fallado.
 3. **Given** un modelo de embeddings distinto del verificado, **When** se ejecuta la prueba, **Then** no se compara: la prueba indica que el modelo no coincide.
 
@@ -186,7 +195,7 @@ Al abrirlo, la app compara esos datos con su propia configuración. Si no coinci
   - fragmentos con su vector, únicos por (documento, ordinal);
   - índice léxico sobre título normalizado y cuerpo normalizado, sincronizado por disparadores al insertar, borrar y modificar;
   - borrado en cascada de documento a fragmentos.
-- **FR-002**: Los documentos MUST incluir además (G27): si están incluidos en las búsquedas (sí por defecto), tamaño en bytes, número de páginas (si se conoce), ruta de la copia privada, y los estados pausado y cancelado junto a los del informe (pendiente, procesado, embebiendo, terminado y error). El origen se mantiene y vale siempre «usuario» (D-002).
+- **FR-002**: Los documentos MUST incluir además (G27, confirmado en clarify): si están incluidos en las búsquedas (sí por defecto), tamaño en bytes, número de páginas (si se conoce), ruta de la copia privada, y los estados pausado y cancelado junto a los del informe (pendiente, procesado, embebiendo, terminado y error). El origen se mantiene y vale siempre «usuario» (D-002).
 - **FR-003**: El índice MUST vivir en la carpeta privada `index/` de la app, excluida de copias de seguridad (constitución I). Su fichero no se expone a otras apps.
 - **FR-004**: Cada apertura de la base MUST activar la búsqueda vectorial sobre la columna de vectores (256 dimensiones, coseno, vectores normalizados) y configurar el registro por adelanto y las claves foráneas. Un fallo al activar la búsqueda vectorial MUST impedir usar el índice y explicar el motivo.
 - **FR-005**: Todo acceso a la base MUST ocurrir fuera del hilo principal, en la cola dedicada de base de datos, con un único escritor (constitución IV). En depuración, el modo estricto MUST detectar cualquier acceso a disco desde el hilo principal.
@@ -200,7 +209,7 @@ Al abrirlo, la app compara esos datos con su propia configuración. Si no coinci
 
 **Lectura y búsqueda**
 
-- **FR-010**: La búsqueda vectorial exacta MUST devolver como mucho *k* identificadores de fragmentos ordenados por similitud de coseno (por defecto *k* = 50).
+- **FR-010**: La búsqueda vectorial exacta, siempre sobre los vectores F32, MUST devolver como mucho *k* identificadores de fragmentos ordenados por similitud de coseno (por defecto *k* = 50). La cuantización INT8 y su precarga quedan fuera de F04 (se deciden en F14, confirmado en clarify).
 - **FR-011**: La búsqueda léxica MUST:
   - recibir una consulta ya normalizada con el normalizador;
   - devolver como mucho *k* identificadores (por defecto 50);
@@ -245,7 +254,7 @@ Al abrirlo, la app compara esos datos con su propia configuración. Si no coinci
 **Compatibilidad de embeddings**
 
 - **FR-020**: El pipeline offline MUST generar una referencia de 50 textos (consultas y fragmentos de documento con cabecera contextual) embebidos con el mismo fichero de modelo, los mismos prefijos, la misma cabecera y el mismo truncado a 256 con L2 que la app. MUST registrar la huella del modelo usado.
-- **FR-021**: Una prueba instrumentada MUST volver a embeber esos textos en el dispositivo (en CPU, D-024) y exigir un coseno ≥ 0,99 por par. MUST informar del mínimo, la media y los textos que fallen.
+- **FR-021**: Una prueba instrumentada MUST volver a embeber esos textos en el dispositivo, en CPU y en GPU (confirmado en clarify), y exigir un coseno ≥ 0,99 por par en cada backend. MUST informar del mínimo, la media y los textos que fallen, por backend. Si la GPU no lo cumple en un teléfono, ese teléfono no puede indexar en GPU (D-024). Si el dispositivo no tiene GPU utilizable, la parte de GPU se marca como no disponible, sin fallar.
 - **FR-022**: El entorno del pipeline offline MUST ser reproducible: versiones fijadas e instrucciones para regenerar las dos referencias.
 
 ### Key Entities *(include if feature involves data)*
@@ -273,7 +282,7 @@ Al abrirlo, la app compara esos datos con su propia configuración. Si no coinci
 ### Measurable Outcomes
 
 - **SC-001**: El 100 % de los pares del conjunto de referencia del normalizador (≥ 300) coinciden exactamente en la app (JVM y teléfono de referencia) y en el pipeline offline.
-- **SC-002**: Los 50 pares de embeddings superan un coseno de 0,99 en el teléfono de referencia. Se informan el mínimo y la media.
+- **SC-002**: Los 50 pares de embeddings superan un coseno de 0,99 en el teléfono de referencia, tanto en CPU como en GPU. Se informan el mínimo y la media de cada backend.
 - **SC-003**: La búsqueda vectorial funciona en el teléfono de referencia (ARM64) y en el emulador: el fragmento con el vector de la consulta sale el primero en el 100 % de los casos de prueba.
 - **SC-004**: Repetir cualquier lote ya guardado deja el número de fragmentos y de entradas léxicas exactamente igual.
 - **SC-005**: Tras borrar un documento quedan 0 fragmentos y 0 entradas léxicas suyos.
@@ -283,10 +292,7 @@ Al abrirlo, la app compara esos datos con su propia configuración. Si no coinci
 
 ## Assumptions
 
-- **Valores por defecto pendientes de confirmar en clarify:**
-  - Ampliación del esquema G27: se aplica tal como la propone el inventario (FR-002).
-  - Cuantización INT8 y precarga: se aplazan a F14, donde se decide si hacen falta. En F04 se guarda la marca `quant_dirty`, pero no se cuantiza.
-  - Diagnóstico de la base en depuración: no hay pantalla. Las pruebas y los registros cubren la verificación.
+- **Sin pantalla de diagnóstico** (confirmado en clarify): las pruebas instrumentadas y los registros verifican F04. La medición de SC-008 la hace una prueba instrumentada, no una pantalla.
 - **Versión del esquema:** la primera de la app es la 1. El informe numera su esquema como 2 por su propia historia; aquí la numeración empieza de nuevo.
 - **Referencias en el repositorio:** se generan una vez en el escritorio y se guardan en el repositorio. Solo las usan las pruebas y no viajan en el APK de producto.
 - **Textos de las referencias:** sintéticos y en español, redactados para el proyecto, más fragmentos del informe. No se usan documentos del usuario; el corpus de evaluación es de F05 (G37).

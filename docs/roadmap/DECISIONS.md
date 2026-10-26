@@ -387,6 +387,23 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
 
 ---
 
+## D-030 — Núcleo de datos RAG (clarify de F04)
+
+- **Fecha:** 2026-10-26
+- **Decisión:**
+  - **Esquema (G27):** se amplía la tabla de documentos con inclusión en búsquedas, tamaño, páginas, ruta de la copia privada y los estados pausado y cancelado. Se mantiene `source`, que vale siempre `'user'` (D-002), por compatibilidad con el esquema compartido del informe.
+  - **INT8:** se aplaza a F14. F04 guarda `quant_dirty` y busca siempre en F32 exacto. La cuantización y la precarga solo se añaden si F14 mide un p95 superior a 20 ms.
+  - **Compatibilidad de embeddings:** la referencia del escritorio se valida en el teléfono en CPU y en GPU, con coseno ≥ 0,99 en ambos. Si la GPU no lo cumple en un teléfono, ese teléfono indexa en CPU (D-024).
+  - **Diagnóstico:** F04 no tiene pantalla de diagnóstico. Las pruebas y los registros lo cubren; el diagnóstico de búsqueda llega en F10.
+- **Motivo:**
+  - las pantallas de F06–F08 necesitan esos datos;
+  - INT8 solo se justifica con medidas;
+  - D-024 permite indexar en GPU, y la evaluación de F05 tiene que representar lo que el móvil indexa.
+- **Origen:** usuario (clarify de F04).
+- **Afecta:** F04, F05, F07, F10 y F14.
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.
