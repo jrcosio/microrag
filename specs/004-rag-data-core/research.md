@@ -61,6 +61,10 @@ Fuente: `API.md` del tag 1.1.2.
 | `vector_version()` | Comprobación de carga (devuelve `1.1.2`) |
 | `vector_quantize*` | Fuera de F04 (D-030) |
 
+**Comprobado en la implementación** (T018, emulador API 37): al cargarse en una conexión, SQLite-Vector 1.1.2 crea en el fichero la tabla `_sqliteai_vector (tblname, colname, key, value)`, donde persiste la configuración de `vector_init`. Responde a la duda del informe: la configuración sí persiste en el fichero, y se sigue llamando a `vector_init` en cada apertura, porque es idempotente. Consecuencias:
+- un fichero recién creado ya tiene esa tabla, así que «índice nuevo» significa sin tablas propias (ni `sqlite_*` ni `_sqliteai_vector`);
+- abrir con la extensión un fichero SQLite ajeno le añade esa tabla. Los índices de la app ya la tienen desde su creación, así que validar uno incompatible no lo modifica (A2).
+
 ## R4 — Normalizador `SpanishText` v1, idéntico en Kotlin y en Python
 
 **Kotlin:** el código del informe, literalmente, en `rag/text/SpanishText.kt`, con la constante `VERSION = 1`.
