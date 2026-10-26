@@ -65,13 +65,13 @@ description: "Lista de tareas de F07 — Indexación"
   - un texto vacío.
 
   Extraer la regla a una función `overflow_cut(text)` que use también `builds.py`, para que haya una sola fuente. Opción `--check`. Prueba en `offline/tests/test_overflow_cases.py`: regenerar y comparar.
-- [ ] T002 [P] Crear `…/androidTest/data/indexing/EmbeddingOverflowDeviceTest.kt` (`@RequiresModels`, research R6). Con `LiteRtTextEmbedder` real en CPU y en GPU (la GPU se salta en un emulador):
+- [X] T002 [P] Crear `…/androidTest/data/indexing/EmbeddingOverflowDeviceTest.kt` (`@RequiresModels`, research R6). Con `LiteRtTextEmbedder` real en CPU y en GPU (la GPU se salta en un emulador):
   - embeber un texto de unos 700 tokens;
   - registrar con la etiqueta `overflow-probe` la clase y el mensaje de la excepción;
   - comprobar que tras los recortes de D-036 el modelo lo acepta.
 
   Ejecutarla en el teléfono. Anotar en research R6 la excepción real y si se distingue de otros fallos.
-- [ ] T003 [P] Crear `…/androidTest/data/indexing/EmbeddingBatchProbeTest.kt` (`@RequiresModels`, research R5). Con 64 fragmentos reales de `text_200_pages.pdf`, medir en GPU y en CPU:
+- [X] T003 [P] Crear `…/androidTest/data/indexing/EmbeddingBatchProbeTest.kt` (`@RequiresModels`, research R5). Con 64 fragmentos reales de `text_200_pages.pdf`, medir en GPU y en CPU:
   - `computeEmbedding` en serie;
   - `computeEmbeddingBatch` en lotes de 8 y de 16.
 

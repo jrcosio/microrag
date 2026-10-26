@@ -120,6 +120,17 @@ Fecha: 2026-10-26. Fuentes oficiales consultadas ese día. Las firmas de bibliot
 
 **Si el lote acelera al menos un 30 % con coseno ≥ 0,9999:** se para y se consulta al usuario. Usarlo cambia FR-014 y el ritmo de SC-001.
 
+**Resultado** (T003, 2026-10-26, teléfono A063, batería al 100 %, 24 °C). Los 64 primeros fragmentos de `text_200_pages.pdf`, con su cabecera:
+
+| Backend | Serie | Lotes de 8 | Lotes de 16 | Coseno mínimo |
+|---|---|---|---|---|
+| CPU | 19,3 s (3,31 fragmentos/s) | 19,3 s (×1,00) | 19,3 s (×1,00) | 1,000000 |
+| GPU | 12,8 s (5,00 fragmentos/s) | 12,8 s (×1,00) | 12,8 s (×1,00) | 1,000000 |
+
+**El lote no acelera nada**: el engine los procesa en serie por dentro. **F07 sigue en serie** (FR-014) y no hace falta consultar.
+
+Con estos fragmentos, la GPU va 1,5 veces más rápida que la CPU, menos que las 2,5 veces de F02, que se midieron con fragmentos de unos 350 tokens.
+
 ## R6. Entradas demasiado largas (D-036)
 
 **Hechos:**
@@ -136,6 +147,18 @@ Fecha: 2026-10-26. Fuentes oficiales consultadas ese día. Las firmas de bibliot
 **Verificación temprana** (riesgo 2): en el dispositivo, un texto de unos 700 tokens. Hay que fijar:
 - qué excepción y qué mensaje da;
 - que el recorte la resuelve.
+
+**Resultado** (T002, 2026-10-26, teléfono A063, CPU y GPU):
+- **Excepción:** un texto de 3.707 caracteres lanza `com.google.ai.edge.litertlm.LiteRtLmJniException` (subclase de `RuntimeException`). Su mensaje es:
+
+  ```text
+  ComputeEmbedding failed: INVALID_ARGUMENT: ERROR: [third_party/odml/litert_lm/runtime/core/embedding_engine_impl.cc:1582]
+  └ Input sequence length (704) exceeds maximum supported signature length (512).
+  ```
+- **Recorte:** el texto entra tras **3 recortes** (2.684 caracteres), en los dos backends.
+- **Engine:** sigue funcionando después del rechazo.
+
+**Decisión:** el mensaje sí distingue «demasiado largo». `LiteRtTextEmbedder` recorta solo cuando el mensaje contiene `exceeds maximum supported signature length`. Cualquier otra excepción es `EmbeddingEngineException`.
 
 **Si la excepción permite distinguir «demasiado largo» de otros fallos,** solo se recorta en ese caso, y un fallo del engine se trata enseguida como `EmbeddingEngineException`. Si no, se recorta ante cualquier `LiteRtLmJniException`, como el escritorio con `RuntimeError`, y un engine roto acaba en `EmbeddingInputTooLongException` tras los 12 intentos (mismo resultado: `embedding_failed`).
 
