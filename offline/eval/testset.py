@@ -164,20 +164,33 @@ def with_relevants(questions, doc_sha, chunks_by_sha):
     return out
 
 
-def review_sample(questions, size=MIN_REVIEWED, seed=20261026):
-    """Questions for the next review sheet: not reviewed yet, stratified by type and document."""
+def review_sample(questions, size=MIN_REVIEWED, seed=20261026, min_per_type=10):
+    """Questions for the next review sheet, not reviewed yet: a quota per type proportional to the set
+    (at least [min_per_type]), and within each type the documents in turn."""
     pending = [q for q in questions if q.review == "pending" and not q.review_note]
-    groups = defaultdict(list)
+    size = min(size, len(pending))
+    by_type = defaultdict(list)
     for q in pending:
-        groups[(q.type, q.doc)].append(q)
+        by_type[q.type].append(q)
+    quotas = {t: min(len(qs), max(min_per_type, round(size * len(qs) / len(pending)))) for t, qs in by_type.items()}
+    while sum(quotas.values()) > size:
+        largest = max(quotas, key=lambda t: (quotas[t] - min_per_type, t))
+        quotas[largest] -= 1
     rng = random.Random(seed)
-    for key in sorted(groups, key=str):
-        rng.shuffle(groups[key])
-    picked, keys = [], sorted(groups, key=str)
-    while len(picked) < min(size, len(pending)):
+    picked = []
+    for qtype in sorted(by_type):
+        groups = defaultdict(list)
+        for q in by_type[qtype]:
+            groups[q.doc].append(q)
+        keys = sorted(groups, key=str)
         for key in keys:
-            if groups[key] and len(picked) < size:
-                picked.append(groups[key].pop())
+            rng.shuffle(groups[key])
+        chosen = []
+        while len(chosen) < quotas[qtype]:
+            for key in keys:
+                if groups[key] and len(chosen) < quotas[qtype]:
+                    chosen.append(groups[key].pop())
+        picked += chosen
     return sorted(picked, key=lambda q: q.id)
 
 
