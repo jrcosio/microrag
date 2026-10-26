@@ -20,7 +20,7 @@ class AppModulesTest {
             // Built inside their definitions: dispatchers, scopes, folders and the DataStore.
             extraTypes = listOf(
                 Context::class, Application::class, CoroutineDispatcher::class, CoroutineScope::class,
-                File::class, DataStore::class,
+                File::class, DataStore::class, Function0::class, String::class,
             ),
         )
     }

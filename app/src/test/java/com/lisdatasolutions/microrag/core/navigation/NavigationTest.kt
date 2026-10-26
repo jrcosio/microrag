@@ -181,14 +181,17 @@ class NavigationRestorationTest {
 
     private val context: Context = ApplicationProvider.getApplicationContext()
 
+    // The activity shows the app language (Spanish by default, D-029), not the test's default locale.
+    private fun text(id: Int, vararg args: Any) = compose.activity.getString(id, *args)
+
     private fun assertOnLibrary() {
-        compose.onNodeWithText(context.getString(R.string.pending_destination_title, "F08")).assertIsDisplayed()
-        compose.onNodeWithText(context.getString(TopLevelDestination.LIBRARY.label)).assertIsDisplayed()
+        compose.onNodeWithText(text(R.string.pending_destination_title, "F08")).assertIsDisplayed()
+        compose.onNodeWithText(text(TopLevelDestination.LIBRARY.label)).assertIsDisplayed()
     }
 
     @Test
     fun n7_survivesRotationRecreation() {
-        compose.onNodeWithText(context.getString(TopLevelDestination.LIBRARY.label)).performClick()
+        compose.onNodeWithText(text(TopLevelDestination.LIBRARY.label)).performClick()
         RuntimeEnvironment.setQualifiers("+land")
         compose.activityRule.scenario.recreate()
         assertOnLibrary()
@@ -196,7 +199,7 @@ class NavigationRestorationTest {
 
     @Test
     fun n7_survivesThemeChangeRecreation() {
-        compose.onNodeWithText(context.getString(TopLevelDestination.LIBRARY.label)).performClick()
+        compose.onNodeWithText(text(TopLevelDestination.LIBRARY.label)).performClick()
         RuntimeEnvironment.setQualifiers("+night")
         compose.activityRule.scenario.recreate()
         assertOnLibrary()

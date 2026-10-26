@@ -21,7 +21,7 @@ class DebugModulesTest {
             // Folders, scopes and the DataStore are built from the Context inside the definitions.
             extraTypes = listOf(
                 Context::class, Application::class, CoroutineDispatcher::class, CoroutineScope::class,
-                File::class, DataStore::class,
+                File::class, DataStore::class, Function0::class, String::class,
             ),
         )
     }
