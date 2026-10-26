@@ -12,7 +12,7 @@ sys.path.insert(0, str(HERE))  # -I leaves the script directory out of sys.path
 
 COMMANDS = [
     "fetch-corpus", "sources", "build", "validate-testset", "review-sheet", "review-apply", "sample",
-    "retrieve", "generate", "ablations", "report", "chunker-golden", "calibrate", "rejudge",
+    "retrieve", "generate", "ablations", "report", "chunker-golden", "calibrate", "rejudge", "device-extraction",
 ]
 
 
@@ -207,6 +207,20 @@ def rejudge(args):
     print(f"{len(pipeline.rejudge())} runs judged again")
 
 
+def device_extraction(args):
+    """F06: evidence kept by the phone's PDF extraction against pypdf (device-extraction.jsonl)."""
+    from eval import device_extraction as module
+
+    options = argparse.ArgumentParser(prog="device-extraction")
+    options.add_argument("jsonl", type=Path)
+    parsed = options.parse_args(args)
+    rows, total = module.coverage(parsed.jsonl)
+    print("| Documento | Evidencias | pypdf | Dispositivo | Caracteres pypdf | Caracteres dispositivo |")
+    print("|---|---|---|---|---|---|")
+    for r in rows + [{"doc": "Total", **total}]:
+        print(f"| {r['doc']} | {r['evidences']} | {r['pypdf']} | {r['device']} | {r['pypdf_chars']} | {r['device_chars']} |")
+
+
 def report(args):
     from eval import report as report_module
 
@@ -217,6 +231,7 @@ HANDLERS = {
     "fetch-corpus": fetch_corpus, "sources": sources, "build": build, "sample": sample,
     "validate-testset": validate_testset, "review-sheet": review_sheet, "review-apply": review_apply,
     "retrieve": retrieve, "generate": generate, "ablations": ablations, "report": report, "calibrate": calibrate, "chunker-golden": chunker_golden, "rejudge": rejudge,
+    "device-extraction": device_extraction,
 }
 
 
