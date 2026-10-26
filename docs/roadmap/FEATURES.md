@@ -38,7 +38,7 @@ Al cerrar cada feature se entrega:
 | F01 | Fundaciones y design system | Producto (shell y DS) | — | ✅ cerrada (T059 TalkBack manual abierta) |
 | F02 | Viabilidad on-device (fase 0) | Técnica | F01 | ✅ cerrada |
 | F03 | Modelos y primer arranque | Producto | F01, F02 | ✅ cerrada (T071 TalkBack manual abierta) |
-| F04 | Núcleo de datos RAG | Técnica | F02 | 🟨 implementada; pendiente de revisión |
+| F04 | Núcleo de datos RAG | Técnica | F02 | ✅ cerrada |
 | F05 | Harness offline de evaluación | Técnica | F04 | ⬜ |
 | F06 | Importación y parsing | Producto | F04 | ⬜ |
 | F07 | Indexación | Producto | F02, F06 | ⬜ |
@@ -227,7 +227,7 @@ También se introduce `EngineCoordinator`, que garantiza que nunca haya dos engi
 ## F04 — Núcleo de datos RAG
 
 - **Tipo:** Técnica. Sin UI; diagnóstico de la base opcional en debug.
-- **Estado:** 🟨 implementada el 2026-10-26 y pendiente de revisión. Informe de cierre en `specs/004-rag-data-core/report.md`.
+- **Estado:** ✅ cerrada: implementada y aprobada por el usuario el 2026-10-26. Informe de cierre en `specs/004-rag-data-core/report.md`.
   - **Decisiones:** D-030 (clarify) y D-031 (extracción de nativas).
   - **Teléfono de referencia:** golden del normalizador al 100 % (367 pares); golden de embeddings con coseno mínimo 1,000000 en CPU y 0,992992 en GPU; búsqueda vectorial con 10k fragmentos con p95 de 23,1 ms; 0 violaciones del modo estricto.
 
