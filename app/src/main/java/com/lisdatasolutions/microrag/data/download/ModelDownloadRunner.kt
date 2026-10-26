@@ -30,7 +30,7 @@ data class DownloadRunResult(val outcome: DownloadOutcome?, val retryLater: Bool
  * observed by the UI through [progress]. Logs carry model ids, codes and sizes only (FR-028).
  */
 class ModelDownloadRunner(
-    private val downloader: ModelDownloader,
+    private val downloader: FileDownloader,
     private val repository: ModelFileRepository,
     private val store: OnboardingStore,
     private val dirs: AppDirs,
@@ -105,10 +105,10 @@ class ModelDownloadRunner(
         }
     }
 
-    /** Bytes needed when free space does not cover the rest of the file plus the margin (FR-016). */
+    /** Bytes missing when free space does not cover the rest of the file plus the margin (FR-016). */
     private fun missingSpace(file: ModelFile, bytesOnDisk: Long): Long? {
         val needed = file.sizeBytes - bytesOnDisk + ModelSetupPolicy.SPACE_MARGIN_BYTES
-        return needed.takeIf { freeBytes() < it }
+        return (needed - freeBytes()).takeIf { it > 0 }
     }
 
     private var lastPublishedBytes = 0L

@@ -23,6 +23,11 @@ sealed interface DownloadResult {
     data class Failed(val error: DownloadError) : DownloadResult
 }
 
+/** Writes one model file into a partial file, resuming from what is on disk. */
+fun interface FileDownloader {
+    suspend fun download(file: ModelFile, partial: File, onProgress: (bytesOnDisk: Long) -> Unit): DownloadResult
+}
+
 /**
  * Downloads one model file into a partial file, resuming with `Range` from what is already on disk
  * (F03 research R2, contracts/download-api.md). Every attempt starts from the pinned URL, because the
@@ -38,10 +43,10 @@ class ModelDownloader(
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
     /** Only tests point this elsewhere; production always uses the pinned Hugging Face URL. */
     private val urlOf: (ModelFile) -> String = { it.downloadUrl },
-) {
+) : FileDownloader {
 
     /** Writes [file] into [partial] (appending) and reports the bytes on disk; throws when cancelled. */
-    suspend fun download(file: ModelFile, partial: File, onProgress: (bytesOnDisk: Long) -> Unit): DownloadResult =
+    override suspend fun download(file: ModelFile, partial: File, onProgress: (bytesOnDisk: Long) -> Unit): DownloadResult =
         withContext(ioDispatcher) {
             partial.parentFile?.mkdirs()
             when (val first = attempt(file, partial, onProgress)) {

@@ -12,7 +12,7 @@ import com.lisdatasolutions.microrag.domain.model.OnboardingStage
 import com.lisdatasolutions.microrag.domain.model.SetupProblem
 import com.lisdatasolutions.microrag.domain.model.StorageStatus
 import com.lisdatasolutions.microrag.rag.runtime.CompatibilityResult
-import com.lisdatasolutions.microrag.rag.runtime.ModelCompatibilityChecker
+import com.lisdatasolutions.microrag.rag.runtime.ModelCompatibility
 import java.io.FilterInputStream
 import java.io.IOException
 import java.io.InputStream
@@ -66,7 +66,7 @@ class ReconcileDownloadsUseCase(
  */
 class PrepareModelsUseCase(
     private val repository: ModelFileRepository,
-    private val checker: ModelCompatibilityChecker,
+    private val checker: ModelCompatibility,
     private val tracker: LocalModelWorkTracker,
     private val applicationScope: ApplicationScope,
 ) {

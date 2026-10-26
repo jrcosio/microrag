@@ -6,6 +6,7 @@ import com.lisdatasolutions.microrag.core.dispatchers.AppDispatchers
 import com.lisdatasolutions.microrag.data.device.AndroidDeviceResources
 import com.lisdatasolutions.microrag.data.download.DefaultModelDownloadController
 import com.lisdatasolutions.microrag.data.download.DownloadNotifications
+import com.lisdatasolutions.microrag.data.download.FileDownloader
 import com.lisdatasolutions.microrag.data.download.ModelDownloadRunner
 import com.lisdatasolutions.microrag.data.download.ModelDownloader
 import com.lisdatasolutions.microrag.data.models.AppDirs
@@ -39,7 +40,7 @@ val dataModule = module {
     single<ModelFileSource> { ContentResolverModelFileSource(androidContext().contentResolver) }
 
     // The only network access of the app (constitution I, F03 FR-026): pinned Hugging Face files.
-    single { ModelDownloader(userAgent = "MicroRAG/${BuildConfig.VERSION_NAME}") }
+    single<FileDownloader> { ModelDownloader(userAgent = "MicroRAG/${BuildConfig.VERSION_NAME}") }
     single {
         val resources = get<DeviceResources>()
         ModelDownloadRunner(

@@ -18,6 +18,11 @@ sealed interface CompatibilityResult {
     data object Incompatible : CompatibilityResult
 }
 
+/** On-device test of a verified model file (F03 FR-021). */
+fun interface ModelCompatibility {
+    suspend fun check(file: ModelFile, path: File): CompatibilityResult
+}
+
 /**
  * Real on-device test before a model is declared ready (constitution V, F03 FR-021, research R8):
  * the file opens with the runtime, EmbeddingGemma 2 produces a 768 → 256 unit vector on CPU, and
@@ -28,9 +33,9 @@ class ModelCompatibilityChecker(
     private val factory: EngineFactory,
     private val coordinator: EngineCoordinator,
     private val logger: AppLogger,
-) {
+) : ModelCompatibility {
 
-    suspend fun check(file: ModelFile, path: File): CompatibilityResult {
+    override suspend fun check(file: ModelFile, path: File): CompatibilityResult {
         val declared = try {
             factory.metadata(path).supportedBackends
         } catch (e: CancellationException) {
