@@ -1,0 +1,367 @@
+{"in": "clientes", "out": "client"}
+{"in": "cliente", "out": "client"}
+{"in": "motores", "out": "motor"}
+{"in": "luces", "out": "luz"}
+{"in": "R-1234", "out": "r-1234"}
+{"in": "casa", "out": "casa"}
+{"in": "casas", "out": "cas"}
+{"in": "coche", "out": "coch"}
+{"in": "coches", "out": "coch"}
+{"in": "perro", "out": "perr"}
+{"in": "perros", "out": "perr"}
+{"in": "perra", "out": "perr"}
+{"in": "perras", "out": "perr"}
+{"in": "niño", "out": "nino"}
+{"in": "niños", "out": "nin"}
+{"in": "niña", "out": "nina"}
+{"in": "niñas", "out": "nin"}
+{"in": "gato", "out": "gato"}
+{"in": "gatos", "out": "gat"}
+{"in": "gata", "out": "gata"}
+{"in": "gatas", "out": "gat"}
+{"in": "profesor", "out": "profesor"}
+{"in": "profesores", "out": "profesor"}
+{"in": "profesora", "out": "profesor"}
+{"in": "profesoras", "out": "profesor"}
+{"in": "camión", "out": "camion"}
+{"in": "camiones", "out": "camion"}
+{"in": "canción", "out": "cancion"}
+{"in": "canciones", "out": "cancion"}
+{"in": "lápiz", "out": "lapiz"}
+{"in": "lápices", "out": "lapiz"}
+{"in": "pez", "out": "pez"}
+{"in": "peces", "out": "pez"}
+{"in": "voz", "out": "voz"}
+{"in": "voces", "out": "voz"}
+{"in": "cruz", "out": "cruz"}
+{"in": "cruces", "out": "cruz"}
+{"in": "nariz", "out": "nariz"}
+{"in": "narices", "out": "nariz"}
+{"in": "actriz", "out": "actriz"}
+{"in": "actrices", "out": "actriz"}
+{"in": "mes", "out": "mes"}
+{"in": "meses", "out": "mes"}
+{"in": "país", "out": "pais"}
+{"in": "países", "out": "pais"}
+{"in": "inglés", "out": "ingl"}
+{"in": "ingleses", "out": "ingles"}
+{"in": "francés", "out": "franz"}
+{"in": "franceses", "out": "frances"}
+{"in": "autobús", "out": "autobus"}
+{"in": "autobuses", "out": "autobus"}
+{"in": "tren", "out": "tren"}
+{"in": "trenes", "out": "tren"}
+{"in": "árbol", "out": "arbol"}
+{"in": "árboles", "out": "arbol"}
+{"in": "papel", "out": "papel"}
+{"in": "papeles", "out": "papel"}
+{"in": "ciudad", "out": "ciudad"}
+{"in": "ciudades", "out": "ciudad"}
+{"in": "reloj", "out": "reloj"}
+{"in": "relojes", "out": "reloj"}
+{"in": "documento", "out": "document"}
+{"in": "documentos", "out": "document"}
+{"in": "fragmento", "out": "fragment"}
+{"in": "fragmentos", "out": "fragment"}
+{"in": "consulta", "out": "consult"}
+{"in": "consultas", "out": "consult"}
+{"in": "respuesta", "out": "respuest"}
+{"in": "respuestas", "out": "respuest"}
+{"in": "modelo", "out": "model"}
+{"in": "modelos", "out": "model"}
+{"in": "índice", "out": "indic"}
+{"in": "índices", "out": "indiz"}
+{"in": "búsqueda", "out": "busqued"}
+{"in": "búsquedas", "out": "busqued"}
+{"in": "servidor", "out": "servidor"}
+{"in": "servidores", "out": "servidor"}
+{"in": "usuario", "out": "usuari"}
+{"in": "usuarios", "out": "usuari"}
+{"in": "usuaria", "out": "usuari"}
+{"in": "usuarias", "out": "usuari"}
+{"in": "cliente nuevo", "out": "client nuev"}
+{"in": "clientes nuevos", "out": "client nuev"}
+{"in": "la clienta nueva", "out": "client nuev"}
+{"in": "las clientas nuevas", "out": "client nuev"}
+{"in": "bueno buena buenos buenas", "out": "buen buen buen buen"}
+{"in": "grande grandes", "out": "grand grand"}
+{"in": "feliz felices", "out": "feliz feliz"}
+{"in": "rápido rápida rápidos rápidas", "out": "rapid rapid rapid rapid"}
+{"in": "acción", "out": "accion"}
+{"in": "información", "out": "informacion"}
+{"in": "configuración", "out": "configuracion"}
+{"in": "Árbol", "out": "arbol"}
+{"in": "ÁRBOL", "out": "arbol"}
+{"in": "éxito", "out": "exit"}
+{"in": "Éxito", "out": "exit"}
+{"in": "último", "out": "ultim"}
+{"in": "Último", "out": "ultim"}
+{"in": "óptimo", "out": "optim"}
+{"in": "única", "out": "unic"}
+{"in": "pingüino", "out": "pinguin"}
+{"in": "pingüinos", "out": "pinguin"}
+{"in": "cigüeña", "out": "ciguen"}
+{"in": "vergüenza", "out": "verguenz"}
+{"in": "lingüística", "out": "linguistic"}
+{"in": "agüero", "out": "aguer"}
+{"in": "año", "out": "ano"}
+{"in": "años", "out": "anos"}
+{"in": "España", "out": "espan"}
+{"in": "español", "out": "espanol"}
+{"in": "españoles", "out": "espanol"}
+{"in": "mañana", "out": "manan"}
+{"in": "señor", "out": "senor"}
+{"in": "señora", "out": "senor"}
+{"in": "niñez", "out": "ninez"}
+{"in": "Ñandú", "out": "nandu"}
+{"in": "ñoño", "out": "nono"}
+{"in": "çedilla", "out": "cedill"}
+{"in": "façade", "out": "facad"}
+{"in": "garçon", "out": "garcon"}
+{"in": "Façade Françoise", "out": "facad francois"}
+{"in": "naïve", "out": "naiv"}
+{"in": "Zoë", "out": "zoe"}
+{"in": "coöperate", "out": "cooperat"}
+{"in": "crème brûlée", "out": "crem brule"}
+{"in": "São Paulo", "out": "sao paul"}
+{"in": "Kraków", "out": "krakow"}
+{"in": "Dvořák", "out": "dvorak"}
+{"in": "de la que", "out": ""}
+{"in": "el la los las", "out": ""}
+{"in": "un una unos unas", "out": ""}
+{"in": "y o u e", "out": ""}
+{"in": "a al del", "out": ""}
+{"in": "para por sin sobre", "out": ""}
+{"in": "como cuando donde", "out": ""}
+{"in": "que quien cual cuales", "out": ""}
+{"in": "este esta estos estas", "out": ""}
+{"in": "ese esa esos esas", "out": ""}
+{"in": "eso esto", "out": ""}
+{"in": "yo me mi te", "out": ""}
+{"in": "ya no ni si", "out": ""}
+{"in": "tambien", "out": ""}
+{"in": "también", "out": ""}
+{"in": "más", "out": ""}
+{"in": "mas", "out": ""}
+{"in": "sí", "out": ""}
+{"in": "él", "out": ""}
+{"in": "qué", "out": ""}
+{"in": "cuánto cuánta", "out": ""}
+{"in": "el motor de la bomba", "out": "motor bomb"}
+{"in": "la casa de los clientes", "out": "casa client"}
+{"in": "para que sirve esto", "out": "sirv"}
+{"in": "r-1234", "out": "r-1234"}
+{"in": "REF-2024-001", "out": "ref-2024-001"}
+{"in": "ISO 9001", "out": "iso 9001"}
+{"in": "ISO-9001:2015", "out": "iso-9001 2015"}
+{"in": "v1.2.3", "out": "v1.2.3"}
+{"in": "v1.2/a", "out": "v1.2/a"}
+{"in": "abc_def", "out": "abc_def"}
+{"in": "abc-def", "out": "abc-def"}
+{"in": "abc.def", "out": "abc.def"}
+{"in": "abc/def", "out": "abc/def"}
+{"in": "abc--def", "out": "abc def"}
+{"in": "abc- -abc", "out": "abc abc"}
+{"in": "-abc", "out": "abc"}
+{"in": "abc-", "out": "abc"}
+{"in": "a-b", "out": "a-b"}
+{"in": "x-1", "out": "x-1"}
+{"in": "1-x", "out": "1-x"}
+{"in": "12.5", "out": "12.5"}
+{"in": "3,14", "out": "14"}
+{"in": "1.000.000", "out": "1.000.000"}
+{"in": "2026-10-26", "out": "2026-10-26"}
+{"in": "26/10/2026", "out": "26/10/2026"}
+{"in": "10:30", "out": "10 30"}
+{"in": "192.168.1.1", "out": "192.168.1.1"}
+{"in": "www.ejemplo.com", "out": "www.ejemplo.com"}
+{"in": "correo@ejemplo.com", "out": "corre ejemplo.com"}
+{"in": "https://ejemplo.com/ruta/pagina.html", "out": "https ejemplo.com/ruta/pagina.html"}
+{"in": "C:\\Archivos\\documento.pdf", "out": "archiv documento.pdf"}
+{"in": "/usr/local/bin", "out": "usr/local/bin"}
+{"in": "archivo_final_v2.docx", "out": "archivo_final_v2.docx"}
+{"in": "informe-anual.pdf", "out": "informe-anual.pdf"}
+{"in": "pieza A-12/B", "out": "piez a-12/b"}
+{"in": "modelo2024", "out": "modelo2024"}
+{"in": "abc12", "out": "abc12"}
+{"in": "casas12", "out": "casas12"}
+{"in": "2casas", "out": "2casas"}
+{"in": "motores3", "out": "motores3"}
+{"in": "PN-00045-XB", "out": "pn-00045-xb"}
+{"in": "SKU_99812", "out": "sku_99812"}
+{"in": "IBAN ES91 2100 0418 4502 0005 1332", "out": "iban es91 2100 0418 4502 0005 1332"}
+{"in": "+34 600 123 456", "out": "34 600 123 456"}
+{"in": "CP 28001", "out": "cp 28001"}
+{"in": "3ª planta", "out": "3ª plant"}
+{"in": "1º piso", "out": "1º piso"}
+{"in": "nº 45", "out": "nº 45"}
+{"in": "n.º 45", "out": "n.º 45"}
+{"in": "50%", "out": "50"}
+{"in": "100 €", "out": "100"}
+{"in": "$200", "out": "200"}
+{"in": "24h", "out": "24h"}
+{"in": "4K", "out": "4k"}
+{"in": "5G", "out": "5g"}
+{"in": "H2O", "out": "h2o"}
+{"in": "CO2", "out": "co2"}
+{"in": "mp3", "out": "mp3"}
+{"in": "Wi-Fi", "out": "wi-fi"}
+{"in": "e-mail", "out": "e-mail"}
+{"in": "COVID-19", "out": "covid-19"}
+{"in": "T-800", "out": "t-800"}
+{"in": "MAYÚSCULAS", "out": "mayuscul"}
+{"in": "CASAS GRANDES", "out": "cas grand"}
+{"in": "Clientes Nuevos", "out": "client nuev"}
+{"in": "CLIENTE", "out": "client"}
+{"in": "LUCES", "out": "luz"}
+{"in": "MOTORES", "out": "motor"}
+{"in": "İstanbul", "out": "istanbul"}
+{"in": "İSTANBUL", "out": "istanbul"}
+{"in": "ılık", "out": "ılık"}
+{"in": "DİKKAT", "out": "dikkat"}
+{"in": "ΟΔΟΣ", "out": "οδος"}
+{"in": "ΟΔΟΣ ΚΑΙ ΣΟΦΙΑ", "out": "οδος και σοφια"}
+{"in": "Σ", "out": ""}
+{"in": "ΣΣ", "out": "σς"}
+{"in": "ΆΛΦΑ", "out": "αλφα"}
+{"in": "Straße", "out": "straß"}
+{"in": "STRASSE", "out": "strass"}
+{"in": "ẞ", "out": ""}
+{"in": "ǅemal", "out": "ǆemal"}
+{"in": "Kelvin K", "out": "kelvin"}
+{"in": "Ⅻ capítulos", "out": "capitul"}
+{"in": "ﬁnal", "out": "ﬁnal"}
+{"in": "ﬂujo", "out": "ﬂujo"}
+{"in": "¿Qué es esto?", "out": ""}
+{"in": "¡Hola, mundo!", "out": "hola mund"}
+{"in": "casa, perro y gato.", "out": "casa perr gato"}
+{"in": "«comillas latinas»", "out": "comill latin"}
+{"in": "“comillas inglesas”", "out": "comill ingles"}
+{"in": "'comillas simples'", "out": "comill simpl"}
+{"in": "\"comillas dobles\"", "out": "comill dobl"}
+{"in": "(entre paréntesis)", "out": "parentesis"}
+{"in": "[entre corchetes]", "out": "corchet"}
+{"in": "{entre llaves}", "out": "llav"}
+{"in": "punto y coma; dos puntos: fin", "out": "punt coma dos punt fin"}
+{"in": "puntos suspensivos...", "out": "punt suspensiv"}
+{"in": "guion — largo – medio", "out": "guion larg medi"}
+{"in": "barra|vertical", "out": "barr vertical"}
+{"in": "asterisco*nota*", "out": "asterisc nota"}
+{"in": "almohadilla #etiqueta", "out": "almohadill etiquet"}
+{"in": "arroba@usuario", "out": "arrob usuari"}
+{"in": "signo + más = igual", "out": "sign igual"}
+{"in": "porcentaje % y ‰", "out": "porcentaj"}
+{"in": "tilde ~ circunflejo ^", "out": "tild circunflej"}
+{"in": "comillas \"dentro \"de\" texto\"", "out": "comill dentr text"}
+{"in": "casa.perro.gato", "out": "casa.perro.gat"}
+{"in": "casa..perro", "out": "casa perr"}
+{"in": "casa/./perro", "out": "casa perr"}
+{"in": "fin.", "out": "fin"}
+{"in": "😀 feliz", "out": "feliz"}
+{"in": "👍 genial", "out": "genial"}
+{"in": "🚀 lanzamiento 🚀", "out": "lanzamient"}
+{"in": "❤️ corazón", "out": "corazon"}
+{"in": "👨‍👩‍👧 familia", "out": "famili"}
+{"in": "👋🏽 hola", "out": "hola"}
+{"in": "🇪🇸 España", "out": "espan"}
+{"in": "™ marca ®", "out": "marc"}
+{"in": "東京タワー", "out": "東京タワー"}
+{"in": "日本語のテキスト", "out": "日本語のテキスト"}
+{"in": "中文文本", "out": "中文文本"}
+{"in": "한국어", "out": "한국어"}
+{"in": "안녕하세요", "out": "안녕하세요"}
+{"in": "Привет мир", "out": "привет мир"}
+{"in": "Москва", "out": "москва"}
+{"in": "Ελληνικά", "out": "ελληνικα"}
+{"in": "Αθήνα", "out": "αθηνα"}
+{"in": "שלום עולם", "out": "שלום עולם"}
+{"in": "مرحبا بالعالم", "out": "مرحبا بالعالم"}
+{"in": "العربية٣", "out": "العربية٣"}
+{"in": "हिन्दी", "out": "नद"}
+{"in": "नमस्ते", "out": "नमसत"}
+{"in": "ภาษาไทย", "out": "ภาษาไทย"}
+{"in": "Հայերեն", "out": "հայերեն"}
+{"in": "ქართული", "out": "ქართული"}
+{"in": "𝐚", "out": "𝐚"}
+{"in": "𝐚𝐛𝐜𝐝𝐞", "out": "𝐚𝐛𝐜𝐝𝐞"}
+{"in": "𝟑casas", "out": "𝟑cas"}
+{"in": "²casas", "out": "²cas"}
+{"in": "casas²", "out": "casas²"}
+{"in": "modelos٣", "out": "modelos٣"}
+{"in": "１２３", "out": "１２３"}
+{"in": "ＡＢＣ", "out": "ａｂｃ"}
+{"in": "Ⅳ", "out": ""}
+{"in": "½ taza", "out": "taza"}
+{"in": "x² + y² = z²", "out": "x² y² z²"}
+{"in": "∑ suma", "out": "suma"}
+{"in": "→ flecha", "out": "flech"}
+{"in": "• viñeta", "out": "vinet"}
+{"in": "eses", "out": "eses"}
+{"in": "reses", "out": "res"}
+{"in": "dieses", "out": "dies"}
+{"in": "veces", "out": "vez"}
+{"in": "nueces", "out": "nuez"}
+{"in": "lunes", "out": "lun"}
+{"in": "crisis", "out": "crisis"}
+{"in": "análisis", "out": "analisis"}
+{"in": "virus", "out": "virus"}
+{"in": "tórax", "out": "torax"}
+{"in": "dosis", "out": "dosis"}
+{"in": "tesis", "out": "tesis"}
+{"in": "corpus", "out": "corpus"}
+{"in": "bus", "out": "bus"}
+{"in": "gas", "out": "gas"}
+{"in": "gases", "out": "gas"}
+{"in": "tos", "out": "tos"}
+{"in": "dios", "out": "dios"}
+{"in": "dioses", "out": "dios"}
+{"in": "ojos", "out": "ojos"}
+{"in": "manos", "out": "man"}
+{"in": "pies", "out": "pies"}
+{"in": "fe", "out": "fe"}
+{"in": "yo", "out": ""}
+{"in": "ola", "out": "ola"}
+{"in": "olas", "out": "olas"}
+{"in": "casa casa casa", "out": "casa casa casa"}
+{"in": "CASA casa Casa", "out": "casa casa casa"}
+{"in": "abcde", "out": "abcd"}
+{"in": "abcd", "out": "abcd"}
+{"in": "abcdo", "out": "abcd"}
+{"in": "abcds", "out": "abcds"}
+{"in": "abces", "out": "abz"}
+{"in": "abcos", "out": "abc"}
+{"in": "abcas", "out": "abc"}
+{"in": "abcis", "out": "abcis"}
+{"in": "abcus", "out": "abcus"}
+{"in": "paredes", "out": "pared"}
+{"in": "redes", "out": "red"}
+{"in": "El motor de la bomba hidráulica debe revisarse cada 500 horas de funcionamiento, según el manual del fabricante.", "out": "motor bomb hidraulic debe revisars cada 500 hor funcionamient segun manual fabricant"}
+{"in": "Las instrucciones de seguridad indican que los operarios tienen que usar guantes y gafas protectoras durante el mantenimiento.", "out": "instruccion seguridad indican operari tienen usar guant gaf protector mantenimient"}
+{"in": "La política de privacidad establece que los datos personales de los clientes no se comparten con terceros sin su consentimiento.", "out": "politic privacidad establec dat personal client comparten tercer consentimient"}
+{"in": "Para restablecer la contraseña, el usuario debe pulsar «¿Olvidaste tu contraseña?» y seguir los pasos del correo recibido.", "out": "restablecer contrasen usuari debe pulsar olvidast tu contrasen seguir pas corre recibid"}
+{"in": "El informe anual de 2025 muestra un crecimiento del 12,5 % en las ventas de la región norte respecto al año anterior.", "out": "inform anual 2025 muestr crecimient 12 vent region nort respect ano anterior"}
+{"in": "Los fragmentos se indexan con un modelo de embeddings y, además, con un índice léxico que tiene en cuenta los títulos.", "out": "fragment indexan model embeddings adem indic lexic cuent titul"}
+{"in": "En caso de avería, consulte la sección 4.2 del manual técnico o contacte con el servicio de asistencia en el +34 900 123 456.", "out": "caso averi consult seccion 4.2 manual tecnic contact servici asistenci 34 900 123 456"}
+{"in": "Las facturas emitidas antes del 31/12/2024 deben archivarse durante al menos cinco años, conforme a la normativa vigente.", "out": "factur emitid ant 31/12/2024 deben archivars men cinc anos conform normativ vigent"}
+{"in": "La temperatura máxima de trabajo es de 85 °C; por encima de ese valor, el sistema se apaga automáticamente para evitar daños.", "out": "temperatur maxim trabaj 85 encim valor sistem apag automaticament evitar dan"}
+{"in": "Cada documento importado se copia en el almacenamiento privado de la aplicación y nunca sale del dispositivo.", "out": "cada document importad copi almacenamient privad aplicacion nunc sale dispositiv"}
+{"in": "Los empleados que trabajen en turnos de noche tendrán derecho a un descanso adicional de quince minutos por jornada.", "out": "emplead trabajen turn noch tendran derech descans adicional quinc minut jornad"}
+{"in": "El contrato de arrendamiento podrá rescindirse con un preaviso de treinta días naturales, comunicado por escrito.", "out": "contrat arrendamient podr rescindirs preavis treint dias natural comunicad escrit"}
+{"in": "La válvula V-210 regula el caudal de entrada; la V-220, el de salida. Ambas deben calibrarse tras cada sustitución.", "out": "valvul v-210 regul caudal entrad v-220 salid amb deben calibrars tras cada sustitucion"}
+{"in": "Según el protocolo, los incidentes graves se notifican al responsable de seguridad en un plazo máximo de 24 horas.", "out": "segun protocol incident grav notifican responsabl seguridad plaz maxim 24 hor"}
+{"in": "Las vacaciones se solicitan con dos semanas de antelación a través del portal del empleado, sección «Ausencias».", "out": "vacacion solicitan dos seman antelacion trav portal emplead seccion ausenci"}
+{"in": "El presupuesto incluye la instalación, la puesta en marcha y la formación de los técnicos, pero no los desplazamientos.", "out": "presupuest incluy instalacion puest march formacion tecnic desplazamient"}
+{"in": "Los niños menores de doce años deben estar acompañados en todo momento por un adulto responsable.", "out": "nin menor doce anos deben estar acompanad todo moment adult responsabl"}
+{"in": "La biblioteca municipal abre de lunes a viernes de 9:00 a 20:00 y los sábados por la mañana, excepto en agosto.", "out": "bibliotec municipal abre lun viern 00 20 00 sabad manan except agost"}
+{"in": "Se recomienda actualizar el firmware a la versión 3.4.1 antes de conectar el equipo a la red de la planta.", "out": "recomiend actualizar firmwar version 3.4.1 ant conectar equip red plant"}
+{"in": "El análisis de riesgos identificó tres puntos críticos: la alimentación eléctrica, la ventilación y el acceso a la sala.", "out": "analisis riesg identific tres punt critic alimentacion electric ventilacion acces sala"}
+{"in": "Las solicitudes de reembolso deben ir acompañadas del ticket original y presentarse antes de que transcurran 30 días.", "out": "solicitud reembols deben ir acompanad ticket original presentars ant transcurran 30 dias"}
+{"in": "El paciente debe tomar la medicación cada ocho horas, preferiblemente con las comidas, durante una semana.", "out": "pacient debe tomar medicacion cada ocho hor preferiblement comid seman"}
+{"in": "Los resultados de la evaluación se publicarán en el tablón de anuncios y en la intranet el próximo lunes.", "out": "resultad evaluacion publicaran tablon anunci intranet proxim lun"}
+{"in": "Para cancelar la suscripción, acceda a «Mi cuenta», pulse en «Suscripciones» y seleccione la opción correspondiente.", "out": "cancelar suscripcion acced cuent puls suscripcion seleccion opcion correspondient"}
+{"in": "La garantía cubre los defectos de fabricación durante dos años, pero no los daños causados por un uso indebido.", "out": "garanti cubr defect fabricacion dos anos dan causad uso indebid"}
+{"in": "Los proveedores homologados figuran en el anexo II; cualquier excepción requiere la aprobación del director de compras.", "out": "proveedor homologad figuran anex ii cualquier excepcion requier aprobacion director compr"}
+{"in": "Durante la auditoría se revisaron 1.250 expedientes, de los cuales 37 presentaban errores de documentación.", "out": "auditori revisaron 1.250 expedient 37 presentaban error documentacion"}
+{"in": "El sistema RAG combina la búsqueda vectorial y la léxica mediante RRF con k = 60 antes de construir el contexto.", "out": "sistem rag combin busqued vectorial lexic mediant rrf 60 ant construir context"}
+{"in": "¿Cuántos días de vacaciones corresponden a un trabajador con contrato a tiempo parcial? Depende de su jornada.", "out": "cuant dias vacacion corresponden trabajador contrat tiemp parcial depend jornad"}
+{"in": "Nota: los valores entre corchetes [ ] son opcionales; los marcados con asterisco (*) son obligatorios.", "out": "nota valor corchet son opcional marcad asterisc son obligatori"}

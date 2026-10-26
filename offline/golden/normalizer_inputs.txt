@@ -1,0 +1,398 @@
+# Inputs of the SpanishText v1 golden (F04 FR-019). One input per line; lines starting with # are
+# comments and blank lines are skipped. Avoid characters newer than Unicode 15.0 (research R4).
+# Regenerate with: offline/.venv/bin/python -I offline/gen_normalizer_golden.py
+
+# --- Report examples ---
+clientes
+cliente
+motores
+luces
+R-1234
+
+# --- Plural and gender ---
+casa
+casas
+coche
+coches
+perro
+perros
+perra
+perras
+niño
+niños
+niña
+niñas
+gato
+gatos
+gata
+gatas
+profesor
+profesores
+profesora
+profesoras
+camión
+camiones
+canción
+canciones
+lápiz
+lápices
+pez
+peces
+voz
+voces
+cruz
+cruces
+nariz
+narices
+actriz
+actrices
+mes
+meses
+país
+países
+inglés
+ingleses
+francés
+franceses
+autobús
+autobuses
+tren
+trenes
+árbol
+árboles
+papel
+papeles
+ciudad
+ciudades
+reloj
+relojes
+documento
+documentos
+fragmento
+fragmentos
+consulta
+consultas
+respuesta
+respuestas
+modelo
+modelos
+índice
+índices
+búsqueda
+búsquedas
+servidor
+servidores
+usuario
+usuarios
+usuaria
+usuarias
+cliente nuevo
+clientes nuevos
+la clienta nueva
+las clientas nuevas
+bueno buena buenos buenas
+grande grandes
+feliz felices
+rápido rápida rápidos rápidas
+
+# --- Accents, diaeresis, ñ and ç ---
+canción
+acción
+información
+configuración
+Árbol
+ÁRBOL
+éxito
+Éxito
+último
+Último
+óptimo
+única
+pingüino
+pingüinos
+cigüeña
+vergüenza
+lingüística
+agüero
+año
+años
+España
+español
+españoles
+mañana
+señor
+señora
+niñez
+Ñandú
+ñoño
+çedilla
+façade
+garçon
+Façade Françoise
+naïve
+Zoë
+coöperate
+crème brûlée
+São Paulo
+Kraków
+Dvořák
+
+# --- Stopwords ---
+de la que
+el la los las
+un una unos unas
+y o u e
+a al del
+para por sin sobre
+como cuando donde
+que quien cual cuales
+este esta estos estas
+ese esa esos esas
+eso esto
+yo me mi te
+ya no ni si
+tambien
+también
+más
+mas
+sí
+él
+qué
+cuánto cuánta
+el motor de la bomba
+la casa de los clientes
+para que sirve esto
+
+# --- Codes with digits and separators ---
+R-1234
+r-1234
+REF-2024-001
+ISO 9001
+ISO-9001:2015
+v1.2.3
+v1.2/a
+abc_def
+abc-def
+abc.def
+abc/def
+abc--def
+abc- -abc
+-abc
+abc-
+a-b
+x-1
+1-x
+12.5
+3,14
+1.000.000
+2026-10-26
+26/10/2026
+10:30
+192.168.1.1
+www.ejemplo.com
+correo@ejemplo.com
+https://ejemplo.com/ruta/pagina.html
+C:\Archivos\documento.pdf
+/usr/local/bin
+archivo_final_v2.docx
+informe-anual.pdf
+pieza A-12/B
+modelo2024
+abc12
+casas12
+2casas
+motores3
+PN-00045-XB
+SKU_99812
+IBAN ES91 2100 0418 4502 0005 1332
++34 600 123 456
+CP 28001
+3ª planta
+1º piso
+nº 45
+n.º 45
+50%
+100 €
+$200
+24h
+4K
+5G
+H2O
+CO2
+mp3
+Wi-Fi
+e-mail
+COVID-19
+T-800
+
+# --- Uppercase, final sigma and dotted I ---
+MAYÚSCULAS
+CASAS GRANDES
+Clientes Nuevos
+CLIENTE
+LUCES
+MOTORES
+İstanbul
+İSTANBUL
+ılık
+DİKKAT
+ΟΔΟΣ
+ΟΔΟΣ ΚΑΙ ΣΟΦΙΑ
+Σ
+ΣΣ
+ΆΛΦΑ
+Straße
+STRASSE
+ẞ
+ǅemal
+Kelvin K
+Ⅻ capítulos
+ﬁnal
+ﬂujo
+
+# --- Punctuation ---
+¿Qué es esto?
+¡Hola, mundo!
+casa, perro y gato.
+«comillas latinas»
+“comillas inglesas”
+'comillas simples'
+"comillas dobles"
+(entre paréntesis)
+[entre corchetes]
+{entre llaves}
+punto y coma; dos puntos: fin
+puntos suspensivos...
+guion — largo – medio
+barra|vertical
+asterisco*nota*
+almohadilla #etiqueta
+arroba@usuario
+signo + más = igual
+porcentaje % y ‰
+tilde ~ circunflejo ^
+comillas "dentro "de" texto"
+casa.perro.gato
+casa..perro
+casa/./perro
+fin.
+
+# --- Non-Latin scripts and emojis ---
+😀 feliz
+👍 genial
+🚀 lanzamiento 🚀
+❤️ corazón
+👨‍👩‍👧 familia
+👋🏽 hola
+🇪🇸 España
+™ marca ®
+東京タワー
+日本語のテキスト
+中文文本
+한국어
+안녕하세요
+Привет мир
+Москва
+Ελληνικά
+Αθήνα
+שלום עולם
+مرحبا بالعالم
+العربية٣
+हिन्दी
+नमस्ते
+ภาษาไทย
+Հայերեն
+ქართული
+𝐚
+𝐚𝐛𝐜𝐝𝐞
+𝟑casas
+²casas
+casas²
+modelos٣
+１２３
+ＡＢＣ
+Ⅳ
+½ taza
+x² + y² = z²
+∑ suma
+→ flecha
+• viñeta
+
+# --- Stemmer edge cases ---
+eses
+meses
+reses
+dieses
+peces
+luces
+voces
+veces
+cruces
+nueces
+lunes
+crisis
+análisis
+virus
+tórax
+dosis
+tesis
+corpus
+bus
+gas
+gases
+tos
+dios
+dioses
+ojos
+manos
+pies
+fe
+yo
+ola
+olas
+casa casa casa
+CASA casa Casa
+abcde
+abcd
+abcdo
+abcds
+abces
+abcos
+abcas
+abcis
+abcus
+ciudades
+paredes
+redes
+
+# --- Paragraphs ---
+El motor de la bomba hidráulica debe revisarse cada 500 horas de funcionamiento, según el manual del fabricante.
+Las instrucciones de seguridad indican que los operarios tienen que usar guantes y gafas protectoras durante el mantenimiento.
+La política de privacidad establece que los datos personales de los clientes no se comparten con terceros sin su consentimiento.
+Para restablecer la contraseña, el usuario debe pulsar «¿Olvidaste tu contraseña?» y seguir los pasos del correo recibido.
+El informe anual de 2025 muestra un crecimiento del 12,5 % en las ventas de la región norte respecto al año anterior.
+Los fragmentos se indexan con un modelo de embeddings y, además, con un índice léxico que tiene en cuenta los títulos.
+En caso de avería, consulte la sección 4.2 del manual técnico o contacte con el servicio de asistencia en el +34 900 123 456.
+Las facturas emitidas antes del 31/12/2024 deben archivarse durante al menos cinco años, conforme a la normativa vigente.
+La temperatura máxima de trabajo es de 85 °C; por encima de ese valor, el sistema se apaga automáticamente para evitar daños.
+Cada documento importado se copia en el almacenamiento privado de la aplicación y nunca sale del dispositivo.
+Los empleados que trabajen en turnos de noche tendrán derecho a un descanso adicional de quince minutos por jornada.
+El contrato de arrendamiento podrá rescindirse con un preaviso de treinta días naturales, comunicado por escrito.
+La válvula V-210 regula el caudal de entrada; la V-220, el de salida. Ambas deben calibrarse tras cada sustitución.
+Según el protocolo, los incidentes graves se notifican al responsable de seguridad en un plazo máximo de 24 horas.
+Las vacaciones se solicitan con dos semanas de antelación a través del portal del empleado, sección «Ausencias».
+El presupuesto incluye la instalación, la puesta en marcha y la formación de los técnicos, pero no los desplazamientos.
+Los niños menores de doce años deben estar acompañados en todo momento por un adulto responsable.
+La biblioteca municipal abre de lunes a viernes de 9:00 a 20:00 y los sábados por la mañana, excepto en agosto.
+Se recomienda actualizar el firmware a la versión 3.4.1 antes de conectar el equipo a la red de la planta.
+El análisis de riesgos identificó tres puntos críticos: la alimentación eléctrica, la ventilación y el acceso a la sala.
+Las solicitudes de reembolso deben ir acompañadas del ticket original y presentarse antes de que transcurran 30 días.
+El paciente debe tomar la medicación cada ocho horas, preferiblemente con las comidas, durante una semana.
+Los resultados de la evaluación se publicarán en el tablón de anuncios y en la intranet el próximo lunes.
+Para cancelar la suscripción, acceda a «Mi cuenta», pulse en «Suscripciones» y seleccione la opción correspondiente.
+La garantía cubre los defectos de fabricación durante dos años, pero no los daños causados por un uso indebido.
+Los proveedores homologados figuran en el anexo II; cualquier excepción requiere la aprobación del director de compras.
+Durante la auditoría se revisaron 1.250 expedientes, de los cuales 37 presentaban errores de documentación.
+El sistema RAG combina la búsqueda vectorial y la léxica mediante RRF con k = 60 antes de construir el contexto.
+¿Cuántos días de vacaciones corresponden a un trabajador con contrato a tiempo parcial? Depende de su jornada.
+Nota: los valores entre corchetes [ ] son opcionales; los marcados con asterisco (*) son obligatorios.
