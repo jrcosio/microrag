@@ -58,7 +58,7 @@ class IngestRunner(
         if (document.status != DocumentStatus.PENDING) return
         val started = clock()
         val format = DocumentFormat.fromMime(document.mimeType)
-        val file = document.localPath?.let(::File)?.takeIf { it.isFile }
+        val file = document.localPath?.let(::File)
         val outcome = if (format == null || file == null) {
             Outcome.Failed(IngestError.EXTRACTION_FAILED)
         } else {
@@ -90,6 +90,8 @@ class IngestRunner(
             }
             try {
                 withContext(io) {
+                    // A missing private copy cannot be extracted; checked here, off the caller's thread.
+                    if (!file.isFile) return@withContext Outcome.Failed(IngestError.EXTRACTION_FAILED)
                     val job = coroutineContext.job
                     val session = newChunker().Session()
                     var chunks = 0

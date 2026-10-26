@@ -21,6 +21,8 @@ data class FakeFile(
     val describeError: Exception? = null,
     val readError: IOException? = null,
     val readErrorAfter: Int = 0,
+    /** When set, reading waits for it: holds an import in the middle of its copy. */
+    val gate: java.util.concurrent.CountDownLatch? = null,
 )
 
 class FakeDocumentSource : DocumentSource {
@@ -40,6 +42,16 @@ class FakeDocumentSource : DocumentSource {
     override fun open(uri: String): InputStream {
         val file = files[uri] ?: throw FileNotFoundException(uri)
         opened += uri
+        file.gate?.let { gate ->
+            return object : InputStream() {
+                private val bytes = ByteArrayInputStream(file.bytes)
+
+                override fun read(): Int {
+                    gate.await()
+                    return bytes.read()
+                }
+            }
+        }
         val error = file.readError ?: return ByteArrayInputStream(file.bytes)
         return object : InputStream() {
             private var read = 0

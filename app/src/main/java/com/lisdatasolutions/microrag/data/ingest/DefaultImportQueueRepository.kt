@@ -139,7 +139,7 @@ class DefaultImportQueueRepository(
                 val error = IngestError.fromCode(document.error)
                 if (document.status != DocumentStatus.ERROR || error?.retryable != true) return
                 index.updateStatus(key.id, DocumentStatus.PENDING, error = null)
-                scheduler.enqueue(listOf(key.id))
+                withContext(io) { scheduler.enqueue(listOf(key.id)) }
                 logger.i(TAG) { "ingest retry id=${key.id}" }
             }
         }
@@ -160,13 +160,15 @@ class DefaultImportQueueRepository(
         }
     }
 
-    override suspend fun startProcessing(): Int {
+    /** Off the caller's thread: the screen calls it from the main thread (constitution IV). */
+    override suspend fun startProcessing(): Int = withContext(io) {
         val active = scheduler.activeDocumentIds.first()
         val ready = index.documents(setOf(DocumentStatus.PENDING)).map { it.id }.filterNot { it in active }
-        if (ready.isEmpty()) return 0
-        scheduler.enqueue(ready)
-        logger.i(TAG) { "ingest enqueued ${ready.size}" }
-        return ready.size
+        if (ready.isNotEmpty()) {
+            scheduler.enqueue(ready)
+            logger.i(TAG) { "ingest enqueued ${ready.size}" }
+        }
+        ready.size
     }
 
     private fun submit(job: Pending) {
@@ -262,9 +264,15 @@ class DefaultImportQueueRepository(
         null
     }
 
+    /**
+     * The referenced copies are read under [fileLock]: read before it, an import finishing meanwhile
+     * would have its new copy taken for an orphan.
+     */
     private suspend fun cleanOrphans() {
-        val referenced = index.documents(DocumentStatus.entries.toSet()).mapNotNullTo(HashSet()) { it.localPath }
-        val removed = withContext(io) { fileLock.withLock { files.cleanOrphans(referenced) } }
+        val removed = fileLock.withLock {
+            val referenced = index.documents(DocumentStatus.entries.toSet()).mapNotNullTo(HashSet()) { it.localPath }
+            withContext(io) { files.cleanOrphans(referenced) }
+        }
         if (removed > 0) logger.i(TAG) { "ingest orphans removed=$removed" }
     }
 

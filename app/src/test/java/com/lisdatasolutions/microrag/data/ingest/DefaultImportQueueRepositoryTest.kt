@@ -15,6 +15,9 @@ import com.lisdatasolutions.microrag.testing.RecordingLogger
 import java.io.File
 import java.nio.file.Files
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
@@ -299,5 +302,30 @@ class DefaultImportQueueRepositoryTest {
         repository.retry(QueueKey.Document(1))
 
         assertThat(scheduler.enqueued).containsExactly(listOf(1L))
+    }
+
+    /** Regression (found by IngestStrictModeTest): the first cleanup must not take a copy being registered for an orphan. */
+    @Test
+    fun orphanCleanupNeverDeletesACopyBeingImported() = kotlinx.coroutines.runBlocking {
+        val gate = java.util.concurrent.CountDownLatch(1)
+        source.files["content://slow"] = FakeFile(SourceInfo("lento.txt", 5, "text/plain"), "texto".toByteArray(), gate = gate)
+        val scope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.IO)
+        val importer = DocumentImporter(source, files, pdf, index, { Long.MAX_VALUE / 2 }, logger)
+        val repository = DefaultImportQueueRepository(
+            importer, source, index, files, scheduler, pdf, scope, kotlinx.coroutines.Dispatchers.IO, logger,
+        ) { 0L }
+        try {
+            repository.import(listOf("content://slow"))
+            kotlinx.coroutines.withTimeout(5_000) { while ("content://slow" !in source.opened) kotlinx.coroutines.delay(10) }
+            val queue = scope.async { repository.queue.first { it.items.any { item -> item.key is QueueKey.Document } } }
+            kotlinx.coroutines.delay(200) // the cleanup is now waiting for the copy in progress
+            gate.countDown()
+
+            kotlinx.coroutines.withTimeout(5_000) { queue.await() }
+            val copy = File(index.docs.values.single().localPath!!)
+            assertThat(copy.exists()).isTrue()
+        } finally {
+            scope.cancel()
+        }
     }
 }
