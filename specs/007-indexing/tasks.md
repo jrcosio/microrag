@@ -245,7 +245,7 @@ description: "Lista de tareas de F07 — Indexación"
 
 ### Tests for User Story 3
 
-- [ ] T028 [P] [US3] Crear `…/test/data/indexing/DefaultIndexingRepositoryTest.kt` con `FakeRagIndex`, `work-testing`, un `IngestRunStore` en memoria y temperatura fija:
+- [X] T028 [P] [US3] Crear `…/test/data/indexing/DefaultIndexingRepositoryTest.kt` con `FakeRagIndex`, `work-testing`, un `IngestRunStore` en memoria y temperatura fija:
   - `Idle` sin tanda;
   - `Active` con M desconocido mientras queda un `pending` (FR-021/022);
   - N/M al guardar lotes y al cerrar documentos;
@@ -254,7 +254,7 @@ description: "Lista de tareas de F07 — Indexación"
   - documentos en cola;
   - tiempo restante solo con ritmo estable (R8, FR-023);
   - `IndexUnavailable`.
-- [ ] T029 [P] [US3] Tests de `start` en el mismo fichero:
+- [X] T029 [P] [US3] Tests de `start` en el mismo fichero:
   - descarta los terminados;
   - añade `pending`, `parsed` y `embedding` sin duplicar;
   - quita la pausa;
@@ -278,7 +278,7 @@ description: "Lista de tareas de F07 — Indexación"
 
 ### Implementation for User Story 3
 
-- [ ] T032 [US3] Implementar en `…/microrag/data/indexing/DefaultIndexingRepository.kt` `state` y `start` (R8, data-model §3 y §7), con los casos de uso `Observe` y `Start`. El `StartIndexingUseCase` de F06 delega en `start()`. Comprobar T028 y T029.
+- [X] T032 [US3] Implementar en `…/microrag/data/indexing/DefaultIndexingRepository.kt` `state` y `start` (R8, data-model §3 y §7), con los casos de uso `Observe` y `Start`. El `StartIndexingUseCase` de F06 delega en `start()`. Comprobar T028 y T029.
 - [ ] T033 [US3] Ampliar `LisdataHeroCard` (`…/microrag/core/designsystem/component/Cards.kt`) con el título opcional. Actualizar su preview, el catálogo y `CatalogAccessibilityTest` si cambia.
 - [ ] T034 [US3] Crear `…/microrag/feature/indexing/IndexUiState.kt`, `IndexTexts.kt` e `IndexViewModel.kt`. Comprobar T030.
 - [ ] T035 [US3] Crear `…/microrag/feature/indexing/IndexScreen.kt` (`IndexRoute` + `IndexScreen` sin estado) con la estructura de contracts/index-ui.md. Crear `strings_indexing.xml` (es y en) con los textos del PNG y de P1, P2, P9 y P12; las fases siguientes lo amplían. Comprobar T031.

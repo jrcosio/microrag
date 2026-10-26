@@ -1,6 +1,9 @@
 package com.lisdatasolutions.microrag.feature.ingest
 
 import com.google.common.truth.Truth.assertThat
+import com.lisdatasolutions.microrag.data.indexing.DefaultIndexingRepository
+import com.lisdatasolutions.microrag.data.indexing.FakeThermalStatusSource
+import com.lisdatasolutions.microrag.data.indexing.InMemoryIngestRunStore
 import com.lisdatasolutions.microrag.data.ingest.DefaultImportQueueRepository
 import com.lisdatasolutions.microrag.data.ingest.DocumentFileStore
 import com.lisdatasolutions.microrag.data.ingest.DocumentImporter
@@ -57,9 +60,13 @@ class IngestRecreationTest {
         val pdf = FakePdfOpener()
         val files = DocumentFileStore(dir)
         val logger = RecordingLogger()
+        val scheduler = FakeIngestScheduler()
+        val runs = InMemoryIngestRunStore()
         val repository = DefaultImportQueueRepository(
             DocumentImporter(source, files, pdf, index, { Long.MAX_VALUE / 2 }, logger),
-            source, index, files, FakeIngestScheduler(), pdf, backgroundScope, dispatcher, logger,
+            source, index, files, scheduler, pdf,
+            DefaultIndexingRepository(index, scheduler, runs, FakeThermalStatusSource(), dispatcher, logger), runs,
+            backgroundScope, dispatcher, logger,
         ) { 0L }
         fun viewModel() = IngestViewModel(
             ObserveImportQueueUseCase(repository), ImportDocumentsUseCase(repository), StartIndexingUseCase(repository),

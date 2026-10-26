@@ -1,6 +1,9 @@
 package com.lisdatasolutions.microrag.data.ingest
 
 import com.google.common.truth.Truth.assertThat
+import com.lisdatasolutions.microrag.data.indexing.DefaultIndexingRepository
+import com.lisdatasolutions.microrag.data.indexing.FakeThermalStatusSource
+import com.lisdatasolutions.microrag.data.indexing.InMemoryIngestRunStore
 import com.lisdatasolutions.microrag.domain.ingest.ImportQueue
 import com.lisdatasolutions.microrag.domain.ingest.IngestError
 import com.lisdatasolutions.microrag.domain.ingest.QueueItemState
@@ -36,6 +39,7 @@ class DefaultImportQueueRepositoryTest {
     private val pdf = FakePdfOpener()
     private val index = FakeRagIndex()
     private val scheduler = FakeIngestScheduler()
+    private val runStore = InMemoryIngestRunStore()
     private val files = DocumentFileStore(dir)
     private val logger = RecordingLogger()
 
@@ -47,7 +51,8 @@ class DefaultImportQueueRepositoryTest {
     private fun TestScope.repository(): DefaultImportQueueRepository {
         val dispatcher = UnconfinedTestDispatcher(testScheduler)
         val importer = DocumentImporter(source, files, pdf, index, { Long.MAX_VALUE / 2 }, logger)
-        return DefaultImportQueueRepository(importer, source, index, files, scheduler, pdf, backgroundScope, dispatcher, logger) { 0L }
+        val indexing = DefaultIndexingRepository(index, scheduler, runStore, FakeThermalStatusSource(), dispatcher, logger)
+        return DefaultImportQueueRepository(importer, source, index, files, scheduler, pdf, indexing, runStore, backgroundScope, dispatcher, logger) { 0L }
     }
 
     private fun TestScope.collect(repository: DefaultImportQueueRepository): MutableList<ImportQueue> {
@@ -259,10 +264,10 @@ class DefaultImportQueueRepositoryTest {
         assertThat(values.last().items.none { it.removalNeedsConfirmation }).isTrue()
     }
 
-    // F06 US3 (T046): starting the processing enqueues only Ready documents (contracts I9).
+    // F06 US3 (T046), changed by F07: starting adds every non-indexed document to the run (contracts/indexing-api.md).
 
     @Test
-    fun startProcessingEnqueuesTheReadyDocumentsInOrder() = runTest {
+    fun startProcessingAddsEveryUnindexedDocumentToTheRun() = runTest {
         listOf("a", "b", "c").forEach { source.add("content://$it", "$it.txt", it.toByteArray(), "text/plain") }
         val repository = repository()
         val values = collect(repository)
@@ -271,14 +276,14 @@ class DefaultImportQueueRepositoryTest {
         index.updateStatus(2, com.lisdatasolutions.microrag.domain.rag.DocumentStatus.PARSED, chunkCount = 1)
         scheduler.activeDocumentIds.value = setOf(3L)
 
-        val enqueued = repository.startProcessing()
+        val inRun = repository.startProcessing()
         advanceUntilIdle()
 
-        assertThat(enqueued).isEqualTo(1)
-        assertThat(scheduler.enqueued).containsExactly(listOf(1L))
+        assertThat(inRun).isEqualTo(3)
+        assertThat(runStore.run.value.documentIds).containsExactly(1L, 2L, 3L).inOrder()
+        assertThat(scheduler.enqueued).containsExactly(listOf(1L, 2L, 3L))
         val states = values.last().items.associate { it.key to it.state }
         assertThat(states[QueueKey.Document(1)]).isEqualTo(QueueItemState.Queued)
-        assertThat(states[QueueKey.Document(2)]).isEqualTo(QueueItemState.Prepared(1, null))
         assertThat(values.last().readyCount).isEqualTo(0)
     }
 
@@ -311,8 +316,9 @@ class DefaultImportQueueRepositoryTest {
         source.files["content://slow"] = FakeFile(SourceInfo("lento.txt", 5, "text/plain"), "texto".toByteArray(), gate = gate)
         val scope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.IO)
         val importer = DocumentImporter(source, files, pdf, index, { Long.MAX_VALUE / 2 }, logger)
+        val indexing = DefaultIndexingRepository(index, scheduler, runStore, FakeThermalStatusSource(), kotlinx.coroutines.Dispatchers.IO, logger)
         val repository = DefaultImportQueueRepository(
-            importer, source, index, files, scheduler, pdf, scope, kotlinx.coroutines.Dispatchers.IO, logger,
+            importer, source, index, files, scheduler, pdf, indexing, runStore, scope, kotlinx.coroutines.Dispatchers.IO, logger,
         ) { 0L }
         try {
             repository.import(listOf("content://slow"))

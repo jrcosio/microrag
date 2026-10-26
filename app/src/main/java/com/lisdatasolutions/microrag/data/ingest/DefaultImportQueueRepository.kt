@@ -2,6 +2,8 @@ package com.lisdatasolutions.microrag.data.ingest
 
 import android.os.SystemClock
 import com.lisdatasolutions.microrag.core.logging.AppLogger
+import com.lisdatasolutions.microrag.data.indexing.IngestRunStore
+import com.lisdatasolutions.microrag.domain.indexing.IndexingRepository
 import com.lisdatasolutions.microrag.domain.ingest.DocumentFormat
 import com.lisdatasolutions.microrag.domain.ingest.ImportQueue
 import com.lisdatasolutions.microrag.domain.ingest.ImportQueueRepository
@@ -52,6 +54,9 @@ class DefaultImportQueueRepository(
     private val files: DocumentFileStore,
     private val scheduler: IngestScheduler,
     private val pdf: PdfOpener,
+    /** F07: starting, retrying and removing documents go through the indexing run. */
+    private val indexing: IndexingRepository,
+    private val runStore: IngestRunStore,
     private val scope: CoroutineScope,
     private val io: CoroutineDispatcher,
     private val logger: AppLogger,
@@ -134,14 +139,7 @@ class DefaultImportQueueRepository(
                 updateAttempt(attempt.id) { it.copy(state = QueueItemState.Importing(0, info.sizeBytes), sizeBytes = info.sizeBytes) }
                 submit(Pending(attempt.id, attempt.uri, info))
             }
-            is QueueKey.Document -> {
-                val document = index.document(key.id) ?: return
-                val error = IngestError.fromCode(document.error)
-                if (document.status != DocumentStatus.ERROR || error?.retryable != true) return
-                index.updateStatus(key.id, DocumentStatus.PENDING, error = null)
-                withContext(io) { scheduler.enqueue(listOf(key.id)) }
-                logger.i(TAG) { "ingest retry id=${key.id}" }
-            }
+            is QueueKey.Document -> indexing.retry(key.id)
         }
     }
 
@@ -154,22 +152,15 @@ class DefaultImportQueueRepository(
             is QueueKey.Document -> {
                 val document = index.document(key.id) ?: return
                 index.deleteDocument(key.id)
+                runStore.edit { it.without(listOf(key.id)) }
                 withContext(io) { fileLock.withLock { files.delete(document.localPath) } }
                 logger.i(TAG) { "ingest remove id=${key.id}" }
             }
         }
     }
 
-    /** Off the caller's thread: the screen calls it from the main thread (constitution IV). */
-    override suspend fun startProcessing(): Int = withContext(io) {
-        val active = scheduler.activeDocumentIds.first()
-        val ready = index.documents(setOf(DocumentStatus.PENDING)).map { it.id }.filterNot { it in active }
-        if (ready.isNotEmpty()) {
-            scheduler.enqueue(ready)
-            logger.i(TAG) { "ingest enqueued ${ready.size}" }
-        }
-        ready.size
-    }
+    /** F07: every non-indexed document joins the run and the work starts (contracts/indexing-api.md). */
+    override suspend fun startProcessing(): Int = indexing.start()
 
     private fun submit(job: Pending) {
         pending.trySend(job)

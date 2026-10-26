@@ -14,6 +14,7 @@ import com.lisdatasolutions.microrag.data.download.ModelDownloadRunner
 import com.lisdatasolutions.microrag.data.download.ModelDownloader
 import com.lisdatasolutions.microrag.data.indexing.ChunkEmbeddingSession
 import com.lisdatasolutions.microrag.data.indexing.DataStoreIngestRunStore
+import com.lisdatasolutions.microrag.data.indexing.DefaultIndexingRepository
 import com.lisdatasolutions.microrag.data.indexing.EmbeddingSessions
 import com.lisdatasolutions.microrag.data.indexing.IngestRunStore
 import com.lisdatasolutions.microrag.data.ingest.DefaultImportQueueRepository
@@ -32,6 +33,7 @@ import com.lisdatasolutions.microrag.data.models.ModelFileRepository
 import com.lisdatasolutions.microrag.data.onboarding.DataStoreOnboardingStore
 import com.lisdatasolutions.microrag.data.rag.DefaultRagIndex
 import com.lisdatasolutions.microrag.data.rag.RagSchema
+import com.lisdatasolutions.microrag.domain.indexing.IndexingRepository
 import com.lisdatasolutions.microrag.domain.ingest.ImportQueueRepository
 import com.lisdatasolutions.microrag.domain.model.ModelId
 import com.lisdatasolutions.microrag.domain.model.NetworkKind
@@ -114,6 +116,16 @@ val dataModule = module {
             logger = get(),
         )
     }
+    single<IndexingRepository> {
+        DefaultIndexingRepository(
+            index = get(),
+            scheduler = get(),
+            runStore = get(),
+            thermal = get(),
+            io = get<AppDispatchers>().io,
+            logger = get(),
+        )
+    }
     // Single: the import attempts live here, in the application scope (D-038).
     single<ImportQueueRepository> {
         DefaultImportQueueRepository(
@@ -123,6 +135,8 @@ val dataModule = module {
             files = get(),
             scheduler = get(),
             pdf = get(),
+            indexing = get(),
+            runStore = get(),
             scope = get<ApplicationScope>().scope,
             io = get<AppDispatchers>().io,
             logger = get(),

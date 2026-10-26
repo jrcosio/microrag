@@ -5,6 +5,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
+import com.lisdatasolutions.microrag.data.indexing.DefaultIndexingRepository
 import com.lisdatasolutions.microrag.data.indexing.FakeEmbeddingSessions
 import com.lisdatasolutions.microrag.data.indexing.FakeThermalStatusSource
 import com.lisdatasolutions.microrag.data.indexing.InMemoryIngestRunStore
@@ -169,7 +170,12 @@ class IngestFlowTest {
             override suspend fun enqueue(documentIds: List<Long>) = Unit
         }
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-        val restarted = DefaultImportQueueRepository(importer, source, temp.index, files, idle, pdf, scope, Dispatchers.IO, logger)
+        val runs = InMemoryIngestRunStore()
+        val restarted = DefaultImportQueueRepository(
+                importer, source, temp.index, files, idle, pdf,
+                DefaultIndexingRepository(temp.index, idle, runs, FakeThermalStatusSource(), Dispatchers.IO, logger), runs,
+                scope, Dispatchers.IO, logger,
+            )
 
         val queue = restarted.queue.first()
         scope.cancel()

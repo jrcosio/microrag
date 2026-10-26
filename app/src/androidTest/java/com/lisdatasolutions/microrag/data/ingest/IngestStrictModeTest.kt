@@ -7,6 +7,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
+import com.lisdatasolutions.microrag.data.indexing.DefaultIndexingRepository
 import com.lisdatasolutions.microrag.data.indexing.FakeEmbeddingSessions
 import com.lisdatasolutions.microrag.data.indexing.FakeThermalStatusSource
 import com.lisdatasolutions.microrag.data.indexing.InMemoryIngestRunStore
@@ -97,7 +98,12 @@ class IngestStrictModeTest {
                 }
             }
             val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-            val repository = DefaultImportQueueRepository(importer, source, temp.index, files, scheduler, pdf, scope, Dispatchers.IO, logger)
+            val runs = InMemoryIngestRunStore()
+            val repository = DefaultImportQueueRepository(
+                importer, source, temp.index, files, scheduler, pdf,
+                DefaultIndexingRepository(temp.index, scheduler, runs, FakeThermalStatusSource(), Dispatchers.IO, logger), runs,
+                scope, Dispatchers.IO, logger,
+            )
             val runner = IngestRunner(temp.index, DocumentExtractor(pdf), FakeEmbeddingSessions.withoutModel(), InMemoryIngestRunStore(), FakeThermalStatusSource(), { Long.MAX_VALUE }, Dispatchers.IO, logger)
             val expected = if (pdf.isAvailable) 3 else 2
 

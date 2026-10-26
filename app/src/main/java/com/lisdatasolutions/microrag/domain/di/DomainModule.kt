@@ -1,5 +1,11 @@
 package com.lisdatasolutions.microrag.domain.di
 
+import com.lisdatasolutions.microrag.domain.indexing.ObserveIndexingUseCase
+import com.lisdatasolutions.microrag.domain.indexing.PauseIndexingUseCase
+import com.lisdatasolutions.microrag.domain.indexing.ReconcileIndexingUseCase
+import com.lisdatasolutions.microrag.domain.indexing.ResumeIndexingUseCase
+import com.lisdatasolutions.microrag.domain.indexing.RetryIndexingUseCase
+import com.lisdatasolutions.microrag.domain.indexing.StartIndexingRunUseCase
 import com.lisdatasolutions.microrag.domain.ingest.ImportDocumentsUseCase
 import com.lisdatasolutions.microrag.domain.ingest.ObserveImportQueueUseCase
 import com.lisdatasolutions.microrag.domain.ingest.RemoveQueueItemUseCase
@@ -47,4 +53,12 @@ val domainModule = module {
     factoryOf(::StartIndexingUseCase)
     factoryOf(::RetryQueueItemUseCase)
     factoryOf(::RemoveQueueItemUseCase)
+
+    // Indexing (F07).
+    factoryOf(::ObserveIndexingUseCase)
+    factoryOf(::StartIndexingRunUseCase)
+    factoryOf(::PauseIndexingUseCase)
+    factoryOf(::ResumeIndexingUseCase)
+    factoryOf(::RetryIndexingUseCase)
+    factoryOf(::ReconcileIndexingUseCase)
 }
