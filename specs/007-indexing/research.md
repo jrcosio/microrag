@@ -119,6 +119,16 @@ App real, GPU, documentos de 200 y 2.000 páginas.
 - **Verificación en el emulador API 37:** muerte sin primer plano a las 16:45:49. La alarma sonó a las 17:02:36, dentro de su ventana; el proceso arrancó «for broadcast» y el trabajo siguió 2 s después desde los 475 fragmentos guardados, sin abrir la app. La notificación normal desapareció sola unos 5 min después de la muerte: 3 de caducidad y el retraso con que Android la aplica.
 - En esa prueba, una muerte en primer plano tampoco relanzó el proceso de inmediato: Android relanzó el servicio de WorkManager a los 60 s y, con él, el trabajo.
 
+### Segunda sesión en el teléfono, con D-041 (2026-10-27)
+
+PDF de 2.000 páginas (4.300 fragmentos), de 1.000 (2.150) y uno escaneado. Sin abrir la app tras ninguna muerte.
+- **Muerte durante el troceado** (2,3 s tras «Iniciar», con la app en segundo plano): el proceso vuelve al instante por el servicio de WorkManager, que no consigue el primer plano («Time limit already exhausted»). El trabajo vuelve a los 48 s como job normal, trocea de nuevo y sigue. En segundo plano, el troceado de 2.000 páginas tarda 21,6 s (4,2 s en primer plano).
+- **Reinicio a mitad de los embeddings:** tras desbloquear, `BOOT_COMPLETED` llega a los 41 s y el trabajo sigue a los 43 s. Android no deja empezar `dataSync` desde `BOOT_COMPLETED`, pero el servicio de WorkManager queda arrancado y el proceso con importancia de primer plano (`procState` 4, `startForegroundCount=0`). En ese estado, WorkManager publicaba la notificación como normal y sin caducidad: corregido poniendo la caducidad en todas (D-041). Android nunca la aplica a la de un servicio en primer plano (`NotificationManagerService.timeoutNotification`).
+- **Muerte entre documentos** (0,26 s tras publicar uno): vuelve a los 9,5 s; el siguiente empieza desde 0 y el publicado no cambia.
+- **Muertes en primer plano** (tres más): vuelve en 2–34 s, según el retraso con que Android relanza su servicio o el job.
+- **Muerte como job normal y alarma:** Android volvía a dar el primer plano tras cada muerte, así que, con permiso del usuario, se bajó `data_sync_fgs_timeout_duration` a 60 s durante la prueba, como en el emulador. Muerte a las 21:53:58: la notificación desapareció a los 3 min 5 s, y la alarma arrancó el proceso («for broadcast») a los 20 min 2 s, dentro de su ventana. El trabajo siguió 4 s después desde los 2.177 fragmentos guardados.
+- **Abrir la pantalla con la notificación** (`ACTION_OPEN_INDEXING`): arranque templado sobre la instancia existente, y el primer plano vuelve en el lote siguiente.
+
 ## R3. Notificación
 
 **Decisión:**
@@ -284,12 +294,19 @@ Con estos fragmentos, la GPU va 1,5 veces más rápida que la CPU, menos que las
   - **qué pasa:** el documento queda en `embedding` sin publicar, la tanda queda pausada con causa «sin espacio» y la pantalla orienta a liberar espacio. «Reanudar» vuelve a comprobarlo.
 - **Modelo ausente:** antes de la fase 2, si el modelo de embeddings no está `Verified` (`ModelFileRepository`), la tanda queda pausada con esa causa, y la pantalla ofrece ir a Preparación (ruta `Setup` de F03).
 - **Límite del sistema:** derivado de `WorkInfo` (R1; tabla en data-model §7). No requiere acción del usuario.
-- **Temperatura sin primer plano:** JobScheduler restringe los jobs con temperatura grave salvo que la app tenga un servicio en primer plano (código de AOSP, a confirmar en el teléfono). En ese caso el sistema para el worker en vez de dejarlo esperar dentro, y lo relanza cuando levanta la restricción. La pantalla lo muestra igualmente como pausa térmica: con temperatura grave, la causa es `THERMAL` aunque el trabajo esté parado por el sistema.
+- **Temperatura sin primer plano:** JobScheduler restringe los jobs con temperatura grave salvo que la app tenga un servicio en primer plano (código de AOSP). En ese caso el sistema para el worker en vez de dejarlo esperar dentro, y lo relanza cuando levanta la restricción. La pantalla lo muestra igualmente como pausa térmica: con temperatura grave, la causa es `THERMAL` aunque el trabajo esté parado por el sistema.
 
   *Comprobado en el emulador API 37 (2026-10-27)*, con el trabajo como job normal:
   - JobScheduler para el job 26 ms después de la temperatura grave;
   - el runner guarda el lote a medias, libera el engine y espera;
   - al volver la temperatura normal, JobScheduler arranca el job otra vez y la tanda sigue sin huecos (2.150 fragmentos, ordinales 0..2149).
+
+  *Comprobado en el teléfono (2026-10-27)*, con el trabajo como job normal:
+  - JobScheduler pide parar el job a los 51 ms, y WorkManager lo ignora (limitación de abajo);
+  - el runner guarda el lote a medias (31 fragmentos), libera el engine y se pausa a los 1,95 s;
+  - al volver la temperatura normal, sigue a los 54 ms. JobScheduler arranca el job otra vez a los 81 ms y WorkManager no lo duplica («already enqueued»).
+
+  Con la app visible y en primer plano: pausa en 0,48 s (lote a medias de 19 guardado) y vuelta a los 53 ms.
 
   **Limitación de WorkManager 2.12.0** (`Processor`): un worker que pidió el primer plano queda en el mapa de trabajo en primer plano aunque Android se lo niegue o se lo quite. Desde entonces WorkManager ignora las paradas de JobScheduler («Ignored stopWork … is in foreground»). Si el sistema para el job (temperatura, cuota o el límite de 30 min), el worker sigue sin job ni servicio, hasta que el proceso se congela o JobScheduler vuelve a arrancar el job. Se recupera solo y sin perder datos; en 20 min seguidos como job normal no hubo ninguna parada. Evitarlo obligaría a no pedir el primer plano en segundo plano, y eso perdería los casos en que Android lo permite (por ejemplo, con la optimización de batería desactivada). Se deja así.
 

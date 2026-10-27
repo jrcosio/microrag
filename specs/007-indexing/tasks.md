@@ -327,7 +327,7 @@ description: "Lista de tareas de F07 — Indexación"
 - [X] T042 [US2] Añadir a `IngestWorker` el primer plano `dataSync` (`setForeground` al empezar y en cada lote) y la notificación normal si falla (R1). Comprobar T038.
 - [X] T043 [US2] Implementar `reconcile` en `DefaultIndexingRepository` y `ReconcileIndexingUseCase`, y la causa `SYSTEM_LIMIT`/`THERMAL` en `state`. Llamar a `reconcile` desde `MainActivity.onStart` en el *scope* de la aplicación. Comprobar T039.
 - [X] T044 [US2] `MainActivity` en `launchMode="singleTop"`, con `ACTION_OPEN_INDEXING` atendida en `onCreate` y `onNewIntent` solo con el onboarding completado (R3). Atrás desde esa entrada → Inicio. Comprobar T040.
-- [ ] T045 [US2] **Verificación temprana en los dispositivos** (quickstart §4, riesgo 1). Con la app real en el teléfono y en el emulador:
+- [X] T045 [US2] **Verificación temprana en los dispositivos** (quickstart §4, riesgo 1). Con la app real en el teléfono y en el emulador:
   - anotar la latencia de arranque sin planificador en proceso (umbral: 5 s), también pulsando Inicio justo después de «Iniciar indexación»;
   - comprobar que el proceso es servicio en primer plano y que la notificación avanza;
   - matar con `kill -9`, **sin abrir la app**, en tres momentos: durante el troceado de un PDF de 2.000 páginas, a mitad de los embeddings y entre dos documentos. Cada vez:
@@ -342,7 +342,16 @@ description: "Lista de tareas de F07 — Indexación"
 
   *Emulador API 37 hecho (2026-10-27), resultados en research R2:* latencia de 25 ms, sin congelación, cuota y límite de `dataSync` superados, y coherencia en los cuatro documentos. Se corrigieron dos fallos del worker. Queda una cuestión para el usuario: un trabajo parado mientras corría sin primer plano no vuelve hasta abrir la app.
 
-  *Teléfono, en parte (2026-10-27):* latencia de ~100 ms, primer plano, dos muertes en primer plano (vuelve en 4–6 s) y una sin él, que se reproduce como en el emulador. Se resuelve con D-041 (alarma inexacta y caducidad de la notificación), verificado en el emulador: el trabajo volvió con la alarma, 17 min después, sin abrir la app. Faltan en el teléfono las muertes durante el troceado y entre documentos, la alarma con el valor real y el reinicio.
+  *Teléfono, en parte (2026-10-27):* latencia de ~100 ms, primer plano, dos muertes en primer plano (vuelve en 4–6 s) y una sin él, que se reproduce como en el emulador. Se resuelve con D-041 (alarma inexacta y caducidad de la notificación), verificado en el emulador: el trabajo volvió con la alarma, 17 min después, sin abrir la app.
+
+  *Teléfono, completo (2026-10-27, research R2):* sin abrir la app en ningún caso.
+  - **Muerte durante el troceado de 2.000 páginas:** vuelve a los 48 s.
+  - **Muerte entre documentos:** vuelve a los 9,5 s.
+  - **Muertes en primer plano:** vuelve en 2–34 s.
+  - **Muerte como job normal:** con el límite de `dataSync` bajado a 60 s durante la prueba, con permiso del usuario. La alarma lo devolvió a los 20 min, y la notificación desapareció a los 3 min.
+  - **Reinicio:** sigue 43 s después de desbloquear.
+
+  Se corrigió la notificación sin caducidad tras un reinicio (`8b71faf`). La integridad, en T067 (informe §3).
 
 **Checkpoint**: la indexación sobrevive a muertes, reinicios y límites del sistema.
 
@@ -381,9 +390,16 @@ description: "Lista de tareas de F07 — Indexación"
 - [X] T050 [US4] Implementar en `DefaultIndexingRepository` `pause`, `resume` y `retry` con sus casos de uso. `ImportQueueRepository.retry` y `remove` de un documento pasan por la tanda (contracts/indexing-api.md). Conectar `IndexingActionReceiver` a `pause`. Comprobar T047.
 - [X] T051 [US4] Completar en `IndexScreen` los estados P3, P4, P5 y P7, con `Setup` como destino de P7. Comprobar T048.
 - [X] T052 [US4] Añadir P10 (acceso provisional en Inicio, `PendingDestination`) con su prueba en `NavigationTest`.
-- [ ] T053 [US4] En el teléfono:
+- [X] T053 [US4] En el teléfono:
   - **temperatura:** simularla con `cmd thermalservice override-status 3` y `reset`, con la app visible y también con el trabajo sin primer plano (tras matar el proceso). Comprobar la pausa en 5 s o menos con la causa «Pausa por temperatura» y la reanudación sola (SC-006);
   - **pausa:** pausar y reanudar desde la pantalla y desde la notificación. Medir el tiempo hasta la pausa (≤ 5 s) y los fragmentos recalculados al reanudar (≤ 1), en el log (SC-005).
+
+  *Hecho en el teléfono (2026-10-27):*
+  - **Temperatura con la app visible:** pausa en 0,48 s y vuelta a los 53 ms.
+  - **Temperatura como job normal:** pausa en 1,95 s y vuelta a los 54 ms (research R10).
+  - **«Pausar» en la pantalla:** el worker para en 0,07 s y libera el engine en 0,40 s.
+  - **«Pausar» en la notificación:** el worker para en 0,05 s y libera el engine en 0,32 s.
+  - **Al reanudar:** 0 fragmentos recalculados, porque el lote a medias se guarda al pausar.
 
 **Checkpoint**: control completo y pausas automáticas explicadas.
 
@@ -417,7 +433,7 @@ description: "Lista de tareas de F07 — Indexación"
 - [X] T057 [US5] Completar en `IndexScreen` P6 y P8, y la semántica U1–U3 (`liveRegion = Polite` en un resumen invisible). Comprobar T054.
 - [X] T058 [US5] Ampliar `DefaultImportQueueRepository`, `IngestTexts` e `IngestScreen` con los estados de index-ui §Ingesta: documentos `embedding` en la cola, `Indexing`, `Paused` y los motivos nuevos en es y en. Comprobar T055.
 - [X] T059 [P] [US5] Crear `…/microrag/feature/indexing/IndexPreviews.kt` con `IndexPreviewData` (datos de ejemplo etiquetados, constitución V) para todos los estados, en claro y en oscuro. Ampliar `IngestPreviews` con «Indexando» y «En pausa». Comprobar T056 en el emulador.
-- [ ] T060 [US5] Capturar en el teléfono, en claro y en oscuro:
+- [X] T060 [US5] Capturar en el teléfono, en claro y en oscuro:
   - en curso (como el PNG);
   - en pausa;
   - pausa térmica;
@@ -425,6 +441,8 @@ description: "Lista de tareas de F07 — Indexación"
   - con error.
 
   Compararlas con el PNG 08 y listar las diferencias para el informe (constitución VII).
+
+  *Hecho (2026-10-27), diferencias en el informe §5.* Al capturar la pausa apareció un fallo: las cuatro etapas salían «Pendiente» en lugar de «En pausa» en la actual (P3). Corregido en `aefde2c`.
 
 **Checkpoint**: UI cerrada y accesible.
 
