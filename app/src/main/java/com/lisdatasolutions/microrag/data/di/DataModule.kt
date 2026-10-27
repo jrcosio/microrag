@@ -4,8 +4,10 @@ import androidx.work.WorkManager
 import com.lisdatasolutions.microrag.BuildConfig
 import com.lisdatasolutions.microrag.core.di.ApplicationScope
 import com.lisdatasolutions.microrag.core.dispatchers.AppDispatchers
+import com.lisdatasolutions.microrag.data.device.ActivityManagerProcessState
 import com.lisdatasolutions.microrag.data.device.AndroidDeviceResources
 import com.lisdatasolutions.microrag.data.device.PowerManagerThermalStatusSource
+import com.lisdatasolutions.microrag.data.device.ProcessState
 import com.lisdatasolutions.microrag.data.device.ThermalStatusSource
 import com.lisdatasolutions.microrag.data.download.DefaultModelDownloadController
 import com.lisdatasolutions.microrag.data.download.DownloadNotifications
@@ -93,6 +95,7 @@ val dataModule = module {
         DataStoreIngestRunStore(DataStoreIngestRunStore.create(androidContext().noBackupFilesDir, get<ApplicationScope>().scope))
     }
     single<ThermalStatusSource> { PowerManagerThermalStatusSource(androidContext()) }
+    single<ProcessState> { ActivityManagerProcessState() }
     single { IndexingNotifications(androidContext()) }
     single<EmbeddingSessions> {
         val models = get<ModelFileRepository>()

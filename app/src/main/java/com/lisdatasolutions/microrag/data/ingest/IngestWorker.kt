@@ -8,6 +8,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import com.lisdatasolutions.microrag.core.logging.AppLogger
+import com.lisdatasolutions.microrag.data.device.ProcessState
 import com.lisdatasolutions.microrag.data.indexing.IndexingNotifications
 import com.lisdatasolutions.microrag.domain.ingest.IngestProgress
 import com.lisdatasolutions.microrag.domain.rag.IndexUnavailableException
@@ -23,16 +24,20 @@ import org.koin.core.component.inject
  * It runs as a `dataSync` foreground service («local file processing») when Android allows it, so the
  * process is never frozen. When it does not (started in the background, 6 h used, Android 16 quotas),
  * the work goes on as a plain job with the same notification, and tries again at every stage change:
- * with the app visible it gets the foreground back.
+ * with the app visible it gets the foreground back. setForeground can also return while WorkManager's
+ * service failed to reach the foreground (seen after a kill, with that service restarted in the
+ * background), so the process state has the last word.
  */
 class IngestWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params), KoinComponent {
 
     private val runner: IngestRunner by inject()
     private val notifications: IndexingNotifications by inject()
     private val logger: AppLogger by inject()
+    private val process: ProcessState by inject()
 
     private var inForeground = false
     private var lastShownAt = 0L
+    private var attemptedAt = 0L
     private var lastStage: Pair<Long, IngestProgress.Stage>? = null
 
     override suspend fun doWork(): Result {
@@ -51,8 +56,8 @@ class IngestWorker(context: Context, params: WorkerParameters) : CoroutineWorker
             logger.w(TAG) { "ingest work stopped: index unavailable" }
             Result.failure()
         } finally {
-            // A foreground notification goes with its service; a plain one is ours to remove.
-            if (!inForeground) notifications.cancel()
+            // A plain notification is ours to remove; Android keeps a foreground one until its service stops.
+            notifications.cancel()
         }
     }
 
@@ -61,8 +66,14 @@ class IngestWorker(context: Context, params: WorkerParameters) : CoroutineWorker
         val now = SystemClock.elapsedRealtime()
         if (!stageChanged && now - lastShownAt < IndexingNotifications.UPDATE_INTERVAL_MS) return
         lastShownAt = now
+        // A second after setForeground, the service has started or failed: no more tries until the next stage.
+        if (inForeground && now - attemptedAt >= IndexingNotifications.UPDATE_INTERVAL_MS && !process.isForeground()) {
+            inForeground = false
+            logger.i(TAG) { "ingest foreground service not running" }
+        }
         if (inForeground || stageChanged) {
             val wasInForeground = inForeground
+            attemptedAt = now
             inForeground = try {
                 setForeground(ForegroundInfo(IndexingNotifications.NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC))
                 true
@@ -73,7 +84,8 @@ class IngestWorker(context: Context, params: WorkerParameters) : CoroutineWorker
                 false
             }
         }
-        if (!inForeground) notifications.notify(notification)
+        // Same id as the foreground one: if the service does start, its notification replaces this one.
+        if (!inForeground || !process.isForeground()) notifications.notify(notification)
     }
 
     private companion object {
