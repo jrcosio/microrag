@@ -338,6 +338,8 @@ description: "Lista de tareas de F07 — Indexación"
 
   Anotar los resultados en research R1–R2. **Si sigue congelándose o la latencia pasa de 5 s, parar y consultar al usuario.**
 
+  *Emulador API 37 hecho (2026-10-27), resultados en research R2:* latencia de 25 ms, sin congelación, cuota y límite de `dataSync` superados, y coherencia en los cuatro documentos. Se corrigieron dos fallos del worker. Queda una cuestión para el usuario: un trabajo parado mientras corría sin primer plano no vuelve hasta abrir la app. Falta el teléfono.
+
 **Checkpoint**: la indexación sobrevive a muertes, reinicios y límites del sistema.
 
 ---

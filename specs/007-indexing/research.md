@@ -74,6 +74,33 @@ Fecha: 2026-10-26. Fuentes oficiales consultadas ese día. Las firmas de bibliot
 - **Dejar WorkManager como está:** reproduce el fallo de F06.
 - **Un vigilante con alarmas:** no puede descongelar un proceso congelado ni arrancar un servicio en primer plano.
 
+### Resultados de la verificación temprana (T045, emulador API 37, 2026-10-27)
+
+App real, CPU, documentos de 200 y 2.000 páginas, un TXT corto y otro PDF de 2.000 páginas. El teléfono está pendiente.
+
+- **Latencia:** 25 ms desde «Iniciar indexación» hasta que el worker pide el primer plano, con Inicio pulsado 0,3 s después. Umbral de 5 s: cumplido.
+- **Primer plano:** al iniciar con la app visible, el proceso queda como servicio `dataSync` y la notificación avanza.
+- **Muerte del proceso en primer plano** (`kill -9` tres veces: durante el troceado del PDF de 2.000 páginas, a mitad de los embeddings y justo al terminar un documento):
+  - Android relanza el proceso al momento para `SystemJobService` y el trabajo sigue solo en 1–60 s, sin abrir la app;
+  - sigue como trabajo normal, porque Android no deja pasar a primer plano desde segundo plano;
+  - ningún proceso congelado.
+- **Muerte con el trabajo corriendo como trabajo normal** (`kill -9`, actualización de la app y `am compat`):
+  - JobScheduler reprograma el job y lo deja `ready`, pero no lo ejecuta. Se observó más de 40 minutos, también con cambios de batería y pasado el agrupamiento de jobs «solo CPU» de 31 minutos (`max_cpu_only_job_batch_delay_ms`);
+  - una vez volvió a los 2 minutos, porque Android relanzó el `SystemForegroundService` de WorkManager;
+  - **al abrir la app**, WorkManager reprograma el trabajo y la reconciliación (R12) lo relanza: arranca en 2 s, en primer plano, y sigue desde lo guardado.
+- **Límite de `dataSync` a 60 s** (`device_config`): Android corta el servicio y WorkManager relanza el trabajo en 70 ms, en el mismo proceso, como trabajo normal. No se pierde nada.
+- **Cuota de Android 16** (`OVERRIDE_QUOTA_ENFORCEMENT_TO_FGS_JOBS`): 17,5 minutos seguidos en primer plano con la app en segundo plano, sin paradas.
+- **Recuperar el primer plano:** al abrir la app con el trabajo en segundo plano, vuelve al siguiente lote (9 y 15 s).
+- **Coherencia (SC-002):** tras siete interrupciones, los cuatro documentos tienen sus ordinales 0..n−1 una vez cada uno (430, 4.293, 37 y 4.301). Tras cada muerte solo se recalcula el lote a medias.
+- **Logs:** ninguna de las 247 líneas de la app lleva nombres de archivo.
+- **Descarga de F03 en la AVD API 33** sin el planificador en proceso (`ModelDownloadSmokeTest`): modelo verificado en 13,6 s.
+
+**Fallos encontrados y corregidos:**
+1. **`setForeground` volvía sin error, pero el servicio no llegaba a primer plano.** Pasaba con el `SystemForegroundService` de WorkManager relanzado en segundo plano tras una muerte: su `startForeground` fallaba dentro de WorkManager. El worker se creía en primer plano, no publicaba la notificación normal y reintentaba cada segundo. Ahora consulta la importancia del proceso (`ProcessState`).
+2. **El worker solo reintentaba el primer plano por documento o etapa**, no en cada lote como decía R1. Con un documento largo, abrir la app no lo devolvía hasta acabarlo. Corregido.
+
+**Pendiente de decidir:** que un trabajo parado mientras corría como trabajo normal no vuelva hasta abrir la app (ver el informe).
+
 ## R3. Notificación
 
 **Decisión:**
