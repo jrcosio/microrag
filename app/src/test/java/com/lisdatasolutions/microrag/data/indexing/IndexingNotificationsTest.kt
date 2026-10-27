@@ -42,6 +42,14 @@ class IndexingNotificationsTest {
         assertThat(embedding.extras.getInt(Notification.EXTRA_PROGRESS_MAX)).isEqualTo(4_300)
         assertThat(embedding.extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE)).isFalse()
 
+        // D-042: with the run's figures, those are shown, as on the Index screen.
+        val run = notifications.build(
+            IngestProgress(5, IngestProgress.Stage.EMBEDDING, chunksDone = 39, chunksTotal = 430, runChunksDone = 1_774, runChunksTotal = 4_730),
+        )
+        assertThat(run.text()).isEqualTo("1.774 de 4.730 fragmentos")
+        assertThat(run.extras.getInt(Notification.EXTRA_PROGRESS)).isEqualTo(1_774)
+        assertThat(run.extras.getInt(Notification.EXTRA_PROGRESS_MAX)).isEqualTo(4_730)
+
         val preparing = notifications.build(null)
         assertThat(preparing.text()).isEqualTo("Preparando documentos")
         assertThat(preparing.extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE)).isTrue()

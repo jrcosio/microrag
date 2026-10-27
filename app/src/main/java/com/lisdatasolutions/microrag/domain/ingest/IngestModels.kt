@@ -135,6 +135,9 @@ data class IngestProgress(
     val chunksPerSecond: Double? = null,
     val backend: ComputeBackend? = null,
     val waiting: WaitReason? = null,
+    /** The whole run's stored chunks and total, counted as on the Index screen (D-042). */
+    val runChunksDone: Int? = null,
+    val runChunksTotal: Int? = null,
 ) {
     enum class Stage { EXTRACTING, CHUNKING, EMBEDDING, CLOSING }
 

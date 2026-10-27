@@ -240,6 +240,23 @@ class IngestRunnerTest {
     }
 
     @Test
+    fun progressAlsoCountsTheWholeRun_asTheIndexScreenDoes() = runBlocking<Unit> {
+        val a = document("a.txt", "text/plain", paragraphs(20, "a").toByteArray())
+        val b = document("b.txt", "text/plain", paragraphs(20, "b").toByteArray())
+        val progress = mutableListOf<IngestProgress>()
+
+        indexingRunner().process(listOf(a, b)) { progress += it }
+
+        // D-042: the notification shows the run, as the screen does, not only the document in progress.
+        val chunksOfA = index.docs.getValue(a).chunkCount!!
+        val total = chunksOfA + index.docs.getValue(b).chunkCount!!
+        val embeddingB = progress.last { it.documentId == b && it.stage == IngestProgress.Stage.EMBEDDING }
+        assertThat(embeddingB.runChunksTotal).isEqualTo(total)
+        assertThat(embeddingB.runChunksDone).isEqualTo(chunksOfA + embeddingB.chunksDone!!)
+        assertThat(progress.single { it.documentId == b && it.stage == IngestProgress.Stage.CLOSING }.runChunksDone).isEqualTo(total)
+    }
+
+    @Test
     fun chunksAreStoredInBatchesOf64AndTheDocumentEndsDone() = runBlocking<Unit> {
         val text = paragraphs(LONG)
         val expected = chunksOf(text)

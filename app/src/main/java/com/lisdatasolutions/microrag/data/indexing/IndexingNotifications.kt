@@ -12,9 +12,9 @@ import com.lisdatasolutions.microrag.domain.ingest.IngestProgress
 import java.text.NumberFormat
 
 /**
- * The indexing notification (F07 research R3, proposal P11): real progress of the document being
- * indexed, a «Pausar» action and a tap that opens the Index screen. No file names: it shows on the
- * lock screen (constitution I). Low importance, no sound.
+ * The indexing notification (F07 research R3, proposal P11): real progress of the whole run, the same
+ * figures as the Index screen (D-042), a «Pausar» action and a tap that opens the Index screen. No file
+ * names: it shows on the lock screen (constitution I). Low importance, no sound.
  */
 class IndexingNotifications(private val context: Context) {
 
@@ -42,8 +42,10 @@ class IndexingNotifications(private val context: Context) {
             .setTimeoutAfter(TIMEOUT_MS)
             .setContentIntent(openIndex())
             .addAction(Notification.Action.Builder(null, context.getString(R.string.index_notification_pause), pauseIntent()).build())
-        val done = progress?.chunksDone
-        val total = progress?.chunksTotal
+        val (done, total) = when {
+            progress?.runChunksTotal != null -> progress.runChunksDone to progress.runChunksTotal
+            else -> progress?.chunksDone to progress?.chunksTotal
+        }
         return when {
             progress?.waiting == IngestProgress.WaitReason.THERMAL ->
                 builder.setContentText(context.getString(R.string.index_paused_thermal)).setProgress(0, 0, false)

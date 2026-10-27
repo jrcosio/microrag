@@ -154,6 +154,14 @@ class IngestRunner(
             }
         }
 
+        /** What the run's other documents have stored, and the run's total, as the Index screen counts them (D-042). */
+        private suspend fun runCounts(current: Long): Pair<Int, Int?> {
+            val documents = members().mapNotNull { index.document(it) }.filter { it.status != DocumentStatus.ERROR }
+            val total = if (documents.any { it.status == DocumentStatus.PENDING }) null else documents.sumOf { it.chunkCount ?: 0 }
+            val elsewhere = index.storedChunkCounts(documents.map { it.id }.filter { it != current }).values.sum()
+            return elsewhere to total
+        }
+
         private suspend fun nextToEmbed(): StoredDocument? = members().firstNotNullOfOrNull { id ->
             index.document(id)?.takeIf { it.status == DocumentStatus.PARSED || it.status == DocumentStatus.EMBEDDING }
         }
@@ -180,6 +188,7 @@ class IngestRunner(
             val stored = index.storedChunkContents(id)
             val total = document.chunkCount
             val title = DocumentTitle.of(document.displayName)
+            val (storedElsewhere, runTotal) = runCounts(id)
             val started = clock()
             logger.i(TAG) { "ingest embedding id=$id stored=${stored.size} total=$total backend=${embedder.backend}" }
             val batch = ArrayList<ChunkInput>(BATCH)
@@ -191,6 +200,7 @@ class IngestRunner(
             fun report(waiting: IngestProgress.WaitReason? = null) = IngestProgress(
                 id, IngestProgress.Stage.EMBEDDING, chunksDone = done, chunksTotal = total,
                 chunksPerSecond = rate.steady(), backend = embedder.backend, waiting = waiting,
+                runChunksDone = storedElsewhere + done, runChunksTotal = runTotal,
             )
 
             progress.now(report())
@@ -246,12 +256,17 @@ class IngestRunner(
                 if (!restarted) embedDocument(index.document(id) ?: return, embedder, restarted = true) else fail(id, IngestError.INCOMPLETE)
                 return
             }
-            close(id, produced, cuts, started, embedder.backend)
+            close(id, produced, cuts, started, embedder.backend, storedElsewhere to runTotal)
         }
 
         /** Rule N1: done only with exactly the chunking's chunks, ordinals 0..n-1. */
-        private suspend fun close(id: Long, produced: Int, cuts: Int, started: Long, backend: ComputeBackend) {
-            progress.now(IngestProgress(id, IngestProgress.Stage.CLOSING, chunksDone = produced, chunksTotal = produced, backend = backend))
+        private suspend fun close(id: Long, produced: Int, cuts: Int, started: Long, backend: ComputeBackend, run: Pair<Int, Int?>) {
+            progress.now(
+                IngestProgress(
+                    id, IngestProgress.Stage.CLOSING, chunksDone = produced, chunksTotal = produced, backend = backend,
+                    runChunksDone = run.first + produced, runChunksTotal = run.second,
+                ),
+            )
             if (index.document(id)?.status != DocumentStatus.EMBEDDING) return
             val stored = index.storedChunkCounts(listOf(id)).getValue(id)
             if (produced > 0 && stored == produced) {
