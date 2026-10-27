@@ -286,6 +286,13 @@ Con estos fragmentos, la GPU va 1,5 veces más rápida que la CPU, menos que las
 - **Límite del sistema:** derivado de `WorkInfo` (R1; tabla en data-model §7). No requiere acción del usuario.
 - **Temperatura sin primer plano:** JobScheduler restringe los jobs con temperatura grave salvo que la app tenga un servicio en primer plano (código de AOSP, a confirmar en el teléfono). En ese caso el sistema para el worker en vez de dejarlo esperar dentro, y lo relanza cuando levanta la restricción. La pantalla lo muestra igualmente como pausa térmica: con temperatura grave, la causa es `THERMAL` aunque el trabajo esté parado por el sistema.
 
+  *Comprobado en el emulador API 37 (2026-10-27)*, con el trabajo como job normal:
+  - JobScheduler para el job 26 ms después de la temperatura grave;
+  - el runner guarda el lote a medias, libera el engine y espera;
+  - al volver la temperatura normal, JobScheduler arranca el job otra vez y la tanda sigue sin huecos (2.150 fragmentos, ordinales 0..2149).
+
+  **Limitación de WorkManager 2.12.0** (`Processor`): un worker que pidió el primer plano queda en el mapa de trabajo en primer plano aunque Android se lo niegue o se lo quite. Desde entonces WorkManager ignora las paradas de JobScheduler («Ignored stopWork … is in foreground»). Si el sistema para el job (temperatura, cuota o el límite de 30 min), el worker sigue sin job ni servicio, hasta que el proceso se congela o JobScheduler vuelve a arrancar el job. Se recupera solo y sin perder datos; en 20 min seguidos como job normal no hubo ninguna parada. Evitarlo obligaría a no pedir el primer plano en segundo plano, y eso perdería los casos en que Android lo permite (por ejemplo, con la optimización de batería desactivada). Se deja así.
+
 ## R11. Título de la cabecera contextual y del FTS
 
 **Hecho:**
