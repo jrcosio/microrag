@@ -23,8 +23,8 @@ import org.koin.core.component.inject
  *
  * It runs as a `dataSync` foreground service («local file processing») when Android allows it, so the
  * process is never frozen. When it does not (started in the background, 6 h used, Android 16 quotas),
- * the work goes on as a plain job with the same notification, and tries again at every stage change:
- * with the app visible it gets the foreground back. setForeground can also return while WorkManager's
+ * the work goes on as a plain job with the same notification, and tries again at every new document,
+ * stage or stored batch: with the app visible it gets the foreground back within a batch. setForeground can also return while WorkManager's
  * service failed to reach the foreground (seen after a kill, with that service restarted in the
  * background), so the process state has the last word.
  */
@@ -38,17 +38,18 @@ class IngestWorker(context: Context, params: WorkerParameters) : CoroutineWorker
     private var inForeground = false
     private var lastShownAt = 0L
     private var attemptedAt = 0L
-    private var lastStage: Pair<Long, IngestProgress.Stage>? = null
+    /** The document, stage and stored batch last shown: a new one updates at once and tries the foreground. */
+    private var lastStep: Triple<Long, IngestProgress.Stage, Int?>? = null
 
     override suspend fun doWork(): Result {
         val ids = inputData.getLongArray(WorkManagerIngestScheduler.KEY_DOCUMENT_IDS)?.toList().orEmpty()
-        show(notifications.build(null), stageChanged = true)
+        show(notifications.build(null), newStep = true)
         return try {
             runner.process(ids) { progress ->
                 setProgress(WorkManagerIngestScheduler.progressData(progress))
-                val stage = progress.documentId to progress.stage
-                show(notifications.build(progress), stageChanged = stage != lastStage)
-                lastStage = stage
+                val step = Triple(progress.documentId, progress.stage, progress.chunksDone?.div(IngestRunner.BATCH))
+                show(notifications.build(progress), newStep = step != lastStep)
+                lastStep = step
             }
             Result.success()
         } catch (e: IndexUnavailableException) {
@@ -62,16 +63,16 @@ class IngestWorker(context: Context, params: WorkerParameters) : CoroutineWorker
     }
 
     /** Foreground when Android allows it, otherwise the same notification as a plain one (research R1). */
-    private suspend fun show(notification: Notification, stageChanged: Boolean) {
+    private suspend fun show(notification: Notification, newStep: Boolean) {
         val now = SystemClock.elapsedRealtime()
-        if (!stageChanged && now - lastShownAt < IndexingNotifications.UPDATE_INTERVAL_MS) return
+        if (!newStep && now - lastShownAt < IndexingNotifications.UPDATE_INTERVAL_MS) return
         lastShownAt = now
-        // A second after setForeground, the service has started or failed: no more tries until the next stage.
+        // A second after setForeground, the service has started or failed: no more tries until the next step.
         if (inForeground && now - attemptedAt >= IndexingNotifications.UPDATE_INTERVAL_MS && !process.isForeground()) {
             inForeground = false
             logger.i(TAG) { "ingest foreground service not running" }
         }
-        if (inForeground || stageChanged) {
+        if (inForeground || newStep) {
             val wasInForeground = inForeground
             attemptedAt = now
             inForeground = try {
@@ -80,7 +81,7 @@ class IngestWorker(context: Context, params: WorkerParameters) : CoroutineWorker
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                if (wasInForeground || lastStage == null) logger.i(TAG) { "ingest without foreground service: ${e.javaClass.simpleName}" }
+                if (wasInForeground || lastStep == null) logger.i(TAG) { "ingest without foreground service: ${e.javaClass.simpleName}" }
                 false
             }
         }

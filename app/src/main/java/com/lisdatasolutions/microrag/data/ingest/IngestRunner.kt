@@ -464,13 +464,14 @@ class IngestRunner(
         }
     }
 
-    private companion object {
-        const val TAG = "MicroRAG"
-        const val PROGRESS_INTERVAL_MS = 250L
+    companion object {
+        /** Chunks stored per transaction (FR-014). */
         const val BATCH = 64
-        const val CHANNEL_CAPACITY = 16
-        const val FLUSH_TIMEOUT_MS = 5_000L
-        const val STEADY_SPREAD = 0.25
-        val UNFINISHED = setOf(DocumentStatus.PENDING, DocumentStatus.PARSED, DocumentStatus.EMBEDDING)
+        private const val TAG = "MicroRAG"
+        private const val PROGRESS_INTERVAL_MS = 250L
+        private const val CHANNEL_CAPACITY = 16
+        private const val FLUSH_TIMEOUT_MS = 5_000L
+        private const val STEADY_SPREAD = 0.25
+        private val UNFINISHED = setOf(DocumentStatus.PENDING, DocumentStatus.PARSED, DocumentStatus.EMBEDDING)
     }
 }

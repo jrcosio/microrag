@@ -131,12 +131,7 @@ class IngestWorkerTest {
             attempts.incrementAndGet()
             Futures.immediateVoidFuture()
         }
-        val stages = CopyOnWriteArrayList<String?>()
-        val progress = ProgressUpdater { _, _, data ->
-            val stage = data.getLong(WorkManagerIngestScheduler.KEY_DOCUMENT, -1) to data.getString(WorkManagerIngestScheduler.KEY_STAGE)
-            if (stages.lastOrNull() != stage.toString()) stages += stage.toString()
-            Futures.immediateVoidFuture()
-        }
+        val steps = StepCounter()
         var shown = 0
         sessions.embedder.beforeEmbedding = {
             shown = maxOf(shown, notificationManager.allNotifications.size)
@@ -146,14 +141,55 @@ class IngestWorkerTest {
         val worker = TestListenableWorkerBuilder<IngestWorker>(context)
             .setInputData(Data.Builder().putLongArray(WorkManagerIngestScheduler.KEY_DOCUMENT_IDS, longArrayOf(id)).build())
             .setForegroundUpdater(accepted)
-            .setProgressUpdater(progress)
+            .setProgressUpdater(steps.updater)
             .build()
 
         assertThat(worker.doWork()).isEqualTo(ListenableWorker.Result.success())
         assertThat(index.docs.getValue(id).status).isEqualTo(DocumentStatus.DONE)
         assertThat(notificationManager.allNotifications).isEmpty()
         // The first try comes before any progress, with the «Preparando documentos» notification.
-        Run(attempts.get(), stages.size + 1, shown)
+        Run(attempts.get(), steps.count + 1, shown)
+    }
+
+    /** Counts the new documents, stages and stored batches the worker reports (its retry points). */
+    private class StepCounter {
+        private val steps = CopyOnWriteArrayList<String>()
+        val count get() = steps.size
+
+        val updater = ProgressUpdater { _, _, data ->
+            val done = data.getInt(WorkManagerIngestScheduler.KEY_CHUNKS_DONE, -1)
+            val step = listOf(
+                data.getLong(WorkManagerIngestScheduler.KEY_DOCUMENT, -1),
+                data.getString(WorkManagerIngestScheduler.KEY_STAGE),
+                if (done < 0) null else done / IngestRunner.BATCH,
+            ).toString()
+            if (steps.lastOrNull() != step) steps += step
+            Futures.immediateVoidFuture()
+        }
+    }
+
+    @Test
+    fun withoutForeground_itTriesAgainAtEveryStoredBatch() = runBlocking<Unit> {
+        val file = File(dir, "extenso.txt").apply { writeText((1..5_000).joinToString("\n\n") { "Párrafo $it con bastante texto para trocear." }) }
+        val id = index.addDocument(NewDocument(displayName = "extenso.txt", contentHash = "e", mimeType = "text/plain", localPath = file.path))
+        val attempts = AtomicInteger()
+        val refused = ForegroundUpdater { _, _, _ ->
+            attempts.incrementAndGet()
+            Futures.immediateFailedFuture(ForegroundServiceStartNotAllowedException("app is in the background"))
+        }
+        val steps = StepCounter()
+        val worker = TestListenableWorkerBuilder<IngestWorker>(context)
+            .setInputData(Data.Builder().putLongArray(WorkManagerIngestScheduler.KEY_DOCUMENT_IDS, longArrayOf(id)).build())
+            .setForegroundUpdater(refused)
+            .setProgressUpdater(steps.updater)
+            .build()
+
+        assertThat(worker.doWork()).isEqualTo(ListenableWorker.Result.success())
+        val chunks = index.docs.getValue(id).chunkCount!!
+        assertThat(chunks).isGreaterThan(2 * IngestRunner.BATCH)
+        // The first try, then one per document stage and per stored batch: the app gets the foreground back within a batch.
+        assertThat(attempts.get()).isEqualTo(steps.count + 1)
+        assertThat(steps.count).isAtLeast(chunks / IngestRunner.BATCH + 2)
     }
 
     @Test
