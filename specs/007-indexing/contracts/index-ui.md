@@ -9,11 +9,11 @@
 | # | Elemento | Componente | es | en |
 |---|---|---|---|---|
 | 1 | Top bar con Atrás | `LisdataTopBar(onBack)` | «Estado de indexación» | «Indexing status» |
-| 2 | Hero oscuro | `LisdataHeroCard` con eyebrow | «PROCESAMIENTO LOCAL» | «LOCAL PROCESSING» |
-| 3 | Anillo | `LisdataProgressRing(ProgressValue.Determinate(%))`, etiqueta «COMPLETADO» | «68%» y «COMPLETADO» | «COMPLETE» |
+| 2 | Hero oscuro | `LisdataHeroCard(compact)` con eyebrow: márgenes de 16 dp y huecos de 8, como el PNG (D-042) | «PROCESAMIENTO LOCAL» | «LOCAL PROCESSING» |
+| 3 | Anillo | `LisdataProgressRing(ProgressValue.Determinate(%))` de 154 dp, etiqueta «COMPLETADO» (D-042) | «68%» y «COMPLETADO» | «COMPLETE» |
 | 4 | Fragmentos | Texto bajo el anillo, `onDarkText` | «8.432 / 12.400 fragmentos» (formato local) | «8,432 / 12,400 chunks» |
 | 5 | Cabecera | `LisdataSectionHeader` | «ETAPAS DEL PROCESO» | «PROCESS STAGES» |
-| 6 | Etapas | `LisdataStageRow` × 4 (data-model §3, G29) | «Extracción de texto», «Fragmentación», «Generación de embeddings», «Persistencia vectorial»; estados «Completado», «En curso», «Pendiente» | «Text extraction», «Chunking», «Embedding generation», «Vector persistence»; «Done», «In progress», «Pending» |
+| 6 | Etapas | `LisdataStageRow(compact)` × 4: 16 y 13 sp, 56 dp (data-model §3, G29, D-042) | «Extracción de texto», «Fragmentación», «Generación de embeddings», «Persistencia vectorial»; estados «Completado», «En curso», «Pendiente» | «Text extraction», «Chunking», «Embedding generation», «Vector persistence»; «Done», «In progress», «Pending» |
 | 7 | Documento actual | `LisdataInfoCard(ic_file_text)` | «Procesando ahora» y el nombre | «Processing now» |
 | 8 | Acción fija abajo | `LisdataDarkButton` con `ic_pause`, 52 dp | «Pausar indexación» | «Pause indexing» |
 
@@ -61,7 +61,7 @@
 - **P12 — Carga:** mientras se calcula el primer estado (normalmente menos de un segundo), la top bar y, en el centro, un `LisdataProgressRing` indeterminado pequeño, sin texto visible, anunciado como «Cargando».
 - **P11 — Notificación** (R3):
   - título «Indexando documentos»;
-  - texto «%1$s de %2$s fragmentos», o «Preparando documentos»;
+  - texto «%1$s de %2$s fragmentos» de toda la tanda, las mismas cifras que la pantalla (D-042), o «Preparando documentos»;
   - en pausa automática, la causa;
   - acción «Pausar». Al tocarla, abre esta pantalla.
 

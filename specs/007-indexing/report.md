@@ -34,12 +34,13 @@
 
   «Reintentar» por documento.
 - **Pantalla** `index` (PNG 08):
-  - héroe con anillo y «N / M fragmentos», etapas, «Procesando ahora» y tiempo restante;
+  - héroe con anillo y «N / M fragmentos», etapas, «Procesando ahora» y tiempo restante, en las variantes compactas del PNG (D-042);
   - estados P1–P12;
   - textos en español e inglés.
 - **Ingesta (F06):** la cola muestra «Indexando · N de M» y «En pausa», y los documentos indexados salen.
 - **Notificación:**
   - canal propio y sin nombres de archivo;
+  - las cifras de toda la tanda, como la pantalla (D-042);
   - acción «Pausar»;
   - al tocarla, abre `Index` (`singleTop`), solo con el onboarding completado.
 
@@ -50,11 +51,11 @@
 | Pruebas Python (`unittest`) | ✅ 114/114 (F06: 111) |
 | `assembleDebug`, `assembleRelease` | ✅ |
 | `lintDebug`, `lintRelease` | ✅ «No issues found» |
-| Tests JVM | ✅ 414/414 (F06: 308) |
-| Instrumentados en el emulador API 37 (sin `@RequiresModels` ni `@RequiresNetwork`) | ✅ 289/289 (F06: 217) |
-| Instrumentados en la AVD API 33 (mismos filtros) | ⚠️ 285/289. Fallan las 4 de navegación de F06 §7 (Atrás en la raíz en Android 12–13), igual que con `main` |
-| Instrumentados en el teléfono (mismos filtros) | ✅ 289/289 |
-| `@RequiresModels` en el teléfono | ⚠️ 9/10 seguidas. `GemmaWarmInitTest` (F03) pasó de 10 s (16,5 s) al ejecutarse tras ≈ 17 min de benchmarks, con el teléfono a 36 °C. Sola, tras 2 min de reposo: 5,2 s y 4,5 s ✅. El benchmark de indexación repite sus cifras (CPU: 134,7 s) y cumple SC-001 en GPU |
+| Tests JVM | ✅ 415/415 (F06: 308) |
+| Instrumentados en el emulador API 37 (sin `@RequiresModels` ni `@RequiresNetwork`) | ✅ 291/291 (F06: 217). `IndexScreenLayoutTest` solo se mide en el A063 |
+| Instrumentados en la AVD API 33 (mismos filtros) | ⚠️ 287/291. Fallan las 4 de navegación de F06 §7 (Atrás en la raíz en Android 12–13), igual que con `main` |
+| Instrumentados en el teléfono (mismos filtros) | ✅ 291/291, con `IndexScreenLayoutTest` |
+| `@RequiresModels` en el teléfono | ⚠️ 9/10 seguidas. `GemmaWarmInitTest` (F03) pasó de 10 s (16,5 s) al ejecutarse tras ≈ 17 min de benchmarks, con el teléfono a 36 °C. Sola, tras 2 min de reposo: 5,2 s y 4,5 s ✅. El benchmark de indexación repite sus cifras (CPU: 134,7 s) y cumple SC-001 en GPU. Repetido tras los cambios del cierre: GPU 88,6 s (5,01 fragmentos/s) y CPU 134,3 s, sin el LLM cargado ✅ |
 | APK de release | ✅ Solo `schema.sql` y los perfiles de arranque en *assets*; sin fixtures |
 
 ## 3. Validación por historia y criterio
@@ -111,7 +112,7 @@ Con la app real, en el teléfono, un PDF de 174 páginas con fragmentos más lar
 | F07, *m* = 4.300 | 44,0–45,7 ms | 43,3–43,5 ms |
 
 - **Coste del filtro con *m* = 0:** la variación entre ejecuciones del mismo código (hasta 3 ms) supera el umbral de 2 ms, así que se midió con una prueba A/B temporal, sin commit: 200 consultas por lado, intercaladas en la misma conexión, tres veces. La consulta de F07 cuesta **+0,8 ms** (vectorial) y **+1,1 a +1,5 ms** (BM25) frente a la de F04. Contar los fragmentos ocultos: 0,06 ms.
-- ***m* = 4.300** (un PDF de 2.000 páginas a medias): con el embedding de consulta (≈ 120 ms), la búsqueda vectorial suma ≈ 165 ms, por encima de 150 (§7, pregunta 1).
+- ***m* = 4.300** (un PDF de 2.000 páginas a medias): con el embedding de consulta (≈ 120 ms), la búsqueda vectorial suma ≈ 165 ms, por encima de 150. Aceptado en el cierre (D-042).
 
 ### Ejecución (T045)
 
@@ -143,11 +144,11 @@ Con la app real, en el teléfono, un PDF de 174 páginas con fragmentos más lar
 
 Capturas del teléfono (T060), en claro y en oscuro: en curso, en pausa, pausa por temperatura, con error y sin tareas. Con una tanda en marcha, la pantalla coincide con el PNG 08 en estructura, textos, colores, iconos y formato de cifras («5.390 / 6.450 fragmentos»), salvo esto:
 
-- **Filas de etapas más altas:** usan `LisdataStageRow` del sistema de diseño (título `titleMedium` de 18 sp y estado de 15 sp), unos 72 dp por fila. En el PNG 08 miden unos 48 dp, con textos de unos 13 sp. Por eso la tarjeta «Procesando ahora», que en el PNG se ve sin desplazar, queda bajo el pliegue en el teléfono (§7, pregunta 3). El resto de la app sigue la misma escala que F06.
+- **Altura (resuelta en el cierre, D-042):** las filas de etapas medían ≈ 72 dp, frente a ≈ 48 en el PNG 08, y el héroe ≈ 318 dp, frente a ≈ 240. «Procesando ahora» quedaba bajo el pliegue en el teléfono. Ahora llevan las variantes compactas: filas de 56 dp con textos de 16 y 13 sp, héroe con márgenes de 16 dp y anillo de 154 dp. La tarjeta se ve sin desplazar en el teléfono (`IndexScreenLayoutTest`, con control negativo). Con tiempo restante y otros documentos en cola, se corta la línea de la cola. Las filas siguen algo más altas que en el PNG, por la escala de texto del sistema de diseño.
 - **Círculos decorativos del héroe:** `LisdataHeroCard` lleva los dos círculos de la esquina, como Inicio y el detalle. El PNG 08 no los tiene.
 - **Tiempo restante:** «≈ N min restantes» bajo los fragmentos, según la propuesta P9. El PNG no lo maqueta.
 - **Estados nuevos:** P1–P12 aprobados. «Todo actualizado» con `LisdataEmptyState`; los errores, en «DOCUMENTOS CON ERROR» con la causa, y «Reintentar» solo si sirve (en «Sin texto» no aparece).
-- **Notificación:** muestra los fragmentos del documento en curso; la pantalla, los de la tanda (§7, pregunta 2).
+- **Notificación (resuelto en el cierre, D-042):** mostraba los fragmentos del documento en curso y la pantalla, los de la tanda. Ahora muestra la tanda: en el emulador, «727 de 4.730 fragmentos» durante el segundo documento, igual que la pantalla.
 
 ## 6. Desviaciones respecto al plan y fallos encontrados
 
@@ -174,13 +175,13 @@ Capturas del teléfono (T060), en claro y en oscuro: en curso, en pausa, pausa p
 - **Android 15, tras matar un proceso en primer plano:** a veces registra «FGS (dataSync) timed out» sobre el servicio muerto, y al reiniciarse responde «Time limit already exhausted» hasta abrir la app. El trabajo sigue como job normal.
 - **Troceado en segundo plano:** como job normal, con el proceso en segundo plano, el PDF de 2.000 páginas tarda 21,6 s en trocearse, frente a 4,2 s en primer plano. Los embeddings en la GPU no se ven afectados (≈ 4,5 fragmentos/s).
 
-## 7. Pendiente y preguntas
+## 7. Pendiente y decisiones del cierre
 
 **Pendiente:**
 - **T066:** recorrido con TalkBack en la pantalla de estado, a cargo del usuario, como en F01, F03 y F06. El resto del recorrido de quickstart §6 se hizo durante T045, T053 y T060: pausa y reanudación, temperatura, girar, salir y volver, forzar la detención, reiniciar y la cola de Ingesta. Bloquear el teléfono a mitad queda para ese recorrido.
-- **Documentos de prueba en el teléfono:** los ids 2–9 son documentos de prueba indexados (PDF de 200, 1.000 y 2.000 páginas, y sus copias). Hasta F08 no hay forma de borrarlos desde la app. La carpeta `Download/MicroRAG-F07` se borra al cerrar.
+- **Documentos de prueba en el teléfono:** los ids 2–9 son documentos de prueba indexados (PDF de 200, 1.000 y 2.000 páginas, y sus copias). Hasta F08 no hay forma de borrarlos desde la app. La carpeta `Download/MicroRAG-F07` ya está borrada.
 
-**Preguntas:**
-1. **Búsqueda con un documento grande a medias (T062):** con *m* = 4.300 fragmentos ocultos, la búsqueda vectorial sube a ≈ 45 ms. Con el embedding de consulta (≈ 120 ms) suma ≈ 165 ms, por encima de los 150 ms de la constitución IV. Ninguna variante filtrada baja de 150 ms. **Propuesta:** aceptarlo y registrarlo. Solo ocurre mientras se indexa un documento grande, F10 vuelve a medir con la recuperación híbrida, y F14 tiene INT8 como palanca.
-2. **Cifras de la notificación:** la notificación muestra los fragmentos del documento en curso («39 de 430») y la pantalla, los de la tanda («1.774 / 4.730»). La propuesta P11 no lo fijaba. **Propuesta:** que la notificación muestre también la tanda, para que las dos cifras coincidan.
-3. **Altura de las filas de etapas:** miden ≈ 72 dp frente a ≈ 48 dp en el PNG 08, y «Procesando ahora» queda bajo el pliegue (§5). **Propuesta:** una variante compacta de `LisdataStageRow` para esta pantalla (título de 16 sp y estado de 13 sp, fila de 56 dp, área táctil intacta), de modo que la tarjeta se vea sin desplazar en el teléfono de referencia.
+**Decisiones del cierre (D-042), aceptadas por el usuario:**
+1. **Búsqueda con un documento grande a medias (T062):** con *m* = 4.300 fragmentos ocultos, la búsqueda suma ≈ 165 ms con el embedding de consulta, por encima de los 150 ms de la constitución IV. Se acepta y se registra: solo ocurre mientras se indexa un documento grande. F10 vuelve a medir y F14 evalúa INT8.
+2. **Cifras de la notificación:** muestra las de la tanda, como la pantalla. Implementado y verificado (§5).
+3. **Pantalla compacta:** filas de etapas compactas y, por elección del usuario al ver que no bastaban, también el héroe y el anillo. Implementado y verificado en el teléfono (§5).

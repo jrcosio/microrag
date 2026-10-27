@@ -594,7 +594,7 @@ Todos van en el paquete `core.designsystem`, son presentacionales (sin ViewModel
 | `LisdataDarkButton` | Botón `navy900` con icono | 08 | `Button` |
 | `LisdataOutlinedButton` | Destructivo (`error`) y neutro | 07 | `OutlinedButton` |
 | `LisdataCard` | Superficie blanca con borde de 1 dp y radio de 16 dp | Todas | `OutlinedCard` |
-| `LisdataHeroCard` | `gradientHero` con eyebrow, título, contenido y decoración (órbitas) | 03, 07, 08, 10 | Custom sobre `Box` |
+| `LisdataHeroCard` | `gradientHero` con eyebrow, título, contenido y decoración (órbitas). Variante compacta para el 08 (D-042) | 03, 07, 08, 10 | Custom sobre `Box` |
 | `LisdataInfoCard` | Contenedor `surfaceInfoAlt` con icono, título y texto | 02, 06, 08, 10 | `Card` |
 | `LisdataIconTile` | Claro (`surfaceInfoAlt` + `brandBlue`), sobre oscuro (`onDarkTile`), éxito, neutro y degradado | 02–08, 10 | Custom |
 | `LisdataStatusChip` | `local`, `ready`, `processing`, `queued`, `paused`, `error`, `warning` («Por configurar») y `onDark`. Texto e icono o punto, nunca solo color | 01, 02, 03, 07, 09 | `AssistChip` / custom |
@@ -611,7 +611,7 @@ Todos van en el paquete `core.designsystem`, son presentacionales (sin ViewModel
 | `LisdataChatBubble` / `LisdataAnswerCard` | Usuario; asistente con avatar, cuerpo con markdown simple, copiar, chip de fuentes, estados de streaming, cancelación y error | 04 | Custom |
 | `LisdataChatComposer` | Campo, enviar y detener (G12); se fija sobre el IME | 04 | `TextField` |
 | `LisdataProgressRing` | Determinado (%) o indeterminado | 08 | `CircularProgressIndicator` |
-| `LisdataStageRow` | Completado, en curso, pendiente o error | 08 | Custom |
+| `LisdataStageRow` | Completado, en curso, pendiente o error. Variante compacta de 56 dp, como el 08 (D-042) | 08 | Custom |
 | `LisdataSettingsRow` | Icono, título, subtítulo, y chip o chevron; variante destructiva | 09 | `ListItem` |
 | `LisdataSwitchRow` | Título, subtítulo y switch con etiqueta accesible | 07 | `ListItem` + `Switch` |
 | `LisdataRadioRow` | Título, subtítulo opcional y radio | 10 | `ListItem` + `RadioButton` |

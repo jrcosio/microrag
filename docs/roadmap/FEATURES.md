@@ -41,7 +41,7 @@ Al cerrar cada feature se entrega:
 | F04 | Núcleo de datos RAG | Técnica | F02 | ✅ cerrada |
 | F05 | Harness offline de evaluación | Técnica | F04 | ✅ cerrada |
 | F06 | Importación y parsing | Producto | F04 | ✅ cerrada |
-| F07 | Indexación | Producto | F02, F06 | 🟨 en curso (implementada; pendiente de la revisión de cierre) |
+| F07 | Indexación | Producto | F02, F06 | ✅ cerrada |
 | F08 | Biblioteca y detalle de documento | Producto | F07 | ⬜ |
 | F09 | Inicio | Producto | F03, F07, F08 | ⬜ |
 | F10 | Recuperación híbrida | Técnica | F05, F07 | ⬜ |
@@ -365,7 +365,12 @@ También se introduce `EngineCoordinator`, que garantiza que nunca haya dos engi
 ## F07 — Indexación
 
 - **Tipo:** Producto.
-- **Estado:** 🟨 en curso: implementación terminada el 2026-10-27 en la rama `007-indexing`, pendiente de la revisión de cierre. Decisiones D-039 (clarify), D-040 (plan) y D-041 (alarma de reanudación). Informe de cierre en `specs/007-indexing/report.md`. Queda abierto el recorrido manual con TalkBack (T066).
+- **Estado:** ✅ cerrada: implementada en la rama `007-indexing` y aprobada por el usuario el 2026-10-27. Decisiones:
+  - D-039 (clarify) y D-040 (plan);
+  - D-041 (alarma de reanudación);
+  - D-042 (cierre: presupuesto de búsqueda durante la indexación, notificación de la tanda y pantalla compacta).
+
+  Informe de cierre en `specs/007-indexing/report.md`. Queda abierto el recorrido manual con TalkBack (T066).
 
 **Objetivo.** `IngestWorker` (`CoroutineWorker` en primer plano, reanudable):
 - extrae, fragmenta, embebe y persiste en lotes transaccionales de 64;

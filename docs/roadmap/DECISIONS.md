@@ -639,6 +639,30 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
 
 ---
 
+## D-042 — Búsqueda durante la indexación, notificación de la tanda y pantalla compacta (cierre de F07)
+
+- **Fecha:** 2026-10-27
+- **Decisión** (propuestas del informe de cierre, aceptadas por el usuario):
+  1. **Búsqueda con un documento grande a medias:** se acepta y se registra que supere el presupuesto de consulta de la constitución IV (< 150 ms). Con *m* = 4.300 fragmentos ocultos, el p95 vectorial sube a ≈ 45 ms y, con el embedding de consulta (≈ 120 ms), suma ≈ 165 ms. Solo ocurre mientras se indexa un documento grande. F10 vuelve a medir con la recuperación híbrida y F14 evalúa INT8.
+  2. **Notificación con las cifras de la tanda:** «N de M fragmentos» de toda la tanda, las mismas que la pantalla, en lugar de las del documento en curso. El runner las añade a su progreso (`runChunksDone`, `runChunksTotal`), contadas como en el repositorio.
+  3. **Pantalla compacta, como el PNG 08:**
+     - filas de etapas `LisdataStageRow(compact)` de 56 dp, con textos de 16 y 13 sp (`compactTitle` y `compactBody`);
+     - héroe `LisdataHeroCard(compact)` con márgenes de 16 dp y huecos de 8;
+     - anillo de 154 dp.
+
+     Con eso, «Procesando ahora» se ve sin desplazar en el teléfono de referencia (`IndexScreenLayoutTest`, solo en el A063). Con tiempo restante y otros documentos en cola, se corta la línea de la cola.
+
+     Las filas solas no bastaban (el héroe medía ≈ 318 dp frente a ≈ 240 en el PNG), y el usuario eligió compactar también el héroe.
+- **Motivo:** T062 (búsquedas), la propuesta P11 (no fijaba qué cifras mostrar) y la comparación con el PNG 08 (T060).
+- **Alternativas descartadas:**
+  - búsqueda sin filtro o en *streaming* (no bajan de 150 ms, T062);
+  - mantener la notificación por documento: no coincidía con la pantalla;
+  - filas compactas sin tocar el héroe, o dejarlo para F15: la tarjeta seguía bajo el pliegue.
+- **Origen:** cierre de F07.
+- **Afecta:** F07; F09 puede reutilizar las variantes compactas; F10 y F14 (presupuesto de consulta).
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.
