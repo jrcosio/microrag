@@ -477,15 +477,29 @@ description: "Lista de tareas de F07 — Indexación"
   - **G28** (exclusión en la búsqueda vectorial): resuelto en F07 con *k* + *m* y filtro (D-040);
   - **G29:** etapas resueltas (D-040);
   - **ficha P08:** estados implementados con P1–P12.
-- [ ] T065 Puertas de calidad:
+- [X] T065 Puertas de calidad:
   - pruebas Python;
   - `./gradlew :app:assembleDebug :app:assembleRelease :app:lintDebug :app:lintRelease :app:testDebugUnitTest`;
   - suite instrumentada (sin `@RequiresModels` ni `@RequiresNetwork`) en el emulador API 37, en la AVD API 33 y en el teléfono;
   - las de `@RequiresModels` en el teléfono.
 
   Todo en verde, salvo las 4 de navegación de la API 33 ya conocidas (F06 §7).
+
+  *Hecho (2026-10-27), tras las últimas correcciones:*
+
+  | Puerta | Resultado |
+  |---|---|
+  | Python | 114/114 |
+  | Build y lint | verdes |
+  | JVM | 414/414 |
+  | Emulador API 37 | 289/289 |
+  | AVD API 33 | 285/289 (las 4 conocidas) |
+  | Teléfono | 289/289 |
+  | `@RequiresModels` en el teléfono | 9/10 seguidas |
+
+  En `@RequiresModels`, `GemmaWarmInitTest` (F03) tardó 16,5 s (umbral: 10 s) tras ≈ 17 min de benchmarks. Sola, tras un reposo, pasó con 5,2 s y 4,5 s (informe §2).
 - [ ] T066 Recorrido manual completo en el teléfono (quickstart §6), incluido TalkBack en la pantalla de estado.
-- [ ] T067 Documentación de cierre:
+- [X] T067 Documentación de cierre:
   - `specs/007-indexing/report.md`:
     - resumen y puertas;
     - validación por historia y criterio;
