@@ -293,6 +293,7 @@ val catalogEntries: List<CatalogEntry> = listOf(
             LisdataStageRow(LisdataIcons.Cpu, "Generación de embeddings", "En curso", StageStatus.InProgress)
             LisdataStageRow(LisdataIcons.Database, "Persistencia vectorial", "Pendiente", StageStatus.Pending)
             LisdataStageRow(LisdataIcons.Database, "Persistencia vectorial", "Error", StageStatus.Failed)
+            LisdataStageRow(LisdataIcons.Cpu, "Generación de embeddings", "En pausa", StageStatus.Pending, compact = true)
         }
     },
     // Progress

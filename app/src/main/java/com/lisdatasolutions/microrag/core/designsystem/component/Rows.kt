@@ -4,6 +4,7 @@ import androidx.annotation.DrawableRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -354,7 +355,10 @@ fun LisdataRadioRow(
     }
 }
 
-/** Indexing stage ("Generación de embeddings · En curso"): icon tile and status text. */
+/**
+ * Indexing stage ("Generación de embeddings · En curso"): icon tile and status text. [compact] is the
+ * shorter row of PNG 08, which keeps the four stages and «Procesando ahora» on one screen (D-042).
+ */
 @Composable
 fun LisdataStageRow(
     @DrawableRes icon: Int,
@@ -362,6 +366,7 @@ fun LisdataStageRow(
     statusText: String,
     status: StageStatus,
     modifier: Modifier = Modifier,
+    compact: Boolean = false,
 ) {
     val colors = LisdataTheme.colors
     val (tileIcon, tileStyle, statusColor) = when (status) {
@@ -370,16 +375,19 @@ fun LisdataStageRow(
         StageStatus.Pending -> Triple(icon, IconTileStyle.Neutral, colors.textSecondary)
         StageStatus.Failed -> Triple(LisdataIcons.Warning, IconTileStyle.Error, colors.error)
     }
-    LisdataCard(modifier = modifier) {
+    val spacing = LisdataTheme.spacing
+    val typography = LisdataTheme.typography
+    val padding = if (compact) PaddingValues(horizontal = spacing.cardPadding, vertical = spacing.space2) else PaddingValues(spacing.cardPadding)
+    LisdataCard(modifier = modifier, contentPadding = padding) {
         Row(
             modifier = Modifier.semantics(mergeDescendants = true) {},
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(LisdataTheme.spacing.space4),
+            horizontalArrangement = Arrangement.spacedBy(spacing.space4),
         ) {
-            LisdataIconTile(icon = tileIcon, style = tileStyle, size = LisdataTheme.spacing.iconTileSizeSmall)
+            LisdataIconTile(icon = tileIcon, style = tileStyle, size = spacing.iconTileSizeSmall)
             Column {
-                Text(text = title, style = LisdataTheme.typography.material.titleMedium, color = colors.textPrimary)
-                Text(text = statusText, style = LisdataTheme.typography.material.bodyMedium, color = statusColor)
+                Text(text = title, style = if (compact) typography.compactTitle else typography.material.titleMedium, color = colors.textPrimary)
+                Text(text = statusText, style = if (compact) typography.compactBody else typography.material.bodyMedium, color = statusColor)
             }
         }
     }

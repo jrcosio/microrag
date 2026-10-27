@@ -64,7 +64,7 @@ class IndexScreenAccessibilityTest(
 
         checkHero()?.let { hero ->
             // U6: the ring keeps at least its size; it grows rather than clip the percentage.
-            assertWithMessage("$name: ring height").that(hero.size.height.toFloat()).isAtLeast(px(180))
+            assertWithMessage("$name: ring height").that(hero.size.height.toFloat()).isAtLeast(px(HERO_RING_SIZE.value.toInt()))
         }
         checkFailedRows()
         val width = compose.onRoot().fetchSemanticsNode().size.width

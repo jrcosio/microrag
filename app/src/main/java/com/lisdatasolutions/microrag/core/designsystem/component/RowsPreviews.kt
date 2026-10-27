@@ -52,6 +52,7 @@ private fun QueueCitationStageRowsPreview() = LisdataPreviewSurface {
         LisdataStageRow(LisdataIcons.FileText, "Extracción de texto", "Completado", StageStatus.Done)
         LisdataStageRow(LisdataIcons.Cpu, "Generación de embeddings", "En curso", StageStatus.InProgress)
         LisdataStageRow(LisdataIcons.Database, "Persistencia vectorial", "Pendiente", StageStatus.Pending)
+        LisdataStageRow(LisdataIcons.Cpu, "Generación de embeddings", "En curso", StageStatus.InProgress, compact = true)
     }
 }
 

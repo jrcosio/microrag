@@ -60,7 +60,8 @@ fun LisdataDivider(modifier: Modifier = Modifier) {
 /**
  * Dark gradient hero (Home, Document detail, Indexing, Languages). [titleAccent] renders a second
  * title line in the accent color; the Indexing hero (PNG 08) has no title at all. The orbit
- * decoration is purely visual and hidden from TalkBack.
+ * decoration is purely visual and hidden from TalkBack. [compact] has the tighter padding and gaps of
+ * PNG 08 (D-042).
  */
 @Composable
 fun LisdataHeroCard(
@@ -69,6 +70,7 @@ fun LisdataHeroCard(
     eyebrow: String? = null,
     titleAccent: String? = null,
     decoration: Boolean = true,
+    compact: Boolean = false,
     content: @Composable ColumnScope.() -> Unit = {},
 ) {
     val colors = LisdataTheme.colors
@@ -89,8 +91,8 @@ fun LisdataHeroCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(spacing.space5),
-            verticalArrangement = Arrangement.spacedBy(spacing.space3),
+                .padding(if (compact) spacing.space4 else spacing.space5),
+            verticalArrangement = Arrangement.spacedBy(if (compact) spacing.space2 else spacing.space3),
         ) {
             if (eyebrow != null) LisdataEyebrow(text = eyebrow, color = colors.onDarkAccent)
             if (title != null) {

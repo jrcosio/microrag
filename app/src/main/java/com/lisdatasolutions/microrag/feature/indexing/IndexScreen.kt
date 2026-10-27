@@ -164,14 +164,15 @@ private fun Running(state: IndexingState.Active) {
     } else {
         stringResource(R.string.index_preparing)
     }
-    LisdataHeroCard(title = null, eyebrow = stringResource(R.string.index_eyebrow), modifier = Modifier.fillMaxWidth()) {
+    // D-042: compact hero and ring as in PNG 08, so «Procesando ahora» shows without scrolling.
+    LisdataHeroCard(title = null, eyebrow = stringResource(R.string.index_eyebrow), modifier = Modifier.fillMaxWidth(), compact = true) {
         // U1: the ring, its percentage and the chunks are read as one.
         Column(
             modifier = Modifier.fillMaxWidth().clearAndSetSemantics { contentDescription = ringDescription },
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(spacing.space3),
+            verticalArrangement = Arrangement.spacedBy(spacing.space1),
         ) {
-            LisdataProgressRing(progress = ring, label = stringResource(R.string.index_ring_label))
+            LisdataProgressRing(progress = ring, label = stringResource(R.string.index_ring_label), size = HERO_RING_SIZE)
             Text(
                 text = if (total != null) {
                     stringResource(R.string.index_chunks, progress.done.grouped(), total.grouped())
@@ -210,6 +211,7 @@ private fun Running(state: IndexingState.Active) {
             statusText = stageText(status, isCurrent = stage == currentStage, paused = paused),
             status = status,
             modifier = Modifier.fillMaxWidth(),
+            compact = true,
         )
     }
 
@@ -329,3 +331,6 @@ private sealed interface Announcement {
         }
     }
 }
+
+/** The ring of PNG 08, smaller than the design system's default (D-042). */
+internal val HERO_RING_SIZE = 154.dp

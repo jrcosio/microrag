@@ -35,6 +35,9 @@ data class LisdataTypography(
     val navLabelSelected: TextStyle,
     val progressValue: TextStyle,
     val eyebrow: TextStyle,
+    /** Compact rows, such as the indexing stages of PNG 08 (D-042). */
+    val compactTitle: TextStyle,
+    val compactBody: TextStyle,
 )
 
 private fun style(size: Int, lineHeight: Int, weight: FontWeight, letterSpacing: Double = 0.0) = TextStyle(
@@ -72,5 +75,7 @@ val DefaultLisdataTypography: LisdataTypography = Typography().let { base ->
         navLabelSelected = style(13, 16, FontWeight.SemiBold),
         progressValue = style(40, 44, FontWeight.Bold),
         eyebrow = eyebrowStyle,
+        compactTitle = style(16, 22, FontWeight.SemiBold),
+        compactBody = style(13, 18, FontWeight.Normal),
     )
 }
