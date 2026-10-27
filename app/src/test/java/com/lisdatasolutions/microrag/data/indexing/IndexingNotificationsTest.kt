@@ -51,14 +51,15 @@ class IndexingNotificationsTest {
     }
 
     @Test
-    fun aPlainNotification_expiresUnlessShownAgain() {
+    fun everyNotification_expiresUnlessShownAgain() {
+        // Also the one handed to WorkManager: Android ignores the expiry while it is a foreground service's.
         val notification = notifications.build(IngestProgress(5, IngestProgress.Stage.EMBEDDING, chunksDone = 64, chunksTotal = 430))
-        assertThat(notification.timeoutAfter).isEqualTo(0)
+        assertThat(notification.timeoutAfter).isEqualTo(IndexingNotifications.TIMEOUT_MS)
 
         notifications.notify(notification)
 
         val posted = shadowOf(context.getSystemService(NotificationManager::class.java)).getNotification(IndexingNotifications.NOTIFICATION_ID)
-        assertThat(posted.timeoutAfter).isEqualTo(IndexingNotifications.PLAIN_TIMEOUT_MS)
+        assertThat(posted.timeoutAfter).isEqualTo(IndexingNotifications.TIMEOUT_MS)
         assertThat(posted.text()).isEqualTo("64 de 430 fragmentos")
     }
 

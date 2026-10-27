@@ -34,8 +34,8 @@ import org.koin.core.component.inject
  * service failed to reach the foreground (seen after a kill, with that service restarted in the
  * background), so the process state has the last word.
  *
- * While it runs, it moves the [IndexingAlarm] forward and keeps a plain notification fresh: that one
- * expires, so a process killed outside the foreground leaves no «Indexando» behind (D-041).
+ * While it runs, it moves the [IndexingAlarm] forward and keeps the notification fresh: unless it is a
+ * running foreground service's, it expires, so a killed process leaves no «Indexando» behind (D-041).
  */
 class IngestWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params), KoinComponent {
 

@@ -116,7 +116,7 @@ class IngestWorkerTest {
         assertThat(attempts.get()).isAtLeast(3)
         assertThat(shownWhileWorking).isEqualTo(1)
         // D-041: if the process died now, the plain notification would go by itself.
-        assertThat(expiresAfter).isEqualTo(IndexingNotifications.PLAIN_TIMEOUT_MS)
+        assertThat(expiresAfter).isEqualTo(IndexingNotifications.TIMEOUT_MS)
         assertThat(shadowOf(context.getSystemService(NotificationManager::class.java)).allNotifications).isEmpty()
         assertThat(logger.lines.joinToString()).contains("ingest without foreground service: ForegroundServiceStartNotAllowedException")
         // The wake-up was set while it ran, and the finished run needs none.

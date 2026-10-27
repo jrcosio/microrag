@@ -38,6 +38,8 @@ class IndexingNotifications(private val context: Context) {
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setCategory(Notification.CATEGORY_PROGRESS)
+            // Android never times out a foreground service's notification; any other one goes by itself (D-041).
+            .setTimeoutAfter(TIMEOUT_MS)
             .setContentIntent(openIndex())
             .addAction(Notification.Action.Builder(null, context.getString(R.string.index_notification_pause), pauseIntent()).build())
         val done = progress?.chunksDone
@@ -52,14 +54,8 @@ class IndexingNotifications(private val context: Context) {
         }.build()
     }
 
-    /**
-     * Without a foreground service (research R1), the same notification as a plain one. It expires
-     * unless the worker shows it again, so a killed process leaves no «Indexando» behind (D-041).
-     */
-    fun notify(notification: Notification) = manager.notify(
-        NOTIFICATION_ID,
-        Notification.Builder.recoverBuilder(context, notification).setTimeoutAfter(PLAIN_TIMEOUT_MS).build(),
-    )
+    /** Without a foreground service (research R1), the same notification as a plain one. */
+    fun notify(notification: Notification) = manager.notify(NOTIFICATION_ID, notification)
 
     fun cancel() = manager.cancel(NOTIFICATION_ID)
 
@@ -90,7 +86,11 @@ class IndexingNotifications(private val context: Context) {
         /** The system rate-limits progress updates; once per second is enough. */
         const val UPDATE_INTERVAL_MS = 1_000L
 
-        /** The worker shows it at least once a minute while it runs. */
-        const val PLAIN_TIMEOUT_MS = 3 * 60_000L
+        /**
+         * The worker shows it at least once a minute while it runs, so it only expires once the process
+         * has died. Also when WorkManager posts it: its service can fail to reach the foreground and
+         * still post it as a plain one (seen after a reboot).
+         */
+        const val TIMEOUT_MS = 3 * 60_000L
     }
 }
