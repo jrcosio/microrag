@@ -107,6 +107,20 @@ class DefaultIndexingRepositoryTest {
     }
 
     @Test
+    fun withoutRunningWork_theDocumentLeftHalfwayIsStillTheCurrentOne() = runTest {
+        val parsed = doc("Notas.txt", DocumentStatus.PARSED, chunks = 2)
+        val halfway = doc("Manual técnico.pdf", DocumentStatus.EMBEDDING, chunks = 430).also { store(it, 128) }
+        runStore.edit { it.adding(listOf(parsed, halfway)).pausedBy(RunPauseCause.USER) }
+
+        val state = state() as IndexingState.Active
+
+        // P3: the stages it went through stay done, and its own one shows «En pausa».
+        assertThat(state.current).isEqualTo(CurrentDocument(halfway, "Manual técnico.pdf", CurrentDocument.Stage.EMBEDDING))
+        assertThat(state.queuedDocuments).isEqualTo(1)
+        assertThat(state.pause).isEqualTo(PauseReason.USER)
+    }
+
+    @Test
     fun withoutASteadyRate_noRemainingTimeIsShown() = runTest {
         val id = doc("A.txt", DocumentStatus.EMBEDDING, chunks = 100)
         runStore.edit { it.adding(listOf(id)) }

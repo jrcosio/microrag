@@ -71,6 +71,9 @@ class DefaultIndexingRepository(
             val running = inputs.progress?.takeIf { inputs.work.running && unfinished.any { doc -> doc.id == it.documentId } }
             val current = running?.let { progress ->
                 all[progress.documentId]?.let { CurrentDocument(it.id, it.displayName, progress.stage.forScreen()) }
+            } ?: unfinished.firstOrNull { it.status == DocumentStatus.EMBEDDING }?.let {
+                // Paused or waiting, the document left halfway is still the current one: its stage shows «En pausa» (P3).
+                CurrentDocument(it.id, it.displayName, CurrentDocument.Stage.EMBEDDING)
             }
             val pause = when {
                 inputs.run.pauseCause != null -> inputs.run.pauseCause.reason()
