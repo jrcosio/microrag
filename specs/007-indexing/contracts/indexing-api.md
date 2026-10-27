@@ -100,7 +100,7 @@ suspend fun embedDocumentFitting(content: String, header: String): DocumentEmbed
 |---|---|
 | Configuración de WorkManager | `setGreedySchedulerEnabled(false)` (R2) |
 | Primer plano | `setForeground(ForegroundInfo(id, notificación, FOREGROUND_SERVICE_TYPE_DATA_SYNC))` al empezar y en cada lote. Si falla, sigue como job normal (R1) |
-| Despertador | El worker adelanta `IndexingAlarm` cada minuto y la cancela al terminar la tanda; la notificación normal caduca a los 3 min si nadie la refresca (D-041) |
+| Despertador | El worker adelanta `IndexingAlarm` cada minuto y la cancela al terminar la tanda; la notificación caduca a los 3 min si nadie la refresca, salvo mientras es la de un servicio en primer plano (D-041) |
 | Progreso | Las claves de data-model §5, como mucho cada 250 ms |
 | Resultado | `success` cuando termina la tanda o se pausa de forma persistente. `failure` si el índice no está disponible, como en F06: la pantalla lo explica y el usuario vuelve a empezar. Las paradas del sistema las reprograma WorkManager |
 | Restricciones | Ninguna (como F06) |
