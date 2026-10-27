@@ -45,7 +45,7 @@
         <receiver
             android:name=".data.download.DownloadActionReceiver"
             android:exported="false" />
-        <!-- «Pausar» from the indexing notification (F07 P11). -->
+        <!-- «Pausar» from the indexing notification (F07 P11) and the run's wake-up alarm (D-041). -->
         <receiver
             android:name=".data.indexing.IndexingActionReceiver"
             android:exported="false" />
