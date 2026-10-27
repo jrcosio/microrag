@@ -617,6 +617,28 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
 
 ---
 
+## D-041 — Despertar la tanda tras una muerte sin primer plano (implementación de F07)
+
+- **Fecha:** 2026-10-27
+- **Decisión:**
+  1. **Alarma inexacta** (`AlarmManager.set`, `ELAPSED_REALTIME_WAKEUP`, 15 min, sin permisos especiales) mientras la tanda tiene documentos sin terminar:
+     - el repositorio la arma al encolar y al reconciliar, y la cancela al pausar;
+     - el worker la adelanta cada minuto mientras corre y la cancela al terminar la tanda;
+     - al sonar, el receptor no exportado de la notificación reconcilia y la vuelve a armar si queda trabajo.
+  2. **La notificación normal caduca** a los 3 min (`setTimeoutAfter`). El worker la refresca cada minuto, también durante la espera térmica, así que solo desaparece si el proceso ha muerto. La del servicio en primer plano no caduca: Android la quita con el servicio.
+- **Motivo:**
+  - **Fallo observado:** si el proceso muere mientras el trabajo corre como job normal (sin primer plano), JobScheduler deja el job listo pero no lo encola, y el trabajo no vuelve hasta abrir la app. Pasó en el emulador API 37 (más de 40 min) y en el teléfono (Android 15). Además, la notificación normal se quedaba diciendo «Indexando documentos».
+  - **Causa, en el código de Android 15** (`JobSchedulerService`): el job reprogramado tras la muerte solo se encola en la siguiente revisión general (`MSG_CHECK_JOB`), que disparan cambios globales (constantes, temperatura, batería, desbloqueo). En un dispositivo quieto puede tardar mucho.
+  - **Por qué basta con arrancar el proceso:** WorkManager (`ForceStopRunnable`) vuelve a programar el trabajo que quedó en marcha, y un job recién programado que está listo se ejecuta en el acto (`scheduleAsPackage`). Es lo que pasa al abrir la app.
+- **Alternativas descartadas:**
+  - **aceptarlo y documentarlo:** el trabajo podía quedar parado indefinidamente con una notificación falsa;
+  - **alarma exacta:** permite arrancar el primer plano, pero exige `SCHEDULE_EXACT_ALARM` concedido por el usuario o `USE_EXACT_ALARM`, que es solo para alarmas y calendarios;
+  - **trabajo expedited:** no se agrupa, pero tiene cuota y límite de duración, y no sirve para tandas de una hora.
+- **Origen:** verificación temprana T045 (research R2), en el emulador y en el teléfono.
+- **Afecta:** F07 (worker, repositorio y receptor). F14 mide el coste de la alarma en batería si hace falta.
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.

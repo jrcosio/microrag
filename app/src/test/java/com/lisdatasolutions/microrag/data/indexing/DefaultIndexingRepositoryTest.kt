@@ -34,9 +34,10 @@ class DefaultIndexingRepositoryTest {
     private val runStore = InMemoryIngestRunStore()
     private val thermal = FakeThermalStatusSource()
     private val logger = RecordingLogger()
+    private val alarm = RecordingIndexingAlarm()
 
     private fun TestScope.repository() =
-        DefaultIndexingRepository(index, scheduler, runStore, thermal, StandardTestDispatcher(testScheduler), logger)
+        DefaultIndexingRepository(index, scheduler, runStore, thermal, StandardTestDispatcher(testScheduler), logger, alarm)
 
     private suspend fun doc(name: String, status: DocumentStatus = DocumentStatus.PENDING, chunks: Int? = null, error: IngestError? = null): Long {
         val id = index.addDocument(NewDocument(displayName = name, contentHash = name, mimeType = "text/plain"))
@@ -227,6 +228,40 @@ class DefaultIndexingRepositoryTest {
 
         assertThat(scheduler.enqueued).isEmpty()
         assertThat(scheduler.replaced).isEmpty()
+    }
+
+    // D-041: a wake-up stays set while the run is unfinished, and a pause clears it.
+
+    @Test
+    fun theWakeUp_isSetByEnqueuingAndReconcilingAndClearedByAPause() = runTest {
+        doc("A.txt", DocumentStatus.EMBEDDING, chunks = 9)
+        val repository = repository()
+
+        repository.start()
+        assertThat(alarm.calls).containsExactly(true)
+
+        scheduler.work.value = IngestWork(unfinished = true, running = true, waitingForSystem = false)
+        repository.reconcile()
+        assertThat(alarm.calls).containsExactly(true, true)
+
+        repository.pause()
+        repository.reconcile()
+        assertThat(alarm.armed).isFalse()
+
+        repository.resume()
+        assertThat(alarm.armed).isTrue()
+    }
+
+    @Test
+    fun withNothingLeft_noWakeUpIsSet() = runTest {
+        val id = doc("A.txt", DocumentStatus.DONE, chunks = 1)
+        runStore.edit { it.adding(listOf(id)) }
+        val repository = repository()
+
+        repository.start()
+        repository.reconcile()
+
+        assertThat(alarm.calls).isEmpty()
     }
 
     @Test

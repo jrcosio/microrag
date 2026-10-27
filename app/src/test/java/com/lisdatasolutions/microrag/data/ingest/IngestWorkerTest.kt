@@ -18,7 +18,9 @@ import com.lisdatasolutions.microrag.data.device.ProcessState
 import com.lisdatasolutions.microrag.data.indexing.FakeEmbeddingSessions
 import com.lisdatasolutions.microrag.data.indexing.FakeThermalStatusSource
 import com.lisdatasolutions.microrag.data.indexing.InMemoryIngestRunStore
+import com.lisdatasolutions.microrag.data.indexing.IndexingAlarm
 import com.lisdatasolutions.microrag.data.indexing.IndexingNotifications
+import com.lisdatasolutions.microrag.data.indexing.RecordingIndexingAlarm
 import com.lisdatasolutions.microrag.domain.rag.DocumentStatus
 import com.lisdatasolutions.microrag.domain.rag.NewDocument
 import com.lisdatasolutions.microrag.rag.ingest.DocumentExtractor
@@ -56,6 +58,7 @@ class IngestWorkerTest {
     private val index = FakeRagIndex()
     private val sessions = FakeEmbeddingSessions()
     private val logger = RecordingLogger()
+    private val alarm = RecordingIndexingAlarm()
 
     @Volatile
     private var foreground = false
@@ -73,6 +76,7 @@ class IngestWorkerTest {
                     single { IndexingNotifications(context) }
                     single<AppLogger> { this@IngestWorkerTest.logger }
                     single { ProcessState { foreground } }
+                    single<IndexingAlarm> { alarm }
                 },
             )
         }
@@ -94,8 +98,11 @@ class IngestWorkerTest {
             Futures.immediateFailedFuture(ForegroundServiceStartNotAllowedException("app is in the background"))
         }
         var shownWhileWorking = 0
+        var expiresAfter = 0L
         sessions.embedder.beforeEmbedding = {
-            shownWhileWorking = maxOf(shownWhileWorking, shadowOf(context.getSystemService(NotificationManager::class.java)).allNotifications.size)
+            val shown = shadowOf(context.getSystemService(NotificationManager::class.java)).allNotifications
+            shownWhileWorking = maxOf(shownWhileWorking, shown.size)
+            shown.firstOrNull()?.let { expiresAfter = it.timeoutAfter }
         }
         val worker = TestListenableWorkerBuilder<IngestWorker>(context)
             .setInputData(Data.Builder().putLongArray(WorkManagerIngestScheduler.KEY_DOCUMENT_IDS, longArrayOf(id)).build())
@@ -108,8 +115,13 @@ class IngestWorkerTest {
         assertThat(index.docs.getValue(id).status).isEqualTo(DocumentStatus.DONE)
         assertThat(attempts.get()).isAtLeast(3)
         assertThat(shownWhileWorking).isEqualTo(1)
+        // D-041: if the process died now, the plain notification would go by itself.
+        assertThat(expiresAfter).isEqualTo(IndexingNotifications.PLAIN_TIMEOUT_MS)
         assertThat(shadowOf(context.getSystemService(NotificationManager::class.java)).allNotifications).isEmpty()
         assertThat(logger.lines.joinToString()).contains("ingest without foreground service: ForegroundServiceStartNotAllowedException")
+        // The wake-up was set while it ran, and the finished run needs none.
+        assertThat(alarm.calls.first()).isTrue()
+        assertThat(alarm.armed).isFalse()
     }
 
     // The service starts or fails after setForeground returns: an accepting updater with a process that

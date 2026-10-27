@@ -51,6 +51,18 @@ class IndexingNotificationsTest {
     }
 
     @Test
+    fun aPlainNotification_expiresUnlessShownAgain() {
+        val notification = notifications.build(IngestProgress(5, IngestProgress.Stage.EMBEDDING, chunksDone = 64, chunksTotal = 430))
+        assertThat(notification.timeoutAfter).isEqualTo(0)
+
+        notifications.notify(notification)
+
+        val posted = shadowOf(context.getSystemService(NotificationManager::class.java)).getNotification(IndexingNotifications.NOTIFICATION_ID)
+        assertThat(posted.timeoutAfter).isEqualTo(IndexingNotifications.PLAIN_TIMEOUT_MS)
+        assertThat(posted.text()).isEqualTo("64 de 430 fragmentos")
+    }
+
+    @Test
     fun pauseActionAndTap_areExplicitAndImmutable() {
         val notification = notifications.build(null)
 

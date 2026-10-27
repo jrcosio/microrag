@@ -229,11 +229,13 @@ description: "Lista de tareas de F07 — Indexación"
   - `stopReason` y `runAttemptCount`.
 
   Actualizar `WorkManagerIngestSchedulerTest`, y también `IngestFlowTest`, `IngestStrictModeTest` e `IngestBenchmarkTest` de F06 (el runner necesita ahora su sesión de embeddings; se inyecta `FakeTextEmbedder` y sus expectativas pasan a `done`). Comprobar T023 en el emulador.
-- [ ] T027 [US1] En el teléfono, indexar con la app real un PDF, un TXT y un MD desde la Ingesta. Comprobar:
+- [X] T027 [US1] En el teléfono, indexar con la app real un PDF, un TXT y un MD desde la Ingesta. Comprobar:
   - en el log, `ingest done` y el backend elegido tras la validación de la GPU;
   - en la base, que los fragmentos tienen vector y los documentos están `done`.
 
-  > Estado (2026-10-27): hecho en el emulador API 37 con la app real (CPU, porque es emulador): 6 documentos `done`, un engine cargado una vez y liberado al final, ordinales 0..n−1, vectores de 256 con norma 1 y `title_norm` sin extensión. El trabajo arrancó 12 ms después de encolarse. **Pendiente en el teléfono** (validación de la GPU), que no estaba conectado.
+  > Estado (2026-10-27): hecho en el emulador API 37 con la app real (CPU, porque es emulador): 6 documentos `done`, un engine cargado una vez y liberado al final, ordinales 0..n−1, vectores de 256 con norma 1 y `title_norm` sin extensión. El trabajo arrancó 12 ms después de encolarse.
+  >
+  > *Teléfono (2026-10-27):* un PDF, un TXT y un MD de prueba, más un PDF de 174 páginas que ya estaba en la cola. La validación de la GPU da un coseno mínimo de 0,99751: usa la GPU y libera el engine de CPU. Los cuatro documentos acaban `done` y el engine se libera al final. En la base, ordinales 0..n−1, 207 vectores de 256 con norma 1 y títulos sin extensión.
 
 **Checkpoint**: MVP funcional: la app indexa y publica documentos completos.
 
@@ -338,7 +340,9 @@ description: "Lista de tareas de F07 — Indexación"
 
   Anotar los resultados en research R1–R2. **Si sigue congelándose o la latencia pasa de 5 s, parar y consultar al usuario.**
 
-  *Emulador API 37 hecho (2026-10-27), resultados en research R2:* latencia de 25 ms, sin congelación, cuota y límite de `dataSync` superados, y coherencia en los cuatro documentos. Se corrigieron dos fallos del worker. Queda una cuestión para el usuario: un trabajo parado mientras corría sin primer plano no vuelve hasta abrir la app. Falta el teléfono.
+  *Emulador API 37 hecho (2026-10-27), resultados en research R2:* latencia de 25 ms, sin congelación, cuota y límite de `dataSync` superados, y coherencia en los cuatro documentos. Se corrigieron dos fallos del worker. Queda una cuestión para el usuario: un trabajo parado mientras corría sin primer plano no vuelve hasta abrir la app.
+
+  *Teléfono, en parte (2026-10-27):* latencia de ~100 ms, primer plano, dos muertes en primer plano (vuelve en 4–6 s) y una sin él, que se reproduce como en el emulador. Se resuelve con D-041 (alarma inexacta y caducidad de la notificación), verificado en el emulador: el trabajo volvió con la alarma, 17 min después, sin abrir la app. Faltan en el teléfono las muertes durante el troceado y entre documentos, la alarma con el valor real y el reinicio.
 
 **Checkpoint**: la indexación sobrevive a muertes, reinicios y límites del sistema.
 
@@ -429,14 +433,18 @@ description: "Lista de tareas de F07 — Indexación"
 ## Phase 8: Polish & Cross-Cutting Concerns
 
 - [X] T061 [P] Crear `…/androidTest/data/indexing/IndexingStrictModeTest.kt`: `start`, la observación del estado, `pause` y `resume` llamados desde el hilo principal, con el runner y `FakeTextEmbedder`, sin violaciones de disco. Con control negativo, como F06 (SC-009).
-- [ ] T062 [P] Ampliar `…/androidTest/data/rag/RagIndexBenchmarkTest.kt` (R7):
+- [X] T062 [P] Ampliar `…/androidTest/data/rag/RagIndexBenchmarkTest.kt` (R7):
   - **10k fragmentos, *m* = 0:** p95 vectorial y BM25 comparados con F04 (umbral: +2 ms en el teléfono);
   - ***m* = 4.300:** registrar. Si, sumado al embedding de consulta (≈ 120 ms), supera 150 ms, consultar.
 
   Ejecutarla en el teléfono. **Si el p95 con *m* = 0 sube más de 2 ms, revisar la consulta antes de seguir.**
 
-  *Código hecho. Emulador API 37, orientativo (2026-10-27):* con *m* = 0, p95 vectorial 20,8 ms y BM25 21,2 ms; con *m* = 4.300, 46,1 ms y 45,7 ms. Falta la ejecución en el teléfono.
-- [ ] T063 [P] Crear `…/androidTest/data/indexing/IndexingBenchmarkTest.kt` (`@RequiresModels`, R13). Con `text_200_pages.pdf`, el runner real, `ChunkEmbeddingSession` y un índice temporal:
+  *Código hecho. Emulador API 37, orientativo (2026-10-27):* con *m* = 0, p95 vectorial 20,8 ms y BM25 21,2 ms; con *m* = 4.300, 46,1 ms y 45,7 ms.
+
+  *Teléfono (2026-10-27), 4 ejecuciones:*
+  - **Con *m* = 0:** p95 vectorial de 23,5 a 26,2 ms y BM25 de 27,2 a 30,6 ms, frente a 23,1 y 26,5 de F04. Como la variación entre ejecuciones supera el umbral, se midió también un A/B intercalado sobre la misma conexión (prueba temporal, sin commit): la consulta de F07 cuesta +0,8 ms (vectorial) y +1,1 a +1,5 ms (BM25) frente a la de F04. Dentro del umbral de 2 ms.
+  - **Con *m* = 4.300:** p95 vectorial ≈ 45 ms y BM25 ≈ 43 ms. Con el embedding de consulta (≈ 120 ms) pasa de 150 ms: **se consulta al usuario en el cierre**. Ninguna variante filtrada baja de 150 ms (el *streaming* con filtro da 34–35 ms, y sin filtro la tabla de 14.300 filas ya cuesta 26–28 ms).
+- [X] T063 [P] Crear `…/androidTest/data/indexing/IndexingBenchmarkTest.kt` (`@RequiresModels`, R13). Con `text_200_pages.pdf`, el runner real, `ChunkEmbeddingSession` y un índice temporal:
   - tiempo total y fragmentos por segundo en GPU y en CPU (backend forzado);
   - muestreo de `EngineCoordinator.loaded` durante la tanda, que nunca contiene el LLM (SC-007);
   - etiqueta `indexing-benchmark`;
@@ -444,7 +452,9 @@ description: "Lista de tareas de F07 — Indexación"
 
   Ejecutarla en el teléfono.
 
-  *Código hecho. Emulador API 37, CPU (2026-10-27):* 430 fragmentos en 103 s, 4,21 fragmentos/s y ningún LLM durante la tanda (sin Gemma instalado; la GPU se salta en el emulador). Falta la ejecución en el teléfono, donde además se precarga Gemma.
+  *Código hecho. Emulador API 37, CPU (2026-10-27):* 430 fragmentos en 103 s, 4,21 fragmentos/s y ningún LLM durante la tanda (sin Gemma instalado; la GPU se salta en el emulador). En el teléfono se precarga Gemma.
+
+  *Teléfono (2026-10-27), con Gemma precargado en la GPU:* GPU, 430 fragmentos en 93,6 s (4,73 fragmentos/s): **SC-001 cumplido**. CPU, 134,9 s (3,23 fragmentos/s). El LLM no estuvo cargado en ningún momento de la tanda.
 - [X] T064 Actualizar `docs/roadmap/INVENTARIO.md`:
   - **G28** (exclusión en la búsqueda vectorial): resuelto en F07 con *k* + *m* y filtro (D-040);
   - **G29:** etapas resueltas (D-040);

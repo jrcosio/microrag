@@ -52,8 +52,14 @@ class IndexingNotifications(private val context: Context) {
         }.build()
     }
 
-    /** Without a foreground service (research R1), the same notification as a plain one. */
-    fun notify(notification: Notification) = manager.notify(NOTIFICATION_ID, notification)
+    /**
+     * Without a foreground service (research R1), the same notification as a plain one. It expires
+     * unless the worker shows it again, so a killed process leaves no «Indexando» behind (D-041).
+     */
+    fun notify(notification: Notification) = manager.notify(
+        NOTIFICATION_ID,
+        Notification.Builder.recoverBuilder(context, notification).setTimeoutAfter(PLAIN_TIMEOUT_MS).build(),
+    )
 
     fun cancel() = manager.cancel(NOTIFICATION_ID)
 
@@ -83,5 +89,8 @@ class IndexingNotifications(private val context: Context) {
 
         /** The system rate-limits progress updates; once per second is enough. */
         const val UPDATE_INTERVAL_MS = 1_000L
+
+        /** The worker shows it at least once a minute while it runs. */
+        const val PLAIN_TIMEOUT_MS = 3 * 60_000L
     }
 }

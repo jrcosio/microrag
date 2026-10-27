@@ -76,7 +76,7 @@ Fecha: 2026-10-26. Fuentes oficiales consultadas ese día. Las firmas de bibliot
 
 ### Resultados de la verificación temprana (T045, emulador API 37, 2026-10-27)
 
-App real, CPU, documentos de 200 y 2.000 páginas, un TXT corto y otro PDF de 2.000 páginas. El teléfono está pendiente.
+App real, CPU, documentos de 200 y 2.000 páginas, un TXT corto y otro PDF de 2.000 páginas.
 
 - **Latencia:** 25 ms desde «Iniciar indexación» hasta que el worker pide el primer plano, con Inicio pulsado 0,3 s después. Umbral de 5 s: cumplido.
 - **Primer plano:** al iniciar con la app visible, el proceso queda como servicio `dataSync` y la notificación avanza.
@@ -99,7 +99,25 @@ App real, CPU, documentos de 200 y 2.000 páginas, un TXT corto y otro PDF de 2.
 1. **`setForeground` volvía sin error, pero el servicio no llegaba a primer plano.** Pasaba con el `SystemForegroundService` de WorkManager relanzado en segundo plano tras una muerte: su `startForeground` fallaba dentro de WorkManager. El worker se creía en primer plano, no publicaba la notificación normal y reintentaba cada segundo. Ahora consulta la importancia del proceso (`ProcessState`).
 2. **El worker solo reintentaba el primer plano por documento o etapa**, no en cada lote como decía R1. Con un documento largo, abrir la app no lo devolvía hasta acabarlo. Corregido.
 
-**Pendiente de decidir:** que un trabajo parado mientras corría como trabajo normal no vuelva hasta abrir la app (ver el informe).
+### Resultados en el teléfono (T045, A063, Android 15, 2026-10-27)
+
+App real, GPU, documentos de 200 y 2.000 páginas.
+
+- **Latencia:** unos 100 ms desde la pulsación hasta que el worker pide el primer plano. Con Inicio pulsado 0,3 s después, el servicio arranca a los 206 ms, aún con la app arriba, y sigue con la app en segundo plano.
+- **Primer plano:** servicio `dataSync` (`isForeground=true`, tipo `0x1`). La notificación muestra el progreso.
+- **Muerte en primer plano** (`kill -9`, dos veces, a mitad de los embeddings): el proceso vuelve en 1–2 s y el trabajo sigue en 4–6 s desde lo guardado (192 y 832 fragmentos), sin abrir la app.
+  - Sigue sin primer plano. La primera vez, Android 15 registra «FGS (dataSync) timed out» sobre el servicio del proceso muerto y rechaza el nuevo con «Time limit already exhausted for foreground service type dataSync», aunque la app llevaba minutos de `dataSync`. Al abrir la app el contador se reinicia y el primer plano vuelve en el siguiente lote.
+  - El `SystemForegroundService` de WorkManager reintenta su `startForeground` decenas de veces en 150 ms y Android descarta una actualización de la notificación por exceso de ritmo. No tiene más efecto.
+- **Muerte sin primer plano:** igual que en el emulador. El job queda `Ready: true`, sin encolar, y el proceso no vuelve. La observación se cortó a los 2,5 min, porque se abrió la app: arrancó en 2 s desde los 1.216 fragmentos guardados.
+
+**Causa** (código de `JobSchedulerService` de Android 15):
+- tras la muerte, el job se reprograma listo y sin espera, pero solo se encola en la siguiente revisión general (`MSG_CHECK_JOB`), que disparan cambios globales (constantes, temperatura, batería, desbloqueo). Un job sin restricciones nunca «cambia» por sí solo;
+- un job recién programado que está listo sí se encola y se ejecuta en el acto (`scheduleAsPackage`);
+- al arrancar el proceso, WorkManager (`ForceStopRunnable`) vuelve a programar el trabajo que quedó en marcha («Found unfinished work, scheduling it»). Por eso abrir la app lo arregla.
+
+**Decisión (D-041):** alarma inexacta mientras la tanda está sin terminar, y caducidad de la notificación normal.
+- **Verificación en el emulador API 37:** muerte sin primer plano a las 16:45:49. La alarma sonó a las 17:02:36, dentro de su ventana; el proceso arrancó «for broadcast» y el trabajo siguió 2 s después desde los 475 fragmentos guardados, sin abrir la app. La notificación normal desapareció sola unos 5 min después de la muerte: 3 de caducidad y el retraso con que Android la aplica.
+- En esa prueba, una muerte en primer plano tampoco relanzó el proceso de inmediato: Android relanzó el servicio de WorkManager a los 60 s y, con él, el trabajo.
 
 ## R3. Notificación
 

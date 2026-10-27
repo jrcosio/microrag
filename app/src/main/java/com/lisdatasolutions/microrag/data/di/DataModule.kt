@@ -14,10 +14,12 @@ import com.lisdatasolutions.microrag.data.download.DownloadNotifications
 import com.lisdatasolutions.microrag.data.download.FileDownloader
 import com.lisdatasolutions.microrag.data.download.ModelDownloadRunner
 import com.lisdatasolutions.microrag.data.download.ModelDownloader
+import com.lisdatasolutions.microrag.data.indexing.AlarmManagerIndexingAlarm
 import com.lisdatasolutions.microrag.data.indexing.ChunkEmbeddingSession
 import com.lisdatasolutions.microrag.data.indexing.DataStoreIngestRunStore
 import com.lisdatasolutions.microrag.data.indexing.DefaultIndexingRepository
 import com.lisdatasolutions.microrag.data.indexing.EmbeddingSessions
+import com.lisdatasolutions.microrag.data.indexing.IndexingAlarm
 import com.lisdatasolutions.microrag.data.indexing.IndexingNotifications
 import com.lisdatasolutions.microrag.data.indexing.IngestRunStore
 import com.lisdatasolutions.microrag.data.ingest.DefaultImportQueueRepository
@@ -97,6 +99,7 @@ val dataModule = module {
     single<ThermalStatusSource> { PowerManagerThermalStatusSource(androidContext()) }
     single<ProcessState> { ActivityManagerProcessState() }
     single { IndexingNotifications(androidContext()) }
+    single<IndexingAlarm> { AlarmManagerIndexingAlarm(androidContext()) }
     single<EmbeddingSessions> {
         val models = get<ModelFileRepository>()
         ChunkEmbeddingSession(
@@ -129,6 +132,7 @@ val dataModule = module {
             thermal = get(),
             io = get<AppDispatchers>().io,
             logger = get(),
+            alarm = get(),
         )
     }
     // Single: the import attempts live here, in the application scope (D-038).

@@ -194,6 +194,7 @@ Las claves de F06 (`doc`, `stage`, `page`, `pages`), más:
 | Id | `IndexingNotifications.NOTIFICATION_ID` (fijo, distinto del de las descargas) |
 | Texto | «Indexando documentos» y «N de M fragmentos», o la causa de la pausa automática. Sin nombres de archivo |
 | Acción | «Pausar», con un `PendingIntent` explícito e inmutable a `IndexingActionReceiver` (no exportado) |
+| Caducidad | Solo la notificación normal (sin servicio en primer plano): 3 min, refrescada cada minuto por el worker. Si el proceso muere, desaparece sola (D-041) |
 | Al tocarla | `MainActivity` con la acción interna `ACTION_OPEN_INDEXING`, que abre `Index` |
 
 ## 7. Causa de pausa en el estado de la pantalla

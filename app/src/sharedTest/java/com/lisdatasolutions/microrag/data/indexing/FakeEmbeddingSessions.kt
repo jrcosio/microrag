@@ -4,6 +4,7 @@ import com.lisdatasolutions.microrag.data.device.ThermalLevel
 import com.lisdatasolutions.microrag.data.device.ThermalStatusSource
 import com.lisdatasolutions.microrag.domain.model.ComputeBackend
 import com.lisdatasolutions.microrag.rag.runtime.DocumentEmbedding
+import java.util.concurrent.CopyOnWriteArrayList
 import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
@@ -42,4 +43,20 @@ class FakeEmbeddingSessions(
 /** A [ThermalStatusSource] the test drives. */
 class FakeThermalStatusSource(initial: ThermalLevel = ThermalLevel.NORMAL) : ThermalStatusSource {
     override val level = MutableStateFlow(initial)
+}
+
+/** An [IndexingAlarm] that records its calls in order: `true` to arm, `false` to cancel. */
+class RecordingIndexingAlarm : IndexingAlarm {
+    val calls = CopyOnWriteArrayList<Boolean>()
+
+    /** Whether a wake-up is set after the last call. */
+    val armed: Boolean get() = calls.lastOrNull() == true
+
+    override fun arm() {
+        calls += true
+    }
+
+    override fun cancel() {
+        calls += false
+    }
 }

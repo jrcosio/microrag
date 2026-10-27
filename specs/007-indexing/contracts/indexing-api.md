@@ -91,6 +91,7 @@ suspend fun embedDocumentFitting(content: String, header: String): DocumentEmbed
 | `ChunkEmbeddingSession` (`data/indexing`) | Libera el LLM, elige el backend (GPU solo si está validada en el dispositivo y nunca en un emulador, R4), abre el engine retenido, embebe con la cabecera, recarga o pasa a CPU si falla, y lo cierra |
 | `IngestWorker` (`data/ingest`, ampliado) | `setForeground` de tipo `dataSync`, notificación y delegación en el runner (R1, R3) |
 | `IndexingNotifications`, `IndexingActionReceiver` (`data/indexing`) | Canal, notificación y acción «Pausar» (R3) |
+| `IndexingAlarm` (`data/indexing`, añadido en la implementación) | Alarma inexacta que despierta la app mientras la tanda está sin terminar; `IndexingActionReceiver` reconcilia al recibirla (D-041) |
 | `WorkManagerIngestScheduler` (`data/ingest`, ampliado) | `cancel()` del trabajo único, `replace(ids)` con `ExistingWorkPolicy.REPLACE` (reconciliación, R12) y lectura de `stopReason` y `runAttemptCount` |
 
 ## Trabajo en segundo plano (cambios sobre F06)
@@ -99,6 +100,7 @@ suspend fun embedDocumentFitting(content: String, header: String): DocumentEmbed
 |---|---|
 | Configuración de WorkManager | `setGreedySchedulerEnabled(false)` (R2) |
 | Primer plano | `setForeground(ForegroundInfo(id, notificación, FOREGROUND_SERVICE_TYPE_DATA_SYNC))` al empezar y en cada lote. Si falla, sigue como job normal (R1) |
+| Despertador | El worker adelanta `IndexingAlarm` cada minuto y la cancela al terminar la tanda; la notificación normal caduca a los 3 min si nadie la refresca (D-041) |
 | Progreso | Las claves de data-model §5, como mucho cada 250 ms |
 | Resultado | `success` cuando termina la tanda o se pausa de forma persistente. `failure` si el índice no está disponible, como en F06: la pantalla lo explica y el usuario vuelve a empezar. Las paradas del sistema las reprograma WorkManager |
 | Restricciones | Ninguna (como F06) |

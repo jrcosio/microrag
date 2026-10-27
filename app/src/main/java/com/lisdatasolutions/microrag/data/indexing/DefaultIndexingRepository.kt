@@ -41,6 +41,7 @@ class DefaultIndexingRepository(
     private val thermal: ThermalStatusSource,
     private val io: CoroutineDispatcher,
     private val logger: AppLogger,
+    private val alarm: IndexingAlarm = IndexingAlarm.NONE,
 ) : IndexingRepository {
 
     private class Inputs(val run: IngestRun, val progress: IngestProgress?, val work: IngestWork, val heat: ThermalLevel)
@@ -107,6 +108,7 @@ class DefaultIndexingRepository(
         // Saved first, so neither reconcile nor another screen enqueues the work again (rule N8).
         runStore.edit { it.pausedBy(RunPauseCause.USER) }
         scheduler.cancel()
+        alarm.cancel()
         logger.i(TAG) { "ingest paused by the user" }
     }
 
@@ -133,6 +135,8 @@ class DefaultIndexingRepository(
         if (run.paused) return@withContext
         val unfinished = unfinishedOf(run)
         if (unfinished.isEmpty()) return@withContext
+        // Also when woken by it: while the run is unfinished, the next wake-up stays set (D-041).
+        alarm.arm()
         val work = scheduler.work.first()
         when {
             !work.unfinished -> scheduler.enqueue(unfinished)
@@ -148,6 +152,7 @@ class DefaultIndexingRepository(
         val active = scheduler.activeDocumentIds.first()
         val missing = if (work.unfinished) ids.filterNot { it in active } else ids
         if (missing.isNotEmpty()) scheduler.enqueue(missing)
+        alarm.arm()
     }
 
     private suspend fun unfinishedOf(run: IngestRun): List<Long> =
