@@ -1,13 +1,18 @@
 package com.lisdatasolutions.microrag.feature.home
 
 import android.app.Application
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasScrollAction
@@ -17,14 +22,19 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.unit.Density
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Truth.assertWithMessage
 import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
 import com.lisdatasolutions.microrag.domain.indexing.PauseReason
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
 
 /** F09 T009: Home as in PNG 03, and every control asks for its destination (contracts/home-ui.md). */
 @RunWith(AndroidJUnit4::class)
@@ -272,4 +282,88 @@ class HomeScreenTest {
 
     private fun hasClickLabel(label: String) =
         SemanticsMatcher("onClickLabel = $label") { it.config.getOrNull(SemanticsActions.OnClick)?.label == label }
+
+    // US5 (T025): real text measures (Robolectric's default is 1 dp per character).
+
+    private fun showAt(state: HomeUiState, fontScale: Float) {
+        compose.setContent {
+            val density = LocalDensity.current
+            CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale)) {
+                LisdataTheme { HomeScreen(state, actions) }
+            }
+        }
+    }
+
+    private fun layout(text: String): TextLayoutResult {
+        val layouts = mutableListOf<TextLayoutResult>()
+        compose.onNodeWithText(text, useUnmergedTree = true).performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
+        return layouts.single()
+    }
+
+    private val tileTexts = listOf(
+        "Importar", "Añadir archivos", "Documentos", "Ver biblioteca", "Índice local", "Estado del RAG", "Idiomas", "Preferencias",
+    )
+
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    fun atTheNormalSize_theQuickActionsAreA2x2Grid_andTheFiguresSideBySide() {
+        showAt(HomePreviewData.png, fontScale = 1f)
+
+        assertThat(top("Documentos")).isEqualTo(top("Importar"))
+        assertThat(top("Idiomas")).isEqualTo(top("Índice local"))
+        assertThat(top("12.400")).isEqualTo(top("24"))
+    }
+
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    fun from150Percent_theQuickActionsAreOneColumn_andTheFiguresStack_A7() {
+        showAt(HomePreviewData.png, fontScale = 1.5f)
+
+        assertThat(top("Documentos")).isGreaterThan(top("Importar"))
+        assertThat(top("Índice local")).isGreaterThan(top("Documentos"))
+        assertThat(top("12.400")).isGreaterThan(top("24"))
+    }
+
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    fun at200Percent_noQuickActionTextIsCut_A7() {
+        showAt(HomePreviewData.png, fontScale = 2f)
+
+        for (text in tileTexts) {
+            scrollTo(text)
+            // The tiles cut with an ellipsis, and a word too long for its line is split: neither may happen.
+            val result = layout(text)
+            assertWithMessage("$text ellipsized").that((0 until result.lineCount).none { result.isLineEllipsized(it) }).isTrue()
+            val splitWords = (0 until result.lineCount - 1).filterNot { line -> text[result.getLineEnd(line) - 1].isWhitespace() }
+            assertWithMessage("$text split inside a word at lines $splitWords").that(splitWords).isEmpty()
+        }
+    }
+
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(qualifiers = "es-w844dp-h390dp")
+    fun inLandscape_everythingIsReachableByScrolling_A8() {
+        show(HomePreviewData.indexing)
+
+        for (text in listOf("Indexando documentos", "Preferencias")) {
+            scrollTo(text)
+            compose.onNodeWithText(text, useUnmergedTree = true).assertIsDisplayed()
+        }
+        compose.onNode(hasScrollAction()).performScrollToNode(hasContentDescription("24 documentos y 12.400 fragmentos"))
+        compose.onNodeWithContentDescription("24 documentos y 12.400 fragmentos").assertIsDisplayed()
+    }
+
+    @Test
+    fun theScrollPosition_survivesRecreation_A8() {
+        val restoration = StateRestorationTester(compose)
+        restoration.setContent { LisdataTheme { HomeScreen(HomePreviewData.png, actions) } }
+        compose.onNode(hasScrollAction()).performScrollToNode(hasContentDescription("24 documentos y 12.400 fragmentos"))
+        val scrolled = compose.onNode(hasScrollAction()).fetchSemanticsNode().config[SemanticsProperties.VerticalScrollAxisRange].value()
+        assertThat(scrolled).isGreaterThan(0f)
+
+        restoration.emulateSavedInstanceStateRestore()
+
+        assertThat(compose.onNode(hasScrollAction()).fetchSemanticsNode().config[SemanticsProperties.VerticalScrollAxisRange].value())
+            .isEqualTo(scrolled)
+    }
 }

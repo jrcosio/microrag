@@ -25,6 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
@@ -189,7 +190,10 @@ private fun IndexingCardView(card: IndexingCard, onIndex: () -> Unit) {
 
 private data class QuickAction(val icon: Int, val title: Int, val subtitle: Int, val onClick: () -> Unit)
 
-/** PNG 03: the 2×2 grid, both cards of a row as tall as the taller one. */
+/**
+ * PNG 03: the 2×2 grid, both cards of a row as tall as the taller one. From a 150 % font, one column,
+ * so no title or subtitle is cut (A7).
+ */
 @Composable
 private fun QuickActions(actions: HomeActions) {
     val entries = listOf(
@@ -199,8 +203,9 @@ private fun QuickActions(actions: HomeActions) {
         QuickAction(LisdataIcons.Globe, R.string.home_languages, R.string.home_languages_subtitle, actions.onLanguages),
     )
     val gap = LisdataTheme.spacing.gridGap
+    val columns = if (LocalDensity.current.fontScale >= STACKED_FONT_SCALE) 1 else 2
     Column(verticalArrangement = Arrangement.spacedBy(gap)) {
-        entries.chunked(2).forEach { row ->
+        entries.chunked(columns).forEach { row ->
             Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(gap)) {
                 row.forEach { entry ->
                     LisdataQuickActionTile(
