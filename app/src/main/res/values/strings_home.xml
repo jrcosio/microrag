@@ -18,4 +18,21 @@
     <string name="home_index_subtitle">Estado del RAG</string>
     <string name="home_languages">Idiomas</string>
     <string name="home_languages_subtitle">Preferencias</string>
+    <string name="home_summary_eyebrow">Tu biblioteca</string>
+    <plurals name="home_documents">
+        <item quantity="one">documento</item>
+        <item quantity="other">documentos</item>
+    </plurals>
+    <plurals name="home_chunks">
+        <item quantity="one">fragmento</item>
+        <item quantity="other">fragmentos</item>
+    </plurals>
+    <!-- A2: «24 documentos y 12.400 fragmentos». -->
+    <string name="home_summary_description">%1$s y %2$s</string>
+    <!-- P3 -->
+    <string name="home_empty_title">Tu biblioteca está vacía</string>
+    <string name="home_empty_body">Importa tus PDF, TXT o Markdown para empezar a preguntar.</string>
+    <string name="home_import_first">Importar primer documento</string>
+    <!-- P4 -->
+    <string name="home_summary_failed">No se pudo cargar el resumen</string>
 </resources>

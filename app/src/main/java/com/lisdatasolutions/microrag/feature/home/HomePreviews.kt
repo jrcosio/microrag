@@ -17,10 +17,20 @@ object HomePreviewData {
     /** P1: a model is missing, altered or not prepared. */
     val setupPending = png.copy(ai = LocalAiStatus.SETUP_PENDING)
 
+    /** P3: no documents yet. */
+    val empty = png.copy(summary = SummaryState.Empty)
+
+    /** P4: the summary failed to load, or the index is incompatible or unreadable. */
+    val summaryFailed = png.copy(summary = SummaryState.Error(unavailable = false))
+    val summaryUnavailable = png.copy(summary = SummaryState.Error(unavailable = true))
+
     val all: List<Pair<String, HomeUiState>> = listOf(
         "png" to png,
         "opening" to opening,
         "setupPending" to setupPending,
+        "empty" to empty,
+        "summaryFailed" to summaryFailed,
+        "summaryUnavailable" to summaryUnavailable,
     )
 }
 
@@ -35,3 +45,11 @@ private fun HomeSetupPendingPreview() = LisdataTheme { HomeScreen(HomePreviewDat
 @LisdataPreviews
 @Composable
 private fun HomeOpeningPreview() = LisdataTheme { HomeScreen(HomePreviewData.opening, HomeActions()) }
+
+@LisdataPreviews
+@Composable
+private fun HomeEmptyPreview() = LisdataTheme { HomeScreen(HomePreviewData.empty, HomeActions()) }
+
+@LisdataPreviews
+@Composable
+private fun HomeSummaryFailedPreview() = LisdataTheme { HomeScreen(HomePreviewData.summaryFailed, HomeActions()) }

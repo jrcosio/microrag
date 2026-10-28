@@ -47,6 +47,7 @@ import com.lisdatasolutions.microrag.domain.library.DocumentDetail
 import com.lisdatasolutions.microrag.domain.library.DocumentDetailState
 import com.lisdatasolutions.microrag.domain.library.LoadPreviewUseCase
 import com.lisdatasolutions.microrag.domain.library.ObserveDocumentUseCase
+import com.lisdatasolutions.microrag.domain.library.ObserveLibrarySummaryUseCase
 import com.lisdatasolutions.microrag.domain.library.ObserveLibraryUseCase
 import com.lisdatasolutions.microrag.domain.library.ReindexDocumentUseCase
 import com.lisdatasolutions.microrag.domain.library.RemoveFromIndexUseCase
@@ -113,7 +114,7 @@ internal fun homeViewModels() = module {
         val models = InMemoryModelFileRepository(verified = ModelCatalog.required.map { it.id }.toSet()).apply {
             preparedBackends.value = ModelCatalog.required.associate { it.id to ComputeBackend.GPU }
         }
-        HomeViewModel(ObserveLocalAiUseCase(models), RefreshLocalAiUseCase(models), RecordingLogger())
+        HomeViewModel(ObserveLocalAiUseCase(models), RefreshLocalAiUseCase(models), ObserveLibrarySummaryUseCase(FakeLibraryRepository()), RecordingLogger())
     }
 }
 

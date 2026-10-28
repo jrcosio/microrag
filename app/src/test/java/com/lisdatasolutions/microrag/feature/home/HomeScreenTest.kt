@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -137,5 +138,69 @@ class HomeScreenTest {
 
         exists("IA local disponible")
         assertThat(top("¿Qué quieres explorar hoy?")).isEqualTo(greeting)
+    }
+
+    // US3 (T019)
+
+    @Test
+    fun theSummary_showsBothCounts_andReadsAsOneSentence() {
+        show(HomePreviewData.png)
+        // The figures are read as one sentence, so the labels only exist in the unmerged tree.
+        compose.onNode(hasScrollAction()).performScrollToNode(hasContentDescription("24 documentos y 12.400 fragmentos"))
+
+        listOf("TU BIBLIOTECA", "24", "documentos", "12.400", "fragmentos").forEach { exists(it) }
+        compose.onNodeWithContentDescription("24 documentos y 12.400 fragmentos").assertExists()
+    }
+
+    @Test
+    fun oneDocumentAndOneChunk_areSingular() {
+        show(HomePreviewData.png.copy(summary = SummaryState.Loaded(documents = 1, chunks = 1)))
+        compose.onNode(hasScrollAction()).performScrollToNode(hasContentDescription("1 documento y 1 fragmento"))
+
+        exists("documento")
+        exists("fragmento")
+        compose.onNodeWithContentDescription("1 documento y 1 fragmento").assertExists()
+    }
+
+    @Test
+    fun anEmptyLibrary_offersTheFirstImport_withoutFigures_P3() {
+        show(HomePreviewData.empty)
+        scrollTo("Importar primer documento")
+
+        exists("Tu biblioteca está vacía")
+        exists("Importa tus PDF, TXT o Markdown para empezar a preguntar.")
+        absent("documentos")
+        click("Importar primer documento")
+        assertThat(calls).containsExactly("import")
+    }
+
+    @Test
+    fun whileLoading_thereIsASkeleton_andNoFigures_P4() {
+        show(HomePreviewData.opening)
+        scrollTo("TU BIBLIOTECA")
+
+        compose.onNodeWithContentDescription("Cargando").assertExists()
+        absent("documentos")
+        absent("fragmentos")
+    }
+
+    @Test
+    fun anError_offersARetry_andTheQuickActionsStillWork_P4() {
+        show(HomePreviewData.summaryFailed)
+        scrollTo("Reintentar")
+        exists("No se pudo cargar el resumen")
+        click("Reintentar")
+        click("Importar")
+
+        assertThat(calls).containsExactly("retry", "import").inOrder()
+    }
+
+    @Test
+    fun anUnavailableLibrary_saysSo() {
+        show(HomePreviewData.summaryUnavailable)
+        scrollTo("Reintentar")
+
+        exists("La biblioteca no está disponible")
+        absent("No se pudo cargar el resumen")
     }
 }

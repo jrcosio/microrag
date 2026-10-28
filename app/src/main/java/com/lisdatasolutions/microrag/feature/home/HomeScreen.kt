@@ -81,6 +81,7 @@ fun HomeRoute(
             onLanguages = onLanguages,
             onSettings = onSettings,
             onCompleteSetup = onCompleteSetup,
+            onRetrySummary = viewModel::onRetrySummary,
         ),
     )
 }
@@ -121,6 +122,7 @@ fun HomeScreen(state: HomeUiState, actions: HomeActions, modifier: Modifier = Mo
             )
         }
         QuickActions(actions)
+        HomeSummaryCard(state.summary, onImport = actions.onImport, onRetry = actions.onRetrySummary)
         Spacer(Modifier.height(spacing.space4))
     }
 }

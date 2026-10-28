@@ -18,4 +18,21 @@
     <string name="home_index_subtitle">RAG status</string>
     <string name="home_languages">Languages</string>
     <string name="home_languages_subtitle">Preferences</string>
+    <string name="home_summary_eyebrow">Your library</string>
+    <plurals name="home_documents">
+        <item quantity="one">document</item>
+        <item quantity="other">documents</item>
+    </plurals>
+    <plurals name="home_chunks">
+        <item quantity="one">chunk</item>
+        <item quantity="other">chunks</item>
+    </plurals>
+    <!-- A2: «24 documents and 12,400 chunks». -->
+    <string name="home_summary_description">%1$s and %2$s</string>
+    <!-- P3 -->
+    <string name="home_empty_title">Your library is empty</string>
+    <string name="home_empty_body">Import your PDF, TXT or Markdown files to start asking.</string>
+    <string name="home_import_first">Import your first document</string>
+    <!-- P4 -->
+    <string name="home_summary_failed">The summary could not be loaded</string>
 </resources>

@@ -20,6 +20,6 @@ val featureModule = module {
     viewModel { IngestViewModel(get(), get(), get(), get(), get()) }
     viewModel { IndexViewModel(get(), get(), get(), get()) }
     viewModel { LibraryViewModel(get(), get(), get()) }
-    viewModel { HomeViewModel(get(), get(), get()) }
+    viewModel { HomeViewModel(get(), get(), get(), get()) }
     viewModel { DocumentViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
 }
