@@ -333,6 +333,18 @@ Abreviaturas de componentes: ver §4. «No maquetado» significa que el estado l
   - chip «IA disponible sin conexión» → «IA local disponible»;
   - saludo «¿Qué necesitas consultar hoy?» → «¿Qué quieres explorar hoy?»;
   - título del hero «Pregunta a tus documentos» → «Una respuesta. Todas tus fuentes.».
+- **Implementada en F09** (`specs/009-home/contracts/home-ui.md`, D-046 y D-047). Sustituye al marcador y a los accesos provisionales de F06 y F07. Estados sin mockup, propuestas aprobadas:
+  - P1 IA no lista: «Configuración pendiente» con «Completar configuración» → `setup`;
+  - P2 comprobando: sin chip, con su hueco reservado;
+  - P3 biblioteca vacía, dentro de la tarjeta del resumen, con «Importar primer documento»;
+  - P4 resumen cargando (esqueleto) o con error, con «Reintentar» solo para el resumen;
+  - P5 tarjeta de la tanda activa entre el héroe y los accesos, que abre `index`.
+
+  Diferencias con el PNG, anotadas:
+  - «documentos» va debajo de su cifra, como «fragmentos»;
+  - las órbitas quedan dentro del héroe.
+
+  Con la fuente al 150 % o más, los accesos van en una columna y las cifras se apilan.
 
 ### P04 — Chat con documentos
 
