@@ -21,6 +21,8 @@ import com.lisdatasolutions.microrag.domain.library.RemoveFromIndexUseCase
 import com.lisdatasolutions.microrag.domain.library.SetIncludedUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.BuildDownloadConfirmationUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.CompleteOnboardingUseCase
+import com.lisdatasolutions.microrag.domain.onboarding.ObserveLocalAiUseCase
+import com.lisdatasolutions.microrag.domain.onboarding.RefreshLocalAiUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.ImportModelFileUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.LocalModelWorkTracker
 import com.lisdatasolutions.microrag.domain.onboarding.ObserveModelSetupUseCase
@@ -54,6 +56,8 @@ val domainModule = module {
     factoryOf(::ImportModelFileUseCase)
     factoryOf(::PrepareStorageUseCase)
     factoryOf(::CompleteOnboardingUseCase)
+    factoryOf(::ObserveLocalAiUseCase)
+    factoryOf(::RefreshLocalAiUseCase)
 
     // Document import (F06).
     factoryOf(::ObserveImportQueueUseCase)

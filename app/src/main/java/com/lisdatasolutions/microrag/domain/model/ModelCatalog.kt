@@ -69,4 +69,8 @@ object ModelCatalog {
     val required: List<ModelFile> = listOf(ModelId.EG2_270M, ModelId.GEMMA4_E2B).map { id -> all.first { it.id == id } }
 
     fun byId(id: ModelId): ModelFile = all.first { it.id == id }
+
+    /** Every [required] file verified and prepared on a backend: what completes onboarding and lights the Home chip. */
+    fun allReady(states: Map<ModelId, ModelFileState>, prepared: Map<ModelId, ComputeBackend>): Boolean =
+        required.all { states[it.id] is ModelFileState.Verified && it.id in prepared }
 }

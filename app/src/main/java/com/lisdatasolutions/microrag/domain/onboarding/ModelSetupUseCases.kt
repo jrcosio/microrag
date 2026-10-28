@@ -204,9 +204,7 @@ class CompleteOnboardingUseCase(
     private val store: OnboardingStore,
 ) {
     suspend operator fun invoke(): Boolean {
-        val ready = ModelCatalog.required.all {
-            repository.states.value[it.id] is ModelFileState.Verified && it.id in repository.preparedBackends.value
-        }
+        val ready = ModelCatalog.allReady(repository.states.value, repository.preparedBackends.value)
         if (ready) store.setStage(OnboardingStage.COMPLETED)
         return ready
     }
