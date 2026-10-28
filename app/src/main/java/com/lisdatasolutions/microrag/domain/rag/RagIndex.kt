@@ -120,6 +120,9 @@ interface RagIndex {
 
     suspend fun counts(): IndexCounts
 
+    /** All documents without shadows, and the stored chunks of the done ones, in one query on `documents` (F09 R2). */
+    suspend fun librarySummary(): LibrarySummary
+
     /** Closes the connection and goes back to [IndexCompatibility.Closed]; the next operation reopens it. */
     suspend fun close()
 

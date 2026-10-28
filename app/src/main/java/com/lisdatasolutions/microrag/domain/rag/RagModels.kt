@@ -88,6 +88,9 @@ data class ScoredChunk(val id: Long, val distance: Double)
 /** [ftsRows] counts what the FTS5 index really holds (`chunks_fts_docsize`). */
 data class IndexCounts(val documents: Int, val chunks: Int, val ftsRows: Int)
 
+/** The Home summary (F09 research R2): every document but reindex shadows, and the chunks of the done ones. */
+data class LibrarySummary(val documents: Int, val indexedChunks: Int)
+
 /** Whether the index can be used (F04 research R7). Only [Compatible] allows reads and writes. */
 sealed interface IndexCompatibility {
     /** Not opened yet, or closed. */

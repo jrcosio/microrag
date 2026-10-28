@@ -12,6 +12,7 @@ import com.lisdatasolutions.microrag.domain.rag.DuplicateDocumentException
 import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
 import com.lisdatasolutions.microrag.domain.rag.IndexCompatibilityChecker
 import com.lisdatasolutions.microrag.domain.rag.IndexCounts
+import com.lisdatasolutions.microrag.domain.rag.LibrarySummary
 import com.lisdatasolutions.microrag.domain.rag.IndexStorageFullException
 import com.lisdatasolutions.microrag.domain.rag.IndexUnavailableException
 import com.lisdatasolutions.microrag.domain.rag.LibraryEntry
@@ -332,6 +333,15 @@ class DefaultRagIndex(
             // With external content, count(*) on chunks_fts would read chunks; docsize is the index itself.
             ftsRows = count(db, "SELECT count(*) FROM chunks_fts_docsize"),
         )
+    }
+
+    // Rule N1 of the runner keeps chunk_count of a done document equal to its stored chunks, and
+    // publishReindex sets it to the chunks it moves, so chunks are never read (F09 rule H5).
+    override suspend fun librarySummary(): LibrarySummary = withIndex { db ->
+        db.queryOne(
+            "SELECT count(*), COALESCE(SUM(CASE WHEN status = ? THEN chunk_count END), 0) FROM documents WHERE replaces_id IS NULL",
+            DocumentStatus.DONE.sqlValue,
+        ) { LibrarySummary(documents = it.getLong(0).toInt(), indexedChunks = it.getLong(1).toInt()) } ?: LibrarySummary(0, 0)
     }
 
     /** The INT8 index no longer matches the chunks (D-030); F14 rebuilds it. */

@@ -10,6 +10,7 @@ import com.lisdatasolutions.microrag.domain.rag.IndexCounts
 import com.lisdatasolutions.microrag.domain.rag.IndexStorageFullException
 import com.lisdatasolutions.microrag.domain.rag.IndexUnavailableException
 import com.lisdatasolutions.microrag.domain.rag.LibraryEntry
+import com.lisdatasolutions.microrag.domain.rag.LibrarySummary
 import com.lisdatasolutions.microrag.domain.rag.NewDocument
 import com.lisdatasolutions.microrag.domain.rag.RagIndex
 import com.lisdatasolutions.microrag.domain.rag.ScoredChunk
@@ -243,6 +244,11 @@ class FakeRagIndex(initial: IndexCompatibility = IndexCompatibility.Compatible) 
     fun chunkId(documentId: Long, ordinal: Int): Long = chunkIds.getValue(documentId).getValue(ordinal)
 
     override suspend fun counts(): IndexCounts = available { IndexCounts(docs.size, 0, 0) }
+
+    override suspend fun librarySummary(): LibrarySummary = available {
+        val library = docs.values.filter { it.replacesId == null }
+        LibrarySummary(library.size, library.filter { it.status == DocumentStatus.DONE }.sumOf { it.chunkCount ?: 0 })
+    }
 
     override suspend fun close() = Unit
 }
