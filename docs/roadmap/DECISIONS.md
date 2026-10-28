@@ -766,6 +766,36 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
 
 ---
 
+## D-047 — Diseño de Inicio (plan de F09)
+
+- **Fecha:** 2026-10-28
+- **Decisión:**
+  1. **Estado de la IA local:** un caso de uso que primero llama a `refresh()` de F03 (registro de verificación, sin huellas) y después sigue `states` y `preparedBackends`. La regla «listo» del onboarding se extrae a `ModelCatalog.allReady` y la comparten los dos. Sin chip hasta la primera comprobación. Se vuelve a comprobar en cada `ON_RESUME` de Inicio.
+  2. **Resumen:** operación nueva `RagIndex.librarySummary()`, una consulta sobre `documents`: `count(*)` sin sombras y `SUM(chunk_count)` de los `done`. `LibraryRepository.summary()` la recalcula con cada `documentChanges`, con el mismo patrón y el mismo `Unavailable` que la Biblioteca.
+  3. **Tarjeta de indexación:** `LisdataProgressCard`, que pasa a admitir `onClick`, con las cifras y las causas de pausa de F07.
+  4. **Navegación:**
+     - «Nuevo chat» abre la pestaña Chat con una conversación nueva, sin restaurar la anterior (`openNewChat`);
+     - Documentos y el icono de Ajustes, como sus pestañas;
+     - cada acción solo navega con Inicio en `RESUMED`;
+     - la Preparación abierta desde Inicio vuelve a ella sin duplicarla.
+  5. **Fuente grande:** con el 150 % o más, los accesos van en una columna y las cifras del resumen se apilan (el umbral de F08 A6).
+  6. **Héroe:** `LisdataHeroCard` admite `decorationIcon` para el destello de las órbitas. El título va en dos líneas blancas.
+- **Motivo:** research R1–R8 de F09.
+  - Calcular huellas al abrir Inicio iría contra F03 SC-007.
+  - Contar `chunks` costaría lo mismo que una lista.
+  - Restaurar la pestaña Chat reabriría la conversación anterior, y el MD 03 pide una nueva.
+- **Alternativas descartadas:**
+  - `ReconcileDownloadsUseCase` en Inicio;
+  - una marca «escaneado» en el repositorio de modelos;
+  - `RagIndex.counts()` (cuenta sombras y documentos a medias);
+  - `count(*)` sobre `chunks`;
+  - `navigateToTopLevel(CHAT)` para «Nuevo chat»;
+  - una tarjeta de indexación con anillo.
+- **Origen:** plan de F09.
+- **Afecta:** F09; F01 (dos parámetros opcionales); F03 (`allReady` y la vuelta de la Preparación); F06 y F07 (sin los accesos provisionales); F11 (la pestaña Chat abierta con una conversación nueva).
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.
