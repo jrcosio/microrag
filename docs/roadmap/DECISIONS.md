@@ -663,6 +663,26 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
 
 ---
 
+## D-043 — Biblioteca y detalle (clarify de F08)
+
+- **Fecha:** 2026-10-28
+- **Decisión:**
+  1. **Quitar del índice (G17):** el documento pasa a un estado propio, «Fuera del índice». Conserva la copia privada y los metadatos, no aparece en la cola de Ingesta ni entra en ninguna tanda, tampoco con «Iniciar indexación». Se ve en la Biblioteca, en el filtro Pendientes, y solo vuelve a indexarse con «Reindexar» desde su detalle.
+  2. **Vista previa desde una cita:** muestra el fragmento citado entero y resaltado, con la última frase del fragmento anterior y la primera del siguiente sin resaltar, como en el PNG 07. El chip de página es el del fragmento citado.
+  3. **Vista previa sin cita:** el texto real del primer fragmento, con su página. No hay navegación entre fragmentos.
+- **Motivo:**
+  - si volviera a «Pendiente», la siguiente «Iniciar indexación» desharía la acción sin que el usuario lo pidiera;
+  - las citas de F11 apuntan a fragmentos enteros, no a frases, y el PNG muestra el resaltado con texto alrededor;
+  - el PNG solo maqueta un extracto, y leer el documento entero no es el objetivo del detalle.
+- **Alternativas descartadas:**
+  - volver a «Pendiente» tras quitar del índice;
+  - resaltar solo el fragmento sin contexto, o no resaltar;
+  - una vista previa navegable con «Anterior» y «Siguiente».
+- **Origen:** usuario (clarify de F08).
+- **Afecta:** F08; F06 y F07 (la cola y las tandas ignoran los documentos fuera del índice); F11 (abre el detalle con el fragmento citado).
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.

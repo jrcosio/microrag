@@ -42,7 +42,7 @@ Al cerrar cada feature se entrega:
 | F05 | Harness offline de evaluación | Técnica | F04 | ✅ cerrada |
 | F06 | Importación y parsing | Producto | F04 | ✅ cerrada |
 | F07 | Indexación | Producto | F02, F06 | ✅ cerrada |
-| F08 | Biblioteca y detalle de documento | Producto | F07 | ⬜ |
+| F08 | Biblioteca y detalle de documento | Producto | F07 | 🟨 en curso (clarify; pendiente de revisión) |
 | F09 | Inicio | Producto | F03, F07, F08 | ⬜ |
 | F10 | Recuperación híbrida | Técnica | F05, F07 | ⬜ |
 | F11 | Chat con fuentes | Producto | F08, F10 | ⬜ |
@@ -407,7 +407,7 @@ También se introduce `EngineCoordinator`, que garantiza que nunca haya dos engi
 ## F08 — Biblioteca y detalle de documento
 
 - **Tipo:** Producto.
-- **Estado:** ⬜
+- **Estado:** 🟨 en curso: spec y clarify terminados el 2026-10-28 (`specs/008-library-detail/`, D-043), pendientes de revisión.
 
 **Objetivo.**
 - Lista paginada con búsqueda por nombre y filtros Todos / Indexados / Pendientes (G16).
