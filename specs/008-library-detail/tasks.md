@@ -169,9 +169,9 @@ description: "Lista de tareas de F08 — Biblioteca y detalle de documento"
 
 ### Tests for User Story 2
 
-- [ ] T023 [P] [US2] Ampliar `DefaultLibraryRepositoryTest`: `setIncluded` solo escribe en `done` (L3) y registra `library include id=… included=…`.
-- [ ] T024 [P] [US2] Crear `…/androidTest/…/data/library/InclusionSearchTest.kt` sobre SQLite-Vector real: tras excluir, `vectorSearch` y `textSearch` no devuelven fragmentos del documento y sus fragmentos siguen guardados; tras incluir, vuelven (SC-003).
-- [ ] T025 [P] [US2] Ampliar `LibraryViewModelTest` y `LibraryScreenTest`:
+- [X] T023 [P] [US2] Ampliar `DefaultLibraryRepositoryTest`: `setIncluded` solo escribe en `done` (L3) y registra `library include id=… included=…`.
+- [X] T024 [P] [US2] Crear `…/androidTest/…/data/library/InclusionSearchTest.kt` sobre SQLite-Vector real: tras excluir, `vectorSearch` y `textSearch` no devuelven fragmentos del documento y sus fragmentos siguen guardados; tras incluir, vuelven (SC-003).
+- [X] T025 [P] [US2] Ampliar `LibraryViewModelTest` y `LibraryScreenTest`:
   - el interruptor llama al caso de uso;
   - en un no indexado está deshabilitado y TalkBack dice «Se podrá incluir cuando esté indexado» (B5);
   - excluido (B6);
@@ -179,7 +179,7 @@ description: "Lista de tareas de F08 — Biblioteca y detalle de documento"
 
 ### Implementation for User Story 2
 
-- [ ] T026 [US2] `SetIncludedUseCase` y el interruptor de las filas, con B5 y B6. Comprobar T023–T025.
+- [X] T026 [US2] `SetIncludedUseCase` y el interruptor de las filas, con B5 y B6. Comprobar T023–T025.
 
 **Checkpoint**: el usuario controla las fuentes del RAG.
 

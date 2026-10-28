@@ -11,6 +11,7 @@ import com.lisdatasolutions.microrag.domain.library.ObserveLibraryUseCase
 import com.lisdatasolutions.microrag.domain.library.SetIncludedUseCase
 import com.lisdatasolutions.microrag.testing.FakeLibraryRepository
 import java.io.IOException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -171,6 +172,58 @@ class LibraryViewModelTest {
         advanceUntilIdle()
 
         assertThat(documents(vm)).hasSize(1)
+    }
+
+    // US2 (T025)
+
+    @Test
+    fun theSwitch_savesTheInclusionAndShowsItAtOnce() = runTest(dispatcher) {
+        repository.documents.value = listOf(doc(1, "Manual.pdf"))
+        val vm = viewModel()
+        advanceUntilIdle()
+
+        val gate = CompletableDeferred<Unit>()
+        repository.includeGate = gate
+
+        vm.onIncludedChange(1, false)
+        advanceUntilIdle()
+
+        // Still being saved: the switch already shows it.
+        assertThat(repository.documents.value.single().included).isTrue()
+        assertThat(documents(vm).single().included).isFalse()
+        gate.complete(Unit)
+        advanceUntilIdle()
+        assertThat(repository.calls).containsExactly("include 1 false")
+        assertThat(documents(vm).single().included).isFalse()
+    }
+
+    @Test
+    fun severalQuickTaps_saveTheLastOne() = runTest(dispatcher) {
+        repository.documents.value = listOf(doc(1, "Manual.pdf"))
+        val vm = viewModel()
+        advanceUntilIdle()
+
+        vm.onIncludedChange(1, false)
+        vm.onIncludedChange(1, true)
+        vm.onIncludedChange(1, false)
+        advanceUntilIdle()
+
+        assertThat(repository.calls.last()).isEqualTo("include 1 false")
+        assertThat(repository.documents.value.single().included).isFalse()
+        assertThat(documents(vm).single().included).isFalse()
+    }
+
+    @Test
+    fun aDocumentNotIndexed_cannotChangeItsInclusion() = runTest(dispatcher) {
+        repository.documents.value = listOf(doc(1, "Pendiente.pdf", LibraryDocumentState.Pending))
+        val vm = viewModel()
+        advanceUntilIdle()
+
+        vm.onIncludedChange(1, false)
+        advanceUntilIdle()
+
+        assertThat(repository.calls).isEmpty()
+        assertThat(documents(vm).single().included).isTrue()
     }
 
     @Test

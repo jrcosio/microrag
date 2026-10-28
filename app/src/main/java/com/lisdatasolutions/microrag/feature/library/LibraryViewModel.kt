@@ -12,6 +12,7 @@ import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -23,6 +24,8 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 /**
  * P06 Biblioteca (F08). The query (text, filter and how many blocks are loaded) lives in the
@@ -40,6 +43,13 @@ class LibraryViewModel(
     private val filter = savedState.getStateFlow(KEY_FILTER, LibraryFilter.ALL.name)
     private val limit = savedState.getStateFlow(KEY_LIMIT, LibraryQuery.PAGE)
 
+    /**
+     * Inclusion the user asked for and the page does not show yet: the switch moves at once. Writes go
+     * one at a time and always save the latest value, so quick taps end where the last one left it.
+     */
+    private val pendingInclusion = MutableStateFlow<Map<Long, Boolean>>(emptyMap())
+    private val inclusionWrites = Channel<Long>(Channel.UNLIMITED)
+
     /** Bumped by «Reintentar»: observes again, showing the skeleton meanwhile. */
     private val retries = MutableStateFlow(0)
     private var shownRetry = 0
@@ -48,7 +58,7 @@ class LibraryViewModel(
         LibraryQuery(text, LibraryFilter.valueOf(filter), limit)
     }
 
-    private val content: Flow<LibraryContent> = combine(query, retries) { query, retry -> query to retry }
+    private val content: StateFlow<LibraryContent> = combine(query, retries) { query, retry -> query to retry }
         .flatMapLatest { (query, retry) ->
             val retried = retry != shownRetry
             shownRetry = retry
@@ -60,14 +70,36 @@ class LibraryViewModel(
                 }
                 .let { flow -> if (retried) flow.onStart { emit(LibraryContent.Loading) } else flow }
         }
+        .flowOn(backgroundDispatcher)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, LibraryContent.Loading)
 
-    val state: StateFlow<LibraryUiState> = combine(text, filter, content) { text, filter, content ->
-        LibraryUiState(text, LibraryFilter.valueOf(filter), content)
-    }.flowOn(backgroundDispatcher).stateIn(
-        viewModelScope,
-        SharingStarted.Eagerly,
-        LibraryUiState(text.value, LibraryFilter.valueOf(filter.value)),
-    )
+    val state: StateFlow<LibraryUiState> = combine(text, filter, content, pendingInclusion) { text, filter, content, pending ->
+        LibraryUiState(text, LibraryFilter.valueOf(filter), content.withInclusion(pending))
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, LibraryUiState(text.value, LibraryFilter.valueOf(filter.value)))
+
+    init {
+        viewModelScope.launch {
+            for (id in inclusionWrites) {
+                val included = pendingInclusion.value[id] ?: continue
+                setIncluded(id, included)
+            }
+        }
+        // A value stops being pending once the page shows it, or once the row is gone.
+        viewModelScope.launch {
+            content.collect { content ->
+                val shown = (content as? LibraryContent.Documents)?.documents.orEmpty().associate { it.id to it.included }
+                pendingInclusion.update { pending -> pending.filter { (id, value) -> id in shown && shown[id] != value } }
+            }
+        }
+    }
+
+    /** FR-008: only indexed documents; the others show a disabled switch. */
+    fun onIncludedChange(documentId: Long, included: Boolean) {
+        val document = (state.value.content as? LibraryContent.Documents)?.documents?.firstOrNull { it.id == documentId } ?: return
+        if (!document.canChangeInclusion) return
+        pendingInclusion.update { it + (documentId to included) }
+        inclusionWrites.trySend(documentId)
+    }
 
     fun onTextChange(value: String) {
         savedState[KEY_TEXT] = value
@@ -96,6 +128,13 @@ class LibraryViewModel(
     fun onRetry() {
         retries.value += 1
     }
+
+    private fun LibraryContent.withInclusion(pending: Map<Long, Boolean>): LibraryContent =
+        if (this !is LibraryContent.Documents || pending.isEmpty()) {
+            this
+        } else {
+            copy(documents = documents.map { document -> pending[document.id]?.let { document.copy(included = it) } ?: document })
+        }
 
     private fun LibraryResult.toContent(query: LibraryQuery): LibraryContent = when (this) {
         LibraryResult.Unavailable -> LibraryContent.Unavailable

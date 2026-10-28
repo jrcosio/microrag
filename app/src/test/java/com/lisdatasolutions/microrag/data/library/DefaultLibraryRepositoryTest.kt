@@ -191,6 +191,42 @@ class DefaultLibraryRepositoryTest {
         assertThat(later.exists()).isTrue()
     }
 
+    // US2 (T023)
+
+    @Test
+    fun setIncluded_onlyChangesIndexedDocuments() = runTest {
+        val done = doc("Manual.pdf", chunks = 2)
+        val pending = doc("Pendiente.pdf", DocumentStatus.PENDING)
+        val out = doc("Fuera.pdf", chunks = 1).also { index.removeFromIndex(it) }
+        val repository = repository()
+
+        repository.setIncluded(done, false)
+        repository.setIncluded(pending, false)
+        repository.setIncluded(out, false)
+        repository.setIncluded(9_999, false)
+
+        assertThat(index.docs.getValue(done).included).isFalse()
+        assertThat(index.docs.getValue(pending).included).isTrue()
+        assertThat(index.docs.getValue(out).included).isTrue()
+        // Excluding keeps the chunks (FR-009).
+        assertThat(index.chunks.getValue(done)).hasSize(2)
+        assertThat(logger.lines).contains("library include id=$done included=false")
+
+        repository.setIncluded(done, true)
+        assertThat(index.docs.getValue(done).included).isTrue()
+    }
+
+    @Test
+    fun setIncluded_withAnUnavailableIndex_doesNothing() = runTest {
+        val done = doc("Manual.pdf", chunks = 1)
+        index.setCompatibility(IndexCompatibility.Unreadable("read"))
+
+        repository().setIncluded(done, false)
+
+        index.setCompatibility(IndexCompatibility.Compatible)
+        assertThat(index.docs.getValue(done).included).isTrue()
+    }
+
     @Test
     fun page_logsNoNames() = runTest {
         doc("Contrato confidencial.pdf", chunks = 1)

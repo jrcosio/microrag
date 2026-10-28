@@ -76,6 +76,7 @@ fun LibraryRoute(
             onClearFilters = viewModel::onClearFilters,
             onLoadMore = viewModel::onLoadMore,
             onRetry = viewModel::onRetry,
+            onIncludedChange = viewModel::onIncludedChange,
         ),
     )
 }

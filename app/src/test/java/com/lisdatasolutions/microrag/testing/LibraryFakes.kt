@@ -37,6 +37,9 @@ class FakeLibraryRepository : LibraryRepository {
     val previewRequests = mutableListOf<Pair<Long, Long?>>()
     val calls = mutableListOf<String>()
 
+    /** When set, setIncluded waits for it: the switch must already show the new value. */
+    var includeGate: CompletableDeferred<Unit>? = null
+
     /** When set, delete waits for it: holds «Eliminando…». */
     var deleteGate: CompletableDeferred<Unit>? = null
 
@@ -80,6 +83,7 @@ class FakeLibraryRepository : LibraryRepository {
 
     override suspend fun setIncluded(documentId: Long, included: Boolean) {
         calls += "include $documentId $included"
+        includeGate?.await()
         documents.value = documents.value.map { if (it.id == documentId) it.copy(included = included) else it }
     }
 

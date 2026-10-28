@@ -2,6 +2,9 @@ package com.lisdatasolutions.microrag.feature.library
 
 import android.app.Application
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertIsOn
+import androidx.compose.ui.test.isNotEnabled
+import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasScrollAction
@@ -98,6 +101,29 @@ class LibraryScreenTest {
         // A1: each row is one sentence with its name, state and inclusion.
         scrollToRow("Contrato.pdf")
         compose.onNode(hasContentDescription("Contrato.pdf, PDF · 412 fragmentos, incluido")).assertExists()
+    }
+
+    // US2 (T025)
+
+    @Test
+    fun theSwitch_changesTheInclusion_andIsDisabledUntilIndexed_B5_B6() {
+        show(LibraryPreviewData.allStates)
+
+        compose.onAllNodes(hasContentDescription("Incluir en respuestas") and isToggleable())[0].assertIsOn().performClick()
+        assertThat(calls).containsExactly("include 10 false")
+
+        // B6: an excluded row keeps its look and says so.
+        compose.onNode(hasContentDescription("Informe anual.pdf, PDF · 1.120 fragmentos, excluido de las respuestas")).assertExists()
+        // B5: not indexed, the switch is disabled and the row says when it can be included.
+        scrollToRow("Guía de instalación.pdf")
+        compose.onNode(hasContentDescription("Guía de instalación.pdf, PDF · Pendiente, Se podrá incluir cuando esté indexado"))
+            .assertExists()
+        scrollToRow("Contrato escaneado.pdf")
+        compose.onNode(hasContentDescription("Contrato escaneado.pdf, PDF, Error de indexación, Se podrá incluir cuando esté indexado"))
+            .assertExists()
+        val disabled = compose.onAllNodes(hasContentDescription("Incluir en respuestas") and isToggleable() and isNotEnabled())
+            .fetchSemanticsNodes()
+        assertThat(disabled).isNotEmpty()
     }
 
     @Test

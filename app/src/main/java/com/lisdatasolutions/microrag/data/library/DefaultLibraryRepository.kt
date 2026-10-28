@@ -72,7 +72,13 @@ class DefaultLibraryRepository(
 
     override suspend fun preview(documentId: Long, chunkId: Long?): DocumentPreview? = TODO("F08 US3 (T032)")
 
-    override suspend fun setIncluded(documentId: Long, included: Boolean): Unit = TODO("F08 US2 (T026)")
+    override suspend fun setIncluded(documentId: Long, included: Boolean) = writing {
+        // Rule L3: only indexed documents; F07 searches follow it on their next call.
+        val document = index.document(documentId) ?: return@writing
+        if (document.status != DocumentStatus.DONE || document.replacesId != null) return@writing
+        index.setIncluded(documentId, included)
+        logger.i(TAG) { "library include id=$documentId included=$included" }
+    }
 
     override suspend fun delete(documentId: Long): Unit = TODO("F08 US4 (T040)")
 
@@ -81,6 +87,15 @@ class DefaultLibraryRepository(
     override suspend fun reindex(documentId: Long): Unit = TODO("F08 US4 (T040)")
 
     override suspend fun discardReindex(documentId: Long): Unit = TODO("F08 US4 (T040)")
+
+    /** Rule L12: with the index unavailable, writing actions do nothing; the screens already say why. */
+    private suspend fun writing(action: suspend () -> Unit) {
+        try {
+            action()
+        } catch (e: IndexUnavailableException) {
+            logger.w(TAG) { "library action skipped: index ${e.state.javaClass.simpleName}" }
+        }
+    }
 
     private fun LibraryFilter.statuses(): Set<DocumentStatus> = when (this) {
         LibraryFilter.ALL -> DocumentStatus.entries.toSet()
