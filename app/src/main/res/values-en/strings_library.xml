@@ -83,6 +83,8 @@
     <string name="document_include_subtitle_excluded">Not used in answers</string>
     <string name="document_include_subtitle_not_indexed">It can be included once it is indexed</string>
     <string name="document_preview_header">Content preview</string>
+    <string name="document_preview_more">Show more</string>
+    <string name="document_preview_less">Show less</string>
     <!-- A3 -->
     <string name="document_cited_fragment">Cited chunk: %1$s</string>
     <string name="document_reindex">Reindex document</string>

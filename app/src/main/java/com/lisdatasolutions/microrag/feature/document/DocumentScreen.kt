@@ -40,6 +40,7 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -316,13 +317,12 @@ private fun Reindex(detail: DocumentDetail, actions: DocumentActions) {
 }
 
 @Composable
-private fun IndexLink(onOpenIndex: () -> Unit) {
-    TextButton(onClick = onOpenIndex) {
-        Text(
-            stringResource(R.string.document_view_indexing),
-            style = LisdataTheme.typography.material.labelLarge,
-            color = LisdataTheme.colors.brandBlue,
-        )
+private fun IndexLink(onOpenIndex: () -> Unit) = TextLink(stringResource(R.string.document_view_indexing), onOpenIndex)
+
+@Composable
+private fun TextLink(text: String, onClick: () -> Unit) {
+    TextButton(onClick = onClick) {
+        Text(text, style = LisdataTheme.typography.material.labelLarge, color = LisdataTheme.colors.brandBlue)
     }
 }
 
@@ -379,7 +379,10 @@ private fun Preview(detail: DocumentDetail, preview: PreviewContent, actions: Do
     }
 }
 
-/** PNG 07: page chip, then the text; a citation is highlighted between its neighbouring sentences (research R7). */
+/**
+ * PNG 07: page chip, then the text; a citation is highlighted between its neighbouring sentences (research R7).
+ * Without a citation, the first chunk is cut to [PREVIEW_LINES] with «Ver más», so the actions show as in PNG 07.
+ */
 @Composable
 private fun PreviewCard(preview: DocumentPreview) {
     val colors = LisdataTheme.colors
@@ -404,7 +407,21 @@ private fun PreviewCard(preview: DocumentPreview) {
                 )
                 preview.after?.let { Text(it, style = body, color = colors.textPrimary) }
             } else {
-                Text(preview.text, style = body, color = colors.textPrimary)
+                var expanded by rememberSaveable { mutableStateOf(false) }
+                var cut by remember { mutableStateOf(false) }
+                Text(
+                    text = preview.text,
+                    style = body,
+                    color = colors.textPrimary,
+                    maxLines = if (expanded) Int.MAX_VALUE else PREVIEW_LINES,
+                    overflow = TextOverflow.Ellipsis,
+                    onTextLayout = { if (!expanded) cut = it.hasVisualOverflow },
+                )
+                if (cut) {
+                    TextLink(stringResource(if (expanded) R.string.document_preview_less else R.string.document_preview_more)) {
+                        expanded = !expanded
+                    }
+                }
             }
         }
     }
@@ -534,6 +551,9 @@ private fun Dialog(dialog: DocumentDialog?, detail: DocumentDetail, actions: Doc
 }
 
 private const val STACKED_FONT_SCALE = 1.5f
+
+/** PNG 07 shows a three-line excerpt: with more, the actions fall below the fold on the reference phone. */
+private const val PREVIEW_LINES = 3
 
 /** PNG 07: «Reindexar documento» takes about two thirds of the row. */
 private const val PRIMARY_WEIGHT = 1.8f

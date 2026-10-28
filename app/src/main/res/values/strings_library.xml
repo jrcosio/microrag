@@ -84,6 +84,8 @@
     <string name="document_include_subtitle_excluded">No se usa en las respuestas</string>
     <string name="document_include_subtitle_not_indexed">Se podrá incluir cuando esté indexado</string>
     <string name="document_preview_header">Vista previa del contenido</string>
+    <string name="document_preview_more">Ver más</string>
+    <string name="document_preview_less">Ver menos</string>
     <!-- A3 -->
     <string name="document_cited_fragment">Fragmento citado: %1$s</string>
     <string name="document_reindex">Reindexar documento</string>

@@ -8,6 +8,7 @@ import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.filterToOne
+import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasContentDescription
@@ -18,6 +19,7 @@ import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performSemanticsAction
@@ -127,6 +129,51 @@ class DocumentScreenTest {
 
         exists("No se usa en las respuestas")
         absent("Disponible para consultas RAG")
+    }
+
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    fun aLongFirstChunk_isCutWithSeeMore_andOpensWhole() {
+        show(DocumentPreviewData.longFirstChunk)
+        val text = DocumentPreviewData.longText
+
+        scrollTo("Ver más")
+        assertThat(lines(text)).isEqualTo(3)
+        click("Ver más")
+        assertThat(lines(text)).isGreaterThan(3)
+        click("Ver menos")
+        assertThat(lines(text)).isEqualTo(3)
+        exists("Ver más")
+    }
+
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(qualifiers = "es-w411dp-h817dp")
+    fun withALongFirstChunk_theActionsAreInSight_asInPng07() {
+        // The A063 (D-022) without its status and three-button navigation bars; DocumentScreenLayoutTest measures it there.
+        show(DocumentPreviewData.longFirstChunk)
+
+        val screen = compose.onRoot().getBoundsInRoot().bottom
+        assertThat(compose.onNodeWithText("Eliminar", useUnmergedTree = true).getUnclippedBoundsInRoot().bottom).isAtMost(screen)
+    }
+
+    @Test
+    fun aShortFirstChunk_hasNoSeeMore() {
+        show(DocumentPreviewData.firstChunkOnly)
+
+        scrollTo("Eliminar")
+        absent("Ver más")
+    }
+
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    fun aCitation_isNeverCut() {
+        val long = DocumentPreviewData.longText
+        show(DocumentPreviewData.png.copy(preview = PreviewContent.Shown(DocumentPreviewData.citation.copy(text = long))))
+
+        scrollTo("Eliminar")
+        absent("Ver más")
+        assertThat(lines(long)).isGreaterThan(3)
     }
 
     @Test

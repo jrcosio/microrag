@@ -39,12 +39,27 @@ object DocumentPreviewData {
 
     private val firstChunk = DocumentPreview(1, null, "Este manual describe los procesos internos de la empresa.", null, false, false)
 
+    /** A first chunk as long as the real ones (≈ 1.500 characters), which «Ver más» cuts. */
+    val longText = listOf(
+        "Este manual describe los procesos internos de la empresa y las responsabilidades de cada área.",
+        "Cada proceso tiene un responsable, que revisa su descripción una vez al año y registra los cambios en el sistema documental.",
+        "Las solicitudes se reciben por el canal interno y se clasifican según su urgencia y el área que debe atenderlas.",
+        "Antes de cerrar una solicitud, el responsable comprueba que se ha resuelto y que la persona que la pidió ha recibido la respuesta.",
+        "Los documentos de cada proceso se guardan en la carpeta compartida del área, con el nombre del proceso y la fecha de la última revisión.",
+        "Si un proceso cambia, se avisa a las áreas afectadas y se actualizan las instrucciones antes de aplicar el cambio.",
+        "Las incidencias se registran el mismo día en que se detectan, con su causa, su efecto y la persona que las atiende.",
+        "Cada trimestre, la dirección revisa las incidencias abiertas y decide qué procesos hay que mejorar.",
+        "Las mejoras aprobadas se planifican con un responsable y una fecha, y se comprueba su efecto en la revisión siguiente.",
+        "Este manual se revisa entero una vez al año.",
+    ).joinToString(" ")
+
     private fun loaded(detail: DocumentDetail, preview: PreviewContent = PreviewContent.None) =
         DocumentUiState(content = DocumentContent.Loaded(detail), preview = preview, included = detail.included)
 
     /** PNG 07, opened from a citation. */
     val png = loaded(manual, PreviewContent.Shown(citation))
     val firstChunkOnly = loaded(manual, PreviewContent.Shown(firstChunk))
+    val longFirstChunk = loaded(manual, PreviewContent.Shown(firstChunk.copy(text = longText)))
     val excluded = loaded(manual.copy(included = false), PreviewContent.Shown(firstChunk))
     val plainText = loaded(
         manual.copy(id = 2, displayName = "Notas de campo.txt", format = DocumentFormat.TXT, pages = null, chunks = 12, sizeBytes = 18_000),
@@ -78,6 +93,7 @@ object DocumentPreviewData {
     val all: List<Pair<String, DocumentUiState>> = listOf(
         "png" to png,
         "firstChunkOnly" to firstChunkOnly,
+        "longFirstChunk" to longFirstChunk,
         "excluded" to excluded,
         "plainText" to plainText,
         "pending" to pending,
@@ -101,6 +117,10 @@ object DocumentPreviewData {
 @LisdataPreviews
 @Composable
 private fun DocumentPngPreview() = LisdataTheme { DocumentScreen(DocumentPreviewData.png, DocumentActions()) }
+
+@LisdataPreviews
+@Composable
+private fun DocumentLongFirstChunkPreview() = LisdataTheme { DocumentScreen(DocumentPreviewData.longFirstChunk, DocumentActions()) }
 
 @LisdataPreviews
 @Composable
