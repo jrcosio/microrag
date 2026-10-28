@@ -90,5 +90,19 @@ class LayeringTest {
         assertWithMessage("feature/library and feature/document files importing the data layer, SQLite, WorkManager or File")
             .that(leaks).isEmpty()
     }
-}
 
+    /** F09 T030: Home reads models, library and run through use cases only (contracts/home-api.md). */
+    @Test
+    fun theHomeScreenUsesNoBackendApi() {
+        val featureDir = File("src/main/java/com/lisdatasolutions/microrag/feature/home")
+        val forbidden = listOf(
+            "import com.lisdatasolutions.microrag.data.", "import androidx.sqlite", "import androidx.work",
+            "import com.google.ai.edge.litertlm", "import java.io.File",
+        )
+        val files = sources.filter { it.canonicalPath.startsWith(featureDir.canonicalPath + File.separator) }
+        val leaks = files.filter { file -> forbidden.any { file.readText().contains(it) } }.map { it.path }
+
+        assertWithMessage("feature/home files exist").that(files).isNotEmpty()
+        assertWithMessage("feature/home files importing the data layer, SQLite, WorkManager, LiteRT or File").that(leaks).isEmpty()
+    }
+}
