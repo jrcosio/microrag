@@ -98,7 +98,10 @@ fun LisdataProgressRing(
 
 private val RingStroke = 14.dp
 
-/** Card with a stage title, real progress, an optional detail line and an optional action. */
+/**
+ * Card with a stage title, real progress, an optional detail line and an optional action. With
+ * [onClick] the whole card opens something (the Home indexing card), read with [onClickLabel].
+ */
 @Composable
 fun LisdataProgressCard(
     stage: String,
@@ -106,9 +109,11 @@ fun LisdataProgressCard(
     modifier: Modifier = Modifier,
     detail: String? = null,
     action: (@Composable () -> Unit)? = null,
+    onClick: (() -> Unit)? = null,
+    onClickLabel: String? = null,
 ) {
     val colors = LisdataTheme.colors
-    LisdataCard(modifier = modifier) {
+    LisdataCard(modifier = modifier, onClick = onClick, onClickLabel = onClickLabel) {
         Column(verticalArrangement = Arrangement.spacedBy(LisdataTheme.spacing.space2)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(

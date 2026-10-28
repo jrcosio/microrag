@@ -28,5 +28,9 @@ private fun ProgressCardPreview() = LisdataPreviewSurface {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         LisdataProgressCard("Generación de embeddings", ProgressValue.Determinate(0.68f), detail = "8.432 / 12.400 fragmentos")
         LisdataProgressCard("Extrayendo texto", ProgressValue.Indeterminate, detail = "Procesando ahora: Manual de procesos.pdf")
+        LisdataProgressCard(
+            "Indexando documentos", ProgressValue.Determinate(0.37f), detail = "320 de 860 fragmentos",
+            onClick = {}, onClickLabel = "Ver estado de la indexación",
+        )
     }
 }

@@ -7,6 +7,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
@@ -21,15 +22,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import com.lisdatasolutions.microrag.core.designsystem.icon.LisdataIcon
 import com.lisdatasolutions.microrag.core.designsystem.model.IconTileStyle
 import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
+import kotlin.math.roundToInt
 
 /** White card with a 1 dp outline and 16 dp corners; clickable when [onClick] is set, with [onClickLabel] for TalkBack. */
 @Composable
@@ -62,8 +66,8 @@ fun LisdataDivider(modifier: Modifier = Modifier) {
 /**
  * Dark gradient hero (Home, Document detail, Indexing, Languages). [titleAccent] renders a second
  * title line in the accent color; the Indexing hero (PNG 08) has no title at all. The orbit
- * decoration is purely visual and hidden from TalkBack. [compact] has the tighter padding and gaps of
- * PNG 08 (D-042).
+ * decoration is purely visual and hidden from TalkBack, as is [decorationIcon] at its center (the
+ * Home sparkle, PNG 03). [compact] has the tighter padding and gaps of PNG 08 (D-042).
  */
 @Composable
 fun LisdataHeroCard(
@@ -72,6 +76,7 @@ fun LisdataHeroCard(
     eyebrow: String? = null,
     titleAccent: String? = null,
     decoration: Boolean = true,
+    @DrawableRes decorationIcon: Int? = null,
     compact: Boolean = false,
     content: @Composable ColumnScope.() -> Unit = {},
 ) {
@@ -85,10 +90,11 @@ fun LisdataHeroCard(
         if (decoration) {
             val orbit = colors.brandCyan.copy(alpha = 0.45f)
             Canvas(modifier = Modifier.matchParentSize()) {
-                val center = Offset(size.width * 0.86f, size.height * 0.22f)
+                val center = Offset(size.width * ORBIT_CENTER_X, size.height * ORBIT_CENTER_Y)
                 drawCircle(orbit, radius = 44.dp.toPx(), center = center, style = Stroke(1.dp.toPx()))
                 drawCircle(orbit, radius = 72.dp.toPx(), center = center, style = Stroke(1.dp.toPx()))
             }
+            if (decorationIcon != null) OrbitCenter { LisdataIcon(decorationIcon, contentDescription = null, tint = colors.onDarkAccent, size = 32.dp) }
         }
         Column(
             modifier = Modifier
@@ -109,6 +115,23 @@ fun LisdataHeroCard(
         }
     }
 }
+
+/** Places [content] centered on the orbits of [LisdataHeroCard], over the whole hero. */
+@Composable
+private fun BoxScope.OrbitCenter(content: @Composable () -> Unit) {
+    Layout(content = content, modifier = Modifier.matchParentSize()) { measurables, constraints ->
+        val placeable = measurables.single().measure(Constraints())
+        layout(constraints.maxWidth, constraints.maxHeight) {
+            placeable.place(
+                (constraints.maxWidth * ORBIT_CENTER_X - placeable.width / 2f).roundToInt(),
+                (constraints.maxHeight * ORBIT_CENTER_Y - placeable.height / 2f).roundToInt(),
+            )
+        }
+    }
+}
+
+private const val ORBIT_CENTER_X = 0.86f
+private const val ORBIT_CENTER_Y = 0.22f
 
 /** Light blue information card with icon, title and optional body. */
 @Composable

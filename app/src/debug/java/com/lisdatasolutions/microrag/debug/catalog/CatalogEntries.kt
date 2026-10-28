@@ -153,7 +153,10 @@ val catalogEntries: List<CatalogEntry> = listOf(
     },
     entry("Tarjetas", "hero", "LisdataHeroCard") {
         Stack {
-            LisdataHeroCard(title = "Una respuesta. Todas tus fuentes.", eyebrow = "Pregunta a tu biblioteca", modifier = Modifier.fillMaxWidth()) {
+            LisdataHeroCard(
+                title = "Una respuesta. Todas tus fuentes.", eyebrow = "Pregunta a tu biblioteca",
+                decorationIcon = LisdataIcons.Sparkle, modifier = Modifier.fillMaxWidth(),
+            ) {
                 LisdataGradientButton(
                     "Nuevo chat", onClick = {}, trailingIcon = LisdataIcons.ArrowRight,
                     trailingIconPlacement = TrailingIconPlacement.AfterText,
@@ -309,6 +312,10 @@ val catalogEntries: List<CatalogEntry> = listOf(
         Stack {
             LisdataProgressCard("Generación de embeddings", ProgressValue.Determinate(0.68f), detail = "8.432 / 12.400 fragmentos")
             LisdataProgressCard("Extrayendo texto", ProgressValue.Indeterminate, detail = "Procesando ahora: ${SampleData.DOCUMENT}")
+            LisdataProgressCard(
+                "Indexando documentos", ProgressValue.Determinate(0.37f), detail = "320 de 860 fragmentos",
+                onClick = {}, onClickLabel = "Ver estado de la indexación",
+            )
             LisdataLinearProgress(ProgressValue.Determinate(0.3f))
         }
     },

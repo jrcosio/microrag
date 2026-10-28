@@ -19,6 +19,7 @@ private fun HeroCardPreview() = LisdataPreviewSurface {
         LisdataHeroCard(
             title = "Una respuesta. Todas tus fuentes.",
             eyebrow = "Pregunta a tu biblioteca",
+            decorationIcon = LisdataIcons.Sparkle,
             modifier = Modifier.fillMaxWidth(),
         ) {
             LisdataGradientButton("Nuevo chat", onClick = {}, trailingIcon = LisdataIcons.ArrowRight, trailingIconPlacement = TrailingIconPlacement.AfterText)
