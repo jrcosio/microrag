@@ -86,7 +86,7 @@ description: "Lista de tareas de F08 — Biblioteca y detalle de documento"
 
 ### Tests
 
-- [ ] T007 [P] Crear `…/androidTest/…/data/rag/RagIndexLibraryTest.kt` sobre SQLite real (R2, R4, R5, R6):
+- [X] T007 [P] Crear `…/androidTest/…/data/rag/RagIndexLibraryTest.kt` sobre SQLite real (R2, R4, R5, R6):
   - **`libraryPage`:** del más reciente al más antiguo; filtros ALL, INDEXED y PENDING (este con `error` y `cancelled`); búsqueda sin acentos y con `%` y `_` literales; `limit`; sin sombras; estado de la sombra (en curso o en error);
   - **`libraryCount`:** cuenta con los mismos filtros;
   - **`addReindexShadow`:**
@@ -100,15 +100,15 @@ description: "Lista de tareas de F08 — Biblioteca y detalle de documento"
 
 ### Implementation
 
-- [ ] T009 `…/microrag/domain/rag/RagModels.kt`:
+- [X] T009 `…/microrag/domain/rag/RagModels.kt`:
   - `CANCELLED` pasa a `OUT_OF_INDEX("cancelled")`, con la explicación de R4;
   - `StoredDocument.replacesId: Long?`.
 
   Ajustar los usos (ninguno en lógica: comprobar con `grep`).
-- [ ] T010 Añadir a `…/microrag/domain/rag/RagIndex.kt` e implementar en `DefaultRagIndex.kt` las operaciones de data-model §4: `libraryPage`, `libraryCount`, `addReindexShadow`, `shadowOf`, `publishReindex`, `removeFromIndex`, más `quant_dirty` en `deleteDocument`. Comprobar T007 en el emulador.
-- [ ] T011 [P] Ampliar `…/test/…/testing/FakeRagIndex.kt` con las operaciones nuevas, con la misma semántica (sombras ocultas, cascada y sustitución). Añadir un contador de lecturas de fragmentos para L1.
-- [ ] T012 [P] Crear `…/microrag/domain/library/LibraryModels.kt` (data-model §3) y `LibraryRepository.kt` (contracts/library-api.md).
-- [ ] T013 [P] Crear `app/src/main/res/values{,-en}/strings_library.xml` con todos los textos de contracts/library-ui.md, en español e inglés, con plurales.
+- [X] T010 Añadir a `…/microrag/domain/rag/RagIndex.kt` e implementar en `DefaultRagIndex.kt` las operaciones de data-model §4: `libraryPage`, `libraryCount`, `addReindexShadow`, `shadowOf`, `publishReindex`, `removeFromIndex`, más `quant_dirty` en `deleteDocument`. Comprobar T007 en el emulador.
+- [X] T011 [P] Ampliar `…/test/…/testing/FakeRagIndex.kt` con las operaciones nuevas, con la misma semántica (sombras ocultas, cascada y sustitución). Añadir un contador de lecturas de fragmentos para L1.
+- [X] T012 [P] Crear `…/microrag/domain/library/LibraryModels.kt` (data-model §3) y `LibraryRepository.kt` (contracts/library-api.md).
+- [X] T013 [P] Crear `app/src/main/res/values{,-en}/strings_library.xml` con todos los textos de contracts/library-ui.md, en español e inglés, con plurales.
 - [ ] T014 Registrar en Koin (`DataModule`, `DomainModule` y `FeatureModule`) el repositorio y los casos de uso, aún sin pantallas.
 
 **Checkpoint**: el índice ofrece todo lo que necesitan las dos pantallas.

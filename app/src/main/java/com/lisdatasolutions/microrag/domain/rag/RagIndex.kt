@@ -22,8 +22,18 @@ interface RagIndex {
 
     suspend fun document(id: Long): StoredDocument?
 
-    /** Documents in [statuses], oldest first (creation time, then id). */
+    /** Documents in [statuses], oldest first (creation time, then id); reindex shadows included (F07 runs them). */
     suspend fun documents(statuses: Set<DocumentStatus>): List<StoredDocument>
+
+    /**
+     * A Library page (F08 research R2): documents that are not reindex shadows, with a status in
+     * [statuses] and a name holding [text] without case or accents (blank: any name), newest first, at
+     * most [limit]. Each entry carries its shadow's status. Never reads the chunks (rule L1).
+     */
+    suspend fun libraryPage(text: String, statuses: Set<DocumentStatus>, limit: Int): List<LibraryEntry>
+
+    /** How many documents [libraryPage] would list without a limit. */
+    suspend fun libraryCount(text: String, statuses: Set<DocumentStatus>): Int
 
     /** Id of the document with this content hash, if any (F06 duplicate check). */
     suspend fun documentIdByHash(contentHash: String): Long?
@@ -45,8 +55,33 @@ interface RagIndex {
 
     suspend fun setIncluded(id: Long, included: Boolean)
 
-    /** Deletes the document with its chunks and their FTS entries. */
+    /** Deletes the document with its reindex shadow, their chunks and FTS entries, and marks `quant_dirty` (F08 R6). */
     suspend fun deleteDocument(id: Long)
+
+    /**
+     * Registers a reindex shadow of a done document (F08 research R5): a pending document with the same
+     * name, type, size, pages and private copy, `replaces_id` set and never searchable. Throws
+     * [IllegalStateException] when [originalId] is missing, not done, a shadow, or already has one.
+     */
+    suspend fun addReindexShadow(originalId: Long): Long
+
+    /** The reindex shadow of [originalId], if any. */
+    suspend fun shadowOf(originalId: Long): StoredDocument?
+
+    /**
+     * Puts the shadow's chunks in place of its original's in one transaction (F08 research R5): the
+     * original keeps its id, status and inclusion, the chunks keep their ids, vectors and FTS rows, and
+     * the shadow is deleted. Returns the chunks published, or null, changing nothing, when [shadowId] is
+     * not a shadow or its original is not done.
+     */
+    suspend fun publishReindex(shadowId: Long): Int?
+
+    /**
+     * «Quitar del índice» (F08 research R6), in one transaction: deletes the document's shadow and
+     * chunks, leaves it [DocumentStatus.OUT_OF_INDEX] with its private copy and inclusion, and marks
+     * `quant_dirty`. Returns the chunks removed, or null, changing nothing, when it is not a done document.
+     */
+    suspend fun removeFromIndex(id: Long): Int?
 
     /** Stored chunks per document, for [ids]; ids without chunks count 0 (F07 research R8). */
     suspend fun storedChunkCounts(ids: Collection<Long>): Map<Long, Int>

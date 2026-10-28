@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- P06 Biblioteca and P07 Detalle del documento (F08 contracts/library-ui.md). Texts of PNG 06 and 07 copied
+     literally (D-004); the rest are proposals B1–B8 and D1–D11, approved after analyze. -->
+<resources>
+    <!-- P06 -->
+    <string name="library_title">Biblioteca</string>
+    <string name="library_headline">Tus documentos</string>
+    <string name="library_intro">Gestiona las fuentes de tu IA local.</string>
+    <string name="library_search">Buscar documentos...</string>
+    <string name="library_filter_all">Todos</string>
+    <string name="library_filter_indexed">Indexados</string>
+    <string name="library_filter_pending">Pendientes</string>
+    <plurals name="library_count">
+        <item quantity="one">%1$s documento</item>
+        <item quantity="other">%1$s documentos</item>
+    </plurals>
+    <string name="library_include_header">Incluir en RAG</string>
+    <string name="library_info">Excluir un archivo evita que se use en futuras respuestas. No lo elimina.</string>
+    <string name="library_import">Importar documentos</string>
+
+    <!-- Row metadata: «format · state» (research R10). -->
+    <string name="library_meta">%1$s · %2$s</string>
+    <plurals name="library_chunks">
+        <item quantity="one">%1$s fragmento</item>
+        <item quantity="other">%1$s fragmentos</item>
+    </plurals>
+    <string name="library_format_unknown">Documento</string>
+    <string name="library_state_pending">Pendiente</string>
+    <string name="library_state_indexing">Indexando</string>
+    <string name="library_state_out_of_index">Fuera del índice</string>
+    <string name="library_state_failed">Error de indexación</string>
+    <!-- B7 -->
+    <string name="library_state_reindexing">Reindexando</string>
+    <string name="library_state_reindex_failed">Reindexado fallido</string>
+
+    <!-- B2 -->
+    <string name="library_empty_title">Aún no tienes documentos</string>
+    <string name="library_empty_body">Importa PDF, TXT o Markdown para consultarlos sin conexión.</string>
+    <!-- B3 -->
+    <string name="library_no_results_title">No hay coincidencias</string>
+    <string name="library_no_results_body">Prueba con otro nombre o filtro.</string>
+    <string name="library_clear_filters">Limpiar filtros</string>
+    <!-- B4 -->
+    <string name="library_error_title">No se pudo cargar la biblioteca</string>
+    <string name="library_error_body">Falló la lectura de tus documentos. Puedes intentarlo de nuevo.</string>
+    <string name="library_unavailable_title">La biblioteca no está disponible</string>
+    <string name="library_unavailable_body">No se pueden consultar los documentos mientras la biblioteca local no esté disponible.</string>
+    <!-- B8 -->
+    <string name="library_document_gone">Este documento ya no existe</string>
+
+    <!-- A1, B5, B6: each row is read as one sentence. -->
+    <string name="library_row_description">%1$s, %2$s, %3$s</string>
+    <string name="library_row_included">incluido</string>
+    <string name="library_row_excluded">excluido de las respuestas</string>
+    <string name="library_row_not_indexed">Se podrá incluir cuando esté indexado</string>
+    <string name="library_row_action">Ver detalle</string>
+    <string name="library_include_switch">Incluir en respuestas</string>
+
+    <!-- P07 -->
+    <string name="document_title">Detalle del documento</string>
+    <string name="document_more">Más opciones</string>
+    <string name="document_state_indexed">Indexado</string>
+    <string name="document_state_pending">Pendiente</string>
+    <string name="document_state_indexing">Indexando</string>
+    <string name="document_state_failed">Error</string>
+    <string name="document_state_out_of_index">Fuera del índice</string>
+    <string name="document_state_excluded">Excluido</string>
+    <string name="document_stat_pages">Páginas</string>
+    <string name="document_stat_chunks">Fragmentos</string>
+    <string name="document_stat_size">Tamaño</string>
+    <string name="document_stat_imported">Importado</string>
+    <string name="document_stat_none">—</string>
+    <!-- A2: «Páginas, 48». -->
+    <string name="document_stat_description">%1$s, %2$s</string>
+    <string name="document_no_pages">sin páginas</string>
+    <string name="document_no_chunks">sin fragmentos</string>
+    <string name="document_include_title">Incluir en respuestas</string>
+    <string name="document_include_subtitle">Disponible para consultas RAG</string>
+    <string name="document_preview_header">Vista previa del contenido</string>
+    <!-- A3 -->
+    <string name="document_cited_fragment">Fragmento citado: %1$s</string>
+    <string name="document_reindex">Reindexar documento</string>
+    <string name="document_delete">Eliminar</string>
+    <string name="document_deleting">Eliminando…</string>
+    <string name="document_retry">Reintentar</string>
+
+    <!-- D1 -->
+    <string name="document_pending_body">Este documento aún no está indexado. Se indexará al pulsar Iniciar indexación en la Ingesta.</string>
+    <!-- D2 -->
+    <string name="document_indexing_progress">%1$s de %2$s fragmentos</string>
+    <string name="document_indexing_preparing">Preparando el documento</string>
+    <string name="document_view_indexing">Ver estado de la indexación</string>
+    <!-- D4 -->
+    <string name="document_out_of_index_body">Quitaste este documento del índice. Su archivo sigue guardado en la app.</string>
+    <!-- D5 -->
+    <string name="document_reindex_progress">Reindexando · %1$s de %2$s fragmentos</string>
+    <string name="document_reindex_preparing">Reindexando · preparando el documento</string>
+    <string name="document_reindex_body">Mientras tanto, las respuestas usan la versión anterior.</string>
+    <string name="document_reindexing_button">Reindexando…</string>
+    <!-- D6 -->
+    <string name="document_reindex_failed">No se pudo reindexar: %1$s. Las respuestas siguen usando la versión anterior.</string>
+    <string name="document_reindex_discard">Descartar</string>
+    <!-- D7 -->
+    <string name="document_citation_missing">El fragmento citado ya no está en este documento.</string>
+    <!-- D8 -->
+    <string name="document_delete_title">¿Eliminar «%1$s»?</string>
+    <string name="document_delete_body">Se borrarán la copia guardada por la app, su texto, sus fragmentos y vectores, y sus datos. El archivo original de tu teléfono no cambia.</string>
+    <string name="document_delete_confirm">Eliminar</string>
+    <string name="document_remove_from_index">Quitar del índice</string>
+    <string name="document_remove_title">¿Quitar del índice?</string>
+    <string name="document_remove_body">Se borrarán sus fragmentos y vectores, y dejará de usarse en las respuestas. El archivo se conserva para reindexarlo cuando quieras.</string>
+    <string name="document_remove_confirm">Quitar</string>
+    <!-- D10 -->
+    <string name="document_copy_missing">No se encuentra el archivo guardado por la app, así que no se puede reindexar. Puedes eliminarlo e importarlo de nuevo.</string>
+    <string name="document_no_preview">Este documento no tiene vista previa.</string>
+
+    <!-- A7: announced without moving the focus. -->
+    <string name="document_announce_deleted">Documento eliminado</string>
+    <string name="document_announce_removed">Quitado del índice</string>
+    <string name="document_announce_reindexing">Reindexando</string>
+    <string name="document_announce_excluded">Excluido de las respuestas</string>
+    <string name="document_announce_included">Incluido en las respuestas</string>
+</resources>

@@ -14,6 +14,7 @@ import com.lisdatasolutions.microrag.domain.rag.IndexCompatibilityChecker
 import com.lisdatasolutions.microrag.domain.rag.IndexCounts
 import com.lisdatasolutions.microrag.domain.rag.IndexStorageFullException
 import com.lisdatasolutions.microrag.domain.rag.IndexUnavailableException
+import com.lisdatasolutions.microrag.domain.rag.LibraryEntry
 import com.lisdatasolutions.microrag.domain.rag.NewDocument
 import com.lisdatasolutions.microrag.domain.rag.RagIndex
 import com.lisdatasolutions.microrag.domain.rag.RagIndexConfig
@@ -102,6 +103,24 @@ class DefaultRagIndex(
         }
     }
 
+    override suspend fun libraryPage(text: String, statuses: Set<DocumentStatus>, limit: Int): List<LibraryEntry> {
+        if (statuses.isEmpty() || limit <= 0) return emptyList()
+        val (where, args) = libraryFilter(text, statuses)
+        return withIndex { db ->
+            db.query(
+                "SELECT $DOCUMENT_COLUMNS, (SELECT s.status FROM documents s WHERE s.replaces_id = documents.id LIMIT 1) " +
+                    "FROM documents WHERE $where ORDER BY created_at_ms DESC, id DESC LIMIT ?",
+                *args, limit,
+            ) { row -> LibraryEntry(readDocument(row), row.textOrNull(SHADOW_STATUS_COLUMN)?.let(DocumentStatus::fromSql)) }
+        }
+    }
+
+    override suspend fun libraryCount(text: String, statuses: Set<DocumentStatus>): Int {
+        if (statuses.isEmpty()) return 0
+        val (where, args) = libraryFilter(text, statuses)
+        return withIndex { db -> count(db, "SELECT count(*) FROM documents WHERE $where", *args) }
+    }
+
     override suspend fun documentIdByHash(contentHash: String): Long? = withIndex { db ->
         db.queryOne("SELECT id FROM documents WHERE content_hash = ?", contentHash) { it.getLong(0) }
     }
@@ -123,10 +142,95 @@ class DefaultRagIndex(
     }
 
     override suspend fun deleteDocument(id: Long) = withIndex { db ->
-        // ON DELETE CASCADE removes the chunks; their chunks_ad trigger cleans the FTS index.
-        db.exec("DELETE FROM documents WHERE id = ?", id)
-        logger.i(TAG) { "rag document delete id=$id" }
+        val started = System.nanoTime()
+        db.transaction {
+            // ON DELETE CASCADE removes the shadow and the chunks; their chunks_ad trigger cleans the FTS index.
+            db.exec("DELETE FROM documents WHERE id = ?", id)
+            markQuantDirty(db)
+        }
+        logger.i(TAG) { "rag document delete id=$id in ${elapsedMs(started)} ms" }
         notifyChanged()
+    }
+
+    override suspend fun addReindexShadow(originalId: Long): Long = withIndex { db ->
+        val shadow = db.transaction {
+            val original = db.queryOne("SELECT $DOCUMENT_COLUMNS FROM documents WHERE id = ?", originalId, row = ::readDocument)
+            check(original != null && original.status == DocumentStatus.DONE && original.replacesId == null) {
+                "Document $originalId is not a done document"
+            }
+            check(count(db, "SELECT count(*) FROM documents WHERE replaces_id = ?", originalId) == 0) {
+                "Document $originalId is already being reindexed"
+            }
+            val now = clock()
+            db.exec(
+                """
+                INSERT INTO documents(source, uri, display_name, mime_type, content_hash, size_bytes, page_count,
+                    local_path, created_at_ms, updated_at_ms, name_norm, replaces_id)
+                SELECT source, uri, display_name, mime_type, content_hash || ?, size_bytes, page_count,
+                    local_path, ?, ?, name_norm, id
+                FROM documents WHERE id = ?
+                """.trimIndent(),
+                SHADOW_HASH_SUFFIX, now, now, originalId,
+            )
+            checkNotNull(db.queryOne("SELECT last_insert_rowid()") { it.getLong(0) })
+        }
+        logger.i(TAG) { "rag reindex shadow id=$originalId shadow=$shadow" }
+        notifyChanged()
+        shadow
+    }
+
+    override suspend fun shadowOf(originalId: Long): StoredDocument? = withIndex { db ->
+        db.queryOne("SELECT $DOCUMENT_COLUMNS FROM documents WHERE replaces_id = ? LIMIT 1", originalId, row = ::readDocument)
+    }
+
+    override suspend fun publishReindex(shadowId: Long): Int? = withIndex { db ->
+        val started = System.nanoTime()
+        var originalId = 0L
+        val published = db.transaction {
+            val shadow = db.queryOne("SELECT $DOCUMENT_COLUMNS FROM documents WHERE id = ?", shadowId, row = ::readDocument)
+                ?: return@transaction null
+            originalId = shadow.replacesId ?: return@transaction null
+            val original = db.queryOne("SELECT status FROM documents WHERE id = ?", originalId) { it.getText(0) }
+            if (original != DocumentStatus.DONE.sqlValue) return@transaction null
+            // The chunks keep their ids, so FTS rows and vectors stay; chunks_au only fires on the text columns.
+            db.exec("DELETE FROM chunks WHERE document_id = ?", originalId)
+            db.exec("UPDATE chunks SET document_id = ? WHERE document_id = ?", originalId, shadowId)
+            val moved = db.changes()
+            db.exec(
+                "UPDATE documents SET chunk_count = ?, skipped_pages = ?, error = NULL, updated_at_ms = ? WHERE id = ?",
+                moved, shadow.skippedPages, clock(), originalId,
+            )
+            db.exec("DELETE FROM documents WHERE id = ?", shadowId)
+            markQuantDirty(db)
+            moved
+        }
+        if (published != null) {
+            logger.i(TAG) { "rag reindex published id=$originalId chunks=$published in ${elapsedMs(started)} ms" }
+            notifyChanged()
+        }
+        published
+    }
+
+    override suspend fun removeFromIndex(id: Long): Int? = withIndex { db ->
+        val started = System.nanoTime()
+        val removed = db.transaction {
+            val status = db.queryOne("SELECT status FROM documents WHERE id = ? AND replaces_id IS NULL", id) { it.getText(0) }
+            if (status != DocumentStatus.DONE.sqlValue) return@transaction null
+            db.exec("DELETE FROM documents WHERE replaces_id = ?", id)
+            db.exec("DELETE FROM chunks WHERE document_id = ?", id)
+            val chunks = db.changes()
+            db.exec(
+                "UPDATE documents SET status = ?, chunk_count = NULL, error = NULL, updated_at_ms = ? WHERE id = ?",
+                DocumentStatus.OUT_OF_INDEX.sqlValue, clock(), id,
+            )
+            markQuantDirty(db)
+            chunks
+        }
+        if (removed != null) {
+            logger.i(TAG) { "rag out-of-index id=$id chunks=$removed in ${elapsedMs(started)} ms" }
+            notifyChanged()
+        }
+        removed
     }
 
     override suspend fun storedChunkCounts(ids: Collection<Long>): Map<Long, Int> = withIndex { db ->
@@ -150,7 +254,7 @@ class DefaultRagIndex(
         val deleted = db.transaction {
             val before = chunkCount(db, documentId)
             db.exec("DELETE FROM chunks WHERE document_id = ?", documentId)
-            db.exec("UPDATE rag_meta SET value = '1' WHERE key = ?", RagMetaKeys.QUANT_DIRTY)
+            markQuantDirty(db)
             before
         }
         logger.i(TAG) { "rag chunks doc=$documentId deleted=$deleted" }
@@ -182,7 +286,7 @@ class DefaultRagIndex(
                             chunk.embedding.toLeBlob(),
                         )
                     }
-                    db.exec("UPDATE rag_meta SET value = '1' WHERE key = ?", RagMetaKeys.QUANT_DIRTY)
+                    markQuantDirty(db)
                     chunkCount(db, documentId) - before
                 }
             }
@@ -228,6 +332,22 @@ class DefaultRagIndex(
             // With external content, count(*) on chunks_fts would read chunks; docsize is the index itself.
             ftsRows = count(db, "SELECT count(*) FROM chunks_fts_docsize"),
         )
+    }
+
+    /** The INT8 index no longer matches the chunks (D-030); F14 rebuilds it. */
+    private fun markQuantDirty(db: RagConnection) {
+        db.exec("UPDATE rag_meta SET value = '1' WHERE key = ?", RagMetaKeys.QUANT_DIRTY)
+    }
+
+    /** WHERE clause and arguments shared by [libraryPage] and [libraryCount]: no shadows, [statuses], the name. */
+    private fun libraryFilter(text: String, statuses: Set<DocumentStatus>): Pair<String, Array<Any?>> {
+        val clauses = mutableListOf("replaces_id IS NULL", "status IN (${statuses.joinToString(",") { "?" }})")
+        val args = statuses.map<DocumentStatus, Any?> { it.sqlValue }.toMutableList()
+        if (text.isNotBlank()) {
+            clauses += "name_norm LIKE ? ESCAPE '\\'"
+            args += DocumentNames.likePattern(text)
+        }
+        return clauses.joinToString(" AND ") to args.toTypedArray()
     }
 
     /** Runs [block] on the open, compatible connection; otherwise throws without touching the file (rule A2). */
@@ -458,6 +578,12 @@ class DefaultRagIndex(
 
         private const val TAG = "MicroRAG"
         private const val META_TABLE = "rag_meta"
+
+        /** A shadow's hash: unique while it lives, and never equal to a file's, so F06 duplicates ignore it. */
+        private const val SHADOW_HASH_SUFFIX = "#reindex"
+
+        /** [libraryPage] reads the shadow's status after the [DOCUMENT_COLUMNS]. */
+        private const val SHADOW_STATUS_COLUMN = 16
         private const val LOAD_BLOCK = 500
         private const val UNIT_NORM_TOLERANCE = 1e-3
         private const val DOCUMENT_COLUMNS = "id, display_name, content_hash, mime_type, uri, status, chunk_count, error, " +

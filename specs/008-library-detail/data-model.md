@@ -91,9 +91,11 @@ sealed interface DocumentDetailState {
     data object OutOfIndex : DocumentDetailState
 }
 
+/** [shadowId] es lo que reintenta el «Reintentar» de F07 (D6). */
 sealed interface ReindexState {
-    data class Running(val done: Int, val total: Int?) : ReindexState
-    data class Failed(val error: IngestError) : ReindexState
+    val shadowId: Long
+    data class Running(override val shadowId: Long, val done: Int, val total: Int?, val pause: PauseReason?) : ReindexState  // D5
+    data class Failed(override val shadowId: Long, val error: IngestError) : ReindexState
 }
 
 /** La vista previa (R7). [highlighted] es true solo para el fragmento de una cita. */
@@ -113,21 +115,23 @@ data class DocumentPreview(
 
 | Operación | Efecto | Transacción |
 |---|---|---|
-| `libraryPage(text, filter, limit)` | Documentos sin sombras, filtrados y ordenados (R2), con el estado de su sombra (en curso o en error) | Lectura |
-| `libraryCount(text, filter)` | Total con los mismos filtros | Lectura |
+| `libraryPage(text, statuses, limit)` | `LibraryEntry`: documentos sin sombras, con un estado de `statuses` y el nombre buscado (R2, R3), del más reciente al más antiguo, con el estado de su sombra | Lectura |
+| `libraryCount(text, statuses)` | Total con los mismos filtros | Lectura |
 | `addReindexShadow(originalId)` | Inserta la sombra (R5). Falla si ya hay una o el original no es `done` | Sí |
 | `shadowOf(originalId)` | La sombra viva, si existe | Lectura |
-| `publishReindex(shadowId)` | Sustitución atómica (R5) | Sí |
-| `removeFromIndex(id)` | Borra sombras y fragmentos, `status = cancelled` y `quant_dirty` (R6) | Sí |
+| `publishReindex(shadowId)` | Sustitución atómica (R5). Devuelve los fragmentos publicados, o `null` sin cambiar nada si la sombra o su original ya no existen | Sí |
+| `removeFromIndex(id)` | Borra sombras y fragmentos, `status = cancelled` y `quant_dirty` (R6). Devuelve los fragmentos borrados, o `null` si no es un documento `done` | Sí |
 | `deleteDocument(id)` | Ya existía; ahora marca también `quant_dirty` (R6) | Sí |
 | `addDocument(…)` | Ya existía; ahora guarda `name_norm` | Sí |
+
+El repositorio traduce el filtro a estados: ALL, todos; INDEXED, `done`; PENDING, el resto. Así `domain/rag` no depende de `domain/library`.
 
 `StoredDocument` añade `replacesId: Long?`. `documents(statuses)` sigue devolviendo también las sombras: F07 las necesita en la tanda. La cola de Ingesta las filtra.
 
 ## 5. Tanda (F07)
 
 Sin cambios de formato. F08 añade o quita ids:
-- `reindex` añade la sombra o el documento y quita la pausa, como `retry`;
+- `reindex` añade la sombra o el documento y quita la pausa, como `retry`, con la operación nueva `IndexingRepository.add(id)`: `start()` añadiría también los pendientes que el usuario aún no mandó indexar;
 - `delete` y `removeFromIndex` quitan el documento y su sombra.
 
 ## 6. Logs (constitución I)

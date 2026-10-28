@@ -8,7 +8,14 @@ enum class DocumentStatus(val sqlValue: String) {
     DONE("done"),
     ERROR("error"),
     PAUSED("paused"),
-    CANCELLED("cancelled"),
+
+    /**
+     * «Fuera del índice» (F08, D-043): the user removed its chunks and kept its private copy, so it can
+     * be reindexed. Stored as `cancelled`, a value the schema always allowed and nothing used (D-030),
+     * so the schema keeps its CHECK. The Ingest queue and the runs leave it out, as they only take
+     * pending, parsed, embedding and error documents (research R4).
+     */
+    OUT_OF_INDEX("cancelled"),
     ;
 
     companion object {
@@ -47,6 +54,9 @@ data class StoredDocument(
     /** Only on a reindex shadow: the document whose chunks it replaces when it closes (F08 research R5). */
     val replacesId: Long? = null,
 )
+
+/** A Library row (F08 research R2): a document and the status of its reindex shadow, if it has one. */
+data class LibraryEntry(val document: StoredDocument, val shadowStatus: DocumentStatus?)
 
 /**
  * A chunk to store. [content] is the original text, without the contextual header that only goes

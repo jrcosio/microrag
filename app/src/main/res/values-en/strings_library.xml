@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- P06 Library and P07 Document detail (F08 contracts/library-ui.md, D-029). -->
+<resources>
+    <!-- P06 -->
+    <string name="library_title">Library</string>
+    <string name="library_headline">Your documents</string>
+    <string name="library_intro">Manage your local AI\'s sources.</string>
+    <string name="library_search">Search documents...</string>
+    <string name="library_filter_all">All</string>
+    <string name="library_filter_indexed">Indexed</string>
+    <string name="library_filter_pending">Pending</string>
+    <plurals name="library_count">
+        <item quantity="one">%1$s document</item>
+        <item quantity="other">%1$s documents</item>
+    </plurals>
+    <string name="library_include_header">Include in RAG</string>
+    <string name="library_info">Excluding a file keeps it out of future answers. It does not delete it.</string>
+    <string name="library_import">Import documents</string>
+
+    <!-- Row metadata: «format · state» (research R10). -->
+    <string name="library_meta">%1$s · %2$s</string>
+    <plurals name="library_chunks">
+        <item quantity="one">%1$s chunk</item>
+        <item quantity="other">%1$s chunks</item>
+    </plurals>
+    <string name="library_format_unknown">Document</string>
+    <string name="library_state_pending">Pending</string>
+    <string name="library_state_indexing">Indexing</string>
+    <string name="library_state_out_of_index">Out of the index</string>
+    <string name="library_state_failed">Indexing error</string>
+    <!-- B7 -->
+    <string name="library_state_reindexing">Reindexing</string>
+    <string name="library_state_reindex_failed">Reindex failed</string>
+
+    <!-- B2 -->
+    <string name="library_empty_title">You have no documents yet</string>
+    <string name="library_empty_body">Import PDF, TXT or Markdown files to query them offline.</string>
+    <!-- B3 -->
+    <string name="library_no_results_title">No matches</string>
+    <string name="library_no_results_body">Try another name or filter.</string>
+    <string name="library_clear_filters">Clear filters</string>
+    <!-- B4 -->
+    <string name="library_error_title">The library could not be loaded</string>
+    <string name="library_error_body">Reading your documents failed. You can try again.</string>
+    <string name="library_unavailable_title">The library is not available</string>
+    <string name="library_unavailable_body">Documents cannot be viewed while the local library is not available.</string>
+    <!-- B8 -->
+    <string name="library_document_gone">This document no longer exists</string>
+
+    <!-- A1, B5, B6: each row is read as one sentence. -->
+    <string name="library_row_description">%1$s, %2$s, %3$s</string>
+    <string name="library_row_included">included</string>
+    <string name="library_row_excluded">excluded from answers</string>
+    <string name="library_row_not_indexed">It can be included once it is indexed</string>
+    <string name="library_row_action">View details</string>
+    <string name="library_include_switch">Include in answers</string>
+
+    <!-- P07 -->
+    <string name="document_title">Document details</string>
+    <string name="document_more">More options</string>
+    <string name="document_state_indexed">Indexed</string>
+    <string name="document_state_pending">Pending</string>
+    <string name="document_state_indexing">Indexing</string>
+    <string name="document_state_failed">Error</string>
+    <string name="document_state_out_of_index">Out of the index</string>
+    <string name="document_state_excluded">Excluded</string>
+    <string name="document_stat_pages">Pages</string>
+    <string name="document_stat_chunks">Chunks</string>
+    <string name="document_stat_size">Size</string>
+    <string name="document_stat_imported">Imported</string>
+    <string name="document_stat_none">—</string>
+    <!-- A2: «Pages, 48». -->
+    <string name="document_stat_description">%1$s, %2$s</string>
+    <string name="document_no_pages">no pages</string>
+    <string name="document_no_chunks">no chunks</string>
+    <string name="document_include_title">Include in answers</string>
+    <string name="document_include_subtitle">Available for RAG queries</string>
+    <string name="document_preview_header">Content preview</string>
+    <!-- A3 -->
+    <string name="document_cited_fragment">Cited chunk: %1$s</string>
+    <string name="document_reindex">Reindex document</string>
+    <string name="document_delete">Delete</string>
+    <string name="document_deleting">Deleting…</string>
+    <string name="document_retry">Retry</string>
+
+    <!-- D1 -->
+    <string name="document_pending_body">This document is not indexed yet. It will be indexed when you tap Start indexing in Import.</string>
+    <!-- D2 -->
+    <string name="document_indexing_progress">%1$s of %2$s chunks</string>
+    <string name="document_indexing_preparing">Preparing the document</string>
+    <string name="document_view_indexing">View indexing status</string>
+    <!-- D4 -->
+    <string name="document_out_of_index_body">You removed this document from the index. Its file is still kept in the app.</string>
+    <!-- D5 -->
+    <string name="document_reindex_progress">Reindexing · %1$s of %2$s chunks</string>
+    <string name="document_reindex_preparing">Reindexing · preparing the document</string>
+    <string name="document_reindex_body">Meanwhile, answers use the previous version.</string>
+    <string name="document_reindexing_button">Reindexing…</string>
+    <!-- D6 -->
+    <string name="document_reindex_failed">It could not be reindexed: %1$s. Answers still use the previous version.</string>
+    <string name="document_reindex_discard">Discard</string>
+    <!-- D7 -->
+    <string name="document_citation_missing">The cited chunk is no longer in this document.</string>
+    <!-- D8 -->
+    <string name="document_delete_title">Delete «%1$s»?</string>
+    <string name="document_delete_body">The copy kept by the app, its text, its chunks and vectors, and its data will be deleted. The original file on your phone does not change.</string>
+    <string name="document_delete_confirm">Delete</string>
+    <string name="document_remove_from_index">Remove from index</string>
+    <string name="document_remove_title">Remove from the index?</string>
+    <string name="document_remove_body">Its chunks and vectors will be deleted and it will no longer be used in answers. The file is kept so you can reindex it whenever you want.</string>
+    <string name="document_remove_confirm">Remove</string>
+    <!-- D10 -->
+    <string name="document_copy_missing">The file kept by the app cannot be found, so it cannot be reindexed. You can delete it and import it again.</string>
+    <string name="document_no_preview">This document has no preview.</string>
+
+    <!-- A7: announced without moving the focus. -->
+    <string name="document_announce_deleted">Document deleted</string>
+    <string name="document_announce_removed">Removed from the index</string>
+    <string name="document_announce_reindexing">Reindexing</string>
+    <string name="document_announce_excluded">Excluded from answers</string>
+    <string name="document_announce_included">Included in answers</string>
+</resources>
