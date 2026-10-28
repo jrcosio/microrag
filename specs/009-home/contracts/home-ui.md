@@ -65,5 +65,5 @@ De arriba abajo, en una columna desplazable con el margen de pantalla (20 dp) y 
 | Índice local / tarjeta de indexación | `Index` | Inicio |
 | Idiomas | `Languages` | Inicio |
 | Icono de Ajustes | `Settings` (pestaña) | Inicio |
-| «Completar configuración» | `Setup` | Inicio; al completar, vuelve a Inicio sin duplicarla |
+| «Completar configuración» | `Setup` | Inicio; al completar, vuelve a Inicio sin duplicarlo |
 | Atrás en Inicio | sale de la app (F03 FR-003) | — |

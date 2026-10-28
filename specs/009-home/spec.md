@@ -37,7 +37,7 @@
 
 **Verificado al redactar** (2026-10-28):
 - **Inicio hoy:** es un marcador de posición con dos accesos provisionales, a la Ingesta (F06 FR-025) y al Estado de indexación (F07 FR-034).
-- **Arranque:** la app abre Inicio si el onboarding está completado, sin mirar los modelos. Tras un arranque en frío, el estado de los modelos se lee como «ausente» hasta que algo lo comprueba. La comprobación existente lee el registro de verificación y compara tamaños sin recalcular huellas (F03 SC-007).
+- **Arranque:** la app abre Inicio si el onboarding está completado, sin mirar los modelos. Tras un arranque en frío, el estado de los modelos se lee como «ausente» hasta que algo lo comprueba. La comprobación existente lee el registro de verificación y compara tamaño y fecha de cada fichero, sin recalcular huellas (F03 SC-007).
 - **Fichero de modelo borrado o alterado después del onboarding:** F03 lo dejó previsto para Inicio: «Configuración pendiente» con acceso a la Preparación.
 - **Recuentos:**
   - el índice sabe contar documentos y fragmentos, pero el recuento general incluye los documentos sombra de un reindexado en curso (D-044) y no se actualiza solo;
@@ -102,7 +102,7 @@ Bajo la cabecera, un chip dice el estado real de la IA local: «IA local disponi
 
 La tarjeta «TU BIBLIOTECA» muestra el número real de documentos y de fragmentos («24 documentos · 12.400 fragmentos») y se actualiza sola cuando se importa, se indexa, se elimina o se quita del índice un documento. Con la biblioteca vacía, Inicio lo dice y ofrece importar el primer documento. Si el resumen no se puede cargar, los accesos siguen funcionando y se ofrece reintentar.
 
-**Why this priority**: es el resumen que el PNG 03 maqueta, y el MD exige contadores reales y una Inicio útil con la biblioteca vacía.
+**Why this priority**: es el resumen que el PNG 03 maqueta, y el MD exige contadores reales y un Inicio útil con la biblioteca vacía.
 
 **Independent Test**: con documentos en varios estados, las cifras coinciden con la Biblioteca y con el índice. Importar, indexar, eliminar o quitar del índice cambia las cifras sin recargar a mano. Con 0 documentos se ve «Tu biblioteca está vacía» con «Importar primer documento», y ninguna cifra. Con el índice no disponible se ve el error con «Reintentar» y los accesos siguen activos.
 
@@ -135,7 +135,7 @@ Mientras hay una tanda de indexación activa, Inicio muestra una tarjeta pequeñ
 
 ---
 
-### User Story 5 - Una Inicio fiel al PNG y accesible (Priority: P2)
+### User Story 5 - Un Inicio fiel al PNG y accesible (Priority: P2)
 
 Inicio reproduce el PNG 03: cabecera con el logotipo y el icono de Ajustes, chip de estado, saludo, héroe con órbitas, rejilla 2×2 de accesos, tarjeta «TU BIBLIOTECA» y barra inferior con Inicio seleccionado. Además cubre los estados que el PNG no maqueta, y se puede usar con TalkBack, con la fuente al 200 %, en oscuro y en horizontal.
 
@@ -192,14 +192,14 @@ Inicio reproduce el PNG 03: cabecera con el logotipo y el icono de Ajustes, chip
   - «Documentos / Ver biblioteca» → Biblioteca, como la pestaña de la barra inferior;
   - «Índice local / Estado del RAG» → Estado de indexación;
   - «Idiomas / Preferencias» → Idiomas (destino provisional hasta F12).
-- **FR-005**: Inicio MUST mostrar la barra inferior con Inicio seleccionado. Atrás desde Inicio MUST cerrar la app (F03 FR-003), y Atrás desde cualquier destino abierto desde Inicio MUST volver a Inicio sin duplicarla.
+- **FR-005**: Inicio MUST mostrar la barra inferior con Inicio seleccionado. Atrás desde Inicio MUST cerrar la app (F03 FR-003), y Atrás desde cualquier destino abierto desde Inicio MUST volver a Inicio sin duplicarlo.
 - **FR-006**: Pulsar dos veces seguidas «Nuevo chat», un acceso o el icono de Ajustes MUST abrir un solo destino.
 
 **Estado de la IA local**
 
 - **FR-007**: El chip «IA local disponible» MUST mostrarse solo si los dos modelos están verificados y preparados, con la misma regla que completa el onboarding en F03.
 - **FR-008**: En cualquier otro caso, Inicio MUST mostrar el chip «Configuración pendiente» y una acción «Completar configuración» que abre la Preparación (`setup`). Al volver con los modelos listos, MUST mostrar «IA local disponible» sin reiniciar la app.
-- **FR-009**: El estado MUST comprobarse al abrir Inicio y al volver la app a primer plano, sin recalcular huellas (F03 SC-007). Mientras se comprueba, Inicio MUST NOT mostrar ningún chip de estado de la IA.
+- **FR-009**: El estado MUST comprobarse al abrir Inicio y al volver la app a primer plano, sin recalcular huellas (F03 SC-007). Durante la primera comprobación, Inicio MUST NOT mostrar ningún chip de estado de la IA. En las siguientes MUST mantener el último estado comprobado hasta que termine la nueva comprobación, sin parpadeos (análisis, C1).
 - **FR-010**: Un fichero de modelo borrado, alterado o con un tamaño distinto del verificado MUST dar «Configuración pendiente».
 - **FR-011**: Con la IA local no lista, «Nuevo chat», los cuatro accesos y la importación MUST seguir disponibles. El chat informará de lo que falta en F11 (MD 03).
 

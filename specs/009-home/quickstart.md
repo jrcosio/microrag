@@ -36,7 +36,7 @@ adb shell am instrument -w -e notAnnotation \
 
 Esperado:
 - verde, salvo las 4 de navegación ya conocidas en API 33 (F06 §7);
-- `SystemBackTest` y `ShellInsetsTest` reconocen Inicio por su saludo y no por el marcador;
+- `SystemBackTest` reconoce Inicio por su saludo y `ShellInsetsTest` entra en la Ingesta por el acceso Importar, sin el marcador;
 - `RagIndexSummaryTest` (SQLite real) cumple la regla H5 con documentos en todos los estados y una sombra;
 - `HomeScreenAccessibilityTest` pasa en todos los estados, en claro y oscuro, al 200 % y en horizontal;
 - solo en el teléfono:

@@ -15,7 +15,7 @@ La regla «listo» es la que completa el onboarding: todos los modelos de `Model
 
 **«Comprobando»:**
 - el ViewModel parte de `null` (sin chip) hasta la primera emisión;
-- las comprobaciones posteriores, al volver a primer plano, mantienen el último valor hasta que el flujo emite otro. Así el chip no parpadea en cada vuelta, y el valor anterior salió de una comprobación real (constitución V).
+- las comprobaciones posteriores, al volver a primer plano, mantienen el último valor hasta que el flujo emite otro. Así el chip no parpadea en cada vuelta, y el valor anterior salió de una comprobación real (constitución V; spec FR-009).
 
 **Verificado en el código:**
 - tras un arranque en frío, `states` vale `Missing` para todos hasta el primer `refresh()`. Por eso no se puede usar el valor inicial;

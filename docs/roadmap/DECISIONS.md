@@ -777,7 +777,7 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
      - «Nuevo chat» abre la pestaña Chat con una conversación nueva, sin restaurar la anterior (`openNewChat`);
      - Documentos y el icono de Ajustes, como sus pestañas;
      - cada acción solo navega con Inicio en `RESUMED`;
-     - la Preparación abierta desde Inicio vuelve a ella sin duplicarla.
+     - la Preparación abierta desde Inicio vuelve a Inicio sin duplicarlo.
   5. **Fuente grande:** con el 150 % o más, los accesos van en una columna y las cifras del resumen se apilan (el umbral de F08 A6).
   6. **Héroe:** `LisdataHeroCard` admite `decorationIcon` para el destello de las órbitas. El título va en dos líneas blancas.
 - **Motivo:** research R1–R8 de F09.

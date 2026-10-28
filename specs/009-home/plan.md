@@ -13,7 +13,7 @@ F09 sustituye el marcador de Inicio por la pantalla del PNG 03 y retira los acce
   - «Nuevo chat» abre la pestaña Chat con una conversación nueva;
   - los cuatro accesos llevan a Ingesta, Biblioteca, Índice e Idiomas, y el icono de cabecera a Ajustes;
   - un doble toque abre un solo destino;
-  - la Preparación abierta desde Inicio vuelve a Inicio sin duplicarla.
+  - la Preparación abierta desde Inicio vuelve a Inicio sin duplicarlo.
 - **Resumen «TU BIBLIOTECA»** (R2): una consulta agregada sobre `documents` (todos sin sombras, y los fragmentos de los indexados; D-046), recalculada con cada cambio del índice. Estados vacío, cargando y error con reintento local.
 - **Tarjeta de indexación** (R3): con una tanda activa de F07, entre el héroe y los accesos. Usa las mismas cifras y causas de pausa que el Índice, y abre `index`.
 - **Accesibilidad:** frases completas para TalkBack. Accesos en una columna y cifras apiladas con la fuente grande. Claro, oscuro y horizontal.
@@ -146,7 +146,7 @@ app/src/androidTest/java/com/lisdatasolutions/microrag/
 ├── data/library/HomeSummaryBenchmarkTest.kt
 ├── feature/home/{HomeScreenAccessibilityTest, HomeScreenLayoutTest}.kt
 ├── SystemBackTest.kt                                 # Inicio por su saludo
-└── core/navigation/ShellInsetsTest.kt                # ídem
+└── core/navigation/ShellInsetsTest.kt                # entra en la Ingesta por el acceso Importar
 ```
 
 **Structure Decision:** módulo único (D-009).

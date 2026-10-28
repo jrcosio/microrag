@@ -14,7 +14,7 @@ description: "Lista de tareas de F09 — Inicio"
 - US2 — Saber si la IA local está lista (P1);
 - US3 — Ver de un vistazo cuánto hay en la biblioteca (P1);
 - US4 — Seguir una indexación en curso desde Inicio (P2);
-- US5 — Una Inicio fiel al PNG y accesible (P2).
+- US5 — Un Inicio fiel al PNG y accesible (P2).
 
 **Entorno** (quickstart):
 - Todos los comandos Gradle requieren `export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"`.
@@ -120,7 +120,8 @@ description: "Lista de tareas de F09 — Inicio"
   - «Nuevo chat» → `Chat(conversationId = null)` con la pestaña Chat seleccionada y sin restaurar un Chat anterior;
   - Documentos y el icono de Ajustes → sus pestañas;
   - dos toques seguidos → un solo destino (FR-006);
-  - Preparación abierta desde Inicio y completada → la pila queda `[Home]` (R4).
+  - Preparación abierta desde Inicio y completada → la pila queda `[Home]` (R4);
+  - el módulo Koin de la prueba añade falsos de `ModelFileRepository`, del resumen de la Biblioteca y de la tanda para crear `HomeViewModel` (análisis, U1).
 
 ### Implementation for User Story 1
 
@@ -134,7 +135,7 @@ description: "Lista de tareas de F09 — Inicio"
 - [ ] T012 [US1] Navegación (R4):
   - `openNewChat()` en `…/microrag/core/navigation/NavigationActions.kt`;
   - `Home` → `HomeRoute` en `MicroRagNavHost.kt`, con cada acción solo con la entrada `RESUMED`;
-  - `SetupRoute.onCompleted` vuelve a Inicio sin duplicarla;
+  - `SetupRoute.onCompleted` vuelve a Inicio sin duplicarlo;
   - se retiran los accesos provisionales, el parámetro `actions` de `PendingDestination.kt` y los textos `ingest_provisional_entry` e `index_provisional_entry` (es y en).
 - [ ] T013 [US1] Actualizar las pruebas instrumentadas que usaban el marcador:
   - `…/androidTest/…/SystemBackTest.kt`: Inicio se reconoce por su saludo;
@@ -162,7 +163,8 @@ description: "Lista de tareas de F09 — Inicio"
 - [ ] T015 [P] [US2] Ampliar `HomeScreenTest.kt`:
   - «IA local disponible» con `READY`;
   - «Configuración pendiente» y «Completar configuración» con `SETUP_PENDING`, y el botón llama a su acción;
-  - sin chip con `null`, y el saludo no se mueve al llegar el chip (P2).
+  - sin chip con `null`, y el saludo no se mueve al llegar el chip (P2);
+  - con `SETUP_PENDING`, «Nuevo chat» y los cuatro accesos siguen activos y llaman a su acción (FR-011; análisis, G2).
 
 ### Implementation for User Story 2
 
@@ -244,7 +246,7 @@ description: "Lista de tareas de F09 — Inicio"
 
 ---
 
-## Phase 7: User Story 5 - Una Inicio fiel al PNG y accesible (Priority: P2)
+## Phase 7: User Story 5 - Un Inicio fiel al PNG y accesible (Priority: P2)
 
 **Goal**: fidelidad al PNG 03 y accesibilidad en todos los estados, también con la fuente al 200 %, en oscuro y en horizontal.
 
@@ -255,8 +257,9 @@ description: "Lista de tareas de F09 — Inicio"
 - [ ] T025 [P] [US5] Ampliar `HomeScreenTest.kt` con medidas reales (`@GraphicsMode(NATIVE)`):
   - con la fuente al 150 % o más, los accesos van en una columna y las cifras se apilan;
   - al 200 %, ningún título ni subtítulo de los accesos queda cortado;
-  - en horizontal (`es-w844dp-h390dp`), todo se alcanza desplazando.
-- [ ] T026 [P] [US5] Crear `…/androidTest/…/feature/home/HomeScreenAccessibilityTest.kt`, parametrizada sobre `HomePreviewData.all` en claro y en oscuro: comprobaciones automáticas, 48 dp, descripciones (A1–A6) y ancho con la fuente al 200 %.
+  - en horizontal (`es-w844dp-h390dp`), todo se alcanza desplazando;
+  - la posición de desplazamiento se conserva al recrear la pantalla (`StateRestorationTester`; caso límite «Rotación»; análisis, G3).
+- [ ] T026 [P] [US5] Crear `…/androidTest/…/feature/home/HomeScreenAccessibilityTest.kt`, parametrizada sobre `HomePreviewData.all` en claro y en oscuro, y también en horizontal: comprobaciones automáticas, 48 dp, descripciones (A1–A6) y ancho con la fuente al 200 % (SC-008; análisis, G1).
 - [ ] T027 [P] [US5] Crear `…/androidTest/…/feature/home/HomeScreenLayoutTest.kt`, solo en el A063, como `IndexScreenLayoutTest`. Con una tanda activa, la tarjeta de indexación y la primera fila de accesos se ven sin desplazar, por encima de la barra inferior.
 
 ### Implementation for User Story 5
