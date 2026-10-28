@@ -52,7 +52,7 @@
 Tras la última corrección (`7b87b98`, el aviso de la Biblioteca), se repitieron las suites instrumentadas:
 - emulador API 37: 426/426 ✅;
 - AVD API 33: 422/426 ⚠️, con las mismas 4 de F06 §7;
-- teléfono: se cortó en la prueba 140 de 426 porque el teléfono se desconectó, con 137 pasadas y 0 fallos.
+- teléfono: 426/426 ✅ (460 s). Un primer intento se cortó en la prueba 140 porque el teléfono se desconectó, con 0 fallos hasta ahí; se repitió entera al reconectarlo. El índice de la app quedó igual antes y después (vacío e íntegro) y los modelos siguen instalados.
 
 La corrección se comprobó a mano en el teléfono (el aviso se ve, §5) y con `NavigationTest`.
 
@@ -224,8 +224,6 @@ El documento propio del usuario no se ha recreado. Al cerrar, la Biblioteca qued
 - **Notificaciones de otras apps:** dos capturas recogieron notificaciones emergentes de otras apps. Se borraron sin conservar su contenido y se repitieron.
 
 ## 7. Pendiente y decisiones del cierre
-
-**Repetición de la suite en el teléfono tras `7b87b98`:** cortada en la prueba 140 de 426 por la desconexión del teléfono (137 pasadas y 0 fallos, §2). Se puede repetir entera al volver a conectarlo.
 
 **Pendiente:**
 - **TalkBack** en la Biblioteca y el detalle, a cargo del usuario, como en F01, F03, F06 y F07 (T066 de F07 sigue abierto).
