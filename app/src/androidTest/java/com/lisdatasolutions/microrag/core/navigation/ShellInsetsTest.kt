@@ -33,7 +33,7 @@ class ShellInsetsTest {
 
     @Test
     fun aScreenBottomBarPadsTheNavigationBarOnce() {
-        compose.onNodeWithText(compose.activity.getString(R.string.ingest_provisional_entry)).performClick()
+        compose.onNodeWithText(compose.activity.getString(R.string.home_import)).performClick()
         compose.waitForIdle()
 
         val button = compose.onNodeWithText(compose.activity.getString(R.string.ingest_start)).fetchSemanticsNode().boundsInWindow

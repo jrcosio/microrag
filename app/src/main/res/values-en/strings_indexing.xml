@@ -49,7 +49,6 @@
     <string name="index_prepare_models">Set up models</string>
     <string name="index_unavailable_title">The library is not available</string>
     <string name="index_unavailable_body">Indexing is not possible while the local library is unavailable.</string>
-    <string name="index_provisional_entry">Indexing status (provisional)</string>
     <string name="index_announce_document_started">Indexing %1$s</string>
     <string name="index_announce_paused">Indexing paused: %1$s</string>
     <string name="index_announce_failed">%1$s: %2$s</string>

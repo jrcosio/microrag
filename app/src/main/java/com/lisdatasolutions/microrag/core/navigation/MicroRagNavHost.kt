@@ -2,15 +2,15 @@ package com.lisdatasolutions.microrag.core.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.lisdatasolutions.microrag.R
+import androidx.lifecycle.Lifecycle
 import com.lisdatasolutions.microrag.feature.document.DocumentRoute
+import com.lisdatasolutions.microrag.feature.home.HomeRoute
 import com.lisdatasolutions.microrag.feature.indexing.IndexRoute
 import com.lisdatasolutions.microrag.feature.ingest.IngestRoute
 import com.lisdatasolutions.microrag.feature.library.LibraryMessage
@@ -37,19 +37,22 @@ fun MicroRagNavHost(
         composable<Setup> {
             SetupRoute(
                 onBack = back,
-                // Onboarding done: Home becomes the root, so Back from Home leaves the app (FR-003).
-                onCompleted = { navController.navigate(Home) { popUpTo<Welcome> { inclusive = true } } },
+                onCompleted = { navController.leaveSetup() },
             )
         }
-        composable<Home> {
-            // F06 P6 and F07 P10: provisional entries to the import and indexing screens until F09 delivers Home.
-            PendingDestination(
-                "home",
-                "F09",
-                actions = listOf(
-                    PendingAction(stringResource(R.string.ingest_provisional_entry)) { navController.navigate(Ingest) },
-                    PendingAction(stringResource(R.string.index_provisional_entry)) { navController.navigate(Index) },
-                ),
+        composable<Home> { entry ->
+            // F09 R4: only from a resumed Home, so a second tap while the first one navigates does nothing (FR-006).
+            val open: (() -> Unit) -> () -> Unit = { navigate ->
+                { if (entry.lifecycle.currentState == Lifecycle.State.RESUMED) navigate() }
+            }
+            HomeRoute(
+                onNewChat = open { navController.openNewChat() },
+                onImport = open { navController.navigate(Ingest) { launchSingleTop = true } },
+                onLibrary = open { navController.navigateToTopLevel(TopLevelDestination.LIBRARY) },
+                onIndex = open { navController.navigate(Index) { launchSingleTop = true } },
+                onLanguages = open { navController.navigate(Languages) { launchSingleTop = true } },
+                onSettings = open { navController.navigateToTopLevel(TopLevelDestination.SETTINGS) },
+                onCompleteSetup = open { navController.navigate(Setup) { launchSingleTop = true } },
             )
         }
         composable<Chat> { entry ->

@@ -54,8 +54,6 @@
     <!-- P8 -->
     <string name="index_unavailable_title">La biblioteca no está disponible</string>
     <string name="index_unavailable_body">No se puede indexar mientras la biblioteca local no esté disponible.</string>
-    <!-- P10 -->
-    <string name="index_provisional_entry">Estado de indexación (provisional)</string>
     <!-- U3: announcements without moving the focus. -->
     <string name="index_announce_document_started">Indexando %1$s</string>
     <string name="index_announce_paused">Indexación en pausa: %1$s</string>

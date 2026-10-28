@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- P03 (PNG 03, INVENTARIO P03) -->
+    <string name="home_settings">Settings</string>
+    <string name="home_greeting">What do you want to explore today?</string>
+    <string name="home_hero_eyebrow">Ask your library</string>
+    <string name="home_hero_title">One answer.\nAll your sources.</string>
+    <string name="home_new_chat">New chat</string>
+    <string name="home_import">Import</string>
+    <string name="home_import_subtitle">Add files</string>
+    <string name="home_documents">Documents</string>
+    <string name="home_documents_subtitle">View library</string>
+    <string name="home_index">Local index</string>
+    <string name="home_index_subtitle">RAG status</string>
+    <string name="home_languages">Languages</string>
+    <string name="home_languages_subtitle">Preferences</string>
+</resources>

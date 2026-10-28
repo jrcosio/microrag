@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- P03 (PNG 03, INVENTARIO P03): texts of the PNG copied literally (D-004); the rest are proposals P1–P5, approved after analyze. -->
+    <string name="home_settings">Ajustes</string>
+    <string name="home_greeting">¿Qué quieres explorar hoy?</string>
+    <string name="home_hero_eyebrow">Pregunta a tu biblioteca</string>
+    <string name="home_hero_title">Una respuesta.\nTodas tus fuentes.</string>
+    <string name="home_new_chat">Nuevo chat</string>
+    <string name="home_import">Importar</string>
+    <string name="home_import_subtitle">Añadir archivos</string>
+    <string name="home_documents">Documentos</string>
+    <string name="home_documents_subtitle">Ver biblioteca</string>
+    <string name="home_index">Índice local</string>
+    <string name="home_index_subtitle">Estado del RAG</string>
+    <string name="home_languages">Idiomas</string>
+    <string name="home_languages_subtitle">Preferencias</string>
+</resources>

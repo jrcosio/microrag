@@ -7,6 +7,7 @@ import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onAllNodesWithText
@@ -14,8 +15,11 @@ import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.click
+import androidx.compose.ui.test.performTouchInput
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.ComposeNavigator
+import androidx.navigation.toRoute
 import androidx.navigation.testing.TestNavHostController
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -48,6 +52,7 @@ import com.lisdatasolutions.microrag.domain.library.ReindexDocumentUseCase
 import com.lisdatasolutions.microrag.domain.library.RemoveFromIndexUseCase
 import com.lisdatasolutions.microrag.domain.library.SetIncludedUseCase
 import com.lisdatasolutions.microrag.feature.document.DocumentViewModel
+import com.lisdatasolutions.microrag.feature.home.HomeViewModel
 import com.lisdatasolutions.microrag.domain.model.OnboardingStage
 import com.lisdatasolutions.microrag.domain.model.StartDestination
 import com.lisdatasolutions.microrag.domain.onboarding.FakeOnboardingStore
@@ -96,6 +101,11 @@ internal fun libraryViewModels(library: FakeLibraryRepository = navigationLibrar
     }
 }
 
+/** Home (F09) takes its ViewModel from Koin too. */
+internal fun homeViewModels() = module {
+    viewModel { HomeViewModel() }
+}
+
 internal fun navigationLibrary() = FakeLibraryRepository().apply {
     documents.value = listOf(LibraryDocument(7, "Manual.pdf", DocumentFormat.PDF, LibraryDocumentState.Indexed(3, null), true))
     listOf(1L, 7L).forEach { id ->
@@ -126,6 +136,7 @@ class NavigationTest {
             startKoin {
                 modules(
                     libraryViewModels(library),
+                    homeViewModels(),
                     module {
                         viewModel {
                             IngestViewModel(
@@ -264,27 +275,109 @@ class NavigationTest {
         }
     }
 
-    @Test
-    fun provisionalHomeEntryOpensTheImportScreen() {
-        launchShell()
-        compose.onNodeWithText(context.getString(R.string.ingest_provisional_entry)).performClick()
-        compose.waitForIdle()
-        assertThat(nav.currentDestination?.hasRoute(Ingest::class)).isTrue()
-        compose.onNodeWithText(context.getString(R.string.ingest_headline)).assertIsDisplayed()
+    // F09 T010 (research R4): Home's own exits, which replace the provisional entries of F06 and F07.
 
+    private fun homeControl(text: String) {
+        compose.onNode(hasScrollAction()).performScrollToNode(hasText(text))
+        compose.onNodeWithText(text).performClick()
+        compose.waitForIdle()
+    }
+
+    private fun backToASingleHome() {
         compose.runOnUiThread { nav.popBackStack() }
         compose.waitForIdle()
         assertThat(nav.currentDestination?.hasRoute(Home::class)).isTrue()
+        assertThat(routesInBackStack()).hasSize(1)
     }
 
-
     @Test
-    fun provisionalHomeEntryOpensTheIndexScreen() {
+    fun homeQuickActions_openTheirScreens_andBackReturnsHome() {
         launchShell()
-        compose.onNodeWithText(context.getString(R.string.index_provisional_entry)).performClick()
-        compose.waitForIdle()
+
+        homeControl(context.getString(R.string.home_import))
+        assertThat(nav.currentDestination?.hasRoute(Ingest::class)).isTrue()
+        compose.onNodeWithText(context.getString(R.string.ingest_headline)).assertIsDisplayed()
+        backToASingleHome()
+
+        homeControl(context.getString(R.string.home_index))
         assertThat(nav.currentDestination?.hasRoute(Index::class)).isTrue()
         compose.onNodeWithText(context.getString(R.string.index_idle_title)).assertIsDisplayed()
+        backToASingleHome()
+
+        homeControl(context.getString(R.string.home_languages))
+        assertThat(nav.currentDestination?.hasRoute(Languages::class)).isTrue()
+        backToASingleHome()
+    }
+
+    @Test
+    fun documentsAndTheSettingsIcon_openTheirTabs() {
+        launchShell()
+
+        homeControl(context.getString(R.string.home_documents))
+        assertThat(nav.currentTopLevel()).isEqualTo(TopLevelDestination.LIBRARY)
+        assertThat(routesInBackStack()).hasSize(2)
+        backToASingleHome()
+
+        // Home kept its scroll: the header is above the fold again.
+        compose.onNode(hasScrollAction()).performScrollToNode(hasContentDescription(context.getString(R.string.home_settings)))
+        compose.onNodeWithContentDescription(context.getString(R.string.home_settings)).performClick()
+        compose.waitForIdle()
+        assertThat(nav.currentTopLevel()).isEqualTo(TopLevelDestination.SETTINGS)
+        assertThat(routesInBackStack()).hasSize(2)
+    }
+
+    @Test
+    fun newChat_opensTheChatTabOnANewConversation_notTheLastOne() {
+        launchShell()
+        // A conversation left open in the Chat tab, which the tab would bring back.
+        compose.runOnUiThread {
+            nav.navigate(Chat(conversationId = 7)) {
+                popUpTo<Home> { saveState = true }
+                launchSingleTop = true
+            }
+        }
+        compose.waitForIdle()
+        tab(TopLevelDestination.HOME).performClick()
+        compose.waitForIdle()
+
+        homeControl(context.getString(R.string.home_new_chat))
+
+        val entry = nav.currentBackStackEntry!!
+        assertThat(entry.destination.hasRoute(Chat::class)).isTrue()
+        assertThat(entry.toRoute<Chat>().conversationId).isNull()
+        assertThat(nav.currentTopLevel()).isEqualTo(TopLevelDestination.CHAT)
+        backToASingleHome()
+    }
+
+    @Test
+    fun aDoubleTapOnHome_opensASingleScreen_FR006() {
+        launchShell()
+        val languages = context.getString(R.string.home_languages)
+        compose.onNode(hasScrollAction()).performScrollToNode(hasText(languages))
+
+        compose.onNodeWithText(languages).performTouchInput {
+            click()
+            advanceEventTime(100)
+            click()
+        }
+        compose.waitForIdle()
+
+        assertThat(nav.currentDestination?.hasRoute(Languages::class)).isTrue()
+        assertThat(routesInBackStack()).hasSize(2)
+    }
+
+    @Test
+    fun finishingSetupOpenedFromHome_leavesASingleHome() {
+        launchShell()
+        // Setup needs its Koin graph (OnboardingNavigationTest covers it); what matters is the stack below.
+        compose.runOnUiThread { nav.navigate(Index) }
+        compose.waitForIdle()
+
+        compose.runOnUiThread { nav.leaveSetup() }
+        compose.waitForIdle()
+
+        assertThat(nav.currentDestination?.hasRoute(Home::class)).isTrue()
+        assertThat(routesInBackStack()).hasSize(1)
     }
 
     // F07 T040 (research R3): the indexing notification opens Index over Home, only after onboarding.
@@ -441,6 +534,7 @@ class NavigationRestorationTest {
             startKoin {
                 modules(
                     libraryViewModels(),
+                    homeViewModels(),
                     module {
                         factory { ResolveStartDestinationUseCase(FakeOnboardingStore(OnboardingStage.COMPLETED)) }
                         factory { ReconcileIndexingUseCase(indexing) }

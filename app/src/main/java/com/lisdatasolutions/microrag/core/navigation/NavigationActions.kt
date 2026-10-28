@@ -47,6 +47,29 @@ fun NavController.navigateToTopLevel(destination: TopLevelDestination) {
     }
 }
 
+/**
+ * F09 research R4: «Nuevo chat» opens the Chat tab on a new conversation, without restoring the one
+ * left open in the tab, as [navigateToTopLevel] would.
+ */
+fun NavController.openNewChat() {
+    navigate(Chat(conversationId = null)) {
+        popUpTo<Home> { saveState = true }
+        launchSingleTop = true
+    }
+}
+
+/**
+ * Setup is done (F09 research R4): back to Home when Setup was opened from it, without a second Home;
+ * otherwise Home replaces the onboarding, so Back from Home leaves the app (F03 FR-003).
+ */
+fun NavController.leaveSetup() {
+    if (runCatching { getBackStackEntry<Home>() }.isSuccess) {
+        popBackStack<Home>(inclusive = false)
+    } else {
+        navigate(Home) { popUpTo<Welcome> { inclusive = true } }
+    }
+}
+
 private fun NavController.popToRoot(destination: TopLevelDestination) {
     when (destination) {
         TopLevelDestination.HOME -> popBackStack<Home>(inclusive = false)

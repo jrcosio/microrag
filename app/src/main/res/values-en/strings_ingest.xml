@@ -88,5 +88,4 @@
     <string name="ingest_announce_ready">%1$s ready to process</string>
     <string name="ingest_announce_error">%1$s: %2$s</string>
 
-    <string name="ingest_provisional_entry">Import documents (provisional)</string>
 </resources>

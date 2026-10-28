@@ -93,6 +93,4 @@
     <string name="ingest_announce_ready">%1$s listo para procesar</string>
     <string name="ingest_announce_error">%1$s: %2$s</string>
 
-    <!-- P6: provisional entry until F09 delivers Home. -->
-    <string name="ingest_provisional_entry">Importar documentos (provisional)</string>
 </resources>

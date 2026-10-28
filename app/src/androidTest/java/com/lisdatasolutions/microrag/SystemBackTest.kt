@@ -36,7 +36,7 @@ class SystemBackTest {
         compose.onNodeWithText(context.getString(R.string.pending_destination_title, "F12")).assertIsDisplayed()
 
         Espresso.pressBack()
-        compose.onNodeWithText(context.getString(R.string.pending_destination_title, "F09")).assertIsDisplayed()
+        compose.onNodeWithText(context.getString(R.string.home_greeting)).assertIsDisplayed()
 
         Espresso.pressBackUnconditionally()
         compose.waitForIdle()
