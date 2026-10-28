@@ -314,8 +314,8 @@ description: "Lista de tareas de F08 — Biblioteca y detalle de documento"
 
 ## Phase 8: Polish & Cross-Cutting Concerns
 
-- [ ] T050 [P] Crear `…/androidTest/…/data/library/LibraryStrictModeTest.kt`: la observación de la página y del detalle, `setIncluded`, `delete`, `removeFromIndex` y `reindex` llamados desde el hilo principal, sin violaciones de disco. Con control negativo (L10).
-- [ ] T051 [P] Actualizar `docs/roadmap/INVENTARIO.md`:
+- [X] T050 [P] Crear `…/androidTest/…/data/library/LibraryStrictModeTest.kt`: la observación de la página y del detalle, `setIncluded`, `delete`, `removeFromIndex` y `reindex` llamados desde el hilo principal, sin violaciones de disco. Con control negativo (L10).
+- [X] T051 [P] Actualizar `docs/roadmap/INVENTARIO.md`:
   - **G16:** resuelto, sin filtro «Errores»;
   - **G17:** resuelto con «Fuera del índice» (D-043);
   - **fichas P06 y P07:** estados B1–B8 y D1–D11.

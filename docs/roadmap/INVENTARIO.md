@@ -433,7 +433,16 @@ Abreviaturas de componentes: ver §4. «No maquetado» significa que el estado l
   - `LisdataFilterChip`: «Todos» seleccionado (`brandBlue` con texto blanco), «Indexados» y «Pendientes» (`surfaceInfo` con texto `blue800`);
   - cabecera «24 DOCUMENTOS» con «Incluir en RAG»;
   - `LisdataDocumentRow` × 4: tile `ic_file_text`, nombre, «PDF · 860 fragmentos» y switch (encendido o apagado);
-  - `LisdataInfoCard` «Excluir un archivo evita que se use en futuras respuestas. No lo elimina.» con `ic_info`.
+  - `LisdataInfoCard` «Excluir un archivo evita que se use en futuras respuestas. No lo elimina.» con `ic_info`, partida como en el PNG: la primera línea en negrita.
+- **Implementada en F08** (`specs/008-library-detail/contracts/library-ui.md`). Estados sin mockup, propuestas aprobadas:
+  - B1 carga: 4 filas *skeleton* bajo los filtros;
+  - B2 vacío: «Aún no tienes documentos» con «Importar documentos», sin buscador ni filtros;
+  - B3 sin resultados: «No hay coincidencias» con «Limpiar filtros»;
+  - B4 error con «Reintentar», y biblioteca no disponible sin él;
+  - B5 sin indexar: interruptor deshabilitado, «Se podrá incluir cuando esté indexado», y el chip «Error de indexación» si falló;
+  - B6 excluido: interruptor apagado, «excluido de las respuestas» para TalkBack;
+  - B7 reindexando: «· Reindexando» en `brandBlue`, o el chip «Reindexado fallido»;
+  - B8 documento desaparecido: *snackbar* «Este documento ya no existe».
 - **Estados según el MD (no maquetados, salvo el de contenido):**
   - vacío: «Aún no tienes documentos» con «Importar documentos»;
   - sin resultados: «No hay coincidencias» con «Limpiar filtros»;
@@ -451,7 +460,7 @@ Abreviaturas de componentes: ver §4. «No maquetado» significa que el estado l
   - eyebrow «BIBLIOTECA LOCAL» y título «Documentos» → «Tus documentos»;
   - descripción distinta;
   - el MD pide un chevron de detalle que el PNG no tiene;
-  - filtro «Errores» opcional (G16).
+  - filtro «Errores» opcional: no se añade (G16, resuelto).
 
 ### P07 — Detalle del documento
 
@@ -468,6 +477,12 @@ Abreviaturas de componentes: ver §4. «No maquetado» significa que el estado l
   - cabecera «VISTA PREVIA DEL CONTENIDO»;
   - tarjeta con el chip «Página 12» y el texto con la frase citada resaltada (`citationHighlight`, texto `blue800` en negrita);
   - acciones: «Reindexar documento» (degradado) y «Eliminar» (borde con `ic_trash` y texto en `error`).
+- **Implementada en F08** (`specs/008-library-detail/contracts/library-ui.md`). El chip del héroe es el de éxito normal, como en el PNG, no la variante para fondo oscuro. Estados sin mockup, propuestas aprobadas:
+  - D1 pendiente, D2 indexando (con enlace al Estado de indexación) y D3 error (con «Reintentar» si se puede);
+  - D4 fuera del índice: «Reindexar documento» y «Eliminar», interruptor deshabilitado;
+  - D5 reindexando, con la causa de la pausa de la tanda; D6 reindexado fallido, con «Reintentar» y «Descartar»;
+  - D7 cita perdida; D8 diálogos de eliminar y de quitar del índice; D9 carga;
+  - D10 falta la copia privada: solo «Eliminar»; D11 biblioteca no disponible.
 - **Estados según el MD:** ninguno maquetado salvo el de contenido.
   - no encontrado o eliminado: aviso y vuelta a Biblioteca;
   - indexación en curso;
@@ -482,7 +497,7 @@ Abreviaturas de componentes: ver §4. «No maquetado» significa que el estado l
 - **Diferencias con el MD:**
   - hero «azul claro» en el MD frente a oscuro en el PNG;
   - el MD incluye «Tipo» y «Ubicación local» en la rejilla, que el PNG omite;
-  - «Quitar del índice» no aparece (G17).
+  - «Quitar del índice» no aparece: va en el menú «⋯» (G17, resuelto).
 
 ### P08 — Estado de indexación
 
@@ -725,8 +740,8 @@ La columna **Estado** indica si está resuelto y por quién, o si sigue pendient
 | G13 | Menú «⋯» del chat | PNG: icono sin contenido | MD: no definido | — | «Nuevo chat», «Historial» (F13) y «Borrar conversación» | 🟡 Pendiente |
 | G14 | Drag & drop | PNG: «Arrastra o selecciona archivos» | `03-components.md`: no prometer drag & drop si no se implementa | Doc (veracidad) | Texto «Selecciona archivos» sin «Arrastra». Alternativa: implementar el drop (Android lo soporta en tablets o ventanas múltiples), pero queda fuera del MVP | ✅ Implementado: F01 (`LisdataFilePickerCard` sin «Arrastra») y F06 (título «Selecciona archivos») |
 | G15 | Fila de la cola de ingesta | PNG: chevron en cada fila | MD: «Ver detalle» en los errores | — | El chevron abre una hoja inferior con el estado, el error y las acciones (Quitar o Reintentar) | ✅ F06: `QueueItemSheet` sobre `LisdataBottomSheet` (propuesta P3); quitar un documento pide confirmación |
-| G16 | Filtros de la biblioteca | PNG: Todos / Indexados / Pendientes | MD: «ampliar con Errores si es necesario» | UI → PNG | Sin filtro Errores. «Pendientes» incluye todo lo no indexado, también los errores (con su chip) | 🟡 Pendiente |
-| G17 | Acciones del detalle | PNG: «Reindexar» y «Eliminar», y «⋯» sin contenido | MD: también «Quitar del índice» | — | «⋯» → «Quitar del índice» (borra chunks y vectores y conserva el original, que queda reindexable) | 🟡 Pendiente |
+| G16 | Filtros de la biblioteca | PNG: Todos / Indexados / Pendientes | MD: «ampliar con Errores si es necesario» | UI → PNG | Sin filtro Errores. «Pendientes» incluye todo lo no indexado, también los errores (con su chip) | ✅ Resuelto en F08: sin filtro «Errores» |
+| G17 | Acciones del detalle | PNG: «Reindexar» y «Eliminar», y «⋯» sin contenido | MD: también «Quitar del índice» | — | «⋯» → «Quitar del índice» (borra chunks y vectores y conserva el original, que queda reindexable) | ✅ Resuelto en F08: estado propio «Fuera del índice» (D-043), reindexable |
 | G18 | Componentes frente a M3 | PNG: switch de ≈42×24 dp, chips de 27 dp | M3: switch de 52×32 dp; chips de 32 dp con área táctil de 48 | Constitución (M3 tematizado, 48 dp) | M3 tematizado con los tokens; sin réplicas a medida. Diferencia de tamaño aceptada | ✅ Usuario (D-018) |
 | G19 | Icono de Ajustes | PNG: sol | Convención y kit: engranaje | UI → PNG | Sol (`ic_settings` = Lucide `sun`) con la etiqueta «Ajustes» | ✅ Implementado en F01 (`ic_settings` = Lucide `sun`) |
 | G20 | Logo | PNG: «lisdata ›» en una tinta (aproximación) | Asset oficial `logoLISDATA.png` (degradado, raster); CLAUDE.md: no reconstruir | Doc (marca) | Usar el PNG oficial escalado y pedir el SVG oficial para la versión final | 🟡 F01 usa el PNG oficial; pendiente del SVG |
