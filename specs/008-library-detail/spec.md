@@ -240,7 +240,7 @@ La Biblioteca y el Detalle reproducen los PNG 06 y 07 y cubren los estados del `
 
 ### Measurable Outcomes
 
-- **SC-001**: Con 1.000 documentos, la Biblioteca muestra su primera página en 1 segundo o menos en el teléfono de referencia y se recorre entera sin tirones y sin leer ningún fragmento.
+- **SC-001**: Con 1.000 documentos, la Biblioteca muestra su primera página en 1 segundo o menos en el teléfono de referencia, carga cada bloque siguiente en 100 ms o menos y se recorre entera sin leer ningún fragmento.
 - **SC-002**: En el 100 % de los casos de prueba, la búsqueda y los filtros devuelven exactamente los documentos que cumplen ambos, también con mayúsculas, acentos y caracteres especiales, y su estado se conserva al volver del detalle y al girar.
 - **SC-003**: Tras excluir un documento, el 100 % de las búsquedas siguientes no devuelven ningún fragmento suyo, y al incluirlo vuelven a devolverlos. Excluir no borra ningún fragmento.
 - **SC-004**: Tras eliminar un documento no queda ningún resto suyo: copia privada, fragmentos, vectores, entradas de texto completo ni metadatos. Desaparece de la Biblioteca, de la Ingesta, de la tanda y de las búsquedas.

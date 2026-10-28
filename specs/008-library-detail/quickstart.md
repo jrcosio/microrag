@@ -72,4 +72,4 @@ En el emulador API 37, en la AVD API 33 y en el teléfono. Incluye:
 5. **Quitar del índice:** el documento queda «Fuera del índice», no aparece en la cola de Ingesta, e «Iniciar indexación» no lo toca. Después, «Reindexar» lo deja indexado.
 6. **Eliminar los documentos de prueba de F07** (ids 2–9) desde la app. Medir el de 4.300 fragmentos. La Biblioteca, la Ingesta y el Estado de indexación ya no los muestran.
 7. **TalkBack** en las dos pantallas, a cargo del usuario.
-8. **Capturas** en claro y en oscuro de los estados B1–B8 y D1–D9, para compararlas con los PNG 06 y 07.
+8. **Capturas** en claro y en oscuro de los estados B1–B8 y D1–D11, para compararlas con los PNG 06 y 07.

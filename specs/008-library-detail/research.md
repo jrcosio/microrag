@@ -50,7 +50,7 @@ CREATE INDEX IF NOT EXISTS idx_documents_created ON documents(created_at_ms, id)
 - 1.000 filas se leen en milisegundos, y releer las cargadas al cambiar algo es más simple y robusto que invalidar páginas;
 - la lista se mantiene coherente con borrados e indexados sin lógica de reconciliación.
 
-`T-L1` mide en el teléfono la primera página y la lista completa con 1.000 documentos sintéticos (SC-001).
+T022 mide en el teléfono la primera página, cada bloque siguiente y la lista completa con 1.000 documentos sintéticos (SC-001).
 
 **Alternativas descartadas:**
 - **Paging 3** (`androidx.paging`): dependencia nueva para un problema que una consulta con `LIMIT` resuelve. Habría que verificar su versión y su integración con el driver de SQLite sin Room.
@@ -131,7 +131,7 @@ Después, la tanda pierde el id. Si el proceso muere entre los dos pasos, el id 
 
 **Durante la indexación:** el runner de F07 ya trata un documento que desaparece o cambia de estado a mitad (`DocumentGone`, «removed midway»). Se añade a sus pruebas el caso de una sombra cuyo original se borra.
 
-**Coste:** borrar 4.300 fragmentos dispara 4.300 borrados en el FTS por trigger. Va en el dispatcher de la base de datos; la UI muestra «Eliminando…» y se mide en el teléfono (SC-009, `T-L2`). Si pasa de 5 s, se informa en el cierre.
+**Coste:** borrar 4.300 fragmentos dispara 4.300 borrados en el FTS por trigger. Va en el dispatcher de la base de datos; la UI muestra «Eliminando…» y se mide en el teléfono (SC-009, T043). Si pasa de 5 s, se informa en el cierre.
 
 ## R7. Vista previa y cita
 
@@ -172,6 +172,7 @@ Del índice, la tanda y el progreso del trabajo (F07):
 | `done` | «PDF · 860 fragmentos» | «Indexado» | Activo |
 | `done` excluido | «PDF · 860 fragmentos» y «Excluido» | «Excluido» | Activo, apagado |
 | `done` con sombra en curso | «PDF · 860 fragmentos · Reindexando» | «Indexado» y «Reindexando · N de M» | Activo |
+| `done` con sombra en error | «PDF · 860 fragmentos» y chip «Reindexado fallido» | «Indexado» y D6 | Activo |
 | `pending` o `parsed` | «PDF · Pendiente» | «Pendiente» | Deshabilitado |
 | `embedding` | «PDF · Indexando» | «Indexando · N de M» | Deshabilitado |
 | `error` | Chip «Error de indexación» | «Error» con la causa (textos de F06 y F07) | Deshabilitado |
@@ -181,10 +182,11 @@ Del índice, la tanda y el progreso del trabajo (F07):
 
 ## R11. Mediciones
 
-- **`T-L1`** (`LibraryBenchmarkTest`, instrumentada): 1.000 documentos sintéticos en un índice real. Mide:
+- **T022** (`LibraryBenchmarkTest`, instrumentada): 1.000 documentos sintéticos en un índice real. Mide:
   - la primera página y el recuento (p50 y p95);
+  - cada bloque siguiente de 50 (p95 ≤ 100 ms);
   - el recorrido completo de 1.000 filas;
   - que no se lee la tabla `chunks`: con un índice sin fragmentos y otro con 50.000, los tiempos no cambian.
-- **`T-L2`** (`DocumentDeleteBenchmarkTest`): un documento con 4.300 fragmentos sintéticos de 256D. Mide `deleteDocument`, `removeFromIndex` y `publishReindex`.
+- **T043** (`DocumentDeleteBenchmarkTest`): un documento con 4.300 fragmentos sintéticos de 256D. Mide `deleteDocument`, `removeFromIndex` y `publishReindex`.
 
 Las dos se ejecutan en el teléfono y sus cifras van al informe.

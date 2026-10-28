@@ -16,7 +16,7 @@ F08 entrega la pestaña Biblioteca (PNG 06) y el Detalle del documento (PNG 07).
   - estados B1–B8.
 
   Nunca lee la tabla de fragmentos.
-- **Detalle:** cifras reales, inclusión, y vista previa del primer fragmento o del fragmento citado, resaltado y con las frases vecinas (D-043). Acciones y estados D1–D9.
+- **Detalle:** cifras reales, inclusión, y vista previa del primer fragmento o del fragmento citado, resaltado y con las frases vecinas (D-043). Acciones y estados D1–D11.
 - **Reindexar sin huecos:** un documento sombra se indexa con la tanda de F07 y, al terminar, sustituye los fragmentos del original en una sola transacción. Mientras tanto, las respuestas usan la versión anterior (R5).
 - **Quitar del índice:** estado «Fuera del índice», guardado como el `cancelled` que el esquema ya reservaba (R4). Ni la cola de Ingesta ni las tandas lo tocan.
 - **Eliminar:** un solo camino de borrado para la Biblioteca y la Ingesta. Atómico en el índice, marca `quant_dirty` y borra la copia privada; si falla, la limpieza de huérfanos la recoge (R6).
@@ -75,7 +75,7 @@ Paging 3 se descartó (R2).
 **Scale/Scope**:
 - 2 pantallas nuevas (Biblioteca y Detalle).
 - 1 repositorio nuevo y 8 casos de uso.
-- 7 operaciones nuevas o ampliadas de `RagIndex`.
+- 8 operaciones nuevas o ampliadas de `RagIndex`.
 - 1 migración de esquema.
 - Cambios puntuales en el runner y la cola de Ingesta de F06 y F07.
 
@@ -91,7 +91,7 @@ Paging 3 se descartó (R2).
 | IV. Rendimiento | Lista paginada sin fragmentos (L1), consultas e índice ordenado (R1, R2). Borrados en el dispatcher de la base de datos. Mediciones en el teléfono (R11) | ✅ |
 | V. Veracidad del estado | Cifras del índice; «—» para lo que no existe. El chip de página solo si hay página. Ninguna mezcla de versiones al reindexar (R5). Previews con datos de ejemplo etiquetados | ✅ |
 | VI. Calidad y pruebas | Unitarias e instrumentadas de cada regla L1–L12. Migración sobre SQLite real. Reindexado con muerte del proceso en el teléfono | ✅ |
-| VII. UI fiel y accesible | PNG 06 y 07 literales. Los estados sin mockup son las propuestas B1–B8 y D1–D9, que se aprueban en la parada tras analyze. `Lisdata*`, tokens, `strings.xml` en es y en, 48 dp, TalkBack y fuente al 200 % | ✅ (B1–B8 y D1–D9 pendientes de aprobación) |
+| VII. UI fiel y accesible | PNG 06 y 07 literales. Los estados sin mockup son las propuestas B1–B8 y D1–D11, que se aprueban en la parada tras analyze. `Lisdata*`, tokens, `strings.xml` en es y en, 48 dp, TalkBack y fuente al 200 % | ✅ (B1–B8 y D1–D11 pendientes de aprobación) |
 | VIII. Proceso | Documentación en español y código en inglés. D-043 (clarify) y D-044 (plan). Parada tras analyze | ✅ |
 
 **Re-check post-diseño:** sin violaciones.
@@ -111,7 +111,7 @@ specs/008-library-detail/
 ├── quickstart.md
 ├── contracts/
 │   ├── library-api.md           # repositorio, casos de uso y reglas L1–L12; cambios en F06 y F07
-│   └── library-ui.md            # PNG 06 y 07, propuestas B1–B8 y D1–D9, accesibilidad A1–A7, navegación
+│   └── library-ui.md            # PNG 06 y 07, propuestas B1–B8 y D1–D11, accesibilidad A1–A7, navegación
 ├── checklists/requirements.md
 └── tasks.md                     # /speckit-tasks
 ```
@@ -208,7 +208,7 @@ offline/README.md                                     # reconstruir los índices
    **Si la sustitución no es atómica, se para y se consulta.**
 3. **Coste de borrar 4.300 fragmentos** (R6). Se mide pronto. Si pasa de 5 s, se informa; la UI ya muestra «Eliminando…» y no se bloquea.
 4. **Archivo compartido por la sombra.** Una sombra nunca borra la copia (L4). Lo cubren pruebas del repositorio y de la cola.
-5. **Propuestas B1–B8 y D1–D9 sin aprobar.** Las tareas de esos estados van después de la parada tras analyze.
+5. **Propuestas B1–B8 y D1–D11 sin aprobar.** Las tareas de esos estados van después de la parada tras analyze.
 6. **Documentos de prueba del teléfono.** Se borran desde la app en el recorrido (quickstart §5.6), nunca el documento del usuario.
 
 ## Complexity Tracking

@@ -9,8 +9,8 @@ interface LibraryRepository {
     /** Página de la Biblioteca; se recalcula con documentChanges y con cada consulta (R2). */
     fun page(query: LibraryQuery): Flow<LibraryResult>
 
-    /** Detalle; null cuando el documento no existe o desaparece (R8). */
-    fun detail(documentId: Long): Flow<DocumentDetail?>
+    /** Detalle; `NotFound` cuando el documento no existe o desaparece (R8). */
+    fun detail(documentId: Long): Flow<DetailResult>
 
     /** Vista previa del primer fragmento o de una cita (R7); null si el documento no está indexado. */
     suspend fun preview(documentId: Long, chunkId: Long?): DocumentPreview?
@@ -26,6 +26,12 @@ sealed interface LibraryResult {
     data class Loaded(val page: LibraryPage) : LibraryResult
     data object Unavailable : LibraryResult      // índice incompatible o ilegible (F04)
 }
+
+sealed interface DetailResult {
+    data class Loaded(val detail: DocumentDetail) : DetailResult
+    data object NotFound : DetailResult
+    data object Unavailable : DetailResult
+}
 ```
 
 **Casos de uso** (uno por acción, como F07): `ObserveLibraryUseCase`, `ObserveDocumentUseCase`, `LoadPreviewUseCase`, `SetIncludedUseCase`, `DeleteDocumentUseCase`, `RemoveFromIndexUseCase`, `ReindexDocumentUseCase` y `DiscardReindexUseCase`.
@@ -34,7 +40,7 @@ sealed interface LibraryResult {
 
 ## Reglas
 
-- **L1 — Sin fragmentos en la lista:** `page` nunca lee la tabla `chunks`. El indicador «Reindexando» sale de un `EXISTS` sobre `documents`.
+- **L1 — Sin fragmentos en la lista:** `page` nunca lee la tabla `chunks`. Los indicadores «Reindexando» y «Reindexado fallido» salen de dos `EXISTS` sobre `documents` (sombra en curso o sombra en `error`).
 - **L2 — Sin sombras visibles:** la Biblioteca, el recuento y la cola de Ingesta excluyen `replaces_id IS NOT NULL`. El Estado de indexación sí muestra la sombra, con el nombre del original.
 - **L3 — Inclusión:** `setIncluded` solo escribe si el documento es `done`; en otro estado no hace nada. Las búsquedas de F07 la respetan en la siguiente llamada.
 - **L4 — Eliminar:**
@@ -45,6 +51,7 @@ sealed interface LibraryResult {
   Si el paso 3 falla o el proceso muere, la limpieza de huérfanos la borra después (R6).
 - **L5 — Quitar del índice:** `RagIndex.removeFromIndex(id)` en una transacción (R6) y después quitar el id y el de la sombra de la tanda. Solo desde `done`.
 - **L6 — Reindexar:**
+  - si la copia privada ya no existe, no hace nada: el detalle lo muestra como D10 y solo ofrece «Eliminar» (spec, casos límite);
   - `done` sin sombra: `addReindexShadow`, añadir la sombra a la tanda, quitar la pausa y encolar (`IndexingRepository`);
   - `done` con sombra: no hace nada;
   - `error` reintentable: `IndexingRepository.retry`;
@@ -55,7 +62,7 @@ sealed interface LibraryResult {
 - **L9 — Cita:** `preview(id, chunkId)` comprueba que el fragmento es de ese documento. Si no lo es o no existe, devuelve la vista previa normal con `citedChunkMissing = true`.
 - **L10 — Fuera del hilo principal:** todo en `AppDispatchers.database` (índice) e `io` (archivos). `LibraryStrictModeTest` lo comprueba con control negativo, como F06 y F07.
 - **L11 — Logs:** solo ids, recuentos, duraciones y códigos (data-model §6). `logsCarryNoNamesOrText` en las pruebas del repositorio.
-- **L12 — Biblioteca no disponible:** con el índice incompatible, `page` emite `Unavailable` y las acciones que escriben no hacen nada (FR-023).
+- **L12 — Biblioteca no disponible:** con el índice incompatible, `page` emite `Unavailable`, `detail` emite `DetailResult.Unavailable` (distinto de «no existe») y las acciones que escriben no hacen nada (FR-023).
 
 ## Cambios en F06 y F07
 

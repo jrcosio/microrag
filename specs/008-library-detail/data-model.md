@@ -57,8 +57,10 @@ data class LibraryDocument(
     val included: Boolean,
 )
 
+enum class ReindexRow { RUNNING, FAILED }          // sombra en curso o en error
+
 sealed interface LibraryDocumentState {
-    data class Indexed(val chunks: Int, val reindexing: Boolean) : LibraryDocumentState
+    data class Indexed(val chunks: Int, val reindex: ReindexRow?) : LibraryDocumentState
     data object Pending : LibraryDocumentState
     data object Indexing : LibraryDocumentState
     data class Failed(val error: IngestError) : LibraryDocumentState
@@ -76,6 +78,7 @@ data class DocumentDetail(
     val sizeBytes: Long?,
     val importedAtMs: Long,
     val canReindex: Boolean,
+    val copyMissing: Boolean,             // la copia privada no está: solo «Eliminar» (D10)
     val reindex: ReindexState?,           // null sin sombra
 )
 
@@ -109,7 +112,7 @@ data class DocumentPreview(
 
 | Operación | Efecto | Transacción |
 |---|---|---|
-| `libraryPage(text, filter, limit)` | Documentos sin sombras, filtrados y ordenados (R2), con `reindexing` (existe una sombra) | Lectura |
+| `libraryPage(text, filter, limit)` | Documentos sin sombras, filtrados y ordenados (R2), con el estado de su sombra (en curso o en error) | Lectura |
 | `libraryCount(text, filter)` | Total con los mismos filtros | Lectura |
 | `addReindexShadow(originalId)` | Inserta la sombra (R5). Falla si ya hay una o el original no es `done` | Sí |
 | `shadowOf(originalId)` | La sombra viva, si existe | Lectura |

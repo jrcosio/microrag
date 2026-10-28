@@ -29,12 +29,12 @@ description: "Lista de tareas de F08 — Biblioteca y detalle de documento"
 
 **Commits**: atómicos, en inglés, uno por tarea o grupo lógico (constitución VIII).
 
-**UI pendiente de aprobación**: las propuestas B1–B8 y D1–D9 de contracts/library-ui.md se aprueban en la parada tras analyze. Las tareas que las implementan dan por hecha esa aprobación:
+**UI pendiente de aprobación**: las propuestas B1–B8 y D1–D11 de contracts/library-ui.md se aprueban en la parada tras analyze. Las tareas que las implementan dan por hecha esa aprobación:
 - T020: B1–B4;
 - T026: B5 y B6;
-- T034: D1–D3, D7 y D9;
-- T042: D4–D6 y D8;
-- T048: B7 y B8.
+- T034: D1–D3, D7, D9 y D11;
+- T042: D4–D6, D8 y D10;
+- T048: B7.
 
 ## Format: `[ID] [P?] [Story] Description`
 
@@ -87,7 +87,7 @@ description: "Lista de tareas de F08 — Biblioteca y detalle de documento"
 ### Tests
 
 - [ ] T007 [P] Crear `…/androidTest/…/data/rag/RagIndexLibraryTest.kt` sobre SQLite real (R2, R4, R5, R6):
-  - **`libraryPage`:** del más reciente al más antiguo; filtros ALL, INDEXED y PENDING (este con `error` y `cancelled`); búsqueda sin acentos y con `%` y `_` literales; `limit`; sin sombras; `reindexing` cierto si hay sombra;
+  - **`libraryPage`:** del más reciente al más antiguo; filtros ALL, INDEXED y PENDING (este con `error` y `cancelled`); búsqueda sin acentos y con `%` y `_` literales; `limit`; sin sombras; estado de la sombra (en curso o en error);
   - **`libraryCount`:** cuenta con los mismos filtros;
   - **`addReindexShadow`:**
     - copia nombre, tipo, tamaño y copia privada, y guarda `replaces_id` y `<hash>#reindex`;
@@ -141,7 +141,8 @@ description: "Lista de tareas de F08 — Biblioteca y detalle de documento"
   - las filas de R10;
   - «+» e «Importar documentos» llaman a abrir la Ingesta;
   - una fila abre el detalle;
-  - B1–B4.
+  - B1–B4;
+  - con `StateRestorationTester`, la búsqueda, el filtro y la posición de la lista se conservan al recrear la pantalla (FR-006, SC-002).
 
 ### Implementation for User Story 1
 
@@ -154,7 +155,7 @@ description: "Lista de tareas de F08 — Biblioteca y detalle de documento"
 
   Comprobar T017.
 - [ ] T021 [US1] En `…/microrag/core/navigation/MicroRagNavHost.kt`, `Library` pasa a `LibraryRoute`: «+» → `Ingest` y fila → `Document(id)`. Atrás → Inicio (G08). Ampliar `NavigationTest`.
-- [ ] T022 [US1] Crear `…/androidTest/…/data/library/LibraryBenchmarkTest.kt` (R11): 1.000 documentos sintéticos, primera página y recuento (p50 y p95), recorrido completo, y el mismo tiempo con 0 y con 50.000 fragmentos. Ejecutarla en el teléfono (SC-001: primera página en 1 s o menos).
+- [ ] T022 [US1] Crear `…/androidTest/…/data/library/LibraryBenchmarkTest.kt` (R11): 1.000 documentos sintéticos, primera página y recuento (p50 y p95), cada bloque siguiente de 50, recorrido completo, y el mismo tiempo con 0 y con 50.000 fragmentos. Ejecutarla en el teléfono (SC-001: primera página en 1 s o menos y cada bloque en 100 ms o menos).
 
 **Checkpoint**: la Biblioteca se usa de verdad (MVP).
 
@@ -173,7 +174,8 @@ description: "Lista de tareas de F08 — Biblioteca y detalle de documento"
 - [ ] T025 [P] [US2] Ampliar `LibraryViewModelTest` y `LibraryScreenTest`:
   - el interruptor llama al caso de uso;
   - en un no indexado está deshabilitado y TalkBack dice «Se podrá incluir cuando esté indexado» (B5);
-  - excluido (B6).
+  - excluido (B6);
+  - varias pulsaciones seguidas: se guarda la última (caso límite).
 
 ### Implementation for User Story 2
 
@@ -198,21 +200,23 @@ description: "Lista de tareas de F08 — Biblioteca y detalle de documento"
   - `preview` sin cita (ordinal 0 y su página);
   - con cita válida: fragmento resaltado y vecinos;
   - con cita de otro documento o inexistente: `citedChunkMissing` (L9);
-  - no indexado: `null`.
+  - no indexado: `null`;
+  - índice incompatible: `DetailResult.Unavailable`, distinto de `NotFound` (L12, FR-023);
+  - copia privada ausente: `copyMissing` (D10).
 - [ ] T029 [P] [US3] Crear `…/test/…/feature/document/DocumentViewModelTest.kt`: carga, `NotFound` una sola vez (R8), la inclusión, y la vista previa recargada al cambiar el documento.
 - [ ] T030 [P] [US3] Crear `…/test/…/feature/document/DocumentScreenTest.kt`:
   - el estado del PNG 07 con sus textos;
   - formatos de tamaño, fecha y «—» con su lectura;
   - chip de página solo con página;
   - resaltado leído como «Fragmento citado: …» (A3);
-  - D1–D3, D7 y D9.
+  - D1–D3, D7, D9 y D11.
 
 ### Implementation for User Story 3
 
 - [ ] T031 [US3] Crear `…/microrag/data/library/PreviewText.kt` (`BreakIterator` en español). Comprobar T027.
 - [ ] T032 [US3] Implementar en `DefaultLibraryRepository` `detail` y `preview` (R7, R10, L9). Crear `ObserveDocumentUseCase` y `LoadPreviewUseCase`. Comprobar T028.
 - [ ] T033 [US3] Crear `…/microrag/feature/document/DocumentUiState.kt`, `DocumentTexts.kt` y `DocumentViewModel.kt`, con la ruta `Document(documentId, chunkId)`. Comprobar T029.
-- [ ] T034 [US3] Crear `…/microrag/feature/document/DocumentScreen.kt`: el PNG 07 con los componentes de contracts/library-ui.md, la vista previa con `citationHighlight` y los estados D1–D3, D7 y D9. Comprobar T030.
+- [ ] T034 [US3] Crear `…/microrag/feature/document/DocumentScreen.kt`: el PNG 07 con los componentes de contracts/library-ui.md, la vista previa con `citationHighlight` y los estados D1–D3, D7, D9 y D11. Comprobar T030.
 - [ ] T035 [US3] Navegación (R8):
   - `Document` pasa a `DocumentRoute`;
   - al desaparecer el documento: atrás y resultado en el `SavedStateHandle` de la entrada anterior;
@@ -239,7 +243,7 @@ description: "Lista de tareas de F08 — Biblioteca y detalle de documento"
 - [ ] T036 [P] [US4] Ampliar `DefaultLibraryRepositoryTest`:
   - **`delete`** (L4): índice, tanda sin el documento ni su sombra, copia borrada; la sombra no borra la copia; si el borrado de la copia falla, queda para la limpieza de huérfanos;
   - **`removeFromIndex`** (L5);
-  - **`reindex`** en cada estado (L6): sombra, tanda, quitar la pausa y encolar; sin efecto con una sombra viva;
+  - **`reindex`** en cada estado (L6): sombra, tanda, quitar la pausa y encolar; sin efecto con una sombra viva ni sin la copia privada;
   - **`discardReindex`** (L8).
 - [ ] T037 [P] [US4] Ampliar `…/test/…/data/ingest/IngestRunnerTest.kt` (L7):
   - una sombra se trocea, se embebe y, al cerrarla, se llama a `publishReindex` y nunca se pasa a `DONE`;
@@ -252,14 +256,16 @@ description: "Lista de tareas de F08 — Biblioteca y detalle de documento"
 - [ ] T039 [P] [US4] Crear `…/androidTest/…/data/library/ReindexFlowTest.kt` con el runner real, `FakeTextEmbedder` y SQLite-Vector real (SC-006):
   - búsquedas en bucle durante todo el reindexado de un documento de 430 fragmentos: nunca vacías ni mezcladas;
   - al terminar, los mismos textos por ordinal;
-  - una interrupción a mitad deja el original intacto y la reanudación termina bien.
+  - una interrupción a mitad deja el original intacto y la reanudación termina bien;
+  - quitar del índice y después «Reindexar» (desde `cancelled`) deja los mismos textos, páginas y encabezados por ordinal que antes (SC-005).
 
 ### Implementation for User Story 4
 
 - [ ] T040 [US4] Implementar en `DefaultLibraryRepository` y en sus casos de uso `delete`, `removeFromIndex`, `reindex` y `discardReindex` (L4–L6, L8). Mover a `DeleteDocumentUseCase` el borrado de `DefaultImportQueueRepository.remove`. La cola excluye las sombras (L2). Comprobar T036 y T038.
 - [ ] T041 [US4] En `…/microrag/data/ingest/IngestRunner.kt`, el cierre de las sombras con `publishReindex` (L7). Comprobar T037 y T039 en el emulador.
 - [ ] T042 [US4] En `DocumentScreen` y `DocumentViewModel`:
-  - acciones y diálogos D4–D6 y D8 («Eliminando…» hasta terminar y vuelta a la Biblioteca);
+  - acciones y diálogos D4–D6, D8 y D10 («Eliminando…» hasta terminar y vuelta a la Biblioteca);
+  - en D5, la causa de la pausa de la tanda si la hay;
   - menú «⋯» → «Quitar del índice» solo en `done`;
   - «Reintentar» (D3, D6) con `IndexingRepository.retry`;
   - anuncios A7.
@@ -295,7 +301,7 @@ description: "Lista de tareas de F08 — Biblioteca y detalle de documento"
 ### Implementation for User Story 5
 
 - [ ] T047 [P] [US5] Crear `…/microrag/feature/library/LibraryPreviews.kt` y `…/microrag/feature/document/DocumentPreviews.kt`, con datos de ejemplo etiquetados (constitución V) para todos los estados, en claro y en oscuro. Comprobar T045 y T046 en el emulador.
-- [ ] T048 [US5] B7 (Reindexando en la fila) y B8 (*snackbar*) en la Biblioteca, con sus pruebas en `LibraryScreenTest`.
+- [ ] T048 [US5] B7 en la Biblioteca («Reindexando» y «Reindexado fallido» en la fila), con sus pruebas en `LibraryScreenTest`. B8 ya está en T035.
 - [ ] T049 [US5] Capturar en el teléfono, en claro y en oscuro, sin la barra de estado:
   - la Biblioteca como el PNG 06, vacía y sin resultados;
   - el detalle como el PNG 07, desde una cita, pendiente, con error, fuera del índice y reindexando.
@@ -312,15 +318,16 @@ description: "Lista de tareas de F08 — Biblioteca y detalle de documento"
 - [ ] T051 [P] Actualizar `docs/roadmap/INVENTARIO.md`:
   - **G16:** resuelto, sin filtro «Errores»;
   - **G17:** resuelto con «Fuera del índice» (D-043);
-  - **fichas P06 y P07:** estados B1–B8 y D1–D9.
+  - **fichas P06 y P07:** estados B1–B8 y D1–D11.
 - [ ] T052 Puertas de calidad:
   - pruebas Python;
   - `./gradlew :app:assembleDebug :app:assembleRelease :app:lintDebug :app:lintRelease :app:testDebugUnitTest`;
   - suite instrumentada (sin `@RequiresModels` ni `@RequiresNetwork`) en el emulador API 37, en la AVD API 33 y en el teléfono;
-  - `@RequiresModels` en el teléfono, porque el runner cambia.
+  - `@RequiresModels` en el teléfono, porque el runner cambia;
+  - `NetworkConfinementTest` en verde con los paquetes nuevos (SC-010).
 
   Todo en verde, salvo las 4 de navegación conocidas de la API 33 (F06 §7).
-- [ ] T053 Recorrido manual en el teléfono (quickstart §5), incluido **eliminar desde la app los documentos de prueba de F07 (ids 2–9)** y medir el de 4.300 fragmentos. Nunca el id 1. TalkBack, a cargo del usuario.
+- [ ] T053 Recorrido manual en el teléfono (quickstart §5), incluido **eliminar desde la app los documentos de prueba de F07 (ids 2–9)** y medir el de 4.300 fragmentos. Nunca el id 1. Revisar que los logs de la app no contienen nombres, rutas ni texto (SC-010). TalkBack, a cargo del usuario.
 - [ ] T054 Documentación de cierre:
   - `specs/008-library-detail/report.md`: resumen y puertas, validación por historia y criterio, cifras (R11 y borrados reales), diferencias frente a los PNG, desviaciones y pendientes;
   - estado de F08 en `docs/roadmap/FEATURES.md`;

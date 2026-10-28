@@ -31,7 +31,7 @@ Textos en `strings_library.xml` (es y en, D-029). Componentes `Lisdata*` de F01 
   - TalkBack añade «Se podrá incluir cuando esté indexado».
   - Con error, además, el chip `StatusKind.Error` «Error de indexación».
 - **B6 — Fila excluida:** el interruptor apagado, sin otro cambio visual (como el PNG); TalkBack dice «excluido de las respuestas».
-- **B7 — Reindexando:** el metadato termina en «· Reindexando», en `brandBlue`.
+- **B7 — Reindexando:** el metadato termina en «· Reindexando», en `brandBlue`. Si la sombra falló, el chip `StatusKind.Error` «Reindexado fallido».
 - **B8 — Documento desaparecido:** *snackbar* «Este documento ya no existe» al volver del detalle (R8).
 
 ## Detalle (`document/{documentId}?chunkId`, PNG 07)
@@ -65,7 +65,7 @@ Textos en `strings_library.xml` (es y en, D-029). Componentes `Lisdata*` de F01 
   Acciones: solo «Eliminar».
 - **D3 — Error:** chip `Error`, con la causa y la frase de la Ingesta en `LisdataInfoCard(ic_warning)`. Acciones: «Reintentar» (solo si se puede) y «Eliminar».
 - **D4 — Fuera del índice:** chip «Fuera del índice». En la vista previa, `LisdataInfoCard`: «Quitaste este documento del índice. Su archivo sigue guardado en la app.» Acciones: «Reindexar documento» y «Eliminar». El interruptor está deshabilitado.
-- **D5 — Reindexando:** bajo la rejilla, una `LisdataProgressCard` con «Reindexando · %1$s de %2$s fragmentos», el texto «Mientras tanto, las respuestas usan la versión anterior» y el enlace a `Index`. «Reindexar documento» deshabilitado con el texto «Reindexando…».
+- **D5 — Reindexando:** bajo la rejilla, una `LisdataProgressCard` con «Reindexando · %1$s de %2$s fragmentos», el texto «Mientras tanto, las respuestas usan la versión anterior» y el enlace a `Index`. Si la tanda está en pausa, se añade su causa con los textos de F07 («En pausa», «Pausa por temperatura», «Sin espacio», «Falta el modelo de embeddings»). «Reindexar documento» deshabilitado con el texto «Reindexando…».
 - **D6 — Reindexado fallido:** `LisdataInfoCard(ic_warning)`: «No se pudo reindexar: %s. Las respuestas siguen usando la versión anterior.» Acciones: «Reintentar» (si se puede) y «Descartar».
 - **D7 — Cita perdida:** sobre la vista previa normal, `LisdataInfoCard(ic_info)`: «El fragmento citado ya no está en este documento.»
 - **D8 — Diálogos:**
@@ -79,6 +79,8 @@ Textos en `strings_library.xml` (es y en, D-029). Componentes `Lisdata*` de F01 
     - título «¿Quitar del índice?»;
     - texto «Se borrarán sus fragmentos y vectores, y dejará de usarse en las respuestas. El archivo se conserva para reindexarlo cuando quieras.»;
     - botón «Quitar».
+- **D10 — Falta la copia:** `LisdataInfoCard(ic_warning)`: «No se encuentra el archivo guardado por la app, así que no se puede reindexar. Puedes eliminarlo e importarlo de nuevo.» Acciones: solo «Eliminar». Si el documento está indexado, sigue funcionando en las respuestas.
+- **D11 — Biblioteca no disponible:** la top bar y `LisdataErrorState` sin «Reintentar», con el texto de F06 P5. Sin acciones que escriban.
 - **D9 — Carga:** la top bar y un `LisdataProgressRing` indeterminado pequeño, como F07 P12.
 
 ## Accesibilidad (FR-026, FR-027)
