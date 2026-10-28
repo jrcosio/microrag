@@ -16,7 +16,10 @@ import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
 import com.lisdatasolutions.microrag.domain.rag.NewDocument
 import com.lisdatasolutions.microrag.testing.FakeDocumentSource
 import com.lisdatasolutions.microrag.testing.FakeFile
+import com.lisdatasolutions.microrag.data.library.DefaultLibraryRepository
+import com.lisdatasolutions.microrag.domain.library.DeleteDocumentUseCase
 import com.lisdatasolutions.microrag.testing.FakeIngestScheduler
+import com.lisdatasolutions.microrag.testing.FakeLibraryRepository
 import com.lisdatasolutions.microrag.testing.FakePdfOpener
 import com.lisdatasolutions.microrag.testing.FakeRagIndex
 import com.lisdatasolutions.microrag.testing.RecordingLogger
@@ -53,11 +56,15 @@ class DefaultImportQueueRepositoryTest {
         dir.deleteRecursively()
     }
 
-    private fun TestScope.repository(): DefaultImportQueueRepository {
+    private fun TestScope.repository(deleteDocument: DeleteDocumentUseCase? = null): DefaultImportQueueRepository {
         val dispatcher = UnconfinedTestDispatcher(testScheduler)
         val importer = DocumentImporter(source, files, pdf, index, { Long.MAX_VALUE / 2 }, logger)
         val indexing = DefaultIndexingRepository(index, scheduler, runStore, FakeThermalStatusSource(), dispatcher, logger)
-        return DefaultImportQueueRepository(importer, source, index, DocumentFiles(files, index, dispatcher, logger), scheduler, pdf, indexing, runStore, backgroundScope, dispatcher, logger) { 0L }
+        val documentFiles = DocumentFiles(files, index, dispatcher, logger)
+        val delete = deleteDocument ?: DeleteDocumentUseCase(DefaultLibraryRepository(index, documentFiles, runStore, indexing, dispatcher, logger) { 0L })
+        return DefaultImportQueueRepository(
+            importer, source, index, documentFiles, scheduler, pdf, indexing, runStore, delete, backgroundScope, dispatcher, logger,
+        ) { 0L }
     }
 
     private fun TestScope.collect(repository: DefaultImportQueueRepository): MutableList<ImportQueue> {
@@ -254,6 +261,54 @@ class DefaultImportQueueRepositoryTest {
         assertThat(values.last().items).isEmpty()
     }
 
+    // F08 T038 (rules L2 and L4, research R4).
+
+    private suspend fun indexedDocument(name: String): Long {
+        val id = index.addDocument(NewDocument(displayName = name, contentHash = name, mimeType = "text/plain"))
+        index.insertChunks(id, listOf(ChunkInput(0, null, null, "texto", 1, FloatArray(256))))
+        index.updateStatus(id, DocumentStatus.DONE, chunkCount = 1)
+        return id
+    }
+
+    @Test
+    fun theQueueLeavesOutShadowsAndDocumentsOutOfTheIndex() = runTest {
+        val pending = index.addDocument(NewDocument(displayName = "Pendiente.txt", contentHash = "p", mimeType = "text/plain"))
+        val reindexing = indexedDocument("Reindexando.txt")
+        val shadow = index.addReindexShadow(reindexing)
+        index.updateStatus(shadow, DocumentStatus.PARSED, chunkCount = 1)
+        val out = indexedDocument("Fuera.txt").also { index.removeFromIndex(it) }
+        val repository = repository()
+        val values = collect(repository)
+        advanceUntilIdle()
+
+        assertThat(values.last().items.map { it.key }).containsExactly(QueueKey.Document(pending))
+        assertThat(values.last().items.map { it.key }).containsNoneOf(QueueKey.Document(shadow), QueueKey.Document(out))
+        assertThat(values.last().readyCount).isEqualTo(1)
+    }
+
+    @Test
+    fun startProcessing_neverTakesADocumentOutOfTheIndex() = runTest {
+        val pending = index.addDocument(NewDocument(displayName = "Pendiente.txt", contentHash = "p", mimeType = "text/plain"))
+        val out = indexedDocument("Fuera.txt").also { index.removeFromIndex(it) }
+
+        repository().startProcessing()
+        advanceUntilIdle()
+
+        assertThat(runStore.run.value.documentIds).containsExactly(pending)
+        assertThat(scheduler.enqueued.flatten()).doesNotContain(out)
+    }
+
+    @Test
+    fun removingADocument_goesThroughTheLibrarysDelete() = runTest {
+        val library = FakeLibraryRepository()
+        val repository = repository(DeleteDocumentUseCase(library))
+
+        repository.remove(QueueKey.Document(5))
+
+        assertThat(library.calls).containsExactly("delete 5")
+        assertThat(logger.lines).contains("ingest remove id=5")
+    }
+
     @Test
     fun removingAFailedAttemptHidesIt() = runTest {
         source.add("content://1", "hoja.xlsx", byteArrayOf(1), "application/vnd.ms-excel")
@@ -324,7 +379,7 @@ class DefaultImportQueueRepositoryTest {
         val indexing = DefaultIndexingRepository(index, scheduler, runStore, FakeThermalStatusSource(), kotlinx.coroutines.Dispatchers.IO, logger)
         val repository = DefaultImportQueueRepository(
             importer, source, index, DocumentFiles(files, index, kotlinx.coroutines.Dispatchers.IO, logger), scheduler, pdf, indexing,
-            runStore, scope, kotlinx.coroutines.Dispatchers.IO, logger,
+            runStore, DeleteDocumentUseCase(FakeLibraryRepository()), scope, kotlinx.coroutines.Dispatchers.IO, logger,
         ) { 0L }
         try {
             repository.import(listOf("content://slow"))

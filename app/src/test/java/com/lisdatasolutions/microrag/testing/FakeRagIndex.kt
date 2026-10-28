@@ -56,6 +56,9 @@ class FakeRagIndex(initial: IndexCompatibility = IndexCompatibility.Compatible) 
     /** `rag_meta.quant_dirty` (D-030): set by every write that changes chunks. */
     var quantDirty = false
 
+    /** Every updateStatus call, in order: (document, status). */
+    val statusUpdates: MutableList<Pair<Long, DocumentStatus>> = java.util.Collections.synchronizedList(mutableListOf())
+
     fun setCompatibility(value: IndexCompatibility) {
         state.value = value
     }
@@ -107,6 +110,7 @@ class FakeRagIndex(initial: IndexCompatibility = IndexCompatibility.Compatible) 
 
     override suspend fun updateStatus(id: Long, status: DocumentStatus, error: String?, chunkCount: Int?, skippedPages: Int?) =
         available {
+            statusUpdates += id to status
             val doc = docs[id] ?: return@available
             docs[id] = doc.copy(
                 status = status, error = error, chunkCount = chunkCount ?: doc.chunkCount,

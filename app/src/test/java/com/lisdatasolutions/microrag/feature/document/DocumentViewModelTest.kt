@@ -21,6 +21,8 @@ import com.lisdatasolutions.microrag.domain.library.ReindexState
 import com.lisdatasolutions.microrag.domain.library.RemoveFromIndexUseCase
 import com.lisdatasolutions.microrag.domain.library.SetIncludedUseCase
 import com.lisdatasolutions.microrag.testing.FakeLibraryRepository
+import com.lisdatasolutions.microrag.domain.ingest.IngestError
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -166,6 +168,106 @@ class DocumentViewModelTest {
         assertThat(events).isEmpty()
     }
 
+    // US4 (T042)
+
+    @Test
+    fun delete_asksFirst_thenShowsDeleting_andLeavesAsDeleted_D8() = runTest(dispatcher) {
+        show(DetailResult.Loaded(detail()))
+        val gate = CompletableDeferred<Unit>()
+        repository.deleteGate = gate
+        val vm = viewModel()
+        val events = mutableListOf<DocumentEvent>()
+        backgroundScope.launch(dispatcher) { vm.events.toList(events) }
+        advanceUntilIdle()
+
+        vm.onDelete()
+        advanceUntilIdle()
+        assertThat(vm.state.value.dialog).isEqualTo(DocumentDialog.DELETE)
+        assertThat(repository.calls).isEmpty()
+        vm.onConfirmDialog()
+        advanceUntilIdle()
+
+        assertThat(vm.state.value.dialog).isNull()
+        assertThat(vm.state.value.deleting).isTrue()
+        assertThat(repository.calls).containsExactly("delete 7")
+        gate.complete(Unit)
+        advanceUntilIdle()
+        assertThat(events).containsExactly(DocumentEvent.Deleted)
+    }
+
+    @Test
+    fun aDismissedDialog_doesNothing() = runTest(dispatcher) {
+        show(DetailResult.Loaded(detail()))
+        val vm = viewModel()
+        advanceUntilIdle()
+
+        vm.onRemoveFromIndex()
+        advanceUntilIdle()
+        assertThat(vm.state.value.dialog).isEqualTo(DocumentDialog.REMOVE_FROM_INDEX)
+        vm.onDismissDialog()
+        advanceUntilIdle()
+
+        assertThat(vm.state.value.dialog).isNull()
+        assertThat(repository.calls).isEmpty()
+    }
+
+    @Test
+    fun removeFromIndex_isConfirmed_andAnnounced_A7() = runTest(dispatcher) {
+        show(DetailResult.Loaded(detail()))
+        val vm = viewModel()
+        advanceUntilIdle()
+
+        vm.onRemoveFromIndex()
+        vm.onConfirmDialog()
+        advanceUntilIdle()
+
+        assertThat(repository.calls).containsExactly("remove 7")
+        assertThat(vm.state.value.announcement).isEqualTo(DocumentAnnouncement.REMOVED_FROM_INDEX)
+    }
+
+    @Test
+    fun reindex_runsOnce_evenWithADoubleTap_andIsAnnounced() = runTest(dispatcher) {
+        show(DetailResult.Loaded(detail()))
+        val vm = viewModel()
+        advanceUntilIdle()
+
+        vm.onReindex()
+        vm.onReindex()
+        advanceUntilIdle()
+
+        assertThat(repository.calls).containsExactly("reindex 7")
+        assertThat(vm.state.value.announcement).isEqualTo(DocumentAnnouncement.REINDEXING)
+        assertThat(vm.state.value.busy).isFalse()
+    }
+
+    @Test
+    fun retry_retriesTheDocument_D3_orItsFailedReindex_D6() = runTest(dispatcher) {
+        show(DetailResult.Loaded(detail(DocumentDetailState.Failed(IngestError.EMBEDDING_FAILED), chunks = null)))
+        val vm = viewModel()
+        advanceUntilIdle()
+        vm.onRetry()
+        advanceUntilIdle()
+
+        show(DetailResult.Loaded(detail(reindex = ReindexState.Failed(9, IngestError.INCOMPLETE))))
+        advanceUntilIdle()
+        vm.onRetry()
+        advanceUntilIdle()
+
+        assertThat(retried).containsExactly(7L, 9L).inOrder()
+    }
+
+    @Test
+    fun discard_dropsTheFailedReindex_D6() = runTest(dispatcher) {
+        show(DetailResult.Loaded(detail(reindex = ReindexState.Failed(9, IngestError.INCOMPLETE))))
+        val vm = viewModel()
+        advanceUntilIdle()
+
+        vm.onDiscardReindex()
+        advanceUntilIdle()
+
+        assertThat(repository.calls).containsExactly("discard 7")
+    }
+
     @Test
     fun theSwitch_savesTheInclusion() = runTest(dispatcher) {
         repository.documents.value = emptyList()
@@ -178,5 +280,6 @@ class DocumentViewModelTest {
 
         assertThat(repository.calls).containsExactly("include 7 false")
         assertThat(vm.state.value.included).isFalse()
+        assertThat(vm.state.value.announcement).isEqualTo(DocumentAnnouncement.EXCLUDED)
     }
 }

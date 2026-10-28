@@ -61,7 +61,7 @@ class DefaultLibraryRepositoryTest {
     private fun TestScope.repository(files: DocumentFiles? = null): DefaultLibraryRepository {
         val dispatcher = UnconfinedTestDispatcher(testScheduler)
         val indexing = DefaultIndexingRepository(index, scheduler, runStore, FakeThermalStatusSource(), dispatcher, logger)
-        return DefaultLibraryRepository(index, files ?: DocumentFiles(store, index, dispatcher, logger), runStore, indexing, dispatcher, logger)
+        return DefaultLibraryRepository(index, files ?: DocumentFiles(store, index, dispatcher, logger), runStore, indexing, dispatcher, logger) { 0L }
     }
 
     /** A document with its private copy in the store, unless [copy] is false. */
@@ -398,6 +398,209 @@ class DefaultLibraryRepositoryTest {
         assertThat(repository().preview(9_999, null)).isNull()
         index.setCompatibility(IndexCompatibility.Unreadable("read"))
         assertThat(repository().preview(done, null)).isNull()
+    }
+
+    // US4 (T036)
+
+    @Test
+    fun delete_removesTheDocumentItsShadowItsRunEntriesAndItsCopy_L4() = runTest {
+        val id = doc("Manual.pdf", chunks = 3)
+        val shadow = index.addReindexShadow(id)
+        val other = doc("Otro.pdf", DocumentStatus.PENDING)
+        runStore.edit { it.adding(listOf(id, shadow, other)) }
+        val copy = copyOf(id)
+
+        repository().delete(id)
+
+        assertThat(index.docs.keys).containsExactly(other)
+        assertThat(index.chunks).doesNotContainKey(id)
+        assertThat(index.quantDirty).isTrue()
+        assertThat(runStore.run.first().documentIds).containsExactly(other)
+        assertThat(copy.exists()).isFalse()
+        assertThat(copyOf(other).exists()).isTrue()
+        assertThat(logger.lines.any { it.startsWith("library delete id=$id chunks=3 in ") }).isTrue()
+    }
+
+    @Test
+    fun delete_ofAShadow_neverDeletesTheCopyItShares() = runTest {
+        val id = doc("Manual.pdf", chunks = 1)
+        val shadow = index.addReindexShadow(id)
+
+        repository().delete(shadow)
+
+        assertThat(index.docs.keys).containsExactly(id)
+        assertThat(copyOf(id).exists()).isTrue()
+    }
+
+    @Test
+    fun delete_whenTheCopyCannotBeDeleted_leavesItForTheOrphanCleanup() = runTest {
+        val id = doc("Manual.pdf", chunks = 1)
+        val copy = copyOf(id)
+        dir.setWritable(false)
+
+        repository().delete(id)
+
+        assertThat(index.docs).doesNotContainKey(id)
+        assertThat(copy.exists()).isTrue()
+        dir.setWritable(true)
+        // The next process cleans it up.
+        DocumentFiles(store, index, UnconfinedTestDispatcher(testScheduler), logger).cleanOrphansOnce()
+        assertThat(copy.exists()).isFalse()
+    }
+
+    @Test
+    fun removeFromIndex_keepsTheDocumentAndItsCopyOutOfTheIndexAndTheRun_L5() = runTest {
+        val id = doc("Manual.pdf", chunks = 4)
+        index.setIncluded(id, false)
+        val shadow = index.addReindexShadow(id)
+        runStore.edit { it.adding(listOf(id, shadow)) }
+
+        repository().removeFromIndex(id)
+
+        val removed = index.docs.getValue(id)
+        assertThat(removed.status).isEqualTo(DocumentStatus.OUT_OF_INDEX)
+        assertThat(removed.included).isFalse()
+        assertThat(index.chunks).doesNotContainKey(id)
+        assertThat(index.docs).doesNotContainKey(shadow)
+        assertThat(runStore.run.first().documentIds).isEmpty()
+        assertThat(copyOf(id).exists()).isTrue()
+        assertThat(logger.lines.any { it.startsWith("library out-of-index id=$id chunks=4 in ") }).isTrue()
+    }
+
+    @Test
+    fun removeFromIndex_ofADocumentNotIndexed_doesNothing() = runTest {
+        val pending = doc("Pendiente.pdf", DocumentStatus.PENDING)
+        runStore.edit { it.adding(listOf(pending)) }
+
+        repository().removeFromIndex(pending)
+
+        assertThat(index.docs.getValue(pending).status).isEqualTo(DocumentStatus.PENDING)
+        assertThat(runStore.run.first().documentIds).containsExactly(pending)
+    }
+
+    @Test
+    fun reindex_ofAnIndexedDocument_addsAShadowToTheRunAndEnqueuesIt_L6() = runTest {
+        val id = doc("Manual.pdf", chunks = 2)
+        val waiting = doc("Sin enviar.pdf", DocumentStatus.PENDING)
+        runStore.edit { it.pausedBy(RunPauseCause.USER) }
+
+        repository().reindex(id)
+
+        val shadow = index.shadowOf(id)!!
+        assertThat(shadow.status).isEqualTo(DocumentStatus.PENDING)
+        val run = runStore.run.first()
+        assertThat(run.documentIds).containsExactly(shadow.id)
+        assertThat(run.pauseCause).isNull()
+        assertThat(scheduler.enqueued).containsExactly(listOf(shadow.id))
+        assertThat(run.documentIds).doesNotContain(waiting)
+        assertThat(logger.lines).contains("library reindex id=$id shadow=${shadow.id}")
+        // The original keeps answering meanwhile.
+        assertThat(index.docs.getValue(id).status).isEqualTo(DocumentStatus.DONE)
+        assertThat(index.chunks.getValue(id)).hasSize(2)
+
+        // A second tap with a live shadow does nothing.
+        repository().reindex(id)
+        assertThat(index.docs.values.count { it.replacesId == id }).isEqualTo(1)
+    }
+
+    @Test
+    fun reindex_ofADocumentOutOfTheIndex_putsItBackInTheRun_L6() = runTest {
+        val id = doc("Manual.pdf", chunks = 2).also { index.removeFromIndex(it) }
+        val waiting = doc("Sin enviar.pdf", DocumentStatus.PENDING)
+
+        repository().reindex(id)
+
+        assertThat(index.docs.getValue(id).status).isEqualTo(DocumentStatus.PENDING)
+        assertThat(runStore.run.first().documentIds).containsExactly(id)
+        assertThat(scheduler.enqueued).containsExactly(listOf(id))
+        assertThat(runStore.run.first().documentIds).doesNotContain(waiting)
+    }
+
+    @Test
+    fun reindex_retriesARetryableFailure_andDoesNothingInOtherStates_L6() = runTest {
+        val retryable = doc("Reintentable.pdf", DocumentStatus.ERROR, error = IngestError.EMBEDDING_FAILED)
+        val final = doc("Escaneado.pdf", DocumentStatus.ERROR, error = IngestError.NO_TEXT)
+        val pending = doc("Pendiente.pdf", DocumentStatus.PENDING)
+        val embedding = doc("A medias.pdf", DocumentStatus.EMBEDDING, chunks = 1)
+        val repository = repository()
+
+        listOf(retryable, final, pending, embedding).forEach { repository.reindex(it) }
+
+        assertThat(index.docs.getValue(retryable).status).isEqualTo(DocumentStatus.PENDING)
+        assertThat(index.docs.getValue(final).status).isEqualTo(DocumentStatus.ERROR)
+        assertThat(index.docs.getValue(pending).status).isEqualTo(DocumentStatus.PENDING)
+        assertThat(index.docs.getValue(embedding).status).isEqualTo(DocumentStatus.EMBEDDING)
+        assertThat(scheduler.enqueued.flatten()).containsExactly(retryable)
+        assertThat(index.docs.values.none { it.replacesId != null }).isTrue()
+    }
+
+    @Test
+    fun reindex_withoutThePrivateCopy_doesNothing_D10() = runTest {
+        val indexed = doc("Sin copia.pdf", chunks = 1, copy = false)
+        val out = doc("Fuera sin copia.pdf", chunks = 1, copy = false).also { index.removeFromIndex(it) }
+
+        repository().reindex(indexed)
+        repository().reindex(out)
+
+        assertThat(index.shadowOf(indexed)).isNull()
+        assertThat(index.docs.getValue(out).status).isEqualTo(DocumentStatus.OUT_OF_INDEX)
+        assertThat(runStore.run.first().documentIds).isEmpty()
+    }
+
+    @Test
+    fun discardReindex_dropsOnlyAFailedShadow_L8() = runTest {
+        val id = doc("Manual.pdf", chunks = 2)
+        val shadow = index.addReindexShadow(id)
+        index.insertChunks(shadow, listOf(chunkInput(0)))
+        index.updateStatus(shadow, DocumentStatus.ERROR, error = IngestError.EMBEDDING_FAILED.code)
+        runStore.edit { it.adding(listOf(shadow)) }
+        val running = doc("Otro.pdf", chunks = 1)
+        val runningShadow = index.addReindexShadow(running)
+
+        repository().discardReindex(id)
+        repository().discardReindex(running)
+
+        assertThat(index.docs).doesNotContainKey(shadow)
+        assertThat(index.chunks).doesNotContainKey(shadow)
+        assertThat(index.docs.getValue(id).status).isEqualTo(DocumentStatus.DONE)
+        assertThat(index.chunks.getValue(id)).hasSize(2)
+        assertThat(copyOf(id).exists()).isTrue()
+        assertThat(runStore.run.first().documentIds).isEmpty()
+        assertThat(index.docs).containsKey(runningShadow)
+    }
+
+    @Test
+    fun actions_withAnUnavailableIndex_doNothing_L12() = runTest {
+        val id = doc("Manual.pdf", chunks = 2)
+        val repository = repository()
+        index.setCompatibility(IndexCompatibility.Unreadable("read"))
+
+        repository.delete(id)
+        repository.removeFromIndex(id)
+        repository.reindex(id)
+        repository.discardReindex(id)
+
+        index.setCompatibility(IndexCompatibility.Compatible)
+        assertThat(index.docs.getValue(id).status).isEqualTo(DocumentStatus.DONE)
+        assertThat(index.shadowOf(id)).isNull()
+        assertThat(copyOf(id).exists()).isTrue()
+    }
+
+    @Test
+    fun actions_logNoNames() = runTest {
+        val a = doc("Contrato confidencial A.pdf", chunks = 1)
+        val b = doc("Contrato confidencial B.pdf", chunks = 1)
+        val repository = repository()
+
+        repository.setIncluded(a, false)
+        repository.reindex(a)
+        repository.removeFromIndex(b)
+        repository.reindex(b)
+        repository.delete(a)
+
+        val log = logger.lines.joinToString("\n")
+        assertThat(log).doesNotContain("onfidencial")
+        assertThat(log).doesNotContain(dir.path)
     }
 
     @Test

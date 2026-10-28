@@ -259,7 +259,7 @@ class IngestRunner(
             close(id, produced, cuts, started, embedder.backend, storedElsewhere to runTotal)
         }
 
-        /** Rule N1: done only with exactly the chunking's chunks, ordinals 0..n-1. */
+        /** Rule N1: done only with exactly the chunking's chunks, ordinals 0..n-1; a shadow is published instead (F08). */
         private suspend fun close(id: Long, produced: Int, cuts: Int, started: Long, backend: ComputeBackend, run: Pair<Int, Int?>) {
             progress.now(
                 IngestProgress(
@@ -267,13 +267,23 @@ class IngestRunner(
                     runChunksDone = run.first + produced, runChunksTotal = run.second,
                 ),
             )
-            if (index.document(id)?.status != DocumentStatus.EMBEDDING) return
+            val document = index.document(id)?.takeIf { it.status == DocumentStatus.EMBEDDING } ?: return
             val stored = index.storedChunkCounts(listOf(id)).getValue(id)
-            if (produced > 0 && stored == produced) {
-                index.updateStatus(id, DocumentStatus.DONE, chunkCount = produced)
-                logger.i(TAG) { "ingest done id=$id chunks=$produced cuts=$cuts backend=$backend in ${clock() - started} ms" }
-            } else {
-                fail(id, IngestError.INCOMPLETE)
+            when {
+                produced == 0 || stored != produced -> fail(id, IngestError.INCOMPLETE)
+                // F08 rule L7: a reindex shadow replaces its original's chunks, never becomes a document of its own.
+                document.replacesId != null -> {
+                    val published = index.publishReindex(id)
+                    if (published == null) {
+                        logger.i(TAG) { "ingest reindex gone id=$id" }
+                    } else {
+                        logger.i(TAG) { "ingest reindex published id=$id original=${document.replacesId} chunks=$published in ${clock() - started} ms" }
+                    }
+                }
+                else -> {
+                    index.updateStatus(id, DocumentStatus.DONE, chunkCount = produced)
+                    logger.i(TAG) { "ingest done id=$id chunks=$produced cuts=$cuts backend=$backend in ${clock() - started} ms" }
+                }
             }
         }
 

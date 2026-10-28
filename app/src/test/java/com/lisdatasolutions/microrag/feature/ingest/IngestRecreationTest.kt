@@ -8,6 +8,8 @@ import com.lisdatasolutions.microrag.data.ingest.DefaultImportQueueRepository
 import com.lisdatasolutions.microrag.data.ingest.DocumentFileStore
 import com.lisdatasolutions.microrag.data.ingest.DocumentFiles
 import com.lisdatasolutions.microrag.data.ingest.DocumentImporter
+import com.lisdatasolutions.microrag.data.library.DefaultLibraryRepository
+import com.lisdatasolutions.microrag.domain.library.DeleteDocumentUseCase
 import com.lisdatasolutions.microrag.domain.ingest.ImportDocumentsUseCase
 import com.lisdatasolutions.microrag.domain.ingest.IngestError
 import com.lisdatasolutions.microrag.domain.ingest.ObserveImportQueueUseCase
@@ -63,10 +65,12 @@ class IngestRecreationTest {
         val logger = RecordingLogger()
         val scheduler = FakeIngestScheduler()
         val runs = InMemoryIngestRunStore()
+        val documentFiles = DocumentFiles(files, index, dispatcher, logger)
+        val indexing = DefaultIndexingRepository(index, scheduler, runs, FakeThermalStatusSource(), dispatcher, logger)
         val repository = DefaultImportQueueRepository(
             DocumentImporter(source, files, pdf, index, { Long.MAX_VALUE / 2 }, logger),
-            source, index, DocumentFiles(files, index, dispatcher, logger), scheduler, pdf,
-            DefaultIndexingRepository(index, scheduler, runs, FakeThermalStatusSource(), dispatcher, logger), runs,
+            source, index, documentFiles, scheduler, pdf, indexing, runs,
+            DeleteDocumentUseCase(DefaultLibraryRepository(index, documentFiles, runs, indexing, dispatcher, logger) { 0L }),
             backgroundScope, dispatcher, logger,
         ) { 0L }
         fun viewModel() = IngestViewModel(

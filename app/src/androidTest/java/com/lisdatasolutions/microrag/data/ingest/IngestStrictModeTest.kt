@@ -11,8 +11,10 @@ import com.lisdatasolutions.microrag.data.indexing.DefaultIndexingRepository
 import com.lisdatasolutions.microrag.data.indexing.FakeEmbeddingSessions
 import com.lisdatasolutions.microrag.data.indexing.FakeThermalStatusSource
 import com.lisdatasolutions.microrag.data.indexing.InMemoryIngestRunStore
+import com.lisdatasolutions.microrag.data.library.DefaultLibraryRepository
 import com.lisdatasolutions.microrag.domain.ingest.IngestProgress
 import com.lisdatasolutions.microrag.domain.ingest.QueueItemState
+import com.lisdatasolutions.microrag.domain.library.DeleteDocumentUseCase
 import com.lisdatasolutions.microrag.rag.ingest.DocumentExtractor
 import com.lisdatasolutions.microrag.testing.CapturingLogger
 import com.lisdatasolutions.microrag.testing.TempRagIndex
@@ -99,9 +101,11 @@ class IngestStrictModeTest {
             }
             val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
             val runs = InMemoryIngestRunStore()
+            val documentFiles = DocumentFiles(files, temp.index, Dispatchers.IO, logger)
+            val indexing = DefaultIndexingRepository(temp.index, scheduler, runs, FakeThermalStatusSource(), Dispatchers.IO, logger)
             val repository = DefaultImportQueueRepository(
-                importer, source, temp.index, DocumentFiles(files, temp.index, Dispatchers.IO, logger), scheduler, pdf,
-                DefaultIndexingRepository(temp.index, scheduler, runs, FakeThermalStatusSource(), Dispatchers.IO, logger), runs,
+                importer, source, temp.index, documentFiles, scheduler, pdf, indexing, runs,
+                DeleteDocumentUseCase(DefaultLibraryRepository(temp.index, documentFiles, runs, indexing, Dispatchers.IO, logger)),
                 scope, Dispatchers.IO, logger,
             )
             val runner = IngestRunner(temp.index, DocumentExtractor(pdf), FakeEmbeddingSessions.withoutModel(), InMemoryIngestRunStore(), FakeThermalStatusSource(), { Long.MAX_VALUE }, Dispatchers.IO, logger)

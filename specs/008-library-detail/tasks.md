@@ -240,20 +240,20 @@ description: "Lista de tareas de F08 — Biblioteca y detalle de documento"
 
 ### Tests for User Story 4
 
-- [ ] T036 [P] [US4] Ampliar `DefaultLibraryRepositoryTest`:
+- [X] T036 [P] [US4] Ampliar `DefaultLibraryRepositoryTest`:
   - **`delete`** (L4): índice, tanda sin el documento ni su sombra, copia borrada; la sombra no borra la copia; si el borrado de la copia falla, queda para la limpieza de huérfanos;
   - **`removeFromIndex`** (L5);
   - **`reindex`** en cada estado (L6): sombra, tanda, quitar la pausa y encolar; sin efecto con una sombra viva ni sin la copia privada;
   - **`discardReindex`** (L8).
-- [ ] T037 [P] [US4] Ampliar `…/test/…/data/ingest/IngestRunnerTest.kt` (L7):
+- [X] T037 [P] [US4] Ampliar `…/test/…/data/ingest/IngestRunnerTest.kt` (L7):
   - una sombra se trocea, se embebe y, al cerrarla, se llama a `publishReindex` y nunca se pasa a `DONE`;
   - si el original desaparece a mitad, la sombra se trata como desaparecida;
   - la reanudación tras una interrupción funciona sobre la sombra.
-- [ ] T038 [P] [US4] Ampliar `…/test/…/data/ingest/DefaultImportQueueRepositoryTest.kt`:
+- [X] T038 [P] [US4] Ampliar `…/test/…/data/ingest/DefaultImportQueueRepositoryTest.kt`:
   - la cola excluye sombras y documentos `cancelled`;
   - `remove` de un documento usa `DeleteDocumentUseCase`;
   - «Iniciar indexación» no toma los `cancelled`.
-- [ ] T039 [P] [US4] Crear `…/androidTest/…/data/library/ReindexFlowTest.kt` con el runner real, `FakeTextEmbedder` y SQLite-Vector real (SC-006):
+- [X] T039 [P] [US4] Crear `…/androidTest/…/data/library/ReindexFlowTest.kt` con el runner real, `FakeTextEmbedder` y SQLite-Vector real (SC-006):
   - búsquedas en bucle durante todo el reindexado de un documento de 430 fragmentos: nunca vacías ni mezcladas;
   - al terminar, los mismos textos por ordinal;
   - una interrupción a mitad deja el original intacto y la reanudación termina bien;
@@ -261,9 +261,9 @@ description: "Lista de tareas de F08 — Biblioteca y detalle de documento"
 
 ### Implementation for User Story 4
 
-- [ ] T040 [US4] Implementar en `DefaultLibraryRepository` y en sus casos de uso `delete`, `removeFromIndex`, `reindex` y `discardReindex` (L4–L6, L8). Mover a `DeleteDocumentUseCase` el borrado de `DefaultImportQueueRepository.remove`. La cola excluye las sombras (L2). Comprobar T036 y T038.
-- [ ] T041 [US4] En `…/microrag/data/ingest/IngestRunner.kt`, el cierre de las sombras con `publishReindex` (L7). Comprobar T037 y T039 en el emulador.
-- [ ] T042 [US4] En `DocumentScreen` y `DocumentViewModel`:
+- [X] T040 [US4] Implementar en `DefaultLibraryRepository` y en sus casos de uso `delete`, `removeFromIndex`, `reindex` y `discardReindex` (L4–L6, L8). Mover a `DeleteDocumentUseCase` el borrado de `DefaultImportQueueRepository.remove`. La cola excluye las sombras (L2). Comprobar T036 y T038.
+- [X] T041 [US4] En `…/microrag/data/ingest/IngestRunner.kt`, el cierre de las sombras con `publishReindex` (L7). Comprobar T037 y T039 en el emulador.
+- [X] T042 [US4] En `DocumentScreen` y `DocumentViewModel`:
   - acciones y diálogos D4–D6, D8 y D10 («Eliminando…» hasta terminar y vuelta a la Biblioteca);
   - en D5, la causa de la pausa de la tanda si la hay;
   - menú «⋯» → «Quitar del índice» solo en `done`;

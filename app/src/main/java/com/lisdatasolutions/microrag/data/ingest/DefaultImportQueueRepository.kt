@@ -13,6 +13,7 @@ import com.lisdatasolutions.microrag.domain.ingest.IngestProgress
 import com.lisdatasolutions.microrag.domain.ingest.QueueItem
 import com.lisdatasolutions.microrag.domain.ingest.QueueItemState
 import com.lisdatasolutions.microrag.domain.ingest.QueueKey
+import com.lisdatasolutions.microrag.domain.library.DeleteDocumentUseCase
 import com.lisdatasolutions.microrag.domain.rag.DocumentStatus
 import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
 import com.lisdatasolutions.microrag.domain.rag.RagIndex
@@ -56,6 +57,8 @@ class DefaultImportQueueRepository(
     /** F07: starting, retrying and removing documents go through the indexing run. */
     private val indexing: IndexingRepository,
     private val runStore: IngestRunStore,
+    /** F08 rule L4: «Quitar de la cola» deletes as the Library does, through the one delete path. */
+    private val deleteDocument: DeleteDocumentUseCase,
     private val scope: CoroutineScope,
     private val io: CoroutineDispatcher,
     private val logger: AppLogger,
@@ -90,7 +93,8 @@ class DefaultImportQueueRepository(
         if (available) files.cleanOrphansOnce()
         val documents = if (available) {
             index.documentChanges.map { version ->
-                val documents = index.documents(QUEUE_STATUSES)
+                // F08 rule L2: reindex shadows belong to the Library's documents, not to the queue.
+                val documents = index.documents(QUEUE_STATUSES).filter { it.replacesId == null }
                 val embedding = documents.filter { it.status == DocumentStatus.EMBEDDING || it.status == DocumentStatus.PARSED }
                 Loaded(documents, version, if (embedding.isEmpty()) emptyMap() else index.storedChunkCounts(embedding.map { it.id }))
             }
@@ -152,10 +156,7 @@ class DefaultImportQueueRepository(
                 running?.takeIf { it.first == key.id }?.second?.cancel()
             }
             is QueueKey.Document -> {
-                val document = index.document(key.id) ?: return
-                index.deleteDocument(key.id)
-                runStore.edit { it.without(listOf(key.id)) }
-                files.delete(document.localPath)
+                deleteDocument(key.id)
                 logger.i(TAG) { "ingest remove id=${key.id}" }
             }
         }
@@ -281,7 +282,7 @@ class DefaultImportQueueRepository(
         const val TAG = "MicroRAG"
         const val DEFAULT_NAME = "documento"
         const val PROGRESS_INTERVAL_MS = 150L
-        /** Every non-indexed document (D-037); done ones belong to the library (F08). */
+        /** Every non-indexed document (D-037); done ones belong to the library and out-of-index ones stay there (F08). */
         val QUEUE_STATUSES = setOf(DocumentStatus.PENDING, DocumentStatus.PARSED, DocumentStatus.EMBEDDING, DocumentStatus.ERROR)
     }
 }

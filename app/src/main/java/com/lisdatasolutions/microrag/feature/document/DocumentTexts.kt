@@ -8,8 +8,11 @@ import androidx.compose.ui.res.stringResource
 import com.lisdatasolutions.microrag.R
 import com.lisdatasolutions.microrag.core.designsystem.model.StatusKind
 import com.lisdatasolutions.microrag.domain.indexing.PauseReason
+import com.lisdatasolutions.microrag.domain.ingest.DocumentFormat
+import com.lisdatasolutions.microrag.domain.ingest.IngestError
 import com.lisdatasolutions.microrag.domain.library.DocumentDetail
 import com.lisdatasolutions.microrag.domain.library.DocumentDetailState
+import com.lisdatasolutions.microrag.feature.ingest.detailText
 import com.lisdatasolutions.microrag.feature.library.grouped
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -56,6 +59,16 @@ fun importedText(epochMs: Long): String {
 /** «120 de 430 fragmentos». */
 @Composable
 fun chunksProgress(done: Int, total: Int): String = stringResource(R.string.document_indexing_progress, done.grouped(), total.grouped())
+
+/**
+ * D6: the cause inside «No se pudo reindexar: %s.»: the first sentence of the Ingest's explanation,
+ * without its period and in lower case («falló el cálculo de los vectores»).
+ */
+@Composable
+fun IngestError.causeText(format: DocumentFormat?): String {
+    val locale = LocalConfiguration.current.locales[0]
+    return detailText(format).substringBefore(". ").removeSuffix(".").replaceFirstChar { it.lowercase(locale) }
+}
 
 /** D5: why the run is not advancing, with the texts of F07. */
 @Composable

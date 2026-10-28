@@ -489,6 +489,65 @@ class IngestRunnerTest {
         assertThat(sessions.opened).isEqualTo(0)
     }
 
+    // F08 T037 (rule L7): a reindex shadow is indexed like any document, then published over its original.
+
+    /** An indexed document with [old] chunks of an earlier version, and its reindex shadow. */
+    private suspend fun indexedWithShadow(name: String, text: String, old: Int = 3): Pair<Long, Long> {
+        val id = document(name, "text/plain", text.toByteArray())
+        index.insertChunks(id, (0 until old).map { ChunkInput(it, null, null, "versión vieja $it", 1, FakeTextEmbedder.vectorOf("vieja $it")) })
+        index.updateStatus(id, DocumentStatus.DONE, chunkCount = old)
+        return id to index.addReindexShadow(id)
+    }
+
+    @Test
+    fun aShadow_isIndexedAndPublishedOverItsOriginal_neverLeftDone() = runBlocking<Unit> {
+        val text = paragraphs(LONG)
+        val expected = chunksOf(text)
+        val (original, shadow) = indexedWithShadow("manual.txt", text)
+
+        indexingRunner().process(listOf(shadow)) { }
+
+        assertThat(index.docs).doesNotContainKey(shadow)
+        assertThat(index.statusUpdates).doesNotContain(shadow to DocumentStatus.DONE)
+        val published = index.docs.getValue(original)
+        assertThat(published.status).isEqualTo(DocumentStatus.DONE)
+        assertThat(published.chunkCount).isEqualTo(expected.size)
+        assertThat(index.chunks.getValue(original).values.map { it.content }).isEqualTo(expected.map { it.content })
+        assertThat(index.quantDirty).isTrue()
+        assertThat(logger.lines.any { it.startsWith("ingest reindex published id=$shadow original=$original chunks=${expected.size} in ") }).isTrue()
+        assertThat(runStore.run.first().documentIds).isEmpty()
+    }
+
+    @Test
+    fun aShadowWhoseOriginalIsDeletedMidway_isGone_andTheRunGoesOn() = runBlocking<Unit> {
+        val (original, shadow) = indexedWithShadow("manual.txt", paragraphs(LONG, "a"))
+        val next = document("b.txt", "text/plain", paragraphs(10, "b").toByteArray())
+        var calls = 0
+        embedder.beforeEmbedding = { if (++calls == 70) runBlocking { index.deleteDocument(original) } }
+
+        indexingRunner().process(listOf(shadow, next)) { }
+
+        assertThat(index.docs).doesNotContainKey(original)
+        assertThat(index.docs).doesNotContainKey(shadow)
+        assertThat(index.chunks).doesNotContainKey(shadow)
+        assertThat(index.docs.getValue(next).status).isEqualTo(DocumentStatus.DONE)
+    }
+
+    @Test
+    fun aShadowResumes_whereItStopped() = runBlocking<Unit> {
+        val text = paragraphs(LONG)
+        val expected = chunksOf(text)
+        val (original, shadow) = indexedWithShadow("manual.txt", text)
+        index.updateStatus(shadow, DocumentStatus.EMBEDDING, chunkCount = expected.size)
+        index.insertChunks(shadow, expected.take(130).map { it.toStored() })
+
+        indexingRunner().process(listOf(shadow)) { }
+
+        assertThat(embedder.embedded).hasSize(expected.size - 130)
+        assertThat(index.docs).doesNotContainKey(shadow)
+        assertThat(index.chunks.getValue(original)).hasSize(expected.size)
+    }
+
     private fun Chunk.toStored() = ChunkInput(
         ordinal = ordinal, headingPath = headingPath.ifBlank { null }, page = page, content = content,
         tokenEstimate = 1, embedding = FakeTextEmbedder.vectorOf(content),

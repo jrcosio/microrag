@@ -151,6 +151,7 @@ val dataModule = module {
             pdf = get(),
             indexing = get(),
             runStore = get(),
+            deleteDocument = get(),
             scope = get<ApplicationScope>().scope,
             io = get<AppDispatchers>().io,
             logger = get(),

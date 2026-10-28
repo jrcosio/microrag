@@ -1,13 +1,17 @@
 package com.lisdatasolutions.microrag.feature.document
 
 import android.app.Application
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.filterToOne
+import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isDialog
 import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -165,6 +169,109 @@ class DocumentScreenTest {
         exists("Detalle del documento")
         compose.onNode(SemanticsMatcher.expectValue(SemanticsProperties.ProgressBarRangeInfo, ProgressBarRangeInfo.Indeterminate)).assertExists()
         absent("Eliminar")
+    }
+
+    // US4 (T042)
+
+    @Test
+    fun outOfIndex_offersReindexAndDelete_withTheSwitchDisabled_D4() {
+        show(DocumentPreviewData.outOfIndex)
+
+        exists("Fuera del índice")
+        compose.onNode(isToggleable()).assertIsNotEnabled()
+        compose.onNodeWithContentDescription("Más opciones").assertDoesNotExist()
+        scrollTo("Eliminar")
+        exists("Quitaste este documento del índice.")
+        exists("Su archivo sigue guardado en la app.")
+        click("Reindexar documento")
+        assertThat(calls).containsExactly("reindex")
+    }
+
+    @Test
+    fun reindexing_showsItsProgress_thePreviousVersionAndThePause_D5() {
+        show(DocumentPreviewData.reindexingPaused)
+
+        scrollTo("Ver estado de la indexación")
+        exists("Reindexando · 320 de 860 fragmentos")
+        exists("Mientras tanto, las respuestas usan la versión anterior.")
+        exists("Pausa por temperatura")
+        scrollTo("Reindexando…")
+        compose.onNodeWithText("Reindexando…").assertIsNotEnabled()
+        absent("Reindexar documento")
+    }
+
+    @Test
+    fun aFailedReindex_offersRetryAndDiscard_D6() {
+        show(DocumentPreviewData.reindexFailed)
+
+        scrollTo("Descartar")
+        exists("No se pudo reindexar: falló el cálculo de los vectores.")
+        exists("Las respuestas siguen usando la versión anterior.")
+        click("Reintentar")
+        click("Descartar")
+        assertThat(calls).containsExactly("retry", "discard").inOrder()
+        absent("Reindexar documento")
+    }
+
+    @Test
+    fun theDeleteDialog_explainsTheConsequences_D8() {
+        show(DocumentPreviewData.deleteDialog)
+
+        exists("¿Eliminar «Manual de procesos.pdf»?")
+        exists("Se borrarán la copia guardada por la app, su texto, sus fragmentos y vectores, y sus datos. El archivo original de tu teléfono no cambia.")
+        exists("Cancelar")
+        compose.onAllNodes(hasText("Eliminar")).filterToOne(hasAnyAncestor(isDialog())).performClick()
+        assertThat(calls).containsExactly("confirm")
+    }
+
+    @Test
+    fun theRemoveDialog_explainsTheConsequences_D8() {
+        show(DocumentPreviewData.removeDialog)
+
+        exists("¿Quitar del índice?")
+        exists("Se borrarán sus fragmentos y vectores, y dejará de usarse en las respuestas. El archivo se conserva para reindexarlo cuando quieras.")
+        compose.onNodeWithText("Cancelar").performClick()
+        assertThat(calls).containsExactly("dismiss")
+    }
+
+    @Test
+    fun theMoreMenu_offersRemoveFromIndex() {
+        show(DocumentPreviewData.png)
+
+        compose.onNodeWithContentDescription("Más opciones").performClick()
+        compose.onNodeWithText("Quitar del índice").performClick()
+
+        assertThat(calls).containsExactly("remove")
+    }
+
+    @Test
+    fun deleting_showsItUntilItEnds_D8() {
+        show(DocumentPreviewData.deleting)
+
+        scrollTo("Eliminando…")
+        compose.onNodeWithText("Eliminando…").assertIsNotEnabled()
+        compose.onNodeWithText("Reindexar documento").assertIsNotEnabled()
+    }
+
+    @Test
+    fun aMissingCopy_onlyOffersDelete_D10() {
+        show(DocumentPreviewData.copyMissing)
+
+        scrollTo("Eliminar")
+        exists("No se encuentra el archivo guardado por la app, así que no se puede reindexar.")
+        exists("Puedes eliminarlo e importarlo de nuevo.")
+        absent("Reindexar documento")
+        exists("Este manual describe los procesos internos de la empresa.")
+    }
+
+    @Test
+    fun changesAreAnnouncedPolitely_A7() {
+        show(DocumentPreviewData.png.copy(announcement = DocumentAnnouncement.REMOVED_FROM_INDEX))
+
+        compose.onNode(
+            SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, "Quitado del índice") and
+                SemanticsMatcher.expectValue(SemanticsProperties.LiveRegion, LiveRegionMode.Polite),
+        ).assertExists()
     }
 
     @Test

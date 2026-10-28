@@ -287,7 +287,7 @@ private fun Reindex(detail: DocumentDetail, actions: DocumentActions) {
         is ReindexState.Failed -> Column(verticalArrangement = Arrangement.spacedBy(LisdataTheme.spacing.space2)) {
             LisdataInfoCard(
                 icon = LisdataIcons.Warning,
-                title = stringResource(R.string.document_reindex_failed_title, reindex.error.chipText()),
+                title = stringResource(R.string.document_reindex_failed_title, reindex.error.causeText(detail.format)),
                 body = stringResource(R.string.document_reindex_failed_body),
                 modifier = Modifier.fillMaxWidth(),
             )
