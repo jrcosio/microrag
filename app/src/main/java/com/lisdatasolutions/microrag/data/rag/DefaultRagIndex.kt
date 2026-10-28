@@ -5,6 +5,7 @@ import com.lisdatasolutions.microrag.core.logging.AppLogger
 import com.lisdatasolutions.microrag.domain.rag.ChunkInput
 import com.lisdatasolutions.microrag.domain.rag.ChunkView
 import com.lisdatasolutions.microrag.domain.rag.CompatibilityDecision
+import com.lisdatasolutions.microrag.domain.rag.DocumentNames
 import com.lisdatasolutions.microrag.domain.rag.DocumentTitle
 import com.lisdatasolutions.microrag.domain.rag.DocumentStatus
 import com.lisdatasolutions.microrag.domain.rag.DuplicateDocumentException
@@ -73,11 +74,11 @@ class DefaultRagIndex(
         db.exec(
             """
             INSERT INTO documents(source, uri, display_name, mime_type, content_hash, size_bytes, page_count,
-                local_path, created_at_ms, updated_at_ms)
-            VALUES ('user', ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                local_path, created_at_ms, updated_at_ms, name_norm)
+            VALUES ('user', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """.trimIndent(),
             document.uri, document.displayName, document.mimeType, document.contentHash, document.sizeBytes,
-            document.pageCount, document.localPath, now, now,
+            document.pageCount, document.localPath, now, now, DocumentNames.fold(document.displayName),
         )
         val id = checkNotNull(db.queryOne("SELECT last_insert_rowid()") { it.getLong(0) })
         logger.i(TAG) { "rag document add id=$id" }
@@ -279,6 +280,7 @@ class DefaultRagIndex(
                 is CompatibilityDecision.NeedsMigration -> migrate(db, decision.from)?.let { return it }
                 is CompatibilityDecision.Incompatible -> return decision.toState()
             }
+            fillNameNorm(db)
         }
         try {
             db.initVector(config.dims)
@@ -331,6 +333,20 @@ class DefaultRagIndex(
         return null
     }
 
+    /**
+     * Folds the names of rows without `name_norm`: those migrated from v2 and those the offline tools
+     * write (F08 research R1). Idempotent, in one transaction; migrations can only run SQL, and SQLite
+     * cannot strip accents.
+     */
+    private fun fillNameNorm(db: RagConnection) {
+        val missing = db.query("SELECT id, display_name FROM documents WHERE name_norm IS NULL") { it.getLong(0) to it.getText(1) }
+        if (missing.isEmpty()) return
+        db.transaction {
+            missing.forEach { (id, name) -> db.exec("UPDATE documents SET name_norm = ? WHERE id = ?", DocumentNames.fold(name), id) }
+        }
+        logger.i(TAG) { "rag name_norm filled=${missing.size}" }
+    }
+
     private fun loadSchema(): List<String> = try {
         schema()
     } catch (e: Exception) {
@@ -358,6 +374,7 @@ class DefaultRagIndex(
         createdAtMs = s.getLong(12),
         updatedAtMs = s.getLong(13),
         skippedPages = s.longOrNull(14)?.toInt(),
+        replacesId = s.longOrNull(15),
     )
 
     private fun readMeta(db: RagConnection): Map<String, String> =
@@ -444,7 +461,7 @@ class DefaultRagIndex(
         private const val LOAD_BLOCK = 500
         private const val UNIT_NORM_TOLERANCE = 1e-3
         private const val DOCUMENT_COLUMNS = "id, display_name, content_hash, mime_type, uri, status, chunk_count, error, " +
-            "included, size_bytes, page_count, local_path, created_at_ms, updated_at_ms, skipped_pages"
+            "included, size_bytes, page_count, local_path, created_at_ms, updated_at_ms, skipped_pages, replaces_id"
     }
 }
 

@@ -36,5 +36,16 @@ object RagMigrations {
     val all: List<RagMigration> = listOf(
         // F06 (D-038): PDF pages without text that the extraction skipped.
         RagMigration(from = 1, statements = listOf("ALTER TABLE documents ADD COLUMN skipped_pages INTEGER")),
+        // F08 (research R1): the folded name the Library searches, the reindex shadow link (null default,
+        // as ALTER TABLE requires for a REFERENCES column), the Library order and the shadow lookup.
+        RagMigration(
+            from = 2,
+            statements = listOf(
+                "ALTER TABLE documents ADD COLUMN name_norm TEXT",
+                "ALTER TABLE documents ADD COLUMN replaces_id INTEGER REFERENCES documents(id) ON DELETE CASCADE",
+                "CREATE INDEX IF NOT EXISTS idx_documents_created ON documents(created_at_ms, id)",
+                "CREATE INDEX IF NOT EXISTS idx_documents_replaces ON documents(replaces_id)",
+            ),
+        ),
     )
 }

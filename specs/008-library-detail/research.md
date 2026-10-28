@@ -4,13 +4,16 @@ Fecha: 2026-10-28. Todas las decisiones parten del código actual (F04–F07) y 
 
 ## R1. Esquema v3: dos columnas nuevas, sin reconstruir tablas
 
-**Decisión:** migración `from = 2` con tres sentencias:
+**Decisión:** migración `from = 2` con cuatro sentencias:
 
 ```sql
 ALTER TABLE documents ADD COLUMN name_norm TEXT;
 ALTER TABLE documents ADD COLUMN replaces_id INTEGER REFERENCES documents(id) ON DELETE CASCADE;
 CREATE INDEX IF NOT EXISTS idx_documents_created ON documents(created_at_ms, id);
+CREATE INDEX IF NOT EXISTS idx_documents_replaces ON documents(replaces_id);
 ```
+
+El cuarto índice se añadió al implementar (T003): sin él, cada borrado de un documento recorre `documents` buscando sombras para la cascada, y los dos `EXISTS` de cada fila de la Biblioteca (L1) también. Con 1.000 filas y la lista entera cargada, serían un millón de filas por consulta.
 
 `schema.sql` describe ya la v3 para los índices nuevos, y `RagIndexConfig.SCHEMA_VERSION` pasa a 3.
 

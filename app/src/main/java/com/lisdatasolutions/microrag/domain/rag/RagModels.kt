@@ -44,6 +44,8 @@ data class StoredDocument(
     val updatedAtMs: Long,
     /** PDF pages without text that the extraction skipped (F06, D-038); null for TXT and Markdown. */
     val skippedPages: Int? = null,
+    /** Only on a reindex shadow: the document whose chunks it replaces when it closes (F08 research R5). */
+    val replacesId: Long? = null,
 )
 
 /**

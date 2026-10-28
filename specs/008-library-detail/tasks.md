@@ -50,25 +50,25 @@ description: "Lista de tareas de F08 — Biblioteca y detalle de documento"
 
 **Purpose**: la migración, primero y verificada en el teléfono (riesgo 1 del plan).
 
-- [ ] T001 Ampliar `…/test/…/data/rag/RagSchemaTest.kt`: la migración `from = 2` existe y añade `name_norm`, `replaces_id` e `idx_documents_created` (R1). `schema.sql` describe la v3 completa.
-- [ ] T002 Ampliar `…/androidTest/…/data/rag/RagIndexMigrationTest.kt` sobre SQLite real:
+- [X] T001 Ampliar `…/test/…/data/rag/RagSchemaTest.kt`: la migración `from = 2` existe y añade `name_norm`, `replaces_id` e `idx_documents_created` (R1). `schema.sql` describe la v3 completa.
+- [X] T002 Ampliar `…/androidTest/…/data/rag/RagIndexMigrationTest.kt` sobre SQLite real:
   - un índice v2 con documentos en todos los estados y fragmentos migra a v3;
   - `name_norm` queda relleno al abrir (plegado de R3);
   - los fragmentos, el FTS y las búsquedas siguen igual;
   - borrar un documento con una sombra borra la sombra en cascada.
-- [ ] T003 Implementar R1:
+- [X] T003 Implementar R1:
   - `app/src/main/assets/schema.sql` en v3;
   - `RagMigration(from = 2, …)` en `…/microrag/data/rag/RagSchema.kt`;
   - `SCHEMA_VERSION = 3` en `…/microrag/domain/rag/RagIndexConfig.kt`;
   - el relleno idempotente de `name_norm` al abrir, en `…/microrag/data/rag/DefaultRagIndex.kt`.
 
   Comprobar T001 y T002.
-- [ ] T004 [P] Crear `…/microrag/domain/rag/DocumentNames.kt` (`fold`: NFD, sin `\p{Mn}`, `Locale.ROOT`) con `…/test/…/domain/rag/DocumentNamesTest.kt`:
+- [X] T004 [P] Crear `…/microrag/domain/rag/DocumentNames.kt` (`fold`: NFD, sin `\p{Mn}`, `Locale.ROOT`) con `…/test/…/domain/rag/DocumentNamesTest.kt`:
   - «Guía» → «guia», «CATÁLOGO» → «catalogo», «Ñandú» → «nandu»;
   - los comodines `%`, `_` y `\` se conservan para escaparlos después.
 
   Usarlo en `addDocument` y en el relleno de T003.
-- [ ] T005 [P] `offline/tests/test_appconfig.py` espera la v3; anotar en `offline/README.md` que hay que reconstruir los índices de evaluación. Ejecutar las pruebas Python.
+- [X] T005 [P] `offline/tests/test_appconfig.py` espera la v3; anotar en `offline/README.md` que hay que reconstruir los índices de evaluación. Ejecutar las pruebas Python.
 - [ ] T006 **Verificación temprana en el teléfono** (quickstart §4.1):
   1. instalar sobre los datos de F07;
   2. el índice abre `Compatible`;

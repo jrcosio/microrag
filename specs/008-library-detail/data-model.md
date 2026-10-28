@@ -9,6 +9,7 @@ Cambios sobre la v2 de F06. `schema.sql` describe la v3 completa; la migración 
 | `documents` | `name_norm TEXT` | Nombre plegado (minúsculas, sin acentos) para la búsqueda (R3). NULL solo en filas migradas hasta que se rellenan al abrir |
 | `documents` | `replaces_id INTEGER REFERENCES documents(id) ON DELETE CASCADE` | Solo en las sombras de reindexado: el documento que sustituyen (R5). NULL en el resto |
 | — | `idx_documents_created ON documents(created_at_ms, id)` | Orden de la Biblioteca |
+| — | `idx_documents_replaces ON documents(replaces_id)` | Cascada al borrar y estado de la sombra en cada fila (añadido en T003) |
 
 `rag_meta.schema_version` = 3. Sin cambios en `chunks`, `chunks_fts` ni los triggers.
 

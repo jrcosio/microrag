@@ -48,7 +48,8 @@ class RagIndexWriteTest {
             ) { "${it.getText(0)}:${it.getText(1)}" }
         }
         assertThat(objects).containsExactly(
-            "table:rag_meta", "table:documents", "table:chunks", "index:idx_chunks_doc", "table:chunks_fts",
+            "table:rag_meta", "table:documents", "index:idx_documents_created", "index:idx_documents_replaces",
+            "table:chunks", "index:idx_chunks_doc", "table:chunks_fts",
             "trigger:chunks_ai", "trigger:chunks_ad", "trigger:chunks_au",
             // Created by SQLite-Vector itself when it is loaded (research R3).
             "table:${RagConnection.VECTOR_EXTENSION_TABLE}",

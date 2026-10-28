@@ -109,3 +109,5 @@ offline/.venv/bin/python -I offline/run_eval.py device-extraction offline/build/
 ```
 
 **Esquema v2:** F06 añade `documents.skipped_pages` (D-038). Los índices de evaluación ya construidos son v1: antes de volver a evaluar, reconstrúyelos con `run_eval.py build ref` y las variantes que se necesiten.
+
+**Esquema v3:** F08 añade `documents.name_norm` y `documents.replaces_id`, con sus índices (research R1 de F08). El escritorio deja las dos columnas a NULL, porque la evaluación no las usa. Los índices de evaluación ya construidos son v2: antes de volver a evaluar, reconstrúyelos igual que con la v2.

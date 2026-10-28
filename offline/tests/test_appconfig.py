@@ -24,7 +24,7 @@ class AppConfigTest(unittest.TestCase):
         self.assertEqual(appconfig.document_prefix(), "task: search result | text: ")
         self.assertEqual(appconfig.query_prefix(), "task: search query | text: ")
         self.assertEqual(appconfig.normalizer_version(), 1)
-        self.assertEqual(appconfig.schema_version(), 2)  # F06: documents.skipped_pages (D-038)
+        self.assertEqual(appconfig.schema_version(), 3)  # F08: documents.name_norm and replaces_id (R1)
 
     def test_expected_meta_has_the_seven_keys_in_order(self):
         meta = appconfig.expected_meta()
