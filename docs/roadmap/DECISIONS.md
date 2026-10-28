@@ -683,6 +683,28 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
 
 ---
 
+## D-044 — Diseño de la Biblioteca y el detalle (plan de F08)
+
+- **Fecha:** 2026-10-28
+- **Decisión:**
+  1. **Esquema v3** (`documents.name_norm` y `documents.replaces_id` con `ON DELETE CASCADE`, más un índice por fecha de importación). Se añade con `ALTER TABLE` y la migración `from = 2`; `name_norm` se rellena en Kotlin al abrir un índice migrado.
+  2. **Búsqueda por nombre:** subcadena sobre el nombre plegado (minúsculas, sin acentos, sin quitar sufijos), con los comodines escapados.
+  3. **Paginación:** bloques de 50 con un límite que crece y una nueva consulta en cada cambio del índice. Sin Paging 3. La lista nunca lee fragmentos.
+  4. **«Fuera del índice»** (D-043): se guarda como `cancelled`, un valor que el esquema admitía sin uso. En el dominio se llama `OUT_OF_INDEX`. La cola de Ingesta y las tandas ya lo ignoran.
+  5. **Reindexar sin huecos:** un documento sombra (`replaces_id`) se indexa con la tanda de F07. Al cerrarlo, una sola transacción borra los fragmentos del original, le pasa los de la sombra, actualiza sus cifras y borra la sombra. Las sombras no aparecen en la Biblioteca ni en la cola.
+  6. **Un solo camino de borrado** para «Eliminar» y «Quitar de la cola». Hace en una transacción el borrado en cascada y la marca de `quant_dirty`; después saca el documento de la tanda y borra la copia. Si eso falla, la copia la recoge la limpieza de huérfanos, que también corre al abrir la Biblioteca.
+- **Motivo:** research R1–R6 de F08. La alternativa de cambiar el `CHECK` de `status` exige reconstruir `documents`. Borrar y volver a indexar dejaría el documento fuera de las respuestas durante el reindexado.
+- **Alternativas descartadas:**
+  - buscar en memoria;
+  - Paging 3;
+  - reconstruir la tabla para un estado nuevo;
+  - ordinales negativos o tabla de preparación para reindexar;
+  - borrar y volver a indexar.
+- **Origen:** plan de F08 (research R1–R11).
+- **Afecta:** F04 (esquema v3 y operaciones nuevas del índice); F06 (cola sin sombras y borrado compartido); F07 (el runner publica las sombras); `offline/` (esquema v3); F10 y F14 (las sombras cuentan como fragmentos ocultos).
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.
