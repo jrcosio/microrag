@@ -43,7 +43,7 @@ Al cerrar cada feature se entrega:
 | F06 | Importación y parsing | Producto | F04 | ✅ cerrada |
 | F07 | Indexación | Producto | F02, F06 | ✅ cerrada |
 | F08 | Biblioteca y detalle de documento | Producto | F07 | ✅ cerrada |
-| F09 | Inicio | Producto | F03, F07, F08 | ⬜ |
+| F09 | Inicio | Producto | F03, F07, F08 | 🟨 en curso (clarify; pendiente de revisión) |
 | F10 | Recuperación híbrida | Técnica | F05, F07 | ⬜ |
 | F11 | Chat con fuentes | Producto | F08, F10 | ⬜ |
 | F12 | Ajustes e Idiomas | Producto | F03, F11 | ⬜ |
@@ -443,7 +443,7 @@ También se introduce `EngineCoordinator`, que garantiza que nunca haya dos engi
 ## F09 — Inicio
 
 - **Tipo:** Producto.
-- **Estado:** ⬜
+- **Estado:** 🟨 en curso: spec y clarify terminados el 2026-10-28 (`specs/009-home/`, D-046), pendientes de revisión.
 
 **Objetivo.** Pantalla de Inicio con:
 - estado real de los modelos;

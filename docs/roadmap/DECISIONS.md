@@ -735,6 +735,37 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
 
 ---
 
+## D-046 — Inicio (clarify de F09)
+
+- **Fecha:** 2026-10-28
+- **Decisión:**
+  1. **Cifras de «TU BIBLIOTECA»:**
+     - documentos: todos los importados, en cualquier estado, el mismo número que la Biblioteca en «Todos»;
+     - fragmentos: los de los documentos indexados, incluidos o excluidos;
+     - en ningún caso cuentan los documentos sombra de un reindexado (D-044).
+  2. **Tarjeta de indexación:**
+     - va entre el héroe y los cuatro accesos;
+     - se muestra mientras haya una tanda activa (indexando, esperando o en pausa, con la causa);
+     - desaparece al terminar la tanda, aunque queden documentos con error.
+  3. **IA local no lista:** «Nuevo chat», Importar y los demás accesos siguen activos. El chat (F11) explicará lo que falta con un acceso a la Preparación (MD 03).
+  4. **Documentos sin indexar y sin tanda:** el resumen muestra solo las cifras reales, sin aviso. El estado vacío solo aparece con 0 documentos.
+- **Motivo:**
+  - las cifras coinciden con lo que el usuario ve en la Biblioteca;
+  - los fragmentos son los que el asistente puede usar si su documento está incluido;
+  - la tarjeta se ve sin desplazar en el teléfono de referencia;
+  - la importación no necesita los modelos;
+  - los pendientes ya se ven en la Ingesta y en la Biblioteca, y un aviso más añadiría un elemento que el PNG 03 no tiene.
+- **Alternativas descartadas:**
+  - contar solo los indexados, o solo los incluidos;
+  - la tarjeta al final, junto al resumen (queda bajo el pliegue);
+  - mantenerla visible con los errores de la última tanda;
+  - desactivar «Nuevo chat» o llevarlo a la Preparación sin modelos;
+  - un aviso «N documentos sin indexar».
+- **Origen:** usuario (clarify de F09).
+- **Afecta:** F09; F11 (el chat sin modelos).
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.
