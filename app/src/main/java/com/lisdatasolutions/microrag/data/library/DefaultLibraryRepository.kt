@@ -147,9 +147,9 @@ class DefaultLibraryRepository(
                 withContext(io) {
                     DocumentPreview(
                         page = cited.page,
-                        before = previous?.content?.let(PreviewText::lastSentence),
+                        before = previous?.let { PreviewText.before(it.content, cited.content) },
                         text = cited.content,
-                        after = next?.content?.let(PreviewText::firstSentence),
+                        after = next?.let { PreviewText.after(cited.content, it.content) },
                         highlighted = true,
                         citedChunkMissing = false,
                     )

@@ -1,6 +1,8 @@
 package com.lisdatasolutions.microrag.data.library
 
 import com.google.common.truth.Truth.assertThat
+import com.lisdatasolutions.microrag.rag.ingest.Chunker
+import com.lisdatasolutions.microrag.rag.ingest.RawBlock
 import org.junit.Test
 
 /** F08 T027 (research R7): the neighbouring sentences shown around a cited chunk, on the JVM and on devices (ICU). */
@@ -46,6 +48,40 @@ class PreviewTextTest {
         assertThat(PreviewText.firstSentence("Título del capítulo\nEl texto sigue aquí.")).isEqualTo("Título del capítulo")
         assertThat(PreviewText.lastSentence("Párrafo uno.\n\nÚltima línea suelta")).isEqualTo("Última línea suelta")
         assertThat(PreviewText.firstSentence("  \n ")).isNull()
+    }
+
+    @Test
+    fun theParagraphCarriedIntoTheNextChunk_isNotShownTwice() {
+        val previous = "Uno. Dos.\n\nTres corto."
+        val cited = "Tres corto.\n\nCuatro. Cinco.\n\nSeis corto."
+        val next = "Seis corto.\n\nSiete. Ocho."
+
+        assertThat(PreviewText.before(previous, cited)).isEqualTo("Dos.")
+        assertThat(PreviewText.after(cited, next)).isEqualTo("Siete.")
+        // Nothing carried: the plain last and first sentences.
+        assertThat(PreviewText.before("Uno. Dos.", "Tres.")).isEqualTo("Dos.")
+        assertThat(PreviewText.after("Tres.", "Cuatro. Cinco.")).isEqualTo("Cuatro.")
+        // Only whole paragraphs count, and a chunk that is just the carried paragraph adds nothing.
+        assertThat(PreviewText.before("Uno.\n\nTres", "Tres corto.\n\nCuatro.")).isEqualTo("Tres")
+        assertThat(PreviewText.before("Tres corto.", "Tres corto.\n\nCuatro.")).isNull()
+    }
+
+    @Test
+    fun withTheRealChunker_theContextIsNeverInTheCitedChunk() {
+        val text = (1..40).joinToString("\n\n") { p ->
+            if (p % 3 == 0) "Nota $p." else "Párrafo $p con varias palabras de relleno. Sigue la frase $p y termina aquí."
+        }
+        val chunks = Chunker(targetChars = 200, maxChars = 400).chunk(listOf(RawBlock(emptyList(), text, page = 1))).map { it.content }
+        assertThat(chunks.zipWithNext().count { (a, b) -> b.startsWith(a.substringAfterLast("\n\n") + "\n\n") }).isGreaterThan(3)
+
+        chunks.indices.drop(1).dropLast(1).forEach { i ->
+            val before = PreviewText.before(chunks[i - 1], chunks[i])
+            val after = PreviewText.after(chunks[i], chunks[i + 1])
+            assertThat(before).isNotNull()
+            assertThat(after).isNotNull()
+            assertThat(chunks[i]).doesNotContain(before!!)
+            assertThat(chunks[i]).doesNotContain(after!!)
+        }
     }
 
     @Test

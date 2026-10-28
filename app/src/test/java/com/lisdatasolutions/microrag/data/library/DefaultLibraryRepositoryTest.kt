@@ -373,6 +373,22 @@ class DefaultLibraryRepositoryTest {
     }
 
     @Test
+    fun preview_ofACitation_doesNotRepeatTheParagraphsTheChunkerCarried() = runTest {
+        // The Chunker starts each chunk with the short last paragraph of the one before.
+        val id = indexedWith(
+            "Informe.pdf",
+            "Introducción. Antes de cerrar.\n\nServicio y plazo.",
+            "Servicio y plazo.\n\nDebe registrarse la validación.\n\nSe archiva.",
+            "Se archiva.\n\nDespués, el anexo. Fin.",
+        )
+
+        val preview = repository().preview(id, index.chunkId(id, 1))!!
+
+        assertThat(preview.before).isEqualTo("Antes de cerrar.")
+        assertThat(preview.after).isEqualTo("Después, el anexo.")
+    }
+
+    @Test
     fun preview_ofACitationThatIsNotHere_isTheNormalPreviewWithANotice_L9() = runTest {
         val id = indexedWith("Manual.pdf", "Primero.", "Segundo.")
         val other = indexedWith("Otro.pdf", "Ajeno.")

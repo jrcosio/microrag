@@ -22,9 +22,30 @@ object PreviewText {
     )
     private val LAST_WORD = Regex("""(\p{L}+)\.$""")
 
+    /** How the Chunker joins the paragraphs of a chunk. */
+    private const val PARAGRAPH_BREAK = "\n\n"
+
     fun firstSentence(text: String): String? = sentences(text).firstOrNull()?.let(::head)
 
     fun lastSentence(text: String): String? = sentences(text).lastOrNull()?.let(::tail)
+
+    /**
+     * The last sentence of [previous] that is not in [cited]: the Chunker carries a short last paragraph
+     * into the next chunk, so that paragraph is left out.
+     */
+    fun before(previous: String, cited: String): String? {
+        val carried = previous.substringAfterLast(PARAGRAPH_BREAK)
+        return lastSentence(if (startsWithParagraph(cited, carried)) previous.dropLast(carried.length) else previous)
+    }
+
+    /** The first sentence of [next] that is not in [cited]: the paragraph carried from [cited] is left out. */
+    fun after(cited: String, next: String): String? {
+        val carried = cited.substringAfterLast(PARAGRAPH_BREAK)
+        return firstSentence(if (startsWithParagraph(next, carried)) next.drop(carried.length) else next)
+    }
+
+    private fun startsWithParagraph(text: String, paragraph: String) =
+        paragraph.isNotBlank() && (text == paragraph || text.startsWith(paragraph + PARAGRAPH_BREAK))
 
     private fun sentences(text: String): List<String> {
         val iterator = BreakIterator.getSentenceInstance(SPANISH).apply { setText(text) }

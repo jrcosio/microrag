@@ -144,7 +144,8 @@ Después, la tanda pierde el id. Si el proceso muere entre los dos pasos, el id 
   1. `loadChunks([chunkId])`;
   2. si no existe o es de otro documento, vista previa normal y aviso (FR-015);
   3. si existe, `neighbor(doc, ordinal − 1)` y `neighbor(doc, ordinal + 1)`, de los que se toma la última frase del anterior y la primera del siguiente;
-  4. las frases se separan con `java.text.BreakIterator.getSentenceInstance(Locale("es"))`, de la plataforma.
+  4. las frases se separan con `java.text.BreakIterator.getSentenceInstance(Locale("es"))`, de la plataforma;
+  5. el `Chunker` del informe empieza cada fragmento con el último párrafo del anterior si es corto. Ese párrafo ya está en el fragmento citado, así que se descarta antes de tomar la frase, por los dos lados. Visto en el teléfono durante T049: sin esto, la frase de contexto se repetía al principio del resaltado.
 - **Resaltado:** `citationHighlight` de F01 (fondo `#DDF4FF`, texto `blue800`), como en el PNG. Con TalkBack se lee como «Fragmento citado: …».
 - **Chip de página:** el del fragmento citado. Sin página, sin chip.
 
