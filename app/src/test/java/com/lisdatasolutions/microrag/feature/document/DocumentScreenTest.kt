@@ -122,6 +122,14 @@ class DocumentScreenTest {
     }
 
     @Test
+    fun anExcludedDocument_saysItIsNotUsedInAnswers() {
+        show(DocumentPreviewData.excluded)
+
+        exists("No se usa en las respuestas")
+        absent("Disponible para consultas RAG")
+    }
+
+    @Test
     fun theGridAndTheCitation_areReadAsSentences_A2_A3() {
         show(DocumentPreviewData.png)
 
@@ -150,6 +158,8 @@ class DocumentScreenTest {
         exists("Pendiente")
         compose.onNode(hasContentDescription("Fragmentos, sin fragmentos")).assertExists()
         compose.onNode(isToggleable()).assertIsNotEnabled()
+        exists("Se podrá incluir cuando esté indexado")
+        absent("Disponible para consultas RAG")
         scrollTo("Eliminar")
         exists("Este documento aún no está indexado.")
         exists("Se indexará al pulsar Iniciar indexación en la Ingesta.")
@@ -215,6 +225,7 @@ class DocumentScreenTest {
 
         exists("Fuera del índice")
         compose.onNode(isToggleable()).assertIsNotEnabled()
+        exists("Se podrá incluir cuando esté indexado")
         compose.onNodeWithContentDescription("Más opciones").assertDoesNotExist()
         scrollTo("Eliminar")
         exists("Quitaste este documento del índice.")

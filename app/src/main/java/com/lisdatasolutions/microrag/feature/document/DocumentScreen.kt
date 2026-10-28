@@ -164,7 +164,7 @@ fun DocumentScreen(state: DocumentUiState, actions: DocumentActions, modifier: M
                 Stats(state.content.detail)
                 LisdataSwitchRow(
                     title = stringResource(R.string.document_include_title),
-                    subtitle = stringResource(R.string.document_include_subtitle),
+                    subtitle = includeSubtitle(state.content.detail, state.included),
                     checked = state.included,
                     onCheckedChange = actions.onIncludedChange,
                     enabled = state.content.detail.canChangeInclusion && !state.deleting,
@@ -193,6 +193,16 @@ fun DocumentScreen(state: DocumentUiState, actions: DocumentActions, modifier: M
     Announcement(state)
     if (detail != null) Dialog(state.dialog, detail, actions)
 }
+
+/** What the switch does now: PNG 07 only shows the included case (constitution V). */
+@Composable
+private fun includeSubtitle(detail: DocumentDetail, included: Boolean): String = stringResource(
+    when {
+        !detail.canChangeInclusion -> R.string.document_include_subtitle_not_indexed
+        included -> R.string.document_include_subtitle
+        else -> R.string.document_include_subtitle_excluded
+    },
+)
 
 @Composable
 private fun Loading() {

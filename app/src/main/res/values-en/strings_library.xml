@@ -80,6 +80,8 @@
     <string name="document_no_value">no data</string>
     <string name="document_include_title">Include in answers</string>
     <string name="document_include_subtitle">Available for RAG queries</string>
+    <string name="document_include_subtitle_excluded">Not used in answers</string>
+    <string name="document_include_subtitle_not_indexed">It can be included once it is indexed</string>
     <string name="document_preview_header">Content preview</string>
     <!-- A3 -->
     <string name="document_cited_fragment">Cited chunk: %1$s</string>
