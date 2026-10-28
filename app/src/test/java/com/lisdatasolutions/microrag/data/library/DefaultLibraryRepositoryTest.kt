@@ -21,9 +21,11 @@ import com.lisdatasolutions.microrag.domain.library.LibraryFilter
 import com.lisdatasolutions.microrag.domain.library.LibraryQuery
 import com.lisdatasolutions.microrag.domain.library.LibraryResult
 import com.lisdatasolutions.microrag.domain.library.ReindexRow
+import com.lisdatasolutions.microrag.domain.library.SummaryResult
 import com.lisdatasolutions.microrag.domain.rag.ChunkInput
 import com.lisdatasolutions.microrag.domain.rag.DocumentStatus
 import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
+import com.lisdatasolutions.microrag.domain.rag.LibrarySummary
 import com.lisdatasolutions.microrag.domain.rag.NewDocument
 import com.lisdatasolutions.microrag.testing.FakeIngestScheduler
 import com.lisdatasolutions.microrag.testing.FakeRagIndex
@@ -626,5 +628,68 @@ class DefaultLibraryRepositoryTest {
         documents(LibraryQuery(text = "confidencial"))
 
         assertThat(logger.lines.joinToString("\n")).doesNotContain("onfidencial")
+    }
+
+    // F09 T005 (research R2, rules H4–H6): the Home summary
+
+    private fun summaryOf(documents: Int, chunks: Int) = SummaryResult.Loaded(LibrarySummary(documents, chunks))
+
+    @Test
+    fun summary_countsEveryDocumentButShadows_andTheChunksOfTheDoneOnes() = runTest {
+        doc("Pendiente.pdf", DocumentStatus.PENDING)
+        doc("A medias.pdf", DocumentStatus.EMBEDDING, chunks = 2)
+        doc("Manual.pdf", chunks = 3)
+        doc("Excluido.pdf", chunks = 1).also { index.setIncluded(it, false) }
+        doc("Roto.pdf", DocumentStatus.ERROR, error = IngestError.NO_TEXT)
+        doc("Fuera.pdf", chunks = 2).also { index.removeFromIndex(it) }
+        doc("Reindexando.pdf", chunks = 4).also { index.addReindexShadow(it) }
+
+        assertThat(repository().summary().first()).isEqualTo(summaryOf(documents = 7, chunks = 8))
+    }
+
+    @Test
+    fun summary_isComputedAgainWhenTheIndexChanges_withoutRepeatingAValue() = runTest {
+        val manual = doc("Manual.pdf", chunks = 3)
+        val values = mutableListOf<SummaryResult>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { repository().summary().toList(values) }
+        advanceUntilIdle()
+
+        val imported = doc("Nuevo.pdf", DocumentStatus.PENDING)
+        advanceUntilIdle()
+        index.insertChunks(imported, (0 until 2).map { chunkInput(it) })
+        index.updateStatus(imported, DocumentStatus.DONE, chunkCount = 2)
+        advanceUntilIdle()
+        // Excluding changes the index but not the counts (D-046).
+        index.setIncluded(manual, false)
+        advanceUntilIdle()
+        index.removeFromIndex(manual)
+        advanceUntilIdle()
+        index.deleteDocument(imported)
+        advanceUntilIdle()
+
+        assertThat(values).containsExactly(
+            summaryOf(1, 3),
+            summaryOf(2, 3),
+            summaryOf(2, 5),
+            summaryOf(2, 2),
+            summaryOf(1, 0),
+        ).inOrder()
+    }
+
+    @Test
+    fun summary_withAnUnavailableIndex_isUnavailable() = runTest {
+        index.setCompatibility(IndexCompatibility.Incompatible("embedding_dims", "256", "768"))
+
+        assertThat(repository().summary().first()).isEqualTo(SummaryResult.Unavailable)
+    }
+
+    @Test
+    fun summary_neverReadsTheChunks_H4() = runTest {
+        repeat(5) { doc("Doc $it.pdf", chunks = 10) }
+        val reads = index.chunkReads
+
+        repository().summary().first()
+
+        assertThat(index.chunkReads).isEqualTo(reads)
     }
 }

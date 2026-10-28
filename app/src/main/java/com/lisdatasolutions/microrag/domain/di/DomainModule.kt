@@ -16,6 +16,7 @@ import com.lisdatasolutions.microrag.domain.library.DiscardReindexUseCase
 import com.lisdatasolutions.microrag.domain.library.LoadPreviewUseCase
 import com.lisdatasolutions.microrag.domain.library.ObserveDocumentUseCase
 import com.lisdatasolutions.microrag.domain.library.ObserveLibraryUseCase
+import com.lisdatasolutions.microrag.domain.library.ObserveLibrarySummaryUseCase
 import com.lisdatasolutions.microrag.domain.library.ReindexDocumentUseCase
 import com.lisdatasolutions.microrag.domain.library.RemoveFromIndexUseCase
 import com.lisdatasolutions.microrag.domain.library.SetIncludedUseCase
@@ -76,6 +77,7 @@ val domainModule = module {
 
     // Library and document detail (F08).
     factoryOf(::ObserveLibraryUseCase)
+    factoryOf(::ObserveLibrarySummaryUseCase)
     factoryOf(::ObserveDocumentUseCase)
     factoryOf(::LoadPreviewUseCase)
     factoryOf(::SetIncludedUseCase)

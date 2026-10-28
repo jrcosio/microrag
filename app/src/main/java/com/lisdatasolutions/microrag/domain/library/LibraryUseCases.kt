@@ -8,6 +8,11 @@ class ObserveLibraryUseCase(private val repository: LibraryRepository) {
     operator fun invoke(query: LibraryQuery): Flow<LibraryResult> = repository.page(query)
 }
 
+/** Home's «TU BIBLIOTECA» (F09). */
+class ObserveLibrarySummaryUseCase(private val repository: LibraryRepository) {
+    operator fun invoke(): Flow<SummaryResult> = repository.summary()
+}
+
 class ObserveDocumentUseCase(private val repository: LibraryRepository) {
     operator fun invoke(documentId: Long): Flow<DetailResult> = repository.detail(documentId)
 }

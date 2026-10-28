@@ -18,6 +18,8 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import com.lisdatasolutions.microrag.domain.library.SummaryResult
+import com.lisdatasolutions.microrag.domain.rag.LibrarySummary
 
 /**
  * A [LibraryRepository] for ViewModel tests: pages come from [documents] (newest first) filtered as the
@@ -61,6 +63,20 @@ class FakeLibraryRepository : LibraryRepository {
                     LibraryResult.Loaded(LibraryPage(matching.take(query.limit), matching.size))
                 },
         )
+    }
+
+    /** Home's summary: [summaryResult] as it is set (null keeps it loading); [summaryError] makes the next observation fail. */
+    val summaryResult = MutableStateFlow<SummaryResult?>(SummaryResult.Loaded(LibrarySummary(0, 0)))
+    var summaryError: Throwable? = null
+    var summaryObservations = 0
+
+    override fun summary(): Flow<SummaryResult> = flow {
+        summaryObservations++
+        summaryError?.let {
+            summaryError = null
+            throw it
+        }
+        emitAll(summaryResult.filterNotNull())
     }
 
     private fun LibraryDocument.matches(query: LibraryQuery): Boolean {

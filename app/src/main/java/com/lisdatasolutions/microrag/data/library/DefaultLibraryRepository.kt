@@ -22,6 +22,7 @@ import com.lisdatasolutions.microrag.domain.library.LibraryRepository
 import com.lisdatasolutions.microrag.domain.library.LibraryResult
 import com.lisdatasolutions.microrag.domain.library.ReindexRow
 import com.lisdatasolutions.microrag.domain.library.ReindexState
+import com.lisdatasolutions.microrag.domain.library.SummaryResult
 import com.lisdatasolutions.microrag.domain.rag.DocumentStatus
 import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
 import com.lisdatasolutions.microrag.domain.rag.IndexUnavailableException
@@ -75,6 +76,18 @@ class DefaultLibraryRepository(
         val total = index.libraryCount(query.text, statuses)
         return LibraryResult.Loaded(LibraryPage(entries.map { it.toLibraryDocument() }, total))
     }
+
+    /** F09 rules H4–H6: one aggregate query on `documents` per index change, never the chunks. */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun summary(): Flow<SummaryResult> = flow {
+        if (index.open() != IndexCompatibility.Compatible) {
+            emit(SummaryResult.Unavailable)
+            return@flow
+        }
+        emitAll(index.documentChanges.mapLatest { SummaryResult.Loaded(index.librarySummary()) })
+    }.catch { error ->
+        if (error is IndexUnavailableException) emit(SummaryResult.Unavailable) else throw error
+    }.distinctUntilChanged().flowOn(io)
 
     /** Research R8 and R10: the document, its shadow, what is stored and the run's pause, again on every change. */
     @OptIn(ExperimentalCoroutinesApi::class)

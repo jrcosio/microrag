@@ -1,11 +1,15 @@
 package com.lisdatasolutions.microrag.domain.library
 
 import kotlinx.coroutines.flow.Flow
+import com.lisdatasolutions.microrag.domain.rag.LibrarySummary
 
 /** The Library and the document detail (F08 contracts/library-api.md). */
 interface LibraryRepository {
     /** A Library page, computed again when the index changes (research R2). */
     fun page(query: LibraryQuery): Flow<LibraryResult>
+
+    /** Home's counts of the whole library, computed again when the index changes (F09 research R2). */
+    fun summary(): Flow<SummaryResult>
 
     /** The detail; [DetailResult.NotFound] when the document does not exist or disappears (research R8). */
     fun detail(documentId: Long): Flow<DetailResult>
@@ -34,6 +38,14 @@ sealed interface LibraryResult {
 
     /** The index is incompatible or unreadable (F04): nothing to list (rule L12). */
     data object Unavailable : LibraryResult
+}
+
+/** The Home summary (F09 research R2). */
+sealed interface SummaryResult {
+    data class Loaded(val summary: LibrarySummary) : SummaryResult
+
+    /** The index is incompatible or unreadable (F04), as [LibraryResult.Unavailable]. */
+    data object Unavailable : SummaryResult
 }
 
 sealed interface DetailResult {
