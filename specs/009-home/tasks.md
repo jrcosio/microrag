@@ -51,12 +51,12 @@ description: "Lista de tareas de F09 — Inicio"
 
 **Purpose**: comprobar primero que `chunk_count` coincide con los fragmentos guardados (riesgo 1 del plan).
 
-- [ ] T001 Crear `…/androidTest/…/data/rag/RagIndexSummaryTest.kt` sobre SQLite real, con estos documentos: pendiente, preparado, indexando a medias (con fragmentos ya guardados), indexado e incluido, indexado y excluido, con error, fuera del índice, y un indexado con una sombra de reindexado a medias. Comprueba la regla H5:
+- [X] T001 Crear `…/androidTest/…/data/rag/RagIndexSummaryTest.kt` sobre SQLite real, con estos documentos: pendiente, preparado, indexando a medias (con fragmentos ya guardados), indexado e incluido, indexado y excluido, con error, fuera del índice, y un indexado con una sombra de reindexado a medias. Comprueba la regla H5:
   - `librarySummary().documents == libraryCount("", todos los estados)`;
   - `indexedChunks` == `count(*)` de `chunks` de los documentos `done` sin sombra.
 
   Se comprueba también tras `publishReindex`, `removeFromIndex` y `deleteDocument`.
-- [ ] T002 Implementar R2 en el índice:
+- [X] T002 Implementar R2 en el índice:
   - `LibrarySummary` en `…/microrag/domain/rag/RagModels.kt`;
   - `librarySummary()` en `…/microrag/domain/rag/RagIndex.kt` y en `…/microrag/data/rag/DefaultRagIndex.kt` (la consulta de data-model §1, con `withIndex`);
   - la misma regla en `…/test/…/testing/FakeRagIndex.kt`.
@@ -70,29 +70,29 @@ description: "Lista de tareas de F09 — Inicio"
 
 **Purpose**: los tres flujos que lee Inicio y los dos parámetros nuevos del sistema de diseño.
 
-- [ ] T004 [P] Crear `…/test/…/domain/onboarding/ObserveLocalAiUseCaseTest.kt`, con un `ModelFileRepository` falso:
+- [X] T004 [P] Crear `…/test/…/domain/onboarding/ObserveLocalAiUseCaseTest.kt`, con un `ModelFileRepository` falso:
   - no emite nada antes de que termine `refresh()` (H1);
   - `READY` solo con todos los modelos `Verified` y con backend; `Unverified`, `Missing` o sin backend dan `SETUP_PENDING` (H3);
   - tras `RefreshLocalAiUseCase`, un fichero que cambia hace emitir el estado nuevo;
   - nunca llama a `verify` ni a `installVerified` (H2);
   - `ModelCatalog.allReady` da lo mismo que la regla anterior de `CompleteOnboardingUseCase`.
-- [ ] T005 [P] Ampliar `…/test/…/data/library/DefaultLibraryRepositoryTest.kt` con `summary()`:
+- [X] T005 [P] Ampliar `…/test/…/data/library/DefaultLibraryRepositoryTest.kt` con `summary()`:
   - `Unavailable` con el índice incompatible y ante `IndexUnavailableException`;
   - se recalcula con cada `documentChanges` (importar, indexar, eliminar, quitar del índice, publicar);
   - no cuenta las sombras;
   - emite sin repetir valores iguales.
-- [ ] T006 Implementar R1:
+- [X] T006 Implementar R1:
   - `…/microrag/domain/model/LocalAiStatus.kt`;
   - `ModelCatalog.allReady` en `…/microrag/domain/model/ModelCatalog.kt`;
   - `ObserveLocalAiUseCase` y `RefreshLocalAiUseCase` en `…/microrag/domain/onboarding/LocalAiUseCases.kt`;
   - `CompleteOnboardingUseCase` con `allReady` en `ModelSetupUseCases.kt`;
   - registro en `…/microrag/domain/di/DomainModule.kt`.
-- [ ] T007 Implementar R2 en el repositorio:
+- [X] T007 Implementar R2 en el repositorio:
   - `SummaryResult` en `…/microrag/domain/library/LibraryModels.kt`;
   - `summary()` en `LibraryRepository.kt` y en `…/microrag/data/library/DefaultLibraryRepository.kt` (el patrón de `page()`);
   - `ObserveLibrarySummaryUseCase` en `LibraryUseCases.kt` y en `DomainModule.kt`;
   - `summary()` en el falso de la Biblioteca de `…/test/…/testing/LibraryFakes.kt`.
-- [ ] T008 [P] Ampliar el sistema de diseño (contracts/home-api.md, cambios en F01):
+- [X] T008 [P] Ampliar el sistema de diseño (contracts/home-api.md, cambios en F01):
   - `LisdataHeroCard(decorationIcon)`, centrado en las órbitas y oculto a TalkBack, en `…/microrag/core/designsystem/component/Cards.kt`;
   - `LisdataProgressCard(onClick, onClickLabel)` en `Progress.kt`;
   - previews en `CardsPreviews.kt` y `ProgressPreviews.kt`;
@@ -110,12 +110,12 @@ description: "Lista de tareas de F09 — Inicio"
 
 ### Tests for User Story 1
 
-- [ ] T009 [P] [US1] Crear `…/test/…/feature/home/HomeScreenTest.kt` (Robolectric, `es-w390dp-h844dp`, `HomePreviewData`):
+- [X] T009 [P] [US1] Crear `…/test/…/feature/home/HomeScreenTest.kt` (Robolectric, `es-w390dp-h844dp`, `HomePreviewData`):
   - los textos del PNG 03: «¿Qué quieres explorar hoy?», «PREGUNTA A TU BIBLIOTECA», «Una respuesta.», «Todas tus fuentes.», «Nuevo chat» y los cuatro accesos con su descripción;
   - el icono de Ajustes con su etiqueta;
   - cada control llama a su acción;
   - no aparece ningún texto «(provisional)».
-- [ ] T010 [P] [US1] Ampliar `…/test/…/core/navigation/NavigationTest.kt`:
+- [X] T010 [P] [US1] Ampliar `…/test/…/core/navigation/NavigationTest.kt`:
   - sustituir `provisionalHomeEntry…` por pruebas de cada control de Inicio → destino y Atrás → Inicio;
   - «Nuevo chat» → `Chat(conversationId = null)` con la pestaña Chat seleccionada y sin restaurar un Chat anterior;
   - Documentos y el icono de Ajustes → sus pestañas;
@@ -125,19 +125,19 @@ description: "Lista de tareas de F09 — Inicio"
 
 ### Implementation for User Story 1
 
-- [ ] T011 [US1] Crear la pantalla en `…/microrag/feature/home/`:
+- [X] T011 [US1] Crear la pantalla en `…/microrag/feature/home/`:
   - `HomeUiState.kt` (data-model §3);
   - `HomeViewModel.kt`, de momento solo con el estado inicial;
   - `HomeScreen.kt` con `HomeRoute` y `HomeScreen` sin estado: cabecera (R6), hueco del chip, saludo, héroe con `decorationIcon` y la rejilla 2×2 con filas de la misma altura;
   - `HomePreviews.kt` con `HomePreviewData` etiquetado;
   - textos en `…/res/values{,-en}/strings_home.xml`;
   - registro en `…/microrag/feature/di/FeatureModule.kt`.
-- [ ] T012 [US1] Navegación (R4):
+- [X] T012 [US1] Navegación (R4):
   - `openNewChat()` en `…/microrag/core/navigation/NavigationActions.kt`;
   - `Home` → `HomeRoute` en `MicroRagNavHost.kt`, con cada acción solo con la entrada `RESUMED`;
   - `SetupRoute.onCompleted` vuelve a Inicio sin duplicarlo;
   - se retiran los accesos provisionales, el parámetro `actions` de `PendingDestination.kt` y los textos `ingest_provisional_entry` e `index_provisional_entry` (es y en).
-- [ ] T013 [US1] Actualizar las pruebas instrumentadas que usaban el marcador:
+- [X] T013 [US1] Actualizar las pruebas instrumentadas que usaban el marcador:
   - `…/androidTest/…/SystemBackTest.kt`: Inicio se reconoce por su saludo;
   - `…/androidTest/…/core/navigation/ShellInsetsTest.kt`: entra en la Ingesta por el acceso Importar;
   - `OnboardingNavigationTest` se revisa.
@@ -156,11 +156,11 @@ description: "Lista de tareas de F09 — Inicio"
 
 ### Tests for User Story 2
 
-- [ ] T014 [P] [US2] Crear `…/test/…/feature/home/HomeViewModelTest.kt` (estado de la IA):
+- [X] T014 [P] [US2] Crear `…/test/…/feature/home/HomeViewModelTest.kt` (estado de la IA):
   - `ai == null` hasta la primera emisión;
   - `READY` y `SETUP_PENDING` según el caso de uso;
   - `onResume()` llama a `RefreshLocalAiUseCase` y mantiene el valor anterior hasta que llega otro (R1).
-- [ ] T015 [P] [US2] Ampliar `HomeScreenTest.kt`:
+- [X] T015 [P] [US2] Ampliar `HomeScreenTest.kt`:
   - «IA local disponible» con `READY`;
   - «Configuración pendiente» y «Completar configuración» con `SETUP_PENDING`, y el botón llama a su acción;
   - sin chip con `null`, y el saludo no se mueve al llegar el chip (P2);
@@ -168,7 +168,7 @@ description: "Lista de tareas de F09 — Inicio"
 
 ### Implementation for User Story 2
 
-- [ ] T016 [US2] Implementar P1 y P2:
+- [X] T016 [US2] Implementar P1 y P2:
   - `HomeViewModel` sigue `ObserveLocalAiUseCase` y expone `onResume()`;
   - `HomeRoute` con `LifecycleEventEffect(ON_RESUME)` (R5);
   - el chip con su alto reservado y el botón «Completar configuración» → `Setup`;
@@ -190,11 +190,11 @@ description: "Lista de tareas de F09 — Inicio"
 
 ### Tests for User Story 3
 
-- [ ] T018 [P] [US3] Ampliar `HomeViewModelTest.kt` (resumen):
+- [X] T018 [P] [US3] Ampliar `HomeViewModelTest.kt` (resumen):
   - `Loading` → `Loaded`, `Empty` con 0 documentos, `Error(unavailable = true)` con `Unavailable`, y `Error(false)` ante una excepción;
   - «Reintentar» solo vuelve a suscribir el resumen;
   - un cambio del índice actualiza las cifras.
-- [ ] T019 [P] [US3] Ampliar `HomeScreenTest.kt`:
+- [X] T019 [P] [US3] Ampliar `HomeScreenTest.kt`:
   - «24» «documentos» y «12.400» «fragmentos», con separador de miles;
   - «1 documento» y «1 fragmento»;
   - TalkBack lee «24 documentos y 12.400 fragmentos»;
@@ -205,7 +205,7 @@ description: "Lista de tareas de F09 — Inicio"
 
 ### Implementation for User Story 3
 
-- [ ] T020 [US3] Implementar P3 y P4:
+- [X] T020 [US3] Implementar P3 y P4:
   - `HomeSummaryCard.kt`: eyebrow, dos cifras y sus estados;
   - el mapeo de `SummaryResult` y el reintento en `HomeViewModel`;
   - los plurales y `home_summary_description` en `strings_home.xml` (es y en);
@@ -224,10 +224,10 @@ description: "Lista de tareas de F09 — Inicio"
 
 ### Tests for User Story 4
 
-- [ ] T022 [P] [US4] Ampliar `HomeViewModelTest.kt`:
+- [X] T022 [P] [US4] Ampliar `HomeViewModelTest.kt`:
   - `Active` → `IndexingCard(done, total, pause)`;
   - `Idle` (también con documentos con error), `Loading` e `IndexUnavailable` → sin tarjeta (D-046).
-- [ ] T023 [P] [US4] Ampliar `HomeScreenTest.kt`:
+- [X] T023 [P] [US4] Ampliar `HomeScreenTest.kt`:
   - la tarjeta va entre el héroe y los accesos;
   - «Indexando documentos» con «320 de 860 fragmentos»;
   - «Preparando los documentos» sin total;
@@ -237,7 +237,7 @@ description: "Lista de tareas de F09 — Inicio"
 
 ### Implementation for User Story 4
 
-- [ ] T024 [US4] Implementar P5:
+- [X] T024 [US4] Implementar P5:
   - el mapeo de `IndexingState` en `HomeViewModel`;
   - la tarjeta con `LisdataProgressCard(onClick)` y los textos de `feature/indexing` en `HomeTexts.kt`;
   - la navegación a `Index`.
@@ -254,17 +254,17 @@ description: "Lista de tareas de F09 — Inicio"
 
 ### Tests for User Story 5
 
-- [ ] T025 [P] [US5] Ampliar `HomeScreenTest.kt` con medidas reales (`@GraphicsMode(NATIVE)`):
+- [X] T025 [P] [US5] Ampliar `HomeScreenTest.kt` con medidas reales (`@GraphicsMode(NATIVE)`):
   - con la fuente al 150 % o más, los accesos van en una columna y las cifras se apilan;
   - al 200 %, ningún título ni subtítulo de los accesos queda cortado;
   - en horizontal (`es-w844dp-h390dp`), todo se alcanza desplazando;
   - la posición de desplazamiento se conserva al recrear la pantalla (`StateRestorationTester`; caso límite «Rotación»; análisis, G3).
-- [ ] T026 [P] [US5] Crear `…/androidTest/…/feature/home/HomeScreenAccessibilityTest.kt`, parametrizada sobre `HomePreviewData.all` en claro y en oscuro, y también en horizontal: comprobaciones automáticas, 48 dp, descripciones (A1–A6) y ancho con la fuente al 200 % (SC-008; análisis, G1).
+- [X] T026 [P] [US5] Crear `…/androidTest/…/feature/home/HomeScreenAccessibilityTest.kt`, parametrizada sobre `HomePreviewData.all` en claro y en oscuro, y también en horizontal: comprobaciones automáticas, 48 dp, descripciones (A1–A6) y ancho con la fuente al 200 % (SC-008; análisis, G1).
 - [ ] T027 [P] [US5] Crear `…/androidTest/…/feature/home/HomeScreenLayoutTest.kt`, solo en el A063, como `IndexScreenLayoutTest`. Con una tanda activa, la tarjeta de indexación y la primera fila de accesos se ven sin desplazar, por encima de la barra inferior.
 
 ### Implementation for User Story 5
 
-- [ ] T028 [US5] Implementar A7 y A8 y completar `HomePreviewData.all` con todos los estados (P1–P5, vacío, error, fuente grande):
+- [X] T028 [US5] Implementar A7 y A8 y completar `HomePreviewData.all` con todos los estados (P1–P5, vacío, error, fuente grande):
   - una columna de accesos y cifras apiladas desde el 150 %;
   - la altura del logotipo medida contra el PNG 03;
   - posición de desplazamiento guardada al girar.
@@ -276,8 +276,8 @@ description: "Lista de tareas de F09 — Inicio"
 
 ## Phase 8: Polish & Cross-Cutting Concerns
 
-- [ ] T030 [P] Ampliar `…/test/…/architecture/LayeringTest.kt`: `feature/home` no importa nada de `data/`, WorkManager, SQLite, LiteRT ni `java.io.File`.
-- [ ] T031 [P] Actualizar `docs/roadmap/INVENTARIO.md`: la ficha P03 implementada, con los estados P1–P5 y las dos diferencias anotadas.
+- [X] T030 [P] Ampliar `…/test/…/architecture/LayeringTest.kt`: `feature/home` no importa nada de `data/`, WorkManager, SQLite, LiteRT ni `java.io.File`.
+- [X] T031 [P] Actualizar `docs/roadmap/INVENTARIO.md`: la ficha P03 implementada, con los estados P1–P5 y las dos diferencias anotadas.
 - [ ] T032 Puertas de calidad (quickstart §1–2):
   - `./gradlew :app:assembleDebug :app:assembleRelease :app:lintDebug :app:lintRelease :app:testDebugUnitTest` en una copia limpia del último commit;
   - la suite instrumentada (sin `@RequiresModels` ni `@RequiresNetwork`) en el emulador API 37, la AVD API 33 y el teléfono;
