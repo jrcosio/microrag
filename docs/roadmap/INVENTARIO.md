@@ -477,7 +477,7 @@ Abreviaturas de componentes: ver §4. «No maquetado» significa que el estado l
   - cabecera «VISTA PREVIA DEL CONTENIDO»;
   - tarjeta con el chip «Página 12» y el texto con la frase citada resaltada (`citationHighlight`, texto `blue800` en negrita);
   - acciones: «Reindexar documento» (degradado) y «Eliminar» (borde con `ic_trash` y texto en `error`).
-- **Implementada en F08** (`specs/008-library-detail/contracts/library-ui.md`). El chip del héroe es el de éxito normal, como en el PNG, no la variante para fondo oscuro. Estados sin mockup, propuestas aprobadas:
+- **Implementada en F08** (`specs/008-library-detail/contracts/library-ui.md`). El chip del héroe es el de éxito normal, como en el PNG, no la variante para fondo oscuro. En el cierre (D-045), el subtítulo del interruptor pasa a depender del estado, y la vista previa sin cita se recorta a 3 líneas con «Ver más». Estados sin mockup, propuestas aprobadas:
   - D1 pendiente, D2 indexando (con enlace al Estado de indexación) y D3 error (con «Reintentar» si se puede);
   - D4 fuera del índice: «Reindexar documento» y «Eliminar», interruptor deshabilitado;
   - D5 reindexando, con la causa de la pausa de la tanda; D6 reindexado fallido, con «Reintentar» y «Descartar»;

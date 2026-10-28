@@ -705,6 +705,36 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
 
 ---
 
+## D-045 — Cierre de F08: interruptor, vista previa y decisiones de implementación
+
+- **Fecha:** 2026-10-28
+- **Decisión** (propuestas del informe de cierre, aceptadas por el usuario):
+  1. **Subtítulo del interruptor del detalle según el estado:**
+     - incluido e indexado: «Disponible para consultas RAG», como en el PNG 07;
+     - excluido: «No se usa en las respuestas»;
+     - sin indexar: «Se podrá incluir cuando esté indexado», el texto que TalkBack ya lee en la fila de la Biblioteca.
+  2. **Vista previa sin cita recortada a 3 líneas**, con «Ver más» y «Ver menos». La cita se sigue mostrando entera. Se propusieron unas 6 líneas, pero con 6 «Eliminar» seguía bajo el pliegue en el teléfono de referencia, con sus barras de sistema. Con 3, las del extracto del PNG 07, las acciones quedan a la vista con muy poco margen si el nombre ocupa una línea (`DocumentScreenLayoutTest`, solo en el A063).
+  3. **Decisiones de implementación** (informe de cierre, §6):
+     - `idx_documents_replaces`, cuarto paso de la migración v3: sin él, la cascada y el estado de reindexado de cada fila recorren la tabla;
+     - `IndexingRepository.add(id)`: mete en la tanda un único documento, porque `start()` metería también los pendientes que el usuario no mandó indexar;
+     - `DocumentFiles`: cerrojo compartido y limpieza de huérfanos una vez por proceso, para la Ingesta y la Biblioteca;
+     - chip del héroe con el estilo de éxito normal, como el PNG 07, en lugar de la variante para fondo oscuro del contrato;
+     - causa de un reindexado fallido (D6): la primera frase del detalle del error, para no repetir «No se pudo reindexar: No se pudo indexar.»;
+     - contexto de la cita sin el párrafo que el `Chunker` arrastra al principio del fragmento siguiente (research R7, punto 5);
+     - acciones del detalle medidas: la principal ocupa el resto de la fila y «Eliminar» lo que necesita, con relleno compacto (`compact` en `LisdataGradientButton` y `LisdataOutlinedButton`); si no caben en una línea, se apilan.
+- **Motivo:**
+  - el subtítulo fijo no era cierto con el documento excluido o sin indexar (constitución V);
+  - el primer fragmento real tiene ≈ 1.500 caracteres y dejaba las acciones a cuatro desplazamientos, cuando el PNG 07 las muestra a la vista;
+  - las de implementación salieron de la implementación y de la prueba en el teléfono (T049, T053).
+- **Alternativas descartadas:**
+  - el subtítulo fijo del PNG;
+  - la vista previa entera;
+  - recortarla a 6 líneas.
+- **Origen:** cierre de F08.
+- **Afecta:** F08; F11 (la cita se ve entera, con su contexto); F15 (auditoría de estados y de la fuente grande).
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.

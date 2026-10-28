@@ -41,9 +41,9 @@ Textos en `strings_library.xml` (es y en, D-029). Componentes `Lisdata*` de F01 
 | 1 | Top bar | `LisdataTopBar` con Atrás y acción `ic_more_horizontal` (menú «Quitar del índice», solo en `done`) | «Detalle del documento» |
 | 2 | Héroe | `LisdataHeroCard` oscuro, sin eyebrow: tile `onDarkTile` con `ic_file_text`, nombre completo en `headlineMedium` y chip de estado (R10) arriba a la derecha | «Indexado» |
 | 3 | Rejilla 2×2 | `LisdataStatCard` × 4; «FRAGMENTOS» con `emphasis = true` | «PÁGINAS», «FRAGMENTOS», «TAMAÑO», «IMPORTADO» |
-| 4 | Inclusión | `LisdataSwitchRow` | «Incluir en respuestas» / «Disponible para consultas RAG» |
+| 4 | Inclusión | `LisdataSwitchRow`. El subtítulo depende del estado (cierre, D-045) | «Incluir en respuestas» / «Disponible para consultas RAG»; excluido: «No se usa en las respuestas»; sin indexar: «Se podrá incluir cuando esté indexado» |
 | 5 | Cabecera | `LisdataSectionHeader` | «VISTA PREVIA DEL CONTENIDO» |
-| 6 | Vista previa | `LisdataCard`: chip de página (`LisdataStatusChip(StatusKind.Info)`, «Página %d») y texto. Con cita: «before» y «after» en `bodyLarge` y el fragmento citado sobre `citationHighlight` en `blue800` y negrita | «Página 12» |
+| 6 | Vista previa | `LisdataCard`: chip de página (`LisdataStatusChip(StatusKind.Info)`, «Página %d») y texto. Sin cita, el texto se recorta a 3 líneas con «Ver más» / «Ver menos» (cierre, D-045). Con cita, entera: «before» y «after» en `bodyLarge` y el fragmento citado sobre `citationHighlight` en `blue800` y negrita | «Página 12» |
 | 7 | Acciones | `LisdataGradientButton` «Reindexar documento» y `LisdataOutlinedButton` destructivo con `ic_trash` «Eliminar», en una fila | — |
 
 **Chips de estado** (`LisdataStatusChip`, `onDark = true` en el héroe): «Indexado» `Ready`, «Pendiente» `Queued`, «Indexando» `Processing`, «Error» `Error`, «Fuera del índice» y «Excluido» `Info`.

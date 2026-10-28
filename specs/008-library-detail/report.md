@@ -24,8 +24,8 @@
   - la búsqueda, el filtro y la posición se conservan al volver del detalle y al girar.
 - **Inclusión:** el interruptor guarda `documents.included` y solo afecta a las búsquedas siguientes. Deshabilitado si el documento no está indexado. Varios toques seguidos: gana el último.
 - **Detalle** (`document/{documentId}` con `chunkId` opcional, PNG 07):
-  - héroe con el nombre y el chip de estado, rejilla 2×2 con cifras reales e «Incluir en respuestas»;
-  - vista previa del primer fragmento con su página o, desde una cita, el fragmento citado resaltado entre la última frase del anterior y la primera del siguiente (D-043);
+  - héroe con el nombre y el chip de estado, rejilla 2×2 con cifras reales e «Incluir en respuestas», con un subtítulo que dice lo que pasa en cada estado (D-045);
+  - vista previa del primer fragmento con su página, recortada a 3 líneas con «Ver más» (D-045), o, desde una cita, el fragmento citado entero y resaltado entre la última frase del anterior y la primera del siguiente (D-043);
   - estados D1–D11: pendiente, en indexación, con error, fuera del índice, reindexando, reindexado fallido, cita perdida, borrando, carga, falta la copia y no disponible;
   - un documento inexistente o borrado vuelve atrás con un aviso, sin cierre.
 - **Acciones:**
@@ -49,12 +49,18 @@
 | Instrumentados en el teléfono (mismos filtros) | ✅ 426/426. Los datos reales del teléfono quedaron idénticos antes y después (hash de fragmentos y vectores) |
 | `@RequiresModels` en el teléfono | ✅ 10/10. Golden de embeddings: coseno mínimo 0,99299 en GPU y 1,0 en CPU. Arranque en caliente de Gemma: 5,88 s |
 
-Tras la última corrección (`7b87b98`, el aviso de la Biblioteca), se repitieron las suites instrumentadas:
+Tras la última corrección (`5ff8207`, el aviso de la Biblioteca), se repitieron las suites instrumentadas:
 - emulador API 37: 426/426 ✅;
 - AVD API 33: 422/426 ⚠️, con las mismas 4 de F06 §7;
 - teléfono: 426/426 ✅ (460 s). Un primer intento se cortó en la prueba 140 porque el teléfono se desconectó, con 0 fallos hasta ahí; se repitió entera al reconectarlo. El índice de la app quedó igual antes y después (vacío e íntegro) y los modelos siguen instalados.
 
 La corrección se comprobó a mano en el teléfono (el aviso se ve, §5) y con `NavigationTest`.
+
+Tras las decisiones del cierre (`4171e58` y `3b3d43a`, D-045), con 5 pruebas JVM y 5 instrumentadas más (`DocumentScreenLayoutTest` y el estado `longFirstChunk` en la de accesibilidad):
+- en una copia limpia del último commit, sin los cambios del icono del usuario: tests JVM 537/537 ✅, `lintDebug` y `lintRelease` «No issues found» ✅ y `assembleRelease` ✅;
+- emulador API 37: 431/431 ✅. Un primer intento perdió la conexión adb en la prueba 387, sin fallos hasta ahí;
+- AVD API 33: 427/431 ⚠️, con las mismas 4 de F06 §7;
+- teléfono: 431/431 ✅, con `DocumentScreenLayoutTest`. El índice de la app y los modelos quedaron igual.
 
 ## 3. Validación por historia y criterio
 
@@ -175,8 +181,8 @@ D6, D7, D10 y D11 no se provocaron en el teléfono; los cubren las pruebas JVM y
 - **Estados nuevos:** B1–B8, aprobados.
 
 **Detalle (PNG 07):** coincide en héroe, rejilla, interruptor, tarjeta de vista previa y acciones. Diferencias:
-1. **Vista previa larga:** muestra el primer fragmento real entero (FR-014, D-043), de ≈ 1.500 caracteres en los PDF de prueba. El PNG maqueta un extracto de tres líneas. La tarjeta es larga y las acciones quedan bajo el pliegue: hacen falta unos cuatro desplazamientos. Con cita, lo mismo, más las frases de contexto. Propuesta en §7.
-2. **Subtítulo del interruptor:** «Disponible para consultas RAG» es fijo, como en el PNG, que solo maqueta el caso incluido. También sale con el documento excluido o sin indexar, y no es cierto (constitución V). Propuesta en §7.
+1. **Vista previa larga:** mostraba el primer fragmento real entero (FR-014, D-043), de ≈ 1.500 caracteres en los PDF de prueba, y las acciones quedaban a unos cuatro desplazamientos. El PNG maqueta un extracto de tres líneas. **Resuelto en el cierre** (D-045): sin cita, se recorta a 3 líneas con «Ver más». Con cita se sigue viendo entera, con las frases de contexto, y las acciones quedan bajo el pliegue.
+2. **Subtítulo del interruptor:** era fijo, «Disponible para consultas RAG», como en el PNG, que solo maqueta el caso incluido, y no era cierto con el documento excluido o sin indexar (constitución V). **Resuelto en el cierre** (D-045): depende del estado.
 3. **Fecha:** «28 oct», con el formato de la plataforma para el español. El PNG pone «12 oct.».
 4. **Chip del héroe:** el de éxito normal, como en el PNG; el contrato pedía la variante para fondo oscuro.
 5. **Cita:** se resalta el fragmento entero (D-043); el PNG resalta una frase.
@@ -197,7 +203,7 @@ En esta sesión no se desinstaló nada en el teléfono. El usuario eligió recre
 
 El documento propio del usuario no se ha recreado. Al cerrar, la Biblioteca queda vacía y la carpeta de prueba borrada; los modelos siguen instalados.
 
-### Decisiones de implementación (propuestas para D-045)
+### Decisiones de implementación (registradas en D-045)
 
 1. **`idx_documents_replaces`:** cuarto paso de la migración. Sin él, la cascada y el estado de reindexado de cada fila recorren la tabla (research R1, data-model §1).
 2. **`IndexingRepository.add(id)`:** mete en la tanda un único documento. `start()` habría metido también los pendientes que el usuario no mandó indexar.
@@ -214,7 +220,13 @@ El documento propio del usuario no se ha recreado. Al cerrar, la Biblioteca qued
 | `NoTrafficInstrumentedTest` fallaba porque «Biblioteca» sale ahora también en la barra superior; una cifra ausente no se leía como palabras; el recorrido con tabulador del título | Emuladores | `748259e` |
 | La cita mostraba la frase de contexto repetida al principio del resaltado | Teléfono (T049) | `5da8eed`, con pruebas en JVM y en el dispositivo (`Chunker` real) |
 | «Eliminar» se partía en dos líneas («Elimina / r») en el teléfono | Teléfono (T049) | `3e03f87`. Las pruebas de diseño miden texto real (gráficos nativos de Robolectric) y fallan con el código anterior |
-| El aviso de la Biblioteca («Documento eliminado», «Este documento ya no existe») no llegaba a verse: consumir el mensaje cancelaba el *snackbar* | Teléfono (T053) | `7b87b98`. La prueba de navegación comprueba que sigue visible al segundo y falla con el código anterior. Era la causa de la prueba inestable que se había atribuido al reloj |
+| El aviso de la Biblioteca («Documento eliminado», «Este documento ya no existe») no llegaba a verse: consumir el mensaje cancelaba el *snackbar* | Teléfono (T053) | `5ff8207`. La prueba de navegación comprueba que sigue visible al segundo y falla con el código anterior. Era la causa de la prueba inestable que se había atribuido al reloj |
+
+### Ficheros del icono en un commit de la rama
+
+El usuario cambió el icono de la app en Android Studio mientras se probaba en el teléfono. El commit del aviso de la Biblioteca recogió por error sus 12 ficheros nuevos (`mipmap-anydpi-v26/ic_launcher*.xml` y `mipmap-*/ic_launcher*.webp`). Se vio en el cierre por un aviso de lint sobre esa carpeta.
+
+Como nada se había subido, se rehicieron los tres últimos commits sin esos ficheros, con el mismo contenido, autor y fecha. El del aviso pasó de `7b87b98` a `5ff8207`. Los ficheros del usuario siguen en disco sin cambios (mismas sumas SHA-256), fuera de cualquier commit, como el resto de su cambio del icono.
 
 ### Comportamientos anotados (sin cambio)
 
@@ -229,15 +241,13 @@ El documento propio del usuario no se ha recreado. Al cerrar, la Biblioteca qued
 - **TalkBack** en la Biblioteca y el detalle, a cargo del usuario, como en F01, F03, F06 y F07 (T066 de F07 sigue abierto).
 - **Documento propio del usuario:** si quiere tenerlo de nuevo en la app, hay que importarlo otra vez (§6).
 
-**Propuestas para decidir en el cierre:**
-1. **Subtítulo del interruptor según el estado** (constitución V). Propuesta:
+**Decisiones del cierre** (aceptadas por el usuario el 2026-10-28, D-045):
+1. **Subtítulo del interruptor según el estado** (constitución V), implementado en `4171e58`:
 
    | Estado | Subtítulo |
    |---|---|
    | Incluido e indexado | «Disponible para consultas RAG» (PNG) |
    | Excluido | «No se usa en las respuestas» |
    | Sin indexar | «Se podrá incluir cuando esté indexado», el mismo texto que TalkBack lee en la fila de la Biblioteca |
-2. **Vista previa larga.** Opciones:
-   - **(a)** dejarla como está (FR-014, D-043);
-   - **(b)** recortar la vista previa sin cita a unas 6 líneas con «Ver más», para que las acciones se vean como en el PNG 07, y dejar entera la cita.
-3. **Registrar D-045** con las decisiones de implementación de §6.
+2. **Vista previa larga:** opción (b), recortar la vista previa sin cita con «Ver más» y dejar entera la cita, implementada en `3b3d43a`. Se propusieron unas 6 líneas, pero con 6 «Eliminar» seguía bajo el pliegue en el teléfono. Se recorta a 3, las del extracto del PNG 07, y entonces las acciones quedan a la vista con muy poco margen si el nombre ocupa una línea. Lo comprueban `DocumentScreenLayoutTest`, en el teléfono, y su equivalente en Robolectric; los dos fallan con 6 líneas.
+3. **D-045** registrada con estas dos decisiones y las de implementación de §6.

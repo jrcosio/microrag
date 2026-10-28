@@ -42,7 +42,7 @@ Al cerrar cada feature se entrega:
 | F05 | Harness offline de evaluación | Técnica | F04 | ✅ cerrada |
 | F06 | Importación y parsing | Producto | F04 | ✅ cerrada |
 | F07 | Indexación | Producto | F02, F06 | ✅ cerrada |
-| F08 | Biblioteca y detalle de documento | Producto | F07 | 🟨 en curso (implementada; pendiente de la revisión de cierre) |
+| F08 | Biblioteca y detalle de documento | Producto | F07 | ✅ cerrada |
 | F09 | Inicio | Producto | F03, F07, F08 | ⬜ |
 | F10 | Recuperación híbrida | Técnica | F05, F07 | ⬜ |
 | F11 | Chat con fuentes | Producto | F08, F10 | ⬜ |
@@ -407,7 +407,7 @@ También se introduce `EngineCoordinator`, que garantiza que nunca haya dos engi
 ## F08 — Biblioteca y detalle de documento
 
 - **Tipo:** Producto.
-- **Estado:** 🟨 en curso: implementación terminada el 2026-10-28 en la rama `008-library-detail`, pendiente de la revisión de cierre. Decisiones D-043 (clarify) y D-044 (plan); propuestas de UI B1–B8 y D1–D11 aprobadas. Informe de cierre en `specs/008-library-detail/report.md`. Queda abierto el recorrido manual con TalkBack.
+- **Estado:** ✅ cerrada: implementada en la rama `008-library-detail` y aprobada por el usuario el 2026-10-28. Decisiones D-043 (clarify), D-044 (plan) y D-045 (cierre: subtítulo del interruptor según el estado, vista previa recortada a 3 líneas y decisiones de implementación); propuestas de UI B1–B8 y D1–D11 aprobadas. Informe de cierre en `specs/008-library-detail/report.md`. Queda abierto el recorrido manual con TalkBack.
 
 **Objetivo.**
 - Lista paginada con búsqueda por nombre y filtros Todos / Indexados / Pendientes (G16).

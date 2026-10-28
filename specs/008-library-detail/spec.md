@@ -196,13 +196,13 @@ La Biblioteca y el Detalle reproducen los PNG 06 y 07 y cubren los estados del `
 **Inclusión**
 
 - **FR-010**: El interruptor MUST guardar la inclusión del documento, y las búsquedas siguientes MUST respetarla, sin borrar ni recalcular nada.
-- **FR-011**: El interruptor MUST estar deshabilitado en los documentos no indexados, con una explicación accesible.
+- **FR-011**: El interruptor MUST estar deshabilitado en los documentos no indexados, con una explicación accesible. En el detalle, su subtítulo MUST decir lo que pasa: «Disponible para consultas RAG» si el documento está incluido, «No se usa en las respuestas» si está excluido y «Se podrá incluir cuando esté indexado» si no está indexado (cierre, D-045).
 - **FR-012**: El cambio de inclusión MUST verse igual en la lista y en el detalle, y MUST mantenerse al cerrar la app.
 
 **Detalle**
 
 - **FR-013**: El detalle MUST mostrar el nombre completo, el chip de estado (Indexado, Pendiente, Indexando, Error, Fuera del índice o Excluido) y la rejilla con páginas, fragmentos, tamaño y fecha de importación, todos reales. Si un dato no existe (páginas de un TXT), MUST mostrarse como ausente y nunca inventado.
-- **FR-014**: Sin cita, la vista previa MUST mostrar el texto real del primer fragmento del documento, con el chip de su página si la tiene y sin chip si no. No hay navegación entre fragmentos.
+- **FR-014**: Sin cita, la vista previa MUST mostrar el texto real del primer fragmento del documento, con el chip de su página si la tiene y sin chip si no. No hay navegación entre fragmentos. Si el texto pasa de tres líneas, MUST mostrarse recortado a tres, como el extracto del PNG 07, con «Ver más» para verlo entero y «Ver menos» para volver a recortarlo (cierre, D-045).
 - **FR-015**: Con cita, la vista previa MUST mostrar el fragmento citado entero y resaltado, precedido de la última frase del fragmento anterior y seguido de la primera del siguiente, sin resaltar y solo si existen, con el chip de la página del fragmento citado. El resaltado MUST anunciarse con TalkBack. Si el fragmento ya no existe o no es de ese documento, MUST mostrar la vista previa normal y un aviso.
 - **FR-016**: Un documento no indexado MUST mostrar su estado real (con el progreso si se está indexando y la causa si tiene error), sin vista previa de fragmentos.
 - **FR-017**: Si el documento no existe o desaparece mientras está abierto, la app MUST mostrar un aviso y volver a la Biblioteca, sin cerrarse.
