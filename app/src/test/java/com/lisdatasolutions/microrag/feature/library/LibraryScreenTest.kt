@@ -126,6 +126,20 @@ class LibraryScreenTest {
         assertThat(disabled).isNotEmpty()
     }
 
+    // US5 (T048)
+
+    @Test
+    fun aReindexingRow_endsItsMetaInBlue_andAFailedOneShowsItsChip_B7() {
+        show(LibraryPreviewData.allStates)
+
+        scrollToRow("Normativa interna.pdf")
+        exists("PDF · 520 fragmentos · Reindexando")
+        compose.onNode(hasContentDescription("Normativa interna.pdf, PDF · 520 fragmentos · Reindexando, incluido")).assertExists()
+        scrollToRow("Catálogo 2024.pdf")
+        exists("Reindexado fallido")
+        compose.onNode(hasContentDescription("Catálogo 2024.pdf, PDF · 240 fragmentos, Reindexado fallido, incluido")).assertExists()
+    }
+
     @Test
     fun plusAndRows_callTheirActions() {
         show(LibraryPreviewData.png)

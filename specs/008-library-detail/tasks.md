@@ -295,13 +295,13 @@ description: "Lista de tareas de F08 — Biblioteca y detalle de documento"
 
 ### Tests for User Story 5
 
-- [ ] T045 [P] [US5] Crear `…/androidTest/…/feature/library/LibraryScreenAccessibilityTest.kt`, parametrizada como las de F06 y F07: todos los estados de `LibraryPreviewData`, en claro y en oscuro, con la fuente al 200 % (SC-008, A1, A4 y A6).
-- [ ] T046 [P] [US5] Crear `…/androidTest/…/feature/document/DocumentScreenAccessibilityTest.kt`, igual, con todos los estados de `DocumentPreviewData` (A2, A3, A5 y A6).
+- [X] T045 [P] [US5] Crear `…/androidTest/…/feature/library/LibraryScreenAccessibilityTest.kt`, parametrizada como las de F06 y F07: todos los estados de `LibraryPreviewData`, en claro y en oscuro, con la fuente al 200 % (SC-008, A1, A4 y A6).
+- [X] T046 [P] [US5] Crear `…/androidTest/…/feature/document/DocumentScreenAccessibilityTest.kt`, igual, con todos los estados de `DocumentPreviewData` (A2, A3, A5 y A6).
 
 ### Implementation for User Story 5
 
-- [ ] T047 [P] [US5] Crear `…/microrag/feature/library/LibraryPreviews.kt` y `…/microrag/feature/document/DocumentPreviews.kt`, con datos de ejemplo etiquetados (constitución V) para todos los estados, en claro y en oscuro. Comprobar T045 y T046 en el emulador.
-- [ ] T048 [US5] B7 en la Biblioteca («Reindexando» y «Reindexado fallido» en la fila), con sus pruebas en `LibraryScreenTest`. B8 ya está en T035.
+- [X] T047 [P] [US5] Crear `…/microrag/feature/library/LibraryPreviews.kt` y `…/microrag/feature/document/DocumentPreviews.kt`, con datos de ejemplo etiquetados (constitución V) para todos los estados, en claro y en oscuro. Comprobar T045 y T046 en el emulador.
+- [X] T048 [US5] B7 en la Biblioteca («Reindexando» y «Reindexado fallido» en la fila), con sus pruebas en `LibraryScreenTest`. B8 ya está en T035.
 - [ ] T049 [US5] Capturar en el teléfono, en claro y en oscuro, sin la barra de estado:
   - la Biblioteca como el PNG 06, vacía y sin resultados;
   - el detalle como el PNG 07, desde una cita, pendiente, con error, fuera del índice y reindexando.
