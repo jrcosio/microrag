@@ -36,7 +36,10 @@ import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
 /** Where a button's trailing icon sits: at the far end (full-width CTAs) or right after the text. */
 enum class TrailingIconPlacement { End, AfterText }
 
-/** Primary call to action with the LISDATA gradient (52 dp). */
+/**
+ * Primary call to action with the LISDATA gradient (52 dp). [compact] narrows the side padding, for two
+ * buttons side by side (PNG 07).
+ */
 @Composable
 fun LisdataGradientButton(
     text: String,
@@ -46,6 +49,7 @@ fun LisdataGradientButton(
     loading: Boolean = false,
     @DrawableRes trailingIcon: Int? = null,
     trailingIconPlacement: TrailingIconPlacement = TrailingIconPlacement.End,
+    compact: Boolean = false,
 ) {
     val colors = LisdataTheme.colors
     LisdataButtonContainer(
@@ -58,6 +62,7 @@ fun LisdataGradientButton(
         loading = loading,
         trailingIcon = trailingIcon,
         trailingIconPlacement = trailingIconPlacement,
+        compact = compact,
     )
 }
 
@@ -81,10 +86,14 @@ fun LisdataDarkButton(
         loading = false,
         trailingIcon = trailingIcon,
         trailingIconPlacement = TrailingIconPlacement.End,
+        compact = false,
     )
 }
 
-/** Bordered secondary button (48 dp); destructive variant uses the error token ("Eliminar"). */
+/**
+ * Bordered secondary button (48 dp); destructive variant uses the error token ("Eliminar"). [compact]
+ * narrows the side padding, as [LisdataGradientButton]'s.
+ */
 @Composable
 fun LisdataOutlinedButton(
     text: String,
@@ -93,6 +102,7 @@ fun LisdataOutlinedButton(
     enabled: Boolean = true,
     destructive: Boolean = false,
     @DrawableRes leadingIcon: Int? = null,
+    compact: Boolean = false,
 ) {
     val colors = LisdataTheme.colors
     val spacing = LisdataTheme.spacing
@@ -109,7 +119,7 @@ fun LisdataOutlinedButton(
             .background(colors.surface)
             .border(BorderStroke(spacing.borderWidth, colors.outline), shape)
             .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
-            .padding(horizontal = spacing.space5),
+            .padding(horizontal = if (compact) spacing.space3 else spacing.space5),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -138,6 +148,7 @@ private fun LisdataButtonContainer(
     loading: Boolean,
     @DrawableRes trailingIcon: Int?,
     trailingIconPlacement: TrailingIconPlacement,
+    compact: Boolean,
 ) {
     val spacing = LisdataTheme.spacing
     val shape = LisdataTheme.shapes.button
@@ -150,7 +161,7 @@ private fun LisdataButtonContainer(
             .background(background, shape)
             .clickable(enabled = enabled && !loading, role = Role.Button, onClick = onClick)
             .semantics { if (loading) stateDescription = loadingDescription }
-            .padding(horizontal = spacing.space6, vertical = spacing.space3),
+            .padding(horizontal = if (compact) spacing.space4 else spacing.space6, vertical = spacing.space3),
         contentAlignment = Alignment.Center,
     ) {
         if (loading) {

@@ -3,10 +3,12 @@ package com.lisdatasolutions.microrag.feature.document
 import android.app.Application
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.filterToOne
+import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasScrollAction
@@ -18,6 +20,8 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
@@ -25,6 +29,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
 
 /** F08 T030 and T042: P07 as in PNG 07, its figures and preview, and the proposals D1–D11 (contracts/library-ui.md). */
 @RunWith(AndroidJUnit4::class)
@@ -83,6 +88,37 @@ class DocumentScreenTest {
             "en el sistema documental.", "Reindexar documento", "Eliminar",
         ).forEach { exists(it) }
         compose.onNodeWithContentDescription("Más opciones").assertExists()
+    }
+
+    private fun lines(text: String): Int {
+        val layouts = mutableListOf<TextLayoutResult>()
+        compose.onNodeWithText(text, useUnmergedTree = true).performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
+        return layouts.single().lineCount
+    }
+
+    private fun top(text: String) = compose.onNodeWithText(text, useUnmergedTree = true).getUnclippedBoundsInRoot().top
+
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    fun theActions_areSideBySideOnOneLine_asInPng07() {
+        show(DocumentPreviewData.png)
+        scrollTo("Eliminar")
+
+        assertThat(top("Eliminar")).isEqualTo(top("Reindexar documento"))
+        assertThat(lines("Eliminar")).isEqualTo(1)
+        assertThat(lines("Reindexar documento")).isEqualTo(1)
+    }
+
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(qualifiers = "es-w320dp-h800dp")
+    fun onANarrowScreen_theActionsAreStacked_neverCut() {
+        show(DocumentPreviewData.png)
+        scrollTo("Eliminar")
+
+        assertThat(top("Eliminar")).isGreaterThan(top("Reindexar documento"))
+        assertThat(lines("Eliminar")).isEqualTo(1)
+        assertThat(lines("Reindexar documento")).isEqualTo(1)
     }
 
     @Test

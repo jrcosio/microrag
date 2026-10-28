@@ -31,6 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -39,6 +40,8 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lisdatasolutions.microrag.R
@@ -74,6 +77,7 @@ import com.lisdatasolutions.microrag.feature.ingest.detailText
 import com.lisdatasolutions.microrag.feature.ingest.sizeText
 import com.lisdatasolutions.microrag.feature.library.grouped
 import org.koin.androidx.compose.koinViewModel
+import kotlin.math.max
 
 /** What the stateless screen can ask for. */
 data class DocumentActions(
@@ -396,49 +400,86 @@ private fun PreviewCard(preview: DocumentPreview) {
     }
 }
 
-/** The main actions of each state; side by side as in PNG 07, stacked at large font sizes (A6). */
+/**
+ * The main actions of each state; side by side as in PNG 07 when both labels fit on one line, stacked
+ * otherwise (narrow screens) and at large font sizes (A6).
+ */
 @Composable
 private fun Actions(state: DocumentUiState, detail: DocumentDetail, actions: DocumentActions) {
     val enabled = !state.busy && !state.deleting
-    val primary: (@Composable (Modifier) -> Unit)? = when {
+    val primary: (@Composable () -> Unit)? = when {
         detail.copyMissing -> null
         detail.state is DocumentDetailState.Failed -> if ((detail.state as DocumentDetailState.Failed).error.retryable) {
-            { m -> LisdataGradientButton(text = stringResource(R.string.document_retry), onClick = actions.onRetry, enabled = enabled, modifier = m) }
+            { LisdataGradientButton(text = stringResource(R.string.document_retry), onClick = actions.onRetry, enabled = enabled, compact = true) }
         } else {
             null
         }
-        detail.reindex is ReindexState.Running -> { m ->
-            LisdataGradientButton(text = stringResource(R.string.document_reindexing_button), onClick = {}, enabled = false, modifier = m)
+        detail.reindex is ReindexState.Running -> {
+            { LisdataGradientButton(text = stringResource(R.string.document_reindexing_button), onClick = {}, enabled = false, compact = true) }
         }
-        detail.canReindex -> { m ->
-            LisdataGradientButton(text = stringResource(R.string.document_reindex), onClick = actions.onReindex, enabled = enabled, modifier = m)
+        detail.canReindex -> {
+            { LisdataGradientButton(text = stringResource(R.string.document_reindex), onClick = actions.onReindex, enabled = enabled, compact = true) }
         }
         else -> null
     }
-    val delete: @Composable (Modifier) -> Unit = { m ->
+    val delete: @Composable () -> Unit = {
         LisdataOutlinedButton(
             text = stringResource(if (state.deleting) R.string.document_deleting else R.string.document_delete),
             onClick = actions.onDelete,
             enabled = enabled,
             destructive = true,
             leadingIcon = LisdataIcons.Trash,
-            modifier = m,
+            compact = true,
         )
     }
-    val stacked = LocalDensity.current.fontScale >= STACKED_FONT_SCALE
     val spacing = LisdataTheme.spacing
-    if (stacked || primary == null) {
-        Column(modifier = Modifier.padding(top = spacing.space3), verticalArrangement = Arrangement.spacedBy(spacing.space3)) {
-            primary?.invoke(Modifier.fillMaxWidth())
-            delete(Modifier.fillMaxWidth())
-        }
-    } else {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(top = spacing.space3).height(IntrinsicSize.Min),
-            horizontalArrangement = Arrangement.spacedBy(spacing.space3),
-        ) {
-            primary(Modifier.weight(PRIMARY_WEIGHT).fillMaxHeight())
-            delete(Modifier.weight(1f).fillMaxHeight())
+    SideBySideOrStacked(
+        first = primary,
+        second = delete,
+        gap = spacing.space3,
+        stacked = LocalDensity.current.fontScale >= STACKED_FONT_SCALE,
+        modifier = Modifier.fillMaxWidth().padding(top = spacing.space3),
+    )
+}
+
+/**
+ * [first] takes the rest of the row and [second] what its label needs (at least a [PRIMARY_WEIGHT] share,
+ * as in PNG 07), both one line high and the same height. When their labels do not fit side by side on
+ * one line, or with [stacked], each takes the whole width, one under the other.
+ */
+@Composable
+private fun SideBySideOrStacked(
+    first: (@Composable () -> Unit)?,
+    second: @Composable () -> Unit,
+    gap: Dp,
+    stacked: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    Layout(contents = listOf(first ?: {}, second), modifier = modifier) { (firsts, seconds), constraints ->
+        val width = constraints.maxWidth
+        val space = gap.roundToPx()
+        val one = firsts.singleOrNull()
+        val two = seconds.single()
+        val needed = (one?.maxIntrinsicWidth(Constraints.Infinity) ?: 0) + space + two.maxIntrinsicWidth(Constraints.Infinity)
+        if (one != null && !stacked && needed <= width) {
+            val secondWidth = max(two.maxIntrinsicWidth(Constraints.Infinity), ((width - space) / (1 + PRIMARY_WEIGHT)).toInt())
+            val firstWidth = width - space - secondWidth
+            val height = max(one.minIntrinsicHeight(firstWidth), two.minIntrinsicHeight(secondWidth))
+            val a = one.measure(Constraints.fixed(firstWidth, height))
+            val b = two.measure(Constraints.fixed(secondWidth, height))
+            layout(width, height) {
+                a.place(0, 0)
+                b.place(firstWidth + space, 0)
+            }
+        } else {
+            val full = Constraints(minWidth = width, maxWidth = width)
+            val a = one?.measure(full)
+            val b = two.measure(full)
+            val top = a?.let { it.height + space } ?: 0
+            layout(width, top + b.height) {
+                a?.place(0, 0)
+                b.place(0, top)
+            }
         }
     }
 }
