@@ -356,7 +356,10 @@ class NavigationTest {
             compose.mainClock.advanceTimeBy(100)
             compose.onAllNodesWithText(notice).fetchSemanticsNodes().isNotEmpty()
         }
+        // Consuming the message must not cancel the snackbar that shows it (seen on the phone).
+        compose.mainClock.advanceTimeBy(1_000)
 
+        compose.onNodeWithText(notice).assertIsDisplayed()
         assertThat(nav.currentDestination?.hasRoute(Library::class)).isTrue()
     }
 

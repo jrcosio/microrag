@@ -22,7 +22,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -72,16 +74,23 @@ fun LibraryRoute(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
-    val text = when (message) {
+    // Consumed as soon as it arrives, so a rotation while it shows does not repeat it; the snackbar
+    // follows this copy, as consuming the message must not cancel it.
+    var showing by remember { mutableStateOf<LibraryMessage?>(null) }
+    LaunchedEffect(message) {
+        if (message == null) return@LaunchedEffect
+        showing = message
+        onMessageShown()
+    }
+    val text = when (showing) {
         null -> null
         LibraryMessage.DOCUMENT_GONE -> stringResource(R.string.library_document_gone)
         LibraryMessage.DOCUMENT_DELETED -> stringResource(R.string.document_announce_deleted)
     }
-    LaunchedEffect(message) {
+    LaunchedEffect(showing) {
         if (text == null) return@LaunchedEffect
-        // Consumed first: a rotation while it shows does not repeat it.
-        onMessageShown()
         snackbar.showSnackbar(text)
+        showing = null
     }
     LibraryScreen(
         snackbarHostState = snackbar,
