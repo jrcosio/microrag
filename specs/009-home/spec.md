@@ -45,6 +45,15 @@
 - **Tanda de indexación (F07):** expone si está activa (indexando, esperando o en pausa, con su causa), su progreso en fragmentos y los documentos con error, o si está en reposo.
 - **Destinos todavía provisionales:** Chat (F11), Ajustes e Idiomas (F12).
 
+## Clarifications
+
+### Session 2026-10-28
+
+- Q: En «TU BIBLIOTECA», ¿qué cuentan las dos cifras? → A: documentos, todos los importados en cualquier estado (el mismo número que la Biblioteca en «Todos»); fragmentos, los de los documentos indexados, incluidos o excluidos. En ningún caso cuentan los documentos sombra de un reindexado.
+- Q: ¿Dónde va la tarjeta de indexación y cuándo se muestra? → A: entre el héroe y los cuatro accesos, para que se vea sin desplazar. Se muestra mientras haya una tanda activa (indexando, esperando o en pausa, con la causa) y desaparece al terminar, aunque queden documentos con error; esos errores se ven en la Ingesta, la Biblioteca y el Estado de indexación.
+- Q: Con la IA local no lista, ¿qué hace «Nuevo chat»? → A: sigue activo y abre el chat; en F11, el chat explicará lo que falta con un acceso a la Preparación (MD 03). Importar y los demás accesos también siguen activos.
+- Q: Con documentos importados pero ninguno indexado y sin tanda en marcha, ¿avisa Inicio? → A: no; el resumen muestra solo las cifras reales (por ejemplo, «3 documentos · 0 fragmentos»). Los pendientes se ven en la Ingesta y en el filtro Pendientes de la Biblioteca.
+
 ## User Scenarios & Testing *(mandatory)*
 
 **Actores:**
@@ -159,7 +168,7 @@ Inicio reproduce el PNG 03: cabecera con el logotipo y el icono de Ajustes, chip
 - **Modelo verificado pero sin preparar,** o un modelo descargándose de nuevo desde la Preparación: «Configuración pendiente» hasta que los dos estén listos.
 - **Preparación abierta desde Inicio:** al terminar o al pulsar Atrás vuelve a Inicio, sin dejar dos Inicio en la pila ni volver a la Bienvenida.
 - **Índice no disponible** (incompatible o ilegible, F04): el resumen muestra el error con «Reintentar». La tarjeta de indexación no se muestra. «Nuevo chat» y los accesos siguen activos; cada destino muestra su propio estado.
-- **Documentos importados pero ninguno indexado:** el resumen muestra las cifras reales (por ejemplo, «3 documentos · 0 fragmentos»), no el estado vacío.
+- **Documentos importados pero ninguno indexado:** el resumen muestra las cifras reales (por ejemplo, «3 documentos · 0 fragmentos»), sin aviso adicional y no el estado vacío.
 - **Documentos excluidos o fuera del índice:** cuentan como documentos. Los fragmentos de los excluidos cuentan; los documentos fuera del índice no tienen fragmentos.
 - **Reindexado en curso:** el documento sombra no cuenta como documento ni suma fragmentos hasta que sustituye al original (D-044).
 - **Cifras grandes:** «1.000.000 fragmentos» cabe con la fuente al 200 % y en pantallas estrechas sin cortarse; si no cabe en línea, se reparte en varias.
@@ -211,7 +220,7 @@ Inicio reproduce el PNG 03: cabecera con el logotipo y el icono de Ajustes, chip
   - el progreso de la tanda en fragmentos («N de M fragmentos»), con las mismas cifras que el Estado de indexación y la notificación (D-042);
   - si está en pausa, la causa (la misma que en el Estado de indexación).
 - **FR-019**: Tocar la tarjeta MUST abrir el Estado de indexación.
-- **FR-020**: Sin tanda activa, la tarjeta MUST NOT mostrarse. MUST aparecer y desaparecer sola cuando la tanda empieza o termina.
+- **FR-020**: Sin tanda activa, la tarjeta MUST NOT mostrarse, aunque la última tanda dejara documentos con error. MUST aparecer y desaparecer sola cuando la tanda empieza o termina.
 
 **Accesibilidad, idioma, privacidad y rendimiento**
 
@@ -248,14 +257,14 @@ Inicio reproduce el PNG 03: cabecera con el logotipo y el icono de Ajustes, chip
 
 ## Assumptions
 
-Valores por defecto adoptados sin pregunta. Las decisiones de más impacto se confirman en «Clarifications»:
+Valores por defecto adoptados sin pregunta. Las cuatro decisiones de más impacto se confirmaron en «Clarifications»:
 
-- **Qué cuentan las cifras:**
+- **Qué cuentan las cifras** (confirmado en clarify):
   - documentos: todos los de la biblioteca, en cualquier estado, como la Biblioteca en «Todos»;
   - fragmentos: los de los documentos indexados (los que el asistente puede usar si están incluidos), incluidos o excluidos.
-- **Documentos sin indexar:** el estado vacío solo aparece con 0 documentos. Con documentos pero ninguno indexado se ven las cifras reales, sin una tarjeta adicional.
-- **Tarjeta de indexación:** entre el héroe y los accesos, para que se vea sin desplazar en el teléfono de referencia. Aparece con la tanda activa, también en pausa o esperando; en reposo no se muestra, aunque la última tanda dejara errores.
-- **Modelos no listos:** «Nuevo chat» y los accesos siguen activos. El chat (F11) explicará lo que falta, como prevé el MD 03.
+- **Documentos sin indexar** (confirmado en clarify): el estado vacío solo aparece con 0 documentos. Con documentos pero ninguno indexado se ven las cifras reales, sin aviso ni tarjeta adicional.
+- **Tarjeta de indexación** (confirmado en clarify): entre el héroe y los accesos, para que se vea sin desplazar en el teléfono de referencia. Aparece con la tanda activa, también en pausa o esperando; en reposo no se muestra, aunque la última tanda dejara errores.
+- **Modelos no listos** (confirmado en clarify): «Nuevo chat» y los accesos siguen activos. El chat (F11) explicará lo que falta, como prevé el MD 03.
 - **Acción de «Configuración pendiente»:** un botón de texto «Completar configuración» junto al chip. El chip y el botón son propuestas que siguen el tono del MD; se aprueban con esta spec.
 - **Comprobación de los modelos:** al abrir Inicio y al volver a primer plano, leyendo el registro de verificación sin recalcular huellas, como el arranque de F03.
 - **Saludo:** fijo, «¿Qué quieres explorar hoy?», sin variar con la hora.
