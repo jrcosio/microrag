@@ -9,6 +9,7 @@ import java.io.File
 import java.io.InputStream
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.rules.ExternalResource
+import org.koin.core.context.GlobalContext
 import org.koin.core.context.loadKoinModules
 import org.koin.core.context.unloadKoinModules
 import org.koin.dsl.module
@@ -16,14 +17,23 @@ import org.koin.dsl.module
 /**
  * Replaces the model files with in-memory ones already verified and tested, so instrumented tests can
  * reach «Continuar» without multi-gigabyte downloads and without touching the device's real models.
+ * Unloading an override drops the type altogether, so the app's own instance is put back afterwards:
+ * later tests in the same process need it (Home since F09).
  */
 class ReadyModelsRule : ExternalResource() {
 
     private val override = module { single<ModelFileRepository> { ReadyModelFileRepository() } }
+    private var original: ModelFileRepository? = null
 
-    override fun before() = loadKoinModules(override)
+    override fun before() {
+        original = GlobalContext.get().getOrNull<ModelFileRepository>()
+        loadKoinModules(override)
+    }
 
-    override fun after() = unloadKoinModules(override)
+    override fun after() {
+        unloadKoinModules(override)
+        original?.let { repository -> loadKoinModules(module { single<ModelFileRepository> { repository } }) }
+    }
 }
 
 private class ReadyModelFileRepository : ModelFileRepository {
