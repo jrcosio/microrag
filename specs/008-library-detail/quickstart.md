@@ -65,10 +65,11 @@ En el emulador API 37, en la AVD API 33 y en el teléfono. Incluye:
 
    ```bash
    adb shell am start -n com.lisdatasolutions.microrag/.MainActivity \
-     --es com.lisdatasolutions.microrag.debug.EXTRA_ROUTE document --el com.lisdatasolutions.microrag.debug.EXTRA_ID <id>
+     --es com.lisdatasolutions.microrag.debug.EXTRA_ROUTE document --el com.lisdatasolutions.microrag.debug.EXTRA_ID <id> \
+     --el com.lisdatasolutions.microrag.debug.EXTRA_CHUNK_ID <chunkId>
    ```
 
-   El `chunkId` va en un extra nuevo de la ruta de depuración. El fragmento aparece resaltado, con las frases vecinas.
+   El fragmento aparece resaltado, con las frases vecinas.
 5. **Quitar del índice:** el documento queda «Fuera del índice», no aparece en la cola de Ingesta, e «Iniciar indexación» no lo toca. Después, «Reindexar» lo deja indexado.
 6. **Eliminar los documentos de prueba de F07** (ids 2–9) desde la app. Medir el de 4.300 fragmentos. La Biblioteca, la Ingesta y el Estado de indexación ya no los muestran.
 7. **TalkBack** en las dos pantallas, a cargo del usuario.

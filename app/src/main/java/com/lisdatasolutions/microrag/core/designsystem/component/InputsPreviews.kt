@@ -11,8 +11,8 @@ import com.lisdatasolutions.microrag.core.designsystem.preview.LisdataPreviews
 @Composable
 private fun InputsPreview() = LisdataPreviewSurface {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        LisdataSearchField(query = "", onQueryChange = {}, placeholder = "Buscar documentos...")
-        LisdataSearchField(query = "protocolo", onQueryChange = {}, placeholder = "Buscar documentos...")
+        LisdataSearchField(query = "", onQueryChange = {}, placeholder = "Buscar documentos…")
+        LisdataSearchField(query = "protocolo", onQueryChange = {}, placeholder = "Buscar documentos…")
         LisdataFilePickerCard(
             title = "Selecciona archivos",
             subtitle = "Todo se procesa en tu móvil",
@@ -28,6 +28,6 @@ private fun InputsLongTextPreview() = LisdataPreviewSurface {
     LisdataSearchField(
         query = "una búsqueda muy larga que no cabe en el campo de texto disponible",
         onQueryChange = {},
-        placeholder = "Buscar documentos...",
+        placeholder = "Buscar documentos…",
     )
 }

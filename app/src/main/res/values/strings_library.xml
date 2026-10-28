@@ -6,7 +6,7 @@
     <string name="library_title">Biblioteca</string>
     <string name="library_headline">Tus documentos</string>
     <string name="library_intro">Gestiona las fuentes de tu IA local.</string>
-    <string name="library_search">Buscar documentos...</string>
+    <string name="library_search">Buscar documentos…</string>
     <string name="library_filter_all">Todos</string>
     <string name="library_filter_indexed">Indexados</string>
     <string name="library_filter_pending">Pendientes</string>
@@ -78,6 +78,7 @@
     <string name="document_stat_description">%1$s, %2$s</string>
     <string name="document_no_pages">sin páginas</string>
     <string name="document_no_chunks">sin fragmentos</string>
+    <string name="document_no_value">sin dato</string>
     <string name="document_include_title">Incluir en respuestas</string>
     <string name="document_include_subtitle">Disponible para consultas RAG</string>
     <string name="document_preview_header">Vista previa del contenido</string>

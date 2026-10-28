@@ -4,6 +4,8 @@ import android.net.TrafficStats
 import android.os.Process
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -42,7 +44,8 @@ class NoTrafficInstrumentedTest {
         compose.waitUntil(5_000) { stageRule.store.stage.value == OnboardingStage.COMPLETED }
         TopLevelDestination.entries.forEach { tab ->
             compose.onNodeWithText(string(tab.label)).performClick()
-            compose.onNodeWithText(string(tab.label)).assertIsDisplayed()
+            // The Library (F08) also shows its name in the top bar.
+            compose.onAllNodesWithText(string(tab.label)).onFirst().assertIsDisplayed()
         }
         compose.waitForIdle()
         Thread.sleep(2_000)

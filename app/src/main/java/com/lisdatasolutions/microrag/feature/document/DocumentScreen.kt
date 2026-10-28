@@ -240,8 +240,8 @@ private fun Stats(detail: DocumentDetail) {
     val stats = listOf(
         stat(R.string.document_stat_pages, detail.pages?.grouped(), R.string.document_no_pages),
         stat(R.string.document_stat_chunks, detail.chunks?.grouped(), R.string.document_no_chunks),
-        stat(R.string.document_stat_size, sizeText(detail.sizeBytes), R.string.document_stat_none),
-        stat(R.string.document_stat_imported, importedText(detail.importedAtMs), R.string.document_stat_none),
+        stat(R.string.document_stat_size, sizeText(detail.sizeBytes), R.string.document_no_value),
+        stat(R.string.document_stat_imported, importedText(detail.importedAtMs), R.string.document_no_value),
     )
     Column(verticalArrangement = Arrangement.spacedBy(LisdataTheme.spacing.gridGap)) {
         stats.chunked(2).forEachIndexed { row, pair ->

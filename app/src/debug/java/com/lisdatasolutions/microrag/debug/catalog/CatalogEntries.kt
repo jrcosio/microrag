@@ -333,7 +333,7 @@ val catalogEntries: List<CatalogEntry> = listOf(
     // Inputs
     entry("Entradas", "search", "LisdataSearchField") {
         var query by remember { mutableStateOf("") }
-        LisdataSearchField(query, { query = it }, placeholder = "Buscar documentos...")
+        LisdataSearchField(query, { query = it }, placeholder = "Buscar documentos…")
     },
     entry("Entradas", "filePicker", "LisdataFilePickerCard") {
         LisdataFilePickerCard("Selecciona archivos", "Todo se procesa en tu móvil", "Seleccionar archivos", onPick = {})

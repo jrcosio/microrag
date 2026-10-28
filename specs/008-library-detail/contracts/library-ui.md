@@ -9,7 +9,7 @@ Textos en `strings_library.xml` (es y en, D-029). Componentes `Lisdata*` de F01 
 | 1 | Top bar | `LisdataTopBar` con Atrás (G08 → Inicio) y acción `ic_plus` («Importar documentos») | «Biblioteca» | «Library» |
 | 2 | Título | `headlineLarge` | «Tus documentos» | «Your documents» |
 | 3 | Texto | `bodyLarge`, `textSecondary` | «Gestiona las fuentes de tu IA local.» | «Manage your local AI's sources.» |
-| 4 | Buscador | `LisdataSearchField` | «Buscar documentos...» | «Search documents...» |
+| 4 | Buscador | `LisdataSearchField` | «Buscar documentos…» | «Search documents...» |
 | 5 | Filtros | `LisdataFilterChip` × 3 | «Todos», «Indexados», «Pendientes» | «All», «Indexed», «Pending» |
 | 6 | Cabecera | `LisdataSectionHeader` con el texto de la derecha | «%d DOCUMENTOS» (plural) y «Incluir en RAG» | «%d DOCUMENTS» and «Include in RAG» |
 | 7 | Filas | `LisdataDocumentRow` (R10) | «PDF · 860 fragmentos», «PDF · Pendiente», «PDF · Indexando», «PDF · Fuera del índice», chip «Error de indexación» | «PDF · 860 chunks»… |

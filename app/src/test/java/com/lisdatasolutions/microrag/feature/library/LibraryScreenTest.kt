@@ -68,7 +68,7 @@ class LibraryScreenTest {
         show(LibraryPreviewData.png)
 
         listOf(
-            "Biblioteca", "Tus documentos", "Gestiona las fuentes de tu IA local.", "Buscar documentos...",
+            "Biblioteca", "Tus documentos", "Gestiona las fuentes de tu IA local.", "Buscar documentos…",
             "Todos", "Indexados", "Pendientes", "24 DOCUMENTOS", "Incluir en RAG",
             "Manual de procesos.pdf", "PDF · 860 fragmentos",
         ).forEach(::exists)
@@ -156,7 +156,7 @@ class LibraryScreenTest {
     fun loading_showsSkeletonRowsUnderTheFilters_B1() {
         show(LibraryUiState(content = LibraryContent.Loading))
 
-        exists("Buscar documentos...")
+        exists("Buscar documentos…")
         compose.onAllNodesWithContentDescription("Cargando").assertCountEquals(4)
     }
 
@@ -166,7 +166,7 @@ class LibraryScreenTest {
 
         exists("Aún no tienes documentos")
         exists("Importa PDF, TXT o Markdown para consultarlos sin conexión.")
-        absent("Buscar documentos...")
+        absent("Buscar documentos…")
         absent("Todos")
         compose.onNodeWithText("Importar documentos").performClick()
         assertThat(calls).containsExactly("import")

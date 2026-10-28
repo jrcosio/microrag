@@ -5,7 +5,7 @@
     <string name="library_title">Library</string>
     <string name="library_headline">Your documents</string>
     <string name="library_intro">Manage your local AI\'s sources.</string>
-    <string name="library_search">Search documents...</string>
+    <string name="library_search">Search documents…</string>
     <string name="library_filter_all">All</string>
     <string name="library_filter_indexed">Indexed</string>
     <string name="library_filter_pending">Pending</string>
@@ -77,6 +77,7 @@
     <string name="document_stat_description">%1$s, %2$s</string>
     <string name="document_no_pages">no pages</string>
     <string name="document_no_chunks">no chunks</string>
+    <string name="document_no_value">no data</string>
     <string name="document_include_title">Include in answers</string>
     <string name="document_include_subtitle">Available for RAG queries</string>
     <string name="document_preview_header">Content preview</string>
