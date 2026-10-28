@@ -2,7 +2,7 @@ package com.lisdatasolutions.microrag.feature.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -20,22 +19,30 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lisdatasolutions.microrag.R
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataGradientButton
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataHeroCard
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataQuickActionTile
+import com.lisdatasolutions.microrag.core.designsystem.component.LisdataStatusChip
 import com.lisdatasolutions.microrag.core.designsystem.component.TrailingIconPlacement
 import com.lisdatasolutions.microrag.core.designsystem.icon.LisdataIcon
 import com.lisdatasolutions.microrag.core.designsystem.icon.LisdataIcons
 import com.lisdatasolutions.microrag.core.designsystem.icon.LisdataLogo
+import com.lisdatasolutions.microrag.core.designsystem.model.StatusKind
 import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
+import com.lisdatasolutions.microrag.domain.model.LocalAiStatus
 import org.koin.androidx.compose.koinViewModel
 
 /** What the stateless screen can ask for (contracts/home-ui.md, navigation). */
@@ -62,6 +69,8 @@ fun HomeRoute(
     viewModel: HomeViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    // Research R5: check the models again when the app or this screen comes back.
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.onResume() }
     HomeScreen(
         state = state,
         actions = HomeActions(
@@ -91,8 +100,7 @@ fun HomeScreen(state: HomeUiState, actions: HomeActions, modifier: Modifier = Mo
         verticalArrangement = Arrangement.spacedBy(spacing.space4),
     ) {
         Header(actions.onSettings)
-        // FR-009: no chip until the first check, with its room kept so nothing jumps when it comes.
-        Box(modifier = Modifier.fillMaxWidth().heightIn(min = spacing.minTouchTarget))
+        AiStatus(state.ai, actions.onCompleteSetup)
         Text(
             text = stringResource(R.string.home_greeting),
             style = LisdataTheme.typography.material.headlineLarge,
@@ -128,6 +136,36 @@ private fun Header(onSettings: () -> Unit) {
         Spacer(Modifier.weight(1f))
         IconButton(onClick = onSettings) {
             LisdataIcon(LisdataIcons.Settings, contentDescription = stringResource(R.string.home_settings), tint = LisdataTheme.colors.textPrimary)
+        }
+    }
+}
+
+/**
+ * FR-007–FR-009: «IA local disponible» only after a real check; otherwise «Configuración pendiente» with
+ * «Completar configuración» (P1). While checking (P2), an invisible copy of the ready chip keeps its room,
+ * so nothing jumps when the answer arrives.
+ */
+@Composable
+private fun AiStatus(status: LocalAiStatus?, onCompleteSetup: () -> Unit) {
+    when (status) {
+        null -> LisdataStatusChip(
+            text = stringResource(R.string.home_ai_ready),
+            kind = StatusKind.Ready,
+            modifier = Modifier.alpha(0f).clearAndSetSemantics {},
+        )
+        LocalAiStatus.READY -> LisdataStatusChip(text = stringResource(R.string.home_ai_ready), kind = StatusKind.Ready)
+        LocalAiStatus.SETUP_PENDING -> FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(LisdataTheme.spacing.space2),
+            itemVerticalAlignment = Alignment.CenterVertically,
+        ) {
+            LisdataStatusChip(text = stringResource(R.string.home_ai_pending), kind = StatusKind.Warning)
+            TextButton(onClick = onCompleteSetup) {
+                Text(
+                    stringResource(R.string.home_complete_setup),
+                    style = LisdataTheme.typography.material.labelLarge,
+                    color = LisdataTheme.colors.brandBlue,
+                )
+            }
         }
     }
 }

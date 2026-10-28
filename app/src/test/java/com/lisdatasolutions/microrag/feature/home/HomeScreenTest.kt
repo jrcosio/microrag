@@ -1,6 +1,10 @@
 package com.lisdatasolutions.microrag.feature.home
 
 import android.app.Application
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -89,5 +93,49 @@ class HomeScreenTest {
         show(HomePreviewData.png)
 
         absent("provisional", substring = true)
+    }
+
+    // US2 (T015)
+
+    private fun top(text: String) = compose.onNodeWithText(text, useUnmergedTree = true).getUnclippedBoundsInRoot().top
+
+    @Test
+    fun ready_saysTheLocalAiIsAvailable() {
+        show(HomePreviewData.png)
+
+        exists("IA local disponible")
+        absent("Configuración pendiente")
+        absent("Completar configuración")
+    }
+
+    @Test
+    fun setupPending_offersToCompleteTheSetup_andEverythingElseStillWorks_FR011() {
+        show(HomePreviewData.setupPending)
+
+        exists("Configuración pendiente")
+        absent("IA local disponible")
+        click("Completar configuración")
+        click("Nuevo chat")
+        click("Importar")
+        click("Idiomas")
+
+        assertThat(calls).containsExactly("setup", "chat", "import", "languages").inOrder()
+    }
+
+    @Test
+    fun whileChecking_noChip_andTheGreetingStaysWhereItIsWhenItArrives_P2() {
+        var state by mutableStateOf(HomePreviewData.opening)
+        compose.setContent { LisdataTheme { HomeScreen(state, actions) } }
+
+        // An invisible copy of the chip keeps its room; TalkBack (the merged tree) never reads it.
+        compose.onNodeWithText("IA local disponible").assertDoesNotExist()
+        absent("Configuración pendiente")
+        val greeting = top("¿Qué quieres explorar hoy?")
+
+        state = HomePreviewData.png
+        compose.waitForIdle()
+
+        exists("IA local disponible")
+        assertThat(top("¿Qué quieres explorar hoy?")).isEqualTo(greeting)
     }
 }

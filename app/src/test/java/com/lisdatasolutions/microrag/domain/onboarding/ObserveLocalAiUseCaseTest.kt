@@ -8,6 +8,7 @@ import com.lisdatasolutions.microrag.domain.model.ModelCatalog
 import com.lisdatasolutions.microrag.domain.model.ModelFileState
 import com.lisdatasolutions.microrag.domain.model.ModelId
 import com.lisdatasolutions.microrag.domain.model.OnboardingStage
+import com.lisdatasolutions.microrag.testing.GatedModelFileRepository
 import com.lisdatasolutions.microrag.testing.InMemoryModelFileRepository
 import java.io.File
 import kotlinx.coroutines.CompletableDeferred
@@ -27,26 +28,16 @@ class ObserveLocalAiUseCaseTest {
     private suspend fun repository(verified: Set<ModelId> = required, prepared: Set<ModelId> = required) =
         InMemoryModelFileRepository(verified = verified).apply { prepared.forEach { markPrepared(it, ComputeBackend.GPU) } }
 
-    /** Holds refresh() until [gate] completes, to see what is emitted meanwhile. */
-    private class GatedRepository(private val inner: InMemoryModelFileRepository) : ModelFileRepository by inner {
-        val gate = CompletableDeferred<Unit>()
-
-        override suspend fun refresh() {
-            gate.await()
-            inner.refresh()
-        }
-    }
-
     @Test
     fun nothingIsEmitted_untilTheFirstRefreshEnds_H1() = runTest {
-        val repository = GatedRepository(repository())
+        val repository = GatedModelFileRepository(repository()).apply { gate = CompletableDeferred() }
         val emitted = mutableListOf<LocalAiStatus>()
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { ObserveLocalAiUseCase(repository)().toList(emitted) }
         advanceUntilIdle()
 
         assertThat(emitted).isEmpty()
 
-        repository.gate.complete(Unit)
+        repository.gate!!.complete(Unit)
         advanceUntilIdle()
 
         assertThat(emitted).containsExactly(LocalAiStatus.READY)

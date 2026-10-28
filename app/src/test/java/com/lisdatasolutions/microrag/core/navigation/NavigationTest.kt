@@ -65,6 +65,12 @@ import com.lisdatasolutions.microrag.domain.library.LibraryDocument
 import com.lisdatasolutions.microrag.domain.library.LibraryDocumentState
 import com.lisdatasolutions.microrag.testing.FakeImportQueueRepository
 import com.lisdatasolutions.microrag.testing.FakeLibraryRepository
+import com.lisdatasolutions.microrag.domain.model.ComputeBackend
+import com.lisdatasolutions.microrag.domain.model.ModelCatalog
+import com.lisdatasolutions.microrag.domain.onboarding.ObserveLocalAiUseCase
+import com.lisdatasolutions.microrag.domain.onboarding.RefreshLocalAiUseCase
+import com.lisdatasolutions.microrag.testing.InMemoryModelFileRepository
+import com.lisdatasolutions.microrag.testing.RecordingLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -101,9 +107,14 @@ internal fun libraryViewModels(library: FakeLibraryRepository = navigationLibrar
     }
 }
 
-/** Home (F09) takes its ViewModel from Koin too. */
+/** Home (F09) takes its ViewModel from Koin too; the models are ready. */
 internal fun homeViewModels() = module {
-    viewModel { HomeViewModel() }
+    viewModel {
+        val models = InMemoryModelFileRepository(verified = ModelCatalog.required.map { it.id }.toSet()).apply {
+            preparedBackends.value = ModelCatalog.required.associate { it.id to ComputeBackend.GPU }
+        }
+        HomeViewModel(ObserveLocalAiUseCase(models), RefreshLocalAiUseCase(models), RecordingLogger())
+    }
 }
 
 internal fun navigationLibrary() = FakeLibraryRepository().apply {

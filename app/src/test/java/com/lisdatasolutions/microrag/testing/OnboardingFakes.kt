@@ -12,6 +12,7 @@ import com.lisdatasolutions.microrag.domain.onboarding.DeviceResources
 import com.lisdatasolutions.microrag.domain.onboarding.ModelDownloadController
 import java.io.File
 import java.io.InputStream
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 
@@ -74,6 +75,16 @@ class InMemoryModelFileRepository(
     }
 
     private fun path(id: ModelId) = File("/models/${ModelCatalog.byId(id).fileName}")
+}
+
+/** [inner], with refresh() held while [gate] is set and not completed: what Home shows during a check (F09). */
+class GatedModelFileRepository(val inner: InMemoryModelFileRepository) : ModelFileRepository by inner {
+    var gate: CompletableDeferred<Unit>? = null
+
+    override suspend fun refresh() {
+        gate?.await()
+        inner.refresh()
+    }
 }
 
 class FakeDeviceResources(

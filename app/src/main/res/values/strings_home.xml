@@ -2,6 +2,10 @@
 <resources>
     <!-- P03 (PNG 03, INVENTARIO P03): texts of the PNG copied literally (D-004); the rest are proposals P1–P5, approved after analyze. -->
     <string name="home_settings">Ajustes</string>
+    <string name="home_ai_ready">IA local disponible</string>
+    <!-- P1 -->
+    <string name="home_ai_pending">Configuración pendiente</string>
+    <string name="home_complete_setup">Completar configuración</string>
     <string name="home_greeting">¿Qué quieres explorar hoy?</string>
     <string name="home_hero_eyebrow">Pregunta a tu biblioteca</string>
     <string name="home_hero_title">Una respuesta.\nTodas tus fuentes.</string>

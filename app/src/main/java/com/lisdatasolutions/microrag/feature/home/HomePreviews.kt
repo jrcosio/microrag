@@ -11,18 +11,26 @@ object HomePreviewData {
     /** PNG 03: the local AI ready and «24 documentos · 12.400 fragmentos». */
     val png = HomeUiState(ai = LocalAiStatus.READY, summary = SummaryState.Loaded(documents = 24, chunks = 12_400))
 
-    /** Just opened: nothing checked or loaded yet (FR-025). */
+    /** Just opened: nothing checked or loaded yet (FR-025, P2). */
     val opening = HomeUiState()
+
+    /** P1: a model is missing, altered or not prepared. */
+    val setupPending = png.copy(ai = LocalAiStatus.SETUP_PENDING)
 
     val all: List<Pair<String, HomeUiState>> = listOf(
         "png" to png,
         "opening" to opening,
+        "setupPending" to setupPending,
     )
 }
 
 @LisdataPreviews
 @Composable
 private fun HomePngPreview() = LisdataTheme { HomeScreen(HomePreviewData.png, HomeActions()) }
+
+@LisdataPreviews
+@Composable
+private fun HomeSetupPendingPreview() = LisdataTheme { HomeScreen(HomePreviewData.setupPending, HomeActions()) }
 
 @LisdataPreviews
 @Composable
