@@ -14,7 +14,9 @@
         <item quantity="other">%1$s documents</item>
     </plurals>
     <string name="library_include_header">Include in RAG</string>
-    <string name="library_info">Excluding a file keeps it out of future answers. It does not delete it.</string>
+    <!-- PNG 06 splits the sentence: the first line in bold. -->
+    <string name="library_info_title">Excluding a file keeps it</string>
+    <string name="library_info_body">out of future answers. It does not delete it.</string>
     <string name="library_import">Import documents</string>
 
     <!-- Row metadata: «format · state» (research R10). -->
@@ -23,6 +25,9 @@
         <item quantity="one">%1$s chunk</item>
         <item quantity="other">%1$s chunks</item>
     </plurals>
+    <string name="library_format_pdf">PDF</string>
+    <string name="library_format_txt">TXT</string>
+    <string name="library_format_markdown">MD</string>
     <string name="library_format_unknown">Document</string>
     <string name="library_state_pending">Pending</string>
     <string name="library_state_indexing">Indexing</string>
@@ -40,8 +45,7 @@
     <string name="library_no_results_body">Try another name or filter.</string>
     <string name="library_clear_filters">Clear filters</string>
     <!-- B4 -->
-    <string name="library_error_title">The library could not be loaded</string>
-    <string name="library_error_body">Reading your documents failed. You can try again.</string>
+    <string name="library_error">Your documents could not be read. You can try again.</string>
     <string name="library_unavailable_title">The library is not available</string>
     <string name="library_unavailable_body">Documents cannot be viewed while the local library is not available.</string>
     <!-- B8 -->

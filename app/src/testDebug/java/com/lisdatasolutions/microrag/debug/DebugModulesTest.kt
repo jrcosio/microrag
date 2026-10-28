@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import com.lisdatasolutions.microrag.core.di.appModules
 import androidx.datastore.core.DataStore
+import androidx.lifecycle.SavedStateHandle
 import java.io.File
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -22,6 +23,8 @@ class DebugModulesTest {
             extraTypes = listOf(
                 Context::class, Application::class, CoroutineDispatcher::class, CoroutineScope::class,
                 File::class, DataStore::class, Function0::class, String::class,
+                // Given by koinViewModel to each screen's ViewModel (F08 research R9).
+                SavedStateHandle::class,
             ),
         )
     }

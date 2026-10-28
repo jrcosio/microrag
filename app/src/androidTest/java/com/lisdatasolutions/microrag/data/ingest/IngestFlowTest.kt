@@ -172,7 +172,7 @@ class IngestFlowTest {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
         val runs = InMemoryIngestRunStore()
         val restarted = DefaultImportQueueRepository(
-                importer, source, temp.index, files, idle, pdf,
+                importer, source, temp.index, DocumentFiles(files, temp.index, Dispatchers.IO, logger), idle, pdf,
                 DefaultIndexingRepository(temp.index, idle, runs, FakeThermalStatusSource(), Dispatchers.IO, logger), runs,
                 scope, Dispatchers.IO, logger,
             )

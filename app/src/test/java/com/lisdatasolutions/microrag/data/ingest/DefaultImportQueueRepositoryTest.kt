@@ -57,7 +57,7 @@ class DefaultImportQueueRepositoryTest {
         val dispatcher = UnconfinedTestDispatcher(testScheduler)
         val importer = DocumentImporter(source, files, pdf, index, { Long.MAX_VALUE / 2 }, logger)
         val indexing = DefaultIndexingRepository(index, scheduler, runStore, FakeThermalStatusSource(), dispatcher, logger)
-        return DefaultImportQueueRepository(importer, source, index, files, scheduler, pdf, indexing, runStore, backgroundScope, dispatcher, logger) { 0L }
+        return DefaultImportQueueRepository(importer, source, index, DocumentFiles(files, index, dispatcher, logger), scheduler, pdf, indexing, runStore, backgroundScope, dispatcher, logger) { 0L }
     }
 
     private fun TestScope.collect(repository: DefaultImportQueueRepository): MutableList<ImportQueue> {
@@ -323,7 +323,8 @@ class DefaultImportQueueRepositoryTest {
         val importer = DocumentImporter(source, files, pdf, index, { Long.MAX_VALUE / 2 }, logger)
         val indexing = DefaultIndexingRepository(index, scheduler, runStore, FakeThermalStatusSource(), kotlinx.coroutines.Dispatchers.IO, logger)
         val repository = DefaultImportQueueRepository(
-            importer, source, index, files, scheduler, pdf, indexing, runStore, scope, kotlinx.coroutines.Dispatchers.IO, logger,
+            importer, source, index, DocumentFiles(files, index, kotlinx.coroutines.Dispatchers.IO, logger), scheduler, pdf, indexing,
+            runStore, scope, kotlinx.coroutines.Dispatchers.IO, logger,
         ) { 0L }
         try {
             repository.import(listOf("content://slow"))

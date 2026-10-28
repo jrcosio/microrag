@@ -2,6 +2,7 @@ package com.lisdatasolutions.microrag.feature.di
 
 import com.lisdatasolutions.microrag.feature.indexing.IndexViewModel
 import com.lisdatasolutions.microrag.feature.ingest.IngestViewModel
+import com.lisdatasolutions.microrag.feature.library.LibraryViewModel
 import com.lisdatasolutions.microrag.feature.onboarding.setup.SetupViewModel
 import com.lisdatasolutions.microrag.feature.onboarding.welcome.WelcomeViewModel
 import org.koin.core.module.dsl.viewModel
@@ -16,4 +17,5 @@ val featureModule = module {
     }
     viewModel { IngestViewModel(get(), get(), get(), get(), get()) }
     viewModel { IndexViewModel(get(), get(), get(), get()) }
+    viewModel { LibraryViewModel(get(), get(), get()) }
 }

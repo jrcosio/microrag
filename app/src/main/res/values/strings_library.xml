@@ -15,7 +15,9 @@
         <item quantity="other">%1$s documentos</item>
     </plurals>
     <string name="library_include_header">Incluir en RAG</string>
-    <string name="library_info">Excluir un archivo evita que se use en futuras respuestas. No lo elimina.</string>
+    <!-- PNG 06 splits the sentence: the first line in bold. -->
+    <string name="library_info_title">Excluir un archivo evita que se use</string>
+    <string name="library_info_body">en futuras respuestas. No lo elimina.</string>
     <string name="library_import">Importar documentos</string>
 
     <!-- Row metadata: «format · state» (research R10). -->
@@ -24,6 +26,9 @@
         <item quantity="one">%1$s fragmento</item>
         <item quantity="other">%1$s fragmentos</item>
     </plurals>
+    <string name="library_format_pdf">PDF</string>
+    <string name="library_format_txt">TXT</string>
+    <string name="library_format_markdown">MD</string>
     <string name="library_format_unknown">Documento</string>
     <string name="library_state_pending">Pendiente</string>
     <string name="library_state_indexing">Indexando</string>
@@ -41,8 +46,7 @@
     <string name="library_no_results_body">Prueba con otro nombre o filtro.</string>
     <string name="library_clear_filters">Limpiar filtros</string>
     <!-- B4 -->
-    <string name="library_error_title">No se pudo cargar la biblioteca</string>
-    <string name="library_error_body">Falló la lectura de tus documentos. Puedes intentarlo de nuevo.</string>
+    <string name="library_error">No se pudieron leer tus documentos. Puedes intentarlo de nuevo.</string>
     <string name="library_unavailable_title">La biblioteca no está disponible</string>
     <string name="library_unavailable_body">No se pueden consultar los documentos mientras la biblioteca local no esté disponible.</string>
     <!-- B8 -->

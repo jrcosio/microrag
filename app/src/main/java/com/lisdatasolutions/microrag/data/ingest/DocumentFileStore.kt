@@ -29,10 +29,11 @@ class DocumentFileStore(private val dir: File) {
         return target
     }
 
-    /** Deletes a copy of this store; paths outside it are ignored. */
-    fun delete(path: String?) {
-        val file = path?.let(::File) ?: return
-        if (file.parentFile?.canonicalPath == dir.canonicalPath) file.delete()
+    /** Deletes a copy of this store; paths outside it are ignored. False only when a copy is left behind. */
+    fun delete(path: String?): Boolean {
+        val file = path?.let(::File) ?: return true
+        if (file.parentFile?.canonicalPath != dir.canonicalPath) return true
+        return file.delete() || !file.exists()
     }
 
     /** Deletes temporary files and copies that belong to no document; returns how many were deleted. */

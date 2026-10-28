@@ -11,6 +11,14 @@ import com.lisdatasolutions.microrag.domain.ingest.ObserveImportQueueUseCase
 import com.lisdatasolutions.microrag.domain.ingest.RemoveQueueItemUseCase
 import com.lisdatasolutions.microrag.domain.ingest.RetryQueueItemUseCase
 import com.lisdatasolutions.microrag.domain.ingest.StartIndexingUseCase
+import com.lisdatasolutions.microrag.domain.library.DeleteDocumentUseCase
+import com.lisdatasolutions.microrag.domain.library.DiscardReindexUseCase
+import com.lisdatasolutions.microrag.domain.library.LoadPreviewUseCase
+import com.lisdatasolutions.microrag.domain.library.ObserveDocumentUseCase
+import com.lisdatasolutions.microrag.domain.library.ObserveLibraryUseCase
+import com.lisdatasolutions.microrag.domain.library.ReindexDocumentUseCase
+import com.lisdatasolutions.microrag.domain.library.RemoveFromIndexUseCase
+import com.lisdatasolutions.microrag.domain.library.SetIncludedUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.BuildDownloadConfirmationUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.CompleteOnboardingUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.ImportModelFileUseCase
@@ -61,4 +69,14 @@ val domainModule = module {
     factoryOf(::ResumeIndexingUseCase)
     factoryOf(::RetryIndexingUseCase)
     factoryOf(::ReconcileIndexingUseCase)
+
+    // Library and document detail (F08).
+    factoryOf(::ObserveLibraryUseCase)
+    factoryOf(::ObserveDocumentUseCase)
+    factoryOf(::LoadPreviewUseCase)
+    factoryOf(::SetIncludedUseCase)
+    factoryOf(::DeleteDocumentUseCase)
+    factoryOf(::RemoveFromIndexUseCase)
+    factoryOf(::ReindexDocumentUseCase)
+    factoryOf(::DiscardReindexUseCase)
 }

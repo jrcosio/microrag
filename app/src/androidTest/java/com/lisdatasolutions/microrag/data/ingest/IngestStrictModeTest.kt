@@ -100,7 +100,7 @@ class IngestStrictModeTest {
             val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
             val runs = InMemoryIngestRunStore()
             val repository = DefaultImportQueueRepository(
-                importer, source, temp.index, files, scheduler, pdf,
+                importer, source, temp.index, DocumentFiles(files, temp.index, Dispatchers.IO, logger), scheduler, pdf,
                 DefaultIndexingRepository(temp.index, scheduler, runs, FakeThermalStatusSource(), Dispatchers.IO, logger), runs,
                 scope, Dispatchers.IO, logger,
             )

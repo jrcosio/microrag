@@ -34,8 +34,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 /**
@@ -45,14 +43,14 @@ import kotlinx.coroutines.withContext
  * - documents not indexed yet, from the index: they survive everything;
  * - the processing work, from [scheduler].
  *
- * Imports run one at a time, in selection order, in the application [scope]. [fileLock] keeps the
- * orphan cleanup away from a copy in progress.
+ * Imports run one at a time, in selection order, in the application [scope], with the private copies
+ * locked ([DocumentFiles]), so the orphan cleanup never takes a copy in progress.
  */
 class DefaultImportQueueRepository(
     private val importer: DocumentImporter,
     private val source: DocumentSource,
     private val index: RagIndex,
-    private val files: DocumentFileStore,
+    private val files: DocumentFiles,
     private val scheduler: IngestScheduler,
     private val pdf: PdfOpener,
     /** F07: starting, retrying and removing documents go through the indexing run. */
@@ -83,15 +81,13 @@ class DefaultImportQueueRepository(
     private val attempts = MutableStateFlow<List<Attempt>>(emptyList())
     private val pending = Channel<Pending>(Channel.UNLIMITED)
     private val consumerStarted = AtomicBoolean(false)
-    private val orphansCleaned = AtomicBoolean(false)
-    private val fileLock = Mutex()
 
     @Volatile
     private var running: Pair<String, Job>? = null
 
     override val queue: Flow<ImportQueue> = flow {
         val available = index.open() == IndexCompatibility.Compatible
-        if (available && orphansCleaned.compareAndSet(false, true)) cleanOrphans()
+        if (available) files.cleanOrphansOnce()
         val documents = if (available) {
             index.documentChanges.map { version ->
                 val documents = index.documents(QUEUE_STATUSES)
@@ -159,7 +155,7 @@ class DefaultImportQueueRepository(
                 val document = index.document(key.id) ?: return
                 index.deleteDocument(key.id)
                 runStore.edit { it.without(listOf(key.id)) }
-                withContext(io) { fileLock.withLock { files.delete(document.localPath) } }
+                files.delete(document.localPath)
                 logger.i(TAG) { "ingest remove id=${key.id}" }
             }
         }
@@ -176,7 +172,7 @@ class DefaultImportQueueRepository(
                     // Removed or retried meanwhile: only the latest request for an attempt runs.
                     val current = attempts.value.firstOrNull { it.id == next.attemptId } ?: continue
                     if (current.state !is QueueItemState.Importing) continue
-                    val work = scope.launch(io) { fileLock.withLock { runImport(next) } }
+                    val work = scope.launch(io) { files.withLock { runImport(next) } }
                     running = next.attemptId to work
                     work.join()
                     running = null
@@ -279,18 +275,6 @@ class DefaultImportQueueRepository(
     } catch (e: Exception) {
         logger.w(TAG) { "ingest describe failed ${e.javaClass.simpleName}" }
         null
-    }
-
-    /**
-     * The referenced copies are read under [fileLock]: read before it, an import finishing meanwhile
-     * would have its new copy taken for an orphan.
-     */
-    private suspend fun cleanOrphans() {
-        val removed = fileLock.withLock {
-            val referenced = index.documents(DocumentStatus.entries.toSet()).mapNotNullTo(HashSet()) { it.localPath }
-            withContext(io) { files.cleanOrphans(referenced) }
-        }
-        if (removed > 0) logger.i(TAG) { "ingest orphans removed=$removed" }
     }
 
     private companion object {

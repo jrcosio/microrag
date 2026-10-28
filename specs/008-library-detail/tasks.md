@@ -96,7 +96,7 @@ description: "Lista de tareas de F08 — Biblioteca y detalle de documento"
   - **`publishReindex`:** con búsquedas antes y después. El original termina con exactamente los fragmentos de la sombra (mismos `id`, FTS válido), conserva `included`, la sombra desaparece y `quant_dirty` = 1;
   - **`removeFromIndex`:** 0 fragmentos, 0 filas FTS, sin sombras, `cancelled`, `included` conservado, `quant_dirty` = 1;
   - **`deleteDocument`:** marca `quant_dirty`.
-- [ ] T008 [P] Ampliar `…/test/…/architecture/LayeringTest.kt`: `feature/library` y `feature/document` no importan `data`, SQLite, WorkManager ni `java.io.File`.
+- [X] T008 [P] Ampliar `…/test/…/architecture/LayeringTest.kt`: `feature/library` y `feature/document` no importan `data`, SQLite, WorkManager ni `java.io.File`.
 
 ### Implementation
 
@@ -109,7 +109,7 @@ description: "Lista de tareas de F08 — Biblioteca y detalle de documento"
 - [X] T011 [P] Ampliar `…/test/…/testing/FakeRagIndex.kt` con las operaciones nuevas, con la misma semántica (sombras ocultas, cascada y sustitución). Añadir un contador de lecturas de fragmentos para L1.
 - [X] T012 [P] Crear `…/microrag/domain/library/LibraryModels.kt` (data-model §3) y `LibraryRepository.kt` (contracts/library-api.md).
 - [X] T013 [P] Crear `app/src/main/res/values{,-en}/strings_library.xml` con todos los textos de contracts/library-ui.md, en español e inglés, con plurales.
-- [ ] T014 Registrar en Koin (`DataModule`, `DomainModule` y `FeatureModule`) el repositorio y los casos de uso, aún sin pantallas.
+- [X] T014 Registrar en Koin (`DataModule`, `DomainModule` y `FeatureModule`) el repositorio y los casos de uso, aún sin pantallas.
 
 **Checkpoint**: el índice ofrece todo lo que necesitan las dos pantallas.
 
@@ -123,20 +123,20 @@ description: "Lista de tareas de F08 — Biblioteca y detalle de documento"
 
 ### Tests for User Story 1
 
-- [ ] T015 [P] [US1] Crear `…/test/…/data/library/DefaultLibraryRepositoryTest.kt` (parte de la lista):
+- [X] T015 [P] [US1] Crear `…/test/…/data/library/DefaultLibraryRepositoryTest.kt` (parte de la lista):
   - `page` emite `Loaded` con los estados de R10 y el total;
   - se recalcula con `documentChanges` y con cada consulta;
   - nunca lee fragmentos (L1, con el contador de T011);
   - `Unavailable` con el índice incompatible (L12);
   - la primera observación lanza la limpieza de huérfanos una sola vez (R6);
   - logs sin nombres (L11).
-- [ ] T016 [P] [US1] Crear `…/test/…/feature/library/LibraryViewModelTest.kt`:
+- [X] T016 [P] [US1] Crear `…/test/…/feature/library/LibraryViewModelTest.kt`:
   - la consulta vive en el `SavedStateHandle` (texto, filtro y límite, R9);
   - el texto se pliega;
   - `loadMore` suma 50 solo si `hasMore`;
   - «Limpiar filtros» vuelve a ALL y vacía el texto;
   - estados de carga, vacío, sin resultados, error y no disponible.
-- [ ] T017 [P] [US1] Crear `…/test/…/feature/library/LibraryScreenTest.kt`:
+- [X] T017 [P] [US1] Crear `…/test/…/feature/library/LibraryScreenTest.kt`:
   - el estado del PNG 06 con todos sus textos;
   - las filas de R10;
   - «+» e «Importar documentos» llaman a abrir la Ingesta;
@@ -146,15 +146,15 @@ description: "Lista de tareas de F08 — Biblioteca y detalle de documento"
 
 ### Implementation for User Story 1
 
-- [ ] T018 [US1] Crear `…/microrag/data/library/DefaultLibraryRepository.kt` con `page` (R2, L1, L2, L12) y la limpieza de huérfanos compartida, extraída de la Ingesta a `…/microrag/data/ingest/DocumentFiles.kt` (R6). Crear `ObserveLibraryUseCase`. Comprobar T015.
-- [ ] T019 [US1] Crear `…/microrag/feature/library/LibraryUiState.kt`, `LibraryTexts.kt` y `LibraryViewModel.kt` (R9). Comprobar T016.
-- [ ] T020 [US1] Crear `…/microrag/feature/library/LibraryScreen.kt` (`LibraryRoute` y `LibraryScreen` sin estado):
+- [X] T018 [US1] Crear `…/microrag/data/library/DefaultLibraryRepository.kt` con `page` (R2, L1, L2, L12) y la limpieza de huérfanos compartida, extraída de la Ingesta a `…/microrag/data/ingest/DocumentFiles.kt` (R6). Crear `ObserveLibraryUseCase`. Comprobar T015.
+- [X] T019 [US1] Crear `…/microrag/feature/library/LibraryUiState.kt`, `LibraryTexts.kt` y `LibraryViewModel.kt` (R9). Comprobar T016.
+- [X] T020 [US1] Crear `…/microrag/feature/library/LibraryScreen.kt` (`LibraryRoute` y `LibraryScreen` sin estado):
   - el PNG 06 con los componentes de contracts/library-ui.md;
   - `LazyColumn` con `rememberLazyListState` y carga al acercarse al final;
   - estados B1–B4.
 
   Comprobar T017.
-- [ ] T021 [US1] En `…/microrag/core/navigation/MicroRagNavHost.kt`, `Library` pasa a `LibraryRoute`: «+» → `Ingest` y fila → `Document(id)`. Atrás → Inicio (G08). Ampliar `NavigationTest`.
+- [X] T021 [US1] En `…/microrag/core/navigation/MicroRagNavHost.kt`, `Library` pasa a `LibraryRoute`: «+» → `Ingest` y fila → `Document(id)`. Atrás → Inicio (G08). Ampliar `NavigationTest`.
 - [ ] T022 [US1] Crear `…/androidTest/…/data/library/LibraryBenchmarkTest.kt` (R11): 1.000 documentos sintéticos, primera página y recuento (p50 y p95), cada bloque siguiente de 50, recorrido completo, y el mismo tiempo con 0 y con 50.000 fragmentos. Ejecutarla en el teléfono (SC-001: primera página en 1 s o menos y cada bloque en 100 ms o menos).
 
 **Checkpoint**: la Biblioteca se usa de verdad (MVP).

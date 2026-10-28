@@ -76,5 +76,19 @@ class LayeringTest {
 
         assertWithMessage("feature/indexing files importing WorkManager, SQLite, LiteRT or PowerManager").that(leaks).isEmpty()
     }
+
+    @Test
+    fun theLibraryAndDocumentScreensUseNoDataLayerApi() {
+        val featureDirs = listOf("library", "document").map { File("src/main/java/com/lisdatasolutions/microrag/feature/$it") }
+        val forbidden = listOf(
+            "import com.lisdatasolutions.microrag.data.", "import androidx.sqlite", "import androidx.work", "import java.io.File",
+        )
+        val files = sources.filter { file -> featureDirs.any { file.canonicalPath.startsWith(it.canonicalPath + File.separator) } }
+        val leaks = files.filter { file -> forbidden.any { file.readText().contains(it) } }.map { it.path }
+
+        assertWithMessage("feature/library and feature/document files exist").that(files).isNotEmpty()
+        assertWithMessage("feature/library and feature/document files importing the data layer, SQLite, WorkManager or File")
+            .that(leaks).isEmpty()
+    }
 }
 

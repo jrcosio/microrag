@@ -3,9 +3,11 @@ package com.lisdatasolutions.microrag.core.navigation
 import android.app.Application
 import android.content.Context
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -31,13 +33,20 @@ import com.lisdatasolutions.microrag.domain.ingest.ObserveImportQueueUseCase
 import com.lisdatasolutions.microrag.domain.ingest.RemoveQueueItemUseCase
 import com.lisdatasolutions.microrag.domain.ingest.RetryQueueItemUseCase
 import com.lisdatasolutions.microrag.domain.ingest.StartIndexingUseCase
+import com.lisdatasolutions.microrag.domain.library.ObserveLibraryUseCase
+import com.lisdatasolutions.microrag.domain.library.SetIncludedUseCase
 import com.lisdatasolutions.microrag.domain.model.OnboardingStage
 import com.lisdatasolutions.microrag.domain.model.StartDestination
 import com.lisdatasolutions.microrag.domain.onboarding.FakeOnboardingStore
 import com.lisdatasolutions.microrag.domain.onboarding.ResolveStartDestinationUseCase
 import com.lisdatasolutions.microrag.feature.indexing.IndexViewModel
 import com.lisdatasolutions.microrag.feature.ingest.IngestViewModel
+import com.lisdatasolutions.microrag.feature.library.LibraryViewModel
+import com.lisdatasolutions.microrag.domain.ingest.DocumentFormat
+import com.lisdatasolutions.microrag.domain.library.LibraryDocument
+import com.lisdatasolutions.microrag.domain.library.LibraryDocumentState
 import com.lisdatasolutions.microrag.testing.FakeImportQueueRepository
+import com.lisdatasolutions.microrag.testing.FakeLibraryRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -53,18 +62,27 @@ import org.koin.dsl.module
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 
+/** The Library (F08) takes its ViewModel from Koin; a fake repository with one document is enough to navigate. */
+internal fun libraryViewModels() = module {
+    val library = FakeLibraryRepository().apply {
+        documents.value = listOf(LibraryDocument(7, "Manual.pdf", DocumentFormat.PDF, LibraryDocumentState.Indexed(3, null), true))
+    }
+    viewModel { LibraryViewModel(get(), ObserveLibraryUseCase(library), SetIncludedUseCase(library)) }
+}
+
 /** Navigation contract N1–N8 (contracts/navigation.md, FR-016…FR-022, SC-003, SC-007). */
 @RunWith(AndroidJUnit4::class)
 @Config(application = Application::class)
 class NavigationTest {
 
-    /** The import screen (F06) takes its ViewModel from Koin; a fake queue is enough for navigation. */
+    /** The import (F06), indexing (F07) and library (F08) screens take their ViewModels from Koin; fakes are enough here. */
     @get:Rule(order = 0)
     val ingestGraph = object : ExternalResource() {
         override fun before() {
             val repository = FakeImportQueueRepository()
             startKoin {
                 modules(
+                    libraryViewModels(),
                     module {
                         viewModel {
                             IngestViewModel(
@@ -245,6 +263,38 @@ class NavigationTest {
         assertThat(MainActivity.indexingRequestsFor(StartDestination.SETUP_OVER_WELCOME, 2)).isEqualTo(0)
     }
 
+    // F08 T021: the Library's own exits.
+
+    @Test
+    fun libraryPlusOpensTheImportScreen_andARowTheDocument() {
+        launchShell()
+        tab(TopLevelDestination.LIBRARY).performClick()
+        compose.waitForIdle()
+        compose.onNodeWithText(context.getString(R.string.library_headline)).assertIsDisplayed()
+
+        compose.onNodeWithContentDescription(context.getString(R.string.library_import)).performClick()
+        compose.waitForIdle()
+        assertThat(nav.currentDestination?.hasRoute(Ingest::class)).isTrue()
+
+        compose.runOnUiThread { nav.popBackStack() }
+        compose.waitForIdle()
+        compose.onNodeWithText("Manual.pdf", useUnmergedTree = true).performClick()
+        compose.waitForIdle()
+        assertThat(nav.currentBackStackEntry?.let { it.destination.hasRoute(Document::class) }).isTrue()
+        assertThat(nav.previousBackStackEntry?.destination?.hasRoute(Library::class)).isTrue()
+    }
+
+    @Test
+    fun libraryBackArrowReturnsHome() {
+        launchShell()
+        tab(TopLevelDestination.LIBRARY).performClick()
+
+        compose.onNodeWithContentDescription(context.getString(R.string.action_back)).performClick()
+        compose.waitForIdle()
+
+        assertThat(nav.currentDestination?.hasRoute(Home::class)).isTrue()
+    }
+
     @Test
     fun n6_bottomBarHiddenWhileKeyboardIsVisible() {
         TopLevelDestination.entries.forEach { destination ->
@@ -284,6 +334,7 @@ class NavigationRestorationTest {
             }
             startKoin {
                 modules(
+                    libraryViewModels(),
                     module {
                         factory { ResolveStartDestinationUseCase(FakeOnboardingStore(OnboardingStage.COMPLETED)) }
                         factory { ReconcileIndexingUseCase(indexing) }
@@ -305,8 +356,9 @@ class NavigationRestorationTest {
     private fun text(id: Int, vararg args: Any) = compose.activity.getString(id, *args)
 
     private fun assertOnLibrary() {
-        compose.onNodeWithText(text(R.string.pending_destination_title, "F08")).assertIsDisplayed()
-        compose.onNodeWithText(text(TopLevelDestination.LIBRARY.label)).assertIsDisplayed()
+        compose.onNodeWithText(text(R.string.library_headline)).assertIsDisplayed()
+        // The top bar title and the selected tab.
+        compose.onAllNodesWithText(text(TopLevelDestination.LIBRARY.label)).assertCountEquals(2)
     }
 
     @Test

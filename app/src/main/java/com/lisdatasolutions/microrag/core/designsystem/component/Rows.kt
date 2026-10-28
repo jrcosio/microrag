@@ -29,7 +29,11 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.lisdatasolutions.microrag.R
 import com.lisdatasolutions.microrag.core.designsystem.icon.LisdataIcon
@@ -97,7 +101,9 @@ fun LisdataModelStatusRow(
 
 /**
  * Library row: type tile, name, meta ("PDF · 860 fragmentos") or status, and the "include in RAG"
- * switch, disabled until the document is indexed. Tapping the row opens the detail.
+ * switch, disabled until the document is indexed. Tapping the row opens the detail. [metaAccent] ends
+ * the meta in brand blue ("· Reindexando", F08 B7). With [accessibilityText] the row is read as that
+ * single sentence and [onClickLabel] names its action; [switchLabel] is what the switch announces.
  */
 @Composable
 fun LisdataDocumentRow(
@@ -110,11 +116,14 @@ fun LisdataDocumentRow(
     modifier: Modifier = Modifier,
     statusText: String? = null,
     status: StatusKind? = null,
+    metaAccent: String? = null,
+    accessibilityText: String? = null,
+    onClickLabel: String? = null,
+    switchLabel: String = stringResource(R.string.cd_include_in_rag, name),
 ) {
     val colors = LisdataTheme.colors
     val spacing = LisdataTheme.spacing
-    val switchDescription = stringResource(R.string.cd_include_in_rag, name)
-    LisdataCard(modifier = modifier, onClick = onClick) {
+    LisdataCard(modifier = modifier, onClick = onClick, onClickLabel = onClickLabel) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(spacing.space4),
@@ -123,7 +132,13 @@ fun LisdataDocumentRow(
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .semantics(mergeDescendants = true) {},
+                    .then(
+                        if (accessibilityText != null) {
+                            Modifier.clearAndSetSemantics { contentDescription = accessibilityText }
+                        } else {
+                            Modifier.semantics(mergeDescendants = true) {}
+                        },
+                    ),
                 verticalArrangement = Arrangement.spacedBy(spacing.space1),
             ) {
                 Text(
@@ -133,7 +148,16 @@ fun LisdataDocumentRow(
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
-                Text(text = meta, style = LisdataTheme.typography.material.bodyMedium, color = colors.textSecondary)
+                val metaText = if (metaAccent == null) {
+                    AnnotatedString(meta)
+                } else {
+                    buildAnnotatedString {
+                        append(meta)
+                        append(" · ")
+                        withStyle(SpanStyle(color = colors.brandBlue)) { append(metaAccent) }
+                    }
+                }
+                Text(text = metaText, style = LisdataTheme.typography.material.bodyMedium, color = colors.textSecondary)
                 if (statusText != null && status != null) LisdataStatusChip(text = statusText, kind = status)
             }
             Switch(
@@ -141,7 +165,7 @@ fun LisdataDocumentRow(
                 onCheckedChange = onIncludedChange,
                 enabled = includeEnabled,
                 colors = lisdataSwitchColors(),
-                modifier = Modifier.semantics { contentDescription = switchDescription },
+                modifier = Modifier.semantics { contentDescription = switchLabel },
             )
         }
     }

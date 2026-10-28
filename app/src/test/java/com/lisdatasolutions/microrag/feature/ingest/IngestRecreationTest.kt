@@ -6,6 +6,7 @@ import com.lisdatasolutions.microrag.data.indexing.FakeThermalStatusSource
 import com.lisdatasolutions.microrag.data.indexing.InMemoryIngestRunStore
 import com.lisdatasolutions.microrag.data.ingest.DefaultImportQueueRepository
 import com.lisdatasolutions.microrag.data.ingest.DocumentFileStore
+import com.lisdatasolutions.microrag.data.ingest.DocumentFiles
 import com.lisdatasolutions.microrag.data.ingest.DocumentImporter
 import com.lisdatasolutions.microrag.domain.ingest.ImportDocumentsUseCase
 import com.lisdatasolutions.microrag.domain.ingest.IngestError
@@ -64,7 +65,7 @@ class IngestRecreationTest {
         val runs = InMemoryIngestRunStore()
         val repository = DefaultImportQueueRepository(
             DocumentImporter(source, files, pdf, index, { Long.MAX_VALUE / 2 }, logger),
-            source, index, files, scheduler, pdf,
+            source, index, DocumentFiles(files, index, dispatcher, logger), scheduler, pdf,
             DefaultIndexingRepository(index, scheduler, runs, FakeThermalStatusSource(), dispatcher, logger), runs,
             backgroundScope, dispatcher, logger,
         ) { 0L }

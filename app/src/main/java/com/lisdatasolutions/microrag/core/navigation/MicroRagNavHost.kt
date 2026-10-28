@@ -10,6 +10,7 @@ import androidx.navigation.toRoute
 import com.lisdatasolutions.microrag.R
 import com.lisdatasolutions.microrag.feature.indexing.IndexRoute
 import com.lisdatasolutions.microrag.feature.ingest.IngestRoute
+import com.lisdatasolutions.microrag.feature.library.LibraryRoute
 import com.lisdatasolutions.microrag.feature.onboarding.setup.SetupRoute
 import com.lisdatasolutions.microrag.feature.onboarding.welcome.WelcomeRoute
 
@@ -49,7 +50,14 @@ fun MicroRagNavHost(
             PendingDestination("chat", "F11", args = mapOf("conversationId" to route.conversationId), onBack = back)
         }
         composable<Ingest> { IngestRoute(onBack = back, onStartIndexing = { navController.navigate(Index) }) }
-        composable<Library> { PendingDestination("library", "F08", onBack = back) }
+        composable<Library> {
+            // G08: the Library is a tab root over Home, so Back returns to Home.
+            LibraryRoute(
+                onBack = back,
+                onImport = { navController.navigate(Ingest) },
+                onOpenDocument = { navController.navigate(Document(documentId = it)) },
+            )
+        }
         composable<Document> { entry ->
             val route = entry.toRoute<Document>()
             PendingDestination(

@@ -3,6 +3,7 @@ package com.lisdatasolutions.microrag.core.di
 import android.app.Application
 import android.content.Context
 import androidx.datastore.core.DataStore
+import androidx.lifecycle.SavedStateHandle
 import com.lisdatasolutions.microrag.domain.rag.RagIndexConfig
 import java.io.File
 import kotlinx.coroutines.CoroutineDispatcher
@@ -22,6 +23,8 @@ class AppModulesTest {
             extraTypes = listOf(
                 Context::class, Application::class, CoroutineDispatcher::class, CoroutineScope::class,
                 File::class, DataStore::class, Function0::class, String::class, RagIndexConfig::class, List::class,
+                // Given by koinViewModel to each screen's ViewModel (F08 research R9).
+                SavedStateHandle::class,
             ),
         )
     }
