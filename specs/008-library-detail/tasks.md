@@ -69,7 +69,7 @@ description: "Lista de tareas de F08 — Biblioteca y detalle de documento"
 
   Usarlo en `addDocument` y en el relleno de T003.
 - [X] T005 [P] `offline/tests/test_appconfig.py` espera la v3; anotar en `offline/README.md` que hay que reconstruir los índices de evaluación. Ejecutar las pruebas Python.
-- [ ] T006 **Verificación temprana en el teléfono** (quickstart §4.1):
+- [X] T006 **Verificación temprana en el teléfono** (quickstart §4.1):
   1. instalar sobre los datos de F07;
   2. el índice abre `Compatible`;
   3. copiar la base con `run-as` y comprobar `schema_version = 3` y `name_norm` relleno en todos los documentos, sin mostrar el nombre del id 1.
@@ -155,7 +155,7 @@ description: "Lista de tareas de F08 — Biblioteca y detalle de documento"
 
   Comprobar T017.
 - [X] T021 [US1] En `…/microrag/core/navigation/MicroRagNavHost.kt`, `Library` pasa a `LibraryRoute`: «+» → `Ingest` y fila → `Document(id)`. Atrás → Inicio (G08). Ampliar `NavigationTest`.
-- [ ] T022 [US1] Crear `…/androidTest/…/data/library/LibraryBenchmarkTest.kt` (R11): 1.000 documentos sintéticos, primera página y recuento (p50 y p95), cada bloque siguiente de 50, recorrido completo, y el mismo tiempo con 0 y con 50.000 fragmentos. Ejecutarla en el teléfono (SC-001: primera página en 1 s o menos y cada bloque en 100 ms o menos).
+- [X] T022 [US1] Crear `…/androidTest/…/data/library/LibraryBenchmarkTest.kt` (R11): 1.000 documentos sintéticos, primera página y recuento (p50 y p95), cada bloque siguiente de 50, recorrido completo, y el mismo tiempo con 0 y con 50.000 fragmentos. Ejecutarla en el teléfono (SC-001: primera página en 1 s o menos y cada bloque en 100 ms o menos).
 
 **Checkpoint**: la Biblioteca se usa de verdad (MVP).
 
@@ -271,8 +271,8 @@ description: "Lista de tareas de F08 — Biblioteca y detalle de documento"
   - anuncios A7.
 
   Ampliar `DocumentViewModelTest` y `DocumentScreenTest` antes.
-- [ ] T043 [US4] Crear `…/androidTest/…/data/library/DocumentDeleteBenchmarkTest.kt` (R11): 4.300 fragmentos de 256D; medir `deleteDocument`, `removeFromIndex` y `publishReindex`. Ejecutarla en el teléfono. **Si pasa de 5 s, anotarlo para el informe** (SC-009).
-- [ ] T044 [US4] **Verificación en el teléfono** (quickstart §4.3):
+- [X] T043 [US4] Crear `…/androidTest/…/data/library/DocumentDeleteBenchmarkTest.kt` (R11): 4.300 fragmentos de 256D; medir `deleteDocument`, `removeFromIndex` y `publishReindex`. Ejecutarla en el teléfono. **Si pasa de 5 s, anotarlo para el informe** (SC-009).
+- [X] T044 [US4] **Verificación en el teléfono** (quickstart §4.3):
   1. reindexar un documento de prueba de 430 fragmentos;
   2. durante el reindexado, buscar (prueba instrumentada o diagnóstico) y obtener siempre la versión anterior;
   3. matar el proceso a mitad, sin abrir la app;
@@ -302,7 +302,7 @@ description: "Lista de tareas de F08 — Biblioteca y detalle de documento"
 
 - [X] T047 [P] [US5] Crear `…/microrag/feature/library/LibraryPreviews.kt` y `…/microrag/feature/document/DocumentPreviews.kt`, con datos de ejemplo etiquetados (constitución V) para todos los estados, en claro y en oscuro. Comprobar T045 y T046 en el emulador.
 - [X] T048 [US5] B7 en la Biblioteca («Reindexando» y «Reindexado fallido» en la fila), con sus pruebas en `LibraryScreenTest`. B8 ya está en T035.
-- [ ] T049 [US5] Capturar en el teléfono, en claro y en oscuro, sin la barra de estado:
+- [X] T049 [US5] Capturar en el teléfono, en claro y en oscuro, sin la barra de estado:
   - la Biblioteca como el PNG 06, vacía y sin resultados;
   - el detalle como el PNG 07, desde una cita, pendiente, con error, fuera del índice y reindexando.
 
@@ -319,7 +319,7 @@ description: "Lista de tareas de F08 — Biblioteca y detalle de documento"
   - **G16:** resuelto, sin filtro «Errores»;
   - **G17:** resuelto con «Fuera del índice» (D-043);
   - **fichas P06 y P07:** estados B1–B8 y D1–D11.
-- [ ] T052 Puertas de calidad:
+- [X] T052 Puertas de calidad:
   - pruebas Python;
   - `./gradlew :app:assembleDebug :app:assembleRelease :app:lintDebug :app:lintRelease :app:testDebugUnitTest`;
   - suite instrumentada (sin `@RequiresModels` ni `@RequiresNetwork`) en el emulador API 37, en la AVD API 33 y en el teléfono;
@@ -327,8 +327,8 @@ description: "Lista de tareas de F08 — Biblioteca y detalle de documento"
   - `NetworkConfinementTest` en verde con los paquetes nuevos (SC-010).
 
   Todo en verde, salvo las 4 de navegación conocidas de la API 33 (F06 §7).
-- [ ] T053 Recorrido manual en el teléfono (quickstart §5), incluido **eliminar desde la app los documentos de prueba de F07 (ids 2–9)** y medir el de 4.300 fragmentos. Nunca el id 1. Revisar que los logs de la app no contienen nombres, rutas ni texto (SC-010). TalkBack, a cargo del usuario.
-- [ ] T054 Documentación de cierre:
+- [X] T053 Recorrido manual en el teléfono (quickstart §5), incluido **eliminar desde la app los documentos de prueba de F07 (ids 2–9)** y medir el de 4.300 fragmentos. Nunca el id 1. Revisar que los logs de la app no contienen nombres, rutas ni texto (SC-010). TalkBack, a cargo del usuario.
+- [X] T054 Documentación de cierre:
   - `specs/008-library-detail/report.md`: resumen y puertas, validación por historia y criterio, cifras (R11 y borrados reales), diferencias frente a los PNG, desviaciones y pendientes;
   - estado de F08 en `docs/roadmap/FEATURES.md`;
   - tareas marcadas `[X]`.
