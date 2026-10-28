@@ -1,6 +1,7 @@
 package com.lisdatasolutions.microrag.feature.home
 
 import android.content.pm.ActivityInfo
+import android.content.res.Configuration
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalDensity
@@ -58,16 +59,30 @@ class HomeScreenAccessibilityTest(
         checkAll()
     }
 
+    /** The activity turns before anything is drawn, and is back upright before the next test starts. */
     @Test
     fun passesChecksInLandscape() {
-        compose.activityRule.scenario.onActivity { it.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE }
-        compose.waitForIdle()
-        compose.enableAccessibilityChecks()
-        show()
+        turn(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE, Configuration.ORIENTATION_LANDSCAPE)
+        try {
+            compose.enableAccessibilityChecks()
+            show()
 
-        val root = compose.onRoot().fetchSemanticsNode().size
-        assertWithMessage("$name: landscape").that(root.width).isGreaterThan(root.height)
-        checkAll()
+            val root = compose.onRoot().fetchSemanticsNode().size
+            assertWithMessage("$name: landscape").that(root.width).isGreaterThan(root.height)
+            checkAll()
+        } finally {
+            turn(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT, Configuration.ORIENTATION_PORTRAIT)
+        }
+    }
+
+    private fun turn(requested: Int, expected: Int) {
+        compose.activityRule.scenario.onActivity { it.requestedOrientation = requested }
+        compose.waitUntil(TURN_TIMEOUT_MS) {
+            var orientation = Configuration.ORIENTATION_UNDEFINED
+            compose.activityRule.scenario.onActivity { orientation = it.resources.configuration.orientation }
+            orientation == expected
+        }
+        compose.waitForIdle()
     }
 
     @Test
@@ -112,6 +127,8 @@ class HomeScreenAccessibilityTest(
     private fun px(dp: Int): Float = with(compose.density) { dp.dp.toPx() }
 
     companion object {
+        private const val TURN_TIMEOUT_MS = 5_000L
+
         @JvmStatic
         @Parameterized.Parameters(name = "{0}-dark={2}")
         fun parameters(): List<Array<Any>> = HomePreviewData.all.flatMap { (name, state) ->
