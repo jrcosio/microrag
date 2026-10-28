@@ -3,6 +3,7 @@ package com.lisdatasolutions.microrag.feature.home
 import androidx.compose.runtime.Composable
 import com.lisdatasolutions.microrag.core.designsystem.preview.LisdataPreviews
 import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
+import com.lisdatasolutions.microrag.domain.indexing.PauseReason
 import com.lisdatasolutions.microrag.domain.model.LocalAiStatus
 
 /** Labelled sample states for previews and UI tests only (constitution V): never shown in the app. */
@@ -24,6 +25,12 @@ object HomePreviewData {
     val summaryFailed = png.copy(summary = SummaryState.Error(unavailable = false))
     val summaryUnavailable = png.copy(summary = SummaryState.Error(unavailable = true))
 
+    /** P5: a run indexing «320 de 860 fragmentos». */
+    val indexing = png.copy(indexing = IndexingCard(done = 320, total = 860, pause = null))
+
+    /** P5: the same run paused by the temperature. */
+    val indexingPaused = png.copy(indexing = IndexingCard(done = 320, total = 860, pause = PauseReason.THERMAL))
+
     val all: List<Pair<String, HomeUiState>> = listOf(
         "png" to png,
         "opening" to opening,
@@ -31,6 +38,8 @@ object HomePreviewData {
         "empty" to empty,
         "summaryFailed" to summaryFailed,
         "summaryUnavailable" to summaryUnavailable,
+        "indexing" to indexing,
+        "indexingPaused" to indexingPaused,
     )
 }
 
@@ -53,3 +62,7 @@ private fun HomeEmptyPreview() = LisdataTheme { HomeScreen(HomePreviewData.empty
 @LisdataPreviews
 @Composable
 private fun HomeSummaryFailedPreview() = LisdataTheme { HomeScreen(HomePreviewData.summaryFailed, HomeActions()) }
+
+@LisdataPreviews
+@Composable
+private fun HomeIndexingPreview() = LisdataTheme { HomeScreen(HomePreviewData.indexingPaused, HomeActions()) }

@@ -6,6 +6,8 @@ import com.lisdatasolutions.microrag.core.logging.AppLogger
 import com.lisdatasolutions.microrag.domain.model.LocalAiStatus
 import com.lisdatasolutions.microrag.domain.onboarding.ObserveLocalAiUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.RefreshLocalAiUseCase
+import com.lisdatasolutions.microrag.domain.indexing.IndexingState
+import com.lisdatasolutions.microrag.domain.indexing.ObserveIndexingUseCase
 import com.lisdatasolutions.microrag.domain.library.ObserveLibrarySummaryUseCase
 import com.lisdatasolutions.microrag.domain.library.SummaryResult
 import com.lisdatasolutions.microrag.domain.rag.LibrarySummary
@@ -15,6 +17,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -28,6 +31,7 @@ class HomeViewModel(
     observeLocalAi: ObserveLocalAiUseCase,
     private val refreshLocalAi: RefreshLocalAiUseCase,
     private val observeSummary: ObserveLibrarySummaryUseCase,
+    observeIndexing: ObserveIndexingUseCase,
     private val logger: AppLogger,
     private val clock: () -> Long = { System.nanoTime() / 1_000_000 },
 ) : ViewModel() {
@@ -73,8 +77,15 @@ class HomeViewModel(
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, SummaryState.Loading)
 
-    val state: StateFlow<HomeUiState> = combine(ai, summary) { ai, summary -> HomeUiState(ai = ai, summary = summary) }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, HomeUiState())
+    /** Research R3: only an active run has a card (D-046), with the run's own chunks and pause. */
+    private val indexing: StateFlow<IndexingCard?> = observeIndexing()
+        .map { state -> (state as? IndexingState.Active)?.let { IndexingCard(it.progress.done, it.progress.total, it.pause) } }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val state: StateFlow<HomeUiState> = combine(ai, summary, indexing) { ai, summary, indexing ->
+        HomeUiState(ai = ai, summary = summary, indexing = indexing)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, HomeUiState())
 
     fun onRetrySummary() {
         summaryRetries.value++

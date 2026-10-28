@@ -33,6 +33,10 @@
     <string name="home_empty_title">Tu biblioteca está vacía</string>
     <string name="home_empty_body">Importa tus PDF, TXT o Markdown para empezar a preguntar.</string>
     <string name="home_import_first">Importar primer documento</string>
+    <!-- P5 -->
+    <string name="home_indexing">Indexando documentos</string>
+    <string name="home_indexing_preparing">Preparando los documentos</string>
+    <string name="home_view_indexing">Ver estado de la indexación</string>
     <!-- P4 -->
     <string name="home_summary_failed">No se pudo cargar el resumen</string>
 </resources>

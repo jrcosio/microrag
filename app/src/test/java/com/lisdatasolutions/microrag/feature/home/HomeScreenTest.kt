@@ -4,6 +4,10 @@ import android.app.Application
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.semantics.getOrNull
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasScrollAction
@@ -16,6 +20,7 @@ import androidx.compose.ui.test.performScrollToNode
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
+import com.lisdatasolutions.microrag.domain.indexing.PauseReason
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -203,4 +208,68 @@ class HomeScreenTest {
         exists("La biblioteca no está disponible")
         absent("No se pudo cargar el resumen")
     }
+
+    // US4 (T023)
+
+    @Test
+    fun anActiveRun_showsItsCard_betweenTheHeroAndTheQuickActions_P5() {
+        show(HomePreviewData.indexing)
+
+        exists("Indexando documentos")
+        exists("320 de 860 fragmentos")
+        assertThat(top("Indexando documentos")).isGreaterThan(top("Nuevo chat"))
+        assertThat(top("Indexando documentos")).isLessThan(top("Importar"))
+    }
+
+    @Test
+    fun aRunStillChunking_isPreparing() {
+        // The summary still loading, so no other «fragmentos» is on screen.
+        show(HomePreviewData.indexing.copy(summary = SummaryState.Loading, indexing = IndexingCard(done = 0, total = null, pause = null)))
+
+        exists("Preparando los documentos")
+        absent("fragmentos", substring = true)
+    }
+
+    @Test
+    fun aPausedRun_saysWhy_withTheTextsOfTheIndexScreen() {
+        var state by mutableStateOf(HomePreviewData.indexing)
+        compose.setContent { LisdataTheme { HomeScreen(state, actions) } }
+        val titles = mapOf(
+            PauseReason.USER to "En pausa",
+            PauseReason.THERMAL to "Pausa por temperatura",
+            PauseReason.SYSTEM_LIMIT to "Esperando al sistema",
+            PauseReason.NO_SPACE to "Sin espacio",
+            PauseReason.MODEL_MISSING to "Falta el modelo de embeddings",
+        )
+
+        for ((pause, title) in titles) {
+            state = HomePreviewData.indexing.copy(indexing = IndexingCard(done = 320, total = 860, pause = pause))
+            compose.waitForIdle()
+            exists(title)
+            exists("320 de 860 fragmentos")
+            absent("Indexando documentos")
+        }
+    }
+
+    @Test
+    fun theCard_opensTheIndex_andReadsAsOneSentence_A4() {
+        show(HomePreviewData.indexing)
+
+        // One button that TalkBack reads with its title and figures, and the action it performs.
+        val card = compose.onNode(hasClickLabel("Ver estado de la indexación"))
+        card.assert(hasText("Indexando documentos") and hasText("320 de 860 fragmentos"))
+        card.performClick()
+        assertThat(calls).containsExactly("index")
+    }
+
+    @Test
+    fun withoutARun_thereIsNoCard() {
+        show(HomePreviewData.png)
+
+        absent("Indexando documentos")
+        absent("Ver estado de la indexación")
+    }
+
+    private fun hasClickLabel(label: String) =
+        SemanticsMatcher("onClickLabel = $label") { it.config.getOrNull(SemanticsActions.OnClick)?.label == label }
 }

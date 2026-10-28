@@ -114,7 +114,19 @@ internal fun homeViewModels() = module {
         val models = InMemoryModelFileRepository(verified = ModelCatalog.required.map { it.id }.toSet()).apply {
             preparedBackends.value = ModelCatalog.required.associate { it.id to ComputeBackend.GPU }
         }
-        HomeViewModel(ObserveLocalAiUseCase(models), RefreshLocalAiUseCase(models), ObserveLibrarySummaryUseCase(FakeLibraryRepository()), RecordingLogger())
+        val indexing = object : IndexingRepository {
+            override val state = MutableStateFlow<IndexingState>(IndexingState.Idle(emptyList()))
+            override suspend fun start() = 0
+            override suspend fun pause() = Unit
+            override suspend fun resume() = Unit
+            override suspend fun retry(documentId: Long) = Unit
+            override suspend fun reconcile() = Unit
+            override suspend fun add(documentId: Long) = Unit
+        }
+        HomeViewModel(
+            ObserveLocalAiUseCase(models), RefreshLocalAiUseCase(models), ObserveLibrarySummaryUseCase(FakeLibraryRepository()),
+            ObserveIndexingUseCase(indexing), RecordingLogger(),
+        )
     }
 }
 

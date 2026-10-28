@@ -33,6 +33,10 @@
     <string name="home_empty_title">Your library is empty</string>
     <string name="home_empty_body">Import your PDF, TXT or Markdown files to start asking.</string>
     <string name="home_import_first">Import your first document</string>
+    <!-- P5 -->
+    <string name="home_indexing">Indexing documents</string>
+    <string name="home_indexing_preparing">Preparing the documents</string>
+    <string name="home_view_indexing">View indexing status</string>
     <!-- P4 -->
     <string name="home_summary_failed">The summary could not be loaded</string>
 </resources>

@@ -34,6 +34,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lisdatasolutions.microrag.R
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataGradientButton
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataHeroCard
+import com.lisdatasolutions.microrag.core.designsystem.component.LisdataProgressCard
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataQuickActionTile
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataStatusChip
 import com.lisdatasolutions.microrag.core.designsystem.component.TrailingIconPlacement
@@ -121,6 +122,7 @@ fun HomeScreen(state: HomeUiState, actions: HomeActions, modifier: Modifier = Mo
                 modifier = Modifier.padding(top = spacing.space2),
             )
         }
+        state.indexing?.let { IndexingCardView(it, actions.onIndex) }
         QuickActions(actions)
         HomeSummaryCard(state.summary, onImport = actions.onImport, onRetry = actions.onRetrySummary)
         Spacer(Modifier.height(spacing.space4))
@@ -170,6 +172,19 @@ private fun AiStatus(status: LocalAiStatus?, onCompleteSetup: () -> Unit) {
             }
         }
     }
+}
+
+/** P5 (research R3): the active run, between the hero and the quick actions (D-046); the whole card opens Index. */
+@Composable
+private fun IndexingCardView(card: IndexingCard, onIndex: () -> Unit) {
+    LisdataProgressCard(
+        stage = card.title(),
+        progress = card.progress(),
+        detail = card.detail(),
+        onClick = onIndex,
+        onClickLabel = stringResource(R.string.home_view_indexing),
+        modifier = Modifier.fillMaxWidth(),
+    )
 }
 
 private data class QuickAction(val icon: Int, val title: Int, val subtitle: Int, val onClick: () -> Unit)

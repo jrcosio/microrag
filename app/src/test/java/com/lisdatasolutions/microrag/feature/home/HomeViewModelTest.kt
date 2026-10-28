@@ -5,6 +5,13 @@ import com.lisdatasolutions.microrag.domain.model.ComputeBackend
 import com.lisdatasolutions.microrag.domain.model.LocalAiStatus
 import com.lisdatasolutions.microrag.domain.model.ModelCatalog
 import com.lisdatasolutions.microrag.domain.model.ModelId
+import com.lisdatasolutions.microrag.domain.indexing.FailedDocument
+import com.lisdatasolutions.microrag.domain.indexing.IndexingRepository
+import com.lisdatasolutions.microrag.domain.indexing.IndexingState
+import com.lisdatasolutions.microrag.domain.indexing.ObserveIndexingUseCase
+import com.lisdatasolutions.microrag.domain.indexing.PauseReason
+import com.lisdatasolutions.microrag.domain.indexing.RunProgress
+import com.lisdatasolutions.microrag.domain.ingest.IngestError
 import com.lisdatasolutions.microrag.domain.library.ObserveLibrarySummaryUseCase
 import com.lisdatasolutions.microrag.domain.library.SummaryResult
 import com.lisdatasolutions.microrag.domain.onboarding.ObserveLocalAiUseCase
@@ -17,6 +24,7 @@ import com.lisdatasolutions.microrag.testing.RecordingLogger
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -48,8 +56,23 @@ class HomeViewModelTest {
 
     private val library = FakeLibraryRepository()
 
-    private fun viewModel(models: GatedModelFileRepository) =
-        HomeViewModel(ObserveLocalAiUseCase(models), RefreshLocalAiUseCase(models), ObserveLibrarySummaryUseCase(library), logger)
+    private val indexing = object : IndexingRepository {
+        override val state = MutableStateFlow<IndexingState>(IndexingState.Idle(emptyList()))
+        override suspend fun start() = 0
+        override suspend fun pause() = Unit
+        override suspend fun resume() = Unit
+        override suspend fun retry(documentId: Long) = Unit
+        override suspend fun reconcile() = Unit
+        override suspend fun add(documentId: Long) = Unit
+    }
+
+    private fun viewModel(models: GatedModelFileRepository) = HomeViewModel(
+        ObserveLocalAiUseCase(models), RefreshLocalAiUseCase(models), ObserveLibrarySummaryUseCase(library),
+        ObserveIndexingUseCase(indexing), logger,
+    )
+
+    private fun active(done: Int, total: Int?, pause: PauseReason? = null) =
+        IndexingState.Active(RunProgress(done, total, remainingSeconds = 120), current = null, queuedDocuments = 2, pause = pause, failed = emptyList())
 
     private fun summary(documents: Int, chunks: Int) = SummaryResult.Loaded(LibrarySummary(documents, chunks))
 
@@ -181,5 +204,40 @@ class HomeViewModelTest {
         advanceUntilIdle()
 
         assertThat(logger.lines.single { it.contains("home summary") }).matches(".*home summary documents=24 chunks=12400 in \\d+ ms")
+    }
+
+    // US4 (T022)
+
+    @Test
+    fun anActiveRun_isTheIndexingCard_withItsChunksAndPause() = runTest(dispatcher) {
+        val vm = viewModel(models())
+        indexing.state.value = active(320, 860)
+        advanceUntilIdle()
+        assertThat(vm.state.value.indexing).isEqualTo(IndexingCard(done = 320, total = 860, pause = null))
+
+        indexing.state.value = active(320, 860, PauseReason.THERMAL)
+        advanceUntilIdle()
+        assertThat(vm.state.value.indexing).isEqualTo(IndexingCard(done = 320, total = 860, pause = PauseReason.THERMAL))
+
+        indexing.state.value = active(0, null)
+        advanceUntilIdle()
+        assertThat(vm.state.value.indexing).isEqualTo(IndexingCard(done = 0, total = null, pause = null))
+    }
+
+    @Test
+    fun withoutAnActiveRun_thereIsNoCard_evenWithFailedDocuments_D046() = runTest(dispatcher) {
+        val vm = viewModel(models())
+        indexing.state.value = active(1, 2)
+        advanceUntilIdle()
+
+        for (state in listOf(
+            IndexingState.Idle(listOf(FailedDocument(4, "Roto.pdf", IngestError.NO_TEXT))),
+            IndexingState.Loading,
+            IndexingState.IndexUnavailable,
+        )) {
+            indexing.state.value = state
+            advanceUntilIdle()
+            assertThat(vm.state.value.indexing).isNull()
+        }
     }
 }
