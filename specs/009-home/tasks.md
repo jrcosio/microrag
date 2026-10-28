@@ -60,7 +60,7 @@ description: "Lista de tareas de F09 — Inicio"
   - `LibrarySummary` en `…/microrag/domain/rag/RagModels.kt`;
   - `librarySummary()` en `…/microrag/domain/rag/RagIndex.kt` y en `…/microrag/data/rag/DefaultRagIndex.kt` (la consulta de data-model §1, con `withIndex`);
   - la misma regla en `…/test/…/testing/FakeRagIndex.kt`.
-- [ ] T003 Ejecutar T001 en el emulador API 37 y en el teléfono. **Si la regla H5 falla en algún estado, se para y se consulta** (plan, riesgo 1).
+- [X] T003 Ejecutar T001 en el emulador API 37 y en el teléfono. **Si la regla H5 falla en algún estado, se para y se consulta** (plan, riesgo 1).
 
 **Checkpoint**: las cifras salen de una consulta sobre `documents` y coinciden con el índice real.
 
@@ -173,7 +173,7 @@ description: "Lista de tareas de F09 — Inicio"
   - `HomeRoute` con `LifecycleEventEffect(ON_RESUME)` (R5);
   - el chip con su alto reservado y el botón «Completar configuración» → `Setup`;
   - la línea de log `home ai=… in N ms` (data-model §4).
-- [ ] T017 [US2] Verificar en el teléfono (quickstart §3.2–3.3):
+- [X] T017 [US2] Verificar en el teléfono (quickstart §3.2–3.3):
   - el chip correcto tras un arranque en frío;
   - con la fecha del modelo de embeddings cambiada, «Configuración pendiente» → Preparación → «IA local disponible»;
   - la pila sin dos Inicio.
@@ -210,7 +210,7 @@ description: "Lista de tareas de F09 — Inicio"
   - el mapeo de `SummaryResult` y el reintento en `HomeViewModel`;
   - los plurales y `home_summary_description` en `strings_home.xml` (es y en);
   - la línea de log `home summary …` (data-model §4).
-- [ ] T021 [US3] Crear `…/androidTest/…/data/library/HomeSummaryBenchmarkTest.kt` con los datos de `LibraryBenchmarkTest` (1.000 documentos y 50.000 fragmentos). Mide 50 llamadas tras 5 de calentamiento; p95 ≤ 50 ms (SC-005). Se ejecuta en el teléfono y se anotan las cifras.
+- [X] T021 [US3] Crear `…/androidTest/…/data/library/HomeSummaryBenchmarkTest.kt` con los datos de `LibraryBenchmarkTest` (1.000 documentos y 50.000 fragmentos). Mide 50 llamadas tras 5 de calentamiento; p95 ≤ 50 ms (SC-005). Se ejecuta en el teléfono y se anotan las cifras.
 
 **Checkpoint**: resumen real y reactivo; el benchmark cumple el objetivo.
 
@@ -260,7 +260,7 @@ description: "Lista de tareas de F09 — Inicio"
   - en horizontal (`es-w844dp-h390dp`), todo se alcanza desplazando;
   - la posición de desplazamiento se conserva al recrear la pantalla (`StateRestorationTester`; caso límite «Rotación»; análisis, G3).
 - [X] T026 [P] [US5] Crear `…/androidTest/…/feature/home/HomeScreenAccessibilityTest.kt`, parametrizada sobre `HomePreviewData.all` en claro y en oscuro, y también en horizontal: comprobaciones automáticas, 48 dp, descripciones (A1–A6) y ancho con la fuente al 200 % (SC-008; análisis, G1).
-- [ ] T027 [P] [US5] Crear `…/androidTest/…/feature/home/HomeScreenLayoutTest.kt`, solo en el A063, como `IndexScreenLayoutTest`. Con una tanda activa, la tarjeta de indexación y la primera fila de accesos se ven sin desplazar, por encima de la barra inferior.
+- [X] T027 [P] [US5] Crear `…/androidTest/…/feature/home/HomeScreenLayoutTest.kt`, solo en el A063, como `IndexScreenLayoutTest`. Con una tanda activa, la tarjeta de indexación y la primera fila de accesos se ven sin desplazar, por encima de la barra inferior.
 
 ### Implementation for User Story 5
 
@@ -268,7 +268,7 @@ description: "Lista de tareas de F09 — Inicio"
   - una columna de accesos y cifras apiladas desde el 150 %;
   - la altura del logotipo medida contra el PNG 03;
   - posición de desplazamiento guardada al girar.
-- [ ] T029 [US5] Capturas en el teléfono, en claro y en oscuro (quickstart §3.7), sin la barra de estado, y comparación con el PNG 03. Las diferencias van al informe.
+- [X] T029 [US5] Capturas en el teléfono, en claro y en oscuro (quickstart §3.7), sin la barra de estado, y comparación con el PNG 03. Las diferencias van al informe.
 
 **Checkpoint**: Inicio fiel y accesible.
 
@@ -278,13 +278,13 @@ description: "Lista de tareas de F09 — Inicio"
 
 - [X] T030 [P] Ampliar `…/test/…/architecture/LayeringTest.kt`: `feature/home` no importa nada de `data/`, WorkManager, SQLite, LiteRT ni `java.io.File`.
 - [X] T031 [P] Actualizar `docs/roadmap/INVENTARIO.md`: la ficha P03 implementada, con los estados P1–P5 y las dos diferencias anotadas.
-- [ ] T032 Puertas de calidad (quickstart §1–2):
+- [X] T032 Puertas de calidad (quickstart §1–2):
   - `./gradlew :app:assembleDebug :app:assembleRelease :app:lintDebug :app:lintRelease :app:testDebugUnitTest` en una copia limpia del último commit;
   - la suite instrumentada (sin `@RequiresModels` ni `@RequiresNetwork`) en el emulador API 37, la AVD API 33 y el teléfono;
   - `NetworkConfinementTest` (JVM) en verde con el paquete nuevo (SC-009).
 
   Todo en verde, salvo las 4 de navegación conocidas de la API 33 (F06 §7).
-- [ ] T033 Recorrido manual en el teléfono (quickstart §3):
+- [X] T033 Recorrido manual en el teléfono (quickstart §3):
   - arranque en frío (SC-001);
   - cifras con documentos de prueba al importar, indexar, pausar, excluir, quitar del índice y eliminar;
   - accesos y doble toque;
@@ -292,7 +292,7 @@ description: "Lista de tareas de F09 — Inicio"
   - limpieza de los documentos y la carpeta de prueba.
 
   TalkBack, a cargo del usuario.
-- [ ] T034 Documentación de cierre:
+- [X] T034 Documentación de cierre:
   - `specs/009-home/report.md`: resumen y puertas, validación por historia y criterio, cifras (R8), diferencias frente al PNG, desviaciones y pendientes;
   - estado de F09 en `docs/roadmap/FEATURES.md`;
   - tareas marcadas `[X]`.
