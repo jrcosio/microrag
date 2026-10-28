@@ -32,10 +32,9 @@
 ## Notes
 
 - Los pocos nombres técnicos (`strings.xml`, `noBackupFilesDir`, `quant_dirty`, `chunkId`, 48 dp, WCAG AA) vienen de la constitución y de decisiones ya aprobadas (D-029, D-030), como en las specs anteriores. No fijan cómo se implementa.
-- Sin marcas `[NEEDS CLARIFICATION]`: las decisiones abiertas de la descripción quedan como supuestos en «Assumptions» para confirmarlas en `/speckit-clarify`:
-  - semántica de «Reindexar» y espacio;
-  - vista previa y resaltado;
-  - búsqueda por nombre;
-  - orden;
-  - estado tras «Quitar del índice»;
-  - acciones durante la indexación.
+- Sin marcas `[NEEDS CLARIFICATION]`. Clarify (2026-10-28) resolvió tres decisiones:
+  - el estado «Fuera del índice»;
+  - el resaltado con contexto al llegar desde una cita;
+  - la vista previa sin navegación.
+
+  El resto queda como supuestos con valor por defecto («Assumptions»).

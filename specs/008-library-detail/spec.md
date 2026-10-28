@@ -54,6 +54,14 @@
 - **Navegación:** la ruta del detalle ya admite un `chunkId` opcional; la Biblioteca es hoy un placeholder.
 - **Teléfono de referencia:** quedan 8 documentos de prueba indexados de F07 (hasta 4.300 fragmentos cada uno) que hoy no se pueden borrar desde la app.
 
+## Clarifications
+
+### Session 2026-10-28
+
+- Q: ¿En qué estado queda un documento tras «Quitar del índice»? → A: en un estado propio, «Fuera del índice». No aparece en la cola de Ingesta ni entra en ninguna tanda. Se ve en la Biblioteca, en el filtro Pendientes, con su chip, y solo vuelve a indexarse con «Reindexar» desde su detalle.
+- Q: Al abrir el detalle desde una cita, ¿qué muestra la vista previa? → A: el fragmento citado entero y resaltado, con la última frase del fragmento anterior y la primera del siguiente sin resaltar, como en el PNG 07. El chip de página es el del fragmento citado.
+- Q: Sin cita, ¿la vista previa muestra solo el primer fragmento o es navegable? → A: solo el texto real del primer fragmento, con su página. No hay navegación entre fragmentos.
+
 ## User Scenarios & Testing *(mandatory)*
 
 **Actores:**
@@ -110,7 +118,7 @@ Al abrir un documento, el usuario ve su nombre, su estado, sus páginas, sus fra
 
 1. **Given** un documento indexado, **When** se abre su detalle, **Then** muestra su nombre completo, el chip «Indexado» y la rejilla con páginas, fragmentos, tamaño y fecha de importación reales.
 2. **Given** un documento indexado, **When** se abre sin cita, **Then** la vista previa muestra el texto real de su primer fragmento con el chip de su página. Si el fragmento no tiene página (TXT, MD), no hay chip.
-3. **Given** un fragmento citado, **When** se abre el detalle desde la cita, **Then** la vista previa muestra ese fragmento con el texto citado resaltado.
+3. **Given** un fragmento citado, **When** se abre el detalle desde la cita, **Then** la vista previa muestra ese fragmento entero y resaltado, con la última frase del fragmento anterior y la primera del siguiente sin resaltar (si existen), y el chip de la página del fragmento citado.
 4. **Given** una cita a un fragmento que ya no existe (el documento se reindexó o se quitó del índice), **When** se abre el detalle, **Then** muestra la vista previa normal y un aviso de que el fragmento citado ya no está.
 5. **Given** un documento no indexado, **When** se abre su detalle, **Then** muestra su estado real («Pendiente», «Indexando» con su progreso o «Error» con la causa), sin vista previa de fragmentos, y la acción que corresponde.
 6. **Given** un documento que ya no existe, **When** se intenta abrir su detalle, **Then** la app muestra un aviso y vuelve a la Biblioteca, sin cerrarse.
@@ -129,7 +137,7 @@ Desde el detalle, el usuario puede eliminar un documento por completo, quitarlo 
 
 1. **Given** un documento, **When** el usuario pulsa «Eliminar», **Then** un diálogo explica exactamente qué se borra (la copia guardada por la app, el texto, los fragmentos, los vectores y los metadatos) y que el archivo original del teléfono no cambia.
 2. **Given** el diálogo de eliminar, **When** el usuario confirma, **Then** se borra todo eso, el documento desaparece de la Biblioteca, de la Ingesta, de la tanda y de las búsquedas, y la app vuelve a la Biblioteca. **When** cancela, **Then** no cambia nada.
-3. **Given** un documento indexado, **When** el usuario elige «⋯» → «Quitar del índice» y confirma, **Then** se borran sus fragmentos y vectores, se conserva la copia y los metadatos, y el documento queda como no indexado, listo para «Reindexar».
+3. **Given** un documento indexado, **When** el usuario elige «⋯» → «Quitar del índice» y confirma, **Then** se borran sus fragmentos y vectores, se conservan la copia y los metadatos, y el documento queda «Fuera del índice»: no aparece en la cola de Ingesta, no entra en ninguna tanda y solo vuelve a indexarse con «Reindexar».
 4. **Given** un documento indexado, **When** el usuario pulsa «Reindexar documento», **Then** se procesa otra vez en la tanda de indexación (F07) y, mientras tanto, las búsquedas siguen usando su versión anterior. Al terminar, la nueva la sustituye de una vez.
 5. **Given** un reindexado en curso, **When** falla, se pausa o el proceso muere, **Then** la versión anterior sigue intacta y en uso.
 6. **Given** un documento que se está indexando, **When** el usuario lo elimina o lo quita del índice, **Then** sale de la tanda sin romperla, y el resto de documentos sigue.
@@ -176,9 +184,9 @@ La Biblioteca y el Detalle reproducen los PNG 06 y 07 y cubren los estados del `
 **Biblioteca**
 
 - **FR-001**: La Biblioteca MUST listar todos los documentos importados, en cualquier estado, del más reciente al más antiguo, cargándolos por páginas y sin leer nunca sus fragmentos.
-- **FR-002**: Cada fila MUST mostrar el icono del tipo, el nombre (cortado si no cabe) y, debajo, el tipo y los fragmentos si está indexado («PDF · 860 fragmentos»), o su estado si no lo está («Pendiente», «Indexando», «Error de indexación»), más el interruptor de inclusión.
+- **FR-002**: Cada fila MUST mostrar el icono del tipo, el nombre (cortado si no cabe) y, debajo, el tipo y los fragmentos si está indexado («PDF · 860 fragmentos»), o su estado si no lo está («Pendiente», «Indexando», «Error de indexación», «Fuera del índice»), más el interruptor de inclusión.
 - **FR-003**: La búsqueda por nombre MUST encontrar los documentos cuyo nombre contiene el texto escrito, sin distinguir mayúsculas ni acentos, y tratar los caracteres especiales como texto.
-- **FR-004**: Los filtros MUST ser Todos, Indexados (estado indexado) y Pendientes (cualquier otro estado, también error), y MUST combinarse con la búsqueda (G16).
+- **FR-004**: Los filtros MUST ser Todos, Indexados (estado indexado) y Pendientes (cualquier otro estado, también error y fuera del índice), y MUST combinarse con la búsqueda (G16).
 - **FR-005**: La cabecera MUST contar los documentos que cumplen la búsqueda y el filtro actuales («N DOCUMENTOS»).
 - **FR-006**: La búsqueda, el filtro y la posición en la lista MUST conservarse al volver del detalle y al girar el teléfono.
 - **FR-007**: «+» MUST abrir la Ingesta; tocar una fila MUST abrir su detalle; la flecha Atrás MUST volver a Inicio (G08).
@@ -193,16 +201,16 @@ La Biblioteca y el Detalle reproducen los PNG 06 y 07 y cubren los estados del `
 
 **Detalle**
 
-- **FR-013**: El detalle MUST mostrar el nombre completo, el chip de estado (Indexado, Pendiente, Indexando, Error o Excluido) y la rejilla con páginas, fragmentos, tamaño y fecha de importación, todos reales. Si un dato no existe (páginas de un TXT), MUST mostrarse como ausente y nunca inventado.
-- **FR-014**: Sin cita, la vista previa MUST mostrar el texto real del primer fragmento del documento, con el chip de su página si la tiene y sin chip si no.
-- **FR-015**: Con cita, la vista previa MUST mostrar el fragmento citado con su texto resaltado; si el fragmento ya no existe o no es de ese documento, MUST mostrar la vista previa normal y un aviso.
+- **FR-013**: El detalle MUST mostrar el nombre completo, el chip de estado (Indexado, Pendiente, Indexando, Error, Fuera del índice o Excluido) y la rejilla con páginas, fragmentos, tamaño y fecha de importación, todos reales. Si un dato no existe (páginas de un TXT), MUST mostrarse como ausente y nunca inventado.
+- **FR-014**: Sin cita, la vista previa MUST mostrar el texto real del primer fragmento del documento, con el chip de su página si la tiene y sin chip si no. No hay navegación entre fragmentos.
+- **FR-015**: Con cita, la vista previa MUST mostrar el fragmento citado entero y resaltado, precedido de la última frase del fragmento anterior y seguido de la primera del siguiente, sin resaltar y solo si existen, con el chip de la página del fragmento citado. El resaltado MUST anunciarse con TalkBack. Si el fragmento ya no existe o no es de ese documento, MUST mostrar la vista previa normal y un aviso.
 - **FR-016**: Un documento no indexado MUST mostrar su estado real (con el progreso si se está indexando y la causa si tiene error), sin vista previa de fragmentos.
 - **FR-017**: Si el documento no existe o desaparece mientras está abierto, la app MUST mostrar un aviso y volver a la Biblioteca, sin cerrarse.
 
 **Acciones**
 
 - **FR-018**: «Eliminar» MUST pedir confirmación con un diálogo que explique qué se borra y que el archivo original del teléfono no cambia. Al confirmar MUST borrar la copia privada, los fragmentos, sus vectores, sus entradas de texto completo y los metadatos, sacar el documento de la tanda y marcar el índice INT8 como desactualizado (D-030).
-- **FR-019**: «⋯» → «Quitar del índice» MUST pedir confirmación y borrar los fragmentos, sus vectores y sus entradas de texto completo, conservando la copia privada y los metadatos. El documento MUST quedar no indexado y fuera de las búsquedas, listo para reindexar.
+- **FR-019**: «⋯» → «Quitar del índice» MUST pedir confirmación y borrar los fragmentos, sus vectores y sus entradas de texto completo, conservando la copia privada y los metadatos. El documento MUST quedar en el estado «Fuera del índice»: fuera de las búsquedas, fuera de la cola de Ingesta y de cualquier tanda (tampoco entra con «Iniciar indexación»), hasta que el usuario pulse «Reindexar».
 - **FR-020**: «Reindexar documento» MUST volver a procesar el documento con la tanda de indexación de F07. Mientras dura, las búsquedas MUST seguir usando su versión anterior completa, y la nueva MUST sustituirla de una vez al terminar. Si el reindexado falla, se pausa o se interrumpe, la versión anterior MUST quedar intacta.
 - **FR-021**: Eliminar o quitar del índice un documento que está en la tanda de indexación MUST sacarlo de la tanda sin romperla; el resto de documentos MUST seguir.
 - **FR-022**: Borrar o quitar del índice MUST ser atómico respecto al índice: tras una muerte del proceso, el documento queda entero o sin fragmentos, nunca a medias. Una copia privada que no se pudo borrar MUST borrarse después.
@@ -210,7 +218,7 @@ La Biblioteca y el Detalle reproducen los PNG 06 y 07 y cubren los estados del `
 
 **Coherencia con F06 y F07**
 
-- **FR-024**: Lo que se elimine o se quite del índice MUST reflejarse en la cola de Ingesta y en el Estado de indexación.
+- **FR-024**: Lo que se elimine o se quite del índice MUST reflejarse en la cola de Ingesta y en el Estado de indexación. Un documento «Fuera del índice» MUST NOT aparecer en la cola de Ingesta.
 - **FR-025**: Los documentos con error MUST ofrecer en el detalle «Reintentar» si su causa lo permite, con la misma regla que la Ingesta y el Estado de indexación.
 
 **Accesibilidad, idioma y privacidad**
@@ -222,7 +230,7 @@ La Biblioteca y el Detalle reproducen los PNG 06 y 07 y cubren los estados del `
 
 ### Key Entities
 
-- **Documento**: el importado en F06. Nombre, tipo, tamaño, páginas, fragmentos, estado (pendiente, preparado, indexando, indexado, error), causa de error, inclusión, fecha de importación y copia privada. F08 lo lista, lo muestra, cambia su inclusión, lo elimina, lo quita del índice y lo reindexa.
+- **Documento**: el importado en F06. Nombre, tipo, tamaño, páginas, fragmentos, estado (pendiente, preparado, indexando, indexado, error y, nuevo en F08, fuera del índice), causa de error, inclusión, fecha de importación y copia privada. F08 lo lista, lo muestra, cambia su inclusión, lo elimina, lo quita del índice y lo reindexa.
 - **Fragmento**: trozo de texto indexado de un documento, con su ordinal, su página (si la hay), su ruta de encabezados y su vector. F08 lo muestra en la vista previa y lo borra con su documento.
 - **Consulta de la Biblioteca**: texto de búsqueda y filtro (Todos, Indexados, Pendientes). Se conserva al navegar y al girar.
 - **Cita**: referencia de F11 a un fragmento concreto de un documento. F08 la recibe al abrir el detalle.
@@ -245,14 +253,11 @@ La Biblioteca y el Detalle reproducen los PNG 06 y 07 y cubren los estados del `
 
 ## Assumptions
 
-Propuestas por defecto. Las que cambian el alcance o la experiencia se confirman en `/speckit-clarify`:
+Valores por defecto adoptados sin pregunta. Las tres decisiones de más impacto se resolvieron en «Clarifications»:
 
 - **Filtros (G16):** sin filtro «Errores»; «Pendientes» incluye todo lo no indexado, también los errores, con su chip.
 - **Orden:** del más reciente al más antiguo por fecha de importación. Sin selector de orden en el MVP.
 - **Búsqueda:** contiene, sin distinguir mayúsculas ni acentos, sobre el nombre que se muestra (con extensión). Sin búsqueda en el contenido: eso es el chat (F10/F11).
-- **Vista previa sin cita:** el primer fragmento del documento. Sin navegación entre fragmentos en el MVP.
-- **Resaltado con cita:** el fragmento citado entero, porque las citas de F11 apuntan a fragmentos y no a frases.
-- **Quitar del índice:** el documento vuelve a un estado no indexado que no entra solo en la siguiente «Iniciar indexación»; solo se indexa con «Reindexar».
 - **Reindexar:** se ofrece en documentos indexados, quitados del índice y con error reintentable. Necesita espacio temporal para tener a la vez las dos versiones de ese documento.
 - **Documentos no indexados:** se listan con su estado; el detalle muestra el estado y, en su caso, el progreso, sin vista previa de fragmentos.
 - **Celdas sin dato:** si un documento no tiene páginas (TXT, MD), la celda muestra «—» con la etiqueta accesible «sin páginas».
