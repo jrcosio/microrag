@@ -2,6 +2,7 @@ package com.lisdatasolutions.microrag.feature.library
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
@@ -14,12 +15,15 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
@@ -62,10 +66,25 @@ fun LibraryRoute(
     onBack: () -> Unit,
     onImport: () -> Unit,
     onOpenDocument: (Long) -> Unit,
+    message: LibraryMessage? = null,
+    onMessageShown: () -> Unit = {},
     viewModel: LibraryViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val snackbar = remember { SnackbarHostState() }
+    val text = when (message) {
+        null -> null
+        LibraryMessage.DOCUMENT_GONE -> stringResource(R.string.library_document_gone)
+        LibraryMessage.DOCUMENT_DELETED -> stringResource(R.string.document_announce_deleted)
+    }
+    LaunchedEffect(message) {
+        if (text == null) return@LaunchedEffect
+        // Consumed first: a rotation while it shows does not repeat it.
+        onMessageShown()
+        snackbar.showSnackbar(text)
+    }
     LibraryScreen(
+        snackbarHostState = snackbar,
         state = state,
         actions = LibraryActions(
             onBack = onBack,
@@ -89,43 +108,48 @@ fun LibraryScreen(
     modifier: Modifier = Modifier,
     // Saveable: the position survives the detail and rotation (research R9).
     listState: LazyListState = rememberLazyListState(),
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     val colors = LisdataTheme.colors
     val spacing = LisdataTheme.spacing
-    Column(modifier = modifier.fillMaxSize().background(colors.background)) {
-        LisdataTopBar(
-            title = stringResource(R.string.library_title),
-            onBack = actions.onBack,
-            actions = {
-                IconButton(onClick = actions.onImport) {
-                    LisdataIcon(LisdataIcons.Plus, contentDescription = stringResource(R.string.library_import), tint = colors.textPrimary)
+    Box(modifier = modifier.fillMaxSize().background(colors.background)) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            LisdataTopBar(
+                title = stringResource(R.string.library_title),
+                onBack = actions.onBack,
+                actions = {
+                    IconButton(onClick = actions.onImport) {
+                        LisdataIcon(LisdataIcons.Plus, contentDescription = stringResource(R.string.library_import), tint = colors.textPrimary)
+                    }
+                },
+            )
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                contentPadding = PaddingValues(
+                    start = spacing.screenPaddingHorizontal,
+                    end = spacing.screenPaddingHorizontal,
+                    top = spacing.space2,
+                    bottom = spacing.space6,
+                ),
+                verticalArrangement = Arrangement.spacedBy(spacing.listGap),
+            ) {
+                item(key = "headline") { Headline() }
+                if (state.showsQuery) {
+                    item(key = "search") {
+                        LisdataSearchField(
+                            query = state.text,
+                            onQueryChange = actions.onTextChange,
+                            placeholder = stringResource(R.string.library_search),
+                        )
+                    }
+                    item(key = "filters") { Filters(state.filter, actions.onFilterChange) }
                 }
-            },
-        )
-        LazyColumn(
-            state = listState,
-            modifier = Modifier.weight(1f).fillMaxWidth(),
-            contentPadding = PaddingValues(
-                start = spacing.screenPaddingHorizontal,
-                end = spacing.screenPaddingHorizontal,
-                top = spacing.space2,
-                bottom = spacing.space6,
-            ),
-            verticalArrangement = Arrangement.spacedBy(spacing.listGap),
-        ) {
-            item(key = "headline") { Headline() }
-            if (state.showsQuery) {
-                item(key = "search") {
-                    LisdataSearchField(
-                        query = state.text,
-                        onQueryChange = actions.onTextChange,
-                        placeholder = stringResource(R.string.library_search),
-                    )
-                }
-                item(key = "filters") { Filters(state.filter, actions.onFilterChange) }
+                content(state.content, actions)
             }
-            content(state.content, actions)
         }
+        // B8: «Este documento ya no existe», and A7: «Documento eliminado».
+        SnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter).padding(spacing.space3))
     }
     LoadMoreNearTheEnd(listState, state.content, actions.onLoadMore)
 }

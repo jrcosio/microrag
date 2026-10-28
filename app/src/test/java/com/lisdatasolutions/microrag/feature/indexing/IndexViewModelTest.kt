@@ -54,6 +54,10 @@ class IndexViewModelTest {
         override suspend fun reconcile() {
             calls += "reconcile"
         }
+
+        override suspend fun add(documentId: Long) {
+            calls += "add $documentId"
+        }
     }
 
     private val repository = FakeRepository()

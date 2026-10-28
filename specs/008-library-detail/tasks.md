@@ -193,8 +193,8 @@ description: "Lista de tareas de F08 — Biblioteca y detalle de documento"
 
 ### Tests for User Story 3
 
-- [ ] T027 [P] [US3] Crear `…/test/…/data/library/PreviewTextTest.kt` (R7): última frase del anterior y primera del siguiente, con abreviaturas comunes («pág.», «art.»), sin puntuación final y con un fragmento de una sola frase.
-- [ ] T028 [P] [US3] Ampliar `DefaultLibraryRepositoryTest`:
+- [X] T027 [P] [US3] Crear `…/test/…/data/library/PreviewTextTest.kt` (R7): última frase del anterior y primera del siguiente, con abreviaturas comunes («pág.», «art.»), sin puntuación final y con un fragmento de una sola frase.
+- [X] T028 [P] [US3] Ampliar `DefaultLibraryRepositoryTest`:
   - `detail` con los estados de R10 y el progreso guardado;
   - `null` al desaparecer;
   - `preview` sin cita (ordinal 0 y su página);
@@ -203,8 +203,8 @@ description: "Lista de tareas de F08 — Biblioteca y detalle de documento"
   - no indexado: `null`;
   - índice incompatible: `DetailResult.Unavailable`, distinto de `NotFound` (L12, FR-023);
   - copia privada ausente: `copyMissing` (D10).
-- [ ] T029 [P] [US3] Crear `…/test/…/feature/document/DocumentViewModelTest.kt`: carga, `NotFound` una sola vez (R8), la inclusión, y la vista previa recargada al cambiar el documento.
-- [ ] T030 [P] [US3] Crear `…/test/…/feature/document/DocumentScreenTest.kt`:
+- [X] T029 [P] [US3] Crear `…/test/…/feature/document/DocumentViewModelTest.kt`: carga, `NotFound` una sola vez (R8), la inclusión, y la vista previa recargada al cambiar el documento.
+- [X] T030 [P] [US3] Crear `…/test/…/feature/document/DocumentScreenTest.kt`:
   - el estado del PNG 07 con sus textos;
   - formatos de tamaño, fecha y «—» con su lectura;
   - chip de página solo con página;
@@ -213,11 +213,11 @@ description: "Lista de tareas de F08 — Biblioteca y detalle de documento"
 
 ### Implementation for User Story 3
 
-- [ ] T031 [US3] Crear `…/microrag/data/library/PreviewText.kt` (`BreakIterator` en español). Comprobar T027.
-- [ ] T032 [US3] Implementar en `DefaultLibraryRepository` `detail` y `preview` (R7, R10, L9). Crear `ObserveDocumentUseCase` y `LoadPreviewUseCase`. Comprobar T028.
-- [ ] T033 [US3] Crear `…/microrag/feature/document/DocumentUiState.kt`, `DocumentTexts.kt` y `DocumentViewModel.kt`, con la ruta `Document(documentId, chunkId)`. Comprobar T029.
-- [ ] T034 [US3] Crear `…/microrag/feature/document/DocumentScreen.kt`: el PNG 07 con los componentes de contracts/library-ui.md, la vista previa con `citationHighlight` y los estados D1–D3, D7, D9 y D11. Comprobar T030.
-- [ ] T035 [US3] Navegación (R8):
+- [X] T031 [US3] Crear `…/microrag/data/library/PreviewText.kt` (`BreakIterator` en español). Comprobar T027.
+- [X] T032 [US3] Implementar en `DefaultLibraryRepository` `detail` y `preview` (R7, R10, L9). Crear `ObserveDocumentUseCase` y `LoadPreviewUseCase`. Comprobar T028.
+- [X] T033 [US3] Crear `…/microrag/feature/document/DocumentUiState.kt`, `DocumentTexts.kt` y `DocumentViewModel.kt`, con la ruta `Document(documentId, chunkId)`. Comprobar T029.
+- [X] T034 [US3] Crear `…/microrag/feature/document/DocumentScreen.kt`: el PNG 07 con los componentes de contracts/library-ui.md, la vista previa con `citationHighlight` y los estados D1–D3, D7, D9 y D11. Comprobar T030.
+- [X] T035 [US3] Navegación (R8):
   - `Document` pasa a `DocumentRoute`;
   - al desaparecer el documento: atrás y resultado en el `SavedStateHandle` de la entrada anterior;
   - la Biblioteca muestra el *snackbar* (B8);

@@ -5,9 +5,13 @@ import com.lisdatasolutions.microrag.core.logging.AppLogger
 import com.lisdatasolutions.microrag.data.indexing.IngestRunStore
 import com.lisdatasolutions.microrag.data.ingest.DocumentFiles
 import com.lisdatasolutions.microrag.domain.indexing.IndexingRepository
+import com.lisdatasolutions.microrag.domain.indexing.IndexingState
+import com.lisdatasolutions.microrag.domain.indexing.PauseReason
 import com.lisdatasolutions.microrag.domain.ingest.DocumentFormat
 import com.lisdatasolutions.microrag.domain.ingest.IngestError
 import com.lisdatasolutions.microrag.domain.library.DetailResult
+import com.lisdatasolutions.microrag.domain.library.DocumentDetail
+import com.lisdatasolutions.microrag.domain.library.DocumentDetailState
 import com.lisdatasolutions.microrag.domain.library.DocumentPreview
 import com.lisdatasolutions.microrag.domain.library.LibraryDocument
 import com.lisdatasolutions.microrag.domain.library.LibraryDocumentState
@@ -17,6 +21,7 @@ import com.lisdatasolutions.microrag.domain.library.LibraryQuery
 import com.lisdatasolutions.microrag.domain.library.LibraryRepository
 import com.lisdatasolutions.microrag.domain.library.LibraryResult
 import com.lisdatasolutions.microrag.domain.library.ReindexRow
+import com.lisdatasolutions.microrag.domain.library.ReindexState
 import com.lisdatasolutions.microrag.domain.rag.DocumentStatus
 import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
 import com.lisdatasolutions.microrag.domain.rag.IndexUnavailableException
@@ -26,11 +31,14 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.withContext
 
 /**
  * The Library and the document detail (F08 contracts/library-api.md) on the index, the indexing run
@@ -68,9 +76,93 @@ class DefaultLibraryRepository(
         return LibraryResult.Loaded(LibraryPage(entries.map { it.toLibraryDocument() }, total))
     }
 
-    override fun detail(documentId: Long): Flow<DetailResult> = TODO("F08 US3 (T032)")
+    /** Research R8 and R10: the document, its shadow, what is stored and the run's pause, again on every change. */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun detail(documentId: Long): Flow<DetailResult> = flow {
+        if (index.open() != IndexCompatibility.Compatible) {
+            emit(DetailResult.Unavailable)
+            return@flow
+        }
+        emitAll(
+            // The run's state, once known: D5 shows its pause cause.
+            combine(index.documentChanges, indexing.state.filter { it != IndexingState.Loading }) { _, run ->
+                (run as? IndexingState.Active)?.pause
+            }
+                .mapLatest { pause -> loadDetail(documentId, pause) },
+        )
+    }.catch { error ->
+        if (error is IndexUnavailableException) emit(DetailResult.Unavailable) else throw error
+    }.distinctUntilChanged().flowOn(io)
 
-    override suspend fun preview(documentId: Long, chunkId: Long?): DocumentPreview? = TODO("F08 US3 (T032)")
+    private suspend fun loadDetail(documentId: Long, pause: PauseReason?): DetailResult {
+        // A shadow is never shown as a document of its own (rule L2).
+        val document = index.document(documentId)?.takeIf { it.replacesId == null } ?: return DetailResult.NotFound
+        val shadow = index.shadowOf(documentId)
+        val counting = listOfNotNull(document.id.takeIf { document.status == DocumentStatus.EMBEDDING }, shadow?.id)
+        val stored = if (counting.isEmpty()) emptyMap() else index.storedChunkCounts(counting)
+        val copyMissing = !files.exists(document.localPath)
+        val state = when (document.status) {
+            DocumentStatus.DONE -> DocumentDetailState.Indexed
+            DocumentStatus.PENDING, DocumentStatus.PARSED, DocumentStatus.PAUSED -> DocumentDetailState.Pending
+            DocumentStatus.EMBEDDING -> DocumentDetailState.Indexing(stored[document.id] ?: 0, document.chunkCount)
+            DocumentStatus.ERROR -> DocumentDetailState.Failed(document.error.toIngestError())
+            DocumentStatus.OUT_OF_INDEX -> DocumentDetailState.OutOfIndex
+        }
+        val reindex = shadow?.let {
+            if (it.status == DocumentStatus.ERROR) {
+                ReindexState.Failed(it.id, it.error.toIngestError())
+            } else {
+                ReindexState.Running(it.id, stored[it.id] ?: 0, it.chunkCount, pause)
+            }
+        }
+        val reindexable = (document.status == DocumentStatus.DONE && shadow == null) || document.status == DocumentStatus.OUT_OF_INDEX
+        return DetailResult.Loaded(
+            DocumentDetail(
+                id = document.id,
+                displayName = document.displayName,
+                format = DocumentFormat.fromMime(document.mimeType),
+                state = state,
+                included = document.included,
+                pages = document.pageCount,
+                chunks = document.chunkCount.takeIf { document.status == DocumentStatus.DONE },
+                sizeBytes = document.sizeBytes,
+                importedAtMs = document.createdAtMs,
+                canReindex = reindexable && !copyMissing,
+                copyMissing = copyMissing,
+                reindex = reindex,
+            ),
+        )
+    }
+
+    /** Research R7 and rule L9; the sentences are split off the index's thread. */
+    override suspend fun preview(documentId: Long, chunkId: Long?): DocumentPreview? = try {
+        val document = index.document(documentId)
+        if (document == null || document.status != DocumentStatus.DONE) {
+            null
+        } else {
+            val cited = chunkId?.let { index.loadChunks(listOf(it))[it] }?.takeIf { it.documentId == documentId }
+            if (cited != null) {
+                val previous = index.neighbor(documentId, cited.ordinal - 1)
+                val next = index.neighbor(documentId, cited.ordinal + 1)
+                withContext(io) {
+                    DocumentPreview(
+                        page = cited.page,
+                        before = previous?.content?.let(PreviewText::lastSentence),
+                        text = cited.content,
+                        after = next?.content?.let(PreviewText::firstSentence),
+                        highlighted = true,
+                        citedChunkMissing = false,
+                    )
+                }
+            } else {
+                index.neighbor(documentId, 0)?.let { first ->
+                    DocumentPreview(first.page, null, first.content, null, highlighted = false, citedChunkMissing = chunkId != null)
+                }
+            }
+        }
+    } catch (e: IndexUnavailableException) {
+        null
+    }
 
     override suspend fun setIncluded(documentId: Long, included: Boolean) = writing {
         // Rule L3: only indexed documents; F07 searches follow it on their next call.

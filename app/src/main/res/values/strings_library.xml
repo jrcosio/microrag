@@ -89,20 +89,23 @@
     <string name="document_retry">Reintentar</string>
 
     <!-- D1 -->
-    <string name="document_pending_body">Este documento aún no está indexado. Se indexará al pulsar Iniciar indexación en la Ingesta.</string>
+    <string name="document_pending_title">Este documento aún no está indexado.</string>
+    <string name="document_pending_body">Se indexará al pulsar Iniciar indexación en la Ingesta.</string>
     <!-- D2 -->
     <string name="document_indexing_progress">%1$s de %2$s fragmentos</string>
     <string name="document_indexing_preparing">Preparando el documento</string>
     <string name="document_view_indexing">Ver estado de la indexación</string>
     <!-- D4 -->
-    <string name="document_out_of_index_body">Quitaste este documento del índice. Su archivo sigue guardado en la app.</string>
+    <string name="document_out_of_index_title">Quitaste este documento del índice.</string>
+    <string name="document_out_of_index_body">Su archivo sigue guardado en la app.</string>
     <!-- D5 -->
     <string name="document_reindex_progress">Reindexando · %1$s de %2$s fragmentos</string>
     <string name="document_reindex_preparing">Reindexando · preparando el documento</string>
     <string name="document_reindex_body">Mientras tanto, las respuestas usan la versión anterior.</string>
     <string name="document_reindexing_button">Reindexando…</string>
     <!-- D6 -->
-    <string name="document_reindex_failed">No se pudo reindexar: %1$s. Las respuestas siguen usando la versión anterior.</string>
+    <string name="document_reindex_failed_title">No se pudo reindexar: %1$s.</string>
+    <string name="document_reindex_failed_body">Las respuestas siguen usando la versión anterior.</string>
     <string name="document_reindex_discard">Descartar</string>
     <!-- D7 -->
     <string name="document_citation_missing">El fragmento citado ya no está en este documento.</string>
@@ -115,7 +118,8 @@
     <string name="document_remove_body">Se borrarán sus fragmentos y vectores, y dejará de usarse en las respuestas. El archivo se conserva para reindexarlo cuando quieras.</string>
     <string name="document_remove_confirm">Quitar</string>
     <!-- D10 -->
-    <string name="document_copy_missing">No se encuentra el archivo guardado por la app, así que no se puede reindexar. Puedes eliminarlo e importarlo de nuevo.</string>
+    <string name="document_copy_missing_title">No se encuentra el archivo guardado por la app, así que no se puede reindexar.</string>
+    <string name="document_copy_missing_body">Puedes eliminarlo e importarlo de nuevo.</string>
     <string name="document_no_preview">Este documento no tiene vista previa.</string>
 
     <!-- A7: announced without moving the focus. -->

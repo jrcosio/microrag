@@ -85,6 +85,9 @@ class FakeLibraryRepository : LibraryRepository {
         calls += "include $documentId $included"
         includeGate?.await()
         documents.value = documents.value.map { if (it.id == documentId) it.copy(included = included) else it }
+        details[documentId]?.let { flow ->
+            (flow.value as? DetailResult.Loaded)?.let { flow.value = DetailResult.Loaded(it.detail.copy(included = included)) }
+        }
     }
 
     override suspend fun delete(documentId: Long) {

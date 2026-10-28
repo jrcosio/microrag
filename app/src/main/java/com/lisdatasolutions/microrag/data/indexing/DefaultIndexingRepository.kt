@@ -132,6 +132,13 @@ class DefaultIndexingRepository(
         logger.i(TAG) { "ingest retry id=$documentId" }
     }
 
+    override suspend fun add(documentId: Long) = withContext(io) {
+        if (index.document(documentId)?.status !in UNFINISHED) return@withContext
+        runStore.edit { it.adding(listOf(documentId)).resumed() }
+        enqueue(listOf(documentId))
+        logger.i(TAG) { "ingest add id=$documentId" }
+    }
+
     override suspend fun reconcile() = withContext(io) {
         if (index.open() != IndexCompatibility.Compatible) return@withContext
         val run = runStore.run.first()

@@ -22,6 +22,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -136,7 +138,10 @@ fun LisdataInfoCard(
     }
 }
 
-/** Labelled figure ("PÁGINAS 48", "FRAGMENTOS 860"); [emphasis] colors the value in brand blue. */
+/**
+ * Labelled figure ("PÁGINAS 48", "FRAGMENTOS 860"); [emphasis] colors the value in brand blue. With
+ * [accessibilityText] TalkBack reads that instead ("Páginas, 48"; "—" read as words).
+ */
 @Composable
 fun LisdataStatCard(
     label: String,
@@ -144,9 +149,15 @@ fun LisdataStatCard(
     modifier: Modifier = Modifier,
     emphasis: Boolean = false,
     caption: String? = null,
+    accessibilityText: String? = null,
 ) {
     val colors = LisdataTheme.colors
-    LisdataCard(modifier = modifier.semantics(mergeDescendants = true) {}) {
+    val semantics = if (accessibilityText != null) {
+        Modifier.clearAndSetSemantics { contentDescription = accessibilityText }
+    } else {
+        Modifier.semantics(mergeDescendants = true) {}
+    }
+    LisdataCard(modifier = modifier.then(semantics)) {
         LisdataEyebrow(text = label)
         Text(
             text = value,

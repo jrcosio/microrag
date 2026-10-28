@@ -13,6 +13,9 @@ data class LibraryUiState(
     val showsQuery: Boolean get() = content != LibraryContent.Empty
 }
 
+/** What the detail asks the Library to say when it closes itself (B8, A7). */
+enum class LibraryMessage { DOCUMENT_GONE, DOCUMENT_DELETED }
+
 sealed interface LibraryContent {
     /** B1. */
     data object Loading : LibraryContent

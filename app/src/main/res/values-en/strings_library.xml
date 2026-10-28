@@ -88,20 +88,23 @@
     <string name="document_retry">Retry</string>
 
     <!-- D1 -->
-    <string name="document_pending_body">This document is not indexed yet. It will be indexed when you tap Start indexing in Import.</string>
+    <string name="document_pending_title">This document is not indexed yet.</string>
+    <string name="document_pending_body">It will be indexed when you tap Start indexing in Import.</string>
     <!-- D2 -->
     <string name="document_indexing_progress">%1$s of %2$s chunks</string>
     <string name="document_indexing_preparing">Preparing the document</string>
     <string name="document_view_indexing">View indexing status</string>
     <!-- D4 -->
-    <string name="document_out_of_index_body">You removed this document from the index. Its file is still kept in the app.</string>
+    <string name="document_out_of_index_title">You removed this document from the index.</string>
+    <string name="document_out_of_index_body">Its file is still kept in the app.</string>
     <!-- D5 -->
     <string name="document_reindex_progress">Reindexing · %1$s of %2$s chunks</string>
     <string name="document_reindex_preparing">Reindexing · preparing the document</string>
     <string name="document_reindex_body">Meanwhile, answers use the previous version.</string>
     <string name="document_reindexing_button">Reindexing…</string>
     <!-- D6 -->
-    <string name="document_reindex_failed">It could not be reindexed: %1$s. Answers still use the previous version.</string>
+    <string name="document_reindex_failed_title">It could not be reindexed: %1$s.</string>
+    <string name="document_reindex_failed_body">Answers still use the previous version.</string>
     <string name="document_reindex_discard">Discard</string>
     <!-- D7 -->
     <string name="document_citation_missing">The cited chunk is no longer in this document.</string>
@@ -114,7 +117,8 @@
     <string name="document_remove_body">Its chunks and vectors will be deleted and it will no longer be used in answers. The file is kept so you can reindex it whenever you want.</string>
     <string name="document_remove_confirm">Remove</string>
     <!-- D10 -->
-    <string name="document_copy_missing">The file kept by the app cannot be found, so it cannot be reindexed. You can delete it and import it again.</string>
+    <string name="document_copy_missing_title">The file kept by the app cannot be found, so it cannot be reindexed.</string>
+    <string name="document_copy_missing_body">You can delete it and import it again.</string>
     <string name="document_no_preview">This document has no preview.</string>
 
     <!-- A7: announced without moving the focus. -->

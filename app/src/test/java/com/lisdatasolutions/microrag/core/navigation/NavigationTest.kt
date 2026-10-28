@@ -7,7 +7,10 @@ import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -33,8 +36,18 @@ import com.lisdatasolutions.microrag.domain.ingest.ObserveImportQueueUseCase
 import com.lisdatasolutions.microrag.domain.ingest.RemoveQueueItemUseCase
 import com.lisdatasolutions.microrag.domain.ingest.RetryQueueItemUseCase
 import com.lisdatasolutions.microrag.domain.ingest.StartIndexingUseCase
+import com.lisdatasolutions.microrag.domain.library.DeleteDocumentUseCase
+import com.lisdatasolutions.microrag.domain.library.DetailResult
+import com.lisdatasolutions.microrag.domain.library.DiscardReindexUseCase
+import com.lisdatasolutions.microrag.domain.library.DocumentDetail
+import com.lisdatasolutions.microrag.domain.library.DocumentDetailState
+import com.lisdatasolutions.microrag.domain.library.LoadPreviewUseCase
+import com.lisdatasolutions.microrag.domain.library.ObserveDocumentUseCase
 import com.lisdatasolutions.microrag.domain.library.ObserveLibraryUseCase
+import com.lisdatasolutions.microrag.domain.library.ReindexDocumentUseCase
+import com.lisdatasolutions.microrag.domain.library.RemoveFromIndexUseCase
 import com.lisdatasolutions.microrag.domain.library.SetIncludedUseCase
+import com.lisdatasolutions.microrag.feature.document.DocumentViewModel
 import com.lisdatasolutions.microrag.domain.model.OnboardingStage
 import com.lisdatasolutions.microrag.domain.model.StartDestination
 import com.lisdatasolutions.microrag.domain.onboarding.FakeOnboardingStore
@@ -62,12 +75,40 @@ import org.koin.dsl.module
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 
-/** The Library (F08) takes its ViewModel from Koin; a fake repository with one document is enough to navigate. */
-internal fun libraryViewModels() = module {
-    val library = FakeLibraryRepository().apply {
-        documents.value = listOf(LibraryDocument(7, "Manual.pdf", DocumentFormat.PDF, LibraryDocumentState.Indexed(3, null), true))
+/** The Library and the detail (F08) take their ViewModels from Koin; a fake repository with documents 1 and 7 is enough to navigate. */
+internal fun libraryViewModels(library: FakeLibraryRepository = navigationLibrary()) = module {
+    val indexing = object : IndexingRepository {
+        override val state = MutableStateFlow<IndexingState>(IndexingState.Idle(emptyList()))
+        override suspend fun start() = 0
+        override suspend fun pause() = Unit
+        override suspend fun resume() = Unit
+        override suspend fun retry(documentId: Long) = Unit
+        override suspend fun reconcile() = Unit
+        override suspend fun add(documentId: Long) = Unit
     }
     viewModel { LibraryViewModel(get(), ObserveLibraryUseCase(library), SetIncludedUseCase(library)) }
+    viewModel {
+        DocumentViewModel(
+            get(), ObserveDocumentUseCase(library), LoadPreviewUseCase(library), SetIncludedUseCase(library),
+            DeleteDocumentUseCase(library), RemoveFromIndexUseCase(library), ReindexDocumentUseCase(library),
+            DiscardReindexUseCase(library), RetryIndexingUseCase(indexing),
+        )
+    }
+}
+
+internal fun navigationLibrary() = FakeLibraryRepository().apply {
+    documents.value = listOf(LibraryDocument(7, "Manual.pdf", DocumentFormat.PDF, LibraryDocumentState.Indexed(3, null), true))
+    listOf(1L, 7L).forEach { id ->
+        details[id] = MutableStateFlow(
+            DetailResult.Loaded(
+                DocumentDetail(
+                    id = id, displayName = "Manual.pdf", format = DocumentFormat.PDF, state = DocumentDetailState.Indexed,
+                    included = true, pages = 3, chunks = 3, sizeBytes = 1_000, importedAtMs = 0, canReindex = true,
+                    copyMissing = false, reindex = null,
+                ),
+            ),
+        )
+    }
 }
 
 /** Navigation contract N1–N8 (contracts/navigation.md, FR-016…FR-022, SC-003, SC-007). */
@@ -76,13 +117,15 @@ internal fun libraryViewModels() = module {
 class NavigationTest {
 
     /** The import (F06), indexing (F07) and library (F08) screens take their ViewModels from Koin; fakes are enough here. */
+    private val library = navigationLibrary()
+
     @get:Rule(order = 0)
     val ingestGraph = object : ExternalResource() {
         override fun before() {
             val repository = FakeImportQueueRepository()
             startKoin {
                 modules(
-                    libraryViewModels(),
+                    libraryViewModels(library),
                     module {
                         viewModel {
                             IngestViewModel(
@@ -101,6 +144,7 @@ class NavigationTest {
                                 override suspend fun resume() = Unit
                                 override suspend fun retry(documentId: Long) = Unit
                                 override suspend fun reconcile() = Unit
+                                override suspend fun add(documentId: Long) = Unit
                             }
                             IndexViewModel(
                                 ObserveIndexingUseCase(indexing),
@@ -285,6 +329,63 @@ class NavigationTest {
     }
 
     @Test
+    fun theDetail_opensFromARow_andBackReturnsToTheLibrary() {
+        launchShell()
+        tab(TopLevelDestination.LIBRARY).performClick()
+        compose.onNodeWithText("Manual.pdf", useUnmergedTree = true).performClick()
+        compose.waitForIdle()
+        compose.onNodeWithText(context.getString(R.string.document_title)).assertIsDisplayed()
+
+        compose.onNodeWithContentDescription(context.getString(R.string.action_back)).performClick()
+        compose.waitForIdle()
+
+        assertThat(nav.currentDestination?.hasRoute(Library::class)).isTrue()
+        compose.onNodeWithText(context.getString(R.string.library_headline)).assertIsDisplayed()
+    }
+
+    @Test
+    fun aDocumentThatNoLongerExists_returnsToTheLibraryWithANotice_B8() {
+        launchShell()
+        tab(TopLevelDestination.LIBRARY).performClick()
+        // The snackbar lasts 4 s of frame time: the clock moves by hand so it is seen before it goes.
+        compose.mainClock.autoAdvance = false
+        compose.runOnUiThread { nav.navigate(Document(documentId = 99)) }
+        val notice = context.getString(R.string.library_document_gone)
+
+        compose.waitUntil(5_000) {
+            compose.mainClock.advanceTimeBy(100)
+            compose.onAllNodesWithText(notice).fetchSemanticsNodes().isNotEmpty()
+        }
+
+        assertThat(nav.currentDestination?.hasRoute(Library::class)).isTrue()
+    }
+
+    @Test
+    fun aCitationRoute_asksForTheCitedChunk() {
+        launchShell()
+        compose.runOnUiThread { nav.navigate(Document(documentId = 7, chunkId = 3)) }
+        compose.waitForIdle()
+
+        assertThat(library.previewRequests).contains(7L to 3L)
+    }
+
+    @Test
+    fun theIndexingLink_opensTheIndexScreen() {
+        library.details[7]!!.value = DetailResult.Loaded(
+            (library.details[7]!!.value as DetailResult.Loaded).detail.copy(state = DocumentDetailState.Indexing(1, 3), chunks = null),
+        )
+        launchShell()
+        compose.runOnUiThread { nav.navigate(Document(documentId = 7)) }
+        compose.waitForIdle()
+
+        compose.onNode(hasScrollAction()).performScrollToNode(hasText(context.getString(R.string.document_view_indexing)))
+        compose.onNodeWithText(context.getString(R.string.document_view_indexing)).performClick()
+        compose.waitForIdle()
+
+        assertThat(nav.currentDestination?.hasRoute(Index::class)).isTrue()
+    }
+
+    @Test
     fun libraryBackArrowReturnsHome() {
         launchShell()
         tab(TopLevelDestination.LIBRARY).performClick()
@@ -305,13 +406,14 @@ class NavigationTest {
         assertThat(shouldShowBottomBar(null, imeVisible = true)).isFalse()
     }
 
+    /** N8, since F08: an id that does not exist goes back where it came from, without crashing (research R8). */
     @Test
-    fun n8_invalidArgumentShowsPlaceholderWithoutCrashing() {
+    fun n8_invalidArgumentGoesBackWithoutCrashing() {
         launchShell()
         compose.runOnUiThread { nav.navigate(Document(documentId = -1)) }
         compose.waitForIdle()
 
-        compose.onNodeWithText("documentId=-1", substring = true).assertIsDisplayed()
+        assertThat(nav.currentDestination?.hasRoute(Home::class)).isTrue()
     }
 }
 
@@ -331,6 +433,7 @@ class NavigationRestorationTest {
                 override suspend fun resume() = Unit
                 override suspend fun retry(documentId: Long) = Unit
                 override suspend fun reconcile() = Unit
+                override suspend fun add(documentId: Long) = Unit
             }
             startKoin {
                 modules(

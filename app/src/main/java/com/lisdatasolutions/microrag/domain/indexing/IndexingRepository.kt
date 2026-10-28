@@ -22,6 +22,12 @@ interface IndexingRepository {
     /** A retryable failed document goes back to pending, joins the run and is enqueued. */
     suspend fun retry(documentId: Long)
 
+    /**
+     * F08: one pending document (a reindex shadow, or a document put back from out of the index) joins
+     * the run, the run resumes and the work is enqueued; unlike [start], other pending documents stay out.
+     */
+    suspend fun add(documentId: Long)
+
     /** On app start, with the app visible: re-enqueues a run left without work (research R12, rule N14). */
     suspend fun reconcile()
 }
