@@ -1025,6 +1025,62 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
 
 ---
 
+## D-054 — Diseño del chat (plan de F11)
+
+- **Fecha:** 2026-10-29
+- **Decisión:**
+  1. **Port exacto del escritorio:**
+     - la plantilla (`prompt.py`) y la lectura de citas y negativa (`judge.py`) se portan a `rag/answer`;
+     - la paridad se comprueba en la JVM con los casos de Python y con un golden de las 426 preguntas de F05 (`offline/golden/answer_golden.jsonl`): prompt por longitud y huella, y texto completo en 10 filas.
+  2. **Una sesión de chat en el ámbito de la app:**
+     - una sola respuesta en curso en toda la app;
+     - el texto se guarda cada segundo y al terminar;
+     - la respuesta sigue al cambiar de pestaña;
+     - «Nuevo chat» o borrar cancelan la respuesta en curso.
+  3. **Gemma** con el backend que preparó F03, un contexto de 4.096 tokens (`llm_max_num_tokens`, parámetro compartido nuevo), 512 de salida y muestreo voraz, como el escritorio. Se precarga al abrir el chat si está disponible.
+  4. **Persistencia en `chat.db`**, un fichero propio en `noBackupFilesDir/chat`:
+     - tablas de conversaciones, turnos (pregunta y respuesta en bruto) y fuentes citadas;
+     - abierto con la misma conexión empaquetada del índice, sin SQLite-Vector;
+     - al arrancar, las respuestas a medias pasan a «interrumpidas».
+  5. **App oculta:** la sesión cancela la respuesta en curso (queda «cancelada» con su texto) antes de que se libere Gemma. Un aviso nuevo de `EngineMemoryCallbacks` lo hace posible.
+  6. **Puerta de la indexación** (D-053): con la tanda en marcha, el chat no precarga ni pregunta. Si la tanda empieza durante una respuesta, la ingesta espera a que termine, porque el coordinador no cancela el bloque en curso.
+  7. **Límite del prompt:** estimación por caracteres. Si pasa de 2.000 tokens, se quitan bloques del final. La pregunta admite como máximo 1.000 caracteres.
+  8. **Citas en pantalla:**
+     - fichas dentro del texto como enlaces accesibles, con el estilo del chip de cifras;
+     - la fila de «Fuentes consultadas» es la vía de 48 dp a la misma fuente;
+     - viñetas y negritas con un formateador propio, sin librería de Markdown.
+  9. **Navegación:**
+     - `Chat(newConversation = true)` para «Nuevo chat» de Inicio, y la pestaña abre la última conversación;
+     - el detalle de F08 se desplaza al fragmento citado.
+  10. **Revisión de la plantilla (D-035):** dos variantes fijadas de antemano:
+      - `v3`: responder a todas las partes y copiar cifras y plazos tal cual;
+      - `v4`: `v3` y la continuidad con la conversación previa.
+
+      Una criba automática antes de la revisión manual de las respuestas que cambian (método D-033).
+  11. **Orden de trabajo:** las pruebas en el teléfono de referencia van en la última fase. El recorrido del chat en el teléfono se acuerda antes con el usuario, porque su biblioteca tiene un documento propio.
+- **Motivo:**
+  - El golden sobre las respuestas reales de F05 localiza en la JVM cualquier diferencia con el escritorio, que es la referencia evaluada.
+  - La respuesta no puede depender de la vida de la pantalla (FR-011), y solo cabe un LLM.
+  - Un fichero propio protege las conversaciones de un índice incompatible o reconstruido, y no mueve los contadores del índice.
+  - Dejar terminar una respuesta con la app oculta retendría la GPU sin que nadie la viera (constitución IV).
+  - Las fichas como objetos tocables separados no cumplirían los 48 dp dentro de una línea de texto.
+- **Alternativas descartadas:**
+  - la orquestación en el ViewModel o en el dominio;
+  - tablas en `rag.db` (esquema v4), Room, o DataStore;
+  - dejar terminar la respuesta en segundo plano, o un servicio en primer plano;
+  - fichas con contenido en línea (`InlineTextContent`), o una librería de Markdown;
+  - más variantes de plantilla, o ajustarlas con los resultados.
+- **Origen:** plan de F11 (research R1–R17).
+- **Afecta:**
+  - F11;
+  - F07: la ingesta espera a la respuesta en curso;
+  - F08: desplazamiento al fragmento citado y menú «⋯» compartido;
+  - F12: `deleteAll()` para borrar el historial;
+  - F13: historial sobre `chat.db`;
+  - F14: primer token medido.
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.
