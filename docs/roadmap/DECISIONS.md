@@ -1014,7 +1014,7 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
   - guardado: guardar pero abrir siempre un chat nuevo; o solo en memoria hasta F13;
   - plantilla: dejarla para F14; o probar variantes en el teléfono;
   - menú: ocultar «⋯» hasta F13; o solo «Nuevo chat».
-- **Pendiente de aprobar en la revisión del clarify:** las propuestas de UI C1–C15 de la spec, entre ellas la negativa (G26, C1).
+- **Propuestas de UI:** el usuario aprobó en la revisión del clarify las propuestas C1–C15 de la spec, entre ellas la negativa (G26, C1).
 - **Origen:** usuario (clarify de F11).
 - **Afecta:**
   - F11;
@@ -1031,4 +1031,4 @@ Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.
 
 - **G08** — Flecha Atrás en las pestañas, que vuelve a Inicio. Queda aplicada en la spec de F01 como supuesto por la precedencia del PNG; se revisa en el checkpoint de F01.
 - **G10** — Contenido de los pasos 2 y 3 de Preparación.
-- **G14–G17, G21, G22, G24–G26, G29–G31** — Propuestas para estados y acciones no maquetados. G11 y G13 quedan resueltas en D-053; G12 y G39 se hicieron en F01.
+- **G14–G17, G21, G22, G24, G25, G29–G31** — Propuestas para estados y acciones no maquetados. G11, G13 y G26 quedan resueltas en D-053; G12 y G39 se hicieron en F01.

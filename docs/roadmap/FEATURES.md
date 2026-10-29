@@ -516,7 +516,7 @@ También se introduce `EngineCoordinator`, que garantiza que nunca haya dos engi
 ## F11 — Chat con fuentes
 
 - **Tipo:** Producto.
-- **Estado:** 🟨 en curso: specify y clarify el 2026-10-29 en la rama `011-chat-sources`. Decisión D-053 (clarify); propuestas de UI C1–C15 pendientes de revisión. Spec en `specs/011-chat-sources/spec.md`.
+- **Estado:** 🟨 en curso: specify y clarify el 2026-10-29 en la rama `011-chat-sources`. Decisión D-053 (clarify); spec y propuestas de UI C1–C15 aprobadas. Spec en `specs/011-chat-sources/spec.md`.
 
 **Objetivo.** Conversación con documentos:
 - estados `Retrieving`, `Generating`, `Completed`, `Cancelled` y `Failed`;
