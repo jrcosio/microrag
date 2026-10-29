@@ -317,13 +317,13 @@ class DefaultRagIndex(
         }
     }
 
-    override suspend fun loadChunks(ids: Collection<Long>): Map<Long, ChunkView> = withIndex { db ->
-        ids.distinct().chunked(LOAD_BLOCK).flatMap { block -> loadBlock(db, block) }.associateBy { it.id }
+    override suspend fun loadChunks(ids: Collection<Long>, searchableOnly: Boolean): Map<Long, ChunkView> = withIndex { db ->
+        ids.distinct().chunked(LOAD_BLOCK).flatMap { block -> loadBlock(db, block, searchableOnly) }.associateBy { it.id }
     }
 
-    override suspend fun neighbor(documentId: Long, ordinal: Int): ChunkView? = withIndex { db ->
+    override suspend fun neighbor(documentId: Long, ordinal: Int, searchableOnly: Boolean): ChunkView? = withIndex { db ->
         db.queryOne("SELECT id FROM chunks WHERE document_id = ? AND ordinal = ?", documentId, ordinal) { it.getLong(0) }
-            ?.let { loadBlock(db, listOf(it)).singleOrNull() }
+            ?.let { loadBlock(db, listOf(it), searchableOnly).singleOrNull() }
     }
 
     override suspend fun counts(): IndexCounts = withIndex { db ->
@@ -510,12 +510,12 @@ class DefaultRagIndex(
     private fun readMeta(db: RagConnection): Map<String, String> =
         db.query("SELECT key, value FROM rag_meta") { it.getText(0) to it.getText(1) }.toMap()
 
-    private fun loadBlock(db: RagConnection, ids: List<Long>): List<ChunkView> =
+    private fun loadBlock(db: RagConnection, ids: List<Long>, searchableOnly: Boolean): List<ChunkView> =
         db.query(
             """
             SELECT c.id, c.document_id, c.ordinal, c.heading_path, c.page, c.content, c.token_estimate, d.display_name
             FROM chunks c JOIN documents d ON d.id = c.document_id
-            WHERE c.id IN (${ids.joinToString(",") { "?" }})
+            WHERE c.id IN (${ids.joinToString(",") { "?" }})${if (searchableOnly) " AND $SEARCHABLE" else ""}
             """.trimIndent(),
             *ids.toTypedArray(),
         ) { s ->
@@ -568,6 +568,9 @@ class DefaultRagIndex(
     private fun elapsedMs(startedNanos: Long): Long = (System.nanoTime() - startedNanos) / 1_000_000
 
     internal companion object {
+        /** Documents whose chunks searches may return (F07 rule N7); `d` is the documents table. */
+        private const val SEARCHABLE = "d.status = 'done' AND d.included = 1"
+
         /**
          * The scan runs once, materialized, then is joined and filtered (research R7). Arguments: the
          * query blob, k + m candidates and k.
@@ -575,13 +578,13 @@ class DefaultRagIndex(
         const val VECTOR_SEARCH_SQL = "WITH v AS MATERIALIZED (" +
             "SELECT rowid, distance FROM vector_full_scan('chunks', 'embedding', ?, ?)) " +
             "SELECT v.rowid, v.distance FROM v JOIN chunks c ON c.id = v.rowid JOIN documents d ON d.id = c.document_id " +
-            "WHERE d.status = 'done' AND d.included = 1 ORDER BY v.distance LIMIT ?"
+            "WHERE " + SEARCHABLE + " ORDER BY v.distance LIMIT ?"
 
         /** Arguments: the FTS query, k + m candidates and k. */
         const val TEXT_SEARCH_SQL = "WITH f AS MATERIALIZED (" +
             "SELECT rowid, bm25(chunks_fts, 3.0, 1.0) AS score FROM chunks_fts WHERE chunks_fts MATCH ? ORDER BY score LIMIT ?) " +
             "SELECT f.rowid FROM f JOIN chunks c ON c.id = f.rowid JOIN documents d ON d.id = c.document_id " +
-            "WHERE d.status = 'done' AND d.included = 1 ORDER BY f.score LIMIT ?"
+            "WHERE " + SEARCHABLE + " ORDER BY f.score LIMIT ?"
 
         /** androidx.sqlite reports «Error code: 13, message: database or disk is full». */
         private val SQLITE_FULL = Regex("""Error code: 13\b""")

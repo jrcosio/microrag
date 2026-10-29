@@ -112,11 +112,14 @@ interface RagIndex {
      */
     suspend fun textSearch(userQuery: String, k: Int = DEFAULT_K): List<Long>
 
-    /** Unknown ids are left out of the map. */
-    suspend fun loadChunks(ids: Collection<Long>): Map<Long, ChunkView>
+    /**
+     * Unknown ids are left out of the map. With [searchableOnly], so are chunks of documents that are not
+     * done and included, the rule of the searches (F10 research R7): what retrieval loads after searching.
+     */
+    suspend fun loadChunks(ids: Collection<Long>, searchableOnly: Boolean = false): Map<Long, ChunkView>
 
-    /** The chunk at [ordinal] of [documentId], if any. */
-    suspend fun neighbor(documentId: Long, ordinal: Int): ChunkView?
+    /** The chunk at [ordinal] of [documentId], if any; with [searchableOnly], only if [loadChunks] would load it. */
+    suspend fun neighbor(documentId: Long, ordinal: Int, searchableOnly: Boolean = false): ChunkView?
 
     suspend fun counts(): IndexCounts
 

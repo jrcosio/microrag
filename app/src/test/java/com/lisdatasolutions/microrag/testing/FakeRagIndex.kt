@@ -19,8 +19,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 /**
- * In-memory [RagIndex] for JVM tests: documents and stored chunks, no search. Reindex shadows, the
- * cascade on delete and the atomic publication follow DefaultRagIndex (F08 research R5, R6).
+ * In-memory [RagIndex] for JVM tests: documents and stored chunks. Reindex shadows, the cascade on
+ * delete and the atomic publication follow DefaultRagIndex (F08 research R5, R6). Searches return what
+ * a test programs, unfiltered, so a test can play a document that stops being searchable after the
+ * search; loading with `searchableOnly` filters as DefaultRagIndex does (F10 research R7).
  */
 class FakeRagIndex(initial: IndexCompatibility = IndexCompatibility.Compatible) : RagIndex {
 
@@ -57,6 +59,21 @@ class FakeRagIndex(initial: IndexCompatibility = IndexCompatibility.Compatible) 
     /** `rag_meta.quant_dirty` (D-030): set by every write that changes chunks. */
     var quantDirty = false
 
+    /** What vectorSearch returns, best first, before taking k (F10). */
+    @Volatile
+    var vectorResults: (FloatArray) -> List<ScoredChunk> = { emptyList() }
+
+    /** What textSearch returns, best first, before taking k (F10). */
+    @Volatile
+    var textResults: (String) -> List<Long> = { emptyList() }
+
+    /** Thrown by both searches when set, as an index failing under a retrieval would. */
+    @Volatile
+    var searchError: Throwable? = null
+
+    /** open, searches and loads, in order: "open", "vector", "text:<query>", "load", "neighbor" (F10). */
+    val calls: MutableList<String> = java.util.Collections.synchronizedList(mutableListOf())
+
     /** Every updateStatus call, in order: (document, status). */
     val statusUpdates: MutableList<Pair<Long, DocumentStatus>> = java.util.Collections.synchronizedList(mutableListOf())
 
@@ -69,7 +86,10 @@ class FakeRagIndex(initial: IndexCompatibility = IndexCompatibility.Compatible) 
         return block()
     }
 
-    override suspend fun open(): IndexCompatibility = state.value
+    override suspend fun open(): IndexCompatibility {
+        calls += "open"
+        return state.value
+    }
 
     override suspend fun meta(): Map<String, String> = available { emptyMap() }
 
@@ -215,21 +235,34 @@ class FakeRagIndex(initial: IndexCompatibility = IndexCompatibility.Compatible) 
         inserted
     }
 
-    override suspend fun vectorSearch(query: FloatArray, k: Int): List<ScoredChunk> = available { emptyList() }
+    override suspend fun vectorSearch(query: FloatArray, k: Int): List<ScoredChunk> = available {
+        calls += "vector"
+        searchError?.let { throw it }
+        vectorResults(query).take(k)
+    }
 
-    override suspend fun textSearch(userQuery: String, k: Int): List<Long> = available { emptyList() }
+    override suspend fun textSearch(userQuery: String, k: Int): List<Long> = available {
+        calls += "text:$userQuery"
+        searchError?.let { throw it }
+        textResults(userQuery).take(k)
+    }
 
-    override suspend fun loadChunks(ids: Collection<Long>): Map<Long, ChunkView> = available {
+    override suspend fun loadChunks(ids: Collection<Long>, searchableOnly: Boolean): Map<Long, ChunkView> = available {
+        calls += "load"
         chunkReads++
         val wanted = ids.toSet()
-        chunkIds.flatMap { (documentId, byOrdinal) -> byOrdinal.mapNotNull { (ordinal, id) -> if (id in wanted) view(documentId, ordinal) else null } }
+        chunkIds.filterKeys { !searchableOnly || searchable(it) }
+            .flatMap { (documentId, byOrdinal) -> byOrdinal.mapNotNull { (ordinal, id) -> if (id in wanted) view(documentId, ordinal) else null } }
             .associateBy { it.id }
     }
 
-    override suspend fun neighbor(documentId: Long, ordinal: Int): ChunkView? = available {
+    override suspend fun neighbor(documentId: Long, ordinal: Int, searchableOnly: Boolean): ChunkView? = available {
+        calls += "neighbor"
         chunkReads++
-        view(documentId, ordinal)
+        if (searchableOnly && !searchable(documentId)) null else view(documentId, ordinal)
     }
+
+    private fun searchable(documentId: Long): Boolean = docs[documentId]?.let { it.status == DocumentStatus.DONE && it.included } == true
 
     private fun view(documentId: Long, ordinal: Int): ChunkView? {
         val chunk = chunks[documentId]?.get(ordinal) ?: return null

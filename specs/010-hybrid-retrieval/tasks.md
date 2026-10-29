@@ -101,12 +101,12 @@ Historias de la spec:
   - `ContextRetriever.kt`;
   - `RetrieveContextUseCase.kt`;
   - `RetrieveContextUseCase` en `…/microrag/domain/di/DomainModule.kt`.
-- [ ] T007 [P] Crear `…/androidTest/…/data/rag/RagIndexSearchableLoadTest.kt` sobre SQLite real (R7):
+- [X] T007 [P] Crear `…/androidTest/…/data/rag/RagIndexSearchableLoadTest.kt` sobre SQLite real (R7):
   - documentos indexado e incluido, indexado y excluido, pendiente con fragmentos, con error, fuera del índice y sombra de reindexado;
   - `loadChunks(ids, searchableOnly = true)` y `neighbor(…, searchableOnly = true)` solo devuelven los del primero;
   - con `false`, todos los existentes, como hoy;
   - tras `setIncluded(false)`, `removeFromIndex` y `publishReindex`, el filtro sigue la regla.
-- [ ] T008 Implementar `searchableOnly` (R7):
+- [X] T008 Implementar `searchableOnly` (R7):
   - en `…/microrag/domain/rag/RagIndex.kt` y en `…/microrag/data/rag/DefaultRagIndex.kt` (`loadBlock` y `neighbor` con `AND d.status = 'done' AND d.included = 1` cuando se pide);
   - en `…/test/…/testing/FakeRagIndex.kt`, la misma regla, más búsquedas programables (`vectorResults`, `textResults`, `searchError`) y un registro de llamadas (`calls`), para las pruebas del recuperador.
 
