@@ -404,14 +404,14 @@ Historias de la spec:
 - [X] T044 [P] Documentación sin teléfono:
   - **`docs/roadmap/INVENTARIO.md`:** G28 ya dice que F10 hereda las búsquedas filtradas. Se añade que la carga de candidatos también filtra (R7). G25 (FTS solo en español) se mantiene;
   - **`offline/README.md`:** el golden de recuperación y la muestra de paridad (`gen_retrieval_golden.py`, con `--check`), su prueba en la app (`RetrievalGoldenTest`, `RetrievalParityTest`) y el comando `order-review` en la tabla de evaluación.
-- [ ] T045 Puertas de calidad (quickstart §1–3, 5):
+- [X] T045 Puertas de calidad (quickstart §1–3, 5):
   - `gen_retrieval_golden.py --check`;
   - pruebas Python;
   - `assembleDebug`, `assembleRelease`, `lintDebug` y `lintRelease` («No issues found»);
   - `testDebugUnitTest`;
   - instrumentadas sin modelos en el emulador;
   - `apkanalyzer dex packages` del APK de release sin `debug.retrieval` (SC-009).
-- [ ] T046 Borrador de `specs/010-hybrid-retrieval/report.md`:
+- [X] T046 Borrador de `specs/010-hybrid-retrieval/report.md`:
   - resumen;
   - build, lint y pruebas;
   - D-035 con sus cifras;
@@ -426,13 +426,13 @@ Historias de la spec:
 
 **Purpose**: las medidas de US5 en el A063, la decisión de INT8 y el cierre. Solo cuando el usuario diga que el teléfono está disponible.
 
-- [ ] T047 [US5] En el teléfono: instalar los dos APK y ejecutar las instrumentadas sin modelos (quickstart §6). Deben quedar en verde.
+- [X] T047 [US5] En el teléfono: instalar los dos APK y ejecutar las instrumentadas sin modelos (quickstart §6). Deben quedar en verde.
 - [ ] T048 [US5] `RetrievalBenchmarkTest` en el teléfono (SC-003, SC-004):
   - anotar p50 y p95 de cada paso con y sin ocultos, y la primera búsqueda en frío;
   - si el total p95 pasa de 200 ms o el embedding de 150 ms, se para y se consulta.
-- [ ] T049 [US5] `RetrievalDuringIndexingTest` en el teléfono (SC-007): p95 con la tanda en GPU y la cifra con la tanda en CPU. **Si en GPU pasa de 1 s, o el teléfono indexa en CPU, se para y se consulta** (riesgo 4).
-- [ ] T050 [US5] `RetrievalParityTest` en el teléfono (SC-005): Recall@bloques del teléfono y del escritorio, no extraídas y preguntas que cambian. **Si la diferencia pasa de 5 puntos, se listan los cambios (PDF frente a TXT/MD) y se consulta** (riesgo 5).
-- [ ] T051 [US5] Diagnóstico en el teléfono (quickstart §6), sin mostrar documentos del usuario:
+- [X] T049 [US5] `RetrievalDuringIndexingTest` en el teléfono (SC-007): p95 con la tanda en GPU y la cifra con la tanda en CPU. **Si en GPU pasa de 1 s, o el teléfono indexa en CPU, se para y se consulta** (riesgo 4).
+- [X] T050 [US5] `RetrievalParityTest` en el teléfono (SC-005): Recall@bloques del teléfono y del escritorio, no extraídas y preguntas que cambian. **Si la diferencia pasa de 5 puntos, se listan los cambios (PDF frente a TXT/MD) y se consulta** (riesgo 5).
+- [X] T051 [US5] Diagnóstico en el teléfono (quickstart §6), sin mostrar documentos del usuario:
   - pregunta sin resultados, o un documento de prueba en una carpeta propia que se borra al terminar;
   - capturas sin la barra de estado.
 - [ ] T052 Cierre (Definición de terminado):
