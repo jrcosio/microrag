@@ -44,7 +44,7 @@ Al cerrar cada feature se entrega:
 | F07 | Indexación | Producto | F02, F06 | ✅ cerrada |
 | F08 | Biblioteca y detalle de documento | Producto | F07 | ✅ cerrada |
 | F09 | Inicio | Producto | F03, F07, F08 | ✅ cerrada |
-| F10 | Recuperación híbrida | Técnica | F05, F07 | 🟨 en curso (specify y clarify) |
+| F10 | Recuperación híbrida | Técnica | F05, F07 | 🟨 en curso (plan) |
 | F11 | Chat con fuentes | Producto | F08, F10 | ⬜ |
 | F12 | Ajustes e Idiomas | Producto | F03, F11 | ⬜ |
 | F13 | Historial de chats | Producto (UI propuesta) | F11, F12 | ⬜ |
@@ -475,7 +475,7 @@ También se introduce `EngineCoordinator`, que garantiza que nunca haya dos engi
 ## F10 — Recuperación híbrida
 
 - **Tipo:** Técnica. Diagnóstico de búsqueda interno, solo en debug.
-- **Estado:** 🟨 en curso: specify y clarify el 2026-10-29 en la rama `010-hybrid-retrieval`. Decisión D-049 (clarify), con la enmienda 1.1.1 de la constitución. Spec en `specs/010-hybrid-retrieval/spec.md`.
+- **Estado:** 🟨 en curso: specify, clarify y plan el 2026-10-29 en la rama `010-hybrid-retrieval`. Decisiones D-049 (clarify), con la enmienda 1.1.1 de la constitución, y D-050 (plan). Spec y plan en `specs/010-hybrid-retrieval/`.
 
 **Objetivo.** `HybridRetriever`:
 - embedding de consulta en CPU;

@@ -861,6 +861,55 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
 
 ---
 
+## D-050 — Diseño de la recuperación (plan de F10)
+
+- **Fecha:** 2026-10-29
+- **Decisión:**
+  1. **Port exacto del harness:**
+     - la regla de seguimiento, la fusión RRF (con su desempate) y el selector de contexto se portan de `offline/eval/retrieval.py` y `selector.py` a `rag/retrieval`;
+     - la paridad se comprueba en la JVM con los casos de Python y con un golden de las 426 preguntas vivas (`offline/golden/retrieval_golden.jsonl`).
+  2. **Candidatos fusionados:** `fused_limit = 30` pasa a `rag_parameters.json` y a `RagParameters`, sin cambiar su valor.
+  3. **Léxica en paralelo:** la búsqueda léxica empieza a la vez que el embedding de la consulta; la vectorial, cuando hay vector. Una sola conexión, como hasta ahora.
+  4. **Solo fragmentos buscables:** `loadChunks` y `neighbor` aceptan `searchableOnly`. La recuperación carga solo fragmentos de documentos `done` e incluidos, aunque cambien entre la búsqueda y la carga.
+  5. **Motores de embeddings compartidos:**
+     - el `EngineCoordinator` deja que varios bloques usen a la vez un motor de embeddings, que ya serializa sus llamadas en su único hilo;
+     - el LLM sigue siendo exclusivo;
+     - así, una consulta durante una tanda en CPU espera al fragmento en curso, no al final de la tanda.
+  6. **Consulta demasiado larga:** si el modelo rechaza el texto embebido, se recorta primero la pregunta anterior y después la actual, con la regla de D-036. La búsqueda léxica usa el texto completo.
+  7. **Resultado tipado sin excepciones:**
+     - bloques;
+     - sin resultados;
+     - pregunta vacía;
+     - índice no disponible;
+     - modelos no listos;
+     - fallo del embedding.
+
+     Lleva tiempos y puntuaciones, y el registro solo lleva cifras.
+  8. **Paridad en el teléfono:**
+     - `offline/corpus` se empaqueta como assets del APK de pruebas;
+     - la muestra fija de 50 preguntas (40 respondibles y 10 de seguimiento, con su acierto de escritorio) se genera en `offline/golden/retrieval_parity.jsonl`.
+  9. **Orden de trabajo:** las pruebas en el teléfono de referencia van en la última fase (petición del usuario).
+- **Motivo:**
+  - El golden sobre datos reales localiza en la JVM cualquier divergencia con el escritorio, antes de tener el teléfono.
+  - Compartir el motor no gasta más memoria y no gana nada duplicarlo, porque los dos usarían el mismo hilo de embeddings.
+  - Solapar la léxica con el embedding ahorra su tiempo (≈ 26 ms) sin una segunda conexión.
+- **Medición previa de D-035** (detalle en research R12):
+  - sobre el índice de escritorio, la mejor variante (reordenar los 20 primeros por puntuación combinada) sube el Recall@bloques de 0,889 a 0,903 (+1,4 puntos);
+  - los trigramas lo bajan a 0,873;
+  - ninguna llega a la regla de adopción. La decisión formal se registra al implementar, con la ejecución del harness.
+- **Alternativas descartadas:**
+  - un segundo motor de CPU solo para consultas;
+  - que la ingesta tome el motor fragmento a fragmento;
+  - un dispatcher propio para la consulta (plan B si SC-007 falla);
+  - una segunda conexión de solo lectura;
+  - filtrar los documentos uno a uno tras cargar;
+  - recortar la consulta por caracteres;
+  - copiar el corpus al teléfono con adb.
+- **Origen:** plan de F10 (research R1–R14).
+- **Afecta:** F07 (coordinador de motores), F11 (consume la recuperación y comparte el coordinador) y F14 (INT8, y la reordenación como palanca).
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.
