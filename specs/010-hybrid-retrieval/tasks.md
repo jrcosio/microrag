@@ -85,8 +85,8 @@ Historias de la spec:
   - Si falta un texto en la caché, carga el modelo con la comprobación de huella de `gen_embedding_golden.py`.
 
   Genera los dos ficheros en `offline/golden/`, y T002 pasa. Se ejecuta `--check` dos veces sin cambios en `git diff` (G1).
-- [ ] T004 [P] Añadir `offline/corpus` como carpeta de assets de `androidTest` en `app/build.gradle.kts`, junto a `offline/golden` (R11). Con `unzip -l` se comprueba que el APK de pruebas contiene `docs/*.pdf|md|txt` y `manifest.json`, y que el APK de la app no.
-- [ ] T005 [P] Crear `…/sharedTest/…/rag/retrieval/RetrievalGoldenFiles.kt`, que lee los dos golden con kotlinx-serialization para la JVM (`../offline/golden`) y para el dispositivo (assets de prueba), como `GoldenFiles` (F06). Tipos: `GoldenRetrievalCase` y `ParityQuestion`.
+- [X] T004 [P] Añadir `offline/corpus` como carpeta de assets de `androidTest` en `app/build.gradle.kts`, junto a `offline/golden` (R11). Con `unzip -l` se comprueba que el APK de pruebas contiene `docs/*.pdf|md|txt` y `manifest.json`, y que el APK de la app no.
+- [X] T005 [P] Crear `…/sharedTest/…/rag/retrieval/RetrievalGoldenFiles.kt`, que lee los dos golden con kotlinx-serialization para la JVM (`../offline/golden`) y para el dispositivo (assets de prueba), como `GoldenFiles` (F06). Tipos: `GoldenRetrievalCase` y `ParityQuestion`.
 
 **Checkpoint**: los golden existen, son deterministas y se pueden leer desde las dos clases de pruebas.
 
