@@ -209,11 +209,11 @@ Historias de la spec:
 
 **Independent Test**: en la JVM, `HybridRetrieverTest` (camino principal) y `RetrievalGoldenTest` reproducen el escritorio.
 
-- [ ] T020 [P] [US1] Crear `…/test/…/rag/retrieval/ReciprocalRankFusionTest.kt` con los casos de `test_retrieval.py`:
+- [X] T020 [P] [US1] Crear `…/test/…/rag/retrieval/ReciprocalRankFusionTest.kt` con los casos de `test_retrieval.py`:
   - `[[a, b, c], [b, d, a]]` da `[b, a, d, c]`;
   - el empate `[x, y]`;
   - también, rangos desde 1, puntuación y rango por lista expuestos, y un id que solo está en una lista.
-- [ ] T021 [P] [US1] Crear `…/test/…/rag/retrieval/ContextSelectorTest.kt`:
+- [X] T021 [P] [US1] Crear `…/test/…/rag/retrieval/ContextSelectorTest.kt`:
   - **los 5 casos de `test_selector.py`:**
     - 3 por documento;
     - vecino y fusión;
@@ -227,10 +227,10 @@ Historias de la spec:
     - un fragmento que no cabe no detiene el recorrido;
     - `chunkIds` en orden;
     - `mergeWithoutOverlap` con y sin prefijo y con texto vacío.
-- [ ] T022 [P] [US1] Crear `…/test/…/rag/retrieval/RetrievalGoldenTest.kt`. Para las 426 filas de `retrieval_golden.jsonl`:
+- [X] T022 [P] [US1] Crear `…/test/…/rag/retrieval/RetrievalGoldenTest.kt`. Para las 426 filas de `retrieval_golden.jsonl`:
   - `fuse([vector, fts], 60).take(30)` es igual a `fused`;
   - `ContextSelector` con `d034` y con `report` da los bloques esperados (documento, primer y último ordinal, tokens e ids). Los `ChunkView` se construyen desde `chunks`, con contenido de relleno, y el vecino desde `next_id`.
-- [ ] T023 [US1] Implementar `…/microrag/rag/retrieval/ReciprocalRankFusion.kt` (`FusedCandidate`) y `…/microrag/rag/retrieval/ContextSelector.kt` (R2). T020, T021 y T022 pasan. **Si el golden falla, se corrige el port, nunca el golden** (riesgo 1).
+- [X] T023 [US1] Implementar `…/microrag/rag/retrieval/ReciprocalRankFusion.kt` (`FusedCandidate`) y `…/microrag/rag/retrieval/ContextSelector.kt` (R2). T020, T021 y T022 pasan. **Si el golden falla, se corrige el port, nunca el golden** (riesgo 1).
 - [ ] T024 [P] [US1] Crear `…/test/…/data/retrieval/HybridRetrieverTest.kt` (camino principal), con `FakeRagIndex` programable y un `QueryEmbedder` falso sobre `FakeTextEmbedder`:
   - 50 + 50 candidatos;
   - fusión;
