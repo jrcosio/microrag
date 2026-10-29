@@ -91,6 +91,19 @@ class LayeringTest {
             .that(leaks).isEmpty()
     }
 
+    /** F10 T038 (rule V1): the retrieval diagnostic lives in src/debug only; main and release never name it. */
+    @Test
+    fun nothingOutsideDebugReferencesTheRetrievalDiagnostic() {
+        val roots = listOf(File("src/main"), File("src/release"))
+        val files = roots.flatMap { root -> root.walkTopDown().filter { it.isFile && it.extension in setOf("kt", "xml") }.toList() }
+        val leaks = files.filter { it.readText().contains("debug.retrieval") }.map { it.path }
+
+        assertWithMessage("main and release files exist").that(files).isNotEmpty()
+        assertWithMessage("main or release files referencing debug.retrieval").that(leaks).isEmpty()
+        assertWithMessage("the diagnostic exists in debug")
+            .that(File("src/debug/java/com/lisdatasolutions/microrag/debug/retrieval/RetrievalDiagnosticScreen.kt").isFile).isTrue()
+    }
+
     /** F09 T030: Home reads models, library and run through use cases only (contracts/home-api.md). */
     @Test
     fun theHomeScreenUsesNoBackendApi() {

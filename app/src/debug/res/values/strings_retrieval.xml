@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- F10 retrieval diagnostic. Internal debug tool: Spanish only, not translated. -->
+<resources>
+    <string name="retrieval_title" translatable="false">Diagnóstico de búsqueda</string>
+    <string name="retrieval_question_label" translatable="false">Pregunta</string>
+    <string name="retrieval_question_placeholder" translatable="false">Escribe la pregunta</string>
+    <string name="retrieval_previous_label" translatable="false">Pregunta anterior (opcional)</string>
+    <string name="retrieval_previous_placeholder" translatable="false">La pregunta del turno anterior</string>
+    <string name="retrieval_action_search" translatable="false">Buscar</string>
+    <string name="retrieval_searching" translatable="false">Buscando…</string>
+    <string name="retrieval_section_summary" translatable="false">Resumen</string>
+    <string name="retrieval_follow_up" translatable="false">Seguimiento: %1$s</string>
+    <string name="retrieval_search_text" translatable="false">Texto de búsqueda: %1$s</string>
+    <string name="retrieval_cuts" translatable="false">Recortes del embedding: %1$d</string>
+    <string name="retrieval_blocks_count" translatable="false">%1$d bloques · %2$d tokens</string>
+    <string name="retrieval_no_results" translatable="false">Sin resultados</string>
+    <string name="retrieval_empty_question" translatable="false">Pregunta vacía</string>
+    <string name="retrieval_index_unavailable" translatable="false">Índice no disponible: %1$s</string>
+    <string name="retrieval_index_closed" translatable="false">cerrado</string>
+    <string name="retrieval_index_incompatible" translatable="false">incompatible (%1$s)</string>
+    <string name="retrieval_index_unreadable" translatable="false">ilegible (%1$s)</string>
+    <string name="retrieval_models_not_ready" translatable="false">Modelos no listos</string>
+    <string name="retrieval_embedding_failed" translatable="false">Fallo del embedding</string>
+    <string name="retrieval_section_timings" translatable="false">Tiempos</string>
+    <string name="retrieval_timing_embedding" translatable="false">Embedding: %1$s ms</string>
+    <string name="retrieval_timing_vector" translatable="false">Vectorial: %1$s ms</string>
+    <string name="retrieval_timing_text" translatable="false">Léxica: %1$s ms</string>
+    <string name="retrieval_timing_selection" translatable="false">Selección: %1$s ms</string>
+    <string name="retrieval_timing_total" translatable="false">Total: %1$s ms</string>
+    <string name="retrieval_engine_loaded" translatable="false">Motor cargado: %1$s</string>
+    <string name="retrieval_section_blocks" translatable="false">Bloques</string>
+    <string name="retrieval_block_title" translatable="false">[%1$d] %2$s</string>
+    <string name="retrieval_block_heading" translatable="false">Ruta: %1$s</string>
+    <string name="retrieval_block_page" translatable="false">Página %1$d</string>
+    <string name="retrieval_block_chunks" translatable="false">Fragmentos %1$s · ids %2$s · %3$d tokens</string>
+    <string name="retrieval_section_candidates" translatable="false">Candidatos</string>
+    <string name="retrieval_candidate" translatable="false">#%1$d · id %2$d · RRF %3$s · vector %4$s · léxica %5$s</string>
+    <string name="retrieval_candidate_vector" translatable="false">%1$d (%2$s)</string>
+    <string name="retrieval_candidate_selected" translatable="false">%1$s · elegido</string>
+    <string name="retrieval_absent" translatable="false">—</string>
+    <string name="retrieval_yes" translatable="false">sí</string>
+    <string name="retrieval_no" translatable="false">no</string>
+</resources>

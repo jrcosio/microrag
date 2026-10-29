@@ -76,7 +76,7 @@ El contenido se desplaza en vertical (`LazyColumn`). Todos los textos se pueden 
 - **V2 — Datos reales:** busca en la biblioteca del teléfono con el `ContextRetriever` de la app. No hay datos de ejemplo fuera de las previews (constitución V).
 - **V3 — Texto en pantalla, nunca en registros:** el ViewModel y la pantalla no registran nada. El registro de la recuperación solo lleva cifras (regla Q11).
 - **V4 — Fuera del hilo principal:** la búsqueda corre en los dispatchers de la base de datos y de embeddings (constitución IV). El ViewModel solo lanza la corrutina.
-- **V5 — Design system:** componentes `Lisdata*` existentes (`LisdataTopBar`, `LisdataSearchField`, `LisdataGradientButton`, `LisdataCard`, `LisdataDivider`) y tokens, sin hex ni componentes nuevos. Textos en Kotlin, como el diagnóstico de F02 (herramienta interna).
+- **V5 — Design system:** componentes `Lisdata*` existentes (`LisdataTopBar`, `LisdataSearchField`, `LisdataGradientButton`, `LisdataCard`, `LisdataDivider`) y tokens, sin hex ni componentes nuevos. Textos en recursos de debug (`src/debug/res/values/strings_retrieval.xml`, solo en español y sin traducir), como el diagnóstico de F02 (herramienta interna).
 - **V6 — Accesibilidad básica:**
   - botón y campos con etiqueta;
   - objetivos ≥ 48 dp;

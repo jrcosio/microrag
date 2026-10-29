@@ -320,27 +320,27 @@ Historias de la spec:
 
 **Independent Test**: las pruebas del ViewModel y de la pantalla, `LayeringTest` y la búsqueda manual en el emulador.
 
-- [ ] T035 [P] [US4] Crear `…/testDebug/…/debug/retrieval/RetrievalDiagnosticViewModelTest.kt`:
+- [X] T035 [P] [US4] Crear `…/testDebug/…/debug/retrieval/RetrievalDiagnosticViewModelTest.kt`:
   - `Idle` → `Searching` → `Done`;
   - una segunda pulsación durante la búsqueda se ignora;
   - una anterior en blanco se pasa como `null`;
   - cada `RetrievalOutcome` queda en `Done`;
   - el ViewModel no registra nada (V3).
-- [ ] T036 [P] [US4] Crear `…/testDebug/…/debug/retrieval/RetrievalDiagnosticScreenTest.kt` (Robolectric), con el contenido del contrato `retrieval-diagnostic.md`:
+- [X] T036 [P] [US4] Crear `…/testDebug/…/debug/retrieval/RetrievalDiagnosticScreenTest.kt` (Robolectric), con el contenido del contrato `retrieval-diagnostic.md`:
   - un estado por cada resultado (bloques, sin resultados, vacía, índice no disponible, modelos no listos y fallo del embedding);
   - candidatos con «—» cuando no están en una lista;
   - la fila de recortes solo con N > 0;
   - tiempos con un decimal;
   - botón desactivado e indicador anunciado como «Buscando» durante la búsqueda;
   - campos con etiqueta y objetivos ≥ 48 dp (V6).
-- [ ] T037 [US4] Implementar `…/debug/…/debug/retrieval/`:
+- [X] T037 [US4] Implementar `…/debug/…/debug/retrieval/`:
   - `RetrievalDiagnosticUiState.kt`;
   - `RetrievalDiagnosticViewModel.kt`;
   - `RetrievalDiagnosticScreen.kt` (`LisdataTopBar`, dos `LisdataSearchField`, `LisdataGradientButton` con `loading`, `LisdataCard` y tokens, V5);
   - `RetrievalDiagnosticModule.kt`.
 
   Además, la entrada «Diagnóstico de búsqueda» en `…/debug/…/debug/DebugEntries.kt` y el módulo en `DebugModules.kt`. T035, T036 y `DebugModulesTest` pasan.
-- [ ] T038 [P] [US4] Ampliar `…/test/…/architecture/LayeringTest.kt` (V1): ningún fichero de `src/main` ni de `src/release` contiene `debug.retrieval`.
+- [X] T038 [P] [US4] Ampliar `…/test/…/architecture/LayeringTest.kt` (V1): ningún fichero de `src/main` ni de `src/release` contiene `debug.retrieval`.
 - [ ] T039 [US4] Verificación manual en el emulador (quickstart §4):
   - pregunta normal;
   - seguimiento «¿Y el aceite?»;
