@@ -11,10 +11,12 @@ import com.lisdatasolutions.microrag.debug.DebugStrictMode
 import com.lisdatasolutions.microrag.debug.debugModules
 import com.lisdatasolutions.microrag.rag.runtime.EngineCoordinator
 import com.lisdatasolutions.microrag.rag.runtime.EngineMemoryCallbacks
+import com.lisdatasolutions.microrag.rag.runtime.MemoryTrimListener
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import org.koin.android.ext.android.get
+import org.koin.android.ext.android.getKoin
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 
@@ -44,9 +46,12 @@ class MicroRagApplication : Application(), Configuration.Provider {
             androidContext(this@MicroRagApplication)
             modules(appModules + debugModules)
         }
-        // Constitution IV: release engines when the UI is hidden (TRIM_MEMORY_UI_HIDDEN or above).
+        // Constitution IV: release engines when the UI is hidden (TRIM_MEMORY_UI_HIDDEN or above), after the
+        // listeners (the chat, F11 R8) have stopped what used them.
         registerComponentCallbacks(
-            EngineMemoryCallbacks(get<EngineCoordinator>(), CoroutineScope(SupervisorJob() + Dispatchers.Default)),
+            EngineMemoryCallbacks(
+                get<EngineCoordinator>(), CoroutineScope(SupervisorJob() + Dispatchers.Default), getKoin().getAll<MemoryTrimListener>(),
+            ),
         )
     }
 }

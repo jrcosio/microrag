@@ -70,7 +70,65 @@ class EngineMemoryCallbacksTest {
         advanceUntilIdle()
     }
 
+    /** F11 T014 (research R8, contract A11): the chat interrupts its answer before Gemma is released. */
+    private class RecordingListener(private val events: MutableList<String>, private val fail: Boolean = false) : MemoryTrimListener {
+        override suspend fun onUiHidden() {
+            events += "listener loaded=${loadedSnapshot?.invoke()}"
+            if (fail) error("listener failed")
+        }
+
+        var loadedSnapshot: (() -> Int)? = null
+    }
+
+    @Test
+    fun uiHiddenAndLowMemory_warnTheListenersBeforeReleasing() = runTest {
+        listOf(ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN, TRIM_MEMORY_COMPLETE, LOW_MEMORY).forEach { level ->
+            load()
+            val events = mutableListOf<String>()
+            val listener = RecordingListener(events).apply { loadedSnapshot = { coordinator.loaded.value.size } }
+            val callbacks = EngineMemoryCallbacks(coordinator, this, listOf(listener))
+            if (level == LOW_MEMORY) {
+                @Suppress("DEPRECATION")
+                callbacks.onLowMemory()
+            } else {
+                callbacks.onTrimMemory(level)
+            }
+            advanceUntilIdle()
+
+            assertThat(events).containsExactly("listener loaded=1")
+            assertThat(coordinator.loaded.value).isEmpty()
+        }
+    }
+
+    @Test
+    fun aFailingListener_doesNotStopTheRelease() = runTest {
+        load()
+        val events = mutableListOf<String>()
+        val listeners = listOf(RecordingListener(events, fail = true), RecordingListener(events))
+
+        EngineMemoryCallbacks(coordinator, this, listeners).onTrimMemory(ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN)
+        advanceUntilIdle()
+
+        assertThat(events).hasSize(2)
+        assertThat(coordinator.loaded.value).isEmpty()
+    }
+
+    @Test
+    fun runningLevels_doNotWarnTheListeners() = runTest {
+        load()
+        val events = mutableListOf<String>()
+
+        EngineMemoryCallbacks(coordinator, this, listOf(RecordingListener(events))).onTrimMemory(TRIM_MEMORY_RUNNING_CRITICAL)
+        advanceUntilIdle()
+
+        assertThat(events).isEmpty()
+        assertThat(coordinator.loaded.value).containsExactly(key)
+    }
+
     private companion object {
+        /** Marks onLowMemory in the level loop of the listener test; not a platform value. */
+        const val LOW_MEMORY = -1
+
         // Values of the platform constants deprecated in API 34.
         const val TRIM_MEMORY_RUNNING_CRITICAL = 15
         const val TRIM_MEMORY_COMPLETE = 80
