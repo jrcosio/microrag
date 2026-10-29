@@ -96,11 +96,11 @@ Historias de la spec:
 
 **Purpose**: los contratos de dominio y los tres cambios en piezas existentes (índice, embedder y coordinador). El del coordinador es el más delicado (riesgo 2), así que va con sus pruebas antes de nada que lo use.
 
-- [ ] T006 [P] Crear los modelos y el contrato de dominio (data-model §2–§3, contrato `retrieval-api.md`):
+- [X] T006 [P] Crear los modelos y el contrato de dominio (data-model §2–§3, contrato `retrieval-api.md`):
   - `…/microrag/domain/retrieval/RetrievalModels.kt`: `RetrievalRequest`, `RetrievalResult`, `RetrievalOutcome`, `ContextBlock`, `CandidateScore` y `RetrievalTimings`;
   - `ContextRetriever.kt`;
   - `RetrieveContextUseCase.kt`;
-  - `RetrieveContextUseCase` en `…/microrag/domain/di/DomainModule.kt`.
+  - `RetrieveContextUseCase` en `…/microrag/domain/di/DomainModule.kt`, junto con T025: sin el `ContextRetriever` de `DataModule`, `AppModulesTest` fallaría.
 - [X] T007 [P] Crear `…/androidTest/…/data/rag/RagIndexSearchableLoadTest.kt` sobre SQLite real (R7):
   - documentos indexado e incluido, indexado y excluido, pendiente con fragmentos, con error, fuera del índice y sombra de reindexado;
   - `loadChunks(ids, searchableOnly = true)` y `neighbor(…, searchableOnly = true)` solo devuelven los del primero;
