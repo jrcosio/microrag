@@ -1,6 +1,6 @@
 # Informe de cierre — F10 Recuperación híbrida
 
-> **Pendiente de decisión** (parada de T048): el total p95 del teléfono, 202,1 ms, pasa en 2,1 ms del límite de 200 ms de SC-003. El resto de la última fase está medido.
+> **Estado:** implementada, pendiente de la revisión de cierre. El total p95 en el teléfono (202–211 ms) pasa del límite de 200 ms y se acepta en D-052, que lo pasa a F14 con INT8 y precarga.
 
 **Rama:** `010-hybrid-retrieval`.
 **Fecha:** 2026-10-29.
@@ -8,7 +8,11 @@
 - emulador `Pixel_10`, API 37, ARM64, con EmbeddingGemma 2 270M instalado;
 - teléfono de referencia Nothing Phone (1) A063, Android 15 (API 35), con los modelos de F03 instalados (siguen intactos al terminar).
 
-**Versiones:** sin dependencias nuevas. Esquema del índice v3, sin cambios. LiteRT-LM 0.18.1, SQLite-Vector 1.1.2.
+**Versiones:**
+- app 0.1.0 (versionCode 1);
+- LiteRT-LM 0.18.1 y SQLite-Vector 1.1.2;
+- sin dependencias nuevas;
+- esquema del índice v3, sin cambios.
 
 ## 1. Qué se ha implementado
 
@@ -54,7 +58,7 @@
 | **US2** Preguntas de seguimiento | `FollowUpRuleTest`, `RetrievalGoldenTest`, `HybridRetrieverTest` | ✅ regla y texto de búsqueda iguales al escritorio en las 426 |
 | **US3** Nunca contenido que no se debe usar | `HybridRetrieverTest`, `RetrievalDuringIngestTest`, `RagIndexSearchableLoadTest`, `HybridRetrieverVisibilityTest` | ✅ JVM, emulador y teléfono |
 | **US4** Diagnóstico de búsqueda | `RetrievalDiagnosticViewModelTest`, `RetrievalDiagnosticScreenTest`, `LayeringTest`; recorrido en el emulador | ✅ Recorrido en el emulador con su biblioteca de prueba: preguntas normales (3 y 4 bloques), seguimiento («Y el aceite?» con anterior: «Seguimiento: sí» y el texto unido), pregunta vacía («Pregunta vacía», tiempos a 0) y candidatos con «—». El log de la app solo lleva cifras |
-| **US5** Calidad y latencia en el teléfono | `RetrievalBenchmarkTest`, `RetrievalDuringIndexingTest`, `RetrievalParityTest` | ⚠️ Paridad y búsqueda durante la indexación cumplen; el total p95 pasa en 2,1 ms de 200 ms (pendiente de decisión) |
+| **US5** Calidad y latencia en el teléfono | `RetrievalBenchmarkTest`, `RetrievalDuringIndexingTest`, `RetrievalParityTest` | ⚠️ Paridad y búsqueda durante la indexación cumplen. El total p95 (202–211 ms) pasa de 200 ms; se acepta y pasa a F14 (D-052) |
 | **US6** Revisión del orden | `order-review`, `eval-report.md`, D-051 | ✅ ninguna variante llega a +2 puntos; se mantiene D-034 |
 
 ### Criterios de éxito
@@ -63,8 +67,8 @@
 |---|---|
 | SC-001: casos del informe con el mismo resultado | ✅ casos de `test_retrieval.py` y `test_selector.py`, más el golden de 426 preguntas |
 | SC-002: nunca fragmentos de documentos no indexados o excluidos | ✅ JVM (carrera entre búsqueda y carga), y SQLite-Vector en el emulador y el teléfono |
-| SC-003: total p95 ≤ 200 ms y embedding p95 < 150 ms con 10k fragmentos | ⚠️ Embedding p95 143,6 ms ✅; total p95 202,1 ms ✗ (2,1 ms por encima). Pendiente de decisión |
-| SC-004: cifras con fragmentos ocultos | ✅ medidas (§4): total p95 216,1 ms con 4.300 ocultos |
+| SC-003: total p95 ≤ 200 ms y embedding p95 < 150 ms con 10k fragmentos | ⚠️ Aceptado en D-052:<br>• embedding solo: p95 125,6 ms ✅;<br>• embedding dentro de la búsqueda: 143,6 / 151,1 / 144,4 ms en tres tandas;<br>• total: 202,1 / 205,5 / 211,0 ms ✗, que pasa a F14 |
+| SC-004: cifras con fragmentos ocultos | ✅ medidas (§4): total p95 de 216,1 y 227,5 ms con 4.300 ocultos |
 | SC-005: paridad ±5 puntos sobre 50 preguntas | ✅ 0,816 en el teléfono frente a 0,837 en el escritorio (−2,0 puntos) sobre las mismas 49 |
 | SC-006: sin búsqueda con el índice incompatible o los modelos sin preparar | ✅ JVM, emulador y teléfono |
 | SC-007: p95 ≤ 1 s durante una tanda | ✅ 278,0 ms con la tanda en GPU; 258,8 ms con la tanda en CPU |
@@ -110,16 +114,28 @@ Primera búsqueda con el motor sin cargar: 594,8 ms en total, 560,8 de ellos de 
 
 `RetrievalParityTest` (corpus de los assets, índice temporal, ingesta y consulta reales en CPU; 966 s): Recall@bloques 0,837 en el emulador y 0,837 en el escritorio sobre las mismas 49 preguntas. Ninguna cambia de acierto; una evidencia no se extrae (q0167). El registro no contiene ninguna pregunta.
 
-### Teléfono de referencia (A063, Android 15, enchufado, 31–35 °C)
+### Teléfono de referencia (A063, Android 15, enchufado)
 
-`RetrievalBenchmarkTest`, 10.000 fragmentos sintéticos, las 50 preguntas de la muestra, 2 vueltas (100 medidas), motor de consulta en CPU:
+`RetrievalBenchmarkTest`, 10.000 fragmentos sintéticos, las 50 preguntas de la muestra, 2 vueltas (100 medidas), motor de consulta en CPU.
+
+Tanda 1 (31–35 °C):
 
 | Caso | Embedding p50 / p95 | Vectorial p50 / p95 | Léxica p50 / p95 | Selección p50 / p95 | Total p50 / p95 |
 |---|---|---|---|---|---|
 | Sin ocultos | 133,7 / **143,6** ms | 24,0 / 51,9 ms | 38,8 / 118,8 ms | 5,8 / 7,9 ms | 182,6 / **202,1** ms |
 | Con 4.300 ocultos | 129,5 / 147,6 ms | 49,0 / 68,3 ms | 130,1 / 152,7 ms | 5,0 / 6,7 ms | 208,8 / 216,1 ms |
 
-- Primera búsqueda con el motor sin cargar: 856,1 ms en total, 798,9 de embedding (incluye cargar el motor).
+Tanda 3 (23–25 °C), con el embedding medido también solo, sin nada en paralelo:
+
+| Caso | Embedding p50 / p95 | Vectorial p50 / p95 | Léxica p50 / p95 | Selección p50 / p95 | Total p50 / p95 |
+|---|---|---|---|---|---|
+| Sin ocultos | 134,2 / 144,4 ms | 26,1 / 52,9 ms | 38,8 / 109,2 ms | 7,2 / 11,3 ms | 192,0 / **211,0** ms |
+| Embedding solo | 122,5 / **125,6** ms | — | — | — | — |
+| Con 4.300 ocultos | 139,6 / 149,9 ms | 48,4 / 66,9 ms | 69,8 / 148,9 ms | 5,8 / 8,5 ms | 215,2 / 227,5 ms |
+
+- La tanda 2 dio el embedding p95 en 151,1 ms, por encima del límite, y el total p95 en 205,5 ms. Por eso se midió el embedding solo (D-052). El primer intento de esa medida se cortó al desconectarse el teléfono.
+- El solapamiento con la léxica le cuesta al embedding unos 12 ms de mediana y 19 ms de p95. Sin el solapamiento, el modelo queda por debajo de los 150 ms de la constitución IV.
+- Primera búsqueda con el motor sin cargar: 856,1 ms en total, 798,9 de embedding (tanda 1); 944,6 y 879,0 ms (tanda 3). Incluye cargar el motor.
 - Los tiempos de la vectorial incluyen la espera a la conexión única cuando la léxica aún no ha terminado. F04 midió la vectorial sola: p95 23,1 ms.
 - En este banco las palabras de las preguntas aparecen en casi todos los fragmentos sintéticos, así que la léxica es mucho más cara que en F04 (p95 26,5 ms con 4 palabras).
 
@@ -133,6 +149,18 @@ Primera búsqueda con el motor sin cargar: 594,8 ms en total, 560,8 de ellos de 
 `RetrievalParityTest` (corpus en un índice temporal, ingesta en el backend que elige el teléfono, 596 s): Recall@bloques **0,816** en el teléfono frente a 0,837 en el escritorio sobre las mismas 49 preguntas (−2,0 puntos). Cambia q0147 (acierto → fallo); q0167 no se extrae. El índice temporal y la copia del corpus se borraron.
 
 Diagnóstico en el teléfono (T051): pregunta vacía, con captura sin la barra de estado; pregunta real, comprobada solo por el registro, porque la biblioteca tiene un documento del usuario. Dio «Sin resultados» (ningún fragmento buscable): 596,5 ms en frío y 176,0 ms con el motor cargado.
+
+### INT8 para F14 (FR-026, R13)
+
+El p95 vectorial pasa de los 20 ms de la constitución IV:
+- 51,9–52,9 ms con 10.000 fragmentos;
+- 66,9–68,3 ms con 4.300 ocultos.
+
+Parte de ese tiempo es la espera a la conexión única mientras termina la léxica. La regla de la constitución que permite INT8 se cumple. El usuario eligió **INT8 + precarga en F14**:
+- se implementa con Recall@20 de INT8 frente a F32 ≥ 0,97;
+- el total se vuelve a medir frente a 200 ms.
+
+Queda registrado en D-052.
 
 ## 5. Diferencias frente al mockup
 
@@ -148,6 +176,10 @@ Ninguna: F10 no tiene UI de producto. El diagnóstico es una herramienta interna
 4. **`FollowUpRule`:** recorta con `PyText.strip`, el `strip()` de Python, para que la comparación con los conectores sea idéntica.
 5. **Golden:** 1,1 MB, el doble de lo estimado (≈ 550 KB), porque guarda la descripción de los fragmentos siguientes.
 6. **Prueba existente cambiada:** `EngineCoordinatorTest.sameKeyInUse_waitsOutsideTheLoadLock` comprobaba que el mismo motor de embeddings se esperaba en exclusiva. Con la regla nueva solo el LLM es exclusivo: la prueba pasa a usar el LLM (`sameLlmInUse_…`).
+7. **`RetrievalBenchmarkTest` tras la parada de T048 (D-052):**
+   - registra el total sin comprobarlo;
+   - mide también el embedding solo, con las mismas preguntas;
+   - en el A063 solo comprueba el embedding p95 dentro de la búsqueda (< 150 ms), que pasó en la tanda 3.
 
 ### Fallos encontrados y corregidos
 
@@ -158,4 +190,6 @@ Ninguna: F10 no tiene UI de producto. El diagnóstico es una herramienta interna
 
 ## 7. Pendiente
 
-- **Última fase en el teléfono** (T047–T052): instrumentadas, latencia, búsqueda durante la indexación, paridad, diagnóstico y la propuesta de INT8 para F14.
+- **Revisión de cierre del usuario.** El total p95 de la tanda 3 (211,0 ms) es más alto que el de la tanda 1 (202,1 ms), la que vio para decidir.
+- **Subida de la rama:** los commits de F10 son locales; se suben con la aprobación del cierre.
+- **En el teléfono:** queda limpio de restos de las pruebas, y los modelos siguen intactos.

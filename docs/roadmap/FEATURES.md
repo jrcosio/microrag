@@ -44,7 +44,7 @@ Al cerrar cada feature se entrega:
 | F07 | Indexación | Producto | F02, F06 | ✅ cerrada |
 | F08 | Biblioteca y detalle de documento | Producto | F07 | ✅ cerrada |
 | F09 | Inicio | Producto | F03, F07, F08 | ✅ cerrada |
-| F10 | Recuperación híbrida | Técnica | F05, F07 | 🟨 en curso (implementación) |
+| F10 | Recuperación híbrida | Técnica | F05, F07 | 🟨 en curso (implementada; pendiente de la revisión de cierre) |
 | F11 | Chat con fuentes | Producto | F08, F10 | ⬜ |
 | F12 | Ajustes e Idiomas | Producto | F03, F11 | ⬜ |
 | F13 | Historial de chats | Producto (UI propuesta) | F11, F12 | ⬜ |
@@ -475,7 +475,7 @@ También se introduce `EngineCoordinator`, que garantiza que nunca haya dos engi
 ## F10 — Recuperación híbrida
 
 - **Tipo:** Técnica. Diagnóstico de búsqueda interno, solo en debug.
-- **Estado:** 🟨 en curso: specify, clarify, plan, tasks y analyze el 2026-10-29 en la rama `010-hybrid-retrieval`; implementación en marcha. Decisiones D-049 (clarify), con la enmienda 1.1.1 de la constitución, D-050 (plan) y D-051 (revisión del orden: se mantiene D-034). Spec, plan y tareas en `specs/010-hybrid-retrieval/`. Las pruebas en el teléfono van al final, cuando esté disponible.
+- **Estado:** 🟨 en curso: implementación terminada el 2026-10-29 en la rama `010-hybrid-retrieval`, pendiente de la revisión de cierre. Decisiones D-049 (clarify), con la enmienda 1.1.1 de la constitución, D-050 (plan), D-051 (revisión del orden: se mantiene D-034) y D-052 (cierre: el total p95 de 202–211 ms pasa a F14; INT8 + precarga en F14). Informe de cierre en `specs/010-hybrid-retrieval/report.md`.
 
 **Objetivo.** `HybridRetriever`:
 - embedding de consulta en CPU;
@@ -642,6 +642,13 @@ Con esos datos se decide: INT8 sí o no, número de bloques y perfil de modelo.
 **Dependencias.** F10 y F11.
 
 **Dato de partida (F04):** con 10k fragmentos sintéticos, la búsqueda vectorial exacta da un p95 de 23,1 ms en el teléfono de referencia, ya por encima de los 20 ms del criterio 2 (`specs/004-rag-data-core/report.md` §4).
+
+**Dato de partida (F10, D-052):** con 10.000 fragmentos, la recuperación completa en el teléfono de referencia da:
+- total p95 de 202–211 ms en tres tandas, frente a los 200 ms de SC-003 de F10;
+- vectorial p95 de unos 52 ms, y 67–68 ms con 4.300 fragmentos ocultos;
+- embedding de consulta p95 de 125,6 ms medido solo y de 144–151 ms dentro de la búsqueda.
+
+F14 implementa INT8 + precarga (criterio 2) y vuelve a medir el total frente a 200 ms.
 
 **Palanca de calidad (D-051):** reordenar los 20 primeros de la fusión con α = 0,5 subió el Recall@bloques de 0,889 a 0,903 en el escritorio, por debajo de la regla de adopción de F10. Queda como opción barata si se revisa el contexto.
 

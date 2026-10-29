@@ -427,7 +427,7 @@ Historias de la spec:
 **Purpose**: las medidas de US5 en el A063, la decisión de INT8 y el cierre. Solo cuando el usuario diga que el teléfono está disponible.
 
 - [X] T047 [US5] En el teléfono: instalar los dos APK y ejecutar las instrumentadas sin modelos (quickstart §6). Deben quedar en verde.
-- [ ] T048 [US5] `RetrievalBenchmarkTest` en el teléfono (SC-003, SC-004):
+- [X] T048 [US5] `RetrievalBenchmarkTest` en el teléfono (SC-003, SC-004):
   - anotar p50 y p95 de cada paso con y sin ocultos, y la primera búsqueda en frío;
   - si el total p95 pasa de 200 ms o el embedding de 150 ms, se para y se consulta.
 - [X] T049 [US5] `RetrievalDuringIndexingTest` en el teléfono (SC-007): p95 con la tanda en GPU y la cifra con la tanda en CPU. **Si en GPU pasa de 1 s, o el teléfono indexa en CPU, se para y se consulta** (riesgo 4).
@@ -435,7 +435,7 @@ Historias de la spec:
 - [X] T051 [US5] Diagnóstico en el teléfono (quickstart §6), sin mostrar documentos del usuario:
   - pregunta sin resultados, o un documento de prueba en una carpeta propia que se borra al terminar;
   - capturas sin la barra de estado.
-- [ ] T052 Cierre (Definición de terminado):
+- [X] T052 Cierre (Definición de terminado):
   - `report.md` completo con las cifras del teléfono, el dispositivo, la versión de Android y las de LiteRT-LM, SQLite-Vector y la app (constitución VI);
   - `FEATURES.md` con F10 pendiente de aprobación;
   - la propuesta de INT8 para F14 con las cifras de T048 (FR-026, R13), que se presenta al usuario.
