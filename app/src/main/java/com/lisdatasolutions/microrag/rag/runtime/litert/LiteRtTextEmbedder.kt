@@ -13,6 +13,8 @@ import com.lisdatasolutions.microrag.rag.runtime.EmbeddingInputTooLongException
 import com.lisdatasolutions.microrag.rag.runtime.EmbeddingMath
 import com.lisdatasolutions.microrag.rag.runtime.EmbeddingOverflow
 import com.lisdatasolutions.microrag.rag.runtime.EmbeddingPrefixes
+import com.lisdatasolutions.microrag.rag.runtime.QueryEmbedding
+import com.lisdatasolutions.microrag.rag.runtime.QueryOverflow
 import com.lisdatasolutions.microrag.rag.runtime.TextEmbedder
 import java.io.File
 import kotlin.coroutines.cancellation.CancellationException
@@ -70,6 +72,21 @@ internal class LiteRtTextEmbedder(
             } catch (e: Exception) {
                 if (!e.isInputTooLong()) throw EmbeddingEngineException(e)
                 input = EmbeddingOverflow.cut(input)
+            }
+        }
+        throw EmbeddingInputTooLongException()
+    }
+
+    override suspend fun embedQueryFitting(question: String, previous: String?): QueryEmbedding = withContext(dispatcher) {
+        var step = QueryOverflow.Step(previous, question)
+        repeat(EmbeddingOverflow.MAX_ATTEMPTS) { attempt ->
+            try {
+                return@withContext QueryEmbedding(compute(EmbeddingPrefixes.query(QueryOverflow.join(step.previous, step.question))), attempt)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                if (!e.isInputTooLong()) throw EmbeddingEngineException(e)
+                step = QueryOverflow.next(step.previous, step.question)
             }
         }
         throw EmbeddingInputTooLongException()

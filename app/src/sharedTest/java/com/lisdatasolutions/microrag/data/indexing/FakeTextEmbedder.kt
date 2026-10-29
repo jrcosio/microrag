@@ -8,6 +8,8 @@ import com.lisdatasolutions.microrag.rag.runtime.EmbeddingInputTooLongException
 import com.lisdatasolutions.microrag.rag.runtime.EmbeddingMath
 import com.lisdatasolutions.microrag.rag.runtime.EmbeddingOverflow
 import com.lisdatasolutions.microrag.rag.runtime.EmbeddingPrefixes
+import com.lisdatasolutions.microrag.rag.runtime.QueryEmbedding
+import com.lisdatasolutions.microrag.rag.runtime.QueryOverflow
 import com.lisdatasolutions.microrag.rag.runtime.TextEmbedder
 import java.util.Collections
 import kotlin.random.Random
@@ -15,7 +17,8 @@ import kotlin.random.Random
 /**
  * Deterministic [TextEmbedder] for JVM and instrumented tests (F07 T020): the vector of a text is a
  * unit vector seeded by its hash, so the same input always gives the same vector. It can reject long
- * inputs, as LiteRT does over 512 tokens, and fail as a broken engine would.
+ * inputs, as LiteRT does over 512 tokens, and fail as a broken engine would, for documents and, through
+ * embedQueryFitting, for queries (F10).
  */
 class FakeTextEmbedder(
     override val backend: ComputeBackend = ComputeBackend.CPU,
@@ -65,6 +68,25 @@ class FakeTextEmbedder(
                 return DocumentEmbedding(vectorOf(salt + input), cuts = attempt)
             }
             input = EmbeddingOverflow.cut(input)
+        }
+        throw EmbeddingInputTooLongException()
+    }
+
+    /** Same rules as for documents: [beforeEmbedding], [failEngineTimes] and [maxInputChars] on every attempt (F10). */
+    override suspend fun embedQueryFitting(question: String, previous: String?): QueryEmbedding {
+        var step = QueryOverflow.Step(previous, question)
+        repeat(EmbeddingOverflow.MAX_ATTEMPTS) { attempt ->
+            beforeEmbedding()
+            if (failEngineTimes > 0) {
+                failEngineTimes--
+                throw EmbeddingEngineException(IllegalStateException("fake engine failure"))
+            }
+            val input = EmbeddingPrefixes.query(QueryOverflow.join(step.previous, step.question))
+            if (input.length <= maxInputChars) {
+                embedded += input
+                return QueryEmbedding(vectorOf(salt + input), cuts = attempt)
+            }
+            step = QueryOverflow.next(step.previous, step.question)
         }
         throw EmbeddingInputTooLongException()
     }

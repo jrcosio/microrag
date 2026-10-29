@@ -111,13 +111,13 @@ Historias de la spec:
   - en `…/test/…/testing/FakeRagIndex.kt`, la misma regla, más búsquedas programables (`vectorResults`, `textResults`, `searchError`) y un registro de llamadas (`calls`), para las pruebas del recuperador.
 
   T007 pasa en el emulador, y siguen en verde las pruebas de F04–F09 que usan el índice.
-- [ ] T009 [P] Crear `…/test/…/rag/runtime/QueryOverflowTest.kt` (R4):
+- [X] T009 [P] Crear `…/test/…/rag/runtime/QueryOverflowTest.kt` (R4):
   - se recorta primero la anterior con `EmbeddingOverflow.cut`;
   - si queda vacía, se quita;
   - después se recorta la actual;
   - el texto resultante siempre conserva la actual mientras haya anterior;
   - como mucho `MAX_ATTEMPTS` pasos.
-- [ ] T010 Implementar el recorte de la consulta (R4, contrato `retrieval-api.md`):
+- [X] T010 Implementar el recorte de la consulta (R4, contrato `retrieval-api.md`):
   - `…/microrag/rag/runtime/QueryOverflow.kt`;
   - `QueryEmbedding` y `embedQueryFitting` (con su implementación por defecto) en `…/microrag/rag/runtime/TextEmbedder.kt`;
   - `QueryOverflow.join(previous, question)`, la unión con un espacio que también usará `FollowUpRule.searchText`;
