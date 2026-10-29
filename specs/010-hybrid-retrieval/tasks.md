@@ -140,7 +140,7 @@ Historias de la spec:
   - Se actualiza el KDoc de la clase con la regla nueva.
 
   T011 pasa, y siguen en verde `ChunkEmbeddingSessionTest`, `IngestRunnerTest`, `EngineMemoryCallbacksTest`, `DefaultIndexingRepositoryTest` y el resto de `EngineCoordinatorTest`. **Si una prueba de F07 falla por el cambio y no se puede explicar, se para y se consulta** (riesgo 2).
-- [ ] T013 [P] Crear `…/test/…/data/retrieval/EngineQueryEmbedderTest.kt` (R4), con `FakeModelFileRepository`, un `EngineFactory` falso que da `FakeTextEmbedder` y un `EngineCoordinator` real:
+- [ ] T013 Crear `…/test/…/data/retrieval/EngineQueryEmbedderTest.kt` (R4; después de T010, que trae `QueryEmbedding` y el `FakeTextEmbedder` de consultas), con `InMemoryModelFileRepository` (`testing/OnboardingFakes.kt`), un `EngineFactory` falso que da `FakeTextEmbedder` y un `EngineCoordinator` real:
   - **`ready()`:**
     - `Verified` y preparado → `true`;
     - `Unverified`, `Missing` o sin backend → `false`;
@@ -150,6 +150,7 @@ Historias de la spec:
     - usa `EngineKey(EG2_270M, CPU)` con `withEngine`, nunca `withHeldEngine`;
     - carga una vez y reutiliza;
     - `loaded` refleja el estado;
+    - tras `releaseUnheld` (UI oculta o poca memoria) el motor se cierra, y la siguiente consulta lo vuelve a cargar con `loaded = false` antes (FR-021);
     - un fallo de carga o de cálculo se propaga como excepción.
 - [ ] T014 Crear `…/microrag/data/retrieval/QueryEmbedder.kt` (interfaz) y `EngineQueryEmbedder.kt` (R4). T013 pasa.
 
@@ -187,7 +188,7 @@ Historias de la spec:
   T015 pasa.
 - [ ] T017 [US6] Ejecutar `order-review` con las variantes de R12 y comparar con la medición previa:
   - D-034 debe dar 0,889.
-  - **Si alguna variante llega a ≥ +2 puntos de Recall@bloques, se para y se consulta** (riesgo 3, regla G6).
+  - **Si alguna variante llega a ≥ +2 puntos de Recall@bloques, se para y se consulta** (riesgo 3, regla G6). Según el clarify, F10 la llevaría a la app; la consulta es para replanificar esa parte (los trigramas exigirían el esquema v4).
   - Si no, se sigue.
 - [ ] T018 [US6] Añadir a `offline/eval/report.py` la sección «Revisión del orden (D-035, F10)» (tabla, regla de adopción y decisión) y regenerar `offline/reports/eval-report.md` con `run_eval.py report`.
   - El `git diff` solo añade la sección y la fila de `fused_limit` en «Configuración elegida».
@@ -335,7 +336,7 @@ Historias de la spec:
 - [ ] T037 [US4] Implementar `…/debug/…/debug/retrieval/`:
   - `RetrievalDiagnosticUiState.kt`;
   - `RetrievalDiagnosticViewModel.kt`;
-  - `RetrievalDiagnosticScreen.kt` (`Lisdata*` y tokens, V5);
+  - `RetrievalDiagnosticScreen.kt` (`LisdataTopBar`, dos `LisdataSearchField`, `LisdataGradientButton` con `loading`, `LisdataCard` y tokens, V5);
   - `RetrievalDiagnosticModule.kt`.
 
   Además, la entrada «Diagnóstico de búsqueda» en `…/debug/…/debug/DebugEntries.kt` y el módulo en `DebugModules.kt`. T035, T036 y `DebugModulesTest` pasan.
@@ -400,9 +401,9 @@ Historias de la spec:
 
 **Purpose**: dejar todo cerrado salvo las medidas del teléfono.
 
-- [ ] T044 [P] Revisar `docs/roadmap/INVENTARIO.md`:
-  - G28 ya dice que F10 hereda las búsquedas filtradas. Se añade que la carga de candidatos también filtra (R7);
-  - G25 (FTS solo en español) se mantiene.
+- [ ] T044 [P] Documentación sin teléfono:
+  - **`docs/roadmap/INVENTARIO.md`:** G28 ya dice que F10 hereda las búsquedas filtradas. Se añade que la carga de candidatos también filtra (R7). G25 (FTS solo en español) se mantiene;
+  - **`offline/README.md`:** el golden de recuperación y la muestra de paridad (`gen_retrieval_golden.py`, con `--check`), su prueba en la app (`RetrievalGoldenTest`, `RetrievalParityTest`) y el comando `order-review` en la tabla de evaluación.
 - [ ] T045 Puertas de calidad (quickstart §1–3, 5):
   - `gen_retrieval_golden.py --check`;
   - pruebas Python;
@@ -435,7 +436,7 @@ Historias de la spec:
   - pregunta sin resultados, o un documento de prueba en una carpeta propia que se borra al terminar;
   - capturas sin la barra de estado.
 - [ ] T052 Cierre (Definición de terminado):
-  - `report.md` completo con las cifras del teléfono;
+  - `report.md` completo con las cifras del teléfono, el dispositivo, la versión de Android y las de LiteRT-LM, SQLite-Vector y la app (constitución VI);
   - `FEATURES.md` con F10 pendiente de aprobación;
   - la propuesta de INT8 para F14 con las cifras de T048 (FR-026, R13), que se presenta al usuario.
 
@@ -467,7 +468,7 @@ Historias de la spec:
 ### Parallel Opportunities
 
 - **Setup:** T002, T004 y T005 (T003 después de T002).
-- **Foundational:** T006, T007, T009, T011 y T013 (pruebas y contratos en ficheros distintos).
+- **Foundational:** T006, T007, T009 y T011 (pruebas y contratos en ficheros distintos). T013 va después de T010.
 - **US6:** T015 en paralelo con la fase 2.
 - **US1:** T020, T021, T022 y T024.
 - **US2:** T026, T027 y T028.

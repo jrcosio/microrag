@@ -127,11 +127,14 @@ class QueryEmbedding(val vector: FloatArray, val cuts: Int)
 
 | Campo | Antes | Ahora |
 |---|---|---|
-| Uso | `useLock: Mutex` (exclusivo) | LLM: `Mutex`. Embeddings: `users: Int` (≥ 0), modificado bajo el `loadLock` |
+| Uso | `useLock: Mutex` (exclusivo) | LLM: `Mutex`. Embeddings: `users`, un contador atómico (≥ 0). Sube en `acquire`, bajo el `loadLock`; baja al terminar el bloque **sin** tomar el `loadLock` y avisa por `changes` |
 | Retención | `held: Boolean` | `holds: Int`: la ingesta suma 1 al empezar y resta 1 al terminar |
 | En uso | `useLock.isLocked` | LLM: `isLocked`. Embeddings: `users > 0` |
 
-**Cierre** (`closeLocked`): espera a que la entrada no esté en uso, sin bloquear a otros motores. Después la cierra y la quita. Una entrada que se está cerrando no admite usuarios nuevos: esperan a que se cargue otra.
+**Cierre** (`closeLocked`), como hoy:
+- se ejecuta con el `loadLock` tomado y espera a que la entrada no esté en uso (`users == 0`, o el `Mutex` libre en el LLM); después la cierra y la quita;
+- por eso un bloque que termina nunca toma el `loadLock` para bajar `users`: si lo hiciera, se bloquearía con el cierre que le espera;
+- mientras dura el cierre nadie entra en `acquire`, que necesita el `loadLock`. Los usuarios nuevos cargan otra entrada después.
 
 ## 6. `offline/golden/retrieval_golden.jsonl`
 

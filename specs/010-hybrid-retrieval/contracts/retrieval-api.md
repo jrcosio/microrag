@@ -160,7 +160,7 @@ class EngineCoordinator {
 - **Q13 — Motores compartidos** (`EngineCoordinator`, R5):
   - **embeddings:** varios bloques pueden usar la misma entrada a la vez;
   - **LLM:** exclusivo;
-  - **cierre:** nunca mientras haya usuarios;
+  - **cierre:** nunca mientras haya usuarios. El bloque que termina baja su recuento sin tomar el `loadLock`, porque el cierre espera con él tomado (data-model §5);
   - **retención:** una entrada retenida por la ingesta sigue retenida aunque termine otro usuario;
   - **GPU:** nunca dos motores en GPU;
   - **`loadLock`:** nadie espera a otro bloque con él tomado.

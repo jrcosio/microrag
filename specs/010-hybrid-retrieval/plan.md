@@ -215,10 +215,10 @@ offline/
 
 Por petición del usuario, el teléfono va al final.
 
-1. **Escritorio:** `fused_limit`, golden y muestra de paridad, ablación de la revisión del orden e informe. La decisión de D-035 se registra con las cifras formales.
-2. **Algoritmos puros y su paridad en la JVM** (US1, US2).
-3. **Índice** (`searchableOnly`), **embedding de la consulta** (recorte) y **coordinador** (uso compartido).
-4. **`HybridRetriever`, dominio y DI** (US1–US3), con sus pruebas JVM y en el emulador.
+1. **Escritorio:** `fused_limit`, golden y muestra de paridad.
+2. **Base:** dominio, índice (`searchableOnly`), embedding de la consulta (recorte) y coordinador (uso compartido).
+3. **Revisión del orden (D-035)** en el harness, con el informe. La decisión se registra con las cifras formales.
+4. **Algoritmos puros y su paridad en la JVM, y `HybridRetriever` con DI** (US1–US3), con sus pruebas JVM y en el emulador.
 5. **Diagnóstico de depuración** (US4) y prueba de release.
 6. **Pruebas con modelos** escritas y comprobadas en el emulador (CPU, sin umbrales).
 7. **Última fase, en el teléfono de referencia** (US5):

@@ -16,7 +16,7 @@
   - Capa de datos en Kotlin (L421–593);
   - Recuperación y selección de contexto: Flujo, Preguntas de seguimiento y Selección de contexto (L595–727);
   - Evaluación: conjunto de prueba, umbrales y criterio de la fase 2 (L1018–1029, L1127).
-- Constitución v1.1.0:
+- Constitución v1.1.1 (enmendada en el clarify de F10):
   - I (privacidad);
   - III (RAG: L95 contexto, L101 cambio de parámetros);
   - IV (rendimiento: L113–114).
@@ -304,7 +304,7 @@ En el escritorio, 36 de las 80 respuestas no correctas no tenían el fragmento r
 
 - **FR-025**: Una prueba en el teléfono de referencia MUST medir p50 y p95 de embedding, búsqueda vectorial, búsqueda léxica y total con 10.000 fragmentos, con y sin fragmentos ocultos, y la primera búsqueda con el motor sin cargar.
 - **FR-026**: Si el p95 de la búsqueda vectorial supera 20 ms, MUST registrarse en DECISIONS la decisión sobre INT8 para F14 (la implementación es de F14).
-- **FR-027**: Una prueba instrumentada en el teléfono de referencia, lanzada bajo demanda, MUST comparar el Recall@bloques del teléfono con el del escritorio sobre la misma muestra fija de 50 preguntas del conjunto de evaluación. Indexa el corpus de evaluación en un índice temporal con los títulos del corpus, cuenta como acierto el bloque que contiene la evidencia literal e informa aparte de las preguntas cuya evidencia no se extrae en el móvil. MUST NOT tocar la biblioteca del usuario.
+- **FR-027**: Una prueba instrumentada en el teléfono de referencia, lanzada bajo demanda, MUST comparar el Recall@bloques del teléfono con el del escritorio sobre la misma muestra fija de 50 preguntas del conjunto de evaluación. Indexa el corpus de evaluación en un índice temporal con los títulos del corpus, cuenta como acierto el bloque que contiene la evidencia literal (con la regla del escritorio: si ningún fragmento la contiene entera, el que contiene su frase más larga) e informa aparte de las preguntas cuya evidencia no se extrae en el móvil. MUST NOT tocar la biblioteca del usuario.
 - **FR-028**: La revisión del orden dentro del presupuesto (D-035) MUST evaluarse en el harness de escritorio y documentarse con su decisión.
 
 **Privacidad**
@@ -351,7 +351,7 @@ Sin marcas `[NEEDS CLARIFICATION]`. Las decisiones de más impacto se confirmaro
 - **Método de paridad** (confirmado en clarify): una prueba instrumentada en el teléfono con los modelos reales, que se lanza bajo demanda:
   - indexa los documentos del corpus de evaluación del repositorio en un índice temporal, nunca en la biblioteca del usuario;
   - usa los títulos del corpus, como el escritorio, porque la app usa el nombre del fichero y eso cambia la cabecera y la búsqueda léxica;
-  - marca como relevantes los fragmentos que contienen la evidencia literal de cada pregunta, porque la extracción PDF del móvil mueve los ordinales;
+  - marca como relevantes los fragmentos que contienen la evidencia literal de cada pregunta, porque la extracción PDF del móvil mueve los ordinales. Se usa la misma regla que dio la cifra de escritorio: si ningún fragmento contiene la evidencia entera (porque cae entre dos), cuenta el que contiene su frase más larga;
   - usa una muestra fija de 50 preguntas, respondibles y de seguimiento, con la cifra de escritorio sobre esas mismas 50;
   - las preguntas cuya evidencia no se extrae en el móvil se cuentan aparte.
 - **Revisión del orden (D-035)** (confirmado en clarify):
