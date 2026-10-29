@@ -401,7 +401,7 @@ Historias de la spec:
 
 **Purpose**: dejar todo cerrado salvo las medidas del teléfono.
 
-- [ ] T044 [P] Documentación sin teléfono:
+- [X] T044 [P] Documentación sin teléfono:
   - **`docs/roadmap/INVENTARIO.md`:** G28 ya dice que F10 hereda las búsquedas filtradas. Se añade que la carga de candidatos también filtra (R7). G25 (FTS solo en español) se mantiene;
   - **`offline/README.md`:** el golden de recuperación y la muestra de paridad (`gen_retrieval_golden.py`, con `--check`), su prueba en la app (`RetrievalGoldenTest`, `RetrievalParityTest`) y el comando `order-review` en la tabla de evaluación.
 - [ ] T045 Puertas de calidad (quickstart §1–3, 5):

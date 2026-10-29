@@ -76,6 +76,7 @@ Contratos en `specs/005-offline-eval-harness/contracts/`. Todo se ejecuta con `o
 | Revisión del usuario (hoja `testset/review.csv`) | `review-sheet` y, tras rellenarla, `review-apply` |
 | Una ejecución de recuperación o de generación | `retrieve key=valor…` y `generate llm=E2B key=valor…` |
 | Ablaciones | `ablations` (recuperación) y `ablations --generation --base …` |
+| Revisión del orden (D-035, F10): trigramas como tercera lista y reordenación de los primeros de la fusión | `order-review` → `build/order_review.json` |
 | Informe | `report` → `reports/eval-report.md` |
 
 **Corpus:** documentos públicos (BOE, Agencia Tributaria y Wikilibros). Se versionan con su origen, licencia, atribución y transformaciones en `corpus/manifest.json` y `corpus/SOURCES.md` (D-032). Un documento nuevo se añade al manifiesto con `"sha256": "pending"` y se registra con `fetch-corpus --record`.
@@ -111,3 +112,14 @@ offline/.venv/bin/python -I offline/run_eval.py device-extraction offline/build/
 **Esquema v2:** F06 añade `documents.skipped_pages` (D-038). Los índices de evaluación ya construidos son v1: antes de volver a evaluar, reconstrúyelos con `run_eval.py build ref` y las variantes que se necesiten.
 
 **Esquema v3:** F08 añade `documents.name_norm` y `documents.replaces_id`, con sus índices (research R1 de F08). El escritorio deja las dos columnas a NULL, porque la evaluación no las usa. Los índices de evaluación ya construidos son v2: antes de volver a evaluar, reconstrúyelos igual que con la v2.
+
+## Recuperación (F10)
+
+La app porta la regla de seguimiento, la fusión RRF y el selector de contexto de `eval/retrieval.py` y `eval/selector.py`. Dos ficheros comprueban que no se separan (contrato en `specs/010-hybrid-retrieval/contracts/eval-retrieval.md`):
+
+| Fichero | Generador | Lo comprueba |
+|---|---|---|
+| `golden/retrieval_golden.jsonl`: las 426 preguntas vivas sobre el índice `ref`, con el seguimiento, el texto de búsqueda, las dos listas, la fusión y los bloques con D-034 y con vecinos | `gen_retrieval_golden.py` (`--check` para verificar) | `RetrievalGoldenTest` (JVM) y `tests/test_retrieval_golden.py` |
+| `golden/retrieval_parity.jsonl`: muestra fija de 50 preguntas (semilla 20261029; 40 respondibles y 10 de seguimiento) con su acierto de escritorio | el mismo | `RetrievalParityTest` (teléfono, con `corpus/` como assets del APK de pruebas) y `tests/test_retrieval_golden.py` |
+
+El generador usa la caché de embeddings de consulta de F05 (`build/query_embeddings.json`); solo carga el modelo, tras comprobar su SHA-256, si falta algún texto. `fused_limit` (30) vive en `config/rag_parameters.json` y lo leen el harness y `RagParameters`.
