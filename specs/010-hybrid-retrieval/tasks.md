@@ -341,7 +341,7 @@ Historias de la spec:
 
   Además, la entrada «Diagnóstico de búsqueda» en `…/debug/…/debug/DebugEntries.kt` y el módulo en `DebugModules.kt`. T035, T036 y `DebugModulesTest` pasan.
 - [X] T038 [P] [US4] Ampliar `…/test/…/architecture/LayeringTest.kt` (V1): ningún fichero de `src/main` ni de `src/release` contiene `debug.retrieval`.
-- [ ] T039 [US4] Verificación manual en el emulador (quickstart §4):
+- [X] T039 [US4] Verificación manual en el emulador (quickstart §4):
   - pregunta normal;
   - seguimiento «¿Y el aceite?»;
   - pregunta vacía;

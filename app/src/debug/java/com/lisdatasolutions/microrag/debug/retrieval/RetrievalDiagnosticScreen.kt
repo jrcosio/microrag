@@ -131,7 +131,7 @@ private fun LazyListScope.resultSections(result: RetrievalResult) {
     itemsIndexed(outcome.blocks, key = { index, _ -> "block-$index" }) { index, block -> BlockCard(index + 1, block) }
     item { LisdataSectionHeader(stringResource(R.string.retrieval_section_candidates)) }
     item {
-        LisdataCard {
+        LisdataCard(modifier = Modifier.fillMaxWidth()) {
             outcome.candidates.forEachIndexed { index, candidate ->
                 if (index > 0) LisdataDivider()
                 BodyText(candidateLine(candidate))
@@ -142,7 +142,7 @@ private fun LazyListScope.resultSections(result: RetrievalResult) {
 
 @Composable
 private fun SummaryCard(result: RetrievalResult) {
-    LisdataCard {
+    LisdataCard(modifier = Modifier.fillMaxWidth()) {
         BodyText(stringResource(R.string.retrieval_follow_up, yesNo(result.followUp)))
         BodyText(stringResource(R.string.retrieval_search_text, result.searchText))
         if (result.embeddingCuts > 0) BodyText(stringResource(R.string.retrieval_cuts, result.embeddingCuts))
@@ -169,7 +169,7 @@ private fun indexState(state: IndexCompatibility): String = when (state) {
 
 @Composable
 private fun TimingsCard(timings: RetrievalTimings) {
-    LisdataCard {
+    LisdataCard(modifier = Modifier.fillMaxWidth()) {
         BodyText(stringResource(R.string.retrieval_timing_embedding, ms(timings.embeddingMs)))
         BodyText(stringResource(R.string.retrieval_timing_vector, ms(timings.vectorMs)))
         BodyText(stringResource(R.string.retrieval_timing_text, ms(timings.textMs)))
@@ -181,7 +181,7 @@ private fun TimingsCard(timings: RetrievalTimings) {
 
 @Composable
 private fun BlockCard(number: Int, block: ContextBlock) {
-    LisdataCard {
+    LisdataCard(modifier = Modifier.fillMaxWidth()) {
         BodyText(stringResource(R.string.retrieval_block_title, number, block.documentName))
         block.headingPath?.let { BodyText(stringResource(R.string.retrieval_block_heading, it), secondary = true) }
         block.page?.let { BodyText(stringResource(R.string.retrieval_block_page, it), secondary = true) }
