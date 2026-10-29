@@ -49,7 +49,7 @@
   - 4 bloques, como mucho 3 por documento;
   - presupuesto de 1.719 tokens estimados;
   - sin vecinos.
-- La ficha de F10 en FEATURES y la constitución (L95) conservan los valores del informe: 6 bloques, ≈ 2.200 tokens y vecinos de los dos primeros. La constitución (L101) permite cambiarlos con una evaluación documentada y una entrada en DECISIONS, que es D-034. Se confirma en clarify.
+- La ficha de F10 en FEATURES y la constitución (L95) conservaban los valores del informe: 6 bloques, ≈ 2.200 tokens y vecinos de los dos primeros. La constitución (L101) permite cambiarlos con una evaluación documentada y una entrada en DECISIONS, que es D-034. En clarify se confirmó D-034 (ver Clarifications).
 - Desktop, configuración de D-034 sobre 370 preguntas:
   - Recall@bloques 0,889;
   - Recall@20 híbrido 0,984;
@@ -57,6 +57,23 @@
 - Teléfono de referencia, 10k fragmentos sintéticos:
   - F04: búsqueda vectorial exacta p95 23,1 ms y léxica p95 26,5 ms;
   - F07: con 4.300 fragmentos ocultos, la vectorial sube a ≈ 45 ms (D-042).
+
+## Clarifications
+
+### Session 2026-10-29
+
+- Q: ¿Con qué reglas se elige el contexto: las de la evaluación de F05 (D-034) o las del informe original (6 bloques, ≈ 2.200 tokens, vecinos de los dos primeros)? → A: las de D-034: 4 bloques, sin vecinos, como mucho 3 por documento y 1.719 tokens. Se corrige la ficha de F10 (objetivo y CA5) y se enmienda la constitución L95 (PATCH 1.1.0 → 1.1.1) para que remita a D-034.
+- Q: ¿Hasta dónde llega F10 en la revisión del orden de los candidatos que pidió D-035? → A: se evalúa en el harness de escritorio:
+  - variantes: trigramas como tercera lista de la fusión y una reordenación de los primeros candidatos;
+  - regla de adopción: subir el Recall@bloques al menos 2 puntos sobre las 370 preguntas sin pasar el presupuesto del prompt;
+  - si una variante la cumple, va a DECISIONS y F10 la lleva al móvil; si no, se queda D-034 y se anota.
+- Q: ¿Cómo se comprueba que la búsqueda del móvil encuentra lo mismo que la del escritorio? → A: con una prueba instrumentada en el teléfono de referencia, con los modelos reales, que se lanza bajo demanda:
+  - indexa los 21 documentos del corpus de evaluación del repositorio en un índice temporal, nunca en la biblioteca del usuario;
+  - usa los títulos del corpus;
+  - un bloque acierta si contiene la evidencia literal de la pregunta;
+  - usa una muestra fija de 50 preguntas, respondibles y de seguimiento, con la cifra de escritorio sobre esas mismas 50;
+  - las preguntas cuya evidencia no se extrae en el móvil se cuentan aparte.
+- Q: ¿Qué tiempo máximo se pide a una recuperación completa en el teléfono, con 10.000 fragmentos (p95)? → A: ≤ 200 ms con el motor de consulta cargado, sumando embedding, búsquedas, fusión y selección; durante una tanda de indexación, ≤ 1 s.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -192,7 +209,7 @@ Quien desarrolla mide en el teléfono de referencia:
 
 En el escritorio, 36 de las 80 respuestas no correctas no tenían el fragmento relevante en el contexto, aunque estaba entre los 20 primeros candidatos (D-035). D-035 encarga a F10 revisar el orden de los primeros puestos: los trigramas como tercera lista de la fusión y una reordenación.
 
-**Why this priority**: es la palanca de calidad con más margen, pero la recuperación de D-034 ya cumple el umbral del informe (Recall@bloques ≥ 0,80). El alcance se confirma en clarify.
+**Why this priority**: es la palanca de calidad con más margen, pero la recuperación de D-034 ya cumple el umbral del informe (Recall@bloques ≥ 0,80). Por eso se evalúa en el escritorio y solo llega al móvil si mejora (ver Clarifications).
 
 **Independent Test**: el informe de evaluación del escritorio compara D-034 con cada variante en Recall@bloques sobre las 370 preguntas. La decisión de adoptarla o no queda registrada.
 
@@ -287,7 +304,7 @@ En el escritorio, 36 de las 80 respuestas no correctas no tenían el fragmento r
 
 - **FR-025**: Una prueba en el teléfono de referencia MUST medir p50 y p95 de embedding, búsqueda vectorial, búsqueda léxica y total con 10.000 fragmentos, con y sin fragmentos ocultos, y la primera búsqueda con el motor sin cargar.
 - **FR-026**: Si el p95 de la búsqueda vectorial supera 20 ms, MUST registrarse en DECISIONS la decisión sobre INT8 para F14 (la implementación es de F14).
-- **FR-027**: Una prueba MUST comparar el Recall@bloques del teléfono con el del escritorio sobre la misma muestra de 50 preguntas del conjunto de evaluación.
+- **FR-027**: Una prueba instrumentada en el teléfono de referencia, lanzada bajo demanda, MUST comparar el Recall@bloques del teléfono con el del escritorio sobre la misma muestra fija de 50 preguntas del conjunto de evaluación. Indexa el corpus de evaluación en un índice temporal con los títulos del corpus, cuenta como acierto el bloque que contiene la evidencia literal e informa aparte de las preguntas cuya evidencia no se extrae en el móvil. MUST NOT tocar la biblioteca del usuario.
 - **FR-028**: La revisión del orden dentro del presupuesto (D-035) MUST evaluarse en el harness de escritorio y documentarse con su decisión.
 
 **Privacidad**
@@ -318,7 +335,7 @@ En el escritorio, 36 de las 80 respuestas no correctas no tenían el fragmento r
 - **SC-002**: En el 100 % de las pruebas instrumentadas con documentos en todos los estados, ningún bloque contiene fragmentos de documentos excluidos, no indexados del todo o sombra.
 - **SC-003**: En el teléfono de referencia, con 10.000 fragmentos y el motor de consulta cargado, el p95 del total de una recuperación (embedding, búsquedas, fusión y selección) es ≤ 200 ms, y el del embedding de consulta < 150 ms (constitución IV).
 - **SC-004**: La latencia de la búsqueda vectorial queda medida (p50 y p95) con y sin fragmentos ocultos. Si su p95 supera 20 ms, la decisión sobre INT8 queda registrada para F14.
-- **SC-005**: El Recall@bloques del teléfono sobre la muestra de 50 preguntas queda a ±5 puntos del de escritorio sobre la misma muestra.
+- **SC-005**: El Recall@bloques del teléfono sobre la muestra de 50 preguntas queda a ±5 puntos del de escritorio sobre la misma muestra, sin contar las preguntas cuya evidencia no se extrae en el móvil, que se informan aparte.
 - **SC-006**: Con el índice no compatible o sin modelos listos, el 100 % de las recuperaciones devuelve el estado correspondiente sin buscar y sin errores no controlados.
 - **SC-007**: Una recuperación durante una tanda de indexación termina con un p95 ≤ 1 s en el teléfono de referencia, sin esperar al final de la tanda.
 - **SC-008**: Los registros de las pruebas de recuperación y del diagnóstico contienen 0 apariciones del texto de la pregunta o de los fragmentos.
@@ -327,27 +344,21 @@ En el escritorio, 36 de las 80 respuestas no correctas no tenían el fragmento r
 
 ## Assumptions
 
-Sin marcas `[NEEDS CLARIFICATION]`. Las decisiones de más impacto llevan un valor por defecto y se confirman en clarify:
+Sin marcas `[NEEDS CLARIFICATION]`. Las decisiones de más impacto se confirmaron en clarify (ver Clarifications):
 
-- **Parámetros de contexto:**
-  - los de D-034: 4 bloques, sin vecinos, como mucho 3 por documento, 1.719 tokens;
-  - frente a ellos están los del informe que conservan la ficha de F10 y la constitución (L95): 6 bloques, ≈ 2.200 tokens y vecinos;
-  - por defecto vale D-034, la evaluación más reciente (constitución L101); se confirma en clarify.
-- **Métrica de paridad:** el «Recall@6» de la ficha es el Recall@bloques del escritorio, con los bloques que fije el punto anterior.
-- **Método de paridad, por defecto:** una prueba instrumentada en el teléfono con los modelos reales:
+- **Parámetros de contexto** (confirmado en clarify): los de D-034, es decir 4 bloques, sin vecinos, como mucho 3 por documento y 1.719 tokens. La ficha de F10 y la constitución (L95) se corrigen para que remitan a D-034.
+- **Métrica de paridad:** el «Recall@6» de la ficha es el Recall@bloques del escritorio con los 4 bloques de D-034 (0,889 sobre las 370 preguntas).
+- **Método de paridad** (confirmado en clarify): una prueba instrumentada en el teléfono con los modelos reales, que se lanza bajo demanda:
   - indexa los documentos del corpus de evaluación del repositorio en un índice temporal, nunca en la biblioteca del usuario;
-  - usa los títulos del corpus;
-  - marca como relevantes los fragmentos que contienen la evidencia literal de cada pregunta;
+  - usa los títulos del corpus, como el escritorio, porque la app usa el nombre del fichero y eso cambia la cabecera y la búsqueda léxica;
+  - marca como relevantes los fragmentos que contienen la evidencia literal de cada pregunta, porque la extracción PDF del móvil mueve los ordinales;
   - usa una muestra fija de 50 preguntas, respondibles y de seguimiento, con la cifra de escritorio sobre esas mismas 50;
   - las preguntas cuya evidencia no se extrae en el móvil se cuentan aparte.
-
-  Se confirma en clarify.
-- **Revisión del orden (D-035), por defecto:**
+- **Revisión del orden (D-035)** (confirmado en clarify):
   - se evalúan en el escritorio los trigramas como tercera lista de la fusión y una reordenación de los primeros candidatos, sin modelos nuevos ni red;
-  - una variante se adopta solo si mejora el Recall@bloques en ≥ 2 puntos sobre las 370 preguntas sin pasar el presupuesto del prompt.
-
-  Se confirma en clarify.
-- **Objetivos de latencia** (SC-003, SC-007): el informe y la constitución fijan el embedding de consulta (< 150 ms) y el criterio vectorial (20 ms), pero no el total.
+  - una variante se adopta solo si mejora el Recall@bloques en ≥ 2 puntos sobre las 370 preguntas sin pasar el presupuesto del prompt;
+  - si se adopta, F10 la implementa en el móvil y la paridad (SC-005) se mide con ella.
+- **Objetivos de latencia** (SC-003, SC-007; confirmados en clarify): el informe y la constitución fijan el embedding de consulta (< 150 ms) y el criterio vectorial (20 ms), pero no el total.
   - 200 ms cubre el embedding medido en F02 (p95 120 ms) y las dos búsquedas medidas en F04.
   - 1 s durante una tanda deja margen para esperar al fragmento en curso.
 - **Fallo del embedding:** se devuelve el fallo, sin degradar en silencio a solo búsqueda léxica, para que el chat (F11) lo explique.
