@@ -7,9 +7,13 @@ answers.jsonl as they come, so an interrupted run resumes where it stopped.
 import json
 import time
 from dataclasses import dataclass
+from pathlib import Path
+
+PARAMETERS = Path(__file__).resolve().parents[1] / "config" / "rag_parameters.json"
 
 GREEDY = {"top_k": 1, "top_p": 1.0, "temperature": 0.0, "seed": 0}
-MAX_NUM_TOKENS = 4096
+# Engine context shared with the app (F11, D-054): RagParameters.LLM_MAX_NUM_TOKENS.
+MAX_NUM_TOKENS = json.loads(PARAMETERS.read_text(encoding="utf-8"))["llm_max_num_tokens"]
 
 
 @dataclass(frozen=True)

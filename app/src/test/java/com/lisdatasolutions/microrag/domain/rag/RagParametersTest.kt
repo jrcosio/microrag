@@ -36,6 +36,7 @@ class RagParametersTest {
         "prompt_limit_tokens" to RagParameters.PROMPT_LIMIT_TOKENS,
         "prompt_template" to RagParameters.PROMPT_TEMPLATE,
         "llm_model" to RagParameters.LLM_MODEL.name,
+        "llm_max_num_tokens" to RagParameters.LLM_MAX_NUM_TOKENS,
         "max_output_tokens" to RagParameters.MAX_OUTPUT_TOKENS,
     )
 

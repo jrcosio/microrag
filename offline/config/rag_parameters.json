@@ -1,6 +1,6 @@
 {
   "decided_in": "F05",
-  "decisions": ["D-034", "D-035", "D-036", "D-050"],
+  "decisions": ["D-034", "D-035", "D-036", "D-050", "D-054"],
   "dims": 256,
   "contextual_header": true,
   "normalizer_version": 1,
@@ -19,5 +19,6 @@
   "prompt_limit_tokens": 2000,
   "prompt_template": "informe",
   "llm_model": "GEMMA4_E2B",
+  "llm_max_num_tokens": 4096,
   "max_output_tokens": 512
 }
