@@ -1,22 +1,17 @@
 <!--
 Sync Impact Report
-- Versión: 1.0.0 → 1.1.0 (MINOR). Cambia de forma material un presupuesto del principio IV y se resuelven los TODO diferidos de la 1.0.0 con decisiones ya aprobadas.
+- Versión: 1.1.0 → 1.1.1 (PATCH). Aclaración sin cambio de principio: la regla de III («los parámetros solo cambian con una evaluación documentada y una entrada en DECISIONS») ya amparaba D-034.
 - Principios modificados (sin cambios de título):
-  - IV. Rendimiento y recursos: el presupuesto «primer token ≤ 3 s con 6 bloques» pasa a «≤ 5 s de extremo a extremo con un prompt de ≈ 2.000 tokens (6 bloques)», con la cifra medida en F02 (G44, opción (b) elegida por el usuario; DECISIONS D-026).
-- Secciones modificadas:
-  - Restricciones técnicas: minSdk 31 (D-017); teléfono de referencia Nothing Phone (1) (D-022); fichero genérico de Gemma 4 E2B en GPU (D-023); EmbeddingGemma 2 de 270M de solo texto (D-025).
+  - III. RAG según el informe técnico: la línea de contexto conservaba los valores iniciales del informe (4 a 6 bloques, ~2.200 tokens, vecinos) y contradecía D-034. Ahora remite a la última evaluación registrada en DECISIONS (hoy D-034: 4 bloques, sin vecinos, como mucho 3 por documento y 1.719 tokens estimados). Aprobado por el usuario en el clarify de F10.
 - Secciones añadidas: ninguna.
 - Secciones eliminadas: ninguna.
 - Plantillas dependientes:
   - ✅ .specify/templates/plan-template.md: su «Constitution Check» lee este fichero en tiempo de ejecución; no requiere cambios.
-  - ✅ .specify/templates/spec-template.md: sin referencias a presupuestos concretos; no requiere cambios.
-  - ✅ .specify/templates/tasks-template.md: sin referencias a presupuestos concretos; no requiere cambios.
-  - ✅ .claude/skills/speckit-*: sin referencias a presupuestos concretos.
+  - ✅ .specify/templates/spec-template.md, tasks-template.md y .claude/skills/speckit-*: sin referencias a parámetros de contexto.
 - Documentos dependientes:
-  - ✅ docs/roadmap/FEATURES.md: criterios de TTFT de F11 y F14 alineados con el nuevo presupuesto.
-  - ✅ docs/roadmap/DECISIONS.md: D-026; G44 sale de «Pendientes de decisión».
-  - ✅ docs/roadmap/INVENTARIO.md: G44 resuelto.
-- TODO diferidos: ninguno. Los de la 1.0.0 quedan resueltos (minSdk por D-017 y teléfono de referencia por D-022).
+  - ✅ docs/roadmap/FEATURES.md: la ficha de F10 pasa a los valores de D-034.
+  - ✅ docs/roadmap/DECISIONS.md: D-049 registra la enmienda.
+- TODO diferidos: ninguno.
 -->
 
 # Constitución de MicroRAG
@@ -92,7 +87,7 @@ Fuentes de verdad:
   - stemmer ligero;
   - y deja intactos los tokens con dígitos.
 - Búsqueda híbrida vector + FTS5 fusionada con RRF (k = 60), con 50 + 50 candidatos.
-- Contexto de 4 a 6 bloques: ~2.200 tokens, máximo 3 por documento y expansión de vecinos.
+- Contexto: el número de bloques, el máximo por documento, el presupuesto de tokens y la expansión de vecinos los fija la última evaluación registrada en DECISIONS (hoy D-034: 4 bloques, sin vecinos, como mucho 3 por documento y 1.719 tokens estimados).
 
 **Respuesta:**
 - El prompt lleva fuentes numeradas, citas `[n]` y una negativa explícita.
@@ -231,4 +226,4 @@ Los parámetros de este principio solo cambian con una evaluación documentada (
   - PATCH: aclaraciones y redacción.
 - **Cumplimiento:** se verifica en el *Constitution Check* de `/speckit-plan` y en `/speckit-analyze`. Un incumplimiento no justificado bloquea `/speckit-implement`.
 
-**Version**: 1.1.0 | **Ratified**: 2026-10-25 | **Last Amended**: 2026-10-26
+**Version**: 1.1.1 | **Ratified**: 2026-10-25 | **Last Amended**: 2026-10-29
