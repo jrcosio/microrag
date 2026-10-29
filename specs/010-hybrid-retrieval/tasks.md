@@ -125,14 +125,14 @@ Historias de la spec:
   - en `…/sharedTest/…/data/indexing/FakeTextEmbedder.kt`, el override con `maxInputChars`, `failEngineTimes` y `beforeEmbedding`, también para consultas.
 
   T009 pasa, y `ModelCompatibilityCheckerTest` y las pruebas de F02 siguen en verde.
-- [ ] T011 [P] Ampliar `…/test/…/rag/runtime/EngineCoordinatorTest.kt` con la regla Q13 (R5):
+- [X] T011 [P] Ampliar `…/test/…/rag/runtime/EngineCoordinatorTest.kt` con la regla Q13 (R5):
   - un bloque usa el motor de embeddings que la ingesta retiene (`withHeldEngine` bloqueado) y termina sin esperar a que acabe el bloque retenido;
   - `release` y `releaseUnheld` esperan a que terminen todos los usuarios;
   - `releaseUnheld` no cierra el motor retenido aunque termine el otro usuario;
   - dos usuarios del LLM siguen siendo exclusivos;
   - nunca dos motores en GPU, aunque uno se use compartido;
   - mientras una entrada se cierra no entran usuarios nuevos.
-- [ ] T012 Implementar el uso compartido en `…/microrag/rag/runtime/EngineCoordinator.kt` (data-model §5):
+- [X] T012 Implementar el uso compartido en `…/microrag/rag/runtime/EngineCoordinator.kt` (data-model §5):
   - recuento de usuarios para los motores de embeddings y `Mutex` para el LLM;
   - recuento de retenciones;
   - `closeLocked` espera a que no haya usuarios;
