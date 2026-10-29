@@ -354,6 +354,39 @@ def run_ablations(variants, key="retrieval"):
     return results
 
 
+# --- order review (F10, D-035) ---------------------------------------------------------------------
+
+ORDER_REVIEW_FILE = builds.BUILD / "order_review.json"
+RERANK_ALPHAS = (0.3, 0.5, 0.7)
+
+
+def decided_config():
+    """The configuration of config/rag_parameters.json (D-034) as an EvalConfig."""
+    from eval.retrieval import PARAMETERS
+
+    params = json.loads(PARAMETERS.read_text(encoding="utf-8"))
+    return EvalConfig(follow_up_rule=params["follow_up_rule"], candidates=params["candidates"], rrf_k=params["rrf_k"],
+                      max_blocks=params["max_blocks"], neighbors=params["expand_top"] > 0,
+                      max_per_document=params["max_per_document"], budget_tokens=params["budget_tokens"])
+
+
+def order_review_variants(base=None):
+    """D-035: the trigram third list and the rerank of the head of the fusion, on the decided configuration."""
+    base = base or decided_config()
+    variants = [("D-034", base), ("Trigramas como tercera lista", dataclasses.replace(base, third_list="trigram"))]
+    variants += [(f"Reordenación de los {base.rerank_top} primeros, α = {alpha:.1f}".replace(".", ","),
+                  dataclasses.replace(base, rerank_alpha=alpha)) for alpha in RERANK_ALPHAS]
+    variants.append(("Trigramas + reordenación, α = 0,5", dataclasses.replace(base, third_list="trigram", rerank_alpha=0.5)))
+    return variants
+
+
+def order_review():
+    ctx = load_context("ref")
+    results = [{"label": label, **retrieve(config, ctx)} for label, config in order_review_variants()]
+    ORDER_REVIEW_FILE.write_text(json.dumps(results, ensure_ascii=False, indent=1))
+    return results
+
+
 # --- prompt budget calibration ---------------------------------------------------------------------
 
 def prompt_lengths(config, tokenizer, ctx=None):

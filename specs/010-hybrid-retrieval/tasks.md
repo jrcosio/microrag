@@ -164,7 +164,7 @@ Historias de la spec:
 
 **Independent Test**: `run_eval.py order-review` da la tabla de variantes sobre las 370 preguntas, `eval-report.md` tiene su sección y DECISIONS la decisión.
 
-- [ ] T015 [P] [US6] Ampliar `offline/tests/test_retrieval.py` (G5):
+- [X] T015 [P] [US6] Ampliar `offline/tests/test_retrieval.py` (G5):
   - **`trigram_query`:**
     - términos ≥ 3 caracteres;
     - sin tildes ni palabras vacías;
@@ -179,18 +179,18 @@ Historias de la spec:
     - solo los `top` primeros;
     - el resto en su orden;
   - **`EvalConfig`:** con los campos nuevos en su valor por defecto, la huella de la configuración de D-034 no cambia (`LATE_FIELDS`).
-- [ ] T016 [US6] Implementar en el harness (contrato `eval-retrieval.md`):
+- [X] T016 [US6] Implementar en el harness (contrato `eval-retrieval.md`):
   - `offline/eval/runs.py`: `third_list`, `rerank_alpha` y `rerank_top` en `LATE_FIELDS`;
   - `offline/eval/retrieval.py`: `trigram_query`, `Retriever.trigram` (tabla `trigram` en una base adjunta en memoria, regla G3), distancias y puntuaciones BM25 para la reordenación, y `rerank`;
   - `offline/eval/pipeline.py`: la tercera lista en la fusión y la reordenación antes de tomar `FUSED_LIMIT`;
   - `offline/run_eval.py`: el comando `order-review`, que escribe `offline/build/order_review.json`.
 
   T015 pasa.
-- [ ] T017 [US6] Ejecutar `order-review` con las variantes de R12 y comparar con la medición previa:
+- [X] T017 [US6] Ejecutar `order-review` con las variantes de R12 y comparar con la medición previa:
   - D-034 debe dar 0,889.
   - **Si alguna variante llega a ≥ +2 puntos de Recall@bloques, se para y se consulta** (riesgo 3, regla G6). Según el clarify, F10 la llevaría a la app; la consulta es para replanificar esa parte (los trigramas exigirían el esquema v4).
   - Si no, se sigue.
-- [ ] T018 [US6] Añadir a `offline/eval/report.py` la sección «Revisión del orden (D-035, F10)» (tabla, regla de adopción y decisión) y regenerar `offline/reports/eval-report.md` con `run_eval.py report`.
+- [X] T018 [US6] Añadir a `offline/eval/report.py` la sección «Revisión del orden (D-035, F10)» (tabla, regla de adopción y decisión) y regenerar `offline/reports/eval-report.md` con `run_eval.py report`.
   - El `git diff` solo añade la sección y la fila de `fused_limit` en «Configuración elegida».
 - [ ] T019 [US6] Registrar D-051 en `docs/roadmap/DECISIONS.md` con la decisión:
   - las cifras formales;

@@ -91,7 +91,7 @@ Gemma 4 E2B en la GPU del Mac, juzgado con la regla automática calibrada (el ju
 
 ## Configuración elegida
 
-Fuente única: `config/rag_parameters.json`, igual a `RagParameters.kt` (decisiones D-034, D-035, D-036).
+Fuente única: `config/rag_parameters.json`, igual a `RagParameters.kt` (decisiones D-034, D-035, D-036, D-050).
 
 | Parámetro | Valor |
 |---|---|
@@ -105,6 +105,7 @@ Fuente única: `config/rag_parameters.json`, igual a `RagParameters.kt` (decisio
 | `candidates` | 50 |
 | `rrf_k` | 60 |
 | `follow_up_rule` | true |
+| `fused_limit` | 30 |
 | `max_blocks` | 4 |
 | `max_per_document` | 3 |
 | `budget_tokens` | 1719 |
@@ -167,6 +168,26 @@ Misma recuperación y presupuesto que la configuración elegida, cambiando una s
 | E2B, 512 dimensiones | 70.3 % | 96.4 % | 79.5 % | 1719 | 1250 / 1633 | 0.75 |
 | E4B (Gemma 4 E4B) | 75.4 % | 98.2 % | 80.1 % | 1719 | 1266 / 1630 | 1.74 |
 | E2B, plantilla v2 | 68.9 % | 91.1 % | 76.6 % | 1719 | 1334 / 1697 | 0.77 |
+
+## Revisión del orden (D-035, F10)
+
+Variantes del orden dentro del presupuesto sobre la configuración elegida (D-034), con 370 preguntas puntuables:
+
+- **Trigramas como tercera lista de RRF:** una tabla FTS5 `trigram` temporal sobre el contenido, con los términos de 3 o más caracteres, sin tildes ni palabras vacías.
+- **Reordenación:** los primeros de la fusión se ordenan por α · similitud coseno + (1 − α) · BM25, normalizados min-max en cada lista (0 si el fragmento no está en ella); el resto conserva su orden.
+
+| Variante | Recall@bloques | Diferencia | R@20 híbrido | MRR híbrido | Tokens de contexto (media) |
+|---|---|---|---|---|---|
+| D-034 | 0.889 | — | 0.984 | 0.810 | 1023 |
+| Trigramas como tercera lista | 0.873 | -1.6 puntos | 0.976 | 0.787 | 1072 |
+| Reordenación de los 20 primeros, α = 0,3 | 0.889 | +0.0 puntos | 0.984 | 0.800 | 1041 |
+| Reordenación de los 20 primeros, α = 0,5 | 0.903 | +1.4 puntos | 0.984 | 0.825 | 1021 |
+| Reordenación de los 20 primeros, α = 0,7 | 0.897 | +0.8 puntos | 0.984 | 0.817 | 1006 |
+| Trigramas + reordenación, α = 0,5 | 0.900 | +1.1 puntos | 0.976 | 0.822 | 1065 |
+
+Regla de adopción (clarify de F10): una variante solo entra en la app si sube el Recall@bloques 2 puntos o más, sin pasar el presupuesto de 1719 tokens que aplica el selector.
+
+Decisión (D-051): ninguna variante cumple la regla. La mejor, «Reordenación de los 20 primeros, α = 0,5», sube 1.4 puntos. La app mantiene D-034, y esa variante queda anotada como palanca para F14.
 
 ## Limitaciones
 

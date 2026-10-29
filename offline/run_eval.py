@@ -13,6 +13,7 @@ sys.path.insert(0, str(HERE))  # -I leaves the script directory out of sys.path
 COMMANDS = [
     "fetch-corpus", "sources", "build", "validate-testset", "review-sheet", "review-apply", "sample",
     "retrieve", "generate", "ablations", "report", "chunker-golden", "calibrate", "rejudge", "device-extraction",
+    "order-review",
 ]
 
 
@@ -75,6 +76,8 @@ def parse_config(pairs):
             values[key] = raw.lower() in ("1", "true", "yes", "si", "sí")
         elif isinstance(default, int) or key == "budget_tokens":
             values[key] = int(raw)
+        elif key == "rerank_alpha":
+            values[key] = float(raw)
         else:
             values[key] = raw
     return EvalConfig(**values)
@@ -221,6 +224,16 @@ def device_extraction(args):
         print(f"| {r['doc']} | {r['evidences']} | {r['pypdf']} | {r['device']} | {r['pypdf_chars']} | {r['device_chars']} |")
 
 
+def order_review(args):
+    """F10 (D-035): Recall@bloques of the decided configuration with a trigram third list and a rerank."""
+    from eval import pipeline
+
+    for r in pipeline.order_review():
+        print(f"{r['label']}: blocks_recall={r['blocks_recall']:.3f} hybrid_recall@20={r['hybrid_recall@20']:.3f} "
+              f"hybrid_mrr={r['hybrid_mrr']:.3f} questions={r['questions']}")
+    print(f"wrote {pipeline.ORDER_REVIEW_FILE}")
+
+
 def report(args):
     from eval import report as report_module
 
@@ -231,7 +244,7 @@ HANDLERS = {
     "fetch-corpus": fetch_corpus, "sources": sources, "build": build, "sample": sample,
     "validate-testset": validate_testset, "review-sheet": review_sheet, "review-apply": review_apply,
     "retrieve": retrieve, "generate": generate, "ablations": ablations, "report": report, "calibrate": calibrate, "chunker-golden": chunker_golden, "rejudge": rejudge,
-    "device-extraction": device_extraction,
+    "device-extraction": device_extraction, "order-review": order_review,
 }
 
 

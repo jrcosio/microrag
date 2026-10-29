@@ -259,6 +259,42 @@ def parameters_section(params):
     return lines + [""]
 
 
+ORDER_REVIEW = OFFLINE / "build" / "order_review.json"
+ADOPTION_POINTS = 2.0  # clarify of F10: Recall@bloques must rise this many points over the decided configuration
+
+
+def order_review_section():
+    """F10 (D-035): order within the budget, from run_eval.py order-review."""
+    if not ORDER_REVIEW.exists():
+        return []
+    results = json.loads(ORDER_REVIEW.read_text(encoding="utf-8"))
+    base, variants = results[0], results[1:]
+    budget = base["config"]["budget_tokens"]
+    lines = ["## Revisión del orden (D-035, F10)", "",
+             f"Variantes del orden dentro del presupuesto sobre la configuración elegida ({base['label']}), con "
+             f"{base['questions']} preguntas puntuables:", "",
+             "- **Trigramas como tercera lista de RRF:** una tabla FTS5 `trigram` temporal sobre el contenido, con los "
+             "términos de 3 o más caracteres, sin tildes ni palabras vacías.",
+             "- **Reordenación:** los primeros de la fusión se ordenan por α · similitud coseno + (1 − α) · BM25, "
+             "normalizados min-max en cada lista (0 si el fragmento no está en ella); el resto conserva su orden.", "",
+             "| Variante | Recall@bloques | Diferencia | R@20 híbrido | MRR híbrido | Tokens de contexto (media) |",
+             "|---|---|---|---|---|---|"]
+    for r in results:
+        diff = "—" if r is base else f"{(r['blocks_recall'] - base['blocks_recall']) * 100:+.1f} puntos"
+        lines.append(f"| {r['label']} | {num(r['blocks_recall'])} | {diff} | {num(r['hybrid_recall@20'])} | "
+                     f"{num(r['hybrid_mrr'])} | {r['context_tokens_mean']:.0f} |")
+    best = max(variants, key=lambda r: r["blocks_recall"])
+    gain = (best["blocks_recall"] - base["blocks_recall"]) * 100
+    lines += ["", f"Regla de adopción (clarify de F10): una variante solo entra en la app si sube el Recall@bloques "
+              f"{ADOPTION_POINTS:.0f} puntos o más, sin pasar el presupuesto de {budget} tokens que aplica el selector.", ""]
+    if gain >= ADOPTION_POINTS:
+        lines.append(f"Decisión: «{best['label']}» sube {gain:.1f} puntos y cumple la regla; se consulta antes de llevarla a la app.")
+    else:
+        lines.append(f"Decisión (D-051): ninguna variante cumple la regla. La mejor, «{best['label']}», sube {gain:.1f} "
+                     "puntos. La app mantiene D-034, y esa variante queda anotada como palanca para F14.")
+    return lines + [""]
+
+
 def limitations_section():
     return ["## Limitaciones", "", *[f"- {item}" for item in LIMITATIONS], ""]
 
@@ -284,6 +320,7 @@ def render(extra_sections=()):
     lines += manual_section()
     if params:
         lines += failures_section(ablations, params) + comparisons_section(ablations, params)
+    lines += order_review_section()
     lines += limitations_section()
     for section in extra_sections:
         lines += section

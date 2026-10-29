@@ -10,7 +10,8 @@ RUNS_DIR = OFFLINE / "build" / "runs"
 
 MODES = ("vector", "fts", "hybrid")
 LLM_CHOICES = (None, "E2B", "E4B")
-LATE_FIELDS = {"prompt_template": "informe"}
+THIRD_LISTS = (None, "trigram")
+LATE_FIELDS = {"prompt_template": "informe", "third_list": None, "rerank_alpha": None, "rerank_top": 20}
 
 
 @dataclasses.dataclass(frozen=True)
@@ -31,12 +32,18 @@ class EvalConfig:
     llm: str | None = None
     max_output_tokens: int = 512
     prompt_template: str = "informe"
+    # F10 order review (D-035): a third RRF list, and a rerank of the first rerank_top fused ids.
+    third_list: str | None = None
+    rerank_alpha: float | None = None
+    rerank_top: int = 20
 
     def __post_init__(self):
         if self.mode not in MODES:
             raise ValueError(f"Unknown retrieval mode {self.mode}")
         if self.llm not in LLM_CHOICES:
             raise ValueError(f"Unknown LLM {self.llm}")
+        if self.third_list not in THIRD_LISTS:
+            raise ValueError(f"Unknown third list {self.third_list}")
 
     def to_json(self):
         values = dataclasses.asdict(self)
