@@ -83,7 +83,7 @@ class RetrievalDiagnosticScreenTest {
 
         exists("Seguimiento: sí")
         exists("Texto de búsqueda: ¿Cada cuánto se revisa la bomba? ¿Y el aceite?")
-        exists("2 bloques · 702 tokens")
+        exists("Bloques: 2 · tokens: 702")
         exists("Embedding: 118.2 ms")
         exists("Vectorial: 22.9 ms")
         exists("Léxica: 19.4 ms")
@@ -93,9 +93,9 @@ class RetrievalDiagnosticScreenTest {
         exists("[1] Manual de bombas.pdf")
         exists("Ruta: Mantenimiento › Bombas")
         exists("Página 12")
-        exists("Fragmentos 3–4 · ids 815, 816 · 402 tokens")
+        exists("Fragmentos 3–4 · ids 815, 816 · tokens: 402")
         exists("Las bombas se revisan cada 500 horas.")
-        exists("Fragmentos 7 · ids 900 · 300 tokens")
+        exists("Fragmentos 7 · ids 900 · tokens: 300")
         exists("#1 · id 815 · RRF 0.0325 · vector 1 (0.123) · léxica 2 · elegido")
         exists("#3 · id 77 · RRF 0.0161 · vector — · léxica 1")
         absent("Recortes del embedding")
@@ -126,7 +126,8 @@ class RetrievalDiagnosticScreenTest {
             state = done(outcome)
             compose.waitForIdle()
             exists(words)
-            absent("Bloques")
+            absent("Bloques: ")
+            absent("Fragmentos ")
             absent("Candidatos")
         }
     }

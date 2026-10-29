@@ -47,7 +47,7 @@ data class RetrievalDiagnosticUiState(
    - «Texto de búsqueda: …»;
    - «Recortes del embedding: N», solo si N > 0;
    - **resultado:**
-     - con bloques: «N bloques · M tokens»;
+     - con bloques: «Bloques: N · tokens: M»;
      - si no, el estado en palabras: «Sin resultados», «Pregunta vacía», «Índice no disponible: <estado>», «Modelos no listos» o «Fallo del embedding».
 4. **Tiempos:**
    - embedding, vector, léxica, selección y total, en ms con un decimal;

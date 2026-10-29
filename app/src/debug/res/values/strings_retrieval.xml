@@ -12,7 +12,7 @@
     <string name="retrieval_follow_up" translatable="false">Seguimiento: %1$s</string>
     <string name="retrieval_search_text" translatable="false">Texto de búsqueda: %1$s</string>
     <string name="retrieval_cuts" translatable="false">Recortes del embedding: %1$d</string>
-    <string name="retrieval_blocks_count" translatable="false">%1$d bloques · %2$d tokens</string>
+    <string name="retrieval_blocks_count" translatable="false">Bloques: %1$d · tokens: %2$d</string>
     <string name="retrieval_no_results" translatable="false">Sin resultados</string>
     <string name="retrieval_empty_question" translatable="false">Pregunta vacía</string>
     <string name="retrieval_index_unavailable" translatable="false">Índice no disponible: %1$s</string>
@@ -32,7 +32,7 @@
     <string name="retrieval_block_title" translatable="false">[%1$d] %2$s</string>
     <string name="retrieval_block_heading" translatable="false">Ruta: %1$s</string>
     <string name="retrieval_block_page" translatable="false">Página %1$d</string>
-    <string name="retrieval_block_chunks" translatable="false">Fragmentos %1$s · ids %2$s · %3$d tokens</string>
+    <string name="retrieval_block_chunks" translatable="false">Fragmentos %1$s · ids %2$s · tokens: %3$d</string>
     <string name="retrieval_section_candidates" translatable="false">Candidatos</string>
     <string name="retrieval_candidate" translatable="false">#%1$d · id %2$d · RRF %3$s · vector %4$s · léxica %5$s</string>
     <string name="retrieval_candidate_vector" translatable="false">%1$d (%2$s)</string>
