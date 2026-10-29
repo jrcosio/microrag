@@ -44,7 +44,7 @@ Al cerrar cada feature se entrega:
 | F07 | Indexación | Producto | F02, F06 | ✅ cerrada |
 | F08 | Biblioteca y detalle de documento | Producto | F07 | ✅ cerrada |
 | F09 | Inicio | Producto | F03, F07, F08 | ✅ cerrada |
-| F10 | Recuperación híbrida | Técnica | F05, F07 | 🟨 en curso (analyze) |
+| F10 | Recuperación híbrida | Técnica | F05, F07 | 🟨 en curso (implementación) |
 | F11 | Chat con fuentes | Producto | F08, F10 | ⬜ |
 | F12 | Ajustes e Idiomas | Producto | F03, F11 | ⬜ |
 | F13 | Historial de chats | Producto (UI propuesta) | F11, F12 | ⬜ |
@@ -475,7 +475,7 @@ También se introduce `EngineCoordinator`, que garantiza que nunca haya dos engi
 ## F10 — Recuperación híbrida
 
 - **Tipo:** Técnica. Diagnóstico de búsqueda interno, solo en debug.
-- **Estado:** 🟨 en curso: specify, clarify, plan, tasks y analyze el 2026-10-29 en la rama `010-hybrid-retrieval`. Decisiones D-049 (clarify), con la enmienda 1.1.1 de la constitución, y D-050 (plan). Spec, plan y tareas en `specs/010-hybrid-retrieval/`. Las pruebas en el teléfono van al final, cuando esté disponible.
+- **Estado:** 🟨 en curso: specify, clarify, plan, tasks y analyze el 2026-10-29 en la rama `010-hybrid-retrieval`; implementación en marcha. Decisiones D-049 (clarify), con la enmienda 1.1.1 de la constitución, D-050 (plan) y D-051 (revisión del orden: se mantiene D-034). Spec, plan y tareas en `specs/010-hybrid-retrieval/`. Las pruebas en el teléfono van al final, cuando esté disponible.
 
 **Objetivo.** `HybridRetriever`:
 - embedding de consulta en CPU;
@@ -642,6 +642,8 @@ Con esos datos se decide: INT8 sí o no, número de bloques y perfil de modelo.
 **Dependencias.** F10 y F11.
 
 **Dato de partida (F04):** con 10k fragmentos sintéticos, la búsqueda vectorial exacta da un p95 de 23,1 ms en el teléfono de referencia, ya por encima de los 20 ms del criterio 2 (`specs/004-rag-data-core/report.md` §4).
+
+**Palanca de calidad (D-051):** reordenar los 20 primeros de la fusión con α = 0,5 subió el Recall@bloques de 0,889 a 0,903 en el escritorio, por debajo de la regla de adopción de F10. Queda como opción barata si se revisa el contexto.
 
 **Criterios de aceptación.**
 1. `benchmarks.md` con cifras reales, dispositivo y versiones, que sustituyen los presupuestos del informe.

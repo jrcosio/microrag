@@ -910,6 +910,32 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
 
 ---
 
+## D-051 — Revisión del orden dentro del presupuesto (D-035, F10)
+
+- **Fecha:** 2026-10-29
+- **Decisión:** la app mantiene la recuperación de D-034. Ninguna variante del orden cumple la regla de adopción del clarify de F10 (+2 puntos de Recall@bloques sin pasar el presupuesto).
+- **Cifras** (`run_eval.py order-review`, índice `ref`, 370 preguntas puntuables, configuración de D-034):
+
+  | Variante | Recall@bloques | R@20 híbrido | MRR híbrido |
+  |---|---:|---:|---:|
+  | D-034 | 0,889 | 0,984 | 0,810 |
+  | Trigramas como tercera lista de RRF | 0,873 | 0,976 | 0,787 |
+  | Reordenación de los 20 primeros, α = 0,3 | 0,889 | 0,984 | 0,800 |
+  | Reordenación de los 20 primeros, α = 0,5 | **0,903** | 0,984 | 0,825 |
+  | Reordenación de los 20 primeros, α = 0,7 | 0,897 | 0,984 | 0,817 |
+  | Trigramas + reordenación, α = 0,5 | 0,900 | 0,976 | 0,822 |
+
+  La reordenación ordena los primeros de la fusión por α · similitud coseno + (1 − α) · BM25, normalizados min-max en cada lista.
+- **Motivo:**
+  - La mejor variante, la reordenación con α = 0,5, sube 1,4 puntos: no llega a los 2 de la regla. Con 370 preguntas son unas 5 preguntas más.
+  - Los trigramas empeoran: sus coincidencias parciales desplazan a los relevantes. Además exigirían una tabla nueva en el índice (esquema v4).
+- **Para F14:** la reordenación con α = 0,5 queda anotada como palanca barata si se revisa el contexto. Usa las puntuaciones que las dos búsquedas ya calculan, sin consultas nuevas.
+- **Dónde está:** las dos variantes viven en el harness (`offline/eval/retrieval.py`, con pruebas). El informe `offline/reports/eval-report.md` tiene la sección «Revisión del orden (D-035, F10)».
+- **Origen:** D-035 y clarify de F10 (D-049); medición previa en research R12 de F10, confirmada por la ejecución formal.
+- **Afecta:** F10 (sin cambios en la app) y F14.
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.

@@ -192,7 +192,7 @@ Historias de la spec:
   - Si no, se sigue.
 - [X] T018 [US6] Añadir a `offline/eval/report.py` la sección «Revisión del orden (D-035, F10)» (tabla, regla de adopción y decisión) y regenerar `offline/reports/eval-report.md` con `run_eval.py report`.
   - El `git diff` solo añade la sección y la fila de `fused_limit` en «Configuración elegida».
-- [ ] T019 [US6] Registrar D-051 en `docs/roadmap/DECISIONS.md` con la decisión:
+- [X] T019 [US6] Registrar D-051 en `docs/roadmap/DECISIONS.md` con la decisión:
   - las cifras formales;
   - se mantiene D-034 en la app;
   - la reordenación queda anotada como palanca para F14.
