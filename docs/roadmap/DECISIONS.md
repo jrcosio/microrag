@@ -968,10 +968,67 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
 
 ---
 
+## D-053 — Chat con fuentes (clarify de F11)
+
+- **Fecha:** 2026-10-29
+- **Decisión:**
+  1. **Citas en la respuesta (G11):**
+     - como el PNG: el chip «N fuentes» y «FUENTES CONSULTADAS» solo con las fuentes citadas;
+     - además, cada `[n]` válido del texto se muestra como una ficha pequeña tocable que abre su fragmento;
+     - las fichas se numeran según el orden de la lista (1 = primera fuente listada), no con el número del bloque en el prompt;
+     - las marcas fuera de rango se descartan y no se ven.
+  2. **Chat durante una indexación (D-039):** mientras una tanda está en marcha, el chat espera:
+     - explica que podrá preguntar cuando termine la tanda, con acceso al Estado de indexación;
+     - no carga Gemma ni acepta preguntas;
+     - la conversación y sus fuentes siguen visibles;
+     - con la tanda en pausa, el chat funciona con los documentos ya listos y avisa de la cobertura parcial;
+     - si una tanda empieza durante una respuesta, la respuesta termina antes.
+
+     La constitución IV no cambia: el LLM se libera durante la ingesta.
+  3. **Conversaciones guardadas:**
+     - todas las conversaciones con mensajes se guardan en el almacenamiento privado del teléfono, sin copia de seguridad, con sus mensajes, estados y fuentes;
+     - la pestaña Chat abre la última, también tras cerrar la app, y «Nuevo chat» empieza otra (D-047);
+     - las anteriores quedan para el historial de F13.
+  4. **Plantilla del prompt (D-035):** se evalúa en el harness de escritorio, como D-051:
+     - 1 o 2 variantes sobre las mismas preguntas que F05;
+     - juicio con la regla automática y revisión de las respuestas que cambian (método D-033);
+     - se adopta una variante solo si sube ≥ 2 puntos las respuestas correctas, con negativas ≥ 85 % y citas ≥ 90 %, y con una decisión nueva;
+     - si no, se queda la plantilla «informe».
+  5. **Menú «⋯» (G13):**
+     - «Nuevo chat»;
+     - «Borrar conversación», con confirmación; tras borrar se abre un chat vacío.
+
+     «Historial» se añade con F13.
+- **Motivo:**
+  - **Citas:** el PNG manda en la UI y el informe en la trazabilidad (constitución III). Las fichas enlazan cada afirmación con su fuente, y numerarlas como la lista evita números que no coinciden.
+  - **Indexación:** es la opción más sencilla y cumple la constitución IV sin enmiendas. El coste, un chat bloqueado durante las tandas largas, se mitiga porque el usuario puede pausar la tanda.
+  - **Guardado:** la ficha de F11 pide la persistencia local de los mensajes, y F13 se apoya en ella. La constitución I exige almacenamiento privado.
+  - **Plantilla:** el mismo método que F10 (D-051) es reproducible y compara con las mismas preguntas.
+  - **Menú:** respeta el icono del PNG sin opciones que lleven a pantallas inexistentes.
+- **Alternativas descartadas:**
+  - citas: solo la lista, como el PNG; o los `[n]` como texto sin tocar;
+  - indexación:
+    - pausar la tanda al abrir el chat;
+    - pausarla solo al preguntar;
+    - seguir indexando en CPU con Gemma en la GPU, que exigía enmendar la constitución IV;
+  - guardado: guardar pero abrir siempre un chat nuevo; o solo en memoria hasta F13;
+  - plantilla: dejarla para F14; o probar variantes en el teléfono;
+  - menú: ocultar «⋯» hasta F13; o solo «Nuevo chat».
+- **Pendiente de aprobar en la revisión del clarify:** las propuestas de UI C1–C15 de la spec, entre ellas la negativa (G26, C1).
+- **Origen:** usuario (clarify de F11).
+- **Afecta:**
+  - F11;
+  - F07: el chat no pausa ni interrumpe la tanda;
+  - F12: borrar el historial actúa sobre lo guardado;
+  - F13: historial sobre lo guardado y «Historial» en «⋯»;
+  - F14: si no se adopta ninguna variante, la plantilla sigue como palanca.
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.
 
 - **G08** — Flecha Atrás en las pestañas, que vuelve a Inicio. Queda aplicada en la spec de F01 como supuesto por la precedencia del PNG; se revisa en el checkpoint de F01.
 - **G10** — Contenido de los pasos 2 y 3 de Preparación.
-- **G11–G17, G21, G22, G24–G26, G29–G31, G39** — Propuestas para estados y acciones no maquetados.
+- **G14–G17, G21, G22, G24–G26, G29–G31** — Propuestas para estados y acciones no maquetados. G11 y G13 quedan resueltas en D-053; G12 y G39 se hicieron en F01.

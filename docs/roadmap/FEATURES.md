@@ -45,7 +45,7 @@ Al cerrar cada feature se entrega:
 | F08 | Biblioteca y detalle de documento | Producto | F07 | ✅ cerrada |
 | F09 | Inicio | Producto | F03, F07, F08 | ✅ cerrada |
 | F10 | Recuperación híbrida | Técnica | F05, F07 | ✅ cerrada |
-| F11 | Chat con fuentes | Producto | F08, F10 | ⬜ |
+| F11 | Chat con fuentes | Producto | F08, F10 | 🟨 en curso (specify y clarify) |
 | F12 | Ajustes e Idiomas | Producto | F03, F11 | ⬜ |
 | F13 | Historial de chats | Producto (UI propuesta) | F11, F12 | ⬜ |
 | F14 | Rendimiento en dispositivo y decisión INT8 | Técnica | F10, F11 | ⬜ |
@@ -516,17 +516,19 @@ También se introduce `EngineCoordinator`, que garantiza que nunca haya dos engi
 ## F11 — Chat con fuentes
 
 - **Tipo:** Producto.
-- **Estado:** ⬜
+- **Estado:** 🟨 en curso: specify y clarify el 2026-10-29 en la rama `011-chat-sources`. Decisión D-053 (clarify); propuestas de UI C1–C15 pendientes de revisión. Spec en `specs/011-chat-sources/spec.md`.
 
 **Objetivo.** Conversación con documentos:
 - estados `Retrieving`, `Generating`, `Completed`, `Cancelled` y `Failed`;
 - streaming;
 - `PromptBuilder` con idioma configurable (español por defecto, G25);
 - detección de la negativa (G26);
-- marcas `[n]` convertidas en citas reales (G11), y «Fuentes consultadas» solo con las fuentes citadas;
+- marcas `[n]` convertidas en citas reales, como fichas tocables numeradas igual que la lista (G11, D-053), y «Fuentes consultadas» solo con las fuentes citadas;
 - copiar y cancelar (G12);
-- persistencia local de los mensajes;
-- ciclo de vida del engine;
+- persistencia local de las conversaciones; la pestaña Chat abre la última (D-053);
+- menú «⋯» con «Nuevo chat» y «Borrar conversación» (G13, D-053);
+- ciclo de vida del engine; durante una tanda de indexación, el chat espera (D-053);
+- revisión de la plantilla del prompt en el escritorio (D-035, D-053);
 - estados de bloqueo y de borde: modelo ausente, biblioteca vacía, cobertura parcial durante la indexación y fuente borrada.
 
 **Pantallas y mockups.**
