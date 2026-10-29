@@ -11,8 +11,8 @@ import java.io.File
 class RagOpenException(val reason: String, cause: Throwable? = null) : Exception(reason, cause)
 
 /**
- * One bundled SQLite connection with SQLite-Vector loaded (F04 research R8). Not thread-safe: the
- * owner uses it only from the database dispatcher.
+ * One bundled SQLite connection with SQLite-Vector loaded (F04 research R8), or without it for the chat's
+ * own file (F11 research R9). Not thread-safe: the owner uses it only from the database dispatcher.
  */
 class RagConnection private constructor(private val connection: SQLiteConnection) : AutoCloseable {
 
@@ -76,10 +76,13 @@ class RagConnection private constructor(private val connection: SQLiteConnection
         /** SQLite-Vector 1.1.2 creates this settings table in every file it is loaded into (F04 research R3). */
         const val VECTOR_EXTENSION_TABLE = "_sqliteai_vector"
 
-        /** Opens [dbFile] read-write, creating it, with the extension and the per-connection pragmas. */
-        fun open(dbFile: File, extensionPath: String): RagConnection {
-            if (!File(extensionPath).isFile) throw RagOpenException("extension: vector.so not found")
-            val driver = BundledSQLiteDriver().apply { addExtension(extensionPath, EXTENSION_ENTRY_POINT) }
+        /**
+         * Opens [dbFile] read-write, creating it, with the per-connection pragmas, and with SQLite-Vector
+         * unless [extensionPath] is null.
+         */
+        fun open(dbFile: File, extensionPath: String?): RagConnection {
+            if (extensionPath != null && !File(extensionPath).isFile) throw RagOpenException("extension: vector.so not found")
+            val driver = BundledSQLiteDriver().apply { if (extensionPath != null) addExtension(extensionPath, EXTENSION_ENTRY_POINT) }
             val connection = try {
                 driver.open(dbFile.path, SQLITE_OPEN_READWRITE or SQLITE_OPEN_CREATE)
             } catch (e: Exception) {

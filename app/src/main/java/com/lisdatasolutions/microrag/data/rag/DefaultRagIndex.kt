@@ -2,6 +2,7 @@ package com.lisdatasolutions.microrag.data.rag
 
 import androidx.sqlite.SQLiteStatement
 import com.lisdatasolutions.microrag.core.logging.AppLogger
+import com.lisdatasolutions.microrag.domain.rag.ChatLibraryState
 import com.lisdatasolutions.microrag.domain.rag.ChunkInput
 import com.lisdatasolutions.microrag.domain.rag.ChunkView
 import com.lisdatasolutions.microrag.domain.rag.CompatibilityDecision
@@ -342,6 +343,17 @@ class DefaultRagIndex(
             "SELECT count(*), COALESCE(SUM(CASE WHEN status = ? THEN chunk_count END), 0) FROM documents WHERE replaces_id IS NULL",
             DocumentStatus.DONE.sqlValue,
         ) { LibrarySummary(documents = it.getLong(0).toInt(), indexedChunks = it.getLong(1).toInt()) } ?: LibrarySummary(0, 0)
+    }
+
+    override suspend fun chatLibraryState(): ChatLibraryState = withIndex { db ->
+        val pending = listOf(DocumentStatus.PENDING, DocumentStatus.PARSED, DocumentStatus.EMBEDDING, DocumentStatus.PAUSED)
+        db.queryOne(
+            "SELECT count(*), " +
+                "COALESCE(SUM(CASE WHEN status = ? AND included = 1 THEN 1 ELSE 0 END), 0), " +
+                "COALESCE(SUM(CASE WHEN status IN (${pending.joinToString { "?" }}) AND included = 1 THEN 1 ELSE 0 END), 0) " +
+                "FROM documents WHERE replaces_id IS NULL",
+            DocumentStatus.DONE.sqlValue, *pending.map { it.sqlValue }.toTypedArray(),
+        ) { ChatLibraryState(it.getLong(0).toInt(), it.getLong(1).toInt(), it.getLong(2).toInt()) } ?: ChatLibraryState(0, 0, 0)
     }
 
     /** The INT8 index no longer matches the chunks (D-030); F14 rebuilds it. */

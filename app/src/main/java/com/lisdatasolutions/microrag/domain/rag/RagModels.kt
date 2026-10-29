@@ -91,6 +91,15 @@ data class IndexCounts(val documents: Int, val chunks: Int, val ftsRows: Int)
 /** The Home summary (F09 research R2): every document but reindex shadows, and the chunks of the done ones. */
 data class LibrarySummary(val documents: Int, val indexedChunks: Int)
 
+/** The library as the chat sees it (F11 research R11): shadows left out. */
+data class ChatLibraryState(
+    val documents: Int,
+    /** Done and included: what the search can use. */
+    val searchable: Int,
+    /** Included and pending, parsed, embedding or paused: what a running or paused batch will add. */
+    val pendingIncluded: Int,
+)
+
 /** Whether the index can be used (F04 research R7). Only [Compatible] allows reads and writes. */
 sealed interface IndexCompatibility {
     /** Not opened yet, or closed. */

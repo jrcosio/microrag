@@ -1,5 +1,6 @@
 package com.lisdatasolutions.microrag.testing
 
+import com.lisdatasolutions.microrag.domain.rag.ChatLibraryState
 import com.lisdatasolutions.microrag.domain.rag.ChunkInput
 import com.lisdatasolutions.microrag.domain.rag.ChunkView
 import com.lisdatasolutions.microrag.domain.rag.DocumentNames
@@ -281,6 +282,16 @@ class FakeRagIndex(initial: IndexCompatibility = IndexCompatibility.Compatible) 
     override suspend fun librarySummary(): LibrarySummary = available {
         val library = docs.values.filter { it.replacesId == null }
         LibrarySummary(library.size, library.filter { it.status == DocumentStatus.DONE }.sumOf { it.chunkCount ?: 0 })
+    }
+
+    override suspend fun chatLibraryState(): ChatLibraryState = available {
+        val library = docs.values.filter { it.replacesId == null }
+        val pending = setOf(DocumentStatus.PENDING, DocumentStatus.PARSED, DocumentStatus.EMBEDDING, DocumentStatus.PAUSED)
+        ChatLibraryState(
+            documents = library.size,
+            searchable = library.count { it.status == DocumentStatus.DONE && it.included },
+            pendingIncluded = library.count { it.status in pending && it.included },
+        )
     }
 
     override suspend fun close() = Unit
