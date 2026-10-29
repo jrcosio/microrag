@@ -359,7 +359,7 @@ Historias de la spec:
 
 **Independent Test**: las tres pruebas compilan y, si el emulador tiene los modelos, terminan en CPU y registran sus cifras sin umbrales. Sin modelos, se saltan limpiamente.
 
-- [ ] T040 [P] [US5] Crear `…/androidTest/…/data/retrieval/RetrievalBenchmarkTest.kt` (`@RequiresModels`, R10, FR-025):
+- [X] T040 [P] [US5] Crear `…/androidTest/…/data/retrieval/RetrievalBenchmarkTest.kt` (`@RequiresModels`, R10, FR-025):
   - 10.000 fragmentos sintéticos (como `RagIndexBenchmarkTest`);
   - las 50 preguntas de `retrieval_parity.jsonl`;
   - `LiteRtEngineFactory` real en CPU con `EngineQueryEmbedder` y `HybridRetriever`;
@@ -369,7 +369,7 @@ Historias de la spec:
     - lo mismo con 4.300 ocultos;
   - registro `retrieval-benchmark`;
   - **umbrales solo si `Build.MODEL == "A063"`:** total p95 ≤ 200 ms y embedding p95 < 150 ms (SC-003).
-- [ ] T041 [P] [US5] Crear `…/androidTest/…/data/retrieval/RetrievalDuringIndexingTest.kt` (`@RequiresModels`, R10, FR-020):
+- [X] T041 [P] [US5] Crear `…/androidTest/…/data/retrieval/RetrievalDuringIndexingTest.kt` (`@RequiresModels`, R10, FR-020):
   - 1.000 fragmentos sintéticos publicados;
   - `IngestRunner` con `ChunkEmbeddingSession` real indexando `pdf/text_200_pages.pdf` en paralelo;
   - una recuperación cada 500 ms durante la fase de embedding;
@@ -377,7 +377,7 @@ Historias de la spec:
   - registro `retrieval-during-indexing` con el backend;
   - **variante de tanda en CPU:** `isEmulator = true`;
   - **umbral solo en el A063 con la tanda en GPU:** p95 ≤ 1 s (SC-007).
-- [ ] T042 [P] [US5] Crear `…/androidTest/…/data/retrieval/RetrievalParityTest.kt` (`@RequiresModels`, R11, FR-027):
+- [X] T042 [P] [US5] Crear `…/androidTest/…/data/retrieval/RetrievalParityTest.kt` (`@RequiresModels`, R11, FR-027):
   1. corpus de los assets a `cacheDir/parity-<uuid>`;
   2. documentos registrados con `«título del manifiesto».<ext>`;
   3. `IngestRunner` con `ChunkEmbeddingSession` real sobre `TempRagIndex`;
@@ -389,7 +389,7 @@ Historias de la spec:
   9. registro `retrieval-parity` solo con cifras e ids;
   10. el `CapturingLogger` no contiene el texto de ninguna pregunta (SC-008);
   11. borra la copia y el índice al terminar (R14).
-- [ ] T043 [US5] Ejecutar T040–T042 en el emulador (quickstart §3, «Con modelos en el emulador»):
+- [X] T043 [US5] Ejecutar T040–T042 en el emulador (quickstart §3, «Con modelos en el emulador»):
   - si tiene los modelos, terminan en CPU y registran cifras (sin umbrales; la paridad en CPU es informativa);
   - si no, se comprueba que se saltan con su `assumeTrue`.
 
