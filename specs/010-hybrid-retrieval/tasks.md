@@ -140,7 +140,7 @@ Historias de la spec:
   - Se actualiza el KDoc de la clase con la regla nueva.
 
   T011 pasa, y siguen en verde `ChunkEmbeddingSessionTest`, `IngestRunnerTest`, `EngineMemoryCallbacksTest`, `DefaultIndexingRepositoryTest` y el resto de `EngineCoordinatorTest`. **Si una prueba de F07 falla por el cambio y no se puede explicar, se para y se consulta** (riesgo 2).
-- [ ] T013 Crear `…/test/…/data/retrieval/EngineQueryEmbedderTest.kt` (R4; después de T010, que trae `QueryEmbedding` y el `FakeTextEmbedder` de consultas), con `InMemoryModelFileRepository` (`testing/OnboardingFakes.kt`), un `EngineFactory` falso que da `FakeTextEmbedder` y un `EngineCoordinator` real:
+- [X] T013 Crear `…/test/…/data/retrieval/EngineQueryEmbedderTest.kt` (R4; después de T010, que trae `QueryEmbedding` y el `FakeTextEmbedder` de consultas), con `InMemoryModelFileRepository` (`testing/OnboardingFakes.kt`), un `EngineFactory` falso que da `FakeTextEmbedder` y un `EngineCoordinator` real:
   - **`ready()`:**
     - `Verified` y preparado → `true`;
     - `Unverified`, `Missing` o sin backend → `false`;
@@ -152,7 +152,7 @@ Historias de la spec:
     - `loaded` refleja el estado;
     - tras `releaseUnheld` (UI oculta o poca memoria) el motor se cierra, y la siguiente consulta lo vuelve a cargar con `loaded = false` antes (FR-021);
     - un fallo de carga o de cálculo se propaga como excepción.
-- [ ] T014 Crear `…/microrag/data/retrieval/QueryEmbedder.kt` (interfaz) y `EngineQueryEmbedder.kt` (R4). T013 pasa.
+- [X] T014 Crear `…/microrag/data/retrieval/QueryEmbedder.kt` (interfaz) y `EngineQueryEmbedder.kt` (R4). T013 pasa.
 
 **Checkpoint**: índice, embedder y coordinador listos. Las pruebas de F04–F09 siguen en verde.
 
