@@ -213,6 +213,8 @@ class HybridRetrieverTest {
             assertThat(result.searchText).isEqualTo(question)
             assertThat(result.followUp).isFalse()
             assertThat(result.timings.embeddingMs).isEqualTo(0.0)
+            // Seen on the phone (T051): the engine was not loaded, and the diagnostic said it was.
+            assertThat(result.timings.coldEngine).isTrue()
         }
         assertThat(index.calls).isEmpty()
         assertThat(embedder.readyCalls.get()).isEqualTo(0)
@@ -238,6 +240,7 @@ class HybridRetrieverTest {
         val result = retriever.retrieve(RetrievalRequest(QUESTION))
 
         assertThat(result.outcome).isEqualTo(RetrievalOutcome.ModelsNotReady)
+        assertThat(result.timings.coldEngine).isTrue()
         assertThat(index.calls).containsExactly("open")
         assertThat(embedder.embedCalls.get()).isEqualTo(0)
         assertThat(embedder.loaded).isFalse()

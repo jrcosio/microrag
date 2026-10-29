@@ -43,7 +43,9 @@ class HybridRetriever(
     override suspend fun retrieve(request: RetrievalRequest): RetrievalResult {
         val started = clock()
         val question = request.question
-        if (question.isBlank()) return unsearched(started, question, RetrievalOutcome.EmptyQuestion)
+        // Reading whether it is loaded never loads it; outcomes without a search report it too.
+        val coldEngine = !embedder.loaded
+        if (question.isBlank()) return unsearched(started, question, RetrievalOutcome.EmptyQuestion, coldEngine = coldEngine)
 
         // A blank previous question counts as none, so it never joins the search text.
         val searchText = FollowUpRule.searchText(question, request.previousQuestion?.takeIf { it.isNotBlank() })
@@ -56,10 +58,11 @@ class HybridRetriever(
         } catch (e: Exception) {
             IndexCompatibility.Unreadable("open: ${e.javaClass.simpleName}")
         }
-        if (state != IndexCompatibility.Compatible) return unsearched(started, searchText, RetrievalOutcome.IndexUnavailable(state), followUp)
-        if (!modelReady()) return unsearched(started, searchText, RetrievalOutcome.ModelsNotReady, followUp)
+        if (state != IndexCompatibility.Compatible) {
+            return unsearched(started, searchText, RetrievalOutcome.IndexUnavailable(state), followUp, coldEngine)
+        }
+        if (!modelReady()) return unsearched(started, searchText, RetrievalOutcome.ModelsNotReady, followUp, coldEngine)
 
-        val coldEngine = !embedder.loaded
         val search = try {
             search(question, request.previousQuestion.takeIf { followUp }, searchText)
         } catch (e: CancellationException) {
@@ -150,7 +153,7 @@ class HybridRetriever(
         searchText: String,
         outcome: RetrievalOutcome,
         followUp: Boolean = false,
-        coldEngine: Boolean = false,
+        coldEngine: Boolean,
         error: Throwable? = null,
     ): RetrievalResult {
         val result = RetrievalResult(searchText, followUp, 0, RetrievalTimings(totalMs = elapsedMs(started), coldEngine = coldEngine), outcome)
