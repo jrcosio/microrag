@@ -31,6 +31,6 @@
 
 ## Notes
 
-- **Feature de producto.** Manda el PNG 04. Los estados sin maqueta van como propuestas C1–C15, que se aprueban antes de implementar (constitución VII).
+- **Feature de producto.** Manda el PNG 04. Los estados sin maqueta van como propuestas C1–C17, aprobadas antes de implementar (constitución VII): C1–C15 en el clarify y C16–C17 en el analyze.
 - **Contrato, no implementación:** la plantilla del prompt, la lectura de citas y la detección de la negativa son las del escritorio (F05). Forman parte del contrato de evaluación (constitución III). Los nombres de ficheros solo aparecen en «Fuentes» y en «Verificado al redactar».
 - **Clarify (2026-10-29):** cinco preguntas respondidas e integradas: citas en el texto (G11), chat durante una indexación (D-039), conversaciones guardadas, revisión de la plantilla (D-035) y menú «⋯» (G13). Sin valores por confirmar.

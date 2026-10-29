@@ -17,8 +17,8 @@ F11 sustituye el marcador de la pestaña Chat por el chat con fuentes del PNG 04
   5. guarda el texto cada segundo y al terminar;
   6. lee las citas y la negativa, y cierra el turno.
 - **Persistencia:** `chat.db` propio en `noBackupFilesDir/chat`, con conversaciones, turnos y fuentes. Al arrancar marca como interrumpidas las respuestas que quedaron a medias.
-- **Convivencia** (D-053): con una tanda de indexación en marcha, el chat espera y no carga Gemma. Si la tanda empieza durante una respuesta, la ingesta espera a que termine. Con la app oculta se cancela la respuesta y se libera Gemma.
-- **Pantalla** (`feature/chat`): fiel al PNG, con fichas de cita tocables dentro del texto, viñetas, «Fuentes consultadas», «⋯», copiar y detener. Incluye los estados C1–C15. El detalle de F08 se desplaza al fragmento citado.
+- **Convivencia** (D-053): con una tanda de indexación en marcha, el chat espera y no carga Gemma. Si la tanda empieza durante una respuesta, la ingesta espera a que termine. Con la app oculta, la respuesta queda interrumpida, con «Reintentar», y se libera Gemma (analyze).
+- **Pantalla** (`feature/chat`): fiel al PNG, con fichas de cita tocables dentro del texto, viñetas, «Fuentes consultadas», «⋯», copiar y detener. Incluye los estados C1–C17. El detalle de F08 se desplaza al fragmento citado.
 - **D-035:** el harness de escritorio evalúa dos variantes de la plantilla (`v3` y `v4`). Se adopta una solo si sube 2 puntos las respuestas correctas sin bajar los umbrales de negativa y citas.
 - **Medida:** primer token en el teléfono de referencia con el corpus de evaluación en un índice temporal. **Las pruebas en el teléfono van en la última fase.**
 
@@ -65,7 +65,11 @@ F11 sustituye el marcador de la pestaña Chat por el chat con fuentes del PNG 04
 
 **Performance Goals**:
 - **SC-004:** p95 del primer token ≤ 5 s de extremo a extremo, con Gemma cargada y los bloques de D-034.
-- **Estimación:** prefill con un prompt p95 de ≈ 2.000 tokens (4,53 s en el motor, 4,75 s de reloj, D-026) más la recuperación (≈ 0,2 s, D-052), ≈ 4,95 s. Con el prompt mediano de ≈ 1.500 tokens queda en ≈ 3,7 s.
+- **Estimación:**
+  - F02 midió 4,53 s en el motor y 4,75 s de reloj con 1.986 tokens (D-026), es decir, ≈ 450 tokens/s de prefill;
+  - la configuración elegida da prompts de 1.267 tokens de mediana y 1.630 en el p95 (F05, tokenizador real);
+  - con la recuperación (≈ 0,2 s, D-052), el p95 queda en ≈ 4,2 s y la mediana en ≈ 3,4 s;
+  - el peor caso, un prompt de ≈ 2.000 tokens, ronda los 5 s.
 - **Detener:** en menos de 1 s (SC-005).
 - **Sin bloques:** negativa en menos de 1 s (SC-012).
 
@@ -75,15 +79,15 @@ F11 sustituye el marcador de la pestaña Chat por el chat con fuentes del PNG 04
 - **Nunca dos motores en la GPU.** Gemma se libera durante la ingesta y al ocultarse la app (IV).
 - **Registros** solo con cifras, y nada en release (I).
 - **Capas:** `feature/chat` no importa `data`, SQLite, WorkManager, LiteRT ni `File` (II).
-- **UI:** el PNG manda; C1–C15 aprobadas; solo tokens y textos de recursos en español e inglés (VII).
+- **UI:** el PNG manda; C1–C17 aprobadas; solo tokens y textos de recursos en español e inglés (VII).
 
 **Scale/Scope**:
 - 2 algoritmos puros portados, con su golden;
 - 1 sesión, 1 motor, 1 repositorio y 10 casos de uso;
 - 1 base de datos nueva y 1 consulta agregada en el índice;
-- 1 pantalla con 6 disponibilidades y 9 estados de respuesta;
+- 1 pantalla con 7 disponibilidades y 9 estados de respuesta;
 - 5 cambios en el design system;
-- 1 cambio en el detalle de F08;
+- 2 cambios en el detalle de F08 (desplazamiento y menú compartido);
 - 1 comando, 2 variantes y 1 golden en el harness.
 
 ## Constitution Check
@@ -95,14 +99,14 @@ F11 sustituye el marcador de la pestaña Chat por el chat con fuentes del PNG 04
 | I. On-device y privacidad | Sin red ni permisos nuevos (`NetworkConfinementTest`). `chat.db` en `noBackupFilesDir` con `allowBackup=false`. Registros solo con cifras, comprobados con textos marcados (SC-010), y nada en release. Las pruebas usan índices temporales y el corpus público. El recorrido en el teléfono se acuerda antes con el usuario (R15) | ✅ |
 | II. Stack y arquitectura | `ChatScreen → ChatViewModel → casos de uso → ChatSession/ChatRepository/AnswerEngine → data/chat`. LiteRT solo en `rag/runtime/litert`; `androidx.sqlite` solo en `data/rag` (`data/chat` usa `RagConnection`). Regla nueva para `feature/chat` (U1). Sin dependencias nuevas; versiones verificadas y registradas | ✅ |
 | III. RAG según el informe | Fuentes numeradas, citas `[n]` y negativa explícita con la plantilla del informe (D-034), o con la variante que adopte la evaluación documentada (R4). Toda cita mostrada es un bloque real del contexto, con su `documentId` y su `chunkId`. Las citas fuera de rango se descartan (SC-001) | ✅ |
-| IV. Rendimiento | Inferencia y base de datos fuera del hilo principal, en sus hilos dedicados. Nunca dos motores en la GPU, con la puerta de la tanda (R7) y el coordinador. Gemma se libera durante la ingesta y al ocultarse la app (R8). Primer token medido (SC-004) | ✅ |
+| IV. Rendimiento | Inferencia y base de datos fuera del hilo principal, en sus hilos dedicados. `chat.db` tiene una sola conexión y usa el mismo hilo que el índice, así que nunca hay dos escrituras a la vez (ver Complexity Tracking). Nunca dos motores en la GPU, con la puerta de la tanda para preguntar, precargar y reintentar (R7, A2) y el coordinador. Gemma se libera durante la ingesta y al ocultarse la app (R8). Primer token medido (SC-004) | ✅ |
 | V. Veracidad del estado | La disponibilidad sale del estado real: modelos verificados, tanda y biblioteca. Nada se promete antes de comprobarlo. Las fuentes se resuelven contra el índice. No hay textos ni cifras de ejemplo fuera de previews y pruebas | ✅ |
 | VI. Calidad y pruebas | Pruebas unitarias del constructor de prompt, obligatorias, con paridad con Python (casos y golden). ViewModel con fakes. Instrumentadas de `chat.db` y de la consulta agregada. Medida en el teléfono con dispositivo y versiones | ✅ |
-| VII. UI fiel y accesible | PNG 04, con «MicroRAG» (D-014) y las propuestas C1–C15 aprobadas. Componentes `Lisdata*` y tokens. Accesibilidad: TalkBack, 48 dp, horizontal y fuente al 200 % (U2–U6). Diferencias con el PNG en el informe de cierre | ✅ |
-| VIII. Proceso | Documentación en español y código en inglés. D-053 (clarify) y D-054 (plan). Parada tras analyze. Pruebas en el teléfono al final | ✅ |
+| VII. UI fiel y accesible | PNG 04, con «MicroRAG» (D-014) y las propuestas C1–C17 y sus textos aprobados (clarify y analyze). Componentes `Lisdata*` y tokens. Accesibilidad: TalkBack, 48 dp, horizontal y fuente al 200 % (U2–U6). Diferencias con el PNG en el informe de cierre | ✅ |
+| VIII. Proceso | Documentación en español y código en inglés. D-053 (clarify), D-054 (plan) y D-055 (analyze). Parada tras analyze. Pruebas en el teléfono al final | ✅ |
 
 **Re-check post-diseño:** sin violaciones.
-- La puerta de la tanda (R7) y la cancelación al ocultarse la app (R8) aplican la constitución IV tal como está; D-053 descartó enmendarla.
+- La puerta de la tanda (R7) y la interrupción al ocultarse la app (R8) aplican la constitución IV tal como está; D-053 descartó enmendarla.
 - Las fichas de cita usan la excepción «inline» de los objetivos táctiles (R3). La fila de la lista es la vía de 48 dp a cada fuente, y las pruebas ATF lo comprueban.
 
 ## Project Structure
@@ -117,7 +121,7 @@ specs/011-chat-sources/
 ├── data-model.md                  # parámetros, dominio, chat.db, estado de la pantalla, contenido, golden
 ├── quickstart.md
 ├── contracts/
-│   ├── chat-api.md                # algoritmos, dominio, sesión (A1–A14), motor, repositorio, cambios
+│   ├── chat-api.md                # algoritmos, dominio, sesión (A1–A15), motor, repositorio, cambios
 │   ├── chat-ui.md                 # pantalla, estados, design system, textos, accesibilidad (U1–U12)
 │   └── eval-answer.md             # golden y revisión de la plantilla (G1–G12)
 ├── checklists/requirements.md
@@ -139,6 +143,7 @@ app/src/main/java/com/lisdatasolutions/microrag/
 │   ├── ChatRepository.kt, AnswerEngine.kt, ChatSession.kt
 │   └── ChatUseCases.kt                         # los 10 casos de uso
 ├── domain/rag/{RagIndex, RagModels, RagParameters}.kt   # chatLibraryState, ChatLibraryState, LLM_MAX_NUM_TOKENS
+├── MicroRagApplication.kt                      # registra los MemoryTrimListener de Koin
 ├── domain/di/DomainModule.kt
 ├── data/rag/{RagConnection, DefaultRagIndex}.kt          # open sin extensión; consulta agregada
 ├── data/models/AppDirs.kt                      # chat/
@@ -153,7 +158,7 @@ app/src/main/java/com/lisdatasolutions/microrag/
 │   └── component/{Chat, Rows, Chips, Menus, ChatPreviews}.kt   # tarjeta, fila, chip, LisdataOverflowMenu
 ├── core/navigation/{Destinations, NavigationActions, MicroRagNavHost}.kt   # ruta y destino del chat
 ├── feature/chat/
-│   ├── ChatRoute.kt, ChatScreen.kt, ChatViewModel.kt, ChatUiState.kt
+│   ├── ChatRoute.kt, ChatScreen.kt (con ChatActions), ChatViewModel.kt, ChatUiState.kt
 │   ├── AnswerFormatter.kt                      # R3
 │   └── ChatPreviewData.kt
 ├── feature/document/DocumentScreen.kt          # desplazar al fragmento citado; menú con LisdataOverflowMenu
@@ -167,13 +172,15 @@ app/src/test/java/com/lisdatasolutions/microrag/
 ├── data/chat/{DefaultChatSessionTest, ChatDuringIndexingTest, EngineAnswerEngineTest}.kt
 ├── domain/chat/{ObserveChatAvailabilityUseCaseTest, ResolveSourcesUseCaseTest}.kt
 ├── feature/chat/{ChatViewModelTest, AnswerFormatterTest, ChatScreenTest}.kt
-├── testing/ChatFakes.kt                        # repositorio en memoria, motor y recuperación programables
+├── testing/ChatFakes.kt                        # repositorio en memoria, motor, recuperación y disponibilidad programables
+├── testing/FakeRagIndex.kt                     # chatLibraryState
 └── (ampliadas) NavigationTest, DocumentScreenTest, EngineMemoryCallbacksTest, RagParametersTest, AppModulesTest, LayeringTest
 app/src/sharedTest/java/com/lisdatasolutions/microrag/rag/answer/AnswerGoldenFiles.kt
 app/src/androidTest/java/com/lisdatasolutions/microrag/
 ├── data/chat/SqliteChatRepositoryTest.kt
 ├── data/rag/RagIndexChatStateTest.kt
 ├── feature/chat/{ChatScreenAccessibilityTest, ChatScreenLayoutTest}.kt
+├── testing/CorpusIndex.kt                      # indexación del corpus, extraída de RetrievalParityTest
 └── data/chat/ChatBenchmarkTest.kt              # @RequiresModels
 
 offline/
@@ -229,11 +236,11 @@ Las pruebas en el teléfono van al final, como en F10.
    - consulta agregada del índice;
    - `MemoryTrimListener`.
 3. **Algoritmos puros y su paridad en la JVM:** `PromptBuilder` y `AnswerReading`, con sus casos y el golden.
-4. **Motor y sesión** (US1–US5): `EngineAnswerEngine` y `DefaultChatSession`, con los casos de uso, DI y sus pruebas JVM (A1–A14, convivencia y registro).
+4. **Motor y sesión** (US1–US5): `EngineAnswerEngine` y `DefaultChatSession`, con los casos de uso, DI y sus pruebas JVM (A1–A15, convivencia y registro).
 5. **Design system:** tarjeta con contenido, fila, chip, `LisdataOverflowMenu` (y el menú de F08 migrado) y previews.
 6. **Pantalla del chat** (US1–US7):
    - ruta y navegación;
-   - ViewModel, formateador y pantalla con los estados C1–C15;
+   - ViewModel, formateador y pantalla con los estados C1–C17;
    - pruebas Robolectric y de navegación;
    - desplazamiento del detalle de F08.
 7. **Emulador:**
@@ -255,8 +262,8 @@ Las pruebas en el teléfono van al final, como en F10.
    - las clases Unicode de `norm`.
 
    Un fallo se corrige en Kotlin; el harness es la referencia.
-2. **Una variante de la plantilla se adopta** (R4). El golden se genera después de la decisión, así que el port no cambia. Si la adopción altera mucho las respuestas de seguimiento, se repasa C12 con el usuario antes de seguir.
-3. **Primer token por encima de 5 s en el teléfono** (SC-004). La estimación con el prompt p95 da ≈ 4,95 s, en el borde. Si pasa, se para y se consulta (FR-045), por ejemplo con 3 bloques o un presupuesto menor, con su evaluación.
+2. **Una variante de la plantilla se adopta** (R4). El golden se genera después de la decisión, así que el port no cambia. Se avisa al usuario con las cifras y se sigue: el turno anterior (C12) ya es el del escritorio.
+3. **Primer token por encima de 5 s en el teléfono** (SC-004). La estimación con el prompt p95 da ≈ 4,2 s, pero las cifras de F02 son de una sola medida. Si pasa, se para y se consulta (FR-045), por ejemplo con 3 bloques o un presupuesto menor, con su evaluación.
 4. **Fichas de cita y accesibilidad** (R3). Si las comprobaciones ATF marcan los enlaces dentro del texto, se para y se consulta antes de cambiar la presentación aprobada (D-053).
 5. **Carreras con la ingesta** (R7). La puerta y la espera de `releaseGenerators()` se prueban en la JVM con el coordinador real antes de la pantalla.
 6. **Gemma en el emulador.** Probablemente no está preparada, porque la GPU no funciona en el emulador y Gemma en CPU es lenta. El camino completo con modelos se valida en la JVM con fakes y en el teléfono.
@@ -264,4 +271,6 @@ Las pruebas en el teléfono van al final, como en F10.
 
 ## Complexity Tracking
 
-Sin violaciones constitucionales que justificar.
+| Punto | Por qué | Alternativa más simple descartada |
+|---|---|---|
+| Segunda base de datos (`chat.db`) frente a «una sola conexión de escritura» (IV) | La regla busca que no haya escrituras simultáneas. `chat.db` es otro fichero con una sola conexión, y usa el mismo hilo único (`AppDispatchers.database`) que el índice: en toda la app hay como mucho una escritura a la vez | Tablas en `rag.db`: un índice incompatible o reconstruido bloquearía o borraría las conversaciones, y cada escritura del chat movería los contadores del índice (R9) |

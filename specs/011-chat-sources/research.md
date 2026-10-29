@@ -2,7 +2,7 @@
 
 Fecha: 2026-10-29. Todas las decisiones parten de:
 - el código actual (F01–F10);
-- la spec aclarada (D-053), con las propuestas de UI C1–C15 aprobadas;
+- la spec aclarada (D-053), con las propuestas de UI C1–C15 aprobadas, y las decisiones del analyze (D-055: C12 como el escritorio, la app oculta interrumpe, y C16–C17);
 - la referencia de escritorio de F05 (`offline/eval/`).
 
 No hay dependencias nuevas.
@@ -32,6 +32,8 @@ No hay dependencias nuevas.
 ## R2. Port exacto de la plantilla (`offline/eval/prompt.py`)
 
 **Decisión:** port literal a `rag/answer/PromptBuilder`, con todas las plantillas del harness (`informe`, `v2` y las variantes de R4). La activa la fija `RagParameters.PROMPT_TEMPLATE`.
+
+**Idioma (FR-014, G25):** `build(…, language: PromptLanguage = PromptLanguage.SPANISH)`. Hoy solo existe `SPANISH`, que da el texto idéntico al del escritorio. F12 añade los demás idiomas y su redacción, que necesitarán su propia evaluación.
 
 Detalles que el port respeta (verificados en `prompt.py`):
 
@@ -146,15 +148,15 @@ El resultado es un modelo del design system (`AnswerContent`, data-model §6): c
 
 **Método** (comando `run_eval.py template-review`):
 1. Genera las 426 respuestas de cada variante con la misma recuperación que la configuración elegida (`06ef519f`). Los seguimientos usan la respuesta anterior generada en la misma ejecución.
-2. **Criba automática.** Una variante pasa a la revisión manual solo si, con la regla automática:
-   - sube ≥ 1 punto las respuestas correctas;
-   - mantiene negativas ≥ 85 %;
-   - mantiene citas ≥ 90 %.
+2. **Criba automática**, comparada con «informe» con la misma regla automática. Esa regla es más estricta con las citas que el juicio manual: «informe» da 76,4 % de citas con la regla y 94,2 % a mano (`eval-report.md`). Una variante pasa a la revisión manual solo si:
+   - sube ≥ 1 punto las respuestas correctas de la regla (68,9 % → ≥ 69,9 %);
+   - mantiene negativas ≥ 85 %, una cifra exacta que coincide con el juicio manual;
+   - no baja más de 2 puntos las citas de la regla (≥ 74,4 %).
 3. **Revisión manual (método D-033):** el asistente juzga solo las respuestas que cambian frente a «informe», con los mismos criterios del CSV de F05. Las que no cambian heredan su veredicto. Los veredictos van a `offline/reports/template-review.csv`.
 4. **Adopción** (D-053):
    - respuestas correctas ≥ 80,4 % en el juicio manual (78,4 % + 2 puntos);
    - negativas ≥ 85 %;
-   - citas ≥ 90 %.
+   - citas ≥ 90 % en el juicio manual: las heredadas más las de las respuestas revisadas.
 
    Si las dos variantes cumplen, gana la de más correctas, y a igualdad la más corta.
 5. **Registro:** la sección «Revisión de la plantilla (D-035, F11)» del informe de evaluación y una decisión nueva.
@@ -203,24 +205,25 @@ Va antes del port: el `PromptBuilder` porta todas las plantillas, pero el golden
 **Decisión:** `DefaultChatSession` es un `single` de Koin que corre en el `ApplicationScope`. Solo hay una respuesta en curso en toda la app, porque solo cabe un LLM.
 
 `ask(conversationId?, question)` sigue estos pasos:
-1. **Comprueba** la disponibilidad (R11) y que la pregunta no esté vacía ni pase de 1.000 caracteres (R10). Si no se cumple, no hace nada; la pantalla nunca llega a pedirlo.
+1. **Comprueba** la disponibilidad (R11) y que la pregunta no esté vacía ni pase de 1.000 caracteres UTF-16 (R10). Si no se cumple, devuelve `null` sin hacer nada; la pantalla nunca llega a pedirlo.
 2. **Crea la conversación** si es la primera pregunta y devuelve su id enseguida. La pantalla lo guarda en su `SavedStateHandle`.
 3. **Inserta el turno** con la pregunta, el estado `RETRIEVING` y la marca de cobertura parcial del momento (R11).
 4. **Recuperación:** `RetrieveContextUseCase(question, previousQuestion)` según R10.
    - **`Blocks`:** sigue.
-   - **`NoResults`:** turno `COMPLETED` como negativa, sin llamar al modelo (FR-008, SC-012).
+   - **`NoResults`:** turno `COMPLETED` como negativa, sin llamar al modelo (FR-008, SC-012). Su respuesta en bruto es la frase del prompt (`PromptBuilder.REFUSAL`), para que el turno siguiente la lleve como el escritorio (R10).
    - **`IndexUnavailable`:** `FAILED` con la causa «índice» (C8).
    - **`ModelsNotReady`, `EmbeddingFailed` y `EmptyQuestion`:** `FAILED` con la causa «generación» (C7).
-5. **Prompt:** `PromptBuilder` con los bloques, el turno anterior (R10) y la plantilla activa. Si pasa del límite estimado, se quitan bloques del final (R10).
-6. **Generación:** pasa a `GENERATING`. El texto se acumula en memoria (`activeAnswer`, un `StateFlow`) y se guarda en `chat.db` como mucho una vez por segundo, y siempre al terminar.
+5. **Prompt:** `PromptBuilder` con los bloques, el turno anterior (R10), la plantilla activa y el idioma (español). Si pasa del límite estimado, se aplica la regla de R10.
+6. **Generación:** pasa a `GENERATING` al entregar el prompt al motor, porque desde ese momento el modelo está trabajando (prefill). El texto se acumula en memoria (`activeAnswer`, un `StateFlow`) y se guarda en `chat.db` como mucho una vez por segundo, y siempre al terminar.
 7. **Cierre:**
    - `AnswerReading` decide si es negativa y qué números cita;
    - se guardan las fuentes citadas: bloque, documento, primer fragmento, rango, nombre, página y orden de primera cita;
-   - el estado final es `COMPLETED`, `CANCELLED` (con su texto y sus fuentes) o `FAILED`.
+   - el estado final es `COMPLETED`, `CANCELLED` (con su texto y sus fuentes), `INTERRUPTED` (igual, con «Reintentar») o `FAILED`;
+   - si guardar falla (sin espacio), la respuesta queda en memoria marcada como no guardada, con la nota C16, hasta la siguiente pregunta.
 
 **Otras acciones:**
 - **`cancel()`:** cancela la tarea de la respuesta. El turno pasa a `CANCELLED` con lo recibido hasta entonces, y detener tarda menos de 1 s (SC-005).
-- **`retry(turnId)`:** repite la pregunta del turno en el mismo turno, con el turno anterior a él.
+- **`retry(turnId)`:** repite la pregunta del turno en el mismo turno, con el turno anterior a él. Tiene la misma puerta que `ask`: solo con la disponibilidad `Ready` y sin otra respuesta en curso. Con otra disponibilidad, la pantalla desactiva «Reintentar».
 - **Empezar otra conversación con una respuesta en curso** («Nuevo chat» en Inicio o en «⋯»): esa respuesta se cancela y queda «cancelada» con su texto parcial. Así nunca hay dos.
 - **Borrar** la conversación de la respuesta en curso la cancela primero (FR-004).
 
@@ -250,11 +253,11 @@ chat answer outcome=Completed follow_up=false blocks=4 cited=2 refusal=false pro
 - `EngineMemoryCallbacks` llama a `releaseUnheld()` con `TRIM_MEMORY_UI_HIDDEN` o superior, y con `onLowMemory`.
 - Esa llamada espera a que termine el bloque del LLM. Una respuesta en curso seguiría en segundo plano hasta 512 tokens, ≈ 58 s a 8,8 tokens/s.
 
-**Decisión: la app oculta cancela la respuesta.**
+**Decisión: la app oculta interrumpe la respuesta** (respuesta del usuario en el analyze).
 - Nueva interfaz `MemoryTrimListener` en `rag/runtime`, que implementa la sesión de chat.
 - `EngineMemoryCallbacks` avisa a sus listeners antes de liberar.
-- La sesión cancela la respuesta en curso, que queda `CANCELLED` con su texto parcial (caso límite de la spec), y después se libera Gemma (constitución IV).
-- Al volver a la app no se reanuda nada. «Reintentar» no aplica a una cancelada; el usuario puede volver a preguntar.
+- La sesión detiene la respuesta en curso, que queda `INTERRUPTED` con su texto parcial y «Reintentar» (C13), y después se libera Gemma (constitución IV).
+- Al volver a la app no se reanuda nada; el usuario puede reintentar.
 
 **Decisión: muerte del proceso.**
 - Al crearse, la sesión marca como `INTERRUPTED` los turnos que quedaron en `RETRIEVING` o `GENERATING` (C13, FR-028, SC-007), en una sola sentencia sobre `chat.db`. Un proceso nuevo no tiene ninguna respuesta en curso.
@@ -270,7 +273,7 @@ chat answer outcome=Completed follow_up=false blocks=4 cited=2 refusal=false pro
 
 - **`RagConnection.open(dbFile, extensionPath: String?)`:** con `null` no carga SQLite-Vector. Mantiene los mismos `PRAGMA` (`synchronous = NORMAL`, `temp_store = MEMORY`, `foreign_keys = ON`), WAL y `transaction`.
 - `data/chat` usa `RagConnection` sin importar `androidx.sqlite`, así que `LayeringTest` no cambia.
-- **Hilo:** `AppDispatchers.database`, el mismo hilo de un solo hilo que el índice (constitución IV). Durante una tanda no hay respuestas (R7), así que el chat no compite con sus escrituras.
+- **Hilo:** `AppDispatchers.database`, el mismo hilo único que el índice (constitución IV). Las dos bases de datos tienen una sola conexión cada una, y como comparten ese hilo nunca hay dos escrituras a la vez en la app. Con una tanda en marcha el chat no empieza respuestas; si una coincide con el inicio de una tanda (R7), sus escrituras se ordenan en el mismo hilo.
 - **Esquema v1** (data-model §3):
   - tablas `conversations`, `turns`, `sources` y `chat_meta` (`schema_version`);
   - borrado en cascada de los turnos y de sus fuentes.
@@ -289,39 +292,48 @@ chat answer outcome=Completed follow_up=false blocks=4 cited=2 refusal=false pro
 
 ## R10. Turno anterior, seguimiento y límite del prompt
 
-**Decisión: turno anterior (C12)**, sobre el último turno de la conversación antes del que se pregunta.
-- **Completado y no negativa:**
+**Decisión: turno anterior (C12, cambiada en el analyze)**, sobre el último turno de la conversación antes del que se pregunta.
+- **Completado, también si fue la negativa:**
   - la recuperación recibe su pregunta;
-  - el prompt recibe su pregunta y su respuesta en bruto, como el escritorio, que pasa la respuesta generada.
-- **Completado y negativa:** la recuperación recibe su pregunta y el prompt no lleva turno anterior.
-- **Cancelado, fallido o interrumpido:** sin turno anterior.
+  - el prompt recibe su pregunta y su respuesta en bruto, como el escritorio, que pasa la respuesta generada aunque sea la negativa.
+
+  F05 midió así 13 de sus 50 seguimientos (verificado en `06ef519f`). Un turno sin bloques guarda la frase de negativa del prompt como respuesta (R6), así que también entra.
+- **Cancelado, fallido o interrumpido:** sin turno anterior. El escritorio no tiene estos casos.
 
 **Decisión: límite del prompt** (FR-015).
 - **Estimación:** tokens estimados = ⌈caracteres / `CHARS_PER_TOKEN`⌉ (4,554), la misma estimación que el presupuesto de bloques.
-- **Si pasa de `PROMPT_LIMIT_TOKENS`** (2.000), se quita el último bloque y se reconstruye, hasta caber o quedarse sin bloques. Si no queda ninguno, se responde con la negativa (FR-008).
+- **Si pasa de `PROMPT_LIMIT_TOKENS`** (2.000), se reconstruye quitando, uno a uno:
+  1. el bloque **peor clasificado**, mientras quede más de uno. La clasificación de un bloque es el mejor rango fusionado de sus fragmentos (`RetrievalOutcome.Blocks.candidates`). Los bloques que quedan conservan su orden por documento y ordinal;
+  2. después, el turno anterior.
+- **Nunca se queda sin bloques por el límite:** el último bloque no se quita, para no responder con una negativa engañosa (constitución V). En el peor caso, con una pregunta de 1.000 caracteres (≈ 220 tokens), la cabecera (≈ 100) y un solo bloque del presupuesto de D-034 (≤ 1.719), el prompt estimado ronda 2.050 tokens. Eso queda muy lejos del contexto del motor: 4.096 tokens, con 512 de respuesta.
 - **Frecuencia:** el presupuesto de 1.719 tokens de D-034 ya deja sitio a la cabecera, 4 cabeceras de bloque y una pregunta de ≈ 40 tokens (`pipeline.budget_tokens`). Solo se recorta con preguntas largas o turnos anteriores largos. Los recortes se registran (`dropped_blocks`).
 
 **Decisión: pregunta de 1.000 caracteres como máximo** (constante `ChatLimits.MAX_QUESTION_CHARS`).
-- Son ≈ 220 tokens.
-- El compositor no admite más: un texto pegado se corta en ese límite.
+- Se cuentan como `String.length` (UTF-16) en el compositor y en la sesión, la misma unidad en los dos sitios. Son ≈ 220 tokens.
+- El compositor no admite más: un texto pegado se corta en ese límite, sin partir un emoji (se corta antes de un par sustituto).
+- La sesión no falla con una pregunta más larga: devuelve `null` (contrato A3).
 - El embedding de la consulta ya recorta su propia entrada larga (F10, regla de D-036).
 
 ## R11. Disponibilidad del chat
 
-**Decisión:** `ObserveChatAvailabilityUseCase` combina tres fuentes y da la primera situación que aplica, en este orden.
+**Decisión:** `ObserveChatAvailabilityUseCase` combina cuatro fuentes y da la primera situación que aplica, en este orden.
 
 **Fuentes:**
+- las conversaciones guardadas: el estado de `chat.db`;
 - los modelos: `ObserveLocalAiUseCase` y el backend preparado de Gemma;
 - la tanda: `ObserveIndexingUseCase`;
 - la biblioteca: una consulta nueva de `RagIndex`.
 
 **Situaciones:**
-1. `ModelsNotReady`: falta un modelo, no está verificado o no está preparado (C5).
-2. `IndexUnavailable`: el índice no se puede abrir (C8, con «Reintentar»).
-3. `EmptyLibrary`: no hay documentos (C3).
-4. `WaitingForIndexing`: hay una tanda en marcha (C14).
-5. `NothingReady`: hay documentos, pero ninguno indexado e incluido (C4).
-6. `Ready(cpuMode, partialCoverage)`:
+1. `StorageUnavailable`: `chat.db` no se puede abrir, porque está dañado o es de una versión más nueva (C17). No se borra nada.
+2. `ModelsNotReady`: falta un modelo, no está verificado o no está preparado (C5).
+3. `IndexUnavailable`: `RagIndex.open()` no da `Compatible`, o la consulta lanza `IndexUnavailableException` (C8).
+   - Su «Reintentar» sube un contador de reintentos que vuelve a lanzar la comprobación, como el de Inicio (`summaryRetries`).
+   - Si el índice falla durante una pregunta, el turno queda `FAILED(INDEX)` y su «Reintentar» repite la pregunta.
+4. `EmptyLibrary`: no hay documentos (C3).
+5. `WaitingForIndexing`: hay una tanda en marcha (C14).
+6. `NothingReady`: hay documentos, pero ninguno indexado e incluido (C4).
+7. `Ready(cpuMode, partialCoverage)`:
    - `cpuMode` si Gemma está preparada en CPU (C9);
    - `partialCoverage` si hay documentos incluidos que no están en `done` ni en error (C6).
 
@@ -333,7 +345,7 @@ chat answer outcome=Completed follow_up=false blocks=4 cited=2 refusal=false pro
 Se observa con `documentChanges`, como `LibraryRepository.summary()`.
 
 **Detalles:**
-- **Presentación:** con turnos en la conversación, las situaciones 1–5 se muestran como un aviso sobre el compositor desactivado y la conversación sigue visible. Sin turnos, ocupan la pantalla como estado vacío (contrato de UI).
+- **Presentación:** con turnos en la conversación, las situaciones 1–6 se muestran como un aviso sobre el compositor desactivado y la conversación sigue visible. Sin turnos, ocupan la pantalla como estado vacío (contrato de UI). Con `StorageUnavailable` no hay conversación que mostrar.
 - **Precarga:** solo en `Ready`. Se repite al volver a la pantalla (`ON_START`), porque Gemma se libera al ocultarse la app.
 - **Error de los documentos:** no cuenta como cobertura parcial. El usuario ya lo ve en la Biblioteca, y la respuesta no lo puede arreglar.
 
@@ -360,10 +372,13 @@ El documento excluido de la búsqueda sigue abriéndose: excluir no borra (const
 **Decisión: la ruta distingue «Nuevo chat» de la pestaña.**
 - `Chat(conversationId: Long? = null, newConversation: Boolean = false)`.
 - `openNewChat()` navega a `Chat(newConversation = true)` y la pestaña sigue en `Chat()`.
-- **El ViewModel resuelve:**
-  - con un id, abre esa conversación;
-  - con `newConversation`, una vacía;
-  - si no, la última (la de la pregunta más reciente) o una vacía.
+- **El ViewModel resuelve, en este orden:**
+  1. el id guardado en su `SavedStateHandle` (la conversación activa de esa entrada, también tras recrear o tras la muerte del proceso);
+  2. el `conversationId` de la ruta;
+  3. con `newConversation`, una vacía;
+  4. si no, la última (la de la pregunta más reciente) o una vacía.
+
+  Así, una entrada abierta con «Nuevo chat» en la que ya se preguntó vuelve a su conversación al restaurarse, y no a una vacía.
 
   La conversación activa se guarda en su `SavedStateHandle`, y sobrevive a la recreación y a la muerte del proceso.
 - **«Nuevo chat» desde «⋯»:** lo resuelve el ViewModel, sin navegar. Volver a navegar al mismo destino reutilizaría la entrada sin refrescar sus argumentos.
@@ -373,7 +388,7 @@ El documento excluido de la búsqueda sigue abriéndose: excluir no borra (const
 - La lista es un `LazyColumn` con su `rememberLazyListState` en la ruta. Como la entrada del chat queda bajo la del documento, al volver conserva su posición (SC-006).
 - Durante el streaming, la lista sigue el final si el usuario estaba al final, y no se mueve si se había desplazado hacia arriba.
 
-**Decisión: el detalle se desplaza al fragmento citado** (FR-005). Es el único cambio en F08.
+**Decisión: el detalle se desplaza al fragmento citado** (FR-005). Es uno de los dos cambios en F08; el otro es que su menú «⋯» pasa a `LisdataOverflowMenu` (R1).
 - `PreviewCard` pone un `BringIntoViewRequester` en el texto resaltado.
 - Un `LaunchedEffect` lo pide en cuanto la vista previa resaltada está cargada.
 - Una marca `rememberSaveable` evita repetirlo tras rotar o volver.
@@ -388,7 +403,7 @@ El documento excluido de la búsqueda sigue abriéndose: excluir no borra (const
 
 **Decisión:**
 - **API:** `LocalClipboard.current.setClipEntry(ClipEntry(ClipData.newPlainText(label, texto)))` desde una corrutina. `LocalClipboardManager` está obsoleto; se verificó que Compose UI 1.12.1 exporta `LocalClipboard` y `ClipEntry`.
-- **Contenido (C10):** el texto mostrado, con las fichas como `[1]`, `[2]`, una línea vacía y la lista de fuentes («[1] Manual de procesos.pdf, página 12»).
+- **Contenido (C10):** el texto mostrado, con las fichas como `[1]`, `[2]`, una línea vacía y la lista de fuentes («[1] Manual de procesos.pdf, página 12», o sin la página si no la tiene). En una negativa se copia el texto mostrado (el del MD, localizado), sin fuentes. Las líneas de fuente usan textos de recursos (`chat_copy_source`, `chat_copy_source_no_page`).
 - **Confirmación:**
   - en Android 12 (API 31–32), el pie de la tarjeta muestra «Respuesta copiada» durante 2 s y se anuncia con TalkBack;
   - desde Android 13 lo confirma el sistema.
@@ -397,7 +412,9 @@ El documento excluido de la búsqueda sigue abriéndose: excluir no borra (const
 
 **Decisión: `ChatBenchmarkTest`** (`androidTest`, `@RequiresModels`), sobre la sesión real sin pantalla.
 - **Índice:** el corpus de evaluación en un índice temporal, con la infraestructura de `RetrievalParityTest` de F10. Nunca toca la biblioteca del usuario.
-- **Preguntas:** las 50 de `retrieval_parity.jsonl`, en orden, con los seguimientos usando la respuesta generada en el teléfono.
+- **Preguntas:** las 50 de `retrieval_parity.jsonl`, cada una en una conversación nueva.
+  - Para cada uno de los 10 seguimientos se hace primero su pregunta anterior (el texto `previous` de la muestra), sin medirla, y después el seguimiento, que sí se mide con la respuesta anterior generada en el teléfono.
+  - Así cuentan 50 medidas, y 9 de las 10 preguntas anteriores, que no están en la muestra, no entran en las cifras.
 - **Primer token:** desde `ask()` hasta el primer `Token`. Incluye la recuperación, el prompt y el prefill. Gemma está precargada, y la primera pregunta se mide aparte con Gemma sin cargar.
 - **Registro** (solo cifras):
   - mediana y p95 del primer token;

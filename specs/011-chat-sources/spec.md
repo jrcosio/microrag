@@ -84,7 +84,7 @@
 - **Persistencia:** no existe nada del chat. Solo el índice RAG y las preferencias (tanda de indexación, onboarding).
 - **Detalle del documento:** abre un fragmento citado y lo resalta (D-043), pero no se desplaza hasta él; queda debajo de la cabecera, las cifras y el interruptor. Si el fragmento ya no existe, muestra el primero con un aviso (F08, D7).
 - **Escritorio (F05, D-034 y D-035):**
-  - prompt de 1.512 tokens de mediana y 1.994 en el p95, con 4 bloques;
+  - con la configuración elegida (4 bloques sin vecinos), prompt de 1.267 tokens de mediana y 1.630 en el p95;
   - 78,4 % de respuestas correctas, 96,4 % de negativas correctas y 94,2 % de citas correctas;
   - 11 negativas indebidas y 33 respuestas incorrectas o incompletas con el fragmento relevante en el contexto.
 - **Primer token** (F02, D-026): 4,53 s en el motor y 4,75 s de reloj con 1.986 tokens en la GPU del teléfono de referencia. Arranque de Gemma con la caché del motor: ≈ 5,4 s. La recuperación de F10 añade ≈ 0,2 s (D-052).
@@ -102,6 +102,12 @@
 - Q: ¿Qué se guarda de las conversaciones y qué abre la pestaña Chat? → A: Se guardan en el teléfono, sin copia de seguridad, todas las conversaciones con sus mensajes, estados y fuentes. La pestaña Chat abre la última, también tras cerrar la app, y «Nuevo chat» empieza otra. Las anteriores quedan guardadas para el historial de F13.
 - Q: ¿Hasta dónde se trabaja la plantilla del prompt en F11 (D-035)? → A: Se evalúa en el harness de escritorio, como D-051 en F10. Se prueban 1 o 2 variantes con las mismas preguntas; se juzgan con la regla automática y se revisan las respuestas que cambian (método D-033). Se adopta una variante solo si sube ≥ 2 puntos las respuestas correctas sin bajar de 85 % en negativas ni de 90 % en citas, con una D nueva. Si no, se queda la plantilla «informe».
 - Q: ¿Qué opciones tiene el menú «⋯» (G13)? → A: «Nuevo chat» y «Borrar conversación», con confirmación; tras borrar se abre un chat vacío. «Historial» se añade con F13.
+
+### Session 2026-10-29 (analyze)
+
+- Q: Si la respuesta anterior fue la negativa, ¿qué recibe el modelo en la siguiente pregunta? → A: Como el escritorio: el turno completo, pregunta y frase de negativa (F05 midió así 13 de los 50 seguimientos). Sustituye a la versión aprobada de C12.
+- Q: ¿Qué pasa con una respuesta en curso si la app pasa a segundo plano? → A: Se detiene y queda como «La respuesta se interrumpió», con su texto parcial y «Reintentar» (C13), y después se libera Gemma. Detener a mano sigue siendo «Generación cancelada», sin reintentar.
+- Q: ¿Se aprueban los textos nuevos que no estaban en C1–C15? → A: Sí. Son el texto de C5, las frases de TalkBack, los avisos «Respuesta completa» y «Conversación borrada», y las propuestas C16 y C17.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -185,8 +191,9 @@ El usuario puede seguir la conversación con preguntas cortas o encadenadas («�
 
 1. **Given** una conversación con una pregunta respondida, **When** el usuario envía otra, **Then** la búsqueda recibe la pregunta anterior y aplica la regla de seguimiento de F10.
 2. **Given** un turno anterior, **When** se construye el prompt, **Then** incluye «CONVERSACIÓN PREVIA», con la pregunta anterior recortada a 300 caracteres y la respuesta anterior a 500, como el escritorio.
-3. **Given** un turno anterior que terminó en negativa, cancelado o con error, **When** se envía la siguiente pregunta, **Then** el turno anterior se usa con la regla de la propuesta C12.
-4. **Given** una conversación nueva, **When** se envía la primera pregunta, **Then** no hay turno anterior.
+3. **Given** un turno anterior que terminó en negativa, **When** se envía la siguiente pregunta, **Then** el turno anterior entra completo, con la frase de negativa, como en el escritorio (C12).
+4. **Given** un turno anterior cancelado, fallido o interrumpido, **When** se envía la siguiente pregunta, **Then** no hay turno anterior (C12).
+5. **Given** una conversación nueva, **When** se envía la primera pregunta, **Then** no hay turno anterior.
 
 ---
 
@@ -232,7 +239,7 @@ Mientras una tanda de indexación está en marcha, el chat espera a que termine,
 1. **Given** un modelo ausente, sin verificar o sin preparar, **When** se abre el chat, **Then** se ve el bloqueo de modelo ausente con acceso a la Preparación, y el compositor no envía (propuesta C5).
 2. **Given** una biblioteca sin documentos, **When** se abre el chat, **Then** se ve el estado vacío con «Importar documentos», que abre la importación (propuesta C3).
 3. **Given** documentos importados, pero ninguno indexado e incluido, y ninguna tanda en marcha, **When** se abre el chat, **Then** se ve el aviso de que no hay documentos listos, con acceso al Estado de indexación (propuesta C4).
-4. **Given** el índice no disponible, **When** se envía una pregunta, **Then** la tarjeta muestra el error de índice con «Reintentar» (propuesta C8).
+4. **Given** el índice no disponible al abrir el chat, **When** se muestra, **Then** se ve el error de índice con «Reintentar», que vuelve a comprobarlo (propuesta C8). Si el índice falla durante una pregunta, la tarjeta de esa respuesta muestra el mismo error con «Reintentar».
 5. **Given** documentos incluidos pendientes de indexar o en indexación, **When** termina una respuesta, **Then** lleva el aviso de cobertura parcial (propuesta C6).
 6. **Given** Gemma preparada solo en CPU (D-027), **When** se abre el chat, **Then** el subtítulo avisa del modo CPU (propuesta C9).
 7. **Given** una tanda de indexación en marcha, **When** se abre el chat, **Then** se ve el aviso de espera con acceso al Estado de indexación, el compositor no envía y Gemma no se carga (propuesta C14).
@@ -295,10 +302,10 @@ Quien desarrolla evalúa en el harness de escritorio si 1 o 2 variantes de la pl
 
 ### Edge Cases
 
-- **Pregunta muy larga:** el compositor limita la longitud. El prompt nunca pasa de su límite: si la pregunta y el turno anterior ocupan más, entran menos bloques, y el texto de un bloque nunca se corta.
+- **Pregunta muy larga:** el compositor limita la longitud. Si el prompt pasa de su límite, se quitan primero los bloques peor clasificados y después el turno anterior. El texto de un bloque nunca se corta, y nunca se quita el último (FR-015).
 - **Pregunta enviada antes de que Gemma esté cargada:** la respuesta espera dentro de «Buscando en documentos...» o «Generando respuesta...», sin fallar. El tiempo de carga cuenta en el primer token y se informa aparte.
 - **Dos envíos seguidos:** mientras hay una respuesta en curso no se puede enviar otra; el botón es detener.
-- **Salir del chat a mitad de una respuesta** (otra pestaña o una cita): la respuesta sigue y se ve al volver. Si la app pasa a segundo plano y el sistema libera el motor, la respuesta queda cancelada con su texto parcial.
+- **Salir del chat a mitad de una respuesta** (otra pestaña o una cita): la respuesta sigue y se ve al volver. Si la app pasa a segundo plano, la respuesta se detiene y queda interrumpida, con su texto parcial y «Reintentar» (C13).
 - **Rotar o cambiar el tema durante una respuesta:** la respuesta sigue sin reiniciarse.
 - **Formato de citas inesperado del modelo** (`[1][2]`, `[1, 3]`, `[ 2 ]`, `[Fuente 1]`): se interpretan los mismos formatos que en el escritorio y el resto se deja como texto. Una cita fuera de rango nunca produce una fuente.
 - **Respuesta que solo contiene la negativa con comillas o puntuación distinta:** se reconoce con la misma normalización que el escritorio.
@@ -308,11 +315,12 @@ Quien desarrolla evalúa en el harness de escritorio si 1 o 2 variantes de la pl
 - **Bloque que abarca varios fragmentos consecutivos:** la fila muestra su rango y abre el primero (propuesta C11).
 - **Documento excluido de la búsqueda después de citarlo:** la cita sigue abriendo el documento.
 - **Documento borrado mientras se genera una respuesta que lo usa:** al terminar, su fuente aparece como «Fuente ya no disponible».
-- **Memoria baja durante una respuesta:** si el sistema obliga a liberar el motor, la respuesta queda cancelada con su texto parcial y se puede reintentar.
+- **Memoria baja durante una respuesta:** si el sistema obliga a liberar el motor, la respuesta queda interrumpida con su texto parcial y se puede reintentar (C13).
 - **Fallo del motor en la GPU durante una respuesta:** error con «Reintentar». No se cambia de backend en silencio.
 - **Indexación que empieza o se reanuda con el chat abierto:** la respuesta en curso termina primero; después el chat pasa al aviso de espera (FR-030).
 - **Tanda en pausa** (por el usuario, la temperatura o el sistema): el chat funciona con los documentos ya listos y la respuesta lleva el aviso de cobertura parcial.
-- **Sin espacio en disco al guardar un mensaje:** la respuesta se muestra igualmente y se avisa de que no se ha podido guardar.
+- **Sin espacio en disco al guardar un mensaje:** la respuesta se muestra igualmente con la nota de C16.
+- **Conversaciones guardadas ilegibles** (fichero dañado o de una versión más nueva de la app): el chat muestra C17 y no pregunta. No se borra nada.
 - **Respuesta vacía del modelo:** se trata como un fallo con «Reintentar».
 - **Respuesta que llega al límite de tokens de salida:** se muestra completa hasta ahí, como respuesta terminada.
 
@@ -336,16 +344,17 @@ Quien desarrolla evalúa en el harness de escritorio si 1 o 2 variantes de la pl
 **Flujo de una pregunta**
 
 - **FR-006**: Cada respuesta MUST pasar por estados distintos:
-  - buscando («Buscando en documentos...»);
-  - generando («Generando respuesta...», con el texto según llega);
+  - buscando («Buscando en documentos...»), mientras se recupera el contexto;
+  - generando («Generando respuesta...»), desde que el modelo recibe el prompt, con el texto según llega;
   - completada;
-  - cancelada (con su texto parcial y la marca «Generación cancelada»);
-  - fallida (con «Reintentar»).
+  - cancelada por el usuario (con su texto parcial y la marca «Generación cancelada»);
+  - fallida (con «Reintentar»);
+  - interrumpida (con su texto parcial, «La respuesta se interrumpió» y «Reintentar», C13).
 - **FR-007**: La búsqueda MUST usar la recuperación de F10 con la pregunta actual y, si existe, la pregunta anterior, para que se aplique su regla de seguimiento.
 - **FR-008**: Si la búsqueda no devuelve ningún bloque, el modelo MUST NOT ejecutarse y la respuesta MUST ser la negativa (FR-016).
 - **FR-009**: Mientras hay una respuesta en curso, el compositor MUST mostrar detener en lugar de enviar (G12) y MUST NOT aceptar otra pregunta.
 - **FR-010**: Cada pregunta MUST generarse en una conversación nueva del motor. La continuidad la dan el turno anterior recortado del prompt (FR-013) y la regla de seguimiento (FR-007).
-- **FR-011**: Una respuesta en curso MUST seguir al salir del chat dentro de la app (otra pestaña, una cita) y al rotar. MUST quedar cancelada con su texto parcial si el sistema obliga a liberar el motor.
+- **FR-011**: Una respuesta en curso MUST seguir al salir del chat dentro de la app (otra pestaña, una cita) y al rotar. Si la app pasa a segundo plano o el sistema obliga a liberar el motor, MUST detenerse y quedar interrumpida, con su texto parcial y «Reintentar» (C13), y Gemma MUST liberarse después (constitución IV).
 
 **Prompt**
 
@@ -357,8 +366,8 @@ Quien desarrolla evalúa en el harness de escritorio si 1 o 2 variantes de la pl
 
   MUST dar el mismo texto, carácter a carácter, que el escritorio para las mismas entradas.
 - **FR-013**: El turno anterior MUST incluir la pregunta anterior recortada a 300 caracteres y la respuesta anterior a 500, con la cabecera «CONVERSACIÓN PREVIA (solo como contexto de la pregunta):».
-- **FR-014**: El idioma de la respuesta MUST ser un parámetro del prompt, con español por defecto (G25). El selector es de F12.
-- **FR-015**: El prompt MUST NOT superar su límite (≈ 2.000 tokens estimados en el p95, D-034). Si la pregunta y el turno anterior ocupan más de lo previsto, MUST entrar menos bloques. El texto de un bloque MUST NOT cortarse.
+- **FR-014**: El idioma de la respuesta MUST ser un parámetro del prompt, con español por defecto (G25). Con español, el prompt MUST ser idéntico al del escritorio. F12 añade el selector y los demás idiomas.
+- **FR-015**: Cada prompt MUST quedar dentro de 2.000 tokens estimados (D-034). Si los supera, MUST quitarse primero el bloque peor clasificado por la búsqueda, uno a uno, mientras quede más de uno, y después el turno anterior. El texto de un bloque MUST NOT cortarse y el último bloque MUST NOT quitarse. Con una pregunta de 1.000 caracteres y un bloque del presupuesto de D-034, el prompt sigue muy por debajo del contexto del motor.
 
 **Citas y negativa**
 
@@ -381,6 +390,7 @@ Quien desarrolla evalúa en el harness de escritorio si 1 o 2 variantes de la pl
 - **FR-026**: Las conversaciones MUST guardarse en el almacenamiento privado de la app, sin copia de seguridad (constitución I). Cada una con sus mensajes, en orden: pregunta, respuesta, estado, fecha y citas (documento, fragmento, nombre del documento, página y número de fragmento). Todas las conversaciones con mensajes MUST conservarse para el historial de F13; F11 no las borra salvo por una acción del usuario.
 - **FR-027**: Una cita guardada MUST seguir mostrándose aunque su documento se borre después, como «Fuente ya no disponible», inerte. Si el documento existe pero el fragmento no, MUST abrir el documento con el aviso de F08.
 - **FR-028**: Al abrir una conversación, ninguna respuesta MUST quedar en «buscando» ni en «generando». Las que se quedaron así por la muerte del proceso MUST mostrarse como interrumpidas (propuesta C13).
+- **FR-028b**: Si una respuesta no se puede guardar, MUST mostrarse igualmente con la nota de C16. Si las conversaciones guardadas no se pueden abrir, el chat MUST mostrar C17, no aceptar preguntas y no borrar nada (constitución V).
 - **FR-029**: Una conversación sin mensajes MUST NOT guardarse.
 
 **Motor y convivencia con la indexación**
@@ -396,7 +406,7 @@ Quien desarrolla evalúa en el harness de escritorio si 1 o 2 variantes de la pl
 - **FR-035**: Con la biblioteca vacía, MUST mostrarse el estado vacío con «Importar documentos», que abre la importación (propuesta C3).
 - **FR-036**: Con documentos, pero ninguno indexado e incluido, y sin una tanda en marcha, MUST mostrarse el aviso de que no hay documentos listos, con acceso al Estado de indexación (propuesta C4).
 - **FR-037**: Si en el momento de la pregunta hay documentos incluidos pendientes de indexar o en indexación, la respuesta MUST llevar el aviso de cobertura parcial (propuesta C6).
-- **FR-038**: Con el índice no disponible, la respuesta MUST mostrar el error de índice con «Reintentar» (propuesta C8).
+- **FR-038**: Con el índice no disponible, MUST mostrarse el error de índice con «Reintentar» (propuesta C8): en la pantalla, si ya se sabe al abrirla, y en la tarjeta, si falla durante una pregunta. «Reintentar» vuelve a comprobar el índice o repite la pregunta.
 
 **Accesibilidad, idioma, privacidad y rendimiento**
 
@@ -462,17 +472,22 @@ Quien desarrolla evalúa en el harness de escritorio si 1 o 2 variantes de la pl
   - **C2 — Respuesta sin citas válidas:** se muestra el texto y, en lugar de las fuentes, «Esta respuesta no cita ninguna fuente de tus documentos.».
   - **C3 — Biblioteca vacía:** estado vacío «Aún no hay documentos», «Importa documentos para poder preguntarles.» y «Importar documentos». Compositor desactivado.
   - **C4 — Sin documentos listos** (sin tanda en marcha): «Aún no hay documentos listos para preguntar» con «Ver indexación». Compositor desactivado.
-  - **C5 — Modelos no listos:** el bloqueo de modelo ausente de F01 con acceso a la Preparación (D-046). Compositor desactivado.
+  - **C5 — Modelos no listos:** el bloqueo de modelo ausente de F01, con «Configuración pendiente», «Completa la preparación de los modelos para poder preguntar a tus documentos.» y «Completar configuración», que abre la Preparación (D-046). Compositor desactivado.
   - **C6 — Cobertura parcial:** bajo la respuesta, «Algunos documentos aún no están indexados: esta respuesta solo usa los que ya están listos.».
   - **C7 — Error:** la tarjeta en estado de error con el texto de F01 «No se pudo generar la respuesta» y «Reintentar».
   - **C8 — Índice no disponible:** «No se puede abrir el índice de documentos» con «Reintentar».
   - **C9 — Modo CPU:** el subtítulo pasa a «● Gemma 4 · Modo CPU, más lento», con el punto en color de aviso.
   - **C10 — Copiar:** se copia el texto de la respuesta y, debajo, la lista de fuentes citadas («[n] Documento, página N»). En Android 12 o anterior se confirma con «Respuesta copiada»; desde Android 13 lo confirma el sistema.
   - **C11 — Bloque de varios fragmentos:** la fila dice «Página 12 · Fragmentos 86–87» y abre el primero resaltado.
-  - **C12 — Turno anterior:** solo cuenta un turno completado con respuesta que no sea la negativa. Si el último terminó en negativa, se usa solo su pregunta para el seguimiento. Si se canceló o falló, no hay turno anterior.
-  - **C13 — Respuesta interrumpida:** tras la muerte del proceso, la respuesta muestra su texto parcial y «La respuesta se interrumpió», con «Reintentar».
+  - **C12 — Turno anterior** (cambiada en el analyze): cuenta un turno completado, también si fue la negativa, con su pregunta y su respuesta tal como las dio el modelo, igual que el escritorio. Si se canceló, falló o se interrumpió, no hay turno anterior.
+  - **C13 — Respuesta interrumpida:** tras la muerte del proceso, al pasar la app a segundo plano o si el sistema libera el motor, la respuesta muestra su texto parcial y «La respuesta se interrumpió», con «Reintentar».
   - **C14 — Espera a la indexación:** la conversación sigue visible, y sus fuentes se pueden abrir. Sobre el compositor desactivado aparece el aviso «Se están indexando tus documentos. Podrás preguntar cuando termine la indexación o si la pausas.» con «Ver indexación».
   - **C15 — Borrar conversación:** diálogo «¿Borrar esta conversación?», «Se eliminarán sus preguntas y respuestas de este teléfono.», con «Cancelar» (foco por defecto) y «Borrar».
+  - **C16 — Respuesta sin guardar:** bajo la respuesta, la nota «No se ha podido guardar esta respuesta en el teléfono.».
+  - **C17 — Conversaciones ilegibles:** estado «No se pueden abrir tus conversaciones guardadas.», con el compositor desactivado y sin borrar nada.
+  - **Frases y avisos para TalkBack:**
+    - la burbuja se lee como «Tú: …» y la respuesta como «MicroRAG: …»;
+    - los avisos son «Buscando en documentos», «Generando respuesta», «Respuesta completa», «Generación cancelada», «La respuesta se interrumpió», «No se pudo generar la respuesta» y «Conversación borrada».
 - **Fuente y fragmento:** una cita apunta al bloque `[n]` del prompt. Si el bloque abarca varios fragmentos consecutivos, abre el primero (D-043: las citas apuntan a fragmentos enteros).
 - **Idioma:** el prompt va en español por defecto aunque la app esté en inglés. F12 añade el selector de idioma de la respuesta y «Automático» (G25). Los textos de la pantalla siguen el idioma de la app (D-029).
 - **Límite de la pregunta:** el compositor limita la longitud de la pregunta para respetar el límite del prompt. El valor lo fija el plan.

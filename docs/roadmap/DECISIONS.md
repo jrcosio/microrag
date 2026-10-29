@@ -1042,9 +1042,9 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
      - tablas de conversaciones, turnos (pregunta y respuesta en bruto) y fuentes citadas;
      - abierto con la misma conexión empaquetada del índice, sin SQLite-Vector;
      - al arrancar, las respuestas a medias pasan a «interrumpidas».
-  5. **App oculta:** la sesión cancela la respuesta en curso (queda «cancelada» con su texto) antes de que se libere Gemma. Un aviso nuevo de `EngineMemoryCallbacks` lo hace posible.
+  5. **App oculta:** la sesión detiene la respuesta en curso antes de que se libere Gemma. Un aviso nuevo de `EngineMemoryCallbacks` lo hace posible. D-055 fija que queda «interrumpida», con «Reintentar».
   6. **Puerta de la indexación** (D-053): con la tanda en marcha, el chat no precarga ni pregunta. Si la tanda empieza durante una respuesta, la ingesta espera a que termine, porque el coordinador no cancela el bloque en curso.
-  7. **Límite del prompt:** estimación por caracteres. Si pasa de 2.000 tokens, se quitan bloques del final. La pregunta admite como máximo 1.000 caracteres.
+  7. **Límite del prompt:** estimación por caracteres. Si pasa de 2.000 tokens, se quitan bloques (el orden lo fija D-055). La pregunta admite como máximo 1.000 caracteres.
   8. **Citas en pantalla:**
      - fichas dentro del texto como enlaces accesibles, con el estilo del chip de cifras;
      - la fila de «Fuentes consultadas» es la vía de 48 dp a la misma fuente;
@@ -1078,6 +1078,45 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
   - F12: `deleteAll()` para borrar el historial;
   - F13: historial sobre `chat.db`;
   - F14: primer token medido.
+
+---
+
+## D-055 — Ajustes del analyze de F11
+
+- **Fecha:** 2026-10-29
+- **Decisión** (respuestas del usuario):
+  1. **Turno anterior tras una negativa (C12 cambiada):** entra completo, pregunta y frase de negativa, como en el escritorio. F05 midió así 13 de sus 50 seguimientos. Una pregunta sin bloques guarda la frase de negativa del prompt como respuesta, para que el turno siguiente la lleve igual. Los turnos cancelados, fallidos o interrumpidos no cuentan.
+  2. **App en segundo plano:**
+     - la respuesta en curso se detiene y queda «La respuesta se interrumpió», con su texto parcial y «Reintentar» (C13);
+     - después se libera Gemma (constitución IV);
+     - detener a mano sigue siendo «Generación cancelada», sin reintentar.
+  3. **Textos aprobados además de C1–C15:**
+     - el texto del bloqueo de modelos (C5), que reutiliza los de Inicio;
+     - las frases de TalkBack «Tú: …» y «MicroRAG: …», y los avisos «Respuesta completa» y «Conversación borrada»;
+     - **C16:** nota «No se ha podido guardar esta respuesta en el teléfono.»;
+     - **C17:** «No se pueden abrir tus conversaciones guardadas.», con el chat desactivado y sin borrar nada.
+- **Decisión** (ajustes técnicos del analyze, sin cambio de comportamiento aprobado):
+  1. **Límite del prompt:** si pasa de 2.000 tokens estimados, se quita primero el bloque peor clasificado por la búsqueda, después el turno anterior, y nunca el último bloque. Así no hay negativas engañosas por el límite.
+  2. **Reintentar** tiene la misma puerta que preguntar: solo con el chat disponible y sin otra respuesta en curso. Nunca carga Gemma durante una tanda.
+  3. **Estado «Generando respuesta...»** desde que el modelo recibe el prompt, no desde el primer token.
+  4. **Idioma de la respuesta:** parámetro del prompt con español por defecto, idéntico al escritorio (FR-014).
+  5. **Criba de la revisión de la plantilla:** se compara con «informe» dentro de la misma regla automática. Esa regla da 76,4 % de citas frente al 94,2 % del juicio manual. La regla de adopción no cambia.
+  6. **Conversación al abrir el chat:** primero el id guardado, después el de la ruta, después «Nuevo chat» y por último la última conversación.
+  7. **`chat.db`:** una sola conexión, en el mismo hilo que el índice, así que en la app nunca hay dos escrituras a la vez. Queda justificado en el plan frente a «una sola conexión de escritura».
+  8. **Medida del primer token:** cada pregunta de la muestra en una conversación nueva. Antes de cada uno de los 10 seguimientos se hace su pregunta anterior, sin medirla.
+- **Motivo:**
+  - El análisis independiente encontró 35 hallazgos, ninguno crítico.
+  - El turno tras una negativa no coincidía con lo que evaluó F05.
+  - El caso límite de memoria baja contradecía la regla de cancelar.
+  - Reintentar podía cargar Gemma durante una tanda.
+  - Había dos estados de fallo de `chat.db` sin texto aprobado.
+  - Además, la criba de la plantilla pedía 90 % de citas con una regla que da 76,4 % con la plantilla actual: no habría pasado ninguna variante.
+- **Alternativas descartadas:**
+  - mantener C12 sin evaluar;
+  - cancelar sin reintentar, o dejar que la respuesta termine en segundo plano;
+  - responder con la negativa cuando ningún bloque cabe.
+- **Origen:** usuario (revisión del analyze de F11) y analyze de F11.
+- **Afecta:** F11 (spec, research R2–R15, contratos, modelo de datos y tareas).
 
 ---
 

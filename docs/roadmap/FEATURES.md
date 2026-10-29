@@ -45,7 +45,7 @@ Al cerrar cada feature se entrega:
 | F08 | Biblioteca y detalle de documento | Producto | F07 | ✅ cerrada |
 | F09 | Inicio | Producto | F03, F07, F08 | ✅ cerrada |
 | F10 | Recuperación híbrida | Técnica | F05, F07 | ✅ cerrada |
-| F11 | Chat con fuentes | Producto | F08, F10 | 🟨 en curso (plan) |
+| F11 | Chat con fuentes | Producto | F08, F10 | 🟨 en curso (analyze; pendiente de revisión) |
 | F12 | Ajustes e Idiomas | Producto | F03, F11 | ⬜ |
 | F13 | Historial de chats | Producto (UI propuesta) | F11, F12 | ⬜ |
 | F14 | Rendimiento en dispositivo y decisión INT8 | Técnica | F10, F11 | ⬜ |
@@ -516,7 +516,12 @@ También se introduce `EngineCoordinator`, que garantiza que nunca haya dos engi
 ## F11 — Chat con fuentes
 
 - **Tipo:** Producto.
-- **Estado:** 🟨 en curso: specify, clarify y plan el 2026-10-29 en la rama `011-chat-sources`. Decisiones D-053 (clarify; spec y propuestas de UI C1–C15 aprobadas) y D-054 (plan). Spec, plan y contratos en `specs/011-chat-sources/`.
+- **Estado:** 🟨 en curso: specify, clarify, plan, tasks y analyze el 2026-10-29 en la rama `011-chat-sources`, pendientes de revisión. Decisiones:
+  - D-053 (clarify; spec y propuestas de UI C1–C15 aprobadas);
+  - D-054 (plan);
+  - D-055 (analyze: turno tras una negativa como el escritorio, app oculta que interrumpe, C16–C17).
+
+  Spec, plan, contratos y tareas en `specs/011-chat-sources/`.
 
 **Objetivo.** Conversación con documentos:
 - estados `Retrieving`, `Generating`, `Completed`, `Cancelled` y `Failed`;

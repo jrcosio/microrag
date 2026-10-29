@@ -50,11 +50,11 @@ offline/.venv/bin/python -I offline/run_eval.py template-review [variants=v3,v4]
 **Pasos:**
 1. **Configuración elegida (D-034):** E2B, 4 bloques, sin vecinos, 1.719 tokens, con `prompt_template=<variante>`. Se genera con el comando existente; las ejecuciones son reanudables. Cada una cuesta ≈ 5,5 min en la GPU del escritorio.
 2. **Métricas automáticas** (`judge.summarize`) por variante, y respuestas que cambian frente a «informe» (`06ef519f`).
-3. **Criba** (R4): pasa a la revisión manual una variante que sube ≥ 1 punto las correctas automáticas y mantiene negativas ≥ 85 % y citas ≥ 90 %.
+3. **Criba** (R4), frente a «informe» con la misma regla automática: pasa a la revisión manual una variante que sube ≥ 1 punto las correctas de la regla (≥ 69,9 %), mantiene negativas ≥ 85 % y no baja más de 2 puntos las citas de la regla (≥ 74,4 %). La regla es más estricta con las citas que el juicio manual: «informe» da 76,4 % frente a 94,2 %.
 4. **Revisión manual** (método D-033, por el asistente):
    - se juzgan solo las respuestas que cambian, en `reports/template-review.csv` (data-model §8);
    - las que no cambian heredan el veredicto de `manual-judgement.csv`.
-5. **Adopción:** manual ≥ 80,4 % correctas, negativas ≥ 85 % y citas ≥ 90 %. Si las dos cumplen, gana la de más correctas, y a igualdad la más corta.
+5. **Adopción**, con el juicio manual (las heredadas más las revisadas): ≥ 80,4 % correctas, negativas ≥ 85 % y citas ≥ 90 %. Si las dos cumplen, gana la de más correctas, y a igualdad la más corta.
 6. **Resumen** en `build/template_review.json` y sección «Revisión de la plantilla (D-035, F11)» en `reports/eval-report.md` (`eval/report.py`), con la tabla:
 
    | Variante | Cambiadas | Correctas (regla) | Negativas | Citas | Criba | Correctas (manual) | Adoptada |
@@ -69,7 +69,7 @@ offline/.venv/bin/python -I offline/run_eval.py template-review [variants=v3,v4]
   - se regenera el golden (§1) con sus respuestas;
   - se registra una decisión nueva.
 
-  Si no, se registra que se mantiene «informe», con la tabla.
+  Si no, se registra que se mantiene «informe», con la tabla, y la plantilla sigue abierta como palanca para F14 (D-053).
 - **G12.** Pruebas de Python:
   - `test_prompt.py`, ampliada con `v3` y `v4`: reglas en su sitio y el resto igual a «informe»;
   - `test_runs.py`: la huella con `prompt_template`;

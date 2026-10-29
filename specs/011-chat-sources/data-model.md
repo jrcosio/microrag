@@ -1,7 +1,7 @@
 # Data model: Chat con fuentes (F11)
 
 Fecha: 2026-10-29. Fuentes:
-- spec aclarada (D-053) y propuestas C1–C15 aprobadas;
+- spec aclarada (D-053), propuestas C1–C17 aprobadas y decisiones del analyze (D-055);
 - research R1–R17;
 - tipos existentes de F03, F07 y F10, que se reutilizan sin cambios salvo donde se indica.
 
@@ -21,7 +21,7 @@ Fecha: 2026-10-29. Fuentes:
 
 | Constante | Valor | Uso |
 |---|---|---|
-| `MAX_QUESTION_CHARS` | 1000 | Longitud máxima de la pregunta (R10) |
+| `MAX_QUESTION_CHARS` | 1000 | Longitud máxima de la pregunta, en `String.length` (R10) |
 | `CHECKPOINT_MS` | 1000 | Cada cuánto se guarda el texto parcial (R6) |
 
 ## 2. Dominio (`domain/chat`)
@@ -65,16 +65,29 @@ data class AnswerSource(
 
 enum class SourceAvailability { AVAILABLE, FRAGMENT_GONE, DOCUMENT_GONE }
 
+/** A block of the prompt, by its [n]; what a chip opens while the answer streams. */
+data class PromptBlockRef(
+    val promptNumber: Int,
+    val documentId: Long,
+    val chunkId: Long,                // first chunk of the block
+    val firstOrdinal: Int,
+    val lastOrdinal: Int,
+    val documentName: String,
+    val page: Int?,
+)
+
 /** The answer being generated, kept in memory between checkpoints (R6). */
 data class ActiveAnswer(
     val conversationId: Long,
     val turnId: Long,
-    val state: TurnState,             // RETRIEVING or GENERATING
+    val state: TurnState,             // RETRIEVING or GENERATING; INTERRUPTED/CANCELLED/COMPLETED only while unsaved
     val text: String,
-    val blocks: List<AnswerSource>,   // every prompt block, position = promptNumber, so chips open while streaming
+    val blocks: List<PromptBlockRef>, // every prompt block; the formatter renumbers by first citation
+    val saveFailed: Boolean = false,  // C16: kept until the next question
 )
 
 sealed interface ChatAvailability {           // R11, in precedence order
+    data object StorageUnavailable : ChatAvailability         // C17
     data object ModelsNotReady : ChatAvailability             // C5
     data object IndexUnavailable : ChatAvailability           // C8
     data object EmptyLibrary : ChatAvailability               // C3
@@ -90,15 +103,22 @@ object ChatLimits {
 ```
 
 **Estados de un turno:**
-- `RETRIEVING` → `GENERATING` → `COMPLETED`;
+- `RETRIEVING` → `GENERATING` (al entregar el prompt al motor) → `COMPLETED`;
 - desde cualquiera de los dos primeros:
-  - `CANCELLED`: detener, app oculta o nueva conversación;
-  - `FAILED`: el motor o el índice fallan, o la respuesta llega vacía;
-  - `INTERRUPTED`: el proceso murió, y se marca al arrancar la sesión.
-- `RETRIEVING` → `COMPLETED` con `refusal = true` si la búsqueda no da bloques.
-- `FAILED` → `RETRIEVING` con «Reintentar», en el mismo turno.
-- `INTERRUPTED` también ofrece «Reintentar» (C13).
+  - `CANCELLED`: el usuario detiene, empieza otra conversación o borra;
+  - `INTERRUPTED`: la app pasa a segundo plano, el sistema obliga a liberar el motor, o el proceso murió (se marca al arrancar la sesión);
+  - `FAILED`: el motor o el índice fallan, o la respuesta llega vacía.
+- `RETRIEVING` → `COMPLETED` con `refusal = true` y la frase del prompt como respuesta si la búsqueda no da bloques.
+- `FAILED` e `INTERRUPTED` → `RETRIEVING` con «Reintentar», en el mismo turno (C13).
 - `CANCELLED` es final.
+
+**Correspondencia con los contratos de diseño** (`docs/disegn_app/docs/02-architecture.md`):
+
+| Diseño | F11 |
+|---|---|
+| `ChatMessage` | `ChatTurn`: una fila con la pregunta (mensaje del usuario) y la respuesta (mensaje del asistente) |
+| `Citation` | `AnswerSource` |
+| `GenerationState` | `TurnState`, con `INTERRUPTED` añadido (C13); `Idle` es «sin turno en curso» |
 
 **Nuevo en `domain/rag`:**
 
@@ -198,15 +218,17 @@ data class TurnUi(
     val id: Long,
     val question: String,
     val state: AnswerState,                       // F01: Streaming, Completed, Cancelled, Failed
-    val status: TurnStatus?,                      // Searching or Generating while Streaming
+    val status: TurnStatus?,                      // SEARCHING or GENERATING while Streaming
     val content: AnswerContent,                   // §6; the C1 text when refusal
     val failureText: Int?,                        // C7, C8 or C13 string id
-    val notes: List<Int>,                         // C2 and C6 string ids
+    val notes: List<Int>,                         // C2, C6 and C16 string ids
     val sources: List<SourceRow>,
-    val canRetry: Boolean,                        // FAILED or INTERRUPTED
+    val canRetry: Boolean,                        // FAILED or INTERRUPTED, and availability Ready with nothing answering
 )
 
-enum class ChatAnnouncement { SEARCHING, GENERATING, COMPLETED, CANCELLED, FAILED, DELETED }
+enum class TurnStatus { SEARCHING, GENERATING }
+
+enum class ChatAnnouncement { SEARCHING, GENERATING, COMPLETED, CANCELLED, INTERRUPTED, FAILED, DELETED }
 ```
 
 ## 6. Contenido de una respuesta (`core/designsystem/model/AnswerContent.kt`)
@@ -229,7 +251,8 @@ sealed interface AnswerSpan {
 }
 ```
 
-`AnswerFormatter.format(raw, sources, describe)` → `AnswerContent` (R3), y `copyText(raw, sources)` → `String` (C10).
+- `AnswerFormatter.format(raw, blocks, describe)` → `AnswerContent` (R3). Renumera siempre por la primera cita del texto, con los bloques del prompt (`PromptBlockRef` mientras se genera, o las fuentes guardadas al terminar).
+- `copyText(content, refusalText, sourcesLines)` → `String` (C10). En una negativa copia el texto mostrado.
 
 ## 7. `offline/golden/answer_golden.jsonl`
 

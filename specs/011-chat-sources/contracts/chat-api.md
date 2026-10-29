@@ -23,12 +23,21 @@ object PromptBuilder {
 
     data class Block(val documentName: String?, val headingPath: String?, val page: Int?, val text: String)
 
-    /** Exactly `offline/eval/prompt.py` build_prompt (research R2). */
-    fun build(question: String, blocks: List<Block>, previous: Pair<String, String>?, template: String = RagParameters.PROMPT_TEMPLATE): String
+    /** Exactly `offline/eval/prompt.py` build_prompt (research R2); SPANISH gives the desktop text. */
+    fun build(
+        question: String,
+        blocks: List<Block>,
+        previous: Pair<String, String>?,
+        template: String = RagParameters.PROMPT_TEMPLATE,
+        language: PromptLanguage = PromptLanguage.SPANISH,
+    ): String
 
     /** ⌈code points / CHARS_PER_TOKEN⌉ (research R10). */
     fun estimatedTokens(prompt: String): Int
 }
+
+/** Response language of the prompt (FR-014, G25); F12 adds the others. */
+enum class PromptLanguage { SPANISH }
 
 object AnswerReading {
     /** Every [n] and [n, m] number, in order, repeats kept (`judge.citations`). */
@@ -58,6 +67,7 @@ interface ChatRepository {
     suspend fun markInterrupted(now: Long): Int                // research R8
     suspend fun deleteConversation(id: Long)
     suspend fun deleteAll()                                    // for F12; no UI in F11
+    val storageState: StateFlow<ChatStorageState>             // Ok or Unavailable (A15, C17)
 }
 
 interface AnswerEngine {
@@ -81,7 +91,8 @@ interface ChatSession {
     /** Starts an answer; returns the conversation id (new when [conversationId] is null), or null when the chat is not Ready. */
     suspend fun ask(conversationId: Long?, question: String): Long?
     fun cancel()
-    suspend fun retry(turnId: Long)
+    /** False when the turn is not FAILED/INTERRUPTED, another answer runs or the chat is not Ready (A10). */
+    suspend fun retry(turnId: Long): Boolean
     /** Cancels any answer in progress (new conversation, research R6). */
     fun startNewConversation()
     suspend fun delete(conversationId: Long)
@@ -93,7 +104,7 @@ interface ChatSession {
 | Caso de uso | Contenido |
 |---|---|
 | `ObserveConversationUseCase(id)` | Combina `ChatRepository.conversation(id)` con `ChatSession.active`; el texto en memoria manda sobre el guardado del turno activo |
-| `ObserveChatAvailabilityUseCase()` | R11 |
+| `ObserveChatAvailabilityUseCase()` | R11, con el estado de `chat.db` (C17) |
 | `ResolveSourcesUseCase(sources)` | `Flow<Map<Long, SourceAvailability>>` por `chunkId`, observando los cambios del índice (R12) |
 | `AskQuestionUseCase` | `ChatSession.ask` |
 | `CancelAnswerUseCase` | `ChatSession.cancel` |
@@ -103,45 +114,46 @@ interface ChatSession {
 | `LastConversationUseCase` | `ChatRepository.lastConversationId` |
 | `WarmUpAnswerEngineUseCase` | `AnswerEngine.warmUp`, solo si la disponibilidad es `Ready` |
 
-## Reglas de la sesión (A1–A14)
+## Reglas de la sesión (A1–A15)
 
-- **A1. Una sola respuesta en curso en la app.** `ask` con otra en curso devuelve `null` y no hace nada. La pantalla nunca lo pide, porque muestra detener.
-- **A2. Puerta de disponibilidad.** `ask` lee `ObserveChatAvailabilityUseCase` en el momento. Si no es `Ready`, devuelve `null`. Con una tanda en marcha nunca se carga Gemma (R7).
-- **A3. Pregunta.** Sin `trim` en lo que se guarda.
-  - Una pregunta en blanco devuelve `null`.
-  - Más de `MAX_QUESTION_CHARS` caracteres es un error de programación (`require`), porque el compositor ya los limita.
-- **A4. Turno anterior** (research R10, C12): solo el último turno de la conversación, antes del que se pregunta.
-  - Completado y no negativa: da la pregunta para la búsqueda, y la pregunta y la respuesta en bruto para el prompt.
-  - Negativa: solo la pregunta para la búsqueda.
-  - Otro estado: nada.
+- **A1. Una sola respuesta en curso en la app.** `ask` o `retry` con otra en curso devuelven `null` o `false` y no hacen nada. La pantalla nunca lo pide, porque muestra detener y desactiva «Reintentar».
+- **A2. Puerta de disponibilidad.** `ask` y `retry` leen la disponibilidad en el momento (la sesión recibe el flujo de `ObserveChatAvailabilityUseCase`). Si no es `Ready`, no hacen nada. Con una tanda en marcha nunca se carga Gemma (R7, FR-030).
+- **A3. Pregunta.** Sin `trim` en lo que se guarda. Una pregunta en blanco, o de más de `MAX_QUESTION_CHARS` en `String.length`, devuelve `null` sin fallar.
+- **A4. Turno anterior** (research R10, C12 cambiada en el analyze): el último turno de la conversación, antes del que se pregunta.
+  - **Completado, también si fue la negativa:** su pregunta para la búsqueda, y su pregunta y su respuesta en bruto para el prompt, como el escritorio.
+  - **Otro estado:** nada.
 - **A5. Recuperación:** se traduce a estados según research R6, paso 4.
-  - `NoResults` da una negativa **sin llamar al modelo** (FR-008).
+  - `NoResults` da una negativa **sin llamar al modelo** (FR-008), con `PromptBuilder.REFUSAL` como respuesta en bruto.
   - `IndexUnavailable` da `FAILED(INDEX)`.
   - El resto de fallos da `FAILED(GENERATION)`.
-- **A6. Prompt.**
-  - Se construye con `PromptBuilder` y la plantilla activa.
-  - Mientras `estimatedTokens > PROMPT_LIMIT_TOKENS` y quede más de un bloque, se quita el último.
-  - Si con un solo bloque sigue sin caber, ese bloque también sale y se responde con la negativa. Nunca se corta el texto de un bloque.
+- **A6. Límite del prompt** (FR-015, research R10). Mientras `estimatedTokens > PROMPT_LIMIT_TOKENS`:
+  1. se quita el bloque peor clasificado (el mejor rango fusionado de sus fragmentos), mientras quede más de uno;
+  2. después, el turno anterior.
+
+  El último bloque nunca se quita y el texto de un bloque nunca se corta. Los recortes se registran.
 - **A7. Generación.**
-  - El estado pasa a `GENERATING` con el primer `Token`. Hasta entonces sigue en `RETRIEVING`, también mientras Gemma se carga.
+  - El estado pasa a `GENERATING` al entregar el prompt al motor. Hasta entonces sigue en `RETRIEVING`, también mientras Gemma se carga.
   - El texto se acumula en `active`.
-  - Se guarda como mucho cada `CHECKPOINT_MS` y siempre al terminar, al cancelarse o al fallar.
+  - Se guarda como mucho cada `CHECKPOINT_MS` y siempre al terminar, al cancelarse, al interrumpirse o al fallar.
 - **A8. Cierre.**
   - Si el texto es vacío o solo espacios, `FAILED(GENERATION)`.
   - Si `AnswerReading.isRefusal`, `COMPLETED` con `refusal = true` y sin fuentes.
   - Si no, `COMPLETED` con las fuentes de `citedOrder` (`position` desde 1).
   - Sin citas válidas, `COMPLETED` sin fuentes; la pantalla pone la nota C2.
-- **A9. Cancelar** (detener, app oculta o nueva conversación).
+- **A9. Cancelar** (solo el usuario: detener, nueva conversación o borrar).
   - El turno pasa a `CANCELLED` con el texto recibido.
   - Sus citas válidas se guardan como en A8, sin decidir la negativa.
   - Debe tardar menos de 1 s (SC-005).
-- **A10. Reintentar.** Solo desde `FAILED` o `INTERRUPTED`. Repite la misma pregunta en el mismo turno, con el turno anterior a él.
-- **A11. App oculta** (research R8). La sesión es un `MemoryTrimListener`.
-  - Con `TRIM_MEMORY_UI_HIDDEN` o superior, o con `onLowMemory`, cancela la respuesta (A9) antes de que se libere Gemma.
+- **A10. Reintentar.** Solo desde `FAILED` o `INTERRUPTED`, y con A1 y A2. Repite la misma pregunta en el mismo turno, con el turno anterior a él.
+- **A11. App oculta o memoria baja** (research R8). La sesión es un `MemoryTrimListener`.
+  - Con `TRIM_MEMORY_UI_HIDDEN` o superior, o con `onLowMemory`, detiene la respuesta. El turno queda `INTERRUPTED` con su texto y sus citas válidas (C13) antes de que se libere Gemma.
   - `EngineMemoryCallbacks` avisa a sus listeners antes de `releaseUnheld()`.
 - **A12. Arranque de la sesión.** `markInterrupted(now)` se llama una vez, antes de la primera lectura del repositorio (R8).
-- **A13. Borrar.** Si la conversación tiene la respuesta en curso, la cancela, y después la borra en cascada.
+- **A13. Borrar.** Si la conversación tiene la respuesta en curso, la cancela (A9), y después la borra en cascada.
 - **A14. Registro.** Una línea por respuesta con solo cifras (research R6). Nunca el texto de la pregunta, el prompt, la respuesta, los fragmentos ni los nombres.
+- **A15. Fallos de `chat.db`.**
+  - Si una escritura falla (sin espacio), la respuesta sigue en `active` con `saveFailed = true` y la nota C16, hasta la siguiente pregunta.
+  - Si el fichero no se puede abrir, o declara una versión superior a la conocida, la disponibilidad es `StorageUnavailable` (C17). Nunca se borra ni se reescribe el fichero.
 
 ## `EngineAnswerEngine` (`data/chat`)
 
@@ -155,7 +167,7 @@ interface ChatSession {
 
 - **Conexión:** `RagConnection.open(File(AppDirs.chat, "chat.db"), extensionPath = null)`, abierta de forma perezosa en `AppDispatchers.database`. Los `PRAGMA` y el WAL son los del índice.
 - **Esquema:** `chat_schema.sql` (data-model §3) y `chat_meta.schema_version = 1`. Las migraciones siguen el patrón de `RagMigrations`, hoy vacías.
-- **Una versión más nueva:** si el fichero declara una versión superior a la conocida, el repositorio no escribe y la pantalla trata el chat como no disponible. No se borra nada (constitución V).
+- **Una versión más nueva o un fichero dañado:** el repositorio expone `storageState` (`Ok` o `Unavailable`) y no escribe. La disponibilidad pasa a `StorageUnavailable` (C17). No se borra nada (constitución V).
 - **Flujos:** un contador de cambios que sube tras cada escritura confirmada.
 
 ## Cambios en código existente
@@ -175,11 +187,11 @@ interface ChatSession {
 
 | Prueba | Qué comprueba |
 |---|---|
-| `PromptBuilderTest` | Casos de `test_prompt.py`; puntos de código; sin bloques; ruta o página nulas |
+| `PromptBuilderTest` | Casos de `test_prompt.py`; puntos de código; sin bloques; ruta o página nulas; el idioma por defecto da el texto del escritorio |
 | `AnswerReadingTest` | Casos de `test_judge.py`; Unicode; `citedOrder` |
 | `AnswerGoldenTest` | Las 426 filas del golden: prompt (longitud y huella, y texto en 10), citas, negativa y `norm` |
-| `DefaultChatSessionTest` | Con repositorio en memoria, recuperación y motor falsos, y el coordinador real: A1–A14, disponibilidad, recortes del prompt, checkpoints, cancelar en < 1 s (tiempo virtual) y registro sin texto marcado |
-| `ChatDuringIndexingTest` | El coordinador real con motores falsos: la puerta cerrada con la tanda en marcha, y `releaseGenerators()` que espera a la respuesta en curso. Nunca dos GPU |
+| `DefaultChatSessionTest` | Con repositorio en memoria, recuperación y motor falsos, y el coordinador real: A1–A15, disponibilidad (también para reintentar), recortes del prompt, checkpoints, cancelar en < 1 s (tiempo virtual), interrumpir con la app oculta y registro sin texto marcado |
+| `ChatDuringIndexingTest` | El coordinador real con motores falsos: la puerta cerrada con la tanda en marcha, para preguntar, precargar y reintentar; y `releaseGenerators()` que espera a la respuesta en curso. Nunca dos GPU |
 | `EngineAnswerEngineTest` | Clave y config; precarga; cancelación |
 | `ObserveChatAvailabilityUseCaseTest` | Precedencia de R11 |
 | `ResolveSourcesUseCaseTest` | Documento borrado, fragmento ausente y disponible |
@@ -189,5 +201,5 @@ interface ChatSession {
 | `LayeringTest` | Regla U1 |
 
 **Instrumentadas:**
-- `SqliteChatRepositoryTest`: esquema, cascada, `markInterrupted`, versión superior y orden de `lastConversationId`.
+- `SqliteChatRepositoryTest`: esquema, cascada, `markInterrupted`, versión superior y fichero dañado (`storageState`, sin escribir ni borrar), y orden de `lastConversationId`.
 - `RagIndexChatStateTest`: `chatLibraryState` con documentos en cada estado y una sombra.
