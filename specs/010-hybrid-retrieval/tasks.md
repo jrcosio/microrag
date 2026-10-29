@@ -231,7 +231,7 @@ Historias de la spec:
   - `fuse([vector, fts], 60).take(30)` es igual a `fused`;
   - `ContextSelector` con `d034` y con `report` da los bloques esperados (documento, primer y último ordinal, tokens e ids). Los `ChunkView` se construyen desde `chunks`, con contenido de relleno, y el vecino desde `next_id`.
 - [X] T023 [US1] Implementar `…/microrag/rag/retrieval/ReciprocalRankFusion.kt` (`FusedCandidate`) y `…/microrag/rag/retrieval/ContextSelector.kt` (R2). T020, T021 y T022 pasan. **Si el golden falla, se corrige el port, nunca el golden** (riesgo 1).
-- [ ] T024 [P] [US1] Crear `…/test/…/data/retrieval/HybridRetrieverTest.kt` (camino principal), con `FakeRagIndex` programable y un `QueryEmbedder` falso sobre `FakeTextEmbedder`:
+- [X] T024 [P] [US1] Crear `…/test/…/data/retrieval/HybridRetrieverTest.kt` (camino principal), con `FakeRagIndex` programable y un `QueryEmbedder` falso sobre `FakeTextEmbedder`:
   - 50 + 50 candidatos;
   - fusión;
   - los 30 primeros cargados con `searchableOnly = true`;
@@ -241,7 +241,7 @@ Historias de la spec:
   - la búsqueda léxica empieza antes de que termine el embedding (Q7, con `beforeEmbedding` bloqueado);
   - una pregunta solo con palabras vacías da léxica vacía, y la vectorial decide (escenario US1-6);
   - un índice sin documentos buscables da `NoResults` (US1-7).
-- [ ] T025 [US1] Implementar `…/microrag/data/retrieval/HybridRetriever.kt`, camino principal (R6), y registrar en `…/microrag/data/di/DataModule.kt` `QueryEmbedder` → `EngineQueryEmbedder` y `ContextRetriever` → `HybridRetriever`. T024 pasa, y también `AppModulesTest` y `DebugModulesTest`.
+- [X] T025 [US1] Implementar `…/microrag/data/retrieval/HybridRetriever.kt`, camino principal (R6), y registrar en `…/microrag/data/di/DataModule.kt` `QueryEmbedder` → `EngineQueryEmbedder` y `ContextRetriever` → `HybridRetriever`. T024 pasa, y también `AppModulesTest` y `DebugModulesTest`.
 
 **Checkpoint**: la recuperación funciona en la JVM con el algoritmo del escritorio.
 

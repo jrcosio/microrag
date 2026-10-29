@@ -40,6 +40,9 @@ import com.lisdatasolutions.microrag.data.models.ModelFileRepository
 import com.lisdatasolutions.microrag.data.onboarding.DataStoreOnboardingStore
 import com.lisdatasolutions.microrag.data.rag.DefaultRagIndex
 import com.lisdatasolutions.microrag.data.rag.RagSchema
+import com.lisdatasolutions.microrag.data.retrieval.EngineQueryEmbedder
+import com.lisdatasolutions.microrag.data.retrieval.HybridRetriever
+import com.lisdatasolutions.microrag.data.retrieval.QueryEmbedder
 import com.lisdatasolutions.microrag.domain.indexing.IndexingRepository
 import com.lisdatasolutions.microrag.domain.ingest.ImportQueueRepository
 import com.lisdatasolutions.microrag.domain.library.LibraryRepository
@@ -51,6 +54,7 @@ import com.lisdatasolutions.microrag.domain.onboarding.ModelFileSource
 import com.lisdatasolutions.microrag.domain.onboarding.OnboardingStore
 import com.lisdatasolutions.microrag.domain.rag.RagIndex
 import com.lisdatasolutions.microrag.domain.rag.RagIndexConfig
+import com.lisdatasolutions.microrag.domain.retrieval.ContextRetriever
 import com.lisdatasolutions.microrag.rag.ingest.DocumentExtractor
 import com.lisdatasolutions.microrag.rag.ingest.PdfOpener
 import java.io.File
@@ -169,6 +173,10 @@ val dataModule = module {
             logger = get(),
         )
     }
+
+    // Retrieval (F10): the query engine on the CPU, shared with the ingest's, and the hybrid search.
+    single<QueryEmbedder> { EngineQueryEmbedder(coordinator = get(), factory = get(), models = get()) }
+    single<ContextRetriever> { HybridRetriever(index = get(), embedder = get(), logger = get()) }
 
     // The only network access of the app (constitution I, F03 FR-026): pinned Hugging Face files.
     single<FileDownloader> { ModelDownloader(userAgent = "MicroRAG/${BuildConfig.VERSION_NAME}") }

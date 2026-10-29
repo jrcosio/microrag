@@ -71,7 +71,7 @@ class FakeRagIndex(initial: IndexCompatibility = IndexCompatibility.Compatible) 
     @Volatile
     var searchError: Throwable? = null
 
-    /** open, searches and loads, in order: "open", "vector", "text:<query>", "load", "neighbor" (F10). */
+    /** open, searches and loads, in order: "open", "vector:<k>", "text:<k>:<query>", "load" or "load:searchable" (with the ids), "neighbor" or "neighbor:searchable" (F10). */
     val calls: MutableList<String> = java.util.Collections.synchronizedList(mutableListOf())
 
     /** Every updateStatus call, in order: (document, status). */
@@ -236,19 +236,19 @@ class FakeRagIndex(initial: IndexCompatibility = IndexCompatibility.Compatible) 
     }
 
     override suspend fun vectorSearch(query: FloatArray, k: Int): List<ScoredChunk> = available {
-        calls += "vector"
+        calls += "vector:$k"
         searchError?.let { throw it }
         vectorResults(query).take(k)
     }
 
     override suspend fun textSearch(userQuery: String, k: Int): List<Long> = available {
-        calls += "text:$userQuery"
+        calls += "text:$k:$userQuery"
         searchError?.let { throw it }
         textResults(userQuery).take(k)
     }
 
     override suspend fun loadChunks(ids: Collection<Long>, searchableOnly: Boolean): Map<Long, ChunkView> = available {
-        calls += "load"
+        calls += (if (searchableOnly) "load:searchable" else "load") + ids.joinToString(",", prefix = ":")
         chunkReads++
         val wanted = ids.toSet()
         chunkIds.filterKeys { !searchableOnly || searchable(it) }
@@ -257,7 +257,7 @@ class FakeRagIndex(initial: IndexCompatibility = IndexCompatibility.Compatible) 
     }
 
     override suspend fun neighbor(documentId: Long, ordinal: Int, searchableOnly: Boolean): ChunkView? = available {
-        calls += "neighbor"
+        calls += if (searchableOnly) "neighbor:searchable" else "neighbor"
         chunkReads++
         if (searchableOnly && !searchable(documentId)) null else view(documentId, ordinal)
     }

@@ -36,6 +36,7 @@ import com.lisdatasolutions.microrag.domain.onboarding.ResumeModelDownloadUseCas
 import com.lisdatasolutions.microrag.domain.onboarding.RetryModelUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.StartModelDownloadUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.StartOnboardingUseCase
+import com.lisdatasolutions.microrag.domain.retrieval.RetrieveContextUseCase
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
@@ -85,4 +86,7 @@ val domainModule = module {
     factoryOf(::RemoveFromIndexUseCase)
     factoryOf(::ReindexDocumentUseCase)
     factoryOf(::DiscardReindexUseCase)
+
+    // Retrieval (F10).
+    factoryOf(::RetrieveContextUseCase)
 }
