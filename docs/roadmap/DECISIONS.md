@@ -821,6 +821,46 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
 
 ---
 
+## D-049 — Recuperación híbrida (clarify de F10)
+
+- **Fecha:** 2026-10-29
+- **Decisión:**
+  1. **Parámetros de contexto:** los de D-034, es decir 4 bloques, sin vecinos, como mucho 3 por documento y 1.719 tokens estimados.
+     - La ficha de F10 y la constitución (III) conservaban los valores iniciales del informe: 6 bloques, ≈ 2.200 tokens y vecinos de los dos primeros.
+     - Se corrige la ficha.
+     - La constitución pasa a 1.1.1 (PATCH): su línea de contexto remite a la última evaluación registrada en DECISIONS.
+     - El selector admite vecinos y se prueban, aunque D-034 los deje a 0.
+  2. **Revisión del orden dentro del presupuesto (D-035):**
+     - se evalúa en el harness de escritorio con dos variantes: trigramas como tercera lista de la fusión y una reordenación de los primeros candidatos;
+     - una variante se adopta solo si sube el Recall@bloques al menos 2 puntos sobre las 370 preguntas sin pasar el presupuesto del prompt;
+     - si se adopta, va a una decisión nueva y F10 la lleva al móvil; si no, se queda D-034 y se anota.
+  3. **Paridad con el escritorio:** una prueba instrumentada en el teléfono de referencia, con los modelos reales y lanzada bajo demanda:
+     - indexa los 21 documentos del corpus de evaluación en un índice temporal, nunca en la biblioteca del usuario;
+     - usa los títulos del corpus;
+     - un bloque acierta si contiene la evidencia literal de la pregunta;
+     - usa una muestra fija de 50 preguntas, con la cifra de escritorio sobre esas mismas 50;
+     - las preguntas cuya evidencia no se extrae en el móvil se cuentan aparte.
+
+     El «Recall@6» de la ficha es el Recall@bloques con los bloques de D-034.
+  4. **Latencia:** p95 de una recuperación completa ≤ 200 ms con 10.000 fragmentos y el motor de consulta cargado; ≤ 1 s durante una tanda de indexación.
+- **Motivo:**
+  - D-034 es la evaluación más reciente, y la constitución ya permitía cambiar los parámetros con una evaluación documentada. El texto contradictorio confundía.
+  - Según D-035, el margen de calidad está en el orden de los primeros puestos: en 36 de las 80 respuestas fallidas, el relevante estaba entre los 20 primeros candidatos. Cualquier cambio necesita una evaluación (constitución III).
+  - En el móvil cambian los títulos (nombre del fichero) y la extracción de los PDF, que mueve los ordinales. Con los títulos del corpus y la evidencia literal, la comparación es justa sin tocar la biblioteca del usuario.
+  - 200 ms cubre lo ya medido: embedding ≈ 120 ms, vectorial ≈ 23 ms y léxica ≈ 27 ms en p95. Así el primer token sigue dentro de los 5 s (D-026).
+- **Alternativas descartadas:**
+  - los valores del informe;
+  - D-034 sin enmendar la constitución;
+  - dejar la revisión del orden para F14;
+  - añadir los trigramas en el móvil sin evaluarlos;
+  - importar el corpus con la app y probar a mano;
+  - medir solo en el emulador;
+  - un objetivo de 150 ms, o ninguno.
+- **Origen:** usuario (clarify de F10).
+- **Afecta:** F10; F11 (el contexto y su presupuesto); F14 (INT8 según la medición); constitución 1.1.1.
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.

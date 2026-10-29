@@ -44,7 +44,7 @@ Al cerrar cada feature se entrega:
 | F07 | Indexación | Producto | F02, F06 | ✅ cerrada |
 | F08 | Biblioteca y detalle de documento | Producto | F07 | ✅ cerrada |
 | F09 | Inicio | Producto | F03, F07, F08 | ✅ cerrada |
-| F10 | Recuperación híbrida | Técnica | F05, F07 | ⬜ |
+| F10 | Recuperación híbrida | Técnica | F05, F07 | 🟨 en curso (specify y clarify) |
 | F11 | Chat con fuentes | Producto | F08, F10 | ⬜ |
 | F12 | Ajustes e Idiomas | Producto | F03, F11 | ⬜ |
 | F13 | Historial de chats | Producto (UI propuesta) | F11, F12 | ⬜ |
@@ -475,19 +475,20 @@ También se introduce `EngineCoordinator`, que garantiza que nunca haya dos engi
 ## F10 — Recuperación híbrida
 
 - **Tipo:** Técnica. Diagnóstico de búsqueda interno, solo en debug.
-- **Estado:** ⬜
+- **Estado:** 🟨 en curso: specify y clarify el 2026-10-29 en la rama `010-hybrid-retrieval`. Decisión D-049 (clarify), con la enmienda 1.1.1 de la constitución. Spec en `specs/010-hybrid-retrieval/spec.md`.
 
 **Objetivo.** `HybridRetriever`:
 - embedding de consulta en CPU;
 - vector top-50 + FTS top-50;
 - RRF con k = 60;
-- `ContextSelector`:
-  - máximo 3 bloques por documento;
-  - vecinos para los dos primeros;
-  - presupuesto de ~2.200 tokens y 6 bloques;
+- `ContextSelector`, con los parámetros de D-034 (D-049):
+  - 4 bloques y como mucho 3 por documento;
+  - presupuesto de 1.719 tokens estimados;
+  - sin vecinos, aunque el selector los admite;
   - orden por documento y ordinal;
   - fusión sin solape;
 - regla de seguimiento;
+- revisión del orden dentro del presupuesto (D-035), evaluada en el harness de escritorio;
 - filtro de documentos excluidos o no indexados (G28);
 - validación de `rag_meta`.
 
@@ -501,8 +502,9 @@ También se introduce `EngineCoordinator`, que garantiza que nunca haya dos engi
 1. Tests unitarios de RRF, `ContextSelector` (límite por documento, presupuesto, vecinos, fusión y orden) e `isFollowUp`, con los casos del informe.
 2. Los documentos excluidos o que no están en `done` nunca aparecen en los resultados (test instrumentado).
 3. El diagnóstico en debug muestra, para cada pregunta, los bloques con sus puntuaciones y las latencias de embedding, vector, FTS y total.
-4. Se miden las latencias p50/p95 con 10k chunks en el teléfono de referencia. Si el p95 vectorial supera 20 ms, se anota la decisión sobre INT8 (se implementa en F14).
-5. El Recall@6 sobre una muestra de 50 preguntas del harness queda a ±5 pp del obtenido en escritorio.
+4. Se miden las latencias p50/p95 con 10k chunks en el teléfono de referencia. El p95 de una recuperación completa es ≤ 200 ms (≤ 1 s durante una tanda de indexación). Si el p95 vectorial supera 20 ms, se anota la decisión sobre INT8 (se implementa en F14).
+5. El Recall@bloques (el «Recall@6» del informe, con los 4 bloques de D-034) sobre una muestra fija de 50 preguntas del harness queda a ±5 pp del de escritorio en la misma muestra. Se mide con una prueba instrumentada en el teléfono, sobre un índice temporal (D-049).
+6. La revisión del orden (D-035) queda evaluada en el escritorio, con su decisión registrada.
 
 **Riesgos.**
 - Sobre-recuperación por las exclusiones.
