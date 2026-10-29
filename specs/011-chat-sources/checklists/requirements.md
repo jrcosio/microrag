@@ -31,11 +31,6 @@
 
 ## Notes
 
-- **Feature de producto.** Manda el PNG 04. Los estados sin maqueta van como propuestas C1–C14, que se aprueban antes de implementar (constitución VII).
+- **Feature de producto.** Manda el PNG 04. Los estados sin maqueta van como propuestas C1–C15, que se aprueban antes de implementar (constitución VII).
 - **Contrato, no implementación:** la plantilla del prompt, la lectura de citas y la detección de la negativa son las del escritorio (F05). Forman parte del contrato de evaluación (constitución III). Los nombres de ficheros solo aparecen en «Fuentes» y en «Verificado al redactar».
-- **Valores por defecto que se confirman en `/speckit-clarify`** (recogidos en «Assumptions»):
-  - cómo se muestran las marcas `[n]` (G11);
-  - el chat durante una indexación (D-039 y constitución IV);
-  - qué se guarda y qué abre la pestaña Chat (frente a F13);
-  - el alcance de la revisión de la plantilla (D-035);
-  - el menú «⋯» (G13).
+- **Clarify (2026-10-29):** cinco preguntas respondidas e integradas: citas en el texto (G11), chat durante una indexación (D-039), conversaciones guardadas, revisión de la plantilla (D-035) y menú «⋯» (G13). Sin valores por confirmar.
