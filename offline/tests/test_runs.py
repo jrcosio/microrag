@@ -34,6 +34,7 @@ class EvalConfigTest(unittest.TestCase):
     def test_late_fields_at_default_keep_old_fingerprints(self):
         self.assertNotIn("prompt_template", EvalConfig().to_json())
         self.assertIn("prompt_template", EvalConfig(prompt_template="v2").to_json())
+        self.assertIn('"prompt_template":"v3"', EvalConfig(prompt_template="v3").to_json())
         # F10 D-035: the order review options leave the D-034 runs where they were.
         d034 = EvalConfig(max_blocks=4, neighbors=False, budget_tokens=1719)
         self.assertEqual(json.loads(d034.to_json()), {

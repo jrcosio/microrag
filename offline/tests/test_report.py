@@ -39,5 +39,41 @@ class ChosenTest(unittest.TestCase):
         self.assertIsNone(report.chosen(entries, {**params, "max_blocks": 6}))
 
 
+class TemplateReviewSectionTest(unittest.TestCase):
+    def test_renders_the_table_and_the_decision(self):
+        import json
+        import tempfile
+
+        results = [
+            {"template": "informe", "label": "informe", "changed": 0, "auto": {"answer_correct": 0.689, "refusal_correct": 0.964,
+             "citations_correct": 0.764}, "screen": None, "manual": {"answer_correct": 0.784, "refusal_correct": 0.964,
+             "citations_correct": 0.942}, "pending": 0, "adopted": None},
+            {"template": "v3", "label": "v3", "changed": 120, "auto": {"answer_correct": 0.70, "refusal_correct": 0.95,
+             "citations_correct": 0.75}, "screen": True, "manual": {"answer_correct": 0.79, "refusal_correct": 0.95,
+             "citations_correct": 0.93}, "pending": 0, "adopted": False},
+            {"template": "v4", "label": "v4", "changed": 150, "auto": {"answer_correct": 0.68, "refusal_correct": 0.90,
+             "citations_correct": 0.74}, "screen": False, "manual": None, "pending": 0, "adopted": False},
+        ]
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "template_review.json"
+            path.write_text(json.dumps(results))
+            original, report.TEMPLATE_REVIEW = report.TEMPLATE_REVIEW, path
+            try:
+                lines = "\n".join(report.template_review_section())
+            finally:
+                report.TEMPLATE_REVIEW = original
+        self.assertIn("## Revisión de la plantilla (D-035, F11)", lines)
+        self.assertIn("| v3 | 120 | 70.0 % | 95.0 % | 75.0 % | pasa | 79.0 % | no |", lines)
+        self.assertIn("| v4 | 150 | 68.0 % | 90.0 % | 74.0 % | no pasa | — | no |", lines)
+        self.assertIn("se mantiene la plantilla «informe»", lines)
+
+    def test_without_results_there_is_no_section(self):
+        original, report.TEMPLATE_REVIEW = report.TEMPLATE_REVIEW, Path("/nonexistent/template_review.json")
+        try:
+            self.assertEqual(report.template_review_section(), [])
+        finally:
+            report.TEMPLATE_REVIEW = original
+
+
 if __name__ == "__main__":
     unittest.main()

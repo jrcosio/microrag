@@ -3,13 +3,24 @@
 REFUSAL = "No encuentro esa información en los documentos disponibles."
 PREVIOUS_QUESTION_CHARS = 300
 PREVIOUS_ANSWER_CHARS = 500
-TEMPLATES = ("informe", "v2")
+TEMPLATES = ("informe", "v2", "v3", "v4")
 # FR-022 lever: against unjustified refusals and article numbers taken as citations (manual judgement of F05).
 V2_RULES = [
     "- Si alguna fuente contiene la respuesta, aunque use otras palabras, respóndela; usa la frase anterior solo si ninguna fuente la contiene.",
     "- Cita solo los números de las FUENTES, nunca números de artículos o apartados.",
     "- Si hay conversación previa, interpreta la PREGUNTA como continuación de ella.",
 ]
+# F11 template review (D-035, D-053; research R4): fixed before running, never tuned on the results.
+# v3 targets incomplete answers and neighbouring figures; v4 adds the follow-ups refused with the source in context.
+V3_RULES = [
+    "- Si la PREGUNTA pide varias cosas, responde a todas las que estén en las FUENTES.",
+    "- Copia cifras, plazos, importes y números de artículo tal como aparecen en la fuente que citas.",
+]
+V4_RULES = V3_RULES + [
+    "- Si hay CONVERSACIÓN PREVIA, la PREGUNTA la continúa: búscala en las FUENTES con ese contexto antes de responder "
+    "con la frase anterior.",
+]
+EXTRA_RULES = {"informe": [], "v2": V2_RULES, "v3": V3_RULES, "v4": V4_RULES}
 
 
 def build_prompt(question, blocks, previous, template="informe"):
@@ -25,7 +36,7 @@ def build_prompt(question, blocks, previous, template="informe"):
         "- Si las fuentes no contienen la respuesta, responde exactamente:",
         f'  "{REFUSAL}"',
         "- No uses conocimiento propio ni inventes datos, cifras o plazos.",
-        *(V2_RULES if template == "v2" else []),
+        *EXTRA_RULES[template],
         "",
     ]
     if previous is not None:

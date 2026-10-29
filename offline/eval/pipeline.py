@@ -387,6 +387,102 @@ def order_review():
     return results
 
 
+
+# --- template review (F11, D-035) ------------------------------------------------------------------
+
+TEMPLATE_REVIEW_FILE = builds.BUILD / "template_review.json"
+
+
+def _blocks_of(ctx, config):
+    """Blocks by question id of the retrieval run behind a generation config."""
+    retrieval_config = dataclasses.replace(config, llm=None)
+    fingerprint = EvalConfig.fingerprint(retrieval_config, *fingerprints(ctx, retrieval_config))
+    lines = (run_dir(fingerprint) / "retrieval.jsonl").read_text(encoding="utf-8").splitlines()
+    return {json.loads(line)["id"]: json.loads(line)["blocks"] for line in lines}
+
+
+def _answers_of(result):
+    lines = (run_dir(result["fingerprint"]) / "answers.jsonl").read_text(encoding="utf-8").splitlines()
+    return {json.loads(line)["id"]: json.loads(line) for line in lines}
+
+
+def template_review(variants=("v3", "v4")):
+    """Generates the decided configuration with each template variant and judges it against "informe" (R4).
+
+    The manual verdicts already in reports/template-review.csv are kept, so the review can be done in
+    several sittings: run, judge the new rows, run again.
+    """
+    import csv
+
+    from eval import report
+    from eval import template_review as tr
+    from eval.prompt import EXTRA_RULES
+
+    base = dataclasses.replace(decided_config(), llm="E2B")
+    ctx = load_context(base.build)
+    base_result = generate(base)  # the run judged by hand in F05: complete, so nothing is generated again
+    reference = report.manual_rows()
+    reference_blocks = _blocks_of(ctx, base)
+    review_path = report.MANUAL.parent / "template-review.csv"
+    existing = {}
+    if review_path.exists():
+        existing = {(r["id"], r["variante"]): r for r in csv.DictReader(review_path.open(encoding="utf-8-sig"))}
+    by_id = {q.id: q for q in live_questions()}
+
+    def auto(result):
+        return {key: result[key] for key in ("answer_correct", "refusal_correct", "citations_correct")}
+
+    base_manual = report.manual_metrics(reference)
+    results = [{"template": "informe", "label": "informe", "fingerprint": base_result["fingerprint"], "changed": 0,
+                "auto": auto(base_result), "screen": None, "manual": base_manual, "pending": 0, "adopted": None,
+                "rules_chars": 0}]
+    review_rows = [r for (_, template), r in existing.items() if template not in variants]
+    for template in variants:
+        config = dataclasses.replace(base, prompt_template=template)
+        result = generate(config)
+        if _blocks_of(ctx, config) != reference_blocks:
+            raise SystemExit(f"{template}: its retrieval differs from the reference run (G8)")
+        lines = _answers_of(result)
+        answers = {qid: line["answer"] for qid, line in lines.items()}
+        rules = {qid: "correcta" if line["judge"]["correct"] else "incorrecta" for qid, line in lines.items()}
+        changed = tr.changed_ids(reference, answers)
+        screen = tr.passes_screen(auto(base_result), auto(result))
+        reviewed = {}
+        if screen:
+            for qid in changed:
+                q, row, judged = by_id[qid], existing.get((qid, template), {}), lines[qid]["judge"]
+                sources = " || ".join(f"[{n}] {b['document_name'][:40]} › {b['heading_path'] or ''} "
+                                      f"(ord. {b['first_ordinal']}-{b['last_ordinal']})"
+                                      for n, b in enumerate(reference_blocks[qid], start=1))
+                review_rows.append({
+                    "id": qid, "variante": template, "tipo": q.type, "pregunta": q.question,
+                    "respuesta_esperada": q.expected_answer or "", "datos_clave": " | ".join(q.key_facts), "fuentes": sources,
+                    "respuesta_informe": next(r["respuesta_modelo"] for r in reference if r["id"] == qid),
+                    "respuesta_variante": answers[qid], "regla": rules[qid],
+                    "regla_citas": f"{judged['citations_ok']}/{judged['citations_total']}",
+                    "manual": row.get("manual", ""), "manual_citas": row.get("manual_citas", ""), "comentario": row.get("comentario", ""),
+                })
+                if row.get("manual"):
+                    reviewed[qid] = {"manual": row["manual"], "manual_citas": row["manual_citas"]}
+        merged = tr.merged_rows(reference, answers, rules, reviewed) if screen else None
+        manual = report.manual_metrics(merged) if merged else None
+        results.append({
+            "template": template, "label": template, "fingerprint": result["fingerprint"], "changed": len(changed),
+            "auto": auto(result), "screen": screen, "manual": manual,
+            "pending": sum(1 for qid in changed if qid not in reviewed) if screen else 0,
+            "adopted": tr.adopts(base_manual, manual) if manual else (False if not screen else None),
+            "rules_chars": len("\n".join(EXTRA_RULES[template])),
+        })
+    if review_rows:
+        review_path.parent.mkdir(parents=True, exist_ok=True)
+        with review_path.open("w", encoding="utf-8-sig", newline="") as out:
+            writer = csv.DictWriter(out, fieldnames=tr.REVIEW_FIELDS)
+            writer.writeheader()
+            writer.writerows(sorted(review_rows, key=lambda r: (r["variante"], r["id"])))
+    TEMPLATE_REVIEW_FILE.write_text(json.dumps(results, ensure_ascii=False, indent=1))
+    return results
+
+
 # --- prompt budget calibration ---------------------------------------------------------------------
 
 def prompt_lengths(config, tokenizer, ctx=None):

@@ -295,6 +295,48 @@ def order_review_section():
     return lines + [""]
 
 
+TEMPLATE_REVIEW = OFFLINE / "build" / "template_review.json"
+
+
+def template_review_section():
+    """F11 (D-035): the decided configuration with other prompt templates, from run_eval.py template-review."""
+    from eval import template_review as tr
+
+    if not TEMPLATE_REVIEW.exists():
+        return []
+    results = json.loads(TEMPLATE_REVIEW.read_text(encoding="utf-8"))
+    base, variants = results[0], results[1:]
+    lines = ["## Revisión de la plantilla (D-035, F11)", "",
+             "La configuración elegida con otras plantillas del prompt, con la misma recuperación y las mismas preguntas. "
+             f"Criba con la regla automática frente a «{base['label']}»: al menos {tr.SCREEN_CORRECT_POINTS:.0f} punto más de "
+             f"respuestas correctas, negativas ≥ {tr.REFUSAL_MIN * 100:.0f} % y como mucho {tr.SCREEN_CITATIONS_DROP:.0f} puntos "
+             "menos de citas (la regla es más estricta con las citas que el juicio manual). Las que pasan se juzgan a mano en "
+             "las respuestas que cambian (`reports/template-review.csv`); las demás heredan el juicio manual de F05.", "",
+             f"Regla de adopción (clarify de F11, D-053): al menos {tr.ADOPTION_POINTS:.0f} puntos más de respuestas correctas "
+             f"en el juicio manual, negativas ≥ {tr.REFUSAL_MIN * 100:.0f} % y citas ≥ {tr.CITATIONS_MIN * 100:.0f} %.", "",
+             "| Variante | Cambiadas | Correctas (regla) | Negativas | Citas (regla) | Criba | Correctas (manual) | Adoptada |",
+             "|---|---|---|---|---|---|---|---|"]
+    for r in results:
+        changed = "—" if r is base else str(r["changed"])
+        screen = "—" if r["screen"] is None else ("pasa" if r["screen"] else "no pasa")
+        manual = pct(r["manual"]["answer_correct"]) if r["manual"] else ("pendiente" if r.get("pending") else "—")
+        adopted = "—" if r["adopted"] is None else ("sí" if r["adopted"] else "no")
+        a = r["auto"]
+        lines.append(f"| {r['label']} | {changed} | {pct(a['answer_correct'])} | {pct(a['refusal_correct'])} | "
+                     f"{pct(a['citations_correct'])} | {screen} | {manual} | {adopted} |")
+    best = tr.winner(variants)
+    pending = sum(r.get("pending", 0) for r in variants)
+    lines.append("")
+    if best:
+        lines.append(f"Decisión: se adopta «{best['label']}»; la app y el escritorio pasan a usar esa plantilla.")
+    elif pending:
+        lines.append(f"Revisión manual pendiente: {pending} respuestas cambiadas sin juzgar.")
+    else:
+        lines.append(f"Decisión: ninguna variante cumple la regla de adopción; se mantiene la plantilla «{base['label']}», "
+                     "que queda como palanca para F14.")
+    return lines + [""]
+
+
 def limitations_section():
     return ["## Limitaciones", "", *[f"- {item}" for item in LIMITATIONS], ""]
 
@@ -321,6 +363,7 @@ def render(extra_sections=()):
     if params:
         lines += failures_section(ablations, params) + comparisons_section(ablations, params)
     lines += order_review_section()
+    lines += template_review_section()
     lines += limitations_section()
     for section in extra_sections:
         lines += section

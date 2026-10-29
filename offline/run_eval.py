@@ -13,7 +13,7 @@ sys.path.insert(0, str(HERE))  # -I leaves the script directory out of sys.path
 COMMANDS = [
     "fetch-corpus", "sources", "build", "validate-testset", "review-sheet", "review-apply", "sample",
     "retrieve", "generate", "ablations", "report", "chunker-golden", "calibrate", "rejudge", "device-extraction",
-    "order-review",
+    "order-review", "template-review",
 ]
 
 
@@ -234,6 +234,23 @@ def order_review(args):
     print(f"wrote {pipeline.ORDER_REVIEW_FILE}")
 
 
+def template_review(args):
+    """F11 (D-035): the decided configuration with other prompt templates, screened and judged against "informe"."""
+    from eval import pipeline
+
+    variants = ("v3", "v4")
+    for pair in args:
+        key, _, raw = pair.partition("=")
+        if key != "variants":
+            raise SystemExit(f"unknown parameter {key}; use variants=v3,v4")
+        variants = tuple(v for v in raw.split(",") if v)
+    for r in pipeline.template_review(variants):
+        a = r["auto"]
+        print(f"{r['label']}: changed={r['changed']} correct={a['answer_correct']:.3f} refusal={a['refusal_correct']:.3f} "
+              f"citations={a['citations_correct']:.3f} screen={r['screen']} pending={r['pending']} adopted={r['adopted']}")
+    print(f"wrote {pipeline.TEMPLATE_REVIEW_FILE}")
+
+
 def report(args):
     from eval import report as report_module
 
@@ -245,6 +262,7 @@ HANDLERS = {
     "validate-testset": validate_testset, "review-sheet": review_sheet, "review-apply": review_apply,
     "retrieve": retrieve, "generate": generate, "ablations": ablations, "report": report, "calibrate": calibrate, "chunker-golden": chunker_golden, "rejudge": rejudge,
     "device-extraction": device_extraction, "order-review": order_review,
+    "template-review": template_review,
 }
 
 
