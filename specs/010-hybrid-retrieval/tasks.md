@@ -303,12 +303,12 @@ Historias de la spec:
   - `EngineCoordinator` real;
   - la ingesta retiene `(EG2_270M, CPU)` con `withHeldEngine` y un `FakeTextEmbedder` cuyo `beforeEmbedding` bloquea un «fragmento» cada vez;
   - una recuperación con `EngineQueryEmbedder` comparte el motor y termina mientras el bloque retenido sigue activo, esperando como mucho al fragmento bloqueado.
-- [ ] T033 [P] [US3] Crear `…/androidTest/…/data/retrieval/HybridRetrieverVisibilityTest.kt` sobre `TempRagIndex` (SQLite-Vector real), con un `QueryEmbedder` determinista (`FakeTextEmbedder`):
+- [X] T033 [P] [US3] Crear `…/androidTest/…/data/retrieval/HybridRetrieverVisibilityTest.kt` sobre `TempRagIndex` (SQLite-Vector real), con un `QueryEmbedder` determinista (`FakeTextEmbedder`):
   - **todos los estados con el mismo texto:** documentos excluido, pendiente con fragmentos, con error, en pausa, fuera del índice, sombra de reindexado y uno a medias con 4.300 fragmentos ocultos, todos con fragmentos que coinciden con la pregunta. Los bloques solo contienen fragmentos de los indexados e incluidos (SC-002, US3-1);
   - **con los ocultos:** cada búsqueda sigue dando hasta 50 candidatos (US3-2);
   - **exclusión:** al excluir el que aparecía y repetir, desaparece;
   - **índice incompatible:** con `rag_meta` alterado (como `RagIndexCompatibilityTest`), `IndexUnavailable` sin llamadas al embedder (SC-006).
-- [ ] T034 [US3] Ejecutar en el emulador las instrumentadas sin modelos (quickstart §3). T007 y T033 pasan, y las de F04–F09 siguen en verde.
+- [X] T034 [US3] Ejecutar en el emulador las instrumentadas sin modelos (quickstart §3). T007 y T033 pasan, y las de F04–F09 siguen en verde.
 
 **Checkpoint**: la recuperación es segura y tipada. US1–US3 completas sin el teléfono.
 
