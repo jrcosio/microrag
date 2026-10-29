@@ -43,7 +43,7 @@ Al cerrar cada feature se entrega:
 | F06 | Importación y parsing | Producto | F04 | ✅ cerrada |
 | F07 | Indexación | Producto | F02, F06 | ✅ cerrada |
 | F08 | Biblioteca y detalle de documento | Producto | F07 | ✅ cerrada |
-| F09 | Inicio | Producto | F03, F07, F08 | 🟨 en curso (implementada; pendiente de la revisión de cierre) |
+| F09 | Inicio | Producto | F03, F07, F08 | ✅ cerrada |
 | F10 | Recuperación híbrida | Técnica | F05, F07 | ⬜ |
 | F11 | Chat con fuentes | Producto | F08, F10 | ⬜ |
 | F12 | Ajustes e Idiomas | Producto | F03, F11 | ⬜ |
@@ -443,7 +443,7 @@ También se introduce `EngineCoordinator`, que garantiza que nunca haya dos engi
 ## F09 — Inicio
 
 - **Tipo:** Producto.
-- **Estado:** 🟨 en curso: implementación terminada el 2026-10-28 en la rama `009-home`, pendiente de la revisión de cierre. Decisiones D-046 (clarify) y D-047 (plan); propuestas de UI P1–P5 aprobadas. Informe de cierre en `specs/009-home/report.md`. Queda abierto el recorrido manual con TalkBack.
+- **Estado:** ✅ cerrada: implementada en la rama `009-home` y aprobada por el usuario el 2026-10-29. Decisiones D-046 (clarify), D-047 (plan) y D-048 (cierre: resumen bajo el pliegue sin cambios, «Completar configuración» como botón propio y decisiones de implementación); propuestas de UI P1–P5 aprobadas. Informe de cierre en `specs/009-home/report.md`. Queda abierto el recorrido manual con TalkBack.
 
 **Objetivo.** Pantalla de Inicio con:
 - estado real de los modelos;

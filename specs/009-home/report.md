@@ -117,8 +117,8 @@ F03 midió 820 ms con la release.
 Coincide en cabecera, chip, saludo, héroe con órbitas y destello, rejilla 2×2, tarjeta «TU BIBLIOTECA» y barra inferior. Diferencias:
 1. **Cifras del resumen:** «documentos» va debajo de su cifra, como «fragmentos» (en el PNG va al lado). Anotada en el contrato.
 2. **Órbitas:** quedan dentro del héroe; en el PNG salen por arriba. Igual que el resto de héroes de F01.
-3. **Resumen bajo el pliegue:** en el teléfono, con su barra de estado y de navegación, la tarjeta «TU BIBLIOTECA» empieza justo en el borde y hay que desplazar un poco. En el PNG se ve entera.
-4. **«Completar configuración»:** con la fuente normal no cabe al lado del chip y pasa a la línea siguiente.
+3. **Resumen bajo el pliegue:** en el teléfono, con su barra de estado y de navegación, la tarjeta «TU BIBLIOTECA» empieza justo en el borde y hay que desplazar un poco. En el PNG se ve entera. Se deja así (D-048).
+4. **«Completar configuración»:** con la fuente normal no cabe al lado del chip y pasa a la línea siguiente. Se deja así (D-048).
 5. **Logotipo:** 40 dp de alto, como en la Bienvenida. En el PNG mide unos 42.
 
 ## 6. Desviaciones respecto al plan y fallos encontrados
@@ -149,11 +149,7 @@ Coincide en cabecera, chip, saludo, héroe con órbitas y destello, rejilla 2×2
 **Pendiente:**
 - **TalkBack** en Inicio, a cargo del usuario, como en F01, F03 y F06–F08.
 
-**Propuestas para decidir en el cierre:**
-1. **Resumen bajo el pliegue en el teléfono** (§5.3). Opciones:
-   - **(a)** dejarlo así (el PNG no tiene barras de sistema);
-   - **(b)** compactar el espacio entre bloques para que se vea entero sin desplazar.
-2. **«Completar configuración»** (§5.4). Opciones:
-   - **(a)** dejarlo en su propia línea;
-   - **(b)** hacer tocable el propio chip «Configuración pendiente» y quitar el botón.
-3. **Registrar D-048** con las decisiones de implementación de §6.
+**Decisiones del cierre** (el usuario delegó la elección, 2026-10-29; D-048):
+1. **Resumen bajo el pliegue en el teléfono** (§5.3): **(a)**, se deja así. El contenido tendría que subir unos 70 dp, y compactar los cinco huecos de 16 dp por encima del resumen solo da 40. El resto viene de la altura de los accesos y del héroe de F01, que se revisa en la auditoría de F15. El PNG no tiene la barra de navegación de tres botones del teléfono. Descartada: **(b)** compactar el espacio entre bloques.
+2. **«Completar configuración»** (§5.4): **(a)**, sigue siendo un botón propio, en su línea. Un botón con texto dice lo que hace, y el chip sigue siendo solo un estado. Descartada: **(b)** hacer tocable el chip y quitar el botón.
+3. **D-048** registra estas dos decisiones y las de implementación de §6.

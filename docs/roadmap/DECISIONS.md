@@ -796,6 +796,31 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
 
 ---
 
+## D-048 — Cierre de F09: resumen bajo el pliegue, «Completar configuración» y decisiones de implementación
+
+- **Fecha:** 2026-10-29
+- **Decisión** (propuestas del informe de cierre; el usuario delegó la elección):
+  1. **Resumen bajo el pliegue:** se deja como está. En el teléfono de referencia, con la barra de navegación de tres botones, la tarjeta «TU BIBLIOTECA» asoma por el borde y se ve entera al desplazar un poco.
+  2. **«Completar configuración»:** sigue siendo un botón propio, en la línea siguiente al chip cuando no cabe a su lado. El chip «Configuración pendiente» sigue siendo solo un estado.
+  3. **Decisiones de implementación** (informe de cierre, §6):
+     - `SummaryResult` va en `LibraryRepository.kt`, junto a `LibraryResult` y `DetailResult`, y no en `LibraryModels.kt` como decía data-model §2;
+     - durante la primera comprobación, una copia invisible del chip «IA local disponible», sin semántica, reserva su alto con cualquier tamaño de letra;
+     - los logs de Inicio los escribe `HomeViewModel`, con `AppLogger` y un reloj inyectables;
+     - la prueba del 200 % comprueba también que ninguna palabra se parta entre líneas.
+- **Motivo:**
+  - Para que el resumen se vea entero, el contenido tendría que subir unos 70 dp. Compactar los cinco huecos de 16 dp que hay por encima solo da 40.
+  - La diferencia con el PNG viene sobre todo de la altura de los componentes de F01: los accesos miden unos 125 dp frente a unos 97 en el PNG, y el héroe unos 204 frente a 175. Encogerlos cambiaría todas las pantallas que los usan.
+  - Con «Configuración pendiente» o con una tanda en curso el resumen quedaría igualmente bajo el pliegue.
+  - Un botón con su texto dice lo que hace. Un chip tocable no se distingue de un chip de estado.
+  - Sin la comprobación de palabras partidas, con dos columnas «Documentos» se partía sin puntos suspensivos y la prueba no lo veía.
+- **Alternativas descartadas:**
+  - compactar los huecos entre bloques;
+  - hacer tocable el chip «Configuración pendiente» y quitar el botón.
+- **Origen:** cierre de F09.
+- **Afecta:** F09; F15 (auditoría de fidelidad: altura de los accesos y del héroe frente al PNG).
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.
