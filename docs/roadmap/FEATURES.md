@@ -44,7 +44,7 @@ Al cerrar cada feature se entrega:
 | F07 | Indexación | Producto | F02, F06 | ✅ cerrada |
 | F08 | Biblioteca y detalle de documento | Producto | F07 | ✅ cerrada |
 | F09 | Inicio | Producto | F03, F07, F08 | ✅ cerrada |
-| F10 | Recuperación híbrida | Técnica | F05, F07 | 🟨 en curso (implementada; pendiente de la revisión de cierre) |
+| F10 | Recuperación híbrida | Técnica | F05, F07 | ✅ cerrada |
 | F11 | Chat con fuentes | Producto | F08, F10 | ⬜ |
 | F12 | Ajustes e Idiomas | Producto | F03, F11 | ⬜ |
 | F13 | Historial de chats | Producto (UI propuesta) | F11, F12 | ⬜ |
@@ -475,7 +475,7 @@ También se introduce `EngineCoordinator`, que garantiza que nunca haya dos engi
 ## F10 — Recuperación híbrida
 
 - **Tipo:** Técnica. Diagnóstico de búsqueda interno, solo en debug.
-- **Estado:** 🟨 en curso: implementación terminada el 2026-10-29 en la rama `010-hybrid-retrieval`, pendiente de la revisión de cierre. Decisiones D-049 (clarify), con la enmienda 1.1.1 de la constitución, D-050 (plan), D-051 (revisión del orden: se mantiene D-034) y D-052 (cierre: el total p95 de 202–211 ms pasa a F14; INT8 + precarga en F14). Informe de cierre en `specs/010-hybrid-retrieval/report.md`.
+- **Estado:** ✅ cerrada: implementada en la rama `010-hybrid-retrieval` y aprobada por el usuario el 2026-10-29. Decisiones D-049 (clarify), con la enmienda 1.1.1 de la constitución, D-050 (plan), D-051 (revisión del orden: se mantiene D-034) y D-052 (cierre: el total p95 de 202–211 ms pasa a F14; INT8 + precarga en F14). Informe de cierre en `specs/010-hybrid-retrieval/report.md`.
 
 **Objetivo.** `HybridRetriever`:
 - embedding de consulta en CPU;

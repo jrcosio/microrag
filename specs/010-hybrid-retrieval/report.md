@@ -1,6 +1,6 @@
 # Informe de cierre — F10 Recuperación híbrida
 
-> **Estado:** implementada, pendiente de la revisión de cierre. El total p95 en el teléfono (202–211 ms) pasa del límite de 200 ms y se acepta en D-052, que lo pasa a F14 con INT8 y precarga.
+> **Estado:** aprobada por el usuario el 2026-10-29. El total p95 en el teléfono (202–211 ms) pasa del límite de 200 ms. D-052 lo acepta y lo pasa a F14 con INT8 y precarga.
 
 **Rama:** `010-hybrid-retrieval`.
 **Fecha:** 2026-10-29.
@@ -179,7 +179,11 @@ Ninguna: F10 no tiene UI de producto. El diagnóstico es una herramienta interna
 7. **`RetrievalBenchmarkTest` tras la parada de T048 (D-052):**
    - registra el total sin comprobarlo;
    - mide también el embedding solo, con las mismas preguntas;
-   - en el A063 solo comprueba el embedding p95 dentro de la búsqueda (< 150 ms), que pasó en la tanda 3.
+   - en el A063 comprueba el embedding solo (p95 < 150 ms), por petición del usuario en la revisión de cierre. Dentro de la búsqueda, el embedding solo se registra.
+
+   Con el cambio se hicieron dos ejecuciones más en el teléfono, con el embedding solo en 184,4 ms (falla) y 131,5 ms (pasa):
+   - en la que falla, la mediana fue la de siempre (125,3 ms), pero todas las etapas se alargaron en el peor 5 % (total 355,0 ms), lo que apunta a interferencias del propio teléfono;
+   - la comprobación anterior, sobre el embedding dentro de la búsqueda, habría fallado en las dos (296,8 y 385,8 ms).
 
 ### Fallos encontrados y corregidos
 
@@ -190,6 +194,5 @@ Ninguna: F10 no tiene UI de producto. El diagnóstico es una herramienta interna
 
 ## 7. Pendiente
 
-- **Revisión de cierre del usuario.** El total p95 de la tanda 3 (211,0 ms) es más alto que el de la tanda 1 (202,1 ms), la que vio para decidir.
-- **Subida de la rama:** los commits de F10 son locales; se suben con la aprobación del cierre.
+- **Nada de F10.** El usuario aprobó el cierre con las tres tandas, y la rama se sube con esa aprobación.
 - **En el teléfono:** queda limpio de restos de las pruebas, y los modelos siguen intactos.

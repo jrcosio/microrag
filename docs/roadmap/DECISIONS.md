@@ -941,7 +941,7 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
 - **Fecha:** 2026-10-29
 - **Decisión:**
   1. **Total por encima de 200 ms (SC-003):** se acepta en F10 y lo retoma F14. Para esa decisión el usuario vio la primera tanda; las otras dos se presentan en la revisión de cierre. `RetrievalBenchmarkTest` registra el total, pero no lo comprueba.
-  2. **Embedding de consulta (constitución IV, < 150 ms):** se cumple con el coste del modelo. Medido solo, sin nada en paralelo, da p95 125,6 ms. Dentro de la búsqueda, la léxica compite con él por la CPU y lo lleva al borde del límite (una de tres tandas pasa en 1,1 ms). La prueba sigue comprobando la cifra dentro de la búsqueda en el A063, y F14 la retoma junto con el total.
+  2. **Embedding de consulta (constitución IV, < 150 ms):** se cumple con el coste del modelo. Medido solo, sin nada en paralelo, da p95 125,6 ms. Dentro de la búsqueda, la léxica compite con él por la CPU y lo lleva al borde del límite (una de tres tandas pasa en 1,1 ms). En la revisión de cierre, el usuario pidió que `RetrievalBenchmarkTest` compruebe en el A063 el embedding solo. La cifra dentro de la búsqueda solo se registra, y F14 la retoma junto con el total.
   3. **INT8 + precarga en F14 (FR-026):**
      - el p95 vectorial pasa de los 20 ms de la constitución IV: 51,9–52,9 ms con 10.000 fragmentos, y 66,9–68,3 ms con 4.300 ocultos;
      - F14 lo implementa con Recall@20 de INT8 frente a F32 ≥ 0,97 y vuelve a medir el total frente a 200 ms.
@@ -963,7 +963,7 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
 - **Alternativas descartadas:**
   - serializar la léxica después del embedding: dejaría de competir por la CPU, pero sumaría la léxica entera al total (p95 de 109–119 ms en este banco);
   - implementar INT8 en F10, que está fuera de su alcance.
-- **Origen:** T048 de F10. Respuestas del usuario en su parada: aceptar el total y pasarlo a F14, INT8 más precarga en F14, y medir el embedding solo antes de decidir.
+- **Origen:** T048 de F10. Respuestas del usuario en su parada: aceptar el total y pasarlo a F14, INT8 más precarga en F14, y medir el embedding solo antes de decidir. En la revisión de cierre (2026-10-29), aprobó el cierre con las tres tandas y pidió que la prueba compruebe el embedding solo.
 - **Afecta:** F10 (cierre), F11 (el coste de la recuperación) y F14 (INT8 + precarga, y el total frente a 200 ms).
 
 ---
