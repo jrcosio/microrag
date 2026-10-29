@@ -55,7 +55,7 @@ Historias de la spec:
 
 **Purpose**: los ficheros de escritorio que usan las pruebas de todas las historias.
 
-- [ ] T001 Añadir `fused_limit` (R2, data-model §1):
+- [X] T001 Añadir `fused_limit` (R2, data-model §1):
   - `"fused_limit": 30` en `offline/config/rag_parameters.json`, y `"D-050"` en su lista `decisions`;
   - `const val FUSED_LIMIT = 30` en `…/microrag/domain/rag/RagParameters.kt`;
   - la entrada en `…/test/…/domain/rag/RagParametersTest.kt`;

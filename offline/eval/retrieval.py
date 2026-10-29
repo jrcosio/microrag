@@ -5,15 +5,19 @@ follow-up questions without an LLM: a short question, or one that starts with a 
 together with the previous question.
 """
 
+import json
 import struct
 from dataclasses import dataclass
+from pathlib import Path
 
 import normalizer
 from eval import fts_variants
 
+PARAMETERS = Path(__file__).resolve().parents[1] / "config" / "rag_parameters.json"
 CONNECTORS = ("y ", "¿y ", "pero ", "entonces", "¿y si", "y si ")
 FOLLOW_UP_MAX_TOKENS = 8
-FUSED_LIMIT = 30  # the report keeps the top 30 of the fusion for the selector
+# The report keeps the top 30 of the fusion for the selector; shared with the app since F10 (D-050).
+FUSED_LIMIT = json.loads(PARAMETERS.read_text(encoding="utf-8"))["fused_limit"]
 
 
 def is_follow_up(question):

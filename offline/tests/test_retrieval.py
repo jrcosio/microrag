@@ -1,5 +1,6 @@
 """Hybrid retrieval as planned for the app (F05 T026, research R6, contracts/eval-cli.md E5)."""
 
+import json
 import struct
 import sys
 import tempfile
@@ -23,6 +24,13 @@ class RrfTest(unittest.TestCase):
 
     def test_ties_keep_the_best_rank_then_id(self):
         self.assertEqual(retrieval.rrf([["x", "y"], ["y", "x"]], k=60), ["x", "y"])
+
+
+class ParametersTest(unittest.TestCase):
+    def test_fused_limit_is_the_shared_parameter(self):
+        shared = json.loads(retrieval.PARAMETERS.read_text(encoding="utf-8"))
+        self.assertEqual(retrieval.FUSED_LIMIT, 30)
+        self.assertEqual(retrieval.FUSED_LIMIT, shared["fused_limit"])
 
 
 class FollowUpTest(unittest.TestCase):

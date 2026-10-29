@@ -28,6 +28,7 @@ class RagParametersTest {
         "candidates" to RagParameters.CANDIDATES,
         "rrf_k" to RagParameters.RRF_K,
         "follow_up_rule" to RagParameters.FOLLOW_UP_RULE,
+        "fused_limit" to RagParameters.FUSED_LIMIT,
         "max_blocks" to RagParameters.MAX_BLOCKS,
         "max_per_document" to RagParameters.MAX_PER_DOCUMENT,
         "budget_tokens" to RagParameters.BUDGET_TOKENS,

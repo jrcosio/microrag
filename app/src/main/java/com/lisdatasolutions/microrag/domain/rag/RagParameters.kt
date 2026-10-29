@@ -3,7 +3,7 @@ package com.lisdatasolutions.microrag.domain.rag
 import com.lisdatasolutions.microrag.domain.model.ModelId
 
 /**
- * Retrieval and context parameters fixed by the offline evaluation (F05, D-034 to D-036).
+ * Retrieval and context parameters fixed by the offline evaluation (F05, D-034 to D-036; F10, D-050).
  *
  * Mirror of `offline/config/rag_parameters.json`; `RagParametersTest` keeps both equal field by field.
  * Chunking is used by F06/F07, retrieval by F10 and the prompt by F11.
@@ -25,6 +25,9 @@ object RagParameters {
     const val CANDIDATES = 50
     const val RRF_K = 60
     const val FOLLOW_UP_RULE = true
+
+    /** Fused candidates handed to the context selector, as the evaluation harness does (F10 R2). */
+    const val FUSED_LIMIT = 30
 
     const val MAX_BLOCKS = 4
     const val MAX_PER_DOCUMENT = 3

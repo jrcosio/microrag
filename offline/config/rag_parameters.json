@@ -1,6 +1,6 @@
 {
   "decided_in": "F05",
-  "decisions": ["D-034", "D-035", "D-036"],
+  "decisions": ["D-034", "D-035", "D-036", "D-050"],
   "dims": 256,
   "contextual_header": true,
   "normalizer_version": 1,
@@ -11,6 +11,7 @@
   "candidates": 50,
   "rrf_k": 60,
   "follow_up_rule": true,
+  "fused_limit": 30,
   "max_blocks": 4,
   "max_per_document": 3,
   "budget_tokens": 1719,

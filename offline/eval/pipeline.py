@@ -18,7 +18,7 @@ from eval.extract import document_text
 from eval.generate import Item, open_engine
 from eval.generate import run as run_generation
 from eval.prompt import build_prompt
-from eval.retrieval import Retriever
+from eval.retrieval import FUSED_LIMIT, Retriever
 from eval.runs import EvalConfig, run_dir
 from eval.selector import ChunkView, ContextSelector
 
@@ -198,7 +198,7 @@ def retrieve(config, ctx=None):
     for q in questions:
         previous = by_id.get(q.previous).question if q.previous in by_id else None
         result = retriever.retrieve(q.question, previous, config)
-        candidates = result.fused_ids[:30]
+        candidates = result.fused_ids[:FUSED_LIMIT]
         views = _chunk_views(ctx.db, candidates)
         blocks = selector.select([views[i] for i in candidates if i in views], neighbor)
         relevant = relevant_ids(ctx, q)
