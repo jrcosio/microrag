@@ -29,6 +29,14 @@ class RetrievalGoldenTest {
     }
 
     @Test
+    fun theFollowUpRuleAndTheSearchTextMatchTheDesktop() {
+        cases.forEach { case ->
+            assertWithMessage(case.id).that(FollowUpRule.isFollowUp(case.question)).isEqualTo(case.followUp)
+            assertWithMessage(case.id).that(FollowUpRule.searchText(case.question, case.previous)).isEqualTo(case.searchText)
+        }
+    }
+
+    @Test
     fun theFusionMatchesTheDesktop() {
         cases.forEach { case ->
             val fused = ReciprocalRankFusion.fuse(listOf(case.vector, case.fts), RagParameters.RRF_K).take(RagParameters.FUSED_LIMIT)

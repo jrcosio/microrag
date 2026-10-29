@@ -253,7 +253,7 @@ Historias de la spec:
 
 **Independent Test**: `FollowUpRuleTest`, las 426 filas del golden y `HybridRetrieverTest` (seguimiento).
 
-- [ ] T026 [P] [US2] Crear `…/test/…/rag/retrieval/FollowUpRuleTest.kt`:
+- [X] T026 [P] [US2] Crear `…/test/…/rag/retrieval/FollowUpRuleTest.kt`:
   - **casos de `test_retrieval.py`:**
     - corta;
     - con conector;
@@ -264,13 +264,13 @@ Historias de la spec:
     - anterior nula o en blanco;
     - regla desactivada;
     - 7 frente a 8 términos.
-- [ ] T027 [P] [US2] Ampliar `…/test/…/rag/retrieval/RetrievalGoldenTest.kt`: `follow_up` y `search_text` de las 426 filas.
-- [ ] T028 [P] [US2] Ampliar `HybridRetrieverTest.kt`:
+- [X] T027 [P] [US2] Ampliar `…/test/…/rag/retrieval/RetrievalGoldenTest.kt`: `follow_up` y `search_text` de las 426 filas.
+- [X] T028 [P] [US2] Ampliar `HybridRetrieverTest.kt`:
   - un seguimiento busca con «anterior + espacio + actual» en la léxica, y el embedder recibe la anterior y la actual;
   - una larga sin conector se busca sola;
   - un seguimiento sin anterior se busca solo;
   - con `maxInputChars`, se recorta antes la anterior, la léxica recibe el texto completo y `embeddingCuts` lo informa (Q8).
-- [ ] T029 [US2] Completar `…/microrag/rag/retrieval/FollowUpRule.kt` (`isFollowUp` y `searchText`) e integrarlo en `HybridRetriever`. T026, T027 y T028 pasan.
+- [X] T029 [US2] Completar `…/microrag/rag/retrieval/FollowUpRule.kt` (`isFollowUp` y `searchText`) e integrarlo en `HybridRetriever`. T026, T027 y T028 pasan.
 
 **Checkpoint**: las preguntas de seguimiento se buscan como en el escritorio.
 

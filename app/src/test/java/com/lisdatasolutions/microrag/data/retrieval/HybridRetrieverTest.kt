@@ -11,6 +11,7 @@ import com.lisdatasolutions.microrag.domain.retrieval.RetrievalRequest
 import com.lisdatasolutions.microrag.domain.retrieval.RetrievalResult
 import com.lisdatasolutions.microrag.rag.retrieval.ContextSelector
 import com.lisdatasolutions.microrag.rag.retrieval.ReciprocalRankFusion
+import com.lisdatasolutions.microrag.rag.runtime.EmbeddingPrefixes
 import com.lisdatasolutions.microrag.testing.FakeRagIndex
 import com.lisdatasolutions.microrag.testing.RecordingLogger
 import kotlinx.coroutines.runBlocking
@@ -140,7 +141,64 @@ class HybridRetrieverTest {
         assertThat(retriever.retrieve(RetrievalRequest(QUESTION)).outcome).isEqualTo(RetrievalOutcome.NoResults)
     }
 
+    // F10 T028 (FR-007, FR-008, rule Q8): follow-ups.
+
+    @Test
+    fun aFollowUp_searchesWithThePreviousQuestion() = runTest {
+        val ids = documents("Bombas")
+        program(ids, ids)
+
+        val result = retriever.retrieve(RetrievalRequest("¿Y el aceite?", previousQuestion = PREVIOUS))
+
+        assertThat(result.followUp).isTrue()
+        assertThat(result.searchText).isEqualTo("$PREVIOUS ¿Y el aceite?")
+        assertThat(index.calls).contains("text:${RagParameters.CANDIDATES}:$PREVIOUS ¿Y el aceite?")
+        assertThat(embedder.engine.embedded).containsExactly(EmbeddingPrefixes.query("$PREVIOUS ¿Y el aceite?"))
+    }
+
+    @Test
+    fun aLongQuestionWithoutConnector_orAFollowUpWithoutPrevious_isSearchedAlone() = runTest {
+        val ids = documents("Bombas")
+        program(ids, ids)
+
+        val long = retriever.retrieve(RetrievalRequest(LONG_QUESTION, previousQuestion = PREVIOUS))
+        val alone = retriever.retrieve(RetrievalRequest("¿Y el aceite?", previousQuestion = null))
+        val blank = retriever.retrieve(RetrievalRequest("¿Y el aceite?", previousQuestion = "   "))
+
+        assertThat(long.followUp).isFalse()
+        assertThat(long.searchText).isEqualTo(LONG_QUESTION)
+        assertThat(alone.followUp).isFalse()
+        assertThat(alone.searchText).isEqualTo("¿Y el aceite?")
+        assertThat(blank.searchText).isEqualTo("¿Y el aceite?")
+        assertThat(embedder.engine.embedded).containsExactly(
+            EmbeddingPrefixes.query(LONG_QUESTION), EmbeddingPrefixes.query("¿Y el aceite?"), EmbeddingPrefixes.query("¿Y el aceite?"),
+        ).inOrder()
+    }
+
+    @Test
+    fun aQueryTooLongForTheModel_losesThePreviousQuestionFirst_butTheLexicalSearchGetsItWhole() = runTest {
+        val ids = documents("Bombas")
+        program(ids, ids)
+        val previous = "Antes pregunté por las bombas hidráulicas de la central y por su mantenimiento anual completo"
+        embedder.engine.maxInputChars = EmbeddingPrefixes.query("Antes pregunté por las bombas ¿Y el aceite?").length
+
+        val result = retriever.retrieve(RetrievalRequest("¿Y el aceite?", previousQuestion = previous))
+
+        assertThat(result.embeddingCuts).isGreaterThan(0)
+        assertThat(result.searchText).isEqualTo("$previous ¿Y el aceite?")
+        assertThat(index.calls).contains("text:${RagParameters.CANDIDATES}:$previous ¿Y el aceite?")
+        val embedded = embedder.engine.embedded.single()
+        assertThat(embedded).endsWith(" ¿Y el aceite?")
+        assertThat(embedded).startsWith(EmbeddingPrefixes.query("Antes pregunté"))
+        assertThat(result.outcome).isInstanceOf(RetrievalOutcome.Blocks::class.java)
+    }
+
     private companion object {
+        const val PREVIOUS = "¿Cada cuánto se revisa la bomba?"
+
+        /** Nine normalized terms and no connector: never a follow-up. */
+        const val LONG_QUESTION =
+            "¿Cuál es el plazo para presentar la declaración trimestral del impuesto sobre el valor añadido de las empresas exportadoras?"
         const val CHUNKS = 20
         const val QUESTION = "¿Cada cuánto se revisan las bombas hidráulicas del sistema principal?"
     }
