@@ -41,7 +41,8 @@ offline/.venv/bin/python -I -m unittest discover -s offline/tests
   - candidatos que dejan de ser buscables;
   - dos llamadas simultáneas;
   - registros sin texto (SC-006, SC-008).
-- **`QueryEmbedderTest`:** regla «listo» con `refresh()` una vez; clave CPU; carga bajo demanda.
+- **`EngineQueryEmbedderTest`:** regla «listo» con `refresh()` una vez; clave CPU; carga bajo demanda.
+- **`RetrievalDuringIngestTest`:** con un `EngineCoordinator` real y la ingesta reteniendo el motor de CPU con un embedder que bloquea, la recuperación termina sin esperar al final del bloque (FR-020).
 - **`EngineCoordinatorTest` ampliado:**
   - la consulta comparte el motor retenido sin esperar al final del bloque;
   - el cierre espera a todos los usuarios;

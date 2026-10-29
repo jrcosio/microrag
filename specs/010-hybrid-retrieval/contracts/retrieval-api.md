@@ -6,7 +6,7 @@ Capas (constitución II):
 - `ContextRetriever` (interfaz);
 - `HybridRetriever` (`data/retrieval`), que usa:
   - `RagIndex` (F04);
-  - `QueryEmbedder` (`data/retrieval`), con `EngineCoordinator`, `EngineFactory` y `ModelFileRepository`;
+  - `QueryEmbedder` (`data/retrieval`), implementado por `EngineQueryEmbedder` con `EngineCoordinator`, `EngineFactory` y `ModelFileRepository`;
   - los algoritmos puros de `rag/retrieval`.
 
 Quien llama no importa SQLite, LiteRT ni nada de `data/`.
@@ -61,20 +61,24 @@ class ContextSelector(
 ## Datos (`data/retrieval`)
 
 ```kotlin
-class QueryEmbedder(
-    private val coordinator: EngineCoordinator,
-    private val factory: EngineFactory,
-    private val models: ModelFileRepository,
-) {
+/** The query side of the embedding model; an interface so instrumented tests can use a deterministic one. */
+interface QueryEmbedder {
     /** Verified and prepared (F03 rule), after one refresh() without hashing when the path is unknown (R4). */
     suspend fun ready(): Boolean
 
-    /** CPU engine (D-024), loaded on demand and shared with the ingest's (R5). Throws on any engine failure. */
+    /** Embeds [question] after [previous] (null: alone). Throws on any engine failure. */
     suspend fun embed(question: String, previous: String?): QueryEmbedding
 
-    /** Whether the CPU query engine is loaded now (for RetrievalTimings.coldEngine). */
+    /** Whether the query engine is loaded now (for RetrievalTimings.coldEngine). */
     val loaded: Boolean
 }
+
+/** The app's [QueryEmbedder]: CPU engine (D-024), loaded on demand and shared with the ingest's (R5). */
+class EngineQueryEmbedder(
+    private val coordinator: EngineCoordinator,
+    private val factory: EngineFactory,
+    private val models: ModelFileRepository,
+) : QueryEmbedder
 
 class HybridRetriever(
     private val index: RagIndex,
@@ -103,7 +107,7 @@ interface TextEmbedder : ManagedEngine {
      * attempts and EmbeddingEngineException on any other failure.
      */
     suspend fun embedQueryFitting(question: String, previous: String?): QueryEmbedding =
-        QueryEmbedding(embedQuery(FollowUpRule.join(previous, question)), cuts = 0)
+        QueryEmbedding(embedQuery(QueryOverflow.join(previous, question)), cuts = 0)
 }
 
 class EngineCoordinator {
@@ -112,7 +116,7 @@ class EngineCoordinator {
 }
 ```
 
-`FollowUpRule.join(previous, question)` es la unión con un espacio. `searchText` decide si se une; la unión es la misma.
+`QueryOverflow.join(previous, question)` es la unión con un espacio (`rag/runtime`). `FollowUpRule.searchText` decide si se une y usa la misma función.
 
 ## Reglas
 

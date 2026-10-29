@@ -43,7 +43,7 @@ Python sin dependencias nuevas. El SQLite del entorno virtual admite FTS5 `trigr
 - **JVM:**
   - `FollowUpRuleTest`, `ReciprocalRankFusionTest`, `ContextSelectorTest` y `RetrievalGoldenTest`;
   - `QueryOverflowTest`;
-  - `HybridRetrieverTest` y `QueryEmbedderTest`;
+  - `HybridRetrieverTest`, `EngineQueryEmbedderTest` y `RetrievalDuringIngestTest`;
   - `EngineCoordinatorTest` ampliado;
   - `RagParametersTest`;
   - diagnóstico (ViewModel y pantalla con Robolectric);
@@ -144,9 +144,10 @@ app/src/main/java/com/lisdatasolutions/microrag/
 ├── domain/di/DomainModule.kt                   # RetrieveContextUseCase
 ├── data/rag/DefaultRagIndex.kt                 # loadChunks/neighbor con searchableOnly
 ├── data/retrieval/
-│   ├── QueryEmbedder.kt                        # R4
+│   ├── QueryEmbedder.kt                        # R4: interfaz
+│   ├── EngineQueryEmbedder.kt                  # R4: motor CPU compartido
 │   └── HybridRetriever.kt                      # R6, R8
-└── data/di/DataModule.kt                       # QueryEmbedder, ContextRetriever
+└── data/di/DataModule.kt                       # QueryEmbedder → EngineQueryEmbedder, ContextRetriever → HybridRetriever
 app/src/debug/java/com/lisdatasolutions/microrag/debug/
 ├── DebugEntries.kt, DebugModules.kt            # entrada y módulo nuevos
 └── retrieval/
@@ -157,7 +158,7 @@ app/src/debug/java/com/lisdatasolutions/microrag/debug/
 app/src/test/java/com/lisdatasolutions/microrag/
 ├── rag/retrieval/{FollowUpRuleTest, ReciprocalRankFusionTest, ContextSelectorTest, RetrievalGoldenTest}.kt
 ├── rag/runtime/{QueryOverflowTest, EngineCoordinatorTest}.kt
-├── data/retrieval/{HybridRetrieverTest, QueryEmbedderTest}.kt
+├── data/retrieval/{HybridRetrieverTest, EngineQueryEmbedderTest, RetrievalDuringIngestTest}.kt
 ├── domain/rag/RagParametersTest.kt
 ├── testing/FakeRagIndex.kt                     # búsquedas programables y searchableOnly
 └── architecture/LayeringTest.kt                # V1

@@ -18,7 +18,7 @@ Las pruebas en el teléfono de referencia (R10, R11 y la decisión de INT8 de R1
 |---|---|---|
 | `rag/retrieval` | `FollowUpRule`, `ReciprocalRankFusion`, `ContextSelector` (con la fusión de consecutivos) | Algoritmos puros portados de Python, como `rag/text/SpanishText` y `rag/ingest/Chunker`. Se prueban en la JVM contra los casos y el golden del escritorio (R2, R3) |
 | `domain/retrieval` | Modelos del resultado, interfaz `ContextRetriever` y `RetrieveContextUseCase` | El contrato que verán el chat (F11) y el diagnóstico. No importa LiteRT ni SQLite |
-| `data/retrieval` | `HybridRetriever` (orquestación) y `QueryEmbedder` (motor de consulta y estado del modelo) | Usa `RagIndex`, `EngineCoordinator`, `EngineFactory` y `ModelFileRepository`, como `ChunkEmbeddingSession` en `data/indexing` |
+| `data/retrieval` | `HybridRetriever` (orquestación), la interfaz `QueryEmbedder` y su implementación `EngineQueryEmbedder` (motor de consulta y estado del modelo) | Usa `RagIndex`, `EngineCoordinator`, `EngineFactory` y `ModelFileRepository`, como `ChunkEmbeddingSession` en `data/indexing` |
 | `debug/retrieval` (solo `src/debug`) | Pantalla, ViewModel y módulo Koin del diagnóstico | Las herramientas internas viven en el lanzador «MicroRAG Debug» (F02) |
 
 **Alternativas descartadas:**
@@ -103,7 +103,7 @@ El formato está en data-model §6.
 
 ## R4. Embedding de la consulta y estado del modelo
 
-**Decisión:** `QueryEmbedder` en `data/retrieval`:
+**Decisión:** interfaz `QueryEmbedder` en `data/retrieval`, implementada por `EngineQueryEmbedder`. La interfaz permite a las pruebas instrumentadas usar un embedding determinista sin el motor:
 
 - **Motor:**
   - `EngineKey(EG2_270M, CPU)` (D-024) a través de `EngineCoordinator.withEngine`, creado con `EngineFactory.embedder(...).initializeOrClose { it.initialize() }`;
