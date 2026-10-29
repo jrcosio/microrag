@@ -299,7 +299,7 @@ Historias de la spec:
     - una línea `retrieval …` por llamada;
     - el `CapturingLogger` no contiene la pregunta, la anterior, el texto de búsqueda, el texto de los fragmentos ni los nombres de documento (SC-008).
 - [X] T031 [US3] Completar `HybridRetriever` con las comprobaciones, los errores y el registro de R6 y R8. T030 pasa.
-- [ ] T032 [P] [US3] Crear `…/test/…/data/retrieval/RetrievalDuringIngestTest.kt` (FR-020, regla Q6):
+- [X] T032 [P] [US3] Crear `…/test/…/data/retrieval/RetrievalDuringIngestTest.kt` (FR-020, regla Q6):
   - `EngineCoordinator` real;
   - la ingesta retiene `(EG2_270M, CPU)` con `withHeldEngine` y un `FakeTextEmbedder` cuyo `beforeEmbedding` bloquea un «fragmento» cada vez;
   - una recuperación con `EngineQueryEmbedder` comparte el motor y termina mientras el bloque retenido sigue activo, esperando como mucho al fragmento bloqueado.
