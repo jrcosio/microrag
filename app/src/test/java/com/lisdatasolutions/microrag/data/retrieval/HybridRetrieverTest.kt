@@ -1,8 +1,11 @@
 package com.lisdatasolutions.microrag.data.retrieval
 
 import com.google.common.truth.Truth.assertThat
+import com.lisdatasolutions.microrag.data.indexing.FakeTextEmbedder
 import com.lisdatasolutions.microrag.domain.rag.ChunkInput
 import com.lisdatasolutions.microrag.domain.rag.DocumentStatus
+import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
+import com.lisdatasolutions.microrag.domain.rag.IndexUnavailableException
 import com.lisdatasolutions.microrag.domain.rag.NewDocument
 import com.lisdatasolutions.microrag.domain.rag.RagParameters
 import com.lisdatasolutions.microrag.domain.rag.ScoredChunk
@@ -12,8 +15,15 @@ import com.lisdatasolutions.microrag.domain.retrieval.RetrievalResult
 import com.lisdatasolutions.microrag.rag.retrieval.ContextSelector
 import com.lisdatasolutions.microrag.rag.retrieval.ReciprocalRankFusion
 import com.lisdatasolutions.microrag.rag.runtime.EmbeddingPrefixes
+import com.lisdatasolutions.microrag.rag.runtime.QueryEmbedding
 import com.lisdatasolutions.microrag.testing.FakeRagIndex
 import com.lisdatasolutions.microrag.testing.RecordingLogger
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
@@ -191,6 +201,155 @@ class HybridRetrieverTest {
         assertThat(embedded).endsWith(" ¿Y el aceite?")
         assertThat(embedded).startsWith(EmbeddingPrefixes.query("Antes pregunté"))
         assertThat(result.outcome).isInstanceOf(RetrievalOutcome.Blocks::class.java)
+    }
+
+    // F10 T030 (rules Q1, Q9–Q11): order of the checks, failures, races and the log.
+
+    @Test
+    fun anEmptyQuestion_touchesNeitherTheIndexNorTheEngine() = runTest {
+        listOf("", "   \n ").forEach { question ->
+            val result = retriever.retrieve(RetrievalRequest(question, previousQuestion = PREVIOUS))
+            assertThat(result.outcome).isEqualTo(RetrievalOutcome.EmptyQuestion)
+            assertThat(result.searchText).isEqualTo(question)
+            assertThat(result.followUp).isFalse()
+            assertThat(result.timings.embeddingMs).isEqualTo(0.0)
+        }
+        assertThat(index.calls).isEmpty()
+        assertThat(embedder.readyCalls.get()).isEqualTo(0)
+        assertThat(embedder.embedCalls.get()).isEqualTo(0)
+    }
+
+    @Test
+    fun anIndexThatCannotBeUsed_givesItsState_withoutAskingForTheModel() = runTest {
+        val incompatible = IndexCompatibility.Incompatible("embedding_dims", "256", "768")
+        listOf(incompatible, IndexCompatibility.Unreadable("not a database")).forEach { state ->
+            index.setCompatibility(state)
+            assertThat(retriever.retrieve(RetrievalRequest(QUESTION)).outcome).isEqualTo(RetrievalOutcome.IndexUnavailable(state))
+        }
+        assertThat(index.calls).containsExactly("open", "open")
+        assertThat(embedder.readyCalls.get()).isEqualTo(0)
+        assertThat(embedder.embedCalls.get()).isEqualTo(0)
+    }
+
+    @Test
+    fun modelsNotReady_searchNothing_andLoadNothing() = runTest {
+        embedder.isReady = false
+
+        val result = retriever.retrieve(RetrievalRequest(QUESTION))
+
+        assertThat(result.outcome).isEqualTo(RetrievalOutcome.ModelsNotReady)
+        assertThat(index.calls).containsExactly("open")
+        assertThat(embedder.embedCalls.get()).isEqualTo(0)
+        assertThat(embedder.loaded).isFalse()
+    }
+
+    @Test
+    fun indexFailuresDuringTheSearch_areIndexUnavailable() = runTest {
+        documents("Bombas")
+        val closed = IndexCompatibility.Unreadable("closed meanwhile")
+        index.searchError = IndexUnavailableException(closed)
+        assertThat(retriever.retrieve(RetrievalRequest(QUESTION)).outcome).isEqualTo(RetrievalOutcome.IndexUnavailable(closed))
+
+        index.searchError = IllegalStateException("disk I/O error")
+        assertThat(retriever.retrieve(RetrievalRequest(QUESTION)).outcome)
+            .isEqualTo(RetrievalOutcome.IndexUnavailable(IndexCompatibility.Unreadable("search: IllegalStateException")))
+    }
+
+    @Test
+    fun engineFailures_areEmbeddingFailed() = runTest {
+        documents("Bombas")
+        embedder.engine.failEngineTimes = 1
+        assertThat(retriever.retrieve(RetrievalRequest(QUESTION)).outcome).isEqualTo(RetrievalOutcome.EmbeddingFailed)
+
+        val cannotLoad = object : QueryEmbedder {
+            override suspend fun ready() = true
+            override suspend fun embed(question: String, previous: String?): QueryEmbedding = throw IllegalStateException("cannot load")
+            override val loaded = false
+        }
+        val result = HybridRetriever(index, cannotLoad, logger).retrieve(RetrievalRequest(QUESTION))
+        assertThat(result.outcome).isEqualTo(RetrievalOutcome.EmbeddingFailed)
+        assertThat(result.timings.coldEngine).isTrue()
+    }
+
+    @Test
+    fun cancellationIsNotAnOutcome() = runTest {
+        val cancelled = object : QueryEmbedder {
+            override suspend fun ready() = true
+            override suspend fun embed(question: String, previous: String?): QueryEmbedding = throw CancellationException("screen left")
+            override val loaded = true
+        }
+
+        val thrown = runCatching { HybridRetriever(index, cancelled, logger).retrieve(RetrievalRequest(QUESTION)) }.exceptionOrNull()
+
+        assertThat(thrown).isInstanceOf(CancellationException::class.java)
+    }
+
+    @Test
+    fun chunksThatStopBeingSearchableAfterTheSearch_neverReachTheBlocks() = runTest {
+        val bombas = documents("Bombas")
+        val aceite = documents("Aceite")
+        val aceiteId = index.documentIdByHash("Aceite")!!
+        index.vectorResults = { (aceite + bombas).map { ScoredChunk(it, 0.2) } }
+        // The user excludes «Aceite» while the searches run.
+        index.textResults = {
+            index.docs[aceiteId] = index.docs.getValue(aceiteId).copy(included = false)
+            aceite
+        }
+
+        val outcome = blocksOf(retriever.retrieve(RetrievalRequest(QUESTION)))
+
+        assertThat(outcome.blocks.map { it.documentId }.toSet()).containsExactly(index.documentIdByHash("Bombas"))
+        assertThat(outcome.candidates.filter { it.selected }.map { it.chunkId }).containsNoneIn(aceite)
+    }
+
+    @Test
+    fun twoRetrievalsAtOnce_getEachTheirOwnContext() = runBlocking<Unit> {
+        val bombas = documents("Bombas")
+        val aceite = documents("Aceite")
+        val first = "Pregunta larga sobre el mantenimiento preventivo de las bombas hidráulicas principales"
+        val second = "Pregunta larga sobre los cambios periódicos del aceite lubricante del motor diésel"
+        index.vectorResults = { query ->
+            val ids = if (query.contentEquals(FakeTextEmbedder.vectorOf(EmbeddingPrefixes.query(first)))) bombas else aceite
+            ids.map { ScoredChunk(it, 0.2) }
+        }
+        index.textResults = { query -> if (query == first) bombas else aceite }
+        val bothEmbedding = CountDownLatch(2)
+        embedder.engine.beforeEmbedding = {
+            bothEmbedding.countDown()
+            bothEmbedding.await(5, TimeUnit.SECONDS)
+        }
+
+        val results = listOf(first, second).map { question ->
+            async(Dispatchers.Default) { retriever.retrieve(RetrievalRequest(question)) }
+        }.awaitAll()
+
+        assertThat(bothEmbedding.count).isEqualTo(0)
+        assertThat(results.map { it.searchText }).containsExactly(first, second).inOrder()
+        assertThat(blocksOf(results[0]).blocks.flatMap { it.chunkIds }).containsNoneIn(aceite)
+        assertThat(blocksOf(results[1]).blocks.flatMap { it.chunkIds }).containsNoneIn(bombas)
+    }
+
+    @Test
+    fun oneLogLinePerRetrieval_withNumbersOnly() = runTest {
+        val ids = documents("Manual de bombas")
+        program(ids, ids)
+
+        val blocks = retriever.retrieve(RetrievalRequest("¿Y el aceite?", previousQuestion = PREVIOUS))
+        retriever.retrieve(RetrievalRequest(""))
+        embedder.isReady = false
+        retriever.retrieve(RetrievalRequest(QUESTION))
+
+        val lines = logger.lines.filter { it.startsWith("retrieval ") }
+        assertThat(lines).hasSize(3)
+        assertThat(lines[0]).matches(
+            "retrieval outcome=Blocks follow_up=true cuts=0 vector=\\d+ text=\\d+ fused=\\d+ blocks=\\d+ tokens=\\d+ cold=true " +
+                "embed_ms=\\d+\\.\\d vector_ms=\\d+\\.\\d text_ms=\\d+\\.\\d select_ms=\\d+\\.\\d total_ms=\\d+\\.\\d",
+        )
+        assertThat(lines[1]).startsWith("retrieval outcome=EmptyQuestion")
+        assertThat(lines[2]).startsWith("retrieval outcome=ModelsNotReady")
+        val texts = listOf("aceite", "bomba", PREVIOUS, QUESTION, "Manual", "fragmento") +
+            (blocksOf(blocks).blocks.map { it.text })
+        logger.lines.forEach { line -> texts.forEach { text -> assertThat(line.lowercase()).doesNotContain(text.lowercase()) } }
     }
 
     private companion object {

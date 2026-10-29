@@ -282,7 +282,7 @@ Historias de la spec:
 
 **Independent Test**: `HybridRetrieverTest` (estados), `RetrievalDuringIngestTest` en la JVM y `HybridRetrieverVisibilityTest` en el emulador.
 
-- [ ] T030 [P] [US3] Ampliar `HybridRetrieverTest.kt` (reglas Q1, Q9–Q11):
+- [X] T030 [P] [US3] Ampliar `HybridRetrieverTest.kt` (reglas Q1, Q9–Q11):
   - **orden de las comprobaciones:**
     - pregunta vacía o en blanco → `EmptyQuestion`, sin abrir el índice ni llamar al embedder;
     - índice `Incompatible` o `Unreadable` → `IndexUnavailable` con el estado, sin `ready()` ni `embed`;
@@ -298,7 +298,7 @@ Historias de la spec:
   - **registro:**
     - una línea `retrieval …` por llamada;
     - el `CapturingLogger` no contiene la pregunta, la anterior, el texto de búsqueda, el texto de los fragmentos ni los nombres de documento (SC-008).
-- [ ] T031 [US3] Completar `HybridRetriever` con las comprobaciones, los errores y el registro de R6 y R8. T030 pasa.
+- [X] T031 [US3] Completar `HybridRetriever` con las comprobaciones, los errores y el registro de R6 y R8. T030 pasa.
 - [ ] T032 [P] [US3] Crear `…/test/…/data/retrieval/RetrievalDuringIngestTest.kt` (FR-020, regla Q6):
   - `EngineCoordinator` real;
   - la ingesta retiene `(EG2_270M, CPU)` con `withHeldEngine` y un `FakeTextEmbedder` cuyo `beforeEmbedding` bloquea un «fragmento» cada vez;
