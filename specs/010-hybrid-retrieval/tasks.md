@@ -64,7 +64,7 @@ Historias de la spec:
   - una prueba en `offline/tests/test_retrieval.py` comprueba que `FUSED_LIMIT == 30` y que coincide con el JSON.
 
   Después se ejecutan `RagParametersTest` y `unittest discover -s offline/tests`.
-- [ ] T002 [P] Crear `offline/tests/test_retrieval_golden.py` (regla G5), que falla mientras no existan los ficheros:
+- [X] T002 [P] Crear `offline/tests/test_retrieval_golden.py` (regla G5), que falla mientras no existan los ficheros:
   - **`retrieval_golden.jsonl`:**
     - 426 filas ordenadas por `id`;
     - campos de data-model §6;
@@ -74,7 +74,7 @@ Historias de la spec:
     - 50 filas: 40 respondibles y 10 de seguimiento;
     - campos de data-model §7;
     - `previous` presente en las de seguimiento.
-- [ ] T003 Crear `offline/gen_retrieval_golden.py` (contrato `eval-retrieval.md`, reglas G1–G4), sobre `index.connect` de `ref`, la caché `build/query_embeddings.json`, `Retriever` y `ContextSelector` de escritorio:
+- [X] T003 Crear `offline/gen_retrieval_golden.py` (contrato `eval-retrieval.md`, reglas G1–G4), sobre `index.connect` de `ref`, la caché `build/query_embeddings.json`, `Retriever` y `ContextSelector` de escritorio:
   - **`retrieval_golden.jsonl`:**
     - las 426 preguntas vivas, con la configuración `d034` leída del JSON y la `report` (6, 3, 2200, 2);
     - para cada candidato fusionado, `[document_id, ordinal, token_estimate, next_id]`, y también para su siguiente;
