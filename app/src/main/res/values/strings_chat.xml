@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- F11 Chat con fuentes (PNG 04, propuestas C1–C17, contracts/chat-ui.md §5). -->
+<resources>
+    <string name="chat_title">Chat con documentos</string>
+    <string name="chat_subtitle_local">Gemma 4 · Procesamiento local</string>
+    <string name="chat_subtitle_cpu">Gemma 4 · Modo CPU, más lento</string>
+    <string name="chat_composer_placeholder">Pregunta a tus documentos…</string>
+    <string name="chat_searching">Buscando en documentos…</string>
+    <string name="chat_generating">Generando respuesta…</string>
+    <string name="chat_sources_header">Fuentes consultadas</string>
+    <plurals name="chat_sources_count">
+        <item quantity="one">%1$d fuente</item>
+        <item quantity="other">%1$d fuentes</item>
+    </plurals>
+    <string name="chat_refusal">No encuentro información suficiente en tus documentos</string>
+    <string name="chat_no_citations">Esta respuesta no cita ninguna fuente de tus documentos.</string>
+    <string name="chat_partial_coverage">Algunos documentos aún no están indexados: esta respuesta solo usa los que ya están listos.</string>
+    <string name="chat_index_failed">No se puede abrir el índice de documentos</string>
+    <string name="chat_interrupted">La respuesta se interrumpió</string>
+    <string name="chat_save_failed">No se ha podido guardar esta respuesta en el teléfono.</string>
+    <string name="chat_storage_unavailable">No se pueden abrir tus conversaciones guardadas.</string>
+    <string name="chat_copied">Respuesta copiada</string>
+    <string name="chat_clip_label">Respuesta de MicroRAG</string>
+    <string name="chat_copy_source">[%1$d] %2$s, página %3$d</string>
+    <string name="chat_copy_source_no_page">[%1$d] %2$s</string>
+    <string name="chat_models_title">Configuración pendiente</string>
+    <string name="chat_models_body">Completa la preparación de los modelos para poder preguntar a tus documentos.</string>
+    <string name="chat_models_action">Completar configuración</string>
+    <string name="chat_empty_title">Aún no hay documentos</string>
+    <string name="chat_empty_body">Importa documentos para poder preguntarles.</string>
+    <string name="chat_empty_action">Importar documentos</string>
+    <string name="chat_nothing_ready">Aún no hay documentos listos para preguntar</string>
+    <string name="chat_waiting_title">Se están indexando tus documentos</string>
+    <string name="chat_waiting_body">Podrás preguntar cuando termine la indexación o si la pausas.</string>
+    <string name="chat_view_indexing">Ver indexación</string>
+    <string name="chat_new">Nuevo chat</string>
+    <string name="chat_delete">Borrar conversación</string>
+    <string name="chat_delete_title">¿Borrar esta conversación?</string>
+    <string name="chat_delete_body">Se eliminarán sus preguntas y respuestas de este teléfono.</string>
+    <string name="chat_delete_confirm">Borrar</string>
+    <string name="chat_open_source">Abrir fuente</string>
+    <string name="chat_source_sentence">Fuente %1$d: %2$s</string>
+    <string name="chat_you_sentence">Tú: %1$s</string>
+    <string name="chat_announce_searching">Buscando en documentos</string>
+    <string name="chat_announce_generating">Generando respuesta</string>
+    <string name="chat_announce_completed">Respuesta completa</string>
+    <string name="chat_announce_cancelled">Generación cancelada</string>
+    <string name="chat_announce_interrupted">La respuesta se interrumpió</string>
+    <string name="chat_announce_failed">No se pudo generar la respuesta</string>
+    <string name="chat_announce_deleted">Conversación borrada</string>
+</resources>

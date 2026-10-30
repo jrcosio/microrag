@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- F11 Chat with sources (PNG 04, proposals C1–C17, contracts/chat-ui.md §5). -->
+<resources>
+    <string name="chat_title">Chat with documents</string>
+    <string name="chat_subtitle_local">Gemma 4 · On-device processing</string>
+    <string name="chat_subtitle_cpu">Gemma 4 · CPU mode, slower</string>
+    <string name="chat_composer_placeholder">Ask your documents…</string>
+    <string name="chat_searching">Searching your documents…</string>
+    <string name="chat_generating">Generating the answer…</string>
+    <string name="chat_sources_header">Sources consulted</string>
+    <plurals name="chat_sources_count">
+        <item quantity="one">%1$d source</item>
+        <item quantity="other">%1$d sources</item>
+    </plurals>
+    <string name="chat_refusal">I can\'t find enough information in your documents</string>
+    <string name="chat_no_citations">This answer doesn\'t cite any of your documents.</string>
+    <string name="chat_partial_coverage">Some documents aren\'t indexed yet: this answer only uses the ones that are ready.</string>
+    <string name="chat_index_failed">The document index can\'t be opened</string>
+    <string name="chat_interrupted">The answer was interrupted</string>
+    <string name="chat_save_failed">This answer couldn\'t be saved on this phone.</string>
+    <string name="chat_storage_unavailable">Your saved conversations can\'t be opened.</string>
+    <string name="chat_copied">Answer copied</string>
+    <string name="chat_clip_label">MicroRAG answer</string>
+    <string name="chat_copy_source">[%1$d] %2$s, page %3$d</string>
+    <string name="chat_copy_source_no_page">[%1$d] %2$s</string>
+    <string name="chat_models_title">Setup pending</string>
+    <string name="chat_models_body">Finish preparing the models to ask your documents.</string>
+    <string name="chat_models_action">Complete setup</string>
+    <string name="chat_empty_title">No documents yet</string>
+    <string name="chat_empty_body">Import documents to ask about them.</string>
+    <string name="chat_empty_action">Import documents</string>
+    <string name="chat_nothing_ready">No documents are ready to ask about yet</string>
+    <string name="chat_waiting_title">Your documents are being indexed</string>
+    <string name="chat_waiting_body">You can ask when indexing finishes or if you pause it.</string>
+    <string name="chat_view_indexing">View indexing</string>
+    <string name="chat_new">New chat</string>
+    <string name="chat_delete">Delete conversation</string>
+    <string name="chat_delete_title">Delete this conversation?</string>
+    <string name="chat_delete_body">Its questions and answers will be removed from this phone.</string>
+    <string name="chat_delete_confirm">Delete</string>
+    <string name="chat_open_source">Open source</string>
+    <string name="chat_source_sentence">Source %1$d: %2$s</string>
+    <string name="chat_you_sentence">You: %1$s</string>
+    <string name="chat_announce_searching">Searching your documents</string>
+    <string name="chat_announce_generating">Generating the answer</string>
+    <string name="chat_announce_completed">Answer complete</string>
+    <string name="chat_announce_cancelled">Generation cancelled</string>
+    <string name="chat_announce_interrupted">The answer was interrupted</string>
+    <string name="chat_announce_failed">The answer couldn\'t be generated</string>
+    <string name="chat_announce_deleted">Conversation deleted</string>
+</resources>
