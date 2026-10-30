@@ -141,12 +141,13 @@ class ChatScreenTest {
     }
 
     @Test
-    fun whileSearching_theStatusShows_withoutCopyChipOrSources_andSendTurnsIntoStop() {
+    fun whileSearching_theStatusShows_copyIsOff_noChipOrSources_andSendTurnsIntoStop() {
         val state = ChatPreviewData.searching
         show(state.copy(turns = listOf(state.turns.last())))
 
         exists("Buscando en documentos…")
-        listOf("Copiar respuesta", "2 fuentes", "FUENTES CONSULTADAS").forEach { absent(it) }
+        compose.onNodeWithText("Copiar respuesta").assertIsNotEnabled()
+        listOf("2 fuentes", "FUENTES CONSULTADAS").forEach { absent(it) }
         compose.onNodeWithContentDescription("Detener").performClick()
         assertThat(calls).containsExactly("stop")
     }
@@ -158,7 +159,8 @@ class ChatScreenTest {
 
         exists("Generando respuesta…")
         compose.onNodeWithText("Lo firma la persona responsable", substring = true, useUnmergedTree = true).assertExists()
-        listOf("Copiar respuesta", "1 fuente", "FUENTES CONSULTADAS").forEach { absent(it) }
+        compose.onNodeWithText("Copiar respuesta").assertIsNotEnabled()
+        listOf("1 fuente", "FUENTES CONSULTADAS").forEach { absent(it) }
         chip("Lo firma la persona responsable").performClick()
         assertThat(opened).containsExactly(ChatPreviewData.manual.target)
     }

@@ -273,10 +273,10 @@ Historias de la spec:
 
 **Notas de la implementación de US1:**
 - **Nombres de ficheros.** Los datos de muestra están en `feature/chat/ChatPreviews.kt` (objeto `ChatPreviewData`), no en `ChatPreviewData.kt`: `DesignSystemConformanceTest` solo admite textos fijos en ficheros `*Previews.kt`, como `DocumentPreviews.kt`. `ChatRoute` está en `ChatScreen.kt`, como las rutas de las demás pantallas.
-- **Pie de la tarjeta** (`LisdataAnswerCard`), alineado con el contrato `chat-ui.md` §3:
-  - «Copiar respuesta» solo aparece en una respuesta terminada o cancelada con texto. F01 lo mostraba desactivado durante el streaming;
-  - sin nada que mostrar, no hay pie;
-  - «Reintentar» y el chip de fuentes pueden salir juntos, como pide `INTERRUPTED` (C13).
+- **Pie de la tarjeta** (`LisdataAnswerCard`), según FR-024, T043 y el contrato `chat-ui.md` §3:
+  - «Copiar respuesta» solo está activo en una respuesta terminada o cancelada con texto; en las demás se ve desactivado, como en F01;
+  - «Reintentar» y el chip de fuentes pueden salir juntos, como pide `INTERRUPTED` (C13);
+  - el pie pasa a `FlowRow`, para que sus tres elementos bajen de línea en pantallas estrechas o con la fuente al 200 %.
 - **Enviar** lee la pregunta tal como se escribió, no la del último estado combinado. Así, un toque justo después de escribir la envía entera. Lo encontró `ChatViewModelTest`.
 - **Pruebas:** `FakeChatSession` y `ChatTestGraph` en `testing/ChatFakes.kt`, y `chatViewModel()` en `feature/chat/ChatTestViewModels.kt`, que comparten `ChatViewModelTest` y `NavigationTest`.
 
