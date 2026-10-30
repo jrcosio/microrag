@@ -1,5 +1,6 @@
 package com.lisdatasolutions.microrag.feature.di
 
+import com.lisdatasolutions.microrag.feature.chat.ChatViewModel
 import com.lisdatasolutions.microrag.feature.document.DocumentViewModel
 import com.lisdatasolutions.microrag.feature.indexing.IndexViewModel
 import com.lisdatasolutions.microrag.feature.ingest.IngestViewModel
@@ -22,4 +23,5 @@ val featureModule = module {
     viewModel { LibraryViewModel(get(), get(), get()) }
     viewModel { HomeViewModel(get(), get(), get(), get(), get()) }
     viewModel { DocumentViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    viewModel { ChatViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
 }

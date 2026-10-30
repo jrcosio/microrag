@@ -1,0 +1,213 @@
+package com.lisdatasolutions.microrag.feature.chat
+
+import android.app.Application
+import androidx.lifecycle.SavedStateHandle
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.google.common.truth.Truth.assertThat
+import com.lisdatasolutions.microrag.core.designsystem.model.AnswerState
+import com.lisdatasolutions.microrag.domain.chat.ActiveAnswer
+import com.lisdatasolutions.microrag.domain.chat.AnswerSource
+import com.lisdatasolutions.microrag.domain.chat.PromptBlockRef
+import com.lisdatasolutions.microrag.domain.chat.TurnState
+import com.lisdatasolutions.microrag.domain.chat.TurnUpdate
+import com.lisdatasolutions.microrag.testing.ChatTestGraph
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import org.junit.After
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.annotation.Config
+
+/** F11 T025: the chat's main path (contracts/chat-ui.md §1 and §3, research R13). */
+@OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(AndroidJUnit4::class)
+@Config(application = Application::class)
+class ChatViewModelTest {
+
+    private val dispatcher = StandardTestDispatcher()
+    private val graph = ChatTestGraph()
+
+    @Before
+    fun setUp() = Dispatchers.setMain(dispatcher)
+
+    @After
+    fun tearDown() = Dispatchers.resetMain()
+
+    private fun saved(conversationId: Long? = null, newConversation: Boolean = false) =
+        SavedStateHandle(mapOf("conversationId" to conversationId, "newConversation" to newConversation))
+
+    private fun source(documentId: Long) = AnswerSource(
+        position = 1, promptNumber = 1, documentId = documentId, chunkId = 186, firstOrdinal = 85, lastOrdinal = 85,
+        documentName = "Manual de procesos.pdf", page = 12,
+    )
+
+    private fun block(documentId: Long) = PromptBlockRef(
+        promptNumber = 1, documentId = documentId, chunkId = 186, firstOrdinal = 85, lastOrdinal = 85,
+        documentName = "Manual de procesos.pdf", page = 12,
+    )
+
+    /** A conversation with one completed answer citing [documentId], asked at [at]; its id. */
+    private suspend fun answered(documentId: Long, at: Long = 0): Long {
+        val id = graph.chats.createConversation(at)
+        val turn = graph.chats.insertTurn(id, "¿Qué plazo hay?", partialCoverage = false, now = at)
+        graph.chats.updateTurn(turn.id, TurnUpdate(state = TurnState.COMPLETED, answer = "Son 30 días [1].", promptBlocks = 1, finishedAt = at + 1))
+        graph.chats.replaceSources(turn.id, listOf(source(documentId)))
+        return id
+    }
+
+    @Test
+    fun sending_emptiesTheComposer_showsStop_andSavesTheNewConversation() = runTest(dispatcher) {
+        graph.addDocument("Manual de procesos.pdf")
+        val saved = saved()
+        val vm = graph.chatViewModel(saved)
+        advanceUntilIdle()
+        assertThat(vm.state.value.ready).isTrue()
+        assertThat(vm.state.value.canSend).isFalse()
+
+        vm.onQuestionChange("¿Qué plazo hay?")
+        advanceUntilIdle()
+        assertThat(vm.state.value.canSend).isTrue()
+        vm.onSend()
+        advanceUntilIdle()
+
+        val state = vm.state.value
+        assertThat(state.question).isEmpty()
+        assertThat(state.answering).isTrue()
+        assertThat(state.canSend).isFalse()
+        assertThat(state.turns.single().question).isEqualTo("¿Qué plazo hay?")
+        assertThat(state.turns.single().status).isEqualTo(TurnStatus.SEARCHING)
+        assertThat(state.conversationId).isNotNull()
+        assertThat(saved.get<Long>("chat_conversation")).isEqualTo(state.conversationId)
+        assertThat(graph.session.calls).containsExactly("ask")
+    }
+
+    @Test
+    fun theTurns_joinWhatIsSaved_andTheAnswerInProgress() = runTest(dispatcher) {
+        val document = graph.addDocument("Manual de procesos.pdf")
+        val id = answered(document)
+        val second = graph.chats.insertTurn(id, "¿Y quién firma?", partialCoverage = false, now = 2)
+        graph.session.active.value = ActiveAnswer(id, second.id, "¿Y quién firma?", TurnState.GENERATING, text = "Lo firma [1]", blocks = listOf(block(document)))
+
+        val vm = graph.chatViewModel(saved())
+        advanceUntilIdle()
+
+        val turns = vm.state.value.turns
+        assertThat(turns.map { it.question }).containsExactly("¿Qué plazo hay?", "¿Y quién firma?").inOrder()
+        assertThat(turns[0].state).isEqualTo(AnswerState.Completed)
+        assertThat(turns[0].sources.single().target).isEqualTo(SourceTarget(document, 186))
+        assertThat(turns[0].sources.single().citation.fragment).isEqualTo(86)
+        assertThat(turns[1].state).isEqualTo(AnswerState.Streaming)
+        assertThat(turns[1].status).isEqualTo(TurnStatus.GENERATING)
+        assertThat(turns[1].sources).isEmpty()
+        assertThat(turns[1].chipTargets).containsExactly(SourceTarget(document, 186))
+        assertThat(vm.state.value.answering).isTrue()
+    }
+
+    @Test
+    fun theConversation_isTheSavedOne_thenTheRoutes_thenANewOne_elseTheLast() = runTest(dispatcher) {
+        val document = graph.addDocument("Manual de procesos.pdf")
+        val first = answered(document, at = 0)
+        val last = answered(document, at = 10)
+
+        val tab = graph.chatViewModel(saved())
+        val fromRoute = graph.chatViewModel(saved(conversationId = first))
+        val restored = graph.chatViewModel(saved(conversationId = first).apply { set("chat_conversation", last); set("chat_resolved", true) })
+        advanceUntilIdle()
+        assertThat(tab.state.value.conversationId).isEqualTo(last)
+        assertThat(fromRoute.state.value.conversationId).isEqualTo(first)
+        assertThat(restored.state.value.conversationId).isEqualTo(last)
+        assertThat(graph.session.calls).isEmpty()
+
+        val fresh = graph.chatViewModel(saved(newConversation = true))
+        advanceUntilIdle()
+        assertThat(fresh.state.value.conversationId).isNull()
+        assertThat(fresh.state.value.turns).isEmpty()
+        assertThat(graph.session.calls).containsExactly("new")
+    }
+
+    @Test
+    fun openingASource_sendsItsDocumentAndChunk() = runTest(dispatcher) {
+        val vm = graph.chatViewModel(saved())
+        val events = mutableListOf<ChatEvent>()
+        backgroundScope.launch { vm.eventFlow.toList(events) }
+
+        vm.onOpenSource(SourceTarget(7, 186))
+        advanceUntilIdle()
+
+        assertThat(events).containsExactly(ChatEvent.OpenSource(SourceTarget(7, 186)))
+    }
+
+    @Test
+    fun eachChangeOfTheAnswer_isAnnouncedOnce_neverItsGrowth() = runTest(dispatcher) {
+        val document = graph.addDocument("Manual de procesos.pdf")
+        val vm = graph.chatViewModel(saved())
+        val said = mutableListOf<ChatAnnouncement?>()
+        // Not in backgroundScope: advanceUntilIdle would leave its last delivery pending.
+        val listening = launch { vm.state.map { it.announcement }.distinctUntilChanged().toList(said) }
+        advanceUntilIdle()
+
+        vm.onQuestionChange("¿Quién firma?")
+        vm.onSend()
+        advanceUntilIdle()
+        val asked = graph.session.active.value!!
+        listOf("Lo firma", "Lo firma la persona", "Lo firma la persona responsable [1]").forEach { text ->
+            graph.session.active.value = asked.copy(state = TurnState.GENERATING, text = text, blocks = listOf(block(document)))
+            advanceUntilIdle()
+        }
+        graph.chats.updateTurn(asked.turnId, TurnUpdate(state = TurnState.COMPLETED, answer = "Lo firma la persona responsable [1].", promptBlocks = 1))
+        graph.session.active.value = null
+        advanceUntilIdle()
+        listening.cancel()
+
+        assertThat(said).containsExactly(null, ChatAnnouncement.SEARCHING, ChatAnnouncement.GENERATING, ChatAnnouncement.COMPLETED).inOrder()
+    }
+
+    @Test
+    fun aConversationOpened_announcesNothing() = runTest(dispatcher) {
+        answered(graph.addDocument("Manual de procesos.pdf"))
+        val vm = graph.chatViewModel(saved())
+        advanceUntilIdle()
+
+        assertThat(vm.state.value.turns).hasSize(1)
+        assertThat(vm.state.value.announcement).isNull()
+    }
+
+    @Test
+    fun copying_writesTheText_andConfirmsIt_onlyUpToAndroid12() = runTest(dispatcher) {
+        val old = graph.chatViewModel(saved(), sdkInt = 32)
+        val current = graph.chatViewModel(saved(), sdkInt = 33)
+        val events = mutableListOf<ChatEvent>()
+        backgroundScope.launch { old.eventFlow.toList(events) }
+        backgroundScope.launch { current.eventFlow.toList(events) }
+
+        old.onCopy(1, "Son 30 días [1].")
+        current.onCopy(1, "Son 30 días [1].")
+        advanceTimeBy(1_000)
+        assertThat(old.state.value.copiedTurnId).isEqualTo(1)
+        assertThat(current.state.value.copiedTurnId).isNull()
+        assertThat(events).containsExactly(ChatEvent.Copy("Son 30 días [1]."), ChatEvent.Copy("Son 30 días [1]."))
+
+        advanceTimeBy(1_500)
+        assertThat(old.state.value.copiedTurnId).isNull()
+    }
+
+    @Test
+    fun theQuestion_isCutAt1000Units_withoutSplittingAPair() = runTest(dispatcher) {
+        val vm = graph.chatViewModel(saved())
+        vm.onQuestionChange("a".repeat(999) + "😀")
+        advanceUntilIdle()
+
+        assertThat(vm.state.value.question).isEqualTo("a".repeat(999))
+    }
+}

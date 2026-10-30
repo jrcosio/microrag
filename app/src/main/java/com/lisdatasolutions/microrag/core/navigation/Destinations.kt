@@ -14,9 +14,13 @@ data object Setup
 @Serializable
 data object Home
 
-/** `conversationId == null` starts a new conversation. */
+/**
+ * The chat (F11 research R13): [conversationId] opens that conversation; [newConversation] («Nuevo chat»
+ * from Home) opens an empty one; with neither, the tab opens the last conversation. The entry keeps the
+ * conversation it shows in its saved state, so a restored entry comes back to it.
+ */
 @Serializable
-data class Chat(val conversationId: Long? = null)
+data class Chat(val conversationId: Long? = null, val newConversation: Boolean = false)
 
 @Serializable
 data object Ingest

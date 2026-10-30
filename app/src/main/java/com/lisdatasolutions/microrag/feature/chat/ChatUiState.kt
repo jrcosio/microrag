@@ -1,0 +1,58 @@
+package com.lisdatasolutions.microrag.feature.chat
+
+import androidx.annotation.StringRes
+import com.lisdatasolutions.microrag.core.designsystem.model.AnswerContent
+import com.lisdatasolutions.microrag.core.designsystem.model.AnswerState
+import com.lisdatasolutions.microrag.core.designsystem.model.CitationUi
+import com.lisdatasolutions.microrag.domain.chat.ChatAvailability
+
+/** What the chat shows (F11 data-model §5, contracts/chat-ui.md). */
+data class ChatUiState(
+    /** Null for a conversation not saved yet. */
+    val conversationId: Long? = null,
+    /** Null until the first check: nothing is promised before (constitution V). */
+    val availability: ChatAvailability? = null,
+    val turns: List<TurnUi> = emptyList(),
+    val question: String = "",
+    /** An answer of this conversation is in progress: the composer shows stop. */
+    val answering: Boolean = false,
+    val confirmDelete: Boolean = false,
+    /** «Respuesta copiada» under this turn, on Android 12 only (research R14). */
+    val copiedTurnId: Long? = null,
+    /** The last change TalkBack announces (FR-039). */
+    val announcement: ChatAnnouncement? = null,
+) {
+    val ready: Boolean get() = availability is ChatAvailability.Ready
+    val canSend: Boolean get() = ready && !answering && question.isNotBlank()
+    val cpuMode: Boolean get() = (availability as? ChatAvailability.Ready)?.cpuMode == true
+}
+
+/** One question and its answer, ready for the card. */
+data class TurnUi(
+    val id: Long,
+    val question: String,
+    val state: AnswerState,
+    /** The phase while [state] is Streaming. */
+    val status: TurnStatus?,
+    val content: AnswerContent,
+    /** The answer is the refusal (C1): the card shows the MD's sentence and no sources. */
+    val refusal: Boolean,
+    /** C7 (null, F01's text), C8 or C13. */
+    @param:StringRes val failureText: Int?,
+    /** C2, C6 and C16. */
+    val notes: List<Int>,
+    val sources: List<SourceRow>,
+    /** What chip `n` opens: the cited source, also while the answer streams. */
+    val chipTargets: List<SourceTarget>,
+    val canRetry: Boolean,
+)
+
+enum class TurnStatus { SEARCHING, GENERATING }
+
+/** A row under «Fuentes consultadas». */
+data class SourceRow(val position: Int, val target: SourceTarget, val citation: CitationUi)
+
+/** What a source opens: the document detail on its first fragment (D-043). */
+data class SourceTarget(val documentId: Long, val chunkId: Long)
+
+enum class ChatAnnouncement { SEARCHING, GENERATING, COMPLETED, CANCELLED, INTERRUPTED, FAILED, DELETED }

@@ -1,17 +1,25 @@
 package com.lisdatasolutions.microrag.testing
 
+import com.lisdatasolutions.microrag.domain.chat.ActiveAnswer
 import com.lisdatasolutions.microrag.domain.chat.AnswerEngine
 import com.lisdatasolutions.microrag.domain.chat.AnswerEvent
 import com.lisdatasolutions.microrag.domain.chat.AnswerSource
 import com.lisdatasolutions.microrag.domain.chat.ChatRepository
+import com.lisdatasolutions.microrag.domain.chat.ChatSession
 import com.lisdatasolutions.microrag.domain.chat.ChatStorageException
 import com.lisdatasolutions.microrag.domain.chat.ChatStorageState
 import com.lisdatasolutions.microrag.domain.chat.ChatTurn
+import com.lisdatasolutions.microrag.domain.chat.ObserveChatAvailabilityUseCase
 import com.lisdatasolutions.microrag.domain.chat.TurnState
 import com.lisdatasolutions.microrag.domain.chat.TurnUpdate
 import com.lisdatasolutions.microrag.domain.indexing.IndexingRepository
 import com.lisdatasolutions.microrag.domain.indexing.IndexingState
+import com.lisdatasolutions.microrag.domain.indexing.ObserveIndexingUseCase
 import com.lisdatasolutions.microrag.domain.model.ComputeBackend
+import com.lisdatasolutions.microrag.domain.model.ModelCatalog
+import com.lisdatasolutions.microrag.domain.onboarding.ObserveLocalAiUseCase
+import com.lisdatasolutions.microrag.domain.rag.DocumentStatus
+import com.lisdatasolutions.microrag.domain.rag.NewDocument
 import com.lisdatasolutions.microrag.domain.retrieval.ContextRetriever
 import com.lisdatasolutions.microrag.domain.retrieval.RetrievalOutcome
 import com.lisdatasolutions.microrag.domain.retrieval.RetrievalRequest
@@ -187,4 +195,58 @@ class FakeIndexingRepository(initial: IndexingState = IndexingState.Idle(emptyLi
     override suspend fun retry(documentId: Long) = Unit
     override suspend fun add(documentId: Long) = Unit
     override suspend fun reconcile() = Unit
+}
+
+/**
+ * [ChatSession] whose [active] answer a test sets. `ask` saves the question in [repository] as the real
+ * session does, and leaves it RETRIEVING; every call is recorded.
+ */
+class FakeChatSession(private val repository: InMemoryChatRepository) : ChatSession {
+    override val active = MutableStateFlow<ActiveAnswer?>(null)
+    val calls = mutableListOf<String>()
+
+    override suspend fun ask(conversationId: Long?, question: String): Long {
+        calls += "ask"
+        val id = conversationId ?: repository.createConversation(repository.now)
+        val turn = repository.insertTurn(id, question, partialCoverage = false, now = repository.now)
+        active.value = ActiveAnswer(id, turn.id, question, TurnState.RETRIEVING)
+        return id
+    }
+
+    override fun cancel() {
+        calls += "cancel"
+    }
+
+    override suspend fun retry(turnId: Long): Boolean {
+        calls += "retry:$turnId"
+        return true
+    }
+
+    override fun startNewConversation() {
+        calls += "new"
+    }
+
+    override suspend fun delete(conversationId: Long) {
+        calls += "delete:$conversationId"
+        repository.deleteConversation(conversationId)
+    }
+}
+
+/** What the chat reads, over fakes: the models are ready on the GPU; [addDocument] makes the chat Ready. */
+class ChatTestGraph {
+    val chats = InMemoryChatRepository()
+    val session = FakeChatSession(chats)
+    val models = InMemoryModelFileRepository(verified = ModelCatalog.required.map { it.id }.toSet()).apply {
+        preparedBackends.value = ModelCatalog.required.associate { it.id to ComputeBackend.GPU }
+    }
+    val engine = FakeAnswerEngine()
+    val indexing = FakeIndexingRepository()
+    val index = FakeRagIndex()
+    val availability = ObserveChatAvailabilityUseCase(chats, ObserveLocalAiUseCase(models), engine, ObserveIndexingUseCase(indexing), index)
+
+    suspend fun addDocument(name: String, status: DocumentStatus = DocumentStatus.DONE): Long {
+        val id = index.addDocument(NewDocument(displayName = name, contentHash = name, mimeType = "application/pdf"))
+        index.updateStatus(id, status, null, null, null)
+        return id
+    }
 }

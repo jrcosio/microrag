@@ -118,4 +118,19 @@ class LayeringTest {
         assertWithMessage("feature/home files exist").that(files).isNotEmpty()
         assertWithMessage("feature/home files importing the data layer, SQLite, WorkManager, LiteRT or File").that(leaks).isEmpty()
     }
+
+    /** F11 U1: the chat reaches the session, the index and Gemma through use cases only (contracts/chat-ui.md §6). */
+    @Test
+    fun theChatScreenUsesNoBackendApi() {
+        val featureDir = File("src/main/java/com/lisdatasolutions/microrag/feature/chat")
+        val forbidden = listOf(
+            "import com.lisdatasolutions.microrag.data.", "import androidx.sqlite", "import androidx.work",
+            "import com.google.ai.edge.litertlm", "import java.io.File",
+        )
+        val files = sources.filter { it.canonicalPath.startsWith(featureDir.canonicalPath + File.separator) }
+        val leaks = files.filter { file -> forbidden.any { file.readText().contains(it) } }.map { it.path }
+
+        assertWithMessage("feature/chat files exist").that(files).isNotEmpty()
+        assertWithMessage("feature/chat files importing the data layer, SQLite, WorkManager, LiteRT or File").that(leaks).isEmpty()
+    }
 }
