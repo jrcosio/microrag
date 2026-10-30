@@ -62,7 +62,6 @@
 
     <!-- P07 -->
     <string name="document_title">Detalle del documento</string>
-    <string name="document_more">Más opciones</string>
     <string name="document_state_indexed">Indexado</string>
     <string name="document_state_pending">Pendiente</string>
     <string name="document_state_indexing">Indexando</string>

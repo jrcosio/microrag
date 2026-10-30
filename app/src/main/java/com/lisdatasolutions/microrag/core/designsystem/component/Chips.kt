@@ -124,21 +124,32 @@ fun LisdataFilterChip(
     )
 }
 
-/** Small counter pill ("3 archivos", "2 fuentes", "Página 12"). */
+/** Small counter pill ("3 archivos", "2 fuentes", "Página 12"); with [onClick], a button with a 48 dp target. */
 @Composable
 fun LisdataCountChip(
     text: String,
     modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
 ) {
-    Text(
-        text = text,
-        style = LisdataTheme.typography.material.labelMedium,
-        color = LisdataTheme.colors.blue800,
-        modifier = modifier
-            .clip(LisdataTheme.shapes.chip)
-            .background(LisdataTheme.colors.surfaceInfo)
-            .padding(horizontal = LisdataTheme.spacing.space3, vertical = 5.dp),
-    )
+    val chip = @Composable { chipModifier: Modifier ->
+        Text(
+            text = text,
+            style = LisdataTheme.typography.material.labelMedium,
+            color = LisdataTheme.colors.blue800,
+            modifier = chipModifier
+                .clip(LisdataTheme.shapes.chip)
+                .background(LisdataTheme.colors.surfaceInfo)
+                .padding(horizontal = LisdataTheme.spacing.space3, vertical = 5.dp),
+        )
+    }
+    if (onClick == null) {
+        chip(modifier)
+    } else {
+        Box(
+            modifier = modifier.minimumInteractiveComponentSize().clickable(role = Role.Button, onClick = onClick),
+            contentAlignment = Alignment.Center,
+        ) { chip(Modifier) }
+    }
 }
 
 /** Uppercase, tracked label ("INGESTA LOCAL"). */

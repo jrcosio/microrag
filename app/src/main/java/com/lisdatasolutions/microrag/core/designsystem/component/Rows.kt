@@ -220,22 +220,34 @@ fun LisdataQueueRow(
     }
 }
 
-/** Source under an answer ("Manual.pdf · Página 12 · Fragmento 86"); deleted sources are inert. */
+/**
+ * Source under an answer ("Manual.pdf · Página 12 · Fragmento 86", or "Fragmentos 86–87" for a block of
+ * several); deleted sources are inert. [description] replaces the sentence TalkBack reads, and
+ * [onClickLabel] names the action (F11 U3).
+ */
 @Composable
 fun LisdataSourceCitation(
     citation: CitationUi,
     onOpen: () -> Unit,
     modifier: Modifier = Modifier,
+    description: String? = null,
+    onClickLabel: String? = null,
 ) {
     val colors = LisdataTheme.colors
     val spacing = LisdataTheme.spacing
+    val fragment = citation.fragment
     val details = buildList {
         citation.page?.let { add(stringResource(R.string.citation_page, it)) }
-        citation.fragment?.let { add(stringResource(R.string.citation_fragment, it)) }
+        val last = citation.lastFragment
+        when {
+            fragment != null && last != null && last > fragment -> add(stringResource(R.string.citation_fragments, fragment, last))
+            fragment != null -> add(stringResource(R.string.citation_fragment, fragment))
+        }
     }.joinToString(" · ")
-    LisdataCard(modifier = modifier, onClick = if (citation.available) onOpen else null) {
+    LisdataCard(modifier = modifier, onClick = if (citation.available) onOpen else null, onClickLabel = onClickLabel) {
         Row(
-            modifier = Modifier.semantics(mergeDescendants = true) {},
+            modifier = if (description != null) Modifier.clearAndSetSemantics { contentDescription = description }
+            else Modifier.semantics(mergeDescendants = true) {},
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(spacing.space4),
         ) {

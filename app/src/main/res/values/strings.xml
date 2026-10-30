@@ -18,6 +18,7 @@
     <string name="action_copy_answer">Copiar respuesta</string>
     <string name="action_send">Enviar</string>
     <string name="action_stop">Detener</string>
+    <string name="action_more_options">Más opciones</string>
 
     <!-- Common states -->
     <string name="state_loading">Cargando</string>
@@ -35,6 +36,7 @@
     <string name="cd_include_in_rag">Incluir %1$s en las consultas</string>
     <string name="citation_page">Página %1$d</string>
     <string name="citation_fragment">Fragmento %1$d</string>
+    <string name="citation_fragments">Fragmentos %1$d–%2$d</string>
     <string name="answer_cancelled">Generación cancelada</string>
     <string name="answer_failed">No se pudo generar la respuesta</string>
     <string name="action_clear_search">Borrar búsqueda</string>

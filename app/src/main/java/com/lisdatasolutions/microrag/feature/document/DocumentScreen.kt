@@ -16,9 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -54,6 +51,7 @@ import com.lisdatasolutions.microrag.core.designsystem.component.LisdataGradient
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataHeroCard
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataIconTile
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataInfoCard
+import com.lisdatasolutions.microrag.core.designsystem.component.LisdataOverflowMenu
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataOutlinedButton
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataProgressCard
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataProgressRing
@@ -142,7 +140,9 @@ fun DocumentScreen(state: DocumentUiState, actions: DocumentActions, modifier: M
             onBack = actions.onBack,
             actions = {
                 // The «⋯» menu only has «Quitar del índice», for indexed documents.
-                if (detail?.state == DocumentDetailState.Indexed && !state.deleting) MoreMenu(actions.onRemoveFromIndex)
+                if (detail?.state == DocumentDetailState.Indexed && !state.deleting) {
+                    LisdataOverflowMenu(listOf(stringResource(R.string.document_remove_from_index) to actions.onRemoveFromIndex))
+                }
             },
         )
         when (state.content) {
@@ -210,25 +210,6 @@ private fun Loading() {
     // D9, as F07 P12.
     Box(modifier = Modifier.fillMaxWidth().padding(vertical = LisdataTheme.spacing.space6), contentAlignment = Alignment.Center) {
         LisdataProgressRing(progress = ProgressValue.Indeterminate, label = stringResource(R.string.state_loading), size = 72.dp)
-    }
-}
-
-@Composable
-private fun MoreMenu(onRemoveFromIndex: () -> Unit) {
-    var open by rememberSaveable { mutableStateOf(false) }
-    Box {
-        IconButton(onClick = { open = true }) {
-            LisdataIcon(LisdataIcons.MoreHorizontal, contentDescription = stringResource(R.string.document_more), tint = LisdataTheme.colors.textPrimary)
-        }
-        DropdownMenu(expanded = open, onDismissRequest = { open = false }, containerColor = LisdataTheme.colors.surface) {
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.document_remove_from_index), color = LisdataTheme.colors.textPrimary) },
-                onClick = {
-                    open = false
-                    onRemoveFromIndex()
-                },
-            )
-        }
     }
 }
 

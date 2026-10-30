@@ -4,13 +4,22 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
+import com.lisdatasolutions.microrag.core.designsystem.model.AnswerBlock
+import com.lisdatasolutions.microrag.core.designsystem.model.AnswerContent
+import com.lisdatasolutions.microrag.core.designsystem.model.AnswerSpan
 import com.lisdatasolutions.microrag.core.designsystem.model.AnswerState
 import com.lisdatasolutions.microrag.core.designsystem.preview.LisdataPreviewSurface
 import com.lisdatasolutions.microrag.core.designsystem.preview.LisdataPreviews
 
-private const val SAMPLE_ANSWER =
-    "El protocolo establece tres comprobaciones antes del cierre: verificar la documentación, " +
-        "confirmar las aprobaciones y registrar la validación final [1][2]."
+/** The answer of PNG 04, formatted as the chat does: an intro, bullets and citation chips. */
+private val SAMPLE_ANSWER = AnswerContent(
+    listOf(
+        AnswerBlock.Paragraph(listOf(AnswerSpan.Text("El protocolo establece tres comprobaciones antes del cierre:"))),
+        AnswerBlock.Bullet(listOf(AnswerSpan.Text("Verificar la documentación "), AnswerSpan.Citation(1))),
+        AnswerBlock.Bullet(listOf(AnswerSpan.Text("Confirmar las aprobaciones "), AnswerSpan.Citation(2))),
+        AnswerBlock.Bullet(listOf(AnswerSpan.Text("Registrar la validación final "), AnswerSpan.Citation(2))),
+    ),
+)
 
 @LisdataPreviews
 @Composable
@@ -26,10 +35,10 @@ private fun ChatPreview() = LisdataPreviewSurface {
 @Composable
 private fun ChatStatesPreview() = LisdataPreviewSurface {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        LisdataAnswerCard("", AnswerState.Streaming, onCopy = {}, statusText = "Buscando en documentos...")
-        LisdataAnswerCard("El protocolo establece", AnswerState.Streaming, onCopy = {}, statusText = "Generando respuesta...")
-        LisdataAnswerCard("El protocolo establece tres", AnswerState.Cancelled, onCopy = {})
-        LisdataAnswerCard("", AnswerState.Failed, onCopy = {}, onRetry = {})
+        LisdataAnswerCard(AnswerContent.Empty, AnswerState.Streaming, onCopy = {}, statusText = "Buscando en documentos...")
+        LisdataAnswerCard(AnswerContent.plain("El protocolo establece"), AnswerState.Streaming, onCopy = {}, statusText = "Generando respuesta...")
+        LisdataAnswerCard(AnswerContent.plain("El protocolo establece tres"), AnswerState.Cancelled, onCopy = {})
+        LisdataAnswerCard(AnswerContent.Empty, AnswerState.Failed, onCopy = {}, onRetry = {}, failureText = "La respuesta se interrumpió")
         LisdataChatComposer(
             value = "¿Y para empresas?",
             onValueChange = {},
@@ -48,6 +57,6 @@ private fun ChatLongTextPreview() = LisdataPreviewSurface {
             "Una pregunta muy larga sobre los plazos de devolución, las condiciones para empresas y " +
                 "las excepciones que aplican a los productos personalizados según el manual de garantías.",
         )
-        LisdataAnswerCard(SAMPLE_ANSWER.repeat(3), AnswerState.Completed, onCopy = {}, sourcesCountText = "6 fuentes")
+        LisdataAnswerCard(AnswerContent(List(3) { SAMPLE_ANSWER.blocks }.flatten()), AnswerState.Completed, onCopy = {}, sourcesCountText = "6 fuentes")
     }
 }

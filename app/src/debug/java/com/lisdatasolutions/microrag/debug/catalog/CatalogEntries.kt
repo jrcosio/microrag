@@ -63,6 +63,7 @@ import com.lisdatasolutions.microrag.core.designsystem.component.TrailingIconPla
 import com.lisdatasolutions.microrag.core.designsystem.icon.LisdataIcon
 import com.lisdatasolutions.microrag.core.designsystem.icon.LisdataIcons
 import com.lisdatasolutions.microrag.core.designsystem.icon.LisdataLogo
+import com.lisdatasolutions.microrag.core.designsystem.model.AnswerContent
 import com.lisdatasolutions.microrag.core.designsystem.model.AnswerState
 import com.lisdatasolutions.microrag.core.designsystem.model.IconTileStyle
 import com.lisdatasolutions.microrag.core.designsystem.model.ProgressValue
@@ -259,6 +260,7 @@ val catalogEntries: List<CatalogEntry> = listOf(
             LisdataSourceCitation(SampleData.citation, onOpen = {})
             LisdataSourceCitation(SampleData.citationWithoutPage, onOpen = {})
             LisdataSourceCitation(SampleData.deletedCitation, onOpen = {})
+            LisdataSourceCitation(SampleData.blockCitation, onOpen = {})
         }
     },
     entry("Filas", "settings", "LisdataSettingsRow · LisdataCardGroup") {
@@ -323,11 +325,15 @@ val catalogEntries: List<CatalogEntry> = listOf(
     entry("Chat", "bubble", "LisdataChatBubble") { LisdataChatBubble(SampleData.QUESTION) },
     entry("Chat", "answer", "LisdataAnswerCard · estados") {
         Stack {
-            LisdataAnswerCard(SampleData.ANSWER, AnswerState.Completed, onCopy = {}, sourcesCountText = "2 fuentes", onSources = {})
-            LisdataAnswerCard("", AnswerState.Streaming, onCopy = {}, statusText = "Buscando en documentos...")
-            LisdataAnswerCard("El protocolo establece", AnswerState.Streaming, onCopy = {}, statusText = "Generando respuesta...")
-            LisdataAnswerCard("El protocolo establece tres", AnswerState.Cancelled, onCopy = {})
-            LisdataAnswerCard("", AnswerState.Failed, onCopy = {}, onRetry = {})
+            LisdataAnswerCard(SampleData.answer, AnswerState.Completed, onCopy = {}, sourcesCountText = "2 fuentes", onSources = {})
+            LisdataAnswerCard(AnswerContent.Empty, AnswerState.Streaming, onCopy = {}, statusText = "Buscando en documentos...")
+            LisdataAnswerCard(AnswerContent.plain("El protocolo establece"), AnswerState.Streaming, onCopy = {}, statusText = "Generando respuesta...")
+            LisdataAnswerCard(AnswerContent.plain("El protocolo establece tres"), AnswerState.Cancelled, onCopy = {})
+            LisdataAnswerCard(AnswerContent.Empty, AnswerState.Failed, onCopy = {}, onRetry = {})
+            LisdataAnswerCard(
+                SampleData.answer, AnswerState.Completed, onCopy = {}, copiedLabel = "Respuesta copiada",
+                notes = listOf("Algunos documentos aún no están indexados: esta respuesta solo usa los que ya están listos."),
+            )
         }
     },
     entry("Chat", "composer", "LisdataChatComposer") {

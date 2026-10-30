@@ -9,39 +9,58 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withLink
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.lisdatasolutions.microrag.R
 import com.lisdatasolutions.microrag.core.designsystem.icon.LisdataIcon
 import com.lisdatasolutions.microrag.core.designsystem.icon.LisdataIcons
+import com.lisdatasolutions.microrag.core.designsystem.model.AnswerBlock
+import com.lisdatasolutions.microrag.core.designsystem.model.AnswerContent
+import com.lisdatasolutions.microrag.core.designsystem.model.AnswerSpan
 import com.lisdatasolutions.microrag.core.designsystem.model.AnswerState
 import com.lisdatasolutions.microrag.core.designsystem.model.IconTileStyle
-import com.lisdatasolutions.microrag.core.designsystem.model.StatusKind
 import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
 
-/** User question bubble, aligned to the end. */
+/** User question bubble, aligned to the end; [description] replaces what TalkBack reads («Tú: …», F11 U3). */
 @Composable
 fun LisdataChatBubble(
     text: String,
     modifier: Modifier = Modifier,
+    description: String? = null,
 ) {
     Row(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
         Text(
@@ -52,7 +71,8 @@ fun LisdataChatBubble(
                 .widthIn(max = 300.dp)
                 .clip(LisdataTheme.shapes.bubble)
                 .background(LisdataTheme.colors.surfaceInfoAlt)
-                .padding(LisdataTheme.spacing.cardPadding),
+                .padding(LisdataTheme.spacing.cardPadding)
+                .then(if (description != null) Modifier.semantics { contentDescription = description } else Modifier),
         )
     }
 }
@@ -60,11 +80,16 @@ fun LisdataChatBubble(
 /**
  * Assistant answer card. [statusText] describes the visible phase while streaming
  * ("Buscando en documentos…", "Generando respuesta…"); cancelled and failed answers say so
- * explicitly. Copy is available once there is text.
+ * explicitly, with [failureText] when the reason is not the generic one. Copy is available once there
+ * is text, and shows [copiedLabel] after a copy where the system does not confirm it (F11 C10).
+ *
+ * The body comes formatted ([AnswerContent]): paragraphs, bullets with the brand dot, bold runs and
+ * citation chips. A chip is a link inside the text that calls [onCitation] with its number; its 48 dp
+ * path is the source row below the card (F11 research R3). [notes] go under the body (C2, C6, C16).
  */
 @Composable
 fun LisdataAnswerCard(
-    body: String,
+    content: AnswerContent,
     state: AnswerState,
     onCopy: () -> Unit,
     modifier: Modifier = Modifier,
@@ -72,6 +97,10 @@ fun LisdataAnswerCard(
     sourcesCountText: String? = null,
     onSources: (() -> Unit)? = null,
     onRetry: (() -> Unit)? = null,
+    onCitation: (Int) -> Unit = {},
+    notes: List<String> = emptyList(),
+    failureText: String? = null,
+    copiedLabel: String? = null,
 ) {
     val colors = LisdataTheme.colors
     val spacing = LisdataTheme.spacing
@@ -90,12 +119,13 @@ fun LisdataAnswerCard(
                 Text(text = statusText, style = LisdataTheme.typography.material.bodyMedium, color = colors.textSecondary)
             }
         }
-        if (body.isNotEmpty()) {
+        if (!content.isEmpty) AnswerBody(content, onCitation, Modifier.padding(top = spacing.space3))
+        notes.forEach { note ->
             Text(
-                text = body,
-                style = LisdataTheme.typography.material.bodyLarge,
-                color = colors.textPrimary,
-                modifier = Modifier.padding(top = spacing.space3),
+                text = note,
+                style = LisdataTheme.typography.material.bodyMedium,
+                color = colors.textSecondary,
+                modifier = Modifier.padding(top = spacing.space2),
             )
         }
         when (state) {
@@ -111,13 +141,17 @@ fun LisdataAnswerCard(
                 horizontalArrangement = Arrangement.spacedBy(spacing.space2),
             ) {
                 LisdataIcon(LisdataIcons.Warning, contentDescription = null, tint = colors.error, size = spacing.iconSizeSmall)
-                Text(text = stringResource(R.string.answer_failed), style = LisdataTheme.typography.material.bodyMedium, color = colors.error)
+                Text(
+                    text = failureText ?: stringResource(R.string.answer_failed),
+                    style = LisdataTheme.typography.material.bodyMedium,
+                    color = colors.error,
+                )
             }
             else -> Unit
         }
         LisdataDivider(Modifier.padding(vertical = spacing.space3))
         Row(verticalAlignment = Alignment.CenterVertically) {
-            val canCopy = body.isNotEmpty() && state != AnswerState.Streaming
+            val canCopy = !content.isEmpty && state != AnswerState.Streaming
             Row(
                 modifier = Modifier
                     .minimumInteractiveComponentSize()
@@ -127,7 +161,7 @@ fun LisdataAnswerCard(
             ) {
                 LisdataIcon(LisdataIcons.Copy, contentDescription = null, tint = colors.textSecondary, size = spacing.iconSizeSmall)
                 Text(
-                    text = stringResource(R.string.action_copy_answer),
+                    text = copiedLabel ?: stringResource(R.string.action_copy_answer),
                     style = LisdataTheme.typography.material.labelMedium,
                     color = colors.textSecondary,
                 )
@@ -136,14 +170,72 @@ fun LisdataAnswerCard(
             if (state == AnswerState.Failed && onRetry != null) {
                 LisdataOutlinedButton(text = stringResource(R.string.action_retry), onClick = onRetry, leadingIcon = LisdataIcons.Refresh)
             } else if (sourcesCountText != null) {
-                LisdataStatusChip(
-                    text = sourcesCountText,
-                    kind = StatusKind.Info,
-                    onClick = onSources,
-                )
+                LisdataCountChip(text = sourcesCountText, onClick = onSources)
             }
         }
     }
+}
+
+@Composable
+private fun AnswerBody(content: AnswerContent, onCitation: (Int) -> Unit, modifier: Modifier) {
+    val spacing = LisdataTheme.spacing
+    val style = LisdataTheme.typography.material.bodyLarge
+    val lineHeight = with(LocalDensity.current) { style.lineHeight.toDp() }
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(spacing.space2)) {
+        content.blocks.forEach { block ->
+            when (block) {
+                is AnswerBlock.Paragraph -> AnswerText(block.spans, onCitation)
+                is AnswerBlock.Bullet -> Row(horizontalArrangement = Arrangement.spacedBy(spacing.space3)) {
+                    val marker = block.marker
+                    if (marker == null) {
+                        Box(modifier = Modifier.height(lineHeight), contentAlignment = Alignment.Center) {
+                            Box(Modifier.size(6.dp).clip(CircleShape).background(LisdataTheme.colors.brandBlue))
+                        }
+                    } else {
+                        Text(text = marker, style = style, color = LisdataTheme.colors.brandBlue)
+                    }
+                    AnswerText(block.spans, onCitation, Modifier.weight(1f))
+                }
+            }
+        }
+    }
+}
+
+/** A run of text with bold parts and citation chips: links drawn on a rounded `surfaceInfo` background. */
+@Composable
+private fun AnswerText(spans: List<AnswerSpan>, onCitation: (Int) -> Unit, modifier: Modifier = Modifier) {
+    val colors = LisdataTheme.colors
+    val chipStyle = LisdataTheme.typography.material.labelMedium.toSpanStyle().copy(color = colors.blue800, fontWeight = FontWeight.SemiBold)
+    val chips = mutableListOf<IntRange>()
+    val text = buildAnnotatedString {
+        spans.forEach { span ->
+            when (span) {
+                is AnswerSpan.Text -> if (span.bold) withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) { append(span.text) } else append(span.text)
+                is AnswerSpan.Citation -> {
+                    val start = length
+                    withLink(LinkAnnotation.Clickable("cite-${span.number}", TextLinkStyles(chipStyle)) { onCitation(span.number) }) {
+                        // Thin spaces pad the number inside its chip.
+                        append("\u2009${span.number}\u2009")
+                    }
+                    chips += start until length
+                }
+            }
+        }
+    }
+    var layout by remember { mutableStateOf<TextLayoutResult?>(null) }
+    Text(
+        text = text,
+        style = LisdataTheme.typography.material.bodyLarge,
+        color = colors.textPrimary,
+        onTextLayout = { layout = it },
+        modifier = modifier.drawBehind {
+            val result = layout ?: return@drawBehind
+            chips.forEach { range ->
+                val bounds = result.getPathForRange(range.first, range.last + 1).getBounds()
+                drawRoundRect(color = colors.surfaceInfo, topLeft = bounds.topLeft, size = bounds.size, cornerRadius = CornerRadius(bounds.height / 2))
+            }
+        },
+    )
 }
 
 /**
