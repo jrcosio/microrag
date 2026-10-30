@@ -32,6 +32,8 @@ import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
 /**
  * Empty state: icon, title, explanation and an optional call to action (empty library, chat
  * without documents, no results, empty queue). [body] is null when the title says it all (F11 C4).
+ * [compact] drops the icon and most of the margin where there is little height (a phone in landscape),
+ * so the title and its action come first.
  */
 @Composable
 fun LisdataEmptyState(
@@ -40,17 +42,18 @@ fun LisdataEmptyState(
     body: String?,
     modifier: Modifier = Modifier,
     action: (@Composable () -> Unit)? = null,
+    compact: Boolean = false,
 ) {
     val colors = LisdataTheme.colors
     val spacing = LisdataTheme.spacing
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = spacing.screenPaddingHorizontal, vertical = spacing.space7),
+            .padding(horizontal = spacing.screenPaddingHorizontal, vertical = if (compact) spacing.space3 else spacing.space7),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(spacing.space3),
     ) {
-        LisdataIconTile(icon = icon, style = IconTileStyle.Light, size = 64.dp)
+        if (!compact) LisdataIconTile(icon = icon, style = IconTileStyle.Light, size = 64.dp)
         Text(
             text = title,
             style = LisdataTheme.typography.material.titleMedium,
@@ -74,20 +77,21 @@ fun LisdataEmptyState(
 
 /**
  * Error with a retry action, or without one when retrying cannot help (F11 C17). The error is conveyed
- * by icon and text, not by color alone.
+ * by icon and text, not by color alone. [compact] keeps less margin where there is little height.
  */
 @Composable
 fun LisdataErrorState(
     message: String,
     onRetry: (() -> Unit)?,
     modifier: Modifier = Modifier,
+    compact: Boolean = false,
 ) {
     val colors = LisdataTheme.colors
     val spacing = LisdataTheme.spacing
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = spacing.screenPaddingHorizontal, vertical = spacing.space6),
+            .padding(horizontal = spacing.screenPaddingHorizontal, vertical = if (compact) spacing.space3 else spacing.space6),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(spacing.space3),
     ) {

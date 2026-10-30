@@ -5,6 +5,7 @@ import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -150,7 +151,35 @@ fun ChatScreen(
     val colors = LisdataTheme.colors
     val spacing = LisdataTheme.spacing
     var follow by rememberSaveable { mutableStateOf(true) }
-    Column(modifier = modifier.fillMaxSize().background(colors.background).imePadding()) {
+    BoxWithConstraints(modifier = modifier.fillMaxSize().background(colors.background)) {
+        // T064: a phone in landscape leaves little height between the bars; the availability then takes less.
+        val compact = maxHeight < COMPACT_HEIGHT
+        ChatColumn(state, actions, listState, compact, follow) { follow = it }
+    }
+    if (state.confirmDelete) {
+        LisdataConfirmationDialog(
+            title = stringResource(R.string.chat_delete_title),
+            body = stringResource(R.string.chat_delete_body),
+            confirmText = stringResource(R.string.chat_delete_confirm),
+            onConfirm = actions.onConfirmDelete,
+            onDismiss = actions.onDismissDelete,
+        )
+    }
+}
+
+@Composable
+private fun ChatColumn(
+    state: ChatUiState,
+    actions: ChatActions,
+    listState: LazyListState,
+    compact: Boolean,
+    follow: Boolean,
+    setFollow: (Boolean) -> Unit,
+) {
+    val spacing = LisdataTheme.spacing
+    val availability = state.availability
+    val notice = availability.takeIf { state.turns.isNotEmpty() && it != null && it !is ChatAvailability.Ready }
+    Column(modifier = Modifier.fillMaxSize().imePadding()) {
         LisdataTopBar(
             title = stringResource(R.string.chat_title),
             onBack = actions.onBack,
@@ -165,20 +194,21 @@ fun ChatScreen(
         )
         Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
             if (state.turns.isEmpty()) {
-                EmptyChat(state.availability, actions)
+                EmptyChat(availability, actions, compact)
             } else {
-                Messages(state, actions, listState, follow) { follow = it }
+                // Short of height, the notice is the list's last item, so it does not cover the conversation.
+                val footer: (@Composable () -> Unit)? = notice?.takeIf { compact }?.let { { Notice(it, actions, Modifier) } }
+                Messages(state, actions, listState, follow, setFollow, footer)
             }
         }
-        val availability = state.availability
-        if (state.turns.isNotEmpty() && availability != null && availability !is ChatAvailability.Ready) {
-            Notice(availability, actions, Modifier.padding(horizontal = spacing.screenPaddingHorizontal, vertical = spacing.space2))
+        if (notice != null && !compact) {
+            Notice(notice, actions, Modifier.padding(horizontal = spacing.screenPaddingHorizontal, vertical = spacing.space2))
         }
         LisdataChatComposer(
             value = state.question,
             onValueChange = actions.onQuestionChange,
             onSend = {
-                follow = true
+                setFollow(true)
                 actions.onSend()
             },
             placeholder = stringResource(R.string.chat_composer_placeholder),
@@ -188,15 +218,6 @@ fun ChatScreen(
             modifier = Modifier.padding(horizontal = spacing.screenPaddingHorizontal, vertical = spacing.space3),
         )
         Announcement(state.announcement)
-    }
-    if (state.confirmDelete) {
-        LisdataConfirmationDialog(
-            title = stringResource(R.string.chat_delete_title),
-            body = stringResource(R.string.chat_delete_body),
-            confirmText = stringResource(R.string.chat_delete_confirm),
-            onConfirm = actions.onConfirmDelete,
-            onDismiss = actions.onDismissDelete,
-        )
     }
 }
 
@@ -215,11 +236,18 @@ private fun Subtitle(cpuMode: Boolean) {
 }
 
 /**
- * Turns as three items each (question, answer, sources), so the sources chip can scroll to its list.
- * The list follows a growing answer only while the user is at its end (U7).
+ * Turns as three items each (question, answer, sources), so the sources chip can scroll to its list, and
+ * then [footer] if any. The list follows a growing answer only while the user is at its end (U7).
  */
 @Composable
-private fun Messages(state: ChatUiState, actions: ChatActions, listState: LazyListState, follow: Boolean, setFollow: (Boolean) -> Unit) {
+private fun Messages(
+    state: ChatUiState,
+    actions: ChatActions,
+    listState: LazyListState,
+    follow: Boolean,
+    setFollow: (Boolean) -> Unit,
+    footer: (@Composable () -> Unit)?,
+) {
     val spacing = LisdataTheme.spacing
     val scope = rememberCoroutineScope()
     LaunchedEffect(listState) {
@@ -233,7 +261,13 @@ private fun Messages(state: ChatUiState, actions: ChatActions, listState: LazyLi
     // jump to the end again (SC-006).
     var seen by rememberSaveable { mutableStateOf<String?>(null) }
     LaunchedEffect(progress) {
-        if (seen == null || (seen != progress && follow)) listState.scrollToItem(state.turns.size * ITEMS_PER_TURN - 1, Int.MAX_VALUE)
+        val end = state.turns.size * ITEMS_PER_TURN - 1
+        when {
+            !(seen == null || (seen != progress && follow)) -> Unit
+            // The notice reads from its title; the conversation is above it.
+            footer != null -> listState.scrollToItem(end + 1)
+            else -> listState.scrollToItem(end, Int.MAX_VALUE)
+        }
         seen = progress
     }
     LazyColumn(
@@ -252,6 +286,7 @@ private fun Messages(state: ChatUiState, actions: ChatActions, listState: LazyLi
             }
             item(key = "s${turn.id}") { Sources(turn, actions) }
         }
+        if (footer != null) item(key = "notice") { footer() }
     }
 }
 
@@ -320,7 +355,7 @@ private fun Sources(turn: TurnUi, actions: ChatActions) {
  * the PNG. The state components bring their own margins.
  */
 @Composable
-private fun EmptyChat(availability: ChatAvailability?, actions: ChatActions) {
+private fun EmptyChat(availability: ChatAvailability?, actions: ChatActions, compact: Boolean) {
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -328,31 +363,39 @@ private fun EmptyChat(availability: ChatAvailability?, actions: ChatActions) {
         when (availability) {
             null, is ChatAvailability.Ready -> Unit
             // C17: retrying cannot open a damaged or newer file.
-            ChatAvailability.StorageUnavailable -> LisdataErrorState(stringResource(R.string.chat_storage_unavailable), onRetry = null)
+            ChatAvailability.StorageUnavailable -> LisdataErrorState(
+                stringResource(R.string.chat_storage_unavailable), onRetry = null, compact = compact,
+            )
             ChatAvailability.ModelsNotReady -> LisdataModelMissingBlock(
                 title = stringResource(R.string.chat_models_title),
                 body = stringResource(R.string.chat_models_body),
                 actionText = stringResource(R.string.chat_models_action),
                 onAction = actions.onCompleteSetup,
+                compact = compact,
             )
-            ChatAvailability.IndexUnavailable -> LisdataErrorState(stringResource(R.string.chat_index_failed), onRetry = actions.onRetryAvailability)
+            ChatAvailability.IndexUnavailable -> LisdataErrorState(
+                stringResource(R.string.chat_index_failed), onRetry = actions.onRetryAvailability, compact = compact,
+            )
             ChatAvailability.EmptyLibrary -> LisdataEmptyState(
                 icon = LisdataIcons.Folder,
                 title = stringResource(R.string.chat_empty_title),
                 body = stringResource(R.string.chat_empty_body),
                 action = { LisdataGradientButton(text = stringResource(R.string.chat_empty_action), onClick = actions.onImport) },
+                compact = compact,
             )
             ChatAvailability.WaitingForIndexing -> LisdataEmptyState(
                 icon = LisdataIcons.Layers,
                 title = stringResource(R.string.chat_waiting_title),
                 body = stringResource(R.string.chat_waiting_body),
                 action = { LisdataOutlinedButton(text = stringResource(R.string.chat_view_indexing), onClick = actions.onOpenIndex) },
+                compact = compact,
             )
             ChatAvailability.NothingReady -> LisdataEmptyState(
                 icon = LisdataIcons.Layers,
                 title = stringResource(R.string.chat_nothing_ready),
                 body = null,
                 action = { LisdataOutlinedButton(text = stringResource(R.string.chat_view_indexing), onClick = actions.onOpenIndex) },
+                compact = compact,
             )
         }
     }
@@ -425,6 +468,9 @@ private fun Announcement(announcement: ChatAnnouncement?) {
 }
 
 private const val ITEMS_PER_TURN = 3
+
+/** Below this height (a phone in landscape) the availability is drawn compact. */
+private val COMPACT_HEIGHT = 480.dp
 
 /** Characters of a formatted answer, to notice it growing. */
 private fun AnswerContent.length(): Int = blocks.sumOf { block ->

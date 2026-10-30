@@ -73,6 +73,8 @@ fun LisdataModelMissingBlock(
     actionText: String,
     onAction: () -> Unit,
     modifier: Modifier = Modifier,
+    /** See [LisdataEmptyState]. */
+    compact: Boolean = false,
 ) {
     LisdataEmptyState(
         icon = LisdataIcons.Sparkle,
@@ -80,5 +82,6 @@ fun LisdataModelMissingBlock(
         body = body,
         modifier = modifier,
         action = { LisdataGradientButton(text = actionText, onClick = onAction) },
+        compact = compact,
     )
 }

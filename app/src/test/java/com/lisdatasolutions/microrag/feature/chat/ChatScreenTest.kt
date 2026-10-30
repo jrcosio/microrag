@@ -2,6 +2,9 @@ package com.lisdatasolutions.microrag.feature.chat
 
 import android.app.Application
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
@@ -51,6 +54,12 @@ import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
 
 /** F11 T026: PNG 04 and the main path (contracts/chat-ui.md §1 and §3). */
+/**
+ * What the chat tab loses in landscape besides its own bars, measured on the emulator (T064): the app
+ * shell's bottom bar (80 dp) and the system bars (24 dp).
+ */
+private val BOTTOM_BAR_HEIGHT = 104.dp
+
 @RunWith(AndroidJUnit4::class)
 @Config(application = Application::class, qualifiers = "es-w390dp-h844dp")
 class ChatScreenTest {
@@ -559,5 +568,41 @@ class ChatScreenTest {
         compose.onNodeWithContentDescription("You: ¿Qué indica el protocolo sobre la validación final?").assertExists()
         row("Source 1: Manual de procesos.pdf, Page 12, Fragment 86").assertIsDisplayed()
         listOf("Chat con documentos", "Copiar respuesta", "FUENTES CONSULTADAS").forEach { absent(it) }
+    }
+
+    // T064: in landscape, under the app shell's bottom bar, the chat leaves little height between its bars.
+
+    /** The chat over a spacer as tall as the shell's bottom bar and the system bars. */
+    private fun showOverTheBottomBar(state: ChatUiState) {
+        compose.setContent {
+            LisdataTheme {
+                Column(Modifier.fillMaxSize()) {
+                    Box(Modifier.weight(1f)) { ChatScreen(state, actions) }
+                    Spacer(Modifier.height(BOTTOM_BAR_HEIGHT))
+                }
+            }
+        }
+    }
+
+    @Test
+    @Config(qualifiers = "es-w844dp-h390dp")
+    fun inLandscape_aStateWithoutTurns_showsItsTitle_andItsActionIsReachable() {
+        showOverTheBottomBar(ChatPreviewData.modelsNotReady)
+
+        compose.onNodeWithText("Configuración pendiente").assertIsDisplayed()
+        compose.onNodeWithText("Completar configuración").performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
+    @Config(qualifiers = "es-w844dp-h390dp")
+    fun inLandscape_withTurnsAndANotice_theConversationStillShows() {
+        showOverTheBottomBar(ChatPreviewData.waitingWithTurns)
+
+        // The notice is the list's last item, opened at its title; the conversation is above it.
+        compose.onNodeWithText("Se están indexando tus documentos").assertIsDisplayed()
+        val list = compose.onNode(hasScrollToIndexAction()).fetchSemanticsNode().boundsInRoot
+        assertThat(list.height).isAtLeast(with(compose.density) { 48.dp.toPx() })
+        compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasContentDescription("Tú: ¿Qué indica el protocolo sobre la validación final?"))
+        compose.onNodeWithContentDescription("Tú: ¿Qué indica el protocolo sobre la validación final?").assertIsDisplayed()
     }
 }
