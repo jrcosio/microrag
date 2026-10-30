@@ -1120,6 +1120,40 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
 
 ---
 
+## D-056 — Plantilla del prompt v4 (revisión de la plantilla de F11)
+
+- **Fecha:** 2026-10-30
+- **Decisión:** la app y el escritorio usan la plantilla `v4`: la del informe más tres reglas, fijadas antes de evaluar (research R4 de F11):
+  - responder a todas las partes de la pregunta que estén en las fuentes;
+  - copiar cifras, plazos, importes y números de artículo tal como aparecen;
+  - con conversación previa, buscar la pregunta en las fuentes con ese contexto antes de responder con la negativa.
+
+  `prompt_template` pasa a `"v4"` en `rag_parameters.json` y en `RagParameters`.
+- **Cifras** (`run_eval.py template-review`: configuración de D-034, misma recuperación, 426 preguntas; las respuestas que no cambian heredan el juicio manual de F05 y las que cambian se juzgaron a mano):
+
+  | Plantilla | Cambiadas | Correctas (manual) | Negativas | Citas | Adoptada |
+  |---|---:|---:|---:|---:|---|
+  | informe | — | 78,4 % (290/370) | 96,4 % (54/56) | 94,2 % | — |
+  | v3 | 225 | 80,0 % (296/370) | 94,6 % | 93,1 % | no: +1,6 puntos |
+  | **v4** | 220 | **81,1 % (300/370)** | **91,1 % (51/56)** | **94,3 %** | **sí** |
+
+  Con la regla automática, la criba dio +1,6 puntos a `v3` y +3,5 a `v4`.
+- **Motivo:**
+  - `v4` cumple la regla de adopción de D-053: +2,7 puntos de respuestas correctas, negativas ≥ 85 % y citas ≥ 90 %.
+  - Es la primera configuración que supera el 80 % de respuestas correctas del informe, que D-035 había aceptado no alcanzar.
+- **Coste aceptado por el usuario:** en 3 preguntas más de las 56 sin respuesta en los documentos, `v4` se inventa una respuesta en lugar de la negativa. Un ejemplo: atribuye a la ley alemana el preaviso de la LAU española.
+- **Margen:** 2 preguntas sobre el mínimo (298 de 370). Varios juicios de las respuestas cambiadas son discutibles en ambos sentidos, y quedan anotados en `offline/reports/template-review.csv`.
+- **Método:** 445 respuestas cambiadas, juzgadas a mano por el asistente (método D-033) en 6 lotes agrupados por pregunta, para que cada pregunta tenga el mismo criterio en las dos variantes. Cada lote incluía como referencia el veredicto de F05 de la plantilla «informe».
+- **Alternativas descartadas:**
+  - mantener «informe», que priorizaba no inventar en preguntas sin respuesta;
+  - `v3`, que no llega a +2 puntos.
+- **Origen:** D-035 y clarify de F11 (D-053); el usuario confirmó la adopción a la vista de las cifras.
+- **Afecta:**
+  - F11: plantilla del chat y golden de respuestas;
+  - F14: la negativa (91,1 %) se vigila al ajustar el contexto.
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.

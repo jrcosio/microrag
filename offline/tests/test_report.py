@@ -63,8 +63,8 @@ class TemplateReviewSectionTest(unittest.TestCase):
             finally:
                 report.TEMPLATE_REVIEW = original
         self.assertIn("## Revisión de la plantilla (D-035, F11)", lines)
-        self.assertIn("| v3 | 120 | 70.0 % | 95.0 % | 75.0 % | pasa | 79.0 % | no |", lines)
-        self.assertIn("| v4 | 150 | 68.0 % | 90.0 % | 74.0 % | no pasa | — | no |", lines)
+        self.assertIn("| v3 | 120 | 70.0 % | 95.0 % | 75.0 % | pasa | 79.0 % | 95.0 % | 93.0 % | no |", lines)
+        self.assertIn("| v4 | 150 | 68.0 % | 90.0 % | 74.0 % | no pasa | — | — | — | no |", lines)
         self.assertIn("se mantiene la plantilla «informe»", lines)
 
     def test_without_results_there_is_no_section(self):

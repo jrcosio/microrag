@@ -432,7 +432,11 @@ def template_review(variants=("v3", "v4")):
     def auto(result):
         return {key: result[key] for key in ("answer_correct", "refusal_correct", "citations_correct")}
 
-    base_manual = report.manual_metrics(reference)
+    def figures(manual):
+        # The scalar figures only: the outcomes table has tuple keys, which JSON cannot hold.
+        return {key: manual[key] for key in ("answer_correct", "refusal_correct", "citations_correct", "undue_refusals")}
+
+    base_manual = figures(report.manual_metrics(reference))
     results = [{"template": "informe", "label": "informe", "fingerprint": base_result["fingerprint"], "changed": 0,
                 "auto": auto(base_result), "screen": None, "manual": base_manual, "pending": 0, "adopted": None,
                 "rules_chars": 0}]
@@ -465,7 +469,7 @@ def template_review(variants=("v3", "v4")):
                 if row.get("manual"):
                     reviewed[qid] = {"manual": row["manual"], "manual_citas": row["manual_citas"]}
         merged = tr.merged_rows(reference, answers, rules, reviewed) if screen else None
-        manual = report.manual_metrics(merged) if merged else None
+        manual = figures(report.manual_metrics(merged)) if merged else None
         results.append({
             "template": template, "label": template, "fingerprint": result["fingerprint"], "changed": len(changed),
             "auto": auto(result), "screen": screen, "manual": manual,

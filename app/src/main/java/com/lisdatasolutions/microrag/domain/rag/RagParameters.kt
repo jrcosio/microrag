@@ -3,7 +3,7 @@ package com.lisdatasolutions.microrag.domain.rag
 import com.lisdatasolutions.microrag.domain.model.ModelId
 
 /**
- * Retrieval and context parameters fixed by the offline evaluation (F05, D-034 to D-036; F10, D-050; F11, D-054).
+ * Retrieval and context parameters fixed by the offline evaluation (F05, D-034 to D-036; F10, D-050; F11, D-054 and D-056).
  *
  * Mirror of `offline/config/rag_parameters.json`; `RagParametersTest` keeps both equal field by field.
  * Chunking is used by F06/F07, retrieval by F10 and the prompt by F11.
@@ -35,7 +35,8 @@ object RagParameters {
     const val EXPAND_TOP = 0
 
     const val PROMPT_LIMIT_TOKENS = 2000
-    const val PROMPT_TEMPLATE = "informe"
+    /** «informe» plus the rules of complete answers, exact figures and follow-ups (F11 review, D-056). */
+    const val PROMPT_TEMPLATE = "v4"
     val LLM_MODEL = ModelId.GEMMA4_E2B
 
     /** Context of the Gemma engine, prompt and answer together, as the desktop generates (D-054). */

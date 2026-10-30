@@ -91,7 +91,7 @@ Gemma 4 E2B en la GPU del Mac, juzgado con la regla automática calibrada (el ju
 
 ## Configuración elegida
 
-Fuente única: `config/rag_parameters.json`, igual a `RagParameters.kt` (decisiones D-034, D-035, D-036, D-050).
+Fuente única: `config/rag_parameters.json`, igual a `RagParameters.kt` (decisiones D-034, D-035, D-036, D-050, D-054, D-056).
 
 | Parámetro | Valor |
 |---|---|
@@ -111,8 +111,9 @@ Fuente única: `config/rag_parameters.json`, igual a `RagParameters.kt` (decisio
 | `budget_tokens` | 1719 |
 | `expand_top` | 0 |
 | `prompt_limit_tokens` | 2000 |
-| `prompt_template` | "informe" |
+| `prompt_template` | "v4" |
 | `llm_model` | "GEMMA4_E2B" |
+| `llm_max_num_tokens` | 4096 |
 | `max_output_tokens` | 512 |
 
 ## Umbrales frente a la configuración elegida
@@ -188,6 +189,20 @@ Variantes del orden dentro del presupuesto sobre la configuración elegida (D-03
 Regla de adopción (clarify de F10): una variante solo entra en la app si sube el Recall@bloques 2 puntos o más, sin pasar el presupuesto de 1719 tokens que aplica el selector.
 
 Decisión (D-051): ninguna variante cumple la regla. La mejor, «Reordenación de los 20 primeros, α = 0,5», sube 1.4 puntos. La app mantiene D-034, y esa variante queda anotada como palanca para F14.
+
+## Revisión de la plantilla (D-035, F11)
+
+La configuración elegida con otras plantillas del prompt, con la misma recuperación y las mismas preguntas. Criba con la regla automática frente a «informe»: al menos 1 punto más de respuestas correctas, negativas ≥ 85 % y como mucho 2 puntos menos de citas (la regla es más estricta con las citas que el juicio manual). Las que pasan se juzgan a mano en las respuestas que cambian (`reports/template-review.csv`); las demás heredan el juicio manual de F05.
+
+Regla de adopción (clarify de F11, D-053): al menos 2 puntos más de respuestas correctas en el juicio manual, negativas ≥ 85 % y citas ≥ 90 %.
+
+| Variante | Cambiadas | Correctas (regla) | Negativas (regla) | Citas (regla) | Criba | Correctas (manual) | Negativas (manual) | Citas (manual) | Adoptada |
+|---|---|---|---|---|---|---|---|---|---|
+| informe | — | 68.9 % | 96.4 % | 76.4 % | — | 78.4 % | 96.4 % | 94.2 % | — |
+| v3 | 225 | 70.5 % | 94.6 % | 75.4 % | pasa | 80.0 % | 94.6 % | 93.1 % | no |
+| v4 | 220 | 72.4 % | 89.3 % | 75.4 % | pasa | 81.1 % | 91.1 % | 94.3 % | sí |
+
+Decisión: se adopta «v4»; la app y el escritorio pasan a usar esa plantilla.
 
 ## Limitaciones
 

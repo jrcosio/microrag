@@ -314,16 +314,19 @@ def template_review_section():
              "las respuestas que cambian (`reports/template-review.csv`); las demás heredan el juicio manual de F05.", "",
              f"Regla de adopción (clarify de F11, D-053): al menos {tr.ADOPTION_POINTS:.0f} puntos más de respuestas correctas "
              f"en el juicio manual, negativas ≥ {tr.REFUSAL_MIN * 100:.0f} % y citas ≥ {tr.CITATIONS_MIN * 100:.0f} %.", "",
-             "| Variante | Cambiadas | Correctas (regla) | Negativas | Citas (regla) | Criba | Correctas (manual) | Adoptada |",
-             "|---|---|---|---|---|---|---|---|"]
+             "| Variante | Cambiadas | Correctas (regla) | Negativas (regla) | Citas (regla) | Criba | Correctas (manual) | "
+             "Negativas (manual) | Citas (manual) | Adoptada |",
+             "|---|---|---|---|---|---|---|---|---|---|"]
     for r in results:
         changed = "—" if r is base else str(r["changed"])
         screen = "—" if r["screen"] is None else ("pasa" if r["screen"] else "no pasa")
-        manual = pct(r["manual"]["answer_correct"]) if r["manual"] else ("pendiente" if r.get("pending") else "—")
+        m = r["manual"]
+        manual = [pct(m[key]) for key in ("answer_correct", "refusal_correct", "citations_correct")] if m else \
+            ["pendiente" if r.get("pending") else "—"] + ["—", "—"]
         adopted = "—" if r["adopted"] is None else ("sí" if r["adopted"] else "no")
         a = r["auto"]
         lines.append(f"| {r['label']} | {changed} | {pct(a['answer_correct'])} | {pct(a['refusal_correct'])} | "
-                     f"{pct(a['citations_correct'])} | {screen} | {manual} | {adopted} |")
+                     f"{pct(a['citations_correct'])} | {screen} | {' | '.join(manual)} | {adopted} |")
     best = tr.winner(variants)
     pending = sum(r.get("pending", 0) for r in variants)
     lines.append("")
