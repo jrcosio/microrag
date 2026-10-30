@@ -59,7 +59,7 @@ Historias de la spec:
 
 **Purpose**: el parámetro que comparten la app y el escritorio.
 
-- [ ] T001 Añadir `llm_max_num_tokens` (data-model §1, contrato `eval-answer.md` §3):
+- [X] T001 Añadir `llm_max_num_tokens` (data-model §1, contrato `eval-answer.md` §3):
   - `"llm_max_num_tokens": 4096` en `offline/config/rag_parameters.json`, y `"D-054"` en su lista `decisions`;
   - `offline/eval/generate.py` lo lee del JSON en lugar de `MAX_NUM_TOKENS`;
   - `const val LLM_MAX_NUM_TOKENS = 4096` en `…/microrag/domain/rag/RagParameters.kt`;
@@ -77,13 +77,13 @@ Historias de la spec:
 
 **Independent Test**: `run_eval.py template-review` da la tabla de las variantes, y la decisión queda registrada con sus cifras.
 
-- [ ] T002 [P] [US9] Pruebas de Python (contrato `eval-answer.md` G12):
+- [X] T002 [P] [US9] Pruebas de Python (contrato `eval-answer.md` G12):
   - `offline/tests/test_prompt.py`: `v3` y `v4` llevan sus reglas tras «No uses conocimiento propio…», con el texto exacto de research R4, y el resto es igual a «informe»;
   - `offline/tests/test_runs.py`: la huella incluye `prompt_template` cuando no es «informe»;
   - `offline/tests/test_report.py`: la sección «Revisión de la plantilla (D-035, F11)» con su tabla, a partir de un `template_review.json` de ejemplo;
   - la criba, con el ejemplo de «informe» (68,9 % de correctas, 96,4 % de negativas y 76,4 % de citas de la regla): pasa con ≥ 69,9 %, ≥ 85 % y ≥ 74,4 %, y no pasa con una sola cifra por debajo.
-- [ ] T003 [US9] Añadir `v3` y `v4` a `offline/eval/prompt.py` (`TEMPLATES` y sus reglas, research R4). T002 (prompt) pasa.
-- [ ] T004 [US9] Implementar `template-review` (contrato `eval-answer.md` §2):
+- [X] T003 [US9] Añadir `v3` y `v4` a `offline/eval/prompt.py` (`TEMPLATES` y sus reglas, research R4). T002 (prompt) pasa.
+- [X] T004 [US9] Implementar `template-review` (contrato `eval-answer.md` §2):
   - en `offline/eval/pipeline.py`, una función que, por variante:
     1. genera con la configuración elegida y `prompt_template=<variante>`;
     2. comprueba que los bloques coinciden 426/426 con la ejecución de referencia (G8);
@@ -95,10 +95,10 @@ Historias de la spec:
   - una fila en la tabla de comandos de `offline/README.md`.
 
   T002 pasa.
-- [ ] T005 [US9] Ejecutar `run_eval.py template-review` (≈ 11 min).
+- [X] T005 [US9] Ejecutar `run_eval.py template-review` (≈ 11 min).
   - Si una variante pasa la criba: revisión manual de sus respuestas cambiadas (método D-033, G10) en `offline/reports/template-review.csv`, y las métricas manuales en `template_review.json`.
   - Regenerar `offline/reports/eval-report.md` con `run_eval.py report`.
-- [ ] T006 [US9] Registrar la decisión, con una entrada nueva en `docs/roadmap/DECISIONS.md` y la tabla (G11).
+- [X] T006 [US9] Registrar la decisión, con una entrada nueva en `docs/roadmap/DECISIONS.md` y la tabla (G11).
   - **Si se adopta una variante:**
     - `prompt_template` cambia en el JSON y en `RagParameters` (con `RagParametersTest` en verde);
     - se avisa al usuario con las cifras y se sigue.
@@ -112,11 +112,11 @@ Historias de la spec:
 
 **Purpose**: el golden que usan las pruebas de paridad de la app (research R2, R3).
 
-- [ ] T007 Crear `offline/tests/test_answer_golden.py` (G5) y `offline/gen_answer_golden.py` (G1–G4, data-model §7). Después:
+- [X] T007 Crear `offline/tests/test_answer_golden.py` (G5) y `offline/gen_answer_golden.py` (G1–G4, data-model §7). Después:
   - generar `offline/golden/answer_golden.jsonl` con la plantilla activa (T006);
   - comprobar que `--check` no cambia nada, dos veces;
   - añadir la sección del golden en `offline/README.md`.
-- [ ] T008 [P] Crear `…/sharedTest/…/rag/answer/AnswerGoldenFiles.kt`: lector de `answer_golden.jsonl` para la JVM (`../offline/golden`) y para las instrumentadas (assets), como `RetrievalGoldenFiles` (G6).
+- [X] T008 [P] Crear `…/sharedTest/…/rag/answer/AnswerGoldenFiles.kt`: lector de `answer_golden.jsonl` para la JVM (`../offline/golden`) y para las instrumentadas (assets), como `RetrievalGoldenFiles` (G6).
 
 **Checkpoint**: el golden existe, es determinista y se lee desde las dos clases de pruebas.
 
@@ -126,11 +126,11 @@ Historias de la spec:
 
 **Purpose**: los contratos de dominio, la base de datos del chat, la disponibilidad y los cambios en piezas existentes (conexión, índice y avisos de memoria).
 
-- [ ] T009 Crear el dominio del chat (data-model §2, contrato `chat-api.md`):
+- [X] T009 Crear el dominio del chat (data-model §2, contrato `chat-api.md`):
   - `…/microrag/domain/chat/ChatModels.kt`: `Conversation`, `TurnState`, `TurnFailure`, `ChatTurn`, `AnswerSource`, `PromptBlockRef`, `SourceAvailability`, `ActiveAnswer`, `ChatAvailability`, `ChatStorageState` y `ChatLimits`;
   - `ChatRepository.kt` (con `TurnUpdate` y `storageState`), `AnswerEngine.kt` (con `AnswerEvent`) y `ChatSession.kt`;
   - `ChatLibraryState` en `…/microrag/domain/rag/RagModels.kt` y `chatLibraryState()` en `RagIndex.kt`.
-- [ ] T010 Crear `…/androidTest/…/data/chat/SqliteChatRepositoryTest.kt` sobre SQLite real, con un fichero temporal en `cacheDir`:
+- [X] T010 Crear `…/androidTest/…/data/chat/SqliteChatRepositoryTest.kt` sobre SQLite real, con un fichero temporal en `cacheDir`:
   - esquema v1 y `schema_version`;
   - crear una conversación, insertar turnos con su orden, actualizarlos, reemplazar sus fuentes y prepararlos para reintentar;
   - `conversation(id)` emite tras cada escritura;
@@ -139,7 +139,7 @@ Historias de la spec:
   - `markInterrupted` solo cambia `retrieving` y `generating`;
   - un fichero con una versión superior, o dañado, da `storageState = Unavailable`, y no se escribe ni se borra;
   - las fuentes sobreviven aunque no exista el documento.
-- [ ] T011 Implementar la base de datos del chat (research R9, data-model §3):
+- [X] T011 Implementar la base de datos del chat (research R9, data-model §3):
   - `RagConnection.open(dbFile, extensionPath: String?)` en `…/microrag/data/rag/RagConnection.kt`. Sin extensión, no carga ni comprueba `vector.so`; `DefaultRagIndex` sigue igual;
   - `chat/` en `…/microrag/data/models/AppDirs.kt` (`ensureAll`);
   - `app/src/main/assets/chat_schema.sql`;
@@ -147,24 +147,24 @@ Historias de la spec:
   - `…/microrag/data/chat/SqliteChatRepository.kt`, en `AppDispatchers.database`, con `storageState`.
 
   T010 pasa en el emulador, y siguen en verde las instrumentadas de F04–F10.
-- [ ] T012 Crear `…/androidTest/…/data/rag/RagIndexChatStateTest.kt` (research R11). Con documentos en cada estado (pendiente, analizado, embebiendo, en pausa, indexado e incluido, indexado y excluido, con error, fuera del índice y una sombra), `chatLibraryState()` da:
+- [X] T012 Crear `…/androidTest/…/data/rag/RagIndexChatStateTest.kt` (research R11). Con documentos en cada estado (pendiente, analizado, embebiendo, en pausa, indexado e incluido, indexado y excluido, con error, fuera del índice y una sombra), `chatLibraryState()` da:
   - `documents` sin la sombra;
   - `searchable` = indexados e incluidos;
   - `pendingIncluded` = incluidos en pendiente, analizado, embebiendo o en pausa.
-- [ ] T013 Implementar `chatLibraryState()` en `…/microrag/data/rag/DefaultRagIndex.kt` (una consulta agregada) y en `…/test/…/testing/FakeRagIndex.kt`. T012 pasa en el emulador.
-- [ ] T014 [P] Ampliar `…/test/…/rag/runtime/EngineMemoryCallbacksTest.kt`. Con `TRIM_MEMORY_UI_HIDDEN` o superior, y con `onLowMemory`:
+- [X] T013 Implementar `chatLibraryState()` en `…/microrag/data/rag/DefaultRagIndex.kt` (una consulta agregada) y en `…/test/…/testing/FakeRagIndex.kt`. T012 pasa en el emulador.
+- [X] T014 [P] Ampliar `…/test/…/rag/runtime/EngineMemoryCallbacksTest.kt`. Con `TRIM_MEMORY_UI_HIDDEN` o superior, y con `onLowMemory`:
   - los `MemoryTrimListener` se avisan antes de `releaseUnheld()`;
   - un listener que falla no impide liberar;
   - con niveles menores no se avisa.
-- [ ] T015 Implementar `…/microrag/rag/runtime/MemoryTrimListener.kt` y los avisos en `EngineMemoryCallbacks.kt`; el registro en `…/microrag/MicroRagApplication.kt` toma los listeners de Koin. T014 pasa.
-- [ ] T016 Crear `…/test/…/domain/chat/ObserveChatAvailabilityUseCaseTest.kt` (research R11):
+- [X] T015 Implementar `…/microrag/rag/runtime/MemoryTrimListener.kt` y los avisos en `EngineMemoryCallbacks.kt`; el registro en `…/microrag/MicroRagApplication.kt` toma los listeners de Koin. T014 pasa.
+- [X] T016 Crear `…/test/…/domain/chat/ObserveChatAvailabilityUseCaseTest.kt` (research R11):
   - la precedencia completa, con `StorageUnavailable` primero;
   - `IndexUnavailable` por `open()` y por excepción, y el reintento vuelve a comprobar;
   - `Ready` con `cpuMode` y `partialCoverage`;
   - error y fuera del índice no son cobertura parcial;
   - nada antes de la primera comprobación.
-- [ ] T017 Implementar `ObserveChatAvailabilityUseCase` en `…/microrag/domain/chat/ChatUseCases.kt` y registrarlo en `…/microrag/domain/di/DomainModule.kt`. T016 pasa, y `AppModulesTest` sigue en verde.
-- [ ] T018 Crear `…/test/…/testing/ChatFakes.kt`:
+- [X] T017 Implementar `ObserveChatAvailabilityUseCase` en `…/microrag/domain/chat/ChatUseCases.kt`. T016 pasa. El registro en `…/microrag/domain/di/DomainModule.kt` va con T031, que trae `ChatRepository` y `AnswerEngine` a Koin: sin ellos, `AppModulesTest` fallaría (como `RetrieveContextUseCase` en F10).
+- [X] T018 Crear `…/test/…/testing/ChatFakes.kt`:
   - `InMemoryChatRepository`, con la semántica del contrato y `storageState` programable;
   - `FakeAnswerEngine`: tokens programables, retardo virtual, fallo y registro de cancelación;
   - `FakeContextRetriever`: resultados programables, con candidatos para la clasificación de bloques, y registro de peticiones;
@@ -182,7 +182,7 @@ Historias de la spec:
 
 ### Tests for User Story 1
 
-- [ ] T019 [P] [US1] Crear `…/test/…/rag/answer/PromptBuilderTest.kt` con los casos de `offline/tests/test_prompt.py` (R2). Además:
+- [X] T019 [P] [US1] Crear `…/test/…/rag/answer/PromptBuilderTest.kt` con los casos de `offline/tests/test_prompt.py` (R2). Además:
   - recorte por puntos de código, con un emoji en el límite;
   - sin bloques, sin línea en blanco antes de `PREGUNTA:`;
   - ruta o página nulas omitidas;
@@ -190,21 +190,21 @@ Historias de la spec:
   - `strip()` de Python;
   - el idioma por defecto (`SPANISH`) da el texto del escritorio (FR-014);
   - `estimatedTokens`.
-- [ ] T020 [P] [US1] Crear `…/test/…/rag/answer/AnswerReadingTest.kt` con los casos de `offline/tests/test_judge.py` (R3). Además:
+- [X] T020 [P] [US1] Crear `…/test/…/rag/answer/AnswerReadingTest.kt` con los casos de `offline/tests/test_judge.py` (R3). Además:
   - `[1, 2][3]`, dígitos Unicode, separadores de miles y acentos;
   - negativa con comillas o puntuación distinta, frente a negativa con texto añadido;
   - `citedOrder` con repetidos y fuera de rango.
-- [ ] T021 [P] [US1] Crear `…/test/…/rag/answer/AnswerGoldenTest.kt` (SC-002, SC-003). En las 426 filas:
+- [X] T021 [P] [US1] Crear `…/test/…/rag/answer/AnswerGoldenTest.kt` (SC-002, SC-003). En las 426 filas:
   - prompt con la misma longitud en puntos de código y la misma huella, y el mismo texto en las 10 filas que lo llevan;
   - `citations`, `cited_order`, `refusal` y `norm` iguales.
 
   Un fallo informa del id y de la primera diferencia.
-- [ ] T022 [P] [US1] Crear `…/test/…/data/chat/EngineAnswerEngineTest.kt` (R5). Con `InMemoryModelFileRepository`, una fábrica falsa y el coordinador real:
+- [X] T022 [P] [US1] Crear `…/test/…/data/chat/EngineAnswerEngineTest.kt` (R5). Con `InMemoryModelFileRepository`, una fábrica falsa y el coordinador real:
   - **`ready()`:** solo con Gemma `Verified` y preparada; refresca una vez si la ruta es nula;
   - **clave y config:** `EngineKey(GEMMA4_E2B, backend preparado)`, `GenerationConfig(4096, 512, greedy)` e inicialización en la fábrica;
   - **`warmUp`:** carga sin generar, y el motor queda cargado;
   - **`generate`:** reemite los tokens y el final; si se cancela el colector, el motor se detiene y queda cargado; un fallo del motor se propaga.
-- [ ] T023 [P] [US1] Crear `…/test/…/data/chat/DefaultChatSessionTest.kt`, camino principal (contrato A1, A2, A7, la rama con citas de A8 y A14), con `ChatFakes`, el coordinador real y tiempo virtual:
+- [X] T023 [P] [US1] Crear `…/test/…/data/chat/DefaultChatSessionTest.kt`, camino principal (contrato A1, A2, A7, la rama con citas de A8 y A14), con `ChatFakes`, el coordinador real y tiempo virtual:
   - antes de la primera pregunta no existe la conversación (FR-029); la primera la crea y devuelve su id;
   - el turno guarda la marca de cobertura parcial del momento;
   - el turno pasa por `RETRIEVING` → `GENERATING` (al entregar el prompt) → `COMPLETED`;
@@ -214,52 +214,53 @@ Historias de la spec:
   - una segunda `ask` con otra en curso devuelve `null`;
   - sin `Ready` devuelve `null` y no carga nada;
   - **registro (SC-010):** una línea por respuesta, sin ninguno de los textos marcados de la pregunta, los bloques ni la respuesta.
-- [ ] T024 [P] [US1] Crear `…/test/…/feature/chat/AnswerFormatterTest.kt` (R3):
+- [X] T024 [P] [US1] Crear `…/test/…/feature/chat/AnswerFormatterTest.kt` (R3):
   - párrafos, viñetas `- `, `* ` y `• `, numeradas, negritas, `#` y comillas invertidas;
   - renumeración por primera cita, `[1, 3]` como dos fichas, repetidas con su número y fuera de rango quitadas;
   - la misma numeración con los bloques del prompt (streaming) que con las fuentes guardadas;
   - streaming estable (prefijos del mismo texto);
   - `copyText` según C10, con y sin página, y en una negativa el texto mostrado.
-- [ ] T025 [P] [US1] Crear `…/test/…/feature/chat/ChatViewModelTest.kt`, camino principal:
+- [X] T025 [P] [US1] Crear `…/test/…/feature/chat/ChatViewModelTest.kt`, camino principal:
   - enviar con la pregunta escrita: el compositor se vacía y pasa a detener;
   - los turnos combinan lo guardado y lo activo;
   - el id de la conversación nueva se guarda en `SavedStateHandle`;
   - abrir una fuente emite el evento con `documentId` y `chunkId`;
   - los avisos salen una vez por cambio de estado.
-- [ ] T026 [P] [US1] Crear `…/test/…/feature/chat/ChatScreenTest.kt` (Robolectric, `es-w390dp-h844dp`), camino principal (contrato `chat-ui.md` §1 y §3):
+- [X] T026 [P] [US1] Crear `…/test/…/feature/chat/ChatScreenTest.kt` (Robolectric, `es-w390dp-h844dp`), camino principal (contrato `chat-ui.md` §1 y §3):
   - la estructura del PNG, con «⋯»;
   - una respuesta completa con viñetas, fichas, «Copiar respuesta», chip «2 fuentes» y dos filas «Página P · Fragmento M»;
   - el chip lleva a la primera fila;
   - una ficha y su fila abren la misma fuente;
   - durante el streaming, «Buscando en documentos...» y después «Generando respuesta...», con fichas en el texto y sin chip ni lista.
-- [ ] T027 [P] [US1] Ampliar `…/test/…/feature/document/DocumentScreenTest.kt`: con una cita, el fragmento resaltado se ve sin desplazarse en vertical y en horizontal, y no vuelve a desplazarse tras una recreación (research R13).
+- [X] T027 [P] [US1] Ampliar `…/test/…/feature/document/DocumentScreenTest.kt`: con una cita, el fragmento resaltado se ve sin desplazarse en vertical y en horizontal, y no vuelve a desplazarse tras una recreación (research R13).
 
 ### Implementation for User Story 1
 
-- [ ] T028 [US1] Implementar `…/microrag/rag/answer/PromptBuilder.kt` con todas las plantillas del harness y `PromptLanguage` (R2). T019 pasa.
-- [ ] T029 [US1] Implementar `…/microrag/rag/answer/AnswerReading.kt` (R3). T020 y T021 pasan.
-- [ ] T030 [US1] Implementar `…/microrag/data/chat/EngineAnswerEngine.kt` (R5, contrato). T022 pasa.
-- [ ] T031 [US1] Implementar `…/microrag/data/chat/DefaultChatSession.kt`, camino principal (R6, A1, A2, A7, la rama con citas de A8 y A14), y los casos de uso `ObserveConversationUseCase` y `AskQuestionUseCase` en `ChatUseCases.kt`. Registrar en Koin:
+- [X] T028 [US1] Implementar `…/microrag/rag/answer/PromptBuilder.kt` con todas las plantillas del harness y `PromptLanguage` (R2). T019 pasa.
+- [X] T029 [US1] Implementar `…/microrag/rag/answer/AnswerReading.kt` (R3). T020 y T021 pasan.
+- [X] T030 [US1] Implementar `…/microrag/data/chat/EngineAnswerEngine.kt` (R5, contrato). T022 pasa.
+- [X] T031 [US1] Implementar `…/microrag/data/chat/DefaultChatSession.kt`, camino principal (R6, A1, A2, A7, la rama con citas de A8 y A14), y los casos de uso `ObserveConversationUseCase` y `AskQuestionUseCase` en `ChatUseCases.kt`. Registrar en Koin:
   - `DomainModule`: los casos de uso;
   - `DataModule`: `ChatRepository`, `AnswerEngine` y `ChatSession`, también como `MemoryTrimListener`.
 
   T023 pasa y `AppModulesTest` sigue en verde.
-- [ ] T032 [US1] Cambios en el design system (contrato `chat-ui.md` §4):
+  **Nota de la implementación:** la sesión se escribió completa en T031, por ser una sola clase coherente. `DefaultChatSessionTest` ya cubre las reglas A1–A15: las partes de sesión de T039, T042, T045, T048 y T053 están hechas y probadas. En esas tareas solo queda lo que toca al ViewModel y a la pantalla.
+- [X] T032 [US1] Cambios en el design system (contrato `chat-ui.md` §4):
   - `…/microrag/core/designsystem/model/AnswerContent.kt`;
   - en `component/Chat.kt`, `LisdataAnswerCard` con `content`, `onCitation`, `notes`, `failureText` y `copiedLabel`: viñetas `brandBlue`, negritas y fichas como `LinkAnnotation.Clickable` con fondo redondeado desde la disposición del texto (R3). El chip de fuentes es tocable y sin punto;
   - `LisdataCountChip` con `onClick` y 48 dp (`component/Chips.kt`);
   - `LisdataSourceCitation` con `lastFragment`, `onClickLabel` y la frase para TalkBack (`component/Rows.kt`);
   - `LisdataOverflowMenu` en `component/Menus.kt`, con `action_more_options`; el menú de `…/microrag/feature/document/DocumentScreen.kt` (F08) pasa a usarlo, y `DocumentScreenTest.theMoreMenu_offersRemoveFromIndex` sigue en verde;
   - `ChatPreviews.kt` actualizado; los usos existentes compilan.
-- [ ] T033 [US1] Implementar `…/microrag/feature/chat/AnswerFormatter.kt`. T024 pasa.
-- [ ] T034 [P] [US1] Crear `app/src/main/res/values/strings_chat.xml` y `values-en/strings_chat.xml` con todas las claves de `chat-ui.md` §5. Añadir `citation_fragments` y `action_more_options` a `strings.xml` en los dos idiomas, y retirar `document_more` si queda sin uso.
-- [ ] T035 [US1] Ruta y navegación (research R13):
+- [X] T033 [US1] Implementar `…/microrag/feature/chat/AnswerFormatter.kt`. T024 pasa.
+- [X] T034 [P] [US1] Crear `app/src/main/res/values/strings_chat.xml` y `values-en/strings_chat.xml` con todas las claves de `chat-ui.md` §5. Añadir `citation_fragments` y `action_more_options` a `strings.xml` en los dos idiomas, y retirar `document_more` si queda sin uso.
+- [X] T035 [US1] Ruta y navegación (research R13):
   - `Chat(conversationId, newConversation)` en `…/microrag/core/navigation/Destinations.kt`, con su KDoc;
   - `openNewChat()` → `Chat(newConversation = true)` en `NavigationActions.kt`;
   - `ChatRoute` en `MicroRagNavHost.kt`, en lugar de `PendingDestination`: abrir una fuente navega a `Document(documentId, chunkId)` solo con la entrada `RESUMED`, y `LIBRARY_MESSAGE` se lee y se borra;
   - `…/debug/DebugRouting.kt`;
   - en `…/test/…/core/navigation/NavigationTest.kt`, el módulo Koin falso del chat; `newChat_…` comprueba `newConversation = true`, y una prueba nueva hace fuente → detalle → Atrás.
-- [ ] T036 [US1] Implementar la pantalla, camino principal:
+- [X] T036 [US1] Implementar la pantalla, camino principal:
   - `…/microrag/feature/chat/ChatUiState.kt`, `ChatViewModel.kt`, `ChatScreen.kt` (con `ChatActions`) y `ChatRoute.kt`;
   - `ChatPreviewData.kt` con la respuesta completa del PNG;
   - el `ChatViewModel` en `…/microrag/feature/di/FeatureModule.kt`;
@@ -267,8 +268,17 @@ Historias de la spec:
   - región en vivo de los avisos (U2).
 
   T025, T026 y T035 pasan.
-- [ ] T037 [US1] Desplazar el detalle al fragmento citado en `…/microrag/feature/document/DocumentScreen.kt` (`BringIntoViewRequester` en el texto resaltado, `LaunchedEffect` y marca `rememberSaveable`). T027 pasa, y el resto de `DocumentScreenTest` sigue en verde.
-- [ ] T038 [US1] Añadir a `…/test/…/architecture/LayeringTest.kt` la regla U1 para `feature/chat`, con la comprobación de que existen ficheros.
+- [X] T037 [US1] Desplazar el detalle al fragmento citado en `…/microrag/feature/document/DocumentScreen.kt` (`BringIntoViewRequester` en el texto resaltado, `LaunchedEffect` y marca `rememberSaveable`). T027 pasa, y el resto de `DocumentScreenTest` sigue en verde.
+- [X] T038 [US1] Añadir a `…/test/…/architecture/LayeringTest.kt` la regla U1 para `feature/chat`, con la comprobación de que existen ficheros.
+
+**Notas de la implementación de US1:**
+- **Nombres de ficheros.** Los datos de muestra están en `feature/chat/ChatPreviews.kt` (objeto `ChatPreviewData`), no en `ChatPreviewData.kt`: `DesignSystemConformanceTest` solo admite textos fijos en ficheros `*Previews.kt`, como `DocumentPreviews.kt`. `ChatRoute` está en `ChatScreen.kt`, como las rutas de las demás pantallas.
+- **Pie de la tarjeta** (`LisdataAnswerCard`), alineado con el contrato `chat-ui.md` §3:
+  - «Copiar respuesta» solo aparece en una respuesta terminada o cancelada con texto. F01 lo mostraba desactivado durante el streaming;
+  - sin nada que mostrar, no hay pie;
+  - «Reintentar» y el chip de fuentes pueden salir juntos, como pide `INTERRUPTED` (C13).
+- **Enviar** lee la pregunta tal como se escribió, no la del último estado combinado. Así, un toque justo después de escribir la envía entera. Lo encontró `ChatViewModelTest`.
+- **Pruebas:** `FakeChatSession` y `ChatTestGraph` en `testing/ChatFakes.kt`, y `chatViewModel()` en `feature/chat/ChatTestViewModels.kt`, que comparten `ChatViewModelTest` y `NavigationTest`.
 
 **Checkpoint**: MVP. Una pregunta se responde con fuentes reales en la JVM, y la navegación a la fuente funciona.
 
