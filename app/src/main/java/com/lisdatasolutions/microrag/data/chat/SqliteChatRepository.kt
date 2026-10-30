@@ -49,6 +49,11 @@ class SqliteChatRepository(
     override fun conversation(id: Long): Flow<List<ChatTurn>> =
         changes.mapLatest { read { db -> turns(db, id) } ?: emptyList() }.distinctUntilChanged()
 
+    override suspend fun turn(id: Long): ChatTurn? = read { db ->
+        val conversationId = db.queryOne("SELECT conversation_id FROM turns WHERE id = ?", id) { it.getLong(0) } ?: return@read null
+        turns(db, conversationId).firstOrNull { it.id == id }
+    }
+
     override suspend fun lastConversationId(): Long? = read { db ->
         db.queryOne("SELECT id FROM conversations ORDER BY updated_at DESC, id DESC LIMIT 1") { it.getLong(0) }
     }

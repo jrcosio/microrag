@@ -50,6 +50,8 @@ class InMemoryChatRepository : ChatRepository {
     override fun conversation(id: Long): Flow<List<ChatTurn>> =
         changes.map { turns.values.filter { it.conversationId == id }.sortedBy { it.ordinal } }.distinctUntilChanged()
 
+    override suspend fun turn(id: Long): ChatTurn? = turns[id]
+
     override suspend fun lastConversationId(): Long? = conversations.maxByOrNull { it.value }?.key
 
     override suspend fun createConversation(now: Long): Long = write("create") {
@@ -108,9 +110,6 @@ class InMemoryChatRepository : ChatRepository {
         conversations.clear()
         turns.clear()
     }
-
-    /** A turn as saved now, for assertions. */
-    fun turn(id: Long): ChatTurn = turns.getValue(id)
 
     private fun <T> write(name: String, block: () -> T): T {
         if (storage != ChatStorageState.OK || failWrites) throw ChatStorageException("fake storage refused $name")

@@ -75,16 +75,32 @@ enum class SourceAvailability { AVAILABLE, FRAGMENT_GONE, DOCUMENT_GONE }
 
 /** The answer being generated, kept in memory between checkpoints (research R6). */
 data class ActiveAnswer(
+    /** [UNSAVED] when not even the conversation could be saved (C16). */
     val conversationId: Long,
+    /** [UNSAVED] when the turn could not be saved (C16). */
     val turnId: Long,
+    val question: String,
     /** RETRIEVING or GENERATING; a finished state only while [saveFailed]. */
     val state: TurnState,
-    val text: String,
+    /** What arrived so far; empty until the first token. */
+    val text: String = "",
     /** Every prompt block; the formatter renumbers by first citation. */
-    val blocks: List<PromptBlockRef>,
+    val blocks: List<PromptBlockRef> = emptyList(),
     /** C16: the turn could not be saved; kept until the next question. */
     val saveFailed: Boolean = false,
-)
+    /** Only for a finished unsaved answer. */
+    val refusal: Boolean = false,
+    val failure: TurnFailure? = null,
+    val partialCoverage: Boolean = false,
+) {
+    companion object {
+        /** Id of a conversation or turn that only exists in memory: SQLite row ids start at 1. */
+        const val UNSAVED = 0L
+    }
+}
+
+/** The turns of a conversation with the answer in progress laid over them (contract `chat-api.md`). */
+data class ConversationView(val turns: List<ChatTurn>, val active: ActiveAnswer?)
 
 /** Whether the chat can be used, in precedence order (research R11). */
 sealed interface ChatAvailability {

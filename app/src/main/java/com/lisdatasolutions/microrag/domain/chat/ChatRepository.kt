@@ -14,6 +14,9 @@ interface ChatRepository {
     /** The turns of [id] in order; empty when it does not exist. Emits after every write. */
     fun conversation(id: Long): Flow<List<ChatTurn>>
 
+    /** One turn with its sources; null when it does not exist. */
+    suspend fun turn(id: Long): ChatTurn?
+
     /** The conversation with the most recent question. */
     suspend fun lastConversationId(): Long?
 

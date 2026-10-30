@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
@@ -63,4 +64,55 @@ class ObserveChatAvailabilityUseCase(
             library.searchable == 0 -> ChatAvailability.NothingReady
             else -> ChatAvailability.Ready(cpuMode = backend == ComputeBackend.CPU, partialCoverage = library.pendingIncluded > 0)
         }
+}
+
+/**
+ * A conversation with the answer in progress laid over it. A turn left RETRIEVING or GENERATING that is
+ * not the active one belongs to a dead process (research R8): it reads as INTERRUPTED even before the
+ * session's startup has saved it so. An unsaved answer (C16) has no turn: it comes only in [ConversationView.active].
+ */
+class ObserveConversationUseCase(private val repository: ChatRepository, private val session: ChatSession) {
+    operator fun invoke(conversationId: Long): Flow<ConversationView> =
+        combine(repository.conversation(conversationId), session.active) { turns, active ->
+            val mine = active?.takeIf { it.conversationId == conversationId }
+            val shown = turns.map { turn ->
+                when {
+                    mine != null && turn.id == mine.turnId -> turn.copy(state = mine.state, answer = mine.text)
+                    turn.state == TurnState.RETRIEVING || turn.state == TurnState.GENERATING -> turn.copy(state = TurnState.INTERRUPTED)
+                    else -> turn
+                }
+            }
+            ConversationView(shown, mine)
+        }.distinctUntilChanged()
+}
+
+class AskQuestionUseCase(private val session: ChatSession) {
+    suspend operator fun invoke(conversationId: Long?, question: String): Long? = session.ask(conversationId, question)
+}
+
+class CancelAnswerUseCase(private val session: ChatSession) {
+    operator fun invoke() = session.cancel()
+}
+
+class RetryAnswerUseCase(private val session: ChatSession) {
+    suspend operator fun invoke(turnId: Long): Boolean = session.retry(turnId)
+}
+
+class StartNewConversationUseCase(private val session: ChatSession) {
+    operator fun invoke() = session.startNewConversation()
+}
+
+class DeleteConversationUseCase(private val session: ChatSession) {
+    suspend operator fun invoke(conversationId: Long) = session.delete(conversationId)
+}
+
+class LastConversationUseCase(private val repository: ChatRepository) {
+    suspend operator fun invoke(): Long? = repository.lastConversationId()
+}
+
+/** Loads Gemma ahead of the first question, only when the chat is Ready (never during a batch, D-053). */
+class WarmUpAnswerEngineUseCase(private val engine: AnswerEngine, private val observeAvailability: ObserveChatAvailabilityUseCase) {
+    suspend operator fun invoke() {
+        if (observeAvailability().first() is ChatAvailability.Ready) engine.warmUp()
+    }
 }

@@ -36,6 +36,15 @@ import com.lisdatasolutions.microrag.domain.onboarding.ResumeModelDownloadUseCas
 import com.lisdatasolutions.microrag.domain.onboarding.RetryModelUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.StartModelDownloadUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.StartOnboardingUseCase
+import com.lisdatasolutions.microrag.domain.chat.AskQuestionUseCase
+import com.lisdatasolutions.microrag.domain.chat.CancelAnswerUseCase
+import com.lisdatasolutions.microrag.domain.chat.DeleteConversationUseCase
+import com.lisdatasolutions.microrag.domain.chat.LastConversationUseCase
+import com.lisdatasolutions.microrag.domain.chat.ObserveChatAvailabilityUseCase
+import com.lisdatasolutions.microrag.domain.chat.ObserveConversationUseCase
+import com.lisdatasolutions.microrag.domain.chat.RetryAnswerUseCase
+import com.lisdatasolutions.microrag.domain.chat.StartNewConversationUseCase
+import com.lisdatasolutions.microrag.domain.chat.WarmUpAnswerEngineUseCase
 import com.lisdatasolutions.microrag.domain.retrieval.RetrieveContextUseCase
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
@@ -89,4 +98,15 @@ val domainModule = module {
 
     // Retrieval (F10).
     factoryOf(::RetrieveContextUseCase)
+
+    // Chat (F11).
+    factoryOf(::ObserveChatAvailabilityUseCase)
+    factoryOf(::ObserveConversationUseCase)
+    factoryOf(::AskQuestionUseCase)
+    factoryOf(::CancelAnswerUseCase)
+    factoryOf(::RetryAnswerUseCase)
+    factoryOf(::StartNewConversationUseCase)
+    factoryOf(::DeleteConversationUseCase)
+    factoryOf(::LastConversationUseCase)
+    factoryOf(::WarmUpAnswerEngineUseCase)
 }

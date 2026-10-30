@@ -9,6 +9,10 @@ import com.lisdatasolutions.microrag.data.device.AndroidDeviceResources
 import com.lisdatasolutions.microrag.data.device.PowerManagerThermalStatusSource
 import com.lisdatasolutions.microrag.data.device.ProcessState
 import com.lisdatasolutions.microrag.data.device.ThermalStatusSource
+import com.lisdatasolutions.microrag.data.chat.ChatSchema
+import com.lisdatasolutions.microrag.data.chat.DefaultChatSession
+import com.lisdatasolutions.microrag.data.chat.EngineAnswerEngine
+import com.lisdatasolutions.microrag.data.chat.SqliteChatRepository
 import com.lisdatasolutions.microrag.data.download.DefaultModelDownloadController
 import com.lisdatasolutions.microrag.data.download.DownloadNotifications
 import com.lisdatasolutions.microrag.data.download.FileDownloader
@@ -43,6 +47,10 @@ import com.lisdatasolutions.microrag.data.rag.RagSchema
 import com.lisdatasolutions.microrag.data.retrieval.EngineQueryEmbedder
 import com.lisdatasolutions.microrag.data.retrieval.HybridRetriever
 import com.lisdatasolutions.microrag.data.retrieval.QueryEmbedder
+import com.lisdatasolutions.microrag.domain.chat.AnswerEngine
+import com.lisdatasolutions.microrag.domain.chat.ChatRepository
+import com.lisdatasolutions.microrag.domain.chat.ChatSession
+import com.lisdatasolutions.microrag.domain.chat.ObserveChatAvailabilityUseCase
 import com.lisdatasolutions.microrag.domain.indexing.IndexingRepository
 import com.lisdatasolutions.microrag.domain.ingest.ImportQueueRepository
 import com.lisdatasolutions.microrag.domain.library.LibraryRepository
@@ -57,8 +65,10 @@ import com.lisdatasolutions.microrag.domain.rag.RagIndexConfig
 import com.lisdatasolutions.microrag.domain.retrieval.ContextRetriever
 import com.lisdatasolutions.microrag.rag.ingest.DocumentExtractor
 import com.lisdatasolutions.microrag.rag.ingest.PdfOpener
+import com.lisdatasolutions.microrag.rag.runtime.MemoryTrimListener
 import java.io.File
 import org.koin.android.ext.koin.androidContext
+import org.koin.dsl.binds
 import org.koin.dsl.module
 
 /** Repository implementations, database and downloads. */
@@ -90,6 +100,29 @@ val dataModule = module {
             logger = get(),
         )
     }
+
+    // Chat (F11): saved conversations in their own file, Gemma for the answers and the app-wide session.
+    single<ChatRepository> {
+        val context = androidContext()
+        SqliteChatRepository(
+            dbFile = File(get<AppDirs>().chat, "chat.db"),
+            schema = { ChatSchema.load(context.assets) },
+            dispatcher = get<AppDispatchers>().database,
+            logger = get(),
+        )
+    }
+    single<AnswerEngine> { EngineAnswerEngine(get(), get(), get()) }
+    single {
+        val observeAvailability = get<ObserveChatAvailabilityUseCase>()
+        DefaultChatSession(
+            repository = get(),
+            retrieve = get(),
+            engine = get(),
+            availability = { observeAvailability() },
+            scope = get<ApplicationScope>().scope,
+            logger = get(),
+        )
+    } binds arrayOf(ChatSession::class, MemoryTrimListener::class)
 
     // Document import (F06): private copies and the system PDF reader.
     single { DocumentFileStore(get<AppDirs>().documents) }
