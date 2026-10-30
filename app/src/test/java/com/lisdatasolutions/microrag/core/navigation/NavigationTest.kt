@@ -53,6 +53,7 @@ import com.lisdatasolutions.microrag.domain.library.ObserveLibraryUseCase
 import com.lisdatasolutions.microrag.domain.library.ReindexDocumentUseCase
 import com.lisdatasolutions.microrag.domain.library.RemoveFromIndexUseCase
 import com.lisdatasolutions.microrag.domain.library.SetIncludedUseCase
+import com.lisdatasolutions.microrag.domain.chat.ActiveAnswer
 import com.lisdatasolutions.microrag.domain.chat.AnswerSource
 import com.lisdatasolutions.microrag.domain.chat.TurnState
 import com.lisdatasolutions.microrag.domain.chat.TurnUpdate
@@ -413,6 +414,46 @@ class NavigationTest {
         assertThat(nav.currentDestination?.hasRoute(Chat::class)).isTrue()
         // SC-006: the list is where it was left, on the source.
         compose.onNodeWithContentDescription("Manual.pdf", substring = true).assertIsDisplayed()
+    }
+
+    @Test
+    fun theChatTab_opensTheLastConversation() {
+        runBlocking {
+            chat.addDocument("Manual.pdf")
+            listOf(0L to "¿La primera?", 10L to "¿La última?").forEach { (at, question) ->
+                val id = chat.chats.createConversation(at)
+                val turn = chat.chats.insertTurn(id, question, partialCoverage = false, now = at)
+                chat.chats.updateTurn(turn.id, TurnUpdate(state = TurnState.COMPLETED, answer = "Sí."))
+            }
+        }
+        launchShell()
+        tab(TopLevelDestination.CHAT).performClick()
+        compose.waitForIdle()
+
+        compose.onNodeWithContentDescription("¿La última?", substring = true).assertExists()
+        compose.onNodeWithContentDescription("¿La primera?", substring = true).assertDoesNotExist()
+    }
+
+    /** FR-011: the answer lives in the session, so leaving the tab and coming back finds it still going. */
+    @Test
+    fun anAnswerInProgress_goesOn_acrossTabs() {
+        runBlocking {
+            chat.addDocument("Manual.pdf")
+            val id = chat.chats.createConversation(0)
+            val turn = chat.chats.insertTurn(id, "¿Plazo?", partialCoverage = false, now = 0)
+            chat.session.active.value = ActiveAnswer(id, turn.id, "¿Plazo?", TurnState.GENERATING, text = "El plazo es")
+        }
+        launchShell()
+        tab(TopLevelDestination.CHAT).performClick()
+        compose.onNodeWithText(context.getString(R.string.chat_generating)).assertExists()
+
+        tab(TopLevelDestination.LIBRARY).performClick()
+        compose.runOnUiThread { chat.session.active.value = chat.session.active.value!!.copy(text = "El plazo es de 30 días") }
+        tab(TopLevelDestination.CHAT).performClick()
+        compose.waitForIdle()
+
+        compose.onNodeWithText(context.getString(R.string.chat_generating)).assertExists()
+        compose.onNodeWithText("El plazo es de 30 días", substring = true, useUnmergedTree = true).assertExists()
     }
 
     @Test

@@ -108,7 +108,7 @@ class ChatViewModel(
     ) { (view, availability, sources), local ->
         val turns = view?.let { turnsOf(it, availability, sources) }.orEmpty()
         ChatUiState(
-            conversationId = conversationId.value,
+            conversationId = savedConversation,
             availability = availability,
             turns = turns,
             question = local.question,
@@ -118,6 +118,9 @@ class ChatViewModel(
             announcement = local.announcement,
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, ChatUiState())
+
+    /** The conversation of this entry when it is saved: not one that only lives in memory (C16). */
+    private val savedConversation: Long? get() = conversationId.value?.takeIf { it != ActiveAnswer.UNSAVED }
 
     private data class Local(val question: String, val confirmDelete: Boolean, val copied: Long?, val announcement: ChatAnnouncement?)
 
@@ -200,7 +203,7 @@ class ChatViewModel(
     }
 
     fun onDelete() {
-        if (conversationId.value != null) savedState[CONFIRM_DELETE] = true
+        if (savedConversation != null) savedState[CONFIRM_DELETE] = true
     }
 
     fun onDismissDelete() {
@@ -209,7 +212,7 @@ class ChatViewModel(
 
     fun onConfirmDelete() {
         savedState[CONFIRM_DELETE] = false
-        val id = conversationId.value ?: return
+        val id = savedConversation ?: return
         viewModelScope.launch {
             deleteConversation(id)
             setConversation(null)

@@ -79,7 +79,9 @@ class DefaultChatSession(
         if (job?.isActive == true) return@withLock null
         val ready = availability().first() as? ChatAvailability.Ready ?: return@withLock null
         startup.join()
-        val conversation = conversationId ?: saveOrNull { repository.createConversation(now()) } ?: ActiveAnswer.UNSAVED
+        // A conversation that could not be saved (C16) is tried again with the next question.
+        val saved = conversationId?.takeIf { it != ActiveAnswer.UNSAVED }
+        val conversation = saved ?: saveOrNull { repository.createConversation(now()) } ?: ActiveAnswer.UNSAVED
         val turns = if (conversation == ActiveAnswer.UNSAVED) emptyList() else saveOrNull { repository.conversation(conversation).first() }.orEmpty()
         val turn = if (conversation == ActiveAnswer.UNSAVED) null else saveOrNull {
             repository.insertTurn(conversation, question, ready.partialCoverage, now())

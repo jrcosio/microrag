@@ -365,20 +365,20 @@ Historias de la spec:
 
 **Independent Test**: tras cerrar la app, la pestaña Chat abre la última conversación; «Nuevo chat» abre una vacía; borrar pide confirmación; una fuente borrada no abre nada; un turno a medias pasa a interrumpido.
 
-- [ ] T048 [P] [US5] Ampliar `DefaultChatSessionTest` (A12, A13, A15):
+- [X] T048 [P] [US5] Ampliar `DefaultChatSessionTest` (A12, A13, A15):
   - al crearse la sesión, `markInterrupted` se llama una vez antes de leer;
   - `startNewConversation()` y `delete()` cancelan la respuesta en curso;
   - borrar elimina en cascada;
   - una escritura que falla deja la respuesta en `active` con `saveFailed`;
   - con `storageState = Unavailable`, la disponibilidad es `StorageUnavailable` y `ask` no hace nada.
-- [ ] T049 [P] [US5] Crear `…/test/…/domain/chat/ResolveSourcesUseCaseTest.kt` (R12):
+- [X] T049 [P] [US5] Crear `…/test/…/domain/chat/ResolveSourcesUseCaseTest.kt` (R12):
   - documento borrado, `DOCUMENT_GONE`;
   - fragmento ausente con el documento presente, `FRAGMENT_GONE`;
   - presente, `AVAILABLE`;
   - excluido de la búsqueda, `AVAILABLE`;
   - índice no disponible: todas disponibles;
   - se recalcula con los cambios del índice.
-- [ ] T050 [P] [US5] Ampliar `ChatViewModelTest`, `ChatScreenTest` y `NavigationTest`:
+- [X] T050 [P] [US5] Ampliar `ChatViewModelTest`, `ChatScreenTest` y `NavigationTest`:
   - **resolución de la conversación** (R13), en este orden: el id guardado, el id de la ruta, `newConversation`, la última, o vacía; una entrada de «Nuevo chat» en la que ya se preguntó vuelve a su conversación al recrearse;
   - **«⋯»:** «Nuevo chat» sin navegar y «Borrar conversación» con el diálogo de C15 (foco en «Cancelar», «Conversación borrada» anunciado);
   - **«Borrar»** solo con conversación guardada;
@@ -387,12 +387,14 @@ Historias de la spec:
   - **C16 y C17:** la nota de respuesta sin guardar y el estado de conversaciones ilegibles;
   - **pestaña:** abre la última conversación tras recrear la actividad;
   - **FR-011:** una respuesta en curso sigue al cambiar de pestaña y volver, porque el ViewModel la recupera de la sesión.
-- [ ] T051 [US5] Implementar la persistencia en la pantalla:
+- [X] T051 [US5] Implementar la persistencia en la pantalla:
   - resolución de la conversación, acciones de «⋯» y diálogo de borrado;
   - `ResolveSourcesUseCase`, `LastConversationUseCase`, `StartNewConversationUseCase` y `DeleteConversationUseCase`;
   - estados C11, C13, C15, C16 y C17.
 
   T048, T049 y T050 pasan.
+
+**Nota de la implementación de US5:** una conversación que no se pudo guardar (C16) lleva el id `UNSAVED` solo en memoria. La pantalla la trata como no guardada, así que «⋯» no ofrece borrarla, y la sesión vuelve a intentar crearla con la pregunta siguiente. `ResolveSourcesUseCaseTest` (T049) se escribió con su caso de uso, antes de la pantalla.
 
 **Checkpoint**: las conversaciones se guardan y se recuperan; el historial de F13 tiene su base.
 

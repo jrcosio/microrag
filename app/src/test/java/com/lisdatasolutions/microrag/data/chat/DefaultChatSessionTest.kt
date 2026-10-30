@@ -531,7 +531,7 @@ class DefaultChatSessionTest {
     }
 
     @Test
-    fun withoutStorage_theAnswerStillComes_unsaved() = runTest {
+    fun aRepositoryRefusingEveryWrite_whileReady_stillAnswers_unsaved() = runTest {
         repository.storage = ChatStorageState.UNAVAILABLE
         retriever.outcome = blocks(block(1))
         val session = session()
@@ -542,6 +542,40 @@ class DefaultChatSessionTest {
         assertThat(id).isEqualTo(ActiveAnswer.UNSAVED)
         assertThat(session.active.value!!.saveFailed).isTrue()
         assertThat(session.active.value!!.state).isEqualTo(TurnState.COMPLETED)
+    }
+
+    @Test
+    fun aConversationThatCouldNotBeSaved_isCreatedAgain_withTheNextQuestion() = runTest {
+        retriever.outcome = blocks(block(1))
+        repository.failWrites = true
+        val session = session()
+        val unsaved = session.ask(null, "¿Plazo?")
+        advanceUntilIdle()
+        assertThat(unsaved).isEqualTo(ActiveAnswer.UNSAVED)
+
+        repository.failWrites = false
+        val id = session.ask(unsaved, "¿Y para empresas?")
+        advanceUntilIdle()
+
+        assertThat(id).isNotEqualTo(ActiveAnswer.UNSAVED)
+        assertThat(lastTurn().conversationId).isEqualTo(id)
+        assertThat(lastTurn().question).isEqualTo("¿Y para empresas?")
+    }
+
+    @Test
+    fun withUnreadableStorage_theChatIsNotReady_andAskDoesNothing_C17() = runTest {
+        repository.storage = ChatStorageState.UNAVAILABLE
+        availability.value = ChatAvailability.StorageUnavailable
+        retriever.outcome = blocks(block(1))
+        val session = session()
+
+        assertThat(session.ask(null, "¿Plazo?")).isNull()
+        advanceUntilIdle()
+
+        assertThat(session.active.value).isNull()
+        assertThat(repository.writes).isEmpty()
+        assertThat(retriever.requests).isEmpty()
+        assertThat(engine.prompts).isEmpty()
     }
 
     // --- US6: the app goes to the background (A11) --------------------------------------------------

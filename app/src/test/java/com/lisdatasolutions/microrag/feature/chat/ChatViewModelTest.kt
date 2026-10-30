@@ -368,4 +368,129 @@ class ChatViewModelTest {
         advanceTimeBy(2_000)
         assertThat(old.state.value.announcement).isNull()
     }
+
+    // US5 (T050): the saved conversation, «⋯», sources and storage (R13, C11, C15, C16).
+
+    @Test
+    fun aNewChatEntryThatAsked_comesBackToItsConversation_whenRecreated() = runTest(dispatcher) {
+        graph.addDocument("Manual de procesos.pdf")
+        val saved = saved(newConversation = true)
+        val vm = graph.chatViewModel(saved)
+        advanceUntilIdle()
+        vm.onQuestionChange("¿Plazo?")
+        vm.onSend()
+        advanceUntilIdle()
+        val id = vm.state.value.conversationId!!
+
+        val recreated = graph.chatViewModel(saved)
+        advanceUntilIdle()
+
+        assertThat(recreated.state.value.conversationId).isEqualTo(id)
+        assertThat(recreated.state.value.turns.single().question).isEqualTo("¿Plazo?")
+        // Only the first entry started a new conversation.
+        assertThat(graph.session.calls).containsExactly("new", "ask").inOrder()
+    }
+
+    @Test
+    fun newChat_fromTheMenu_opensAnEmptyConversation_withoutNavigating() = runTest(dispatcher) {
+        answered(graph.addDocument("Manual de procesos.pdf"))
+        val saved = saved()
+        val vm = graph.chatViewModel(saved)
+        advanceUntilIdle()
+        assertThat(vm.state.value.turns).hasSize(1)
+
+        vm.onNewChat()
+        advanceUntilIdle()
+
+        assertThat(graph.session.calls).containsExactly("new")
+        assertThat(vm.state.value.conversationId).isNull()
+        assertThat(vm.state.value.turns).isEmpty()
+        assertThat(saved.get<Long>("chat_conversation")).isNull()
+    }
+
+    @Test
+    fun deleting_asksFirst_thenDeletes_andAnnouncesIt_C15() = runTest(dispatcher) {
+        val id = answered(graph.addDocument("Manual de procesos.pdf"))
+        val vm = graph.chatViewModel(saved())
+        advanceUntilIdle()
+
+        vm.onDelete()
+        advanceUntilIdle()
+        assertThat(vm.state.value.confirmDelete).isTrue()
+        vm.onDismissDelete()
+        advanceUntilIdle()
+        assertThat(vm.state.value.confirmDelete).isFalse()
+        assertThat(graph.session.calls).isEmpty()
+
+        vm.onDelete()
+        vm.onConfirmDelete()
+        advanceUntilIdle()
+
+        assertThat(graph.session.calls).containsExactly("delete:$id")
+        assertThat(vm.state.value.confirmDelete).isFalse()
+        assertThat(vm.state.value.conversationId).isNull()
+        assertThat(vm.state.value.turns).isEmpty()
+        assertThat(vm.state.value.announcement).isEqualTo(ChatAnnouncement.DELETED)
+    }
+
+    @Test
+    fun deleting_needsASavedConversation() = runTest(dispatcher) {
+        val vm = graph.chatViewModel(saved())
+        advanceUntilIdle()
+
+        vm.onDelete()
+        advanceUntilIdle()
+
+        assertThat(vm.state.value.confirmDelete).isFalse()
+    }
+
+    @Test
+    fun aDeletedDocument_readsUnavailable_andABlockOfSeveralFragments_givesItsRange_C11() = runTest(dispatcher) {
+        val document = graph.addDocument("Manual de procesos.pdf")
+        val id = graph.chats.createConversation(0)
+        val turn = graph.chats.insertTurn(id, "¿Plazo?", partialCoverage = false, now = 0)
+        graph.chats.updateTurn(turn.id, TurnUpdate(state = TurnState.COMPLETED, answer = "Son 30 días [1][2].", promptBlocks = 2))
+        graph.chats.replaceSources(
+            turn.id,
+            listOf(
+                source(document).copy(firstOrdinal = 85, lastOrdinal = 86),
+                source(99).copy(position = 2, promptNumber = 2, chunkId = 241, documentName = "Protocolo interno.pdf"),
+            ),
+        )
+        val vm = graph.chatViewModel(saved())
+        advanceUntilIdle()
+
+        val (block, gone) = vm.state.value.turns.single().sources
+        assertThat(block.citation.available).isTrue()
+        assertThat(block.citation.fragment).isEqualTo(86)
+        assertThat(block.citation.lastFragment).isEqualTo(87)
+        assertThat(gone.citation.available).isFalse()
+    }
+
+    @Test
+    fun anAnswerThatCouldNotBeSaved_showsFromMemory_withItsNote_C16() = runTest(dispatcher) {
+        graph.addDocument("Manual de procesos.pdf")
+        val saved = saved().apply {
+            set("chat_conversation", ActiveAnswer.UNSAVED)
+            set("chat_resolved", true)
+        }
+        graph.session.active.value = ActiveAnswer(
+            ActiveAnswer.UNSAVED, ActiveAnswer.UNSAVED, "¿Plazo?", TurnState.COMPLETED,
+            text = "Son 30 días [1].", blocks = listOf(block(1)), saveFailed = true,
+        )
+        val vm = graph.chatViewModel(saved)
+        advanceUntilIdle()
+
+        with(vm.state.value.turns.single()) {
+            assertThat(question).isEqualTo("¿Plazo?")
+            assertThat(state).isEqualTo(AnswerState.Completed)
+            assertThat(notes).containsExactly(R.string.chat_save_failed)
+            assertThat(retryable).isFalse()
+        }
+        // Nothing saved to delete.
+        assertThat(vm.state.value.conversationId).isNull()
+        vm.onDelete()
+        advanceUntilIdle()
+        assertThat(vm.state.value.confirmDelete).isFalse()
+    }
 }

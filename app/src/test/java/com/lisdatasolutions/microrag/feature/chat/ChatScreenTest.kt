@@ -6,6 +6,7 @@ import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasClickAction
@@ -54,6 +55,8 @@ class ChatScreenTest {
         onOpenSource = { opened += it },
         onNewChat = { calls += "new" },
         onDelete = { calls += "delete" },
+        onConfirmDelete = { calls += "confirm" },
+        onDismissDelete = { calls += "dismiss" },
     )
 
     private fun show(state: ChatUiState) {
@@ -300,5 +303,52 @@ class ChatScreenTest {
             SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, "Respuesta copiada") and
                 SemanticsMatcher.expectValue(SemanticsProperties.LiveRegion, LiveRegionMode.Polite),
         ).assertExists()
+    }
+
+    // US5 (T050): «⋯», the delete dialog, sources and storage (C11, C15–C17).
+
+    @Test
+    fun theDeleteDialog_C15_focusesCancel_andConfirms() {
+        show(ChatPreviewData.deleteDialog)
+
+        exists("¿Borrar esta conversación?")
+        exists("Se eliminarán sus preguntas y respuestas de este teléfono.")
+        compose.onNodeWithText("Cancelar").assertIsFocused()
+        compose.onNodeWithText("Borrar").performClick()
+        assertThat(calls).containsExactly("confirm")
+    }
+
+    @Test
+    fun aSourceNoLongerAvailable_isInert() {
+        show(ChatPreviewData.sourceGone)
+
+        row("Fuente 2: Protocolo interno.pdf, Fuente ya no disponible").performClick()
+        row("Fuente 1: Manual de procesos.pdf, Página 12, Fragmento 86").performClick()
+
+        assertThat(opened).containsExactly(ChatPreviewData.manual.target)
+    }
+
+    @Test
+    fun aBlockOfSeveralFragments_givesItsRange_C11() {
+        val manual = ChatPreviewData.manual.copy(citation = ChatPreviewData.manual.citation.copy(lastFragment = 87))
+        show(ChatPreviewData.png.copy(turns = listOf(ChatPreviewData.completedTurn.copy(sources = listOf(manual)))))
+
+        row("Fuente 1: Manual de procesos.pdf, Página 12, Fragmentos 86–87").assertIsDisplayed()
+    }
+
+    @Test
+    fun anAnswerThatCouldNotBeSaved_carriesItsNote_C16() {
+        val turn = ChatPreviewData.completedTurn.copy(id = 0, sources = emptyList(), notes = listOf(R.string.chat_save_failed))
+        show(ChatPreviewData.png.copy(conversationId = null, turns = listOf(turn)))
+
+        exists("No se ha podido guardar esta respuesta en el teléfono.")
+    }
+
+    @Test
+    fun unreadableConversations_sayWhy_C17() {
+        show(ChatPreviewData.storageUnavailable)
+
+        exists("No se pueden abrir tus conversaciones guardadas.")
+        compose.onNodeWithContentDescription("Enviar").assertIsNotEnabled()
     }
 }
