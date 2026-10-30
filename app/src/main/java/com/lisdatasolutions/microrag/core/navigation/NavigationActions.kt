@@ -52,7 +52,7 @@ fun NavController.navigateToTopLevel(destination: TopLevelDestination) {
  * left open in the tab, as [navigateToTopLevel] would.
  */
 fun NavController.openNewChat() {
-    navigate(Chat(conversationId = null)) {
+    navigate(Chat(newConversation = true)) {
         popUpTo<Home> { saveState = true }
         launchSingleTop = true
     }

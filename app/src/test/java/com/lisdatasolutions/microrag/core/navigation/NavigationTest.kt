@@ -9,6 +9,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasScrollToIndexAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.performScrollToNode
@@ -52,6 +53,10 @@ import com.lisdatasolutions.microrag.domain.library.ObserveLibraryUseCase
 import com.lisdatasolutions.microrag.domain.library.ReindexDocumentUseCase
 import com.lisdatasolutions.microrag.domain.library.RemoveFromIndexUseCase
 import com.lisdatasolutions.microrag.domain.library.SetIncludedUseCase
+import com.lisdatasolutions.microrag.domain.chat.AnswerSource
+import com.lisdatasolutions.microrag.domain.chat.TurnState
+import com.lisdatasolutions.microrag.domain.chat.TurnUpdate
+import com.lisdatasolutions.microrag.feature.chat.chatViewModel
 import com.lisdatasolutions.microrag.feature.document.DocumentViewModel
 import com.lisdatasolutions.microrag.feature.home.HomeViewModel
 import com.lisdatasolutions.microrag.domain.model.OnboardingStage
@@ -64,6 +69,7 @@ import com.lisdatasolutions.microrag.feature.library.LibraryViewModel
 import com.lisdatasolutions.microrag.domain.ingest.DocumentFormat
 import com.lisdatasolutions.microrag.domain.library.LibraryDocument
 import com.lisdatasolutions.microrag.domain.library.LibraryDocumentState
+import com.lisdatasolutions.microrag.testing.ChatTestGraph
 import com.lisdatasolutions.microrag.testing.FakeImportQueueRepository
 import com.lisdatasolutions.microrag.testing.FakeLibraryRepository
 import com.lisdatasolutions.microrag.domain.model.ComputeBackend
@@ -76,6 +82,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.ExternalResource
@@ -130,6 +137,11 @@ internal fun homeViewModels() = module {
     }
 }
 
+/** The chat (F11) takes its ViewModel from Koin too; [graph] holds its fakes. */
+internal fun chatViewModels(graph: ChatTestGraph = ChatTestGraph()) = module {
+    viewModel { graph.chatViewModel(get()) }
+}
+
 internal fun navigationLibrary() = FakeLibraryRepository().apply {
     documents.value = listOf(LibraryDocument(7, "Manual.pdf", DocumentFormat.PDF, LibraryDocumentState.Indexed(3, null), true))
     listOf(1L, 7L).forEach { id ->
@@ -152,6 +164,7 @@ class NavigationTest {
 
     /** The import (F06), indexing (F07) and library (F08) screens take their ViewModels from Koin; fakes are enough here. */
     private val library = navigationLibrary()
+    private val chat = ChatTestGraph()
 
     @get:Rule(order = 0)
     val ingestGraph = object : ExternalResource() {
@@ -161,6 +174,7 @@ class NavigationTest {
                 modules(
                     libraryViewModels(library),
                     homeViewModels(),
+                    chatViewModels(chat),
                     module {
                         viewModel {
                             IngestViewModel(
@@ -368,9 +382,37 @@ class NavigationTest {
 
         val entry = nav.currentBackStackEntry!!
         assertThat(entry.destination.hasRoute(Chat::class)).isTrue()
-        assertThat(entry.toRoute<Chat>().conversationId).isNull()
+        assertThat(entry.toRoute<Chat>()).isEqualTo(Chat(newConversation = true))
         assertThat(nav.currentTopLevel()).isEqualTo(TopLevelDestination.CHAT)
         backToASingleHome()
+    }
+
+    @Test
+    fun aSource_opensTheCitedFragment_andBackReturnsToTheChat() {
+        // Document 1 is in the Library's fake too, so the detail opens; the chat cites its chunk 3.
+        runBlocking {
+            val documentId = chat.addDocument("Manual.pdf")
+            val id = chat.chats.createConversation(0)
+            val turn = chat.chats.insertTurn(id, "¿Qué plazo hay?", partialCoverage = false, now = 0)
+            chat.chats.updateTurn(turn.id, TurnUpdate(state = TurnState.COMPLETED, answer = "Son 30 días [1].", promptBlocks = 1))
+            chat.chats.replaceSources(turn.id, listOf(AnswerSource(1, 1, documentId, 3, 2, 2, "Manual.pdf", 2)))
+        }
+        launchShell()
+        tab(TopLevelDestination.CHAT).performClick()
+        compose.waitForIdle()
+
+        // The row reads as one sentence for TalkBack: «Fuente 1: Manual.pdf, …».
+        compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasContentDescription("Manual.pdf", substring = true))
+        compose.onNodeWithContentDescription("Manual.pdf", substring = true).performClick()
+        compose.waitForIdle()
+
+        assertThat(nav.currentBackStackEntry!!.toRoute<Document>()).isEqualTo(Document(documentId = 1, chunkId = 3))
+        assertThat(library.previewRequests).contains(1L to 3L)
+        compose.onNodeWithContentDescription(context.getString(R.string.action_back)).performClick()
+        compose.waitForIdle()
+        assertThat(nav.currentDestination?.hasRoute(Chat::class)).isTrue()
+        // SC-006: the list is where it was left, on the source.
+        compose.onNodeWithContentDescription("Manual.pdf", substring = true).assertIsDisplayed()
     }
 
     @Test

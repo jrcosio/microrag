@@ -29,6 +29,7 @@ object DebugRouting {
             "setup" -> Setup
             "home" -> Home
             "chat" -> Chat(conversationId = id)
+            "new-chat" -> Chat(newConversation = true)
             "ingest" -> Ingest
             "library" -> Library
             "document" -> Document(documentId = id ?: -1L, chunkId = chunkId)

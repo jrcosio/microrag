@@ -1,14 +1,15 @@
 package com.lisdatasolutions.microrag.core.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.toRoute
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.Lifecycle
+import com.lisdatasolutions.microrag.feature.chat.ChatRoute
 import com.lisdatasolutions.microrag.feature.document.DocumentRoute
 import com.lisdatasolutions.microrag.feature.home.HomeRoute
 import com.lisdatasolutions.microrag.feature.indexing.IndexRoute
@@ -56,8 +57,23 @@ fun MicroRagNavHost(
             )
         }
         composable<Chat> { entry ->
-            val route = entry.toRoute<Chat>()
-            PendingDestination("chat", "F11", args = mapOf("conversationId" to route.conversationId), onBack = back)
+            // R13: a deleted document already reads «Fuente ya no disponible», so the detail's reason is dropped.
+            LaunchedEffect(entry) {
+                entry.savedStateHandle.getStateFlow<String?>(LIBRARY_MESSAGE, null).collect { message ->
+                    if (message != null) entry.savedStateHandle[LIBRARY_MESSAGE] = null
+                }
+            }
+            val resumed: (() -> Unit) -> Unit = { navigate ->
+                if (entry.lifecycle.currentState == Lifecycle.State.RESUMED) navigate()
+            }
+            ChatRoute(
+                onBack = back,
+                // R13: from a resumed chat only, so a double tap opens a single detail.
+                onOpenSource = { documentId, chunkId -> resumed { navController.navigate(Document(documentId, chunkId)) } },
+                onCompleteSetup = { resumed { navController.navigate(Setup) { launchSingleTop = true } } },
+                onImport = { resumed { navController.navigate(Ingest) { launchSingleTop = true } } },
+                onOpenIndex = { resumed { navController.navigate(Index) { launchSingleTop = true } } },
+            )
         }
         composable<Ingest> { IngestRoute(onBack = back, onStartIndexing = { navController.navigate(Index) }) }
         composable<Library> { entry ->
