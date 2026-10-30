@@ -14,11 +14,14 @@ import com.lisdatasolutions.microrag.domain.retrieval.CandidateScore
 import com.lisdatasolutions.microrag.domain.retrieval.ContextBlock
 import com.lisdatasolutions.microrag.domain.retrieval.RetrievalOutcome
 import com.lisdatasolutions.microrag.domain.retrieval.RetrieveContextUseCase
+import com.lisdatasolutions.microrag.rag.answer.AnswerGoldenFiles
 import com.lisdatasolutions.microrag.rag.answer.PromptBuilder
 import com.lisdatasolutions.microrag.testing.FakeAnswerEngine
 import com.lisdatasolutions.microrag.testing.FakeContextRetriever
 import com.lisdatasolutions.microrag.testing.InMemoryChatRepository
 import com.lisdatasolutions.microrag.testing.RecordingLogger
+import java.io.File
+import java.security.MessageDigest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.TestScope
@@ -394,6 +397,8 @@ class DefaultChatSessionTest {
         assertThat(prompt).contains("Documento 1.pdf")
         assertThat(prompt).contains("Documento 3.pdf")
         assertThat(prompt).doesNotContain("Documento 2.pdf")
+        // The blocks left keep their order.
+        assertThat(prompt.indexOf("Documento 1.pdf")).isLessThan(prompt.indexOf("Documento 3.pdf"))
         assertThat(logger.lines.last()).contains("dropped_blocks=1")
 
         val huge = block(9, text = "y".repeat(12_000))
@@ -404,6 +409,72 @@ class DefaultChatSessionTest {
         assertThat(engine.prompts.last()).doesNotContain(PREVIOUS_TURN)
         assertThat(logger.lines.last()).contains("dropped_previous=true")
     }
+
+    @Test
+    fun aLongQuestion_afterALongTurn_dropsTheWorstBlock_thenThePreviousTurn() = runTest {
+        val session = session()
+        retriever.outcome = blocks(block(1))
+        engine.tokens = listOf("z".repeat(2_000))
+        val id = session.ask(null, "q".repeat(1_000))
+        advanceUntilIdle()
+
+        engine.tokens = listOf("Vale [1].")
+        retriever.outcome = blocks(block(1, text = "x".repeat(6_500)), block(2, text = "w".repeat(2_000)), ranks = mapOf(101L to 1, 102L to 2))
+        session.ask(id, "p".repeat(1_000))
+        advanceUntilIdle()
+
+        val prompt = engine.prompts.last()
+        assertThat(prompt).contains("Documento 1.pdf")
+        assertThat(prompt).doesNotContain("Documento 2.pdf")
+        assertThat(prompt).doesNotContain(PREVIOUS_TURN)
+        assertThat(logger.lines.last()).contains("dropped_blocks=1")
+        assertThat(logger.lines.last()).contains("dropped_previous=true")
+    }
+
+    @Test
+    fun aNewConversation_hasNoPreviousTurn() = runTest {
+        retriever.outcome = blocks(block(1))
+        val session = session()
+        session.ask(null, "¿Primera?")
+        advanceUntilIdle()
+
+        session.ask(null, "¿Otra conversación?")
+        advanceUntilIdle()
+
+        assertThat(retriever.requests.last().previousQuestion).isNull()
+        assertThat(engine.prompts.last()).doesNotContain(PREVIOUS_TURN)
+    }
+
+    /** SC-002 through the session: the previous turn read from the conversation gives the desktop's prompt. */
+    @Test
+    fun theGoldenFollowUps_giveTheDesktopPrompt_throughTheSession() = runTest {
+        val cases = AnswerGoldenFiles.cases(File("../offline/golden/${AnswerGoldenFiles.GOLDEN}").readText()).filter { it.previous != null }
+        assertThat(cases).hasSize(50)
+        val session = session()
+
+        cases.forEach { case ->
+            val (question, answer) = case.previous!!
+            val id = repository.createConversation(0)
+            val turn = repository.insertTurn(id, question, partialCoverage = false, now = 0)
+            repository.updateTurn(turn.id, TurnUpdate(state = TurnState.COMPLETED, answer = answer))
+            val golden = case.blocks.mapIndexed { i, b ->
+                ContextBlock(
+                    documentId = i + 1L, documentName = b.documentName!!, headingPath = b.headingPath, page = b.page,
+                    firstOrdinal = 0, lastOrdinal = 0, chunkIds = listOf((i + 1L) * 1_000), text = b.text, tokens = 0,
+                )
+            }
+            retriever.outcome = blocks(*golden.toTypedArray())
+
+            session.ask(id, case.question)
+            advanceUntilIdle()
+
+            assertWithMessage("${case.id}: previous question").that(retriever.requests.last().previousQuestion).isEqualTo(question)
+            assertWithMessage("${case.id}: SHA-256 of the prompt").that(sha256(engine.prompts.last())).isEqualTo(case.promptSha256)
+        }
+    }
+
+    private fun sha256(text: String): String =
+        MessageDigest.getInstance("SHA-256").digest(text.toByteArray(Charsets.UTF_8)).joinToString("") { "%02x".format(it) }
 
     // --- US5: storage and the session's lifecycle (A12, A13, A15) -----------------------------------
 

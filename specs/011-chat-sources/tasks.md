@@ -344,7 +344,7 @@ Historias de la spec:
 
 **Independent Test**: una segunda pregunta usa el turno anterior; una pregunta larga con un turno anterior largo deja fuera bloques sin cortar ninguno.
 
-- [ ] T045 [P] [US4] Ampliar `DefaultChatSessionTest` (A4, A6):
+- [X] T045 [P] [US4] Ampliar `DefaultChatSessionTest` (A4, A6):
   - **completado, también si fue la negativa:** la búsqueda recibe la pregunta anterior; el prompt, la pregunta y la respuesta en bruto;
   - **cancelado, fallido o interrumpido:** nada;
   - **conversación nueva:** sin turno anterior;
@@ -352,8 +352,8 @@ Historias de la spec:
     - con una pregunta de 1.000 caracteres y un turno anterior largo, se quita primero el bloque peor clasificado, después el turno anterior, y nunca el último bloque (`dropped_blocks` en el registro);
     - los bloques que quedan conservan su orden;
   - **paridad:** las 50 preguntas de seguimiento del golden dan el mismo prompt pasando el turno anterior por la sesión.
-- [ ] T046 [US4] Implementar el turno anterior y el límite del prompt en `DefaultChatSession` (R10). T045 pasa.
-- [ ] T047 [P] [US4] El compositor limita la pregunta a `ChatLimits.MAX_QUESTION_CHARS` en `String.length` y corta lo que se pega sin partir un emoji. Prueba en `ChatViewModelTest`.
+- [X] T046 [US4] Implementar el turno anterior y el límite del prompt en `DefaultChatSession` (R10). T045 pasa.
+- [X] T047 [P] [US4] El compositor limita la pregunta a `ChatLimits.MAX_QUESTION_CHARS` en `String.length` y corta lo que se pega sin partir un emoji. Prueba en `ChatViewModelTest`.
 
 **Checkpoint**: el seguimiento funciona como el escritorio.
 

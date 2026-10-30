@@ -211,6 +211,11 @@ class ChatViewModelTest {
         advanceUntilIdle()
 
         assertThat(vm.state.value.question).isEqualTo("a".repeat(999))
+
+        // A long paste keeps its first 1,000 units.
+        vm.onQuestionChange("b".repeat(2_500))
+        advanceUntilIdle()
+        assertThat(vm.state.value.question).isEqualTo("b".repeat(1_000))
     }
 
     // US2 (T040): the refusal and an answer without citations (C1, C2).
