@@ -220,12 +220,15 @@ class ChatViewModel(
     /** C10: the text shown and its sources; the screen writes it to the clipboard. */
     fun onCopy(turnId: Long, text: String) {
         viewModelScope.launch { events.send(ChatEvent.Copy(text)) }
+        // U10: up to Android 12 the system says nothing, so the footer says it for 2 s and TalkBack reads it.
         if (sdkInt <= Build.VERSION_CODES.S_V2) {
             copied.value = turnId
+            announcement.value = ChatAnnouncement.COPIED
             copyJob?.cancel()
             copyJob = viewModelScope.launch {
                 delay(COPIED_MS)
                 copied.value = null
+                if (announcement.value == ChatAnnouncement.COPIED) announcement.value = null
             }
         }
     }
@@ -257,6 +260,7 @@ class ChatViewModel(
 
     private fun turnUi(turn: ChatTurn, active: ActiveAnswer?, available: Map<Long, SourceAvailability>, canRetry: Boolean): TurnUi {
         val streaming = turn.state == TurnState.RETRIEVING || turn.state == TurnState.GENERATING
+        val retryable = turn.state == TurnState.FAILED || turn.state == TurnState.INTERRUPTED
         val blocks = active?.blocks.orEmpty()
         val blockCount = if (streaming) blocks.size else turn.promptBlocks
         val sources = if (streaming || turn.refusal) emptyList() else turn.sources
@@ -272,7 +276,8 @@ class ChatViewModel(
             notes = notes(turn.state, turn.refusal, content, sources, turn.partialCoverage, active?.saveFailed == true),
             sources = sources.map { sourceRow(it, available[it.chunkId] ?: SourceAvailability.AVAILABLE) },
             chipTargets = if (streaming) chipTargets(turn.answer, blocks) else sources.map { SourceTarget(it.documentId, it.chunkId) },
-            canRetry = canRetry && (turn.state == TurnState.FAILED || turn.state == TurnState.INTERRUPTED),
+            retryable = retryable,
+            canRetry = canRetry && retryable,
         )
     }
 
@@ -291,6 +296,8 @@ class ChatViewModel(
             notes = if (streaming) emptyList() else listOf(R.string.chat_save_failed),
             sources = emptyList(),
             chipTargets = targets,
+            // Not saved, so there is no turn to retry (C16).
+            retryable = false,
             canRetry = false,
         )
     }

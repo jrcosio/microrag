@@ -290,16 +290,16 @@ Historias de la spec:
 
 **Independent Test**: una búsqueda sin bloques da la negativa sin llamar al modelo; la frase del modelo da el texto del MD; una respuesta sin citas válidas lleva su nota.
 
-- [ ] T039 [P] [US2] Ampliar `DefaultChatSessionTest` (A5, A8, SC-012):
+- [X] T039 [P] [US2] Ampliar `DefaultChatSessionTest` (A5, A8, SC-012):
   - `NoResults` da `COMPLETED` con `refusal = true` y `PromptBuilder.REFUSAL` como respuesta en bruto, sin llamar al motor, en menos de 1 s de tiempo virtual;
   - la frase de negativa, también con comillas, da `refusal = true` y sin fuentes;
   - la negativa con texto añadido no lo es;
   - una respuesta sin citas válidas termina `COMPLETED` sin fuentes.
-- [ ] T040 [P] [US2] Ampliar `ChatViewModelTest` y `ChatScreenTest`:
+- [X] T040 [P] [US2] Ampliar `ChatViewModelTest` y `ChatScreenTest`:
   - la negativa muestra «No encuentro información suficiente en tus documentos», sin chip ni fuentes (C1), y copiarla da ese texto;
   - una respuesta sin citas lleva la nota de C2;
   - con la pregunta en blanco, enviar no está activo.
-- [ ] T041 [US2] Implementar la negativa y la nota en la sesión, en el ViewModel (`TurnUi.content` y `notes`) y en la pantalla. T039 y T040 pasan.
+- [X] T041 [US2] Implementar la negativa y la nota en la sesión, en el ViewModel (`TurnUi.content` y `notes`) y en la pantalla. T039 y T040 pasan.
 
 **Checkpoint**: la negativa funciona como el escritorio y como el MD.
 
@@ -311,7 +311,7 @@ Historias de la spec:
 
 **Independent Test**: detener durante buscando y durante generando; copiar una respuesta; un fallo del motor y otro del índice con su reintento.
 
-- [ ] T042 [P] [US3] Ampliar `DefaultChatSessionTest` (A5, A9, A10, SC-005):
+- [X] T042 [P] [US3] Ampliar `DefaultChatSessionTest` (A5, A9, A10, SC-005):
   - **`cancel()`:**
     - deja `CANCELLED` con el texto recibido y sus fuentes válidas, en menos de 1 s, durante buscando y durante generando;
     - el motor se detiene y queda cargado;
@@ -322,7 +322,7 @@ Historias de la spec:
   - **`retry`:**
     - solo desde `FAILED` e `INTERRUPTED`; repite la pregunta en el mismo turno con el turno anterior a él;
     - da `false` con otra respuesta en curso o sin `Ready`.
-- [ ] T043 [P] [US3] Ampliar `ChatViewModelTest` y `ChatScreenTest`:
+- [X] T043 [P] [US3] Ampliar `ChatViewModelTest` y `ChatScreenTest`:
   - detener vuelve a enviar;
   - «Generación cancelada» con el texto parcial;
   - C7 y C8 con «Reintentar», desactivado si la disponibilidad no es `Ready` o hay otra respuesta en curso;
@@ -330,7 +330,9 @@ Historias de la spec:
   - copiar da el texto de C10;
   - en la API 31–32 se ve «Respuesta copiada» durante 2 s y se anuncia (U10);
   - en la API 33 o superior no hay confirmación propia.
-- [ ] T044 [US3] Implementar detener, reintentar y fallos en la sesión, con `CancelAnswerUseCase` y `RetryAnswerUseCase`, y copiar en la pantalla (`LocalClipboard` con `ClipEntry`, R14). T042 y T043 pasan.
+- [X] T044 [US3] Implementar detener, reintentar y fallos en la sesión, con `CancelAnswerUseCase` y `RetryAnswerUseCase`, y copiar en la pantalla (`LocalClipboard` con `ClipEntry`, R14). T042 y T043 pasan.
+
+**Nota de la implementación de US3:** «Reintentar» se ve en todo turno guardado `FAILED` o `INTERRUPTED` (`TurnUi.retryable`), y se desactiva mientras no puede empezar (`canRetry`), como pide T043. Antes se ocultaba. La tarjeta recibe `retryEnabled`. En la API 31–32, copiar también deja el aviso `COPIED` («Respuesta copiada») en la región en vivo durante 2 s (U10).
 
 **Checkpoint**: las tres historias P1 están completas sin el teléfono.
 

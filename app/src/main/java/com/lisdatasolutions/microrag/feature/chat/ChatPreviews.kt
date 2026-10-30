@@ -40,6 +40,7 @@ object ChatPreviewData {
         notes = emptyList(),
         sources = listOf(manual, protocol),
         chipTargets = listOf(manual.target, protocol.target),
+        retryable = false,
         canRetry = false,
     )
 
@@ -76,7 +77,7 @@ object ChatPreviewData {
         turns = listOf(
             completedTurn.copy(
                 state = AnswerState.Failed, content = AnswerContent.plain("El protocolo establece tres"), sources = emptyList(),
-                failureText = R.string.chat_interrupted, canRetry = true,
+                failureText = R.string.chat_interrupted, retryable = true, canRetry = true,
             ),
         ),
     )

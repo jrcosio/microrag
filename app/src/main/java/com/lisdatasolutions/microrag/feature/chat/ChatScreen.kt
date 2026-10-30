@@ -275,7 +275,8 @@ private fun Answer(turn: TurnUi, state: ChatUiState, actions: ChatActions, onSou
         },
         sourcesCountText = turn.sources.size.takeIf { it > 0 && !streaming }?.let { pluralStringResource(R.plurals.chat_sources_count, it, it) },
         onSources = onSources,
-        onRetry = if (turn.canRetry) ({ actions.onRetry(turn.id) }) else null,
+        onRetry = if (turn.retryable) ({ actions.onRetry(turn.id) }) else null,
+        retryEnabled = turn.canRetry,
         onCitation = { n -> turn.chipTargets.getOrNull(n - 1)?.let(actions.onOpenSource) },
         notes = turn.notes.map { stringResource(it) },
         failureText = turn.failureText?.let { stringResource(it) },
@@ -407,6 +408,7 @@ private fun Announcement(announcement: ChatAnnouncement?) {
         ChatAnnouncement.INTERRUPTED -> stringResource(R.string.chat_announce_interrupted)
         ChatAnnouncement.FAILED -> stringResource(R.string.chat_announce_failed)
         ChatAnnouncement.DELETED -> stringResource(R.string.chat_announce_deleted)
+        ChatAnnouncement.COPIED -> stringResource(R.string.chat_copied)
     }
     Box(
         modifier = Modifier.semantics {

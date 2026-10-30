@@ -44,6 +44,9 @@ data class TurnUi(
     val sources: List<SourceRow>,
     /** What chip `n` opens: the cited source, also while the answer streams. */
     val chipTargets: List<SourceTarget>,
+    /** A saved FAILED or INTERRUPTED turn: the card shows «Reintentar». */
+    val retryable: Boolean,
+    /** «Reintentar» works now: the chat is Ready and no other answer runs (A10). */
     val canRetry: Boolean,
 )
 
@@ -55,4 +58,4 @@ data class SourceRow(val position: Int, val target: SourceTarget, val citation: 
 /** What a source opens: the document detail on its first fragment (D-043). */
 data class SourceTarget(val documentId: Long, val chunkId: Long)
 
-enum class ChatAnnouncement { SEARCHING, GENERATING, COMPLETED, CANCELLED, INTERRUPTED, FAILED, DELETED }
+enum class ChatAnnouncement { SEARCHING, GENERATING, COMPLETED, CANCELLED, INTERRUPTED, FAILED, DELETED, COPIED }

@@ -4,10 +4,12 @@ import android.app.Application
 import androidx.lifecycle.SavedStateHandle
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
+import com.lisdatasolutions.microrag.R
 import com.lisdatasolutions.microrag.core.designsystem.model.AnswerState
 import com.lisdatasolutions.microrag.domain.chat.ActiveAnswer
 import com.lisdatasolutions.microrag.domain.chat.AnswerSource
 import com.lisdatasolutions.microrag.domain.chat.PromptBlockRef
+import com.lisdatasolutions.microrag.domain.chat.TurnFailure
 import com.lisdatasolutions.microrag.domain.chat.TurnState
 import com.lisdatasolutions.microrag.domain.chat.TurnUpdate
 import com.lisdatasolutions.microrag.testing.ChatTestGraph
@@ -209,5 +211,156 @@ class ChatViewModelTest {
         advanceUntilIdle()
 
         assertThat(vm.state.value.question).isEqualTo("a".repeat(999))
+    }
+
+    // US2 (T040): the refusal and an answer without citations (C1, C2).
+
+    /** A conversation whose only turn ended COMPLETED with [answer] and [sources]; its id. */
+    private suspend fun completed(answer: String, refusal: Boolean = false, sources: List<AnswerSource> = emptyList()): Long {
+        val id = graph.chats.createConversation(0)
+        val turn = graph.chats.insertTurn(id, "¿Plazo?", partialCoverage = false, now = 0)
+        graph.chats.updateTurn(turn.id, TurnUpdate(state = TurnState.COMPLETED, answer = answer, refusal = refusal, promptBlocks = 2))
+        graph.chats.replaceSources(turn.id, sources)
+        return id
+    }
+
+    @Test
+    fun theRefusal_hasNoContentChipsSourcesOrNotes_theScreenShowsTheSentence() = runTest(dispatcher) {
+        completed("No encuentro esa información en los documentos disponibles.", refusal = true)
+        val vm = graph.chatViewModel(saved())
+        advanceUntilIdle()
+
+        with(vm.state.value.turns.single()) {
+            assertThat(refusal).isTrue()
+            assertThat(state).isEqualTo(AnswerState.Completed)
+            assertThat(content.isEmpty).isTrue()
+            assertThat(sources).isEmpty()
+            assertThat(chipTargets).isEmpty()
+            assertThat(notes).isEmpty()
+        }
+    }
+
+    @Test
+    fun anAnswerWithoutValidCitations_carriesTheC2Note() = runTest(dispatcher) {
+        completed("El plazo es de 30 días [7].")
+        val vm = graph.chatViewModel(saved())
+        advanceUntilIdle()
+
+        with(vm.state.value.turns.single()) {
+            assertThat(content.isEmpty).isFalse()
+            assertThat(sources).isEmpty()
+            assertThat(notes).containsExactly(R.string.chat_no_citations)
+        }
+    }
+
+    @Test
+    fun aBlankQuestion_cannotBeSent() = runTest(dispatcher) {
+        graph.addDocument("Manual de procesos.pdf")
+        val vm = graph.chatViewModel(saved())
+        vm.onQuestionChange("   \n ")
+        advanceUntilIdle()
+
+        assertThat(vm.state.value.ready).isTrue()
+        assertThat(vm.state.value.canSend).isFalse()
+        vm.onSend()
+        advanceUntilIdle()
+        assertThat(graph.session.calls).isEmpty()
+    }
+
+    // US3 (T043): stop, failures, retry and copy (C7, C8, C10, U10).
+
+    /** A conversation whose only turn ended in [state]; the ids of the conversation and the turn. */
+    private suspend fun ended(state: TurnState, failure: TurnFailure? = null): Pair<Long, Long> {
+        val id = graph.chats.createConversation(0)
+        val turn = graph.chats.insertTurn(id, "¿Plazo?", partialCoverage = false, now = 0)
+        graph.chats.updateTurn(turn.id, TurnUpdate(state = state, answer = "El plazo", failure = failure, promptBlocks = 1))
+        return id to turn.id
+    }
+
+    @Test
+    fun stopping_turnsStopBackIntoSend() = runTest(dispatcher) {
+        graph.addDocument("Manual de procesos.pdf")
+        val vm = graph.chatViewModel(saved())
+        advanceUntilIdle()
+        vm.onQuestionChange("¿Plazo?")
+        vm.onSend()
+        advanceUntilIdle()
+        assertThat(vm.state.value.answering).isTrue()
+
+        vm.onStop()
+        val asked = graph.session.active.value!!
+        graph.chats.updateTurn(asked.turnId, TurnUpdate(state = TurnState.CANCELLED, answer = "El plazo"))
+        graph.session.active.value = null
+        advanceUntilIdle()
+
+        assertThat(graph.session.calls).containsExactly("ask", "cancel").inOrder()
+        assertThat(vm.state.value.answering).isFalse()
+        assertThat(vm.state.value.turns.single().state).isEqualTo(AnswerState.Cancelled)
+        vm.onQuestionChange("¿Y el plazo para empresas?")
+        advanceUntilIdle()
+        assertThat(vm.state.value.canSend).isTrue()
+    }
+
+    @Test
+    fun failures_sayWhatFailed_andRetryRepeatsTheTurn() = runTest(dispatcher) {
+        graph.addDocument("Manual de procesos.pdf")
+        val (index, indexTurn) = ended(TurnState.FAILED, TurnFailure.INDEX)
+        val (generation, _) = ended(TurnState.FAILED, TurnFailure.GENERATION)
+        val (interrupted, _) = ended(TurnState.INTERRUPTED)
+        val turnOf = { id: Long ->
+            graph.chatViewModel(saved(conversationId = id)).also { advanceUntilIdle() }.state.value.turns.single()
+        }
+
+        with(turnOf(index)) {
+            assertThat(state).isEqualTo(AnswerState.Failed)
+            assertThat(failureText).isEqualTo(R.string.chat_index_failed)
+            assertThat(retryable).isTrue()
+            assertThat(canRetry).isTrue()
+        }
+        // C7 keeps F01's sentence.
+        assertThat(turnOf(generation).failureText).isNull()
+        assertThat(turnOf(interrupted).failureText).isEqualTo(R.string.chat_interrupted)
+
+        val vm = graph.chatViewModel(saved(conversationId = index))
+        advanceUntilIdle()
+        vm.onRetry(indexTurn)
+        advanceUntilIdle()
+        assertThat(graph.session.calls).containsExactly("retry:$indexTurn")
+    }
+
+    @Test
+    fun retry_isOff_whileAnotherAnswerRuns_orTheChatIsNotReady() = runTest(dispatcher) {
+        val (id, _) = ended(TurnState.FAILED, TurnFailure.GENERATION)
+        val vm = graph.chatViewModel(saved(conversationId = id))
+        advanceUntilIdle()
+        // No document: EmptyLibrary.
+        with(vm.state.value.turns.single()) {
+            assertThat(retryable).isTrue()
+            assertThat(canRetry).isFalse()
+        }
+
+        graph.addDocument("Manual de procesos.pdf")
+        val running = graph.chats.insertTurn(id, "¿Otra?", partialCoverage = false, now = 1)
+        graph.session.active.value = ActiveAnswer(id, running.id, "¿Otra?", TurnState.GENERATING)
+        advanceUntilIdle()
+
+        assertThat(vm.state.value.ready).isTrue()
+        assertThat(vm.state.value.turns.first().canRetry).isFalse()
+    }
+
+    @Test
+    fun copying_upToAndroid12_isAnnounced_once_andNotFrom13() = runTest(dispatcher) {
+        val old = graph.chatViewModel(saved(), sdkInt = 31)
+        val current = graph.chatViewModel(saved(), sdkInt = 33)
+        advanceUntilIdle()
+
+        old.onCopy(1, "Texto")
+        current.onCopy(1, "Texto")
+        advanceTimeBy(100)
+        assertThat(old.state.value.announcement).isEqualTo(ChatAnnouncement.COPIED)
+        assertThat(current.state.value.announcement).isNull()
+
+        advanceTimeBy(2_000)
+        assertThat(old.state.value.announcement).isNull()
     }
 }

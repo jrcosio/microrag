@@ -1,7 +1,11 @@
 package com.lisdatasolutions.microrag.feature.chat
 
 import android.app.Application
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.SemanticsNodeInteraction
+import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasClickAction
@@ -17,7 +21,9 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToNode
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
+import com.lisdatasolutions.microrag.R
 import com.lisdatasolutions.microrag.core.designsystem.model.AnswerContent
+import com.lisdatasolutions.microrag.core.designsystem.model.AnswerState
 import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
 import org.junit.Rule
 import org.junit.Test
@@ -34,12 +40,17 @@ class ChatScreenTest {
 
     private val calls = mutableListOf<String>()
     private val opened = mutableListOf<SourceTarget>()
+    private val copiedTexts = mutableListOf<String>()
 
     private val actions = ChatActions(
         onBack = { calls += "back" },
         onSend = { calls += "send" },
         onStop = { calls += "stop" },
-        onCopy = { id, _ -> calls += "copy $id" },
+        onRetry = { calls += "retry $it" },
+        onCopy = { id, text ->
+            calls += "copy $id"
+            copiedTexts += text
+        },
         onOpenSource = { opened += it },
         onNewChat = { calls += "new" },
         onDelete = { calls += "delete" },
@@ -163,5 +174,131 @@ class ChatScreenTest {
         listOf("1 fuente", "FUENTES CONSULTADAS").forEach { absent(it) }
         chip("Lo firma la persona responsable").performClick()
         assertThat(opened).containsExactly(ChatPreviewData.manual.target)
+    }
+
+    // US2 (T040): the refusal and an answer without citations (C1, C2).
+
+    @Test
+    fun theRefusal_showsTheSentence_withoutChipOrSources_andCopiesIt() {
+        show(ChatPreviewData.refusal)
+
+        exists("No encuentro información suficiente en tus documentos")
+        listOf("1 fuente", "2 fuentes", "FUENTES CONSULTADAS").forEach { absent(it) }
+        compose.onNodeWithText("Copiar respuesta").performClick()
+        assertThat(copiedTexts).containsExactly("No encuentro información suficiente en tus documentos")
+    }
+
+    @Test
+    fun anAnswerWithoutCitations_showsTheC2Note() {
+        val turn = ChatPreviewData.completedTurn.copy(
+            content = AnswerContent.plain("El plazo es de 30 días."), sources = emptyList(), chipTargets = emptyList(),
+            notes = listOf(R.string.chat_no_citations),
+        )
+        show(ChatPreviewData.png.copy(turns = listOf(turn)))
+
+        exists("Esta respuesta no cita ninguna fuente de tus documentos.")
+        absent("FUENTES CONSULTADAS")
+    }
+
+    @Test
+    fun aBlankQuestion_keepsSendOff() {
+        show(ChatPreviewData.png.copy(question = "   "))
+
+        compose.onNodeWithContentDescription("Enviar").assertIsNotEnabled()
+    }
+
+    // US3 (T043): stop, failures, retry and copy (C7, C8, C10, U10).
+
+    private fun failed(failureText: Int?, canRetry: Boolean = true) = ChatPreviewData.png.copy(
+        turns = listOf(
+            ChatPreviewData.completedTurn.copy(
+                state = AnswerState.Failed, content = AnswerContent.plain("El protocolo establece"), sources = emptyList(),
+                failureText = failureText, retryable = true, canRetry = canRetry,
+            ),
+        ),
+    )
+
+    @Test
+    fun withoutAnAnswerRunning_theComposerSends() {
+        show(ChatPreviewData.png.copy(question = "¿Y para empresas?"))
+
+        compose.onNodeWithContentDescription("Detener").assertDoesNotExist()
+        compose.onNodeWithContentDescription("Enviar").performClick()
+        assertThat(calls).containsExactly("send")
+    }
+
+    @Test
+    fun aCancelledAnswer_keepsItsText_andCanBeCopied() {
+        show(ChatPreviewData.cancelled)
+
+        exists("Generación cancelada")
+        exists("El protocolo establece tres")
+        compose.onNodeWithText("Copiar respuesta").performClick()
+        assertThat(copiedTexts).containsExactly("El protocolo establece tres")
+    }
+
+    @Test
+    fun aGenerationFailure_C7_offersRetry() {
+        show(failed(failureText = null))
+        exists("No se pudo generar la respuesta")
+        compose.onNodeWithText("Copiar respuesta").assertIsNotEnabled()
+        compose.onNodeWithText("Reintentar").performClick()
+        assertThat(calls).containsExactly("retry 1")
+    }
+
+    @Test
+    fun anIndexFailure_C8_saysSo() {
+        show(failed(failureText = R.string.chat_index_failed))
+
+        exists("No se puede abrir el índice de documentos")
+        compose.onNodeWithText("Reintentar").assertIsEnabled()
+    }
+
+    @Test
+    fun retry_isOff_whenItCannotStart() {
+        show(failed(failureText = null, canRetry = false))
+
+        compose.onNodeWithText("Reintentar").assertIsNotEnabled()
+    }
+
+    @Test
+    fun anInterruptedAnswer_offersRetry_andKeepsItsSources_C13() {
+        val state = ChatPreviewData.interrupted
+        show(state.copy(turns = listOf(state.turns.single().copy(sources = ChatPreviewData.completedTurn.sources))))
+
+        exists("La respuesta se interrumpió")
+        exists("Reintentar")
+        exists("2 fuentes")
+    }
+
+    @Test
+    fun copying_givesTheTextWithItsCitations_andTheSources_C10() {
+        show(ChatPreviewData.png)
+
+        compose.onNodeWithText("Copiar respuesta").performClick()
+
+        assertThat(copiedTexts.single()).isEqualTo(
+            """
+            El protocolo establece tres comprobaciones antes del cierre:
+            • Verificar la documentación [1]
+            • Confirmar las aprobaciones [2]
+            • Registrar la validación final [2]
+
+            [1] Manual de procesos.pdf, página 12
+            [2] Protocolo interno.pdf, página 8
+            """.trimIndent(),
+        )
+    }
+
+    @Test
+    fun upToAndroid12_theFooterSaysCopied_andTalkBackReadsIt_U10() {
+        show(ChatPreviewData.png.copy(copiedTurnId = 1, announcement = ChatAnnouncement.COPIED))
+
+        exists("Respuesta copiada")
+        absent("Copiar respuesta")
+        compose.onNode(
+            SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, "Respuesta copiada") and
+                SemanticsMatcher.expectValue(SemanticsProperties.LiveRegion, LiveRegionMode.Polite),
+        ).assertExists()
     }
 }

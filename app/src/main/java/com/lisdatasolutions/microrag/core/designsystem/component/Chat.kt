@@ -97,6 +97,8 @@ fun LisdataAnswerCard(
     sourcesCountText: String? = null,
     onSources: (() -> Unit)? = null,
     onRetry: (() -> Unit)? = null,
+    /** False while retrying cannot start (another answer runs, or the chat is not ready); the button stays visible. */
+    retryEnabled: Boolean = true,
     onCitation: (Int) -> Unit = {},
     notes: List<String> = emptyList(),
     failureText: String? = null,
@@ -174,7 +176,12 @@ fun LisdataAnswerCard(
                 )
             }
             if (state == AnswerState.Failed && onRetry != null) {
-                LisdataOutlinedButton(text = stringResource(R.string.action_retry), onClick = onRetry, leadingIcon = LisdataIcons.Refresh)
+                LisdataOutlinedButton(
+                    text = stringResource(R.string.action_retry),
+                    onClick = onRetry,
+                    enabled = retryEnabled,
+                    leadingIcon = LisdataIcons.Refresh,
+                )
             }
             if (sourcesCountText != null) LisdataCountChip(text = sourcesCountText, onClick = onSources)
         }
