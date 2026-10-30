@@ -16,6 +16,8 @@ import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isDialog
 import androidx.compose.ui.test.isToggleable
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -376,5 +378,42 @@ class DocumentScreenTest {
         absent("Eliminar")
         absent("Reintentar")
         compose.onNodeWithContentDescription("Más opciones").assertDoesNotExist()
+    }
+
+    // F11 T027 (research R13): a citation opens the detail with its fragment in view, once per opening.
+
+    private val cited = "Fragmento citado: debe registrar la validación final"
+
+    private fun citedShown() = runCatching { compose.onNodeWithContentDescription(cited).assertIsDisplayed() }.isSuccess
+
+    @Test
+    fun aCitation_isInView_withoutScrolling() {
+        show(DocumentPreviewData.png)
+
+        assertThat(citedShown()).isTrue()
+    }
+
+    @Test
+    @Config(qualifiers = "es-w844dp-h390dp")
+    fun aCitation_isInView_withoutScrolling_inLandscape() {
+        show(DocumentPreviewData.png)
+
+        assertThat(citedShown()).isTrue()
+    }
+
+    @Test
+    @Config(qualifiers = "es-w844dp-h390dp")
+    fun aCitation_isBroughtIntoViewOnce_notAgainAfterARecreation() {
+        val restoration = StateRestorationTester(compose)
+        restoration.setContent { LisdataTheme { DocumentScreen(DocumentPreviewData.png, actions) } }
+        assertThat(citedShown()).isTrue()
+        // Back up to the document's name: the fragment leaves the screen.
+        scrollTo("Manual de procesos.pdf")
+        assertThat(citedShown()).isFalse()
+
+        restoration.emulateSavedInstanceStateRestore()
+        compose.waitForIdle()
+
+        assertThat(citedShown()).isFalse()
     }
 }

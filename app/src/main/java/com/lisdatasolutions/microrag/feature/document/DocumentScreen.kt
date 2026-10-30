@@ -1,6 +1,8 @@
 package com.lisdatasolutions.microrag.feature.document
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,6 +27,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -375,12 +378,23 @@ private fun PreviewCard(preview: DocumentPreview) {
             if (preview.highlighted) {
                 preview.before?.let { Text(it, style = body, color = colors.textPrimary) }
                 val cited = stringResource(R.string.document_cited_fragment, preview.text)
+                // F11 research R13: the cited fragment comes into view once per opening, not after a rotation or a return.
+                val requester = remember { BringIntoViewRequester() }
+                var broughtIntoView by rememberSaveable { mutableStateOf(false) }
+                LaunchedEffect(requester) {
+                    if (broughtIntoView) return@LaunchedEffect
+                    // After the first layout, so the scroll knows where the fragment is.
+                    withFrameNanos { }
+                    requester.bringIntoView()
+                    broughtIntoView = true
+                }
                 Text(
                     text = preview.text,
                     style = body.copy(fontWeight = FontWeight.SemiBold),
                     color = colors.blue800,
                     modifier = Modifier
                         .fillMaxWidth()
+                        .bringIntoViewRequester(requester)
                         .clip(RoundedCornerShape(6.dp))
                         .background(colors.citationHighlight)
                         .padding(horizontal = LisdataTheme.spacing.space2, vertical = LisdataTheme.spacing.space1)
