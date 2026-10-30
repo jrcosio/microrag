@@ -149,29 +149,34 @@ fun LisdataAnswerCard(
             }
             else -> Unit
         }
+        // F11 contracts/chat-ui.md §3: copy only a finished answer with text; retry and the sources chip
+        // can show together (an interrupted answer keeps its valid citations, C13).
+        val canCopy = !content.isEmpty && (state == AnswerState.Completed || state == AnswerState.Cancelled)
+        val retry = onRetry?.takeIf { state == AnswerState.Failed }
+        if (!canCopy && retry == null && sourcesCountText == null) return@LisdataCard
         LisdataDivider(Modifier.padding(vertical = spacing.space3))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            val canCopy = !content.isEmpty && state != AnswerState.Streaming
-            Row(
-                modifier = Modifier
-                    .minimumInteractiveComponentSize()
-                    .clickable(enabled = canCopy, role = Role.Button, onClick = onCopy),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(spacing.space2),
-            ) {
-                LisdataIcon(LisdataIcons.Copy, contentDescription = null, tint = colors.textSecondary, size = spacing.iconSizeSmall)
-                Text(
-                    text = copiedLabel ?: stringResource(R.string.action_copy_answer),
-                    style = LisdataTheme.typography.material.labelMedium,
-                    color = colors.textSecondary,
-                )
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(spacing.space2)) {
+            if (canCopy) {
+                Row(
+                    modifier = Modifier
+                        .minimumInteractiveComponentSize()
+                        .clickable(role = Role.Button, onClick = onCopy),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(spacing.space2),
+                ) {
+                    LisdataIcon(LisdataIcons.Copy, contentDescription = null, tint = colors.textSecondary, size = spacing.iconSizeSmall)
+                    Text(
+                        text = copiedLabel ?: stringResource(R.string.action_copy_answer),
+                        style = LisdataTheme.typography.material.labelMedium,
+                        color = colors.textSecondary,
+                    )
+                }
             }
             Spacer(Modifier.weight(1f))
-            if (state == AnswerState.Failed && onRetry != null) {
-                LisdataOutlinedButton(text = stringResource(R.string.action_retry), onClick = onRetry, leadingIcon = LisdataIcons.Refresh)
-            } else if (sourcesCountText != null) {
-                LisdataCountChip(text = sourcesCountText, onClick = onSources)
+            if (retry != null) {
+                LisdataOutlinedButton(text = stringResource(R.string.action_retry), onClick = retry, leadingIcon = LisdataIcons.Refresh)
             }
+            if (sourcesCountText != null) LisdataCountChip(text = sourcesCountText, onClick = onSources)
         }
     }
 }
