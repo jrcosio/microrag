@@ -470,8 +470,8 @@ Historias de la spec:
 
 **Goal**: la prueba de medida, lista para el teléfono.
 
-- [ ] T061 [US8] Extraer de `…/androidTest/…/data/retrieval/RetrievalParityTest.kt` la indexación del corpus en un índice temporal a `…/androidTest/…/testing/CorpusIndex.kt`. `RetrievalParityTest` lo usa y sigue igual.
-- [ ] T062 [US8] Crear `…/androidTest/…/data/chat/ChatBenchmarkTest.kt` (`@RequiresModels`, R15). Con la sesión real sobre un índice temporal con el corpus, y `chat.db` también temporal:
+- [X] T061 [US8] Extraer de `…/androidTest/…/data/retrieval/RetrievalParityTest.kt` la indexación del corpus en un índice temporal a `…/androidTest/…/testing/CorpusIndex.kt`. `RetrievalParityTest` lo usa y sigue igual.
+- [X] T062 [US8] Crear `…/androidTest/…/data/chat/ChatBenchmarkTest.kt` (`@RequiresModels`, R15). Con la sesión real sobre un índice temporal con el corpus, y `chat.db` también temporal:
   - cada una de las 50 preguntas de `retrieval_parity.jsonl` en una conversación nueva;
   - para los 10 seguimientos, primero su pregunta anterior (sin medir) y después el seguimiento, que se mide;
   - Gemma precargada; la primera pregunta se mide aparte sin cargar;
@@ -480,6 +480,10 @@ Historias de la spec:
   - en el emulador, 3 preguntas sin umbrales si Gemma está preparada; si no, se salta.
 
   Se borra todo lo temporal. Se comprueba en el emulador.
+
+**Nota de la implementación de US8:**
+- `RetrievalParityTest` sigue igual con `CorpusIndex`: en el emulador da 0,837 frente a 0,837 del escritorio.
+- `ChatBenchmarkTest` lee los modelos en solo lectura (`InstalledModels`, con el backend de Gemma del registro de la Preparación). En el emulador se salta, porque no tiene Gemma: tiene 3,2 GB libres, y el modelo (2,6 GB) más su caché compilada no caben. El camino completo con Gemma se ejecuta por primera vez en el teléfono (T067).
 
 **Checkpoint**: la medida está lista para la última fase.
 
