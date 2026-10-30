@@ -60,7 +60,7 @@
 | `apkanalyzer dex packages` del APK de release | ✅ 0 clases de `microrag.debug` |
 | `ChatScreenAccessibilityTest` en el emulador | ✅ 156/156 |
 | `CatalogAccessibilityTest` en el emulador | ✅ 78/78 |
-| Instrumentados en el emulador (sin `@RequiresModels` ni `@RequiresNetwork`) | ✅ 657/657 (F10: 490), en 18 min; _se repite con los APK finales tras el arreglo de T064_ |
+| Instrumentados en el emulador (sin `@RequiresModels` ni `@RequiresNetwork`) | ✅ 657/657 (F10: 490), en 18 min; repetida con los APK finales tras el arreglo de T064: 657/657 |
 | Pruebas con modelos en el emulador | ✅ `RetrievalParityTest` sigue igual con `CorpusIndex` (0,837 frente a 0,837 del escritorio); `ChatBenchmarkTest` se salta, porque el emulador no tiene Gemma |
 | Instrumentados en el teléfono | _pendiente (T066)_ |
 

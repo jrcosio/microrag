@@ -499,7 +499,7 @@ Historias de la spec:
 
   Cifras en el informe.
 - [X] T064 Recorrido en el emulador (quickstart §4), con capturas sin la barra de estado y el registro filtrado a `MicroRAG`. Lo que salga se corrige con su prueba.
-- [ ] T065 [P] Documentación:
+- [X] T065 [P] Documentación:
   - `docs/roadmap/INVENTARIO.md`: P04 implementada;
   - `docs/roadmap/FEATURES.md`: F11 «🟨 en curso (implementación)»;
   - `specs/011-chat-sources/report.md` en borrador, con todas las cifras sin teléfono, las diferencias con el PNG y un hueco para las del teléfono, marcado como pendiente.
