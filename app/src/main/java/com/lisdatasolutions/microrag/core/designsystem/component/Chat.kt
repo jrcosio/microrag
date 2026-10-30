@@ -34,6 +34,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.LinkAnnotation
@@ -107,9 +108,15 @@ fun LisdataAnswerCard(
     val colors = LisdataTheme.colors
     val spacing = LisdataTheme.spacing
     LisdataCard(modifier = modifier.fillMaxWidth()) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(spacing.space3)) {
+        val assistant = stringResource(R.string.assistant_name)
+        // F11 U3: read as «MicroRAG» and then the answer, not as the capitals the eyebrow draws.
+        Row(
+            modifier = Modifier.clearAndSetSemantics { contentDescription = assistant },
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(spacing.space3),
+        ) {
             LisdataIconTile(icon = LisdataIcons.Sparkle, style = IconTileStyle.Accent, size = spacing.avatarSize)
-            LisdataEyebrow(text = stringResource(R.string.assistant_name), color = colors.brandBlue)
+            LisdataEyebrow(text = assistant, color = colors.brandBlue)
         }
         if (state == AnswerState.Streaming && statusText != null) {
             Row(

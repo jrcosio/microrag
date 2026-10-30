@@ -430,7 +430,8 @@ class NavigationTest {
         tab(TopLevelDestination.CHAT).performClick()
         compose.waitForIdle()
 
-        compose.onNodeWithContentDescription("¿La última?", substring = true).assertExists()
+        // The conversation opens at its end: its question is up the list.
+        compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasContentDescription("¿La última?", substring = true))
         compose.onNodeWithContentDescription("¿La primera?", substring = true).assertDoesNotExist()
     }
 

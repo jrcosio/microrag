@@ -81,6 +81,40 @@ object ChatPreviewData {
             ),
         ),
     )
+    val generationFailed = png.copy(
+        turns = listOf(
+            completedTurn.copy(
+                state = AnswerState.Failed, content = AnswerContent.plain("El protocolo establece"), sources = emptyList(),
+                chipTargets = emptyList(), retryable = true, canRetry = true,
+            ),
+        ),
+    )
+    val indexFailed = png.copy(
+        turns = listOf(
+            completedTurn.copy(
+                state = AnswerState.Failed, content = AnswerContent.Empty, sources = emptyList(), chipTargets = emptyList(),
+                failureText = R.string.chat_index_failed, retryable = true, canRetry = true,
+            ),
+        ),
+    )
+    val noCitations = png.copy(
+        turns = listOf(
+            completedTurn.copy(
+                content = AnswerContent.plain("El protocolo pide una validación final antes del cierre."), sources = emptyList(),
+                chipTargets = emptyList(), notes = listOf(R.string.chat_no_citations),
+            ),
+        ),
+    )
+    val partialCoverage = png.copy(turns = listOf(completedTurn.copy(notes = listOf(R.string.chat_partial_coverage))))
+    val saveFailed = png.copy(
+        conversationId = null,
+        turns = listOf(completedTurn.copy(id = 0, sources = emptyList(), notes = listOf(R.string.chat_save_failed))),
+    )
+    val fragments = png.copy(
+        turns = listOf(completedTurn.copy(sources = listOf(manual.copy(citation = manual.citation.copy(lastFragment = 87)), protocol))),
+    )
+    val copied = png.copy(copiedTurnId = 1, announcement = ChatAnnouncement.COPIED)
+    val typing = png.copy(question = "¿Y quién firma el cierre?")
     val sourceGone = png.copy(
         turns = listOf(completedTurn.copy(sources = listOf(manual, protocol.copy(citation = protocol.citation.copy(available = false))))),
     )
@@ -103,6 +137,14 @@ object ChatPreviewData {
         "refusal" to refusal,
         "cancelled" to cancelled,
         "interrupted" to interrupted,
+        "generationFailed" to generationFailed,
+        "indexFailed" to indexFailed,
+        "noCitations" to noCitations,
+        "partialCoverage" to partialCoverage,
+        "saveFailed" to saveFailed,
+        "fragments" to fragments,
+        "copied" to copied,
+        "typing" to typing,
         "sourceGone" to sourceGone,
         "cpuMode" to cpuMode,
         "modelsNotReady" to modelsNotReady,

@@ -330,6 +330,12 @@ val catalogEntries: List<CatalogEntry> = listOf(
             LisdataAnswerCard(AnswerContent.plain("El protocolo establece"), AnswerState.Streaming, onCopy = {}, statusText = "Generando respuesta...")
             LisdataAnswerCard(AnswerContent.plain("El protocolo establece tres"), AnswerState.Cancelled, onCopy = {})
             LisdataAnswerCard(AnswerContent.Empty, AnswerState.Failed, onCopy = {}, onRetry = {})
+            // F11 C13: interrupted, with retry and the sources chip together; retry off while it cannot start.
+            LisdataAnswerCard(
+                SampleData.answer, AnswerState.Failed, onCopy = {}, onRetry = {}, failureText = "La respuesta se interrumpió",
+                sourcesCountText = "2 fuentes", onSources = {},
+            )
+            LisdataAnswerCard(AnswerContent.plain("El protocolo establece"), AnswerState.Failed, onCopy = {}, onRetry = {}, retryEnabled = false)
             LisdataAnswerCard(
                 SampleData.answer, AnswerState.Completed, onCopy = {}, copiedLabel = "Respuesta copiada",
                 notes = listOf("Algunos documentos aún no están indexados: esta respuesta solo usa los que ya están listos."),

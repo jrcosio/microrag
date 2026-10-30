@@ -1,6 +1,20 @@
 package com.lisdatasolutions.microrag.feature.chat
 
 import android.app.Application
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.height
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.junit4.StateRestorationTester
+import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.dp
+import com.google.common.truth.Truth.assertWithMessage
+import org.robolectric.annotation.GraphicsMode
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -22,6 +36,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.performScrollToNode
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
@@ -90,7 +105,7 @@ class ChatScreenTest {
         show(ChatPreviewData.png)
 
         listOf(
-            "Chat con documentos", "Gemma 4 · Procesamiento local", "¿Qué indica el protocolo sobre la validación final?", "MICRORAG",
+            "Chat con documentos", "Gemma 4 · Procesamiento local", "¿Qué indica el protocolo sobre la validación final?",
             "El protocolo establece tres comprobaciones antes del cierre:", "Copiar respuesta", "2 fuentes", "FUENTES CONSULTADAS",
             "Pregunta a tus documentos…",
         ).forEach { exists(it) }
@@ -132,7 +147,8 @@ class ChatScreenTest {
         val long = AnswerContent(List(6) { turn.content.blocks }.flatten())
         show(ChatPreviewData.png.copy(turns = listOf(turn.copy(content = long))))
         val first = compose.onNodeWithContentDescription("Fuente 1: Manual de procesos.pdf, Página 12, Fragmento 86")
-        // Just enough to see the chip, at the end of the card: the sources stay below.
+        // From the question, just enough to see the chip at the end of the card: the sources stay below.
+        compose.onNode(hasScrollToIndexAction()).performScrollToIndex(0)
         compose.onNodeWithText("2 fuentes").performScrollTo()
         assertThat(runCatching { first.assertIsDisplayed() }.isSuccess).isFalse()
 
@@ -429,5 +445,119 @@ class ChatScreenTest {
         show(ChatPreviewData.png.copy(question = "¿Plazo?"))
 
         compose.onNodeWithContentDescription("Enviar").assertIsEnabled()
+    }
+
+    // US7 (T057): sentences, announcements, 200 % in landscape, scroll, keyboard and English (U2–U7).
+
+    @Test
+    fun theCard_readsAsMicroRAG_thenTheAnswer_notAsCapitals_U3() {
+        show(ChatPreviewData.png)
+
+        compose.onNodeWithContentDescription("MicroRAG").assertExists()
+        // TalkBack reads the merged tree, where the capitals are gone.
+        compose.onNodeWithText("MICRORAG").assertDoesNotExist()
+        exists("El protocolo establece tres comprobaciones antes del cierre:")
+    }
+
+    @Test
+    fun eachChangeHasItsAnnouncement_andTheGrowingTextIsNeverALiveRegion_U2() {
+        var state by mutableStateOf(ChatPreviewData.generating)
+        compose.setContent { LisdataTheme { ChatScreen(state, actions) } }
+        mapOf(
+            ChatAnnouncement.SEARCHING to "Buscando en documentos",
+            ChatAnnouncement.GENERATING to "Generando respuesta",
+            ChatAnnouncement.COMPLETED to "Respuesta completa",
+            ChatAnnouncement.CANCELLED to "Generación cancelada",
+            ChatAnnouncement.INTERRUPTED to "La respuesta se interrumpió",
+            ChatAnnouncement.FAILED to "No se pudo generar la respuesta",
+            ChatAnnouncement.DELETED to "Conversación borrada",
+        ).forEach { (announcement, text) ->
+            state = ChatPreviewData.generating.copy(announcement = announcement)
+            compose.waitForIdle()
+            compose.onNode(
+                SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, text) and
+                    SemanticsMatcher.expectValue(SemanticsProperties.LiveRegion, LiveRegionMode.Polite),
+            ).assertExists()
+        }
+        // The only live region is the announcement: the answer is read when the user moves to it.
+        compose.onAllNodes(SemanticsMatcher.keyIsDefined(SemanticsProperties.LiveRegion), useUnmergedTree = true).assertCountEquals(1)
+    }
+
+    private fun showAt(state: ChatUiState, fontScale: Float) {
+        compose.setContent {
+            val density = LocalDensity.current
+            CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale)) {
+                LisdataTheme { ChatScreen(state, actions) }
+            }
+        }
+    }
+
+    private fun layout(text: String): TextLayoutResult {
+        val layouts = mutableListOf<TextLayoutResult>()
+        compose.onNodeWithText(text, useUnmergedTree = true).performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
+        return layouts.single()
+    }
+
+    /** Neither cut with an ellipsis nor split inside a word. */
+    private fun assertWhole(text: String) {
+        val result = layout(text)
+        assertWithMessage("$text ellipsized").that((0 until result.lineCount).none { result.isLineEllipsized(it) }).isTrue()
+        val split = (0 until result.lineCount - 1).filterNot { line -> text[result.getLineEnd(line) - 1].isWhitespace() }
+        assertWithMessage("$text split inside a word at lines $split").that(split).isEmpty()
+    }
+
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(qualifiers = "es-w844dp-h390dp")
+    fun at200PercentInLandscape_nothingIsCut_andEverythingIsReachable_U5() {
+        showAt(ChatPreviewData.png, fontScale = 2f)
+
+        listOf("Chat con documentos", "Gemma 4 · Procesamiento local").forEach { assertWhole(it) }
+        listOf(
+            "¿Qué indica el protocolo sobre la validación final?", "El protocolo establece tres comprobaciones antes del cierre:",
+            "Copiar respuesta", "2 fuentes", "FUENTES CONSULTADAS",
+        ).forEach { text ->
+            compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasText(text))
+            assertWhole(text)
+        }
+        row("Fuente 2: Protocolo interno.pdf, Página 8, Fragmento 41").assertIsDisplayed()
+        compose.onNodeWithContentDescription("Enviar").assertIsDisplayed()
+    }
+
+    @Test
+    fun theScrollPosition_survivesRecreation_U7() {
+        val turns = List(4) { i -> ChatPreviewData.completedTurn.copy(id = i + 1L, question = "Pregunta ${i + 1}") }
+        val restoration = StateRestorationTester(compose)
+        restoration.setContent { LisdataTheme { ChatScreen(ChatPreviewData.png.copy(turns = turns), actions) } }
+        // Opened at the latest answer; the user goes back up to the second question.
+        compose.onNodeWithContentDescription("Tú: Pregunta 4").assertIsDisplayed()
+        compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasContentDescription("Tú: Pregunta 2"))
+
+        restoration.emulateSavedInstanceStateRestore()
+        compose.waitForIdle()
+
+        compose.onNodeWithContentDescription("Tú: Pregunta 2").assertIsDisplayed()
+    }
+
+    /** With the keyboard open the screen gets less room (imePadding): the composer stays on screen (U6). */
+    @Test
+    fun withLessRoom_theComposerStaysOnScreen_U6() {
+        compose.setContent { LisdataTheme { Box(Modifier.height(320.dp)) { ChatScreen(ChatPreviewData.typing, actions) } } }
+
+        compose.onNodeWithContentDescription("Enviar").assertIsDisplayed().assertIsEnabled()
+        compose.onNodeWithText("¿Y quién firma el cierre?", useUnmergedTree = true).assertIsDisplayed()
+    }
+
+    @Test
+    @Config(qualifiers = "en-w390dp-h844dp")
+    fun inEnglish_theScreenSpeaksEnglish() {
+        show(ChatPreviewData.png)
+
+        listOf("Chat with documents", "Gemma 4 · On-device processing", "Copy answer", "2 sources", "SOURCES CONSULTED", "Ask your documents…")
+            .forEach { exists(it) }
+        compose.onNodeWithContentDescription("More options").assertExists()
+        compose.onNodeWithContentDescription("You: ¿Qué indica el protocolo sobre la validación final?").assertExists()
+        row("Source 1: Manual de procesos.pdf, Page 12, Fragment 86").assertIsDisplayed()
+        listOf("Chat con documentos", "Copiar respuesta", "FUENTES CONSULTADAS").forEach { absent(it) }
     }
 }

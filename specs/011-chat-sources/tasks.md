@@ -438,21 +438,29 @@ Historias de la spec:
 
 **Independent Test**: comprobaciones automáticas de accesibilidad en todos los estados, en claro y en oscuro, horizontal y fuente al 200 %; avisos una vez por estado; el compositor visible con el teclado.
 
-- [ ] T056 [P] [US7] Completar `…/microrag/feature/chat/ChatPreviewData.kt` con todos los estados de §2 y §3 del contrato, también con fuentes no disponibles y varios fragmentos, para las previsualizaciones y las pruebas de accesibilidad.
-- [ ] T057 [P] [US7] Ampliar `ChatScreenTest`:
+- [X] T056 [P] [US7] Completar `…/microrag/feature/chat/ChatPreviewData.kt` con todos los estados de §2 y §3 del contrato, también con fuentes no disponibles y varios fragmentos, para las previsualizaciones y las pruebas de accesibilidad.
+- [X] T057 [P] [US7] Ampliar `ChatScreenTest`:
   - **frases** (U3): «Tú: …», «MicroRAG: …», fichas como enlaces con su frase, y filas;
   - **avisos** una vez por cambio (U2), con los textos `chat_announce_*`, sin leer el texto según llega;
   - **fuente al 200 % y horizontal** (`es-w844dp-h390dp`): sin cortes ni líneas partidas, y todo alcanzable;
   - **desplazamiento** conservado tras recrear;
   - **teclado:** con `imePadding`, el compositor visible;
   - **inglés** (`en-w390dp-h844dp`): todos los textos de la pantalla en inglés.
-- [ ] T058 [P] [US7] Crear `…/androidTest/…/feature/chat/ChatScreenAccessibilityTest.kt`, parametrizada con `ChatPreviewData` × oscuro, como la de Inicio:
+- [X] T058 [P] [US7] Crear `…/androidTest/…/feature/chat/ChatScreenAccessibilityTest.kt`, parametrizada con `ChatPreviewData` × oscuro, como la de Inicio:
   - ATF;
   - objetivos de 48 dp de los nodos tocables (las fichas dentro del texto no son nodos tocables, R3);
   - horizontal real;
   - fuente al 200 % dentro del ancho.
-- [ ] T059 [P] [US7] Crear `…/androidTest/…/feature/chat/ChatScreenLayoutTest.kt` (solo A063): con la barra inferior real y el teclado abierto, el compositor queda visible y la barra se oculta (SC-009).
-- [ ] T060 [US7] Corregir lo que salga de T057–T059 sin cambiar la presentación aprobada. **Si ATF marca las fichas dentro del texto, se para y se consulta** (riesgo 4). Después, `CatalogAccessibilityTest` (debug) cubre `LisdataAnswerCard` con contenido nuevo.
+- [X] T059 [P] [US7] Crear `…/androidTest/…/feature/chat/ChatScreenLayoutTest.kt` (solo A063): con la barra inferior real y el teclado abierto, el compositor queda visible y la barra se oculta (SC-009).
+- [X] T060 [US7] Corregir lo que salga de T057–T059 sin cambiar la presentación aprobada. **Si ATF marca las fichas dentro del texto, se para y se consulta** (riesgo 4). Después, `CatalogAccessibilityTest` (debug) cubre `LisdataAnswerCard` con contenido nuevo.
+
+**Notas de la implementación de US7:**
+- **Emulador:** `ChatScreenAccessibilityTest` pasa 156 de 156 (26 estados × claro y oscuro × vertical, horizontal y 200 %). `CatalogAccessibilityTest` pasa 78 de 78, con la tarjeta interrumpida con «Reintentar» y chip, y con «Reintentar» desactivado.
+- **ATF y las fichas:** ATF no marca las fichas dentro del texto, así que no hizo falta la consulta del riesgo 4.
+- **`ChatScreenLayoutTest`** (T059) está escrita, y se salta fuera del A063. Se ejecuta en T068.
+- **U3:** la cabecera de la tarjeta se lee «MicroRAG», no las mayúsculas que dibuja el antetítulo.
+- **Desviación de U3:** las fichas se leen como enlace con su número, porque `LinkAnnotation` no admite una etiqueta propia. La frase completa está en su fila.
+- **Al abrir una conversación**, la lista va a la última respuesta. U7 no lo decía; antes abría arriba. Al volver de una fuente o al recrear, la posición se conserva.
 
 **Checkpoint**: la pantalla es fiel y accesible en el emulador.
 

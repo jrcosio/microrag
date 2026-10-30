@@ -229,10 +229,11 @@ private fun Messages(state: ChatUiState, actions: ChatActions, listState: LazyLi
     }
     val last = state.turns.last()
     val progress = "${state.turns.size}:${last.id}:${last.state}:${last.content.length()}"
-    // Saved, so coming back from a source does not jump to the end (SC-006).
+    // A conversation opens at its latest answer. Saved, so coming back from a source or recreating does not
+    // jump to the end again (SC-006).
     var seen by rememberSaveable { mutableStateOf<String?>(null) }
     LaunchedEffect(progress) {
-        if (seen != null && seen != progress && follow) listState.scrollToItem(state.turns.size * ITEMS_PER_TURN - 1, Int.MAX_VALUE)
+        if (seen == null || (seen != progress && follow)) listState.scrollToItem(state.turns.size * ITEMS_PER_TURN - 1, Int.MAX_VALUE)
         seen = progress
     }
     LazyColumn(
