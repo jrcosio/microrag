@@ -116,3 +116,30 @@ class WarmUpAnswerEngineUseCase(private val engine: AnswerEngine, private val ob
         if (observeAvailability().first() is ChatAvailability.Ready) engine.warmUp()
     }
 }
+
+/**
+ * Whether each cited source can still be opened (research R12), by chunk id, again on every change of the
+ * index: a deleted document is gone; a document whose fragment is gone (reindexed, out of the index)
+ * still opens, with F08's notice. With the index unavailable every source reads available: the detail
+ * shows its own error.
+ */
+class ResolveSourcesUseCase(private val index: RagIndex) {
+    @OptIn(ExperimentalCoroutinesApi::class)
+    operator fun invoke(sources: List<AnswerSource>): Flow<Map<Long, SourceAvailability>> =
+        if (sources.isEmpty()) flowOf(emptyMap()) else index.documentChanges.mapLatest { resolve(sources) }
+            .catch { error -> if (error is IndexUnavailableException) emit(sources.associate { it.chunkId to SourceAvailability.AVAILABLE }) else throw error }
+            .distinctUntilChanged()
+
+    private suspend fun resolve(sources: List<AnswerSource>): Map<Long, SourceAvailability> {
+        if (index.open() != IndexCompatibility.Compatible) return sources.associate { it.chunkId to SourceAvailability.AVAILABLE }
+        val documents = sources.map { it.documentId }.distinct().associateWith { index.document(it) != null }
+        val chunks = index.loadChunks(sources.map { it.chunkId })
+        return sources.associate { source ->
+            source.chunkId to when {
+                documents[source.documentId] != true -> SourceAvailability.DOCUMENT_GONE
+                chunks[source.chunkId]?.documentId != source.documentId -> SourceAvailability.FRAGMENT_GONE
+                else -> SourceAvailability.AVAILABLE
+            }
+        }
+    }
+}

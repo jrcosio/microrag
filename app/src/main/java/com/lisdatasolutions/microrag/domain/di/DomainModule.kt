@@ -42,6 +42,7 @@ import com.lisdatasolutions.microrag.domain.chat.DeleteConversationUseCase
 import com.lisdatasolutions.microrag.domain.chat.LastConversationUseCase
 import com.lisdatasolutions.microrag.domain.chat.ObserveChatAvailabilityUseCase
 import com.lisdatasolutions.microrag.domain.chat.ObserveConversationUseCase
+import com.lisdatasolutions.microrag.domain.chat.ResolveSourcesUseCase
 import com.lisdatasolutions.microrag.domain.chat.RetryAnswerUseCase
 import com.lisdatasolutions.microrag.domain.chat.StartNewConversationUseCase
 import com.lisdatasolutions.microrag.domain.chat.WarmUpAnswerEngineUseCase
@@ -109,4 +110,5 @@ val domainModule = module {
     factoryOf(::DeleteConversationUseCase)
     factoryOf(::LastConversationUseCase)
     factoryOf(::WarmUpAnswerEngineUseCase)
+    factoryOf(::ResolveSourcesUseCase)
 }
