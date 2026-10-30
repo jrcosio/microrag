@@ -1,6 +1,9 @@
 package com.lisdatasolutions.microrag.feature.chat
 
 import android.app.Application
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
@@ -26,6 +29,7 @@ import com.lisdatasolutions.microrag.R
 import com.lisdatasolutions.microrag.core.designsystem.model.AnswerContent
 import com.lisdatasolutions.microrag.core.designsystem.model.AnswerState
 import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
+import com.lisdatasolutions.microrag.domain.chat.ChatAvailability
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -54,6 +58,10 @@ class ChatScreenTest {
         },
         onOpenSource = { opened += it },
         onNewChat = { calls += "new" },
+        onCompleteSetup = { calls += "setup" },
+        onImport = { calls += "import" },
+        onOpenIndex = { calls += "index" },
+        onRetryAvailability = { calls += "check" },
         onDelete = { calls += "delete" },
         onConfirmDelete = { calls += "confirm" },
         onDismissDelete = { calls += "dismiss" },
@@ -350,5 +358,76 @@ class ChatScreenTest {
 
         exists("No se pueden abrir tus conversaciones guardadas.")
         compose.onNodeWithContentDescription("Enviar").assertIsNotEnabled()
+    }
+
+    // US6 (T054): the availability with and without turns (contracts/chat-ui.md §2).
+
+    /** What each availability says and the call its action makes; null when it has no action. */
+    private val notices = listOf(
+        Triple(ChatAvailability.ModelsNotReady, "Configuración pendiente", "Completar configuración" to "setup"),
+        Triple(ChatAvailability.IndexUnavailable, "No se puede abrir el índice de documentos", "Reintentar" to "check"),
+        Triple(ChatAvailability.EmptyLibrary, "Aún no hay documentos", "Importar documentos" to "import"),
+        Triple(ChatAvailability.WaitingForIndexing, "Se están indexando tus documentos", "Ver indexación" to "index"),
+        Triple(ChatAvailability.NothingReady, "Aún no hay documentos listos para preguntar", "Ver indexación" to "index"),
+        Triple(ChatAvailability.StorageUnavailable, "No se pueden abrir tus conversaciones guardadas.", null),
+    )
+
+    private fun eachAvailability(base: ChatUiState, check: (ChatAvailability) -> Unit) {
+        var state by mutableStateOf(base)
+        compose.setContent { LisdataTheme { ChatScreen(state, actions) } }
+        notices.forEach { (availability, title, action) ->
+            calls.clear()
+            state = base.copy(availability = availability, question = "¿Plazo?")
+            compose.waitForIdle()
+
+            exists(title)
+            compose.onNodeWithContentDescription("Enviar").assertIsNotEnabled()
+            if (action != null) {
+                // Without turns the state scrolls; with turns the notice sits above the composer.
+                val button = compose.onNodeWithText(action.first)
+                if (base.turns.isEmpty()) button.performScrollTo()
+                button.performClick()
+                assertThat(calls).containsExactly(action.second)
+            } else {
+                absent("Reintentar")
+            }
+            check(availability)
+        }
+    }
+
+    @Test
+    fun withoutTurns_eachAvailabilityFillsTheScreen_withItsAction() {
+        eachAvailability(ChatPreviewData.empty) { }
+    }
+
+    @Test
+    fun withTurns_eachAvailabilityIsANotice_andTheConversationStays() {
+        eachAvailability(ChatPreviewData.png) { availability ->
+            if (availability != ChatAvailability.StorageUnavailable) {
+                compose.onNodeWithContentDescription("Tú: ¿Qué indica el protocolo sobre la validación final?").assertExists()
+            }
+        }
+    }
+
+    @Test
+    fun cpuMode_saysItInTheSubtitle_C9() {
+        show(ChatPreviewData.cpuMode)
+
+        exists("Gemma 4 · Modo CPU, más lento")
+        absent("Gemma 4 · Procesamiento local")
+    }
+
+    @Test
+    fun partialCoverage_isNotedUnderTheAnswer_C6() {
+        show(ChatPreviewData.png.copy(turns = listOf(ChatPreviewData.completedTurn.copy(notes = listOf(R.string.chat_partial_coverage)))))
+
+        exists("Algunos documentos aún no están indexados: esta respuesta solo usa los que ya están listos.")
+    }
+
+    @Test
+    fun whenReady_theComposerSends() {
+        show(ChatPreviewData.png.copy(question = "¿Plazo?"))
+
+        compose.onNodeWithContentDescription("Enviar").assertIsEnabled()
     }
 }

@@ -7,11 +7,15 @@ import com.google.common.truth.Truth.assertThat
 import com.lisdatasolutions.microrag.R
 import com.lisdatasolutions.microrag.core.designsystem.model.AnswerState
 import com.lisdatasolutions.microrag.domain.chat.ActiveAnswer
+import com.lisdatasolutions.microrag.domain.chat.ChatAvailability
 import com.lisdatasolutions.microrag.domain.chat.AnswerSource
 import com.lisdatasolutions.microrag.domain.chat.PromptBlockRef
 import com.lisdatasolutions.microrag.domain.chat.TurnFailure
 import com.lisdatasolutions.microrag.domain.chat.TurnState
 import com.lisdatasolutions.microrag.domain.chat.TurnUpdate
+import com.lisdatasolutions.microrag.domain.indexing.IndexingState
+import com.lisdatasolutions.microrag.domain.indexing.RunProgress
+import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
 import com.lisdatasolutions.microrag.testing.ChatTestGraph
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -492,5 +496,68 @@ class ChatViewModelTest {
         vm.onDelete()
         advanceUntilIdle()
         assertThat(vm.state.value.confirmDelete).isFalse()
+    }
+
+    // US6 (T054): the availability on screen (contracts/chat-ui.md §2).
+
+    @Test
+    fun gemmaPreloads_onStart_onlyWhenReady() = runTest(dispatcher) {
+        val vm = graph.chatViewModel(saved())
+        advanceUntilIdle()
+        vm.onStart()
+        advanceUntilIdle()
+        assertThat(vm.state.value.availability).isEqualTo(ChatAvailability.EmptyLibrary)
+        assertThat(graph.engine.warmUps).isEqualTo(0)
+
+        graph.addDocument("Manual de procesos.pdf")
+        advanceUntilIdle()
+        vm.onStart()
+        advanceUntilIdle()
+
+        assertThat(graph.engine.warmUps).isEqualTo(1)
+    }
+
+    @Test
+    fun retryingTheAvailability_checksTheIndexAgain_C8() = runTest(dispatcher) {
+        graph.addDocument("Manual de procesos.pdf")
+        graph.index.setCompatibility(IndexCompatibility.Incompatible("embedding_model", "eg2", null))
+        val vm = graph.chatViewModel(saved())
+        advanceUntilIdle()
+        assertThat(vm.state.value.availability).isEqualTo(ChatAvailability.IndexUnavailable)
+
+        graph.index.setCompatibility(IndexCompatibility.Compatible)
+        vm.onRetryAvailability()
+        advanceUntilIdle()
+
+        assertThat(vm.state.value.ready).isTrue()
+    }
+
+    @Test
+    fun theComposerTurnsOn_whenTheBatchEnds_withoutLeaving() = runTest(dispatcher) {
+        graph.addDocument("Manual de procesos.pdf")
+        graph.indexing.state.value = IndexingState.Active(RunProgress(1, 10, null), null, 0, pause = null, failed = emptyList())
+        val vm = graph.chatViewModel(saved())
+        vm.onQuestionChange("¿Plazo?")
+        advanceUntilIdle()
+        assertThat(vm.state.value.availability).isEqualTo(ChatAvailability.WaitingForIndexing)
+        assertThat(vm.state.value.canSend).isFalse()
+
+        graph.indexing.state.value = IndexingState.Idle(emptyList())
+        advanceUntilIdle()
+
+        assertThat(vm.state.value.canSend).isTrue()
+    }
+
+    @Test
+    fun anAnswerWithPartialCoverage_carriesTheC6Note() = runTest(dispatcher) {
+        val document = graph.addDocument("Manual de procesos.pdf")
+        val id = graph.chats.createConversation(0)
+        val turn = graph.chats.insertTurn(id, "¿Plazo?", partialCoverage = true, now = 0)
+        graph.chats.updateTurn(turn.id, TurnUpdate(state = TurnState.COMPLETED, answer = "Son 30 días [1].", promptBlocks = 1))
+        graph.chats.replaceSources(turn.id, listOf(source(document)))
+        val vm = graph.chatViewModel(saved())
+        advanceUntilIdle()
+
+        assertThat(vm.state.value.turns.single().notes).containsExactly(R.string.chat_partial_coverage)
     }
 }

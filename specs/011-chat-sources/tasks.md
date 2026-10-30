@@ -406,20 +406,27 @@ Historias de la spec:
 
 **Independent Test**: cada disponibilidad muestra su estado con y sin turnos; con una tanda en marcha, el chat no carga Gemma y la ingesta espera a la respuesta en curso; con la app oculta, la respuesta queda interrumpida.
 
-- [ ] T052 [P] [US6] Crear `…/test/…/data/chat/ChatDuringIndexingTest.kt` (R7, SC-011). Con el coordinador real y motores falsos de GPU:
+- [X] T052 [P] [US6] Crear `…/test/…/data/chat/ChatDuringIndexingTest.kt` (R7, SC-011). Con el coordinador real y motores falsos de GPU:
   - con la tanda en marcha, `ask`, `retry` y `warmUp` no cargan nada;
   - una respuesta en curso cuando la ingesta llama a `releaseGenerators()` termina, y solo después se cierra Gemma y carga el motor de la ingesta;
   - nunca hay dos motores de GPU cargados;
   - al pausarse la tanda, el chat vuelve a estar disponible.
-- [ ] T053 [P] [US6] Ampliar `DefaultChatSessionTest` (A11): con `TRIM_MEMORY_UI_HIDDEN` (listener) y con `onLowMemory`, la respuesta queda `INTERRUPTED` con su texto y sus citas válidas, y después se libera Gemma.
-- [ ] T054 [P] [US6] Ampliar `ChatViewModelTest` y `ChatScreenTest` (contrato `chat-ui.md` §2):
+- [X] T053 [P] [US6] Ampliar `DefaultChatSessionTest` (A11): con `TRIM_MEMORY_UI_HIDDEN` (listener) y con `onLowMemory`, la respuesta queda `INTERRUPTED` con su texto y sus citas válidas, y después se libera Gemma.
+- [X] T054 [P] [US6] Ampliar `ChatViewModelTest` y `ChatScreenTest` (contrato `chat-ui.md` §2):
   - cada disponibilidad, con y sin turnos: texto, acción, compositor y precarga solo en `Ready` (al entrar y en `ON_START`);
   - el «Reintentar» de C8 en pantalla vuelve a comprobar el índice;
   - C6 bajo la respuesta;
   - subtítulo en modo CPU (C9);
   - las acciones abren la Preparación, la Ingesta y el Estado de indexación;
   - al pasar a `Ready` sin salir, el compositor se activa.
-- [ ] T055 [US6] Implementar `WarmUpAnswerEngineUseCase`, el listener de memoria en la sesión (A11), la precarga y los estados de disponibilidad en la pantalla. T052–T054 pasan.
+- [X] T055 [US6] Implementar `WarmUpAnswerEngineUseCase`, el listener de memoria en la sesión (A11), la precarga y los estados de disponibilidad en la pantalla. T052–T054 pasan.
+
+**Notas de la implementación de US6:**
+- `ChatDuringIndexingTest` simula la tanda con las mismas llamadas al coordinador que `ChunkEmbeddingSession.use`: soltar los generadores, retener el codificador y soltarlo al final. Montar la sesión de indexación real pediría su almacén de ejecuciones y la comprobación de la GPU, que no aportan nada aquí.
+- El caso de T053 está en ese mismo fichero, porque necesita el coordinador y Gemma reales: con la app oculta y con poca memoria, la respuesta queda interrumpida y después se cierra Gemma.
+- Para seguir el contrato §2:
+  - `LisdataErrorState` admite `onRetry = null` (C17, sin «Reintentar»);
+  - `LisdataEmptyState` admite `body = null` (C4, solo título y «Ver indexación»).
 
 **Checkpoint**: el chat nunca carga Gemma con una tanda en marcha, y explica siempre lo que falta.
 

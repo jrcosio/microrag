@@ -314,17 +314,20 @@ private fun Sources(turn: TurnUi, actions: ChatActions) {
     }
 }
 
-/** Without turns, the availability fills the screen (contracts/chat-ui.md §2); Ready leaves it empty, as the PNG. */
+/**
+ * Without turns, the availability fills the screen (contracts/chat-ui.md §2); Ready leaves it empty, as
+ * the PNG. The state components bring their own margins.
+ */
 @Composable
 private fun EmptyChat(availability: ChatAvailability?, actions: ChatActions) {
-    val spacing = LisdataTheme.spacing
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = spacing.screenPaddingHorizontal, vertical = spacing.space6),
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         when (availability) {
             null, is ChatAvailability.Ready -> Unit
-            ChatAvailability.StorageUnavailable -> InfoNotice(LisdataIcons.Warning, stringResource(R.string.chat_storage_unavailable))
+            // C17: retrying cannot open a damaged or newer file.
+            ChatAvailability.StorageUnavailable -> LisdataErrorState(stringResource(R.string.chat_storage_unavailable), onRetry = null)
             ChatAvailability.ModelsNotReady -> LisdataModelMissingBlock(
                 title = stringResource(R.string.chat_models_title),
                 body = stringResource(R.string.chat_models_body),
@@ -344,9 +347,11 @@ private fun EmptyChat(availability: ChatAvailability?, actions: ChatActions) {
                 body = stringResource(R.string.chat_waiting_body),
                 action = { LisdataOutlinedButton(text = stringResource(R.string.chat_view_indexing), onClick = actions.onOpenIndex) },
             )
-            ChatAvailability.NothingReady -> InfoNotice(
-                LisdataIcons.Layers, stringResource(R.string.chat_nothing_ready),
-                actionText = stringResource(R.string.chat_view_indexing), onAction = actions.onOpenIndex,
+            ChatAvailability.NothingReady -> LisdataEmptyState(
+                icon = LisdataIcons.Layers,
+                title = stringResource(R.string.chat_nothing_ready),
+                body = null,
+                action = { LisdataOutlinedButton(text = stringResource(R.string.chat_view_indexing), onClick = actions.onOpenIndex) },
             )
         }
     }

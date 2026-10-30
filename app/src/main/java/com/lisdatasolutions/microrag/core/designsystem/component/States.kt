@@ -31,13 +31,13 @@ import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
 
 /**
  * Empty state: icon, title, explanation and an optional call to action (empty library, chat
- * without documents, no results, empty queue).
+ * without documents, no results, empty queue). [body] is null when the title says it all (F11 C4).
  */
 @Composable
 fun LisdataEmptyState(
     @DrawableRes icon: Int,
     title: String,
-    body: String,
+    body: String?,
     modifier: Modifier = Modifier,
     action: (@Composable () -> Unit)? = null,
 ) {
@@ -58,23 +58,28 @@ fun LisdataEmptyState(
             textAlign = TextAlign.Center,
             modifier = Modifier.semantics { heading() },
         )
-        Text(
-            text = body,
-            style = LisdataTheme.typography.material.bodyMedium,
-            color = colors.textSecondary,
-            textAlign = TextAlign.Center,
-        )
+        if (body != null) {
+            Text(
+                text = body,
+                style = LisdataTheme.typography.material.bodyMedium,
+                color = colors.textSecondary,
+                textAlign = TextAlign.Center,
+            )
+        }
         if (action != null) {
             Box(modifier = Modifier.padding(top = spacing.space2)) { action() }
         }
     }
 }
 
-/** Error with a retry action. The error is conveyed by icon and text, not by color alone. */
+/**
+ * Error with a retry action, or without one when retrying cannot help (F11 C17). The error is conveyed
+ * by icon and text, not by color alone.
+ */
 @Composable
 fun LisdataErrorState(
     message: String,
-    onRetry: () -> Unit,
+    onRetry: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     val colors = LisdataTheme.colors
@@ -93,11 +98,13 @@ fun LisdataErrorState(
             color = colors.textPrimary,
             textAlign = TextAlign.Center,
         )
-        LisdataOutlinedButton(
-            text = stringResource(R.string.action_retry),
-            onClick = onRetry,
-            leadingIcon = LisdataIcons.Refresh,
-        )
+        if (onRetry != null) {
+            LisdataOutlinedButton(
+                text = stringResource(R.string.action_retry),
+                onClick = onRetry,
+                leadingIcon = LisdataIcons.Refresh,
+            )
+        }
     }
 }
 
