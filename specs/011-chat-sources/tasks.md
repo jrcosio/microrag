@@ -491,14 +491,14 @@ Historias de la spec:
 
 ## Phase 13: Polish sin teléfono
 
-- [ ] T063 Puertas de calidad:
+- [X] T063 Puertas de calidad:
   - Python completo y `gen_answer_golden.py --check`;
   - `assembleDebug`, `assembleRelease`, `lintDebug` y `lintRelease`;
   - todas las pruebas JVM, también `NetworkConfinementTest` (sin red, FR-042) y `AppLoggerTest` (nada en release, FR-043);
   - instrumentadas en el emulador (quickstart §3), repetidas con los APK finales.
 
   Cifras en el informe.
-- [ ] T064 Recorrido en el emulador (quickstart §4), con capturas sin la barra de estado y el registro filtrado a `MicroRAG`. Lo que salga se corrige con su prueba.
+- [X] T064 Recorrido en el emulador (quickstart §4), con capturas sin la barra de estado y el registro filtrado a `MicroRAG`. Lo que salga se corrige con su prueba.
 - [ ] T065 [P] Documentación:
   - `docs/roadmap/INVENTARIO.md`: P04 implementada;
   - `docs/roadmap/FEATURES.md`: F11 «🟨 en curso (implementación)»;

@@ -388,6 +388,17 @@ Abreviaturas de componentes: ver §4. «No maquetado» significa que el estado l
   - con el informe:
     - el informe convierte cada `[n]` en un chip dentro del texto;
     - el PNG solo muestra el chip «N fuentes» y la lista (G11).
+- **Implementada en F11** (`specs/011-chat-sources/contracts/chat-ui.md`, D-053 a D-056). Sustituye al marcador.
+  - **Citas (G11):** la lista «FUENTES CONSULTADAS» como en el PNG, y además las `[n]` del texto como fichas tocables, numeradas por orden de primera cita.
+  - **Asistente:** «MicroRAG» (D-014), en lugar de «LISDATA».
+  - **«⋯» (G13):** «Nuevo chat» y «Borrar conversación».
+  - **Estados sin mockup, propuestas aprobadas:**
+    - C1 negativa con la frase del MD (G26), sin fuentes; C2 nota de respuesta sin citas;
+    - C3 biblioteca vacía; C4 nada listo; C5 modelos sin preparar; C14 espera a la tanda de indexación;
+    - C6 nota de cobertura parcial; C7 y C8 fallos con «Reintentar»; C9 modo CPU en el subtítulo;
+    - C10 copiar con las fuentes; C11 «Fragmentos M–N»; C13 respuesta interrumpida;
+    - C15 confirmación de borrado; C16 respuesta sin guardar; C17 conversaciones ilegibles.
+  - El detalle del documento se desplaza hasta el fragmento citado.
 
 ### P05 — Importar documentos (ingesta)
 
