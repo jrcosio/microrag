@@ -124,3 +124,13 @@ La app porta la regla de seguimiento, la fusión RRF y el selector de contexto d
 | `golden/retrieval_parity.jsonl`: muestra fija de 50 preguntas (semilla 20261029; 40 respondibles y 10 de seguimiento) con su acierto de escritorio | el mismo | `RetrievalParityTest` (teléfono, con `corpus/` como assets del APK de pruebas) y `tests/test_retrieval_golden.py` |
 
 El generador usa la caché de embeddings de consulta de F05 (`build/query_embeddings.json`); solo carga el modelo, tras comprobar su SHA-256, si falta algún texto. `fused_limit` (30) vive en `config/rag_parameters.json` y lo leen el harness y `RagParameters`.
+
+## Chat (F11)
+
+La app porta la plantilla del prompt de `eval/prompt.py` y la lectura de citas y negativa de `eval/judge.py` (contrato en `specs/011-chat-sources/contracts/eval-answer.md`):
+
+| Fichero | Generador | Lo comprueba |
+|---|---|---|
+| `golden/answer_golden.jsonl`: las 426 preguntas vivas con los bloques de D-034, el turno anterior generado y el prompt de la plantilla activa (longitud y SHA-256; el texto entero en 10 filas), más la respuesta de esa plantilla con sus citas, si es negativa y su normalización | `gen_answer_golden.py` (`--check` para verificar) | `AnswerGoldenTest` (JVM) y `tests/test_answer_golden.py` |
+
+La plantilla activa la fija `prompt_template` en `config/rag_parameters.json` (`v4` desde D-056), y `llm_max_num_tokens` (4096) es el contexto de Gemma en la app y en `eval/generate.py`. Si cambia la plantilla, el golden se regenera con las respuestas de su ejecución.
