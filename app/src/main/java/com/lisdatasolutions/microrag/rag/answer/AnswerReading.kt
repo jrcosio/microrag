@@ -15,9 +15,16 @@ object AnswerReading {
     private val NUMBER = Regex("""(?U)\d+""")
     private val NORM_REFUSAL by lazy { norm(PromptBuilder.REFUSAL) }
 
+    /** One `[n]` or `[n, m]` mark: where it is in the text and the numbers it cites. */
+    data class CitationMark(val range: IntRange, val numbers: List<Int>)
+
+    /** The citation marks of [answer] in order, as the regex of judge.py finds them. */
+    fun marks(answer: String): List<CitationMark> = CITATION.findAll(answer).map { match ->
+        CitationMark(match.range, NUMBER.findAll(match.groupValues[1]).map { decimal(it.value) }.toList())
+    }.toList()
+
     /** Every cited number in order, repeats kept: `[1, 2][3]` gives 1, 2, 3. */
-    fun citations(answer: String): List<Int> =
-        CITATION.findAll(answer).flatMap { match -> NUMBER.findAll(match.groupValues[1]).map { decimal(it.value) } }.toList()
+    fun citations(answer: String): List<Int> = marks(answer).flatMap { it.numbers }
 
     /** `judge.norm`: no thousands separators, lower case, no accents, words separated by one space. */
     fun norm(text: String): String {
