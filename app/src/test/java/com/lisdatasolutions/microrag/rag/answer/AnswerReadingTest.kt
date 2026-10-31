@@ -20,6 +20,23 @@ class AnswerReadingTest {
     @Test
     fun unicodeDigitsCount_asPythonInt() {
         assertThat(AnswerReading.citations("Uno [١] y [２].")).containsExactly(1, 2).inOrder()
+        // Outside the BMP: OSMANYA DIGIT ONE is category Nd too.
+        assertThat(AnswerReading.citations("Uno [𐒡].")).containsExactly(1)
+    }
+
+    @Test
+    fun pythonWhitespaceInsideACitation() {
+        // \x1f and the ideographic space are whitespace for Python's \s.
+        assertThat(AnswerReading.citations("A [1,\u001f2] y [3 ,　4].")).containsExactly(1, 2, 3, 4).inOrder()
+    }
+
+    @Test
+    fun marksAsPythonFinditer() {
+        // judge.py: re.finditer gives (1, 4) for «[[2]]», (0, 7) for «[1 ,　2]» and nothing for «[3,]» or an open «[1, 2».
+        assertThat(AnswerReading.marks("[[2]]").map { it.range }).containsExactly(1..3)
+        assertThat(AnswerReading.marks("[1 ,　2]x[3,]").map { it.range to it.numbers }).containsExactly(0..6 to listOf(1, 2))
+        assertThat(AnswerReading.marks("[1, 2")).isEmpty()
+        assertThat(AnswerReading.marks("[𐒡]").single().range).isEqualTo(0..3)
     }
 
     @Test

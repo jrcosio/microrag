@@ -7,21 +7,60 @@ import java.util.Locale
 /**
  * How an answer is read, exactly as `offline/eval/judge.py` (F11 research R3): its `[n]` citations, the
  * normalization and the refusal sentence. Python's Unicode classes are kept: `\d` is category Nd, `\w`
- * is any letter or number or `_`, `\s` is Python whitespace.
+ * is any letter or number or `_`, `\s` is Python whitespace. No regex: Android's ICU engine has other
+ * classes than the JVM's and rejects `(?U)`, so the code points are read with [PyText] on both.
  */
 object AnswerReading {
-    // (?U): Unicode classes, so \d and \s match what they match in Python.
-    private val CITATION = Regex("""(?U)\[(\d+(?:\s*,\s*\d+)*)]""")
-    private val NUMBER = Regex("""(?U)\d+""")
     private val NORM_REFUSAL by lazy { norm(PromptBuilder.REFUSAL) }
 
     /** One `[n]` or `[n, m]` mark: where it is in the text and the numbers it cites. */
     data class CitationMark(val range: IntRange, val numbers: List<Int>)
 
-    /** The citation marks of [answer] in order, as the regex of judge.py finds them. */
-    fun marks(answer: String): List<CitationMark> = CITATION.findAll(answer).map { match ->
-        CitationMark(match.range, NUMBER.findAll(match.groupValues[1]).map { decimal(it.value) }.toList())
-    }.toList()
+    /** The citation marks of [answer] in order, as `\[(\d+(?:\s*,\s*\d+)*)\]` of judge.py finds them. */
+    fun marks(answer: String): List<CitationMark> {
+        val marks = mutableListOf<CitationMark>()
+        var start = answer.indexOf('[')
+        while (start >= 0) {
+            val mark = markAt(answer, start)
+            if (mark != null) marks += mark
+            start = answer.indexOf('[', (mark?.range?.last ?: start) + 1)
+        }
+        return marks
+    }
+
+    /**
+     * The mark that opens at [start], or null. Backtracking could not find another: no part of the
+     * pattern gives back a character that the next part accepts.
+     */
+    private fun markAt(text: String, start: Int): CitationMark? {
+        val numbers = mutableListOf<Int>()
+        var end = decimalsEnd(text, start + 1) ?: return null
+        numbers += decimal(text.substring(start + 1, end))
+        while (true) {
+            val comma = spacesEnd(text, end)
+            if (text.getOrNull(comma) != ',') break
+            val from = spacesEnd(text, comma + 1)
+            val next = decimalsEnd(text, from) ?: break
+            numbers += decimal(text.substring(from, next))
+            end = next
+        }
+        return if (text.getOrNull(end) == ']') CitationMark(start..end, numbers) else null
+    }
+
+    /** The end of the run of `\d` at [from], or null when there is none. */
+    private fun decimalsEnd(text: String, from: Int): Int? = runEnd(text, from, PyText::isDecimal).takeIf { it > from }
+
+    private fun spacesEnd(text: String, from: Int): Int = runEnd(text, from, PyText::isSpace)
+
+    private fun runEnd(text: String, from: Int, accepts: (Int) -> Boolean): Int {
+        var i = from
+        while (i < text.length) {
+            val cp = text.codePointAt(i)
+            if (!accepts(cp)) break
+            i += Character.charCount(cp)
+        }
+        return i
+    }
 
     /** Every cited number in order, repeats kept: `[1, 2][3]` gives 1, 2, 3. */
     fun citations(answer: String): List<Int> = marks(answer).flatMap { it.numbers }
