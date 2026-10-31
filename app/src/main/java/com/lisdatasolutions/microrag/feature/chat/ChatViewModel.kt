@@ -40,6 +40,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -87,6 +88,9 @@ class ChatViewModel(
     private val availability: StateFlow<ChatAvailability?> = observeAvailability(availabilityRetries)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
+    /** Between ON_START and ON_STOP of the screen. */
+    private val onScreen = MutableStateFlow(false)
+
     private val view: StateFlow<ConversationView?> = combine(conversationId, resolved) { id, done -> id to done }
         .flatMapLatest { (id, done) ->
             when {
@@ -127,6 +131,13 @@ class ChatViewModel(
     init {
         if (!resolved.value) viewModelScope.launch { resolve() }
         viewModelScope.launch { announceChanges() }
+        // Gemma loads whenever the chat is ready on screen: back from hidden, and when a batch ends or the
+        // models get ready while it shows (found on the phone, T069). Never while hidden: it was released.
+        viewModelScope.launch {
+            combine(onScreen, availability) { shown, now -> shown && now is ChatAvailability.Ready }
+                .distinctUntilChanged()
+                .collect { ready -> if (ready) warmUp() }
+        }
     }
 
     /** Research R13: the saved id, the route's id, a new conversation, or the last one. */
@@ -245,9 +256,14 @@ class ChatViewModel(
         availabilityRetries.value++
     }
 
-    /** Back on screen (ON_START): load Gemma if the chat is ready; it was released when the app was hidden. */
+    /** Back on screen (ON_START): Gemma loads if the chat is ready; it was released when the app was hidden. */
     fun onStart() {
-        viewModelScope.launch { warmUp() }
+        onScreen.value = true
+    }
+
+    /** ON_STOP: the chat no longer loads Gemma when it becomes ready. */
+    fun onHidden() {
+        onScreen.value = false
     }
 
     private fun turnsOf(view: ConversationView, availability: ChatAvailability?, available: Map<Long, SourceAvailability>): List<TurnUi> {

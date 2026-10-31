@@ -517,6 +517,33 @@ class ChatViewModelTest {
         assertThat(graph.engine.warmUps).isEqualTo(1)
     }
 
+    /** Found on the phone (T069): waiting on the chat for a batch, the first answer paid Gemma's cold load. */
+    @Test
+    fun gemmaPreloads_whenTheBatchEndsOnScreen_butNotWhileHidden() = runTest(dispatcher) {
+        graph.addDocument("Manual de procesos.pdf")
+        graph.indexing.state.value = IndexingState.Active(RunProgress(1, 10, null), null, 0, pause = null, failed = emptyList())
+        val vm = graph.chatViewModel(saved())
+        vm.onStart()
+        advanceUntilIdle()
+        assertThat(graph.engine.warmUps).isEqualTo(0)
+
+        graph.indexing.state.value = IndexingState.Idle(emptyList())
+        advanceUntilIdle()
+        assertThat(graph.engine.warmUps).isEqualTo(1)
+
+        // Hidden, Gemma was released (constitution IV): a batch that ends meanwhile does not load it again.
+        vm.onHidden()
+        graph.indexing.state.value = IndexingState.Active(RunProgress(1, 10, null), null, 0, pause = null, failed = emptyList())
+        advanceUntilIdle()
+        graph.indexing.state.value = IndexingState.Idle(emptyList())
+        advanceUntilIdle()
+        assertThat(graph.engine.warmUps).isEqualTo(1)
+
+        vm.onStart()
+        advanceUntilIdle()
+        assertThat(graph.engine.warmUps).isEqualTo(2)
+    }
+
     @Test
     fun retryingTheAvailability_checksTheIndexAgain_C8() = runTest(dispatcher) {
         graph.addDocument("Manual de procesos.pdf")

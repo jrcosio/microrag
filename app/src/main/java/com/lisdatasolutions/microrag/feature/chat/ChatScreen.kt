@@ -115,7 +115,7 @@ fun ChatRoute(
     // Gemma is released when the app is hidden (constitution IV): back on screen, it is loaded again if ready.
     LifecycleStartEffect(viewModel) {
         viewModel.onStart()
-        onStopOrDispose { }
+        onStopOrDispose { viewModel.onHidden() }
     }
     ChatScreen(
         state = state,
