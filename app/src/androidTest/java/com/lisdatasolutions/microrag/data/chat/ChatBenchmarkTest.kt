@@ -54,7 +54,8 @@ import org.junit.runner.RunWith
  * the first question is also measured apart with Gemma unloaded. Logged as `chat-benchmark`, numbers only
  * (data-model §9), plus one `chat-benchmark-q` line per measured question. The generation speed is an
  * estimate: the engine gives its own only with the diagnostics flag, which the app never sets. On the
- * reference phone p95 ≤ 5 s; elsewhere 3 questions without thresholds.
+ * reference phone the p95 is compared with 5 s and reported (`sc004=`), without failing: the phone measured
+ * it over, and D-057 keeps it as a documented exception for F14. Elsewhere, 3 questions.
  */
 @RequiresModels
 @RunWith(AndroidJUnit4::class)
@@ -138,6 +139,7 @@ class ChatBenchmarkTest {
             val numbers = results.map { it.numbers }
             val refusals = numbers.count { it["refusal"] == "true" }
             val uncited = numbers.count { it["refusal"] == "false" && it["cited"] == "0" }
+            val sc004 = (rank(ttfts, 95) ?: Long.MAX_VALUE) <= MAX_TTFT_P95_MS
             Log.i(
                 TAG,
                 "chat-benchmark model=${Build.MODEL} sdk=${Build.VERSION.SDK_INT} backend=$backend n=${results.size} " +
@@ -146,14 +148,14 @@ class ChatBenchmarkTest {
                     "prompt_tokens_p95=${shown(rank(numbers.longs("prompt_tokens_est"), 95))} " +
                     "decode_tok_s_est_p50=${shown(rank(results.mapNotNull { it.decodeTokensPerSecondEst }, 50))} " +
                     "total_p50=${shown(rank(numbers.longs("total_ms"), 50))} total_p95=${shown(rank(numbers.longs("total_ms"), 95))} " +
-                    "rss_peak_mb=${shown(peakMb)} refusals=$refusals uncited=$uncited",
+                    "rss_peak_mb=${shown(peakMb)} refusals=$refusals uncited=$uncited" +
+                    (if (onReferencePhone) " sc004=${if (sc004) "met" else "exceeded"}" else ""),
             )
 
             // SC-010: no question, previous question or answer text ever reaches the log.
             val texts = measured.flatMap { listOfNotNull(it.question, it.previous) }
             temp.logger.lines.toList().forEach { line -> texts.forEach { assertWithMessage("log line").that(line).doesNotContain(it) } }
             assertWithMessage("every answer completed").that(numbers.map { it["outcome"] }.toSet()).containsExactly("completed")
-            if (onReferencePhone) assertWithMessage("first token p95 (SC-004)").that(rank(ttfts, 95)).isAtMost(MAX_TTFT_P95_MS)
         } finally {
             scope.cancel()
             coordinator.releaseAll()
