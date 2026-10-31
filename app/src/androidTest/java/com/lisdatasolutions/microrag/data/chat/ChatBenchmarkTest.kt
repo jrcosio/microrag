@@ -141,7 +141,7 @@ class ChatBenchmarkTest {
 
     /** Asks and waits for the end of the answer; the first token is timed from the call to `ask()`. */
     private suspend fun answer(session: DefaultChatSession, conversationId: Long?, question: String): Answered = coroutineScope {
-        val lines = temp.logger.lines.count { it.startsWith(ANSWER_LINE) }
+        val lines = answerLines().size
         val start = SystemClock.elapsedRealtime()
         // Off the polling thread, so the first token is seen as soon as it arrives.
         val firstToken = async(Dispatchers.Default) {
@@ -150,9 +150,9 @@ class ChatBenchmarkTest {
         }
         val id = checkNotNull(session.ask(conversationId, question)) { "the session did not start an answer" }
         withTimeout(ANSWER_TIMEOUT_MS) {
-            while (temp.logger.lines.count { it.startsWith(ANSWER_LINE) } == lines) delay(POLL_MS)
+            while (answerLines().size == lines) delay(POLL_MS)
         }
-        val numbers = temp.logger.lines.last { it.startsWith(ANSWER_LINE) }.removePrefix(ANSWER_LINE).trim().split(" ")
+        val numbers = answerLines().last().removePrefix(ANSWER_LINE).trim().split(" ")
             .mapNotNull { pair -> pair.split("=", limit = 2).takeIf { it.size == 2 }?.let { it[0] to it[1] } }.toMap()
         val ttft = if (firstToken.isCompleted) {
             firstToken.await()
@@ -163,6 +163,9 @@ class ChatBenchmarkTest {
         }
         Answered(id, Measure(ttft, numbers))
     }
+
+    /** The session's answer lines, from a copy: it keeps writing the log from its own threads. */
+    private fun answerLines(): List<String> = temp.logger.lines.toList().filter { it.startsWith(ANSWER_LINE) }
 
     private fun List<Map<String, String>>.longs(key: String) = mapNotNull { it[key]?.toLongOrNull() }
 
