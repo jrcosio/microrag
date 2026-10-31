@@ -312,5 +312,8 @@ id,variante,tipo,pregunta,respuesta_esperada,datos_clave,respuesta_informe,respu
 **Prueba de medida** (`ChatBenchmarkTest`, etiqueta `chat-benchmark`):
 
 ```
-chat-benchmark model=A063 sdk=35 backend=GPU n=… cold_ttft_ms=… ttft_p50=… ttft_p95=… prompt_tokens_p50=… prompt_tokens_p95=… decode_tok_s_p50=… total_p50=… total_p95=… rss_peak_mb=… refusals=… uncited=…
+chat-benchmark model=A063 sdk=35 backend=GPU n=… cold_ttft_ms=… ttft_p50=… ttft_p95=… prompt_tokens_p50=… prompt_tokens_p95=… decode_tok_s_est_p50=… total_p50=… total_p95=… rss_peak_mb=… refusals=… uncited=…
+chat-benchmark-q i=… follow_up=… ttft_ms=… session_ttft_ms=… retrieval_ms=… prompt_tokens_est=… blocks=… total_ms=… answer_tokens_est=… decode_tok_s_est=… refusal=… cited=…
 ```
+
+Una línea `chat-benchmark-q` por pregunta medida, para ver qué preguntas forman la cola del p95 (añadida en la fase del teléfono, a petición del usuario). La velocidad de generación es una estimación: tokens estimados de la respuesta entre el tiempo que sigue al primer token. El motor solo da la suya con el indicador de diagnóstico, que la app nunca activa.

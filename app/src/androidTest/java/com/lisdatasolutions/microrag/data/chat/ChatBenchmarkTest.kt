@@ -13,9 +13,12 @@ import com.lisdatasolutions.microrag.data.retrieval.HybridRetriever
 import com.lisdatasolutions.microrag.debug.feasibility.ProcMemoryProbe
 import com.lisdatasolutions.microrag.debug.feasibility.RequiresModels
 import com.lisdatasolutions.microrag.domain.chat.ChatAvailability
+import com.lisdatasolutions.microrag.domain.chat.ChatRepository
+import com.lisdatasolutions.microrag.domain.chat.TurnState
 import com.lisdatasolutions.microrag.domain.model.ComputeBackend
 import com.lisdatasolutions.microrag.domain.model.ModelId
 import com.lisdatasolutions.microrag.domain.retrieval.RetrieveContextUseCase
+import com.lisdatasolutions.microrag.rag.answer.PromptBuilder
 import com.lisdatasolutions.microrag.rag.retrieval.ParityQuestion
 import com.lisdatasolutions.microrag.rag.retrieval.RetrievalGoldenFiles
 import com.lisdatasolutions.microrag.rag.runtime.EngineCoordinator
@@ -49,7 +52,9 @@ import org.junit.runner.RunWith
  * and conversations are never read. Each of the 50 questions of the parity sample goes in a new
  * conversation; a follow-up first asks its previous question, unmeasured. Gemma is loaded beforehand, and
  * the first question is also measured apart with Gemma unloaded. Logged as `chat-benchmark`, numbers only
- * (data-model §9). On the reference phone p95 ≤ 5 s; elsewhere 3 questions without thresholds.
+ * (data-model §9), plus one `chat-benchmark-q` line per measured question. The generation speed is an
+ * estimate: the engine gives its own only with the diagnostics flag, which the app never sets. On the
+ * reference phone p95 ≤ 5 s; elsewhere 3 questions without thresholds.
  */
 @RequiresModels
 @RunWith(AndroidJUnit4::class)
@@ -72,8 +77,17 @@ class ChatBenchmarkTest {
         root.deleteRecursively()
     }
 
-    /** One measured answer: the first token from `ask()`, null for a refusal without blocks, and the session's numbers. */
-    private class Measure(val ttftMs: Long?, val numbers: Map<String, String>)
+    /**
+     * One measured answer: the first token from `ask()` (null for a refusal without blocks), the session's
+     * numbers and the estimated tokens of the answer.
+     */
+    private class Measure(val ttftMs: Long?, val numbers: Map<String, String>, val answerTokensEst: Int) {
+        /** Estimated answer tokens over the time after the session's first token. */
+        val decodeTokensPerSecondEst: Double? = numbers["ttft_ms"]?.toLongOrNull()?.let { ttft ->
+            val decodeMs = (numbers["total_ms"]?.toLongOrNull() ?: return@let null) - ttft
+            if (decodeMs > 0) answerTokensEst * 1000.0 / decodeMs else null
+        }
+    }
 
     @Test
     fun firstTokenOfTheChat() = runBlocking<Unit> {
@@ -92,8 +106,9 @@ class ChatBenchmarkTest {
             val backend = models.preparedBackends.value.getValue(ModelId.GEMMA4_E2B)
             val ready = ChatAvailability.Ready(cpuMode = backend == ComputeBackend.CPU, partialCoverage = false)
             val engine = EngineAnswerEngine(coordinator, factory, models)
+            val repository = SqliteChatRepository(File(root, "chat.db"), { ChatSchema.load(context.assets) }, Dispatchers.IO, temp.logger)
             val session = DefaultChatSession(
-                repository = SqliteChatRepository(File(root, "chat.db"), { ChatSchema.load(context.assets) }, Dispatchers.IO, temp.logger),
+                repository = repository,
                 retrieve = RetrieveContextUseCase(HybridRetriever(temp.index, EngineQueryEmbedder(coordinator, factory, models), temp.logger)),
                 engine = engine,
                 availability = { flowOf(ready) },
@@ -103,10 +118,19 @@ class ChatBenchmarkTest {
 
             memory.resetPeak()
             // Gemma unloaded: the indexing released its engine and nothing loaded Gemma yet.
-            val cold = answer(session, null, measured.first { it.previous == null }.question)
-            val results = measured.map { question ->
-                val conversation = question.previous?.let { previous -> answer(session, null, previous).conversationId }
-                answer(session, conversation, question.question).measure
+            val cold = answer(session, repository, null, measured.first { it.previous == null }.question)
+            val results = measured.mapIndexed { i, question ->
+                val conversation = question.previous?.let { previous -> answer(session, repository, null, previous).conversationId }
+                answer(session, repository, conversation, question.question).measure.also { m ->
+                    Log.i(
+                        TAG,
+                        "chat-benchmark-q i=$i follow_up=${question.previous != null} ttft_ms=${shown(m.ttftMs)} " +
+                            "session_ttft_ms=${m.numbers["ttft_ms"]} retrieval_ms=${m.numbers["retrieval_ms"]} " +
+                            "prompt_tokens_est=${m.numbers["prompt_tokens_est"]} blocks=${m.numbers["blocks"]} " +
+                            "total_ms=${m.numbers["total_ms"]} answer_tokens_est=${m.answerTokensEst} " +
+                            "decode_tok_s_est=${shown(m.decodeTokensPerSecondEst)} refusal=${m.numbers["refusal"]} cited=${m.numbers["cited"]}",
+                    )
+                }
             }
             val peakMb = memory.peakRssMb()
 
@@ -120,7 +144,7 @@ class ChatBenchmarkTest {
                     "cold_ttft_ms=${shown(cold.measure.ttftMs)} ttft_p50=${shown(rank(ttfts, 50))} ttft_p95=${shown(rank(ttfts, 95))} " +
                     "prompt_tokens_p50=${shown(rank(numbers.longs("prompt_tokens_est"), 50))} " +
                     "prompt_tokens_p95=${shown(rank(numbers.longs("prompt_tokens_est"), 95))} " +
-                    "decode_tok_s_p50=${shown(rank(numbers.doubles("decode_tok_s"), 50))} " +
+                    "decode_tok_s_est_p50=${shown(rank(results.mapNotNull { it.decodeTokensPerSecondEst }, 50))} " +
                     "total_p50=${shown(rank(numbers.longs("total_ms"), 50))} total_p95=${shown(rank(numbers.longs("total_ms"), 95))} " +
                     "rss_peak_mb=${shown(peakMb)} refusals=$refusals uncited=$uncited",
             )
@@ -140,7 +164,7 @@ class ChatBenchmarkTest {
     private class Answered(val conversationId: Long, val measure: Measure)
 
     /** Asks and waits for the end of the answer; the first token is timed from the call to `ask()`. */
-    private suspend fun answer(session: DefaultChatSession, conversationId: Long?, question: String): Answered = coroutineScope {
+    private suspend fun answer(session: DefaultChatSession, repository: ChatRepository, conversationId: Long?, question: String): Answered = coroutineScope {
         val lines = answerLines().size
         val start = SystemClock.elapsedRealtime()
         // Off the polling thread, so the first token is seen as soon as it arrives.
@@ -161,15 +185,17 @@ class ChatBenchmarkTest {
             firstToken.cancel()
             null
         }
-        Answered(id, Measure(ttft, numbers))
+        // The saved text, once the turn is saved as completed.
+        val answer = withTimeout(ANSWER_TIMEOUT_MS) {
+            repository.conversation(id).first { turns -> turns.lastOrNull()?.state == TurnState.COMPLETED }.last().answer
+        }
+        Answered(id, Measure(ttft, numbers, if (answer.isEmpty()) 0 else PromptBuilder.estimatedTokens(answer)))
     }
 
     /** The session's answer lines, from a copy: it keeps writing the log from its own threads. */
     private fun answerLines(): List<String> = temp.logger.lines.toList().filter { it.startsWith(ANSWER_LINE) }
 
     private fun List<Map<String, String>>.longs(key: String) = mapNotNull { it[key]?.toLongOrNull() }
-
-    private fun List<Map<String, String>>.doubles(key: String) = mapNotNull { it[key]?.toDoubleOrNull() }
 
     /** Nearest rank, as the F02 suite; null when there is nothing to rank. */
     private fun <T : Comparable<T>> rank(values: List<T>, p: Int): T? {
