@@ -13,7 +13,7 @@ sys.path.insert(0, str(HERE))  # -I leaves the script directory out of sys.path
 COMMANDS = [
     "fetch-corpus", "sources", "build", "validate-testset", "review-sheet", "review-apply", "sample",
     "retrieve", "generate", "ablations", "report", "chunker-golden", "calibrate", "rejudge", "device-extraction",
-    "order-review", "template-review",
+    "order-review", "template-review", "limit-review",
 ]
 
 
@@ -251,6 +251,27 @@ def template_review(args):
     print(f"wrote {pipeline.TEMPLATE_REVIEW_FILE}")
 
 
+def limit_review(args):
+    """F11 phone phase (SC-004): the decided configuration with a lower prompt limit, judged against v4."""
+    from eval import pipeline
+
+    limit = None
+    for pair in args:
+        key, _, raw = pair.partition("=")
+        if key != "limit":
+            raise SystemExit(f"unknown parameter {key}; use limit=1500")
+        limit = int(raw)
+    if limit is None:
+        raise SystemExit("limit=N is required")
+    r = pipeline.limit_review(limit)
+    print(f"limit={r['limit']}: changed_prompts={r['changed_prompts']} dropped_blocks={r['dropped_blocks']} "
+          f"dropped_previous={r['dropped_previous']} changed_answers={r['changed_answers']} pending={r['pending']} "
+          f"prompt_tokens_est_p95={r['prompt_tokens_est_p95']} max={r['prompt_tokens_est_max']}")
+    print(f"v4: {r['v4']}")
+    print(f"manual: {r['manual']} meets_thresholds={r['meets_thresholds']}")
+    print(f"wrote {pipeline.LIMIT_REVIEW_DIR / str(limit) / 'result.json'}")
+
+
 def report(args):
     from eval import report as report_module
 
@@ -262,7 +283,7 @@ HANDLERS = {
     "validate-testset": validate_testset, "review-sheet": review_sheet, "review-apply": review_apply,
     "retrieve": retrieve, "generate": generate, "ablations": ablations, "report": report, "calibrate": calibrate, "chunker-golden": chunker_golden, "rejudge": rejudge,
     "device-extraction": device_extraction, "order-review": order_review,
-    "template-review": template_review,
+    "template-review": template_review, "limit-review": limit_review,
 }
 
 

@@ -393,12 +393,17 @@ def order_review():
 TEMPLATE_REVIEW_FILE = builds.BUILD / "template_review.json"
 
 
-def _blocks_of(ctx, config):
-    """Blocks by question id of the retrieval run behind a generation config."""
+def _retrieval_rows(ctx, config):
+    """Retrieval rows by question id of the retrieval run behind a generation config."""
     retrieval_config = dataclasses.replace(config, llm=None)
     fingerprint = EvalConfig.fingerprint(retrieval_config, *fingerprints(ctx, retrieval_config))
     lines = (run_dir(fingerprint) / "retrieval.jsonl").read_text(encoding="utf-8").splitlines()
-    return {json.loads(line)["id"]: json.loads(line)["blocks"] for line in lines}
+    return {json.loads(line)["id"]: json.loads(line) for line in lines}
+
+
+def _blocks_of(ctx, config):
+    """Blocks by question id of the retrieval run behind a generation config."""
+    return {qid: row["blocks"] for qid, row in _retrieval_rows(ctx, config).items()}
 
 
 def _answers_of(result):
@@ -485,6 +490,160 @@ def template_review(variants=("v3", "v4")):
             writer.writerows(sorted(review_rows, key=lambda r: (r["variante"], r["id"])))
     TEMPLATE_REVIEW_FILE.write_text(json.dumps(results, ensure_ascii=False, indent=1))
     return results
+
+
+# --- prompt limit review (F11 phone phase, SC-004) -------------------------------------------------
+
+LIMIT_REVIEW_DIR = builds.BUILD / "limit-review"
+LIMIT_REVIEW_FIELDS = ["id", "limite", "tipo", "pregunta", "respuesta_esperada", "datos_clave", "fuentes", "quitado",
+                       "respuesta_v4", "manual_v4", "respuesta_limite", "regla", "regla_citas", "manual", "manual_citas",
+                       "comentario"]
+
+
+def _block_ranks(ctx, row):
+    """Each block's best fused rank, as the app ranks it in rule A6; a chunk outside the fused list ranks last."""
+    position = {chunk_id: i for i, chunk_id in enumerate(row["fused"])}
+    ranks = []
+    for b in row["blocks"]:
+        ids = [r[0] for r in ctx.db.execute("SELECT id FROM chunks WHERE document_id = ? AND ordinal BETWEEN ? AND ?",
+                                            (b["document_id"], b["first_ordinal"], b["last_ordinal"])).fetchall()]
+        ranks.append(min((position.get(i, math.inf) for i in ids), default=math.inf))
+    return ranks
+
+
+def _describe(blocks):
+    return " || ".join(f"[{n}] {b.document_name[:40]} › {b.heading_path or ''} (ord. {b.first_ordinal}-{b.last_ordinal})"
+                       for n, b in enumerate(blocks, start=1))
+
+
+def limit_review(limit):
+    """The decided configuration with a lower prompt limit (F11 phone phase, SC-004).
+
+    The app's rule A6 drops blocks, then the previous turn, from the prompts over [limit] estimated tokens.
+    An answer equal to the v4 one keeps its manual verdict (D-056); the others are generated on the Mac GPU,
+    in the order of generate() so follow-ups see this run's previous answers, and judged by hand in
+    reports/limit-review.csv. The verdicts already there are kept, as in the template review.
+    """
+    import csv
+    from contextlib import ExitStack
+
+    from eval import report
+    from eval import template_review as tr
+    from eval.prompt import within_limit
+    from eval.selector import ContextBlock
+
+    params = json.loads(report.PARAMETERS.read_text(encoding="utf-8"))
+    template, chars_per_token = params["prompt_template"], params["chars_per_token"]
+    config = dataclasses.replace(decided_config(), llm="E2B", prompt_template=template)
+    ctx = load_context(config.build)
+    base_lines = _answers_of(generate(config))  # the run judged in D-056: complete, nothing is generated again
+    base_answers = {qid: line["answer"] for qid, line in base_lines.items()}
+    base_rules = {qid: "correcta" if line["judge"]["correct"] else "incorrecta" for qid, line in base_lines.items()}
+    template_path = report.MANUAL.parent / "template-review.csv"
+    template_rows = [r for r in csv.DictReader(template_path.open(encoding="utf-8-sig")) if r["variante"] == template]
+    base_rows = tr.merged_rows(report.manual_rows(), base_answers, base_rules,
+                               {r["id"]: {"manual": r["manual"], "manual_citas": r["manual_citas"]} for r in template_rows})
+    if base_rows is None:
+        raise SystemExit(f"{template}: the template review has unjudged answers")
+    base_by_id = {r["id"]: r for r in base_rows}
+
+    retrieval = _retrieval_rows(ctx, config)
+    by_id = {q.id: q for q in live_questions()}
+    questions = sorted(live_questions(), key=lambda q: (q.type == "followup", q.id))
+    folder = LIMIT_REVIEW_DIR / str(limit)
+    folder.mkdir(parents=True, exist_ok=True)
+    out_path = folder / "answers.jsonl"
+    done = {}
+    if out_path.exists():
+        done = {json.loads(l)["id"]: json.loads(l) for l in out_path.read_text(encoding="utf-8").splitlines() if l.strip()}
+    review_path = report.MANUAL.parent / "limit-review.csv"
+    existing = {}
+    if review_path.exists():
+        existing = {(r["id"], r["limite"]): r for r in csv.DictReader(review_path.open(encoding="utf-8-sig"))}
+
+    answers, rules, prompts, dropped, regenerated, review_rows, real_tokens = {}, {}, {}, {}, set(), [], []
+    with ExitStack() as stack:
+        engine = None
+        for q in questions:
+            row = retrieval[q.id]
+            blocks = [ContextBlock(**b) for b in row["blocks"]]
+            previous = base_previous = None
+            if q.previous in by_id:
+                fallback = by_id[q.previous].expected_answer or ""
+                previous = (by_id[q.previous].question, answers.get(q.previous, fallback))
+                base_previous = (by_id[q.previous].question, base_answers.get(q.previous, fallback))
+            prompt, kept, kept_previous = within_limit(q.question, blocks, _block_ranks(ctx, row), previous, template,
+                                                       limit, chars_per_token)
+            prompts[q.id] = prompt
+            gone = [f"[{n}]" for n, b in enumerate(blocks, start=1) if b not in kept]
+            if previous is not None and kept_previous is None:
+                gone.append("turno anterior")
+            dropped[q.id] = ", ".join(gone)
+            if prompt == build_prompt(q.question, blocks, base_previous, template):
+                answers[q.id], rules[q.id] = base_answers[q.id], base_rules[q.id]
+                continue
+            regenerated.add(q.id)
+            digest = hashlib.sha256(prompt.encode("utf-8")).hexdigest()
+            record = done.get(q.id)
+            if record is not None and record["prompt_sha256"] != digest:
+                raise SystemExit(f"{q.id}: {out_path} was generated with another prompt; delete it and run again")
+            if record is None:
+                if engine is None:
+                    engine = stack.enter_context(
+                        open_engine(models.verify(models.LLMS[config.llm]), "gpu", builds.BUILD / "litert-cache"))
+
+                def on_answer(item, answer, q=q, kept=kept, row=row, digest=digest):
+                    verdict = judge.judge_answer(q.type, answer, q.key_facts, kept, _pairs(ctx, row["relevant"]))
+                    return {"type": q.type, "prompt_sha256": digest, "judge": dataclasses.asdict(verdict)}
+
+                run_generation(engine, [Item(q.id, prompt)], out_path, config.max_output_tokens, on_answer)
+                record = json.loads(out_path.read_text(encoding="utf-8").splitlines()[-1])
+                done[q.id] = record
+            answers[q.id] = record["answer"]
+            rules[q.id] = "correcta" if record["judge"]["correct"] else "incorrecta"
+            real_tokens.append(record["prompt_tokens"])
+            if answers[q.id] != base_answers[q.id]:
+                old = existing.get((q.id, str(limit)), {})
+                judged = record["judge"]
+                review_rows.append({
+                    "id": q.id, "limite": str(limit), "tipo": q.type, "pregunta": q.question,
+                    "respuesta_esperada": q.expected_answer or "", "datos_clave": " | ".join(q.key_facts),
+                    "fuentes": _describe(kept), "quitado": dropped[q.id],
+                    "respuesta_v4": base_answers[q.id], "manual_v4": base_by_id[q.id]["manual"],
+                    "respuesta_limite": answers[q.id], "regla": rules[q.id],
+                    "regla_citas": f"{judged['citations_ok']}/{judged['citations_total']}",
+                    "manual": old.get("manual", ""), "manual_citas": old.get("manual_citas", ""),
+                    "comentario": old.get("comentario", ""),
+                })
+
+    reviewed = {r["id"]: {"manual": r["manual"], "manual_citas": r["manual_citas"]} for r in review_rows if r["manual"]}
+    merged = tr.merged_rows(base_rows, answers, rules, reviewed)
+    figures = None
+    if merged is not None:
+        manual = report.manual_metrics(merged)
+        figures = {key: manual[key] for key in ("answer_correct", "refusal_correct", "citations_correct", "undue_refusals")}
+    base_manual = report.manual_metrics(base_rows)
+    estimates = sorted(math.ceil(len(p) / chars_per_token) for p in prompts.values())
+    result = {
+        "limit": limit, "template": template, "questions": len(prompts),
+        "changed_prompts": len(regenerated),
+        "dropped_blocks": sum(dropped[qid].count("[") for qid in prompts),
+        "dropped_previous": sum("turno anterior" in dropped[qid] for qid in prompts),
+        "changed_answers": len(review_rows), "pending": sum(1 for r in review_rows if not r["manual"]),
+        "prompt_tokens_est_p95": estimates[max(0, math.ceil(0.95 * len(estimates)) - 1)], "prompt_tokens_est_max": estimates[-1],
+        "real_tokens_max_of_generated": max(real_tokens, default=None),
+        "v4": {key: base_manual[key] for key in ("answer_correct", "refusal_correct", "citations_correct", "undue_refusals")},
+        "manual": figures,
+        "meets_thresholds": None if figures is None else all(
+            figures[key] >= report.THRESHOLDS[key][1] - 1e-9 for key in ("answer_correct", "refusal_correct", "citations_correct")),
+    }
+    with review_path.open("w", encoding="utf-8-sig", newline="") as out:
+        writer = csv.DictWriter(out, fieldnames=LIMIT_REVIEW_FIELDS)
+        writer.writeheader()
+        kept_rows = [r for (qid, lim), r in existing.items() if lim != str(limit)]
+        writer.writerows(sorted(kept_rows + review_rows, key=lambda r: (int(r["limite"]), r["id"])))
+    (folder / "result.json").write_text(json.dumps(result, ensure_ascii=False, indent=1))
+    return result
 
 
 # --- prompt budget calibration ---------------------------------------------------------------------

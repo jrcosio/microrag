@@ -6,7 +6,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from eval.prompt import REFUSAL, build_prompt  # noqa: E402
+from eval.prompt import REFUSAL, build_prompt, estimated_tokens, within_limit  # noqa: E402
 from eval.selector import ContextBlock  # noqa: E402
 
 RULES = (
@@ -71,6 +71,47 @@ class PromptTest(unittest.TestCase):
 
     def test_refusal_sentence(self):
         self.assertEqual(REFUSAL, "No encuentro esa información en los documentos disponibles.")
+
+
+class PromptLimitTest(unittest.TestCase):
+    """The app's rule A6 (F11), ported for the limit review of the phone phase."""
+
+    BLOCKS = [ContextBlock(f"Doc {n}", None, None, n, 0, 0, "x" * 400, 100) for n in range(1, 5)]
+
+    def limit_after(self, blocks, previous=None):
+        """The estimate of the prompt with [blocks], so a limit just below it forces one step."""
+        return estimated_tokens(build_prompt("¿Plazo?", blocks, previous, "v4"), 4.554)
+
+    def test_estimate_is_the_app_one(self):
+        self.assertEqual(estimated_tokens("a" * 4554, 4.554), 1000)
+        self.assertEqual(estimated_tokens("a" * 4555, 4.554), 1001)
+        self.assertEqual(estimated_tokens("ñ" * 10, 4.554), 3)  # code points, not bytes
+
+    def test_under_the_limit_nothing_is_dropped(self):
+        prompt, blocks, previous = within_limit("¿Plazo?", self.BLOCKS, [1, 2, 3, 4], ("p", "r"), "v4", 10_000, 4.554)
+        self.assertEqual(blocks, self.BLOCKS)
+        self.assertEqual(previous, ("p", "r"))
+        self.assertEqual(prompt, build_prompt("¿Plazo?", self.BLOCKS, ("p", "r"), "v4"))
+
+    def test_the_worst_ranked_block_goes_first_wherever_it_is(self):
+        limit = self.limit_after(self.BLOCKS[:3])
+        _, blocks, _ = within_limit("¿Plazo?", self.BLOCKS, [3, 9, 1, 2], None, "v4", limit, 4.554)
+        self.assertEqual([b.document_name for b in blocks], ["Doc 1", "Doc 3", "Doc 4"])
+
+    def test_equal_ranks_drop_the_first_of_them(self):
+        limit = self.limit_after(self.BLOCKS[:3])
+        _, blocks, _ = within_limit("¿Plazo?", self.BLOCKS, [5, 5, 1, 2], None, "v4", limit, 4.554)
+        self.assertEqual([b.document_name for b in blocks], ["Doc 2", "Doc 3", "Doc 4"])
+
+    def test_blocks_go_before_the_previous_turn_and_the_last_block_stays(self):
+        previous = ("p" * 300, "r" * 500)
+        _, blocks, kept = within_limit("¿Plazo?", self.BLOCKS, [1, 2, 3, 4], previous, "v4", self.limit_after(self.BLOCKS[:1]), 4.554)
+        self.assertEqual([b.document_name for b in blocks], ["Doc 1"])
+        self.assertIsNone(kept)
+        prompt, blocks, kept = within_limit("¿Plazo?", self.BLOCKS, [1, 2, 3, 4], previous, "v4", 1, 4.554)
+        self.assertEqual(len(blocks), 1)
+        self.assertIsNone(kept)
+        self.assertEqual(prompt, build_prompt("¿Plazo?", blocks, None, "v4"))
 
 
 if __name__ == "__main__":

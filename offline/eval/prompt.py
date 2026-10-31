@@ -1,5 +1,7 @@
 """PromptBuilder of the report (§Plantilla de prompt), F05 research R6. F11 uses the same template."""
 
+import math
+
 REFUSAL = "No encuentro esa información en los documentos disponibles."
 PREVIOUS_QUESTION_CHARS = 300
 PREVIOUS_ANSWER_CHARS = 500
@@ -52,3 +54,29 @@ def build_prompt(question, blocks, previous, template="informe"):
         page = f" (p. {block.page})" if block.page is not None else ""
         lines += [f"[{number}] {where}{page}", block.text.strip(), ""]
     return "\n".join(lines) + "\nPREGUNTA: " + question.strip()
+
+
+def estimated_tokens(prompt, chars_per_token):
+    """⌈code points / chars_per_token⌉, as PromptBuilder.estimatedTokens of the app (F11 research R10)."""
+    return math.ceil(len(prompt) / chars_per_token)
+
+
+def within_limit(question, blocks, ranks, previous, template, limit, chars_per_token):
+    """The app's prompt limit (F11 rule A6, DefaultChatSession.prompt): while the prompt is over [limit]
+    estimated tokens, the worst ranked block goes first, then the previous turn; the last block stays.
+
+    [ranks] holds each block's best fused rank, and the first of two equal ranks is the one dropped.
+    Returns the prompt with the blocks and previous turn it kept.
+    """
+    blocks, ranks = list(blocks), list(ranks)
+    prompt = build_prompt(question, blocks, previous, template)
+    while estimated_tokens(prompt, chars_per_token) > limit:
+        if len(blocks) > 1:
+            worst = ranks.index(max(ranks))
+            del blocks[worst], ranks[worst]
+        elif previous is not None:
+            previous = None
+        else:
+            break
+        prompt = build_prompt(question, blocks, previous, template)
+    return prompt, blocks, previous
