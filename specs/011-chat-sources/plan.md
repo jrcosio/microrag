@@ -273,4 +273,5 @@ Las pruebas en el teléfono van al final, como en F10.
 
 | Punto | Por qué | Alternativa más simple descartada |
 |---|---|---|
+| Primer token por encima de 5 s en el teléfono (IV, SC-004; añadido en la fase del teléfono) | Medido dos veces: p95 de 5,2 s, y de 5,8 s en frío. El límite de 1.500 tokens solo lo bajaría a unos 5,3 s y pierde calidad; el usuario lo dejó como excepción documentada (D-057) y las palancas pasan a F14 | Límite de 1.500 tokens (80,5 % de correctas frente a 81,1 %) o 3 bloques (cambia la calidad de D-034 en todas las preguntas) |
 | Segunda base de datos (`chat.db`) frente a «una sola conexión de escritura» (IV) | La regla busca que no haya escrituras simultáneas. `chat.db` es otro fichero con una sola conexión, y usa el mismo hilo único (`AppDispatchers.database`) que el índice: en toda la app hay como mucho una escritura a la vez | Tablas en `rag.db`: un índice incompatible o reconstruido bloquearía o borraría las conversaciones, y cada escritura del chat movería los contadores del índice (R9) |

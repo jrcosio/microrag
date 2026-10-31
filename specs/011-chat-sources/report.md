@@ -1,6 +1,9 @@
 # Informe de cierre — F11 Chat con fuentes
 
-> **Estado:** borrador, en la fase del teléfono. Hechos T066 (instrumentadas) y T068 (teclado real). **T067:** la primera medida da un p95 de 5,2 s; el usuario pidió medir otra vez con el teléfono cargado y frío. **Pendiente:** esa medida, el recorrido (T069) y el cierre (T070).
+> **Estado:** borrador, en la fase del teléfono.
+> - **Hechos:** T066 (instrumentadas), T067 (primer token) y T068 (teclado real).
+> - **Primer token:** no cumple los 5 s y queda como excepción documentada (D-057).
+> - **Pendiente:** el recorrido (T069) y el cierre (T070).
 
 **Rama:** `011-chat-sources`.
 **Fecha:** 2026-10-30.
@@ -79,7 +82,7 @@
 | **US5** Conversación guardada | `SqliteChatRepositoryTest` (emulador), `DefaultChatSessionTest`, `ResolveSourcesUseCaseTest`, `ChatViewModelTest`, `ChatScreenTest`, `NavigationTest` | ✅ |
 | **US6** Chat bloqueado o limitado | `ObserveChatAvailabilityUseCaseTest`, `ChatDuringIndexingTest`, `ChatViewModelTest`, `ChatScreenTest` | ✅ JVM |
 | **US7** Fiel al PNG y accesible | `ChatScreenTest`, `ChatScreenAccessibilityTest`, `CatalogAccessibilityTest`, `ChatScreenLayoutTest` | ✅ emulador y teléfono (teclado real en el A063) |
-| **US8** Primer token | `ChatBenchmarkTest` | ⚠️ primera medida: p95 5.205 ms. Se repite (§4) |
+| **US8** Primer token | `ChatBenchmarkTest` | ⚠️ medido y por encima de 5 s: excepción documentada (D-057, §4) |
 | **US9** Revisión de la plantilla | `template-review`, D-056 | ✅ |
 
 ### Criterios de éxito
@@ -89,7 +92,7 @@
 | SC-001 fuentes solo del contexto | ✅ `AnswerReadingTest`, `AnswerFormatterTest` y el golden: números fuera de rango, repetidos y formatos raros |
 | SC-002 prompt idéntico al del escritorio | ✅ 426/426 por SHA-256 en la JVM y en el teléfono, y las 50 de seguimiento también a través de la sesión |
 | SC-003 lectura de citas y negativa como el escritorio | ✅ 426/426 en la JVM y en el teléfono |
-| SC-004 primer token p95 ≤ 5 s | ⚠️ primera medida 5.205 ms (+205 ms). Consulta: se mide otra vez con el detalle por pregunta |
+| SC-004 primer token p95 ≤ 5 s | ⚠️ no se cumple: p95 de 5.205 ms y, en frío, de 5.826 ms. Excepción documentada (D-057); las palancas pasan a F14 |
 | SC-005 detener en < 1 s con el texto parcial | ✅ JVM, durante buscando y generando |
 | SC-006 conversación y posición tras una cita | ✅ JVM (`NavigationTest`, `ChatScreenTest`); el fragmento citado se ve sin desplazarse, en vertical y en horizontal (`DocumentScreenTest`) |
 | SC-007 recuperación tras matar el proceso | ✅ JVM y `SqliteChatRepositoryTest`. Recorrido: _pendiente del teléfono_, porque sin Gemma el emulador no puede crear conversaciones |
@@ -149,7 +152,30 @@ Sin Gemma en el emulador, el chat solo puede mostrar el bloqueo de modelos (C5):
 
 - **Velocidad de generación:** salió vacía. El motor solo la da con el indicador de diagnóstico, que la app nunca activa. La prueba la estima ahora a partir de la respuesta guardada.
 - **Exceso pequeño:** con 50 medidas, el p95 es la 48.ª, así que solo 3 preguntas llegan a 5,2 s. Siguiendo FR-045 se paró y se consultó. El usuario pidió medir otra vez con una línea por pregunta y el teléfono cargado y frío antes de decidir.
-- _Segunda medida: pendiente._
+
+**Segunda medida,** con el teléfono cargando (del 74 % al 82 %), con una línea por pregunta:
+
+| Tramo | Mediana | p95 | Por encima de 5 s |
+|---|---:|---:|---:|
+| 30 primeras (frío, 33–40 °C) | 4.419 ms | 5.826 ms | 12 |
+| 20 últimas (42 °C, estado térmico «moderado») | 5.574 ms | 6.671 ms | 13 |
+| Las 50 | 4.969 ms | 6.638 ms | 25 |
+
+| Otras cifras de la segunda medida | Valor |
+|---|---:|
+| Primer token en frío (Gemma sin cargar) | 15.296 ms |
+| Búsqueda, mediana y p95 | 239 y 369 ms |
+| Velocidad de generación estimada, mediana (frío / caliente) | 9,4 / 7,8 tokens/s |
+| Tiempo total, mediana y p95 | 11.587 y 24.954 ms |
+| Pico de memoria (RSS) | 4.758 MB |
+| Negativas y respuestas sin cita | 4 y 1 de 50 |
+
+- **Qué pesa:** en frío, el primer token ≈ 0,27 s + 3,1 s por cada 1.000 tokens estimados del prompt (r = 0,85). Casi todo es el prefill de Gemma; los seguimientos son los más lentos (mediana de 5,1 s).
+- **Límite de 1.500 tokens,** evaluado en el escritorio como D-056 (`run_eval.py limit-review`):
+  - cambian 65 prompts y 49 respuestas, juzgadas a mano;
+  - respuestas correctas 80,5 % (`v4` da 81,1 %), negativas 91,1 % y citas 93,8 %;
+  - en el teléfono, el p95 en frío bajaría solo a unos 5,3 s.
+- **Decisión (D-057):** el usuario mantiene el límite de 2.000 tokens y deja el p95 como excepción documentada. Las palancas pasan a F14. `ChatBenchmarkTest` informa `sc004=met|exceeded` sin fallar.
 
 ## 5. Diferencias frente al mockup
 
@@ -199,9 +225,7 @@ Sin Gemma en el emulador, el chat solo puede mostrar el bloqueo de modelos (C5):
 
 ## 7. Pendiente
 
-- **Teléfono (T066–T070):**
-  - instrumentadas;
-  - `ChatBenchmarkTest` (SC-004; si el p95 pasa de 5 s, se para y se consulta);
-  - `ChatScreenLayoutTest`;
-  - recorrido, consultando antes cómo hacerlo, porque la biblioteca tiene un documento del usuario;
-  - cierre.
+- **Teléfono:**
+  - recorrido (T069), con documentos públicos en una carpeta propia y giro, letra al 200 % y modo claro temporales, como acordó el usuario;
+  - repetir las instrumentadas con los APK finales (ahora 660, con `AnswerGoldenInstrumentedTest`);
+  - cierre (T070).

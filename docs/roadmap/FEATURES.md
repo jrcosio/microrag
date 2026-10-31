@@ -664,6 +664,13 @@ F14 implementa INT8 + precarga (criterio 2) y vuelve a medir el total frente a 2
 
 **Palanca de calidad (D-051):** reordenar los 20 primeros de la fusión con α = 0,5 subió el Recall@bloques de 0,889 a 0,903 en el escritorio, por debajo de la regla de adopción de F10. Queda como opción barata si se revisa el contexto.
 
+**Dato de partida (F11, D-057):** el primer token del chat en el teléfono de referencia queda por encima de los 5 s, como excepción documentada.
+- **Cifras:** p95 de 5,2 s en una medida y de 5,8 s en frío en otra; con el teléfono caliente (estado térmico «moderado»), 6,6 s.
+- **Qué pesa:** el primer token es ≈ 0,27 s más 3,1 s por cada 1.000 tokens estimados del prompt.
+- **Límite de 1.500 tokens:** evaluado y descartado (80,5 % de respuestas correctas, con el p95 proyectado en unos 5,3 s).
+
+F14 evalúa las palancas y mide con el teléfono en reposo entre preguntas y en sesión sostenida. La prueba de partida es `ChatBenchmarkTest`, que escribe una línea por pregunta.
+
 **Criterios de aceptación.**
 1. `benchmarks.md` con cifras reales, dispositivo y versiones, que sustituyen los presupuestos del informe.
 2. Si el p95 vectorial supera 20 ms: INT8 + preload implementado, con Recall@20 de INT8 frente a F32 ≥ 0,97. Si no, la decisión de quedarse en F32 queda documentada.

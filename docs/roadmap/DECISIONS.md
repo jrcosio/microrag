@@ -1154,6 +1154,54 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
 
 ---
 
+## D-057 — Primer token en el teléfono: excepción documentada (fase del teléfono de F11)
+
+- **Fecha:** 2026-11-01
+- **Decisión:**
+  - Se mantienen el contexto de D-034 y el límite del prompt de 2.000 tokens estimados.
+  - El p95 del primer token medido en el teléfono de referencia, por encima de los 5 s de SC-004 (constitución IV, D-026), queda como **excepción documentada**.
+  - Las palancas para bajarlo pasan a F14.
+  - FR-045 de F11 admite esta salida además del ajuste de bloques o tokens.
+- **Cifras** (`ChatBenchmarkTest`: 50 preguntas de la muestra de F10 con Gemma cargada en GPU, Nothing Phone (1) A063, Android 15):
+
+  | Medida | Mediana | p95 | > 5 s |
+  |---|---:|---:|---:|
+  | Primera (batería al 40 %, 36–38 °C) | 4.168 ms | 5.205 ms | — |
+  | Segunda, cargando, 30 primeras preguntas (frío) | 4.419 ms | 5.826 ms | 12 de 30 |
+  | Segunda, 20 últimas (42 °C, estado térmico «moderado») | 5.574 ms | 6.671 ms | 13 de 20 |
+  | Segunda, las 50 | 4.969 ms | 6.638 ms | 25 de 50 |
+
+  - **Respuesta en frío** (Gemma sin cargar): 15,3–16,0 s. En la app, Gemma se carga al abrir el chat.
+  - **Búsqueda:** mediana de 0,24 s.
+  - **Generación:** unos 9 tokens/s estimados en frío y 7,8 en caliente.
+  - **Pico de memoria:** 3,2–4,8 GB.
+- **Qué pesa:** en frío, el primer token ≈ 0,27 s + 3,1 s por cada 1.000 tokens estimados (r = 0,85), así que casi todo es el prefill de Gemma. Los seguimientos son los más lentos (mediana de 5,1 s), porque llevan el turno anterior.
+- **Alternativa evaluada y descartada: límite del prompt de 1.500 tokens** (`run_eval.py limit-review limit=1500`, regla A6 de la app; regla fijada antes de evaluar: los umbrales del informe).
+  - Cambian 65 prompts y 49 respuestas, juzgadas a mano en `offline/reports/limit-review.csv`:
+    - respuestas correctas: 80,5 % (298 de 370; `v4` da 81,1 %);
+    - negativas: 91,1 %;
+    - citas: 93,8 %.
+  - Cumple los umbrales con 2 respuestas de margen.
+    - Empeoran 3: la derrama de q0052 pierde el bloque con la respuesta.
+    - Mejora 1: q0368 deja de ser una negativa indebida.
+  - **Proyección en el teléfono:** el p95 en frío baja de 5,8 a unos 5,3 s. Algunas de las preguntas más lentas ya tenían menos de 1.500 tokens (5,25 s con 1.368 y 5,37 s con 1.396).
+  - Bajar más cuesta mucho más: con 1.400 cambia el 29 % de las preguntas y con 1.300 la mitad.
+- **Motivo:** el límite pierde calidad sin asegurar los 5 s. El usuario prefiere conservar la calidad de `v4` y llevar el primer token a F14.
+- **Consecuencias:**
+  - `ChatBenchmarkTest` informa `sc004=met|exceeded` en lugar de fallar por el p95.
+  - El plan de F11 lo recoge en «Complexity Tracking».
+  - **Las cifras de la tabla son la base de F14**, que debe:
+    - medir en sesiones sostenidas y con el teléfono en reposo entre preguntas, porque el calor sube el primer token más de 1 s;
+    - evaluar las palancas de D-026 (decodificación especulativa, plantilla más corta) y E4B frente a E2B;
+    - como propuesta nueva, evaluar reutilizar el prefijo fijo del prompt (las reglas, que no cambian) para no repetir su prefill.
+- **Alternativas descartadas:**
+  - límite de 1.500 (arriba);
+  - 3 bloques para todas las preguntas, que cambia la calidad de D-034 en el 100 % de los casos.
+- **Origen:** consulta de FR-045 en T067 de F11; el usuario eligió la excepción a la vista de las cifras.
+- **Afecta:** F11 (FR-045, SC-004, cierre) y F14.
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.

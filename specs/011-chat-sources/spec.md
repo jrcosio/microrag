@@ -421,7 +421,7 @@ Quien desarrolla evalúa en el harness de escritorio si 1 o 2 variantes de la pl
 - **FR-042**: El chat MUST NOT hacer ninguna llamada de red.
 - **FR-043**: Los registros MUST NOT contener preguntas, prompts, respuestas, textos de fragmentos ni nombres de documentos. En release no se registra nada. En debug, solo cifras: tiempos, tokens, bloques y estados.
 - **FR-044**: La búsqueda, la generación y el guardado MUST ejecutarse fuera del hilo principal.
-- **FR-045**: El primer token de extremo a extremo MUST medirse en el teléfono de referencia con los bloques de D-034 (SC-004). Si no se cumple, MUST registrarse en DECISIONS un ajuste de bloques o tokens antes del cierre.
+- **FR-045**: El primer token de extremo a extremo MUST medirse en el teléfono de referencia con los bloques de D-034 (SC-004). Si no se cumple, MUST registrarse en DECISIONS antes del cierre un ajuste de bloques o tokens o, si el usuario lo elige a la vista de las cifras, una excepción documentada que pase las palancas a F14 (así se cerró: D-057).
 - **FR-046**: La revisión de la plantilla pedida en D-035 MUST hacerse en el harness de escritorio, con 1 o 2 variantes sobre las mismas preguntas que F05. La regla de adopción es: ≥ 2 puntos más de respuestas correctas, negativas ≥ 85 % y citas ≥ 90 %. La decisión MUST registrarse en DECISIONS. Si se adopta una variante, la app y el escritorio MUST usar la misma plantilla (FR-012).
 
 ### Key Entities
