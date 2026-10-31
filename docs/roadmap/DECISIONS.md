@@ -1161,3 +1161,13 @@ Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.
 - **G08** — Flecha Atrás en las pestañas, que vuelve a Inicio. Queda aplicada en la spec de F01 como supuesto por la precedencia del PNG; se revisa en el checkpoint de F01.
 - **G10** — Contenido de los pasos 2 y 3 de Preparación.
 - **G14–G17, G21, G22, G24, G25, G29–G31** — Propuestas para estados y acciones no maquetados. G11, G13 y G26 quedan resueltas en D-053; G12 y G39 se hicieron en F01.
+- **Documentos en otro idioma** — Sin medir.
+  - **Lo que hay:** toda la evaluación usa documentos y preguntas en español (F05, la paridad de F10 y la medida del primer token de F11).
+  - **Generación:** Gemma 4 E2B lee el contexto en inglés y responde en español.
+  - **Búsqueda:** la mitad por palabras está pensada para el español (palabras vacías y raíces del español). Con un documento en inglés y la pregunta en español, solo ayuda la búsqueda por significado (EmbeddingGemma 2, multilingüe). Se esperan más negativas o respuestas incompletas.
+  - **Pendiente:**
+    - medirlo en el escritorio con documentos en inglés y preguntas en español y en inglés;
+    - decidir con cifras, por ejemplo una normalización según el idioma del documento.
+
+    Encaja con F12 (selector de idioma) o con F14.
+  - **Origen:** pregunta del usuario en la fase del teléfono de F11 (2026-10-31), que pidió dejarlo pendiente.
