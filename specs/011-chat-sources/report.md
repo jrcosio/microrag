@@ -1,12 +1,12 @@
 # Informe de cierre — F11 Chat con fuentes
 
-> **Estado:** borrador. Todo lo que no necesita el teléfono está hecho. **Pendiente:** la fase del teléfono (T066–T070), con la medida del primer token (SC-004), la prueba del teclado (SC-009) y el recorrido. Las cifras del teléfono se añaden en §4 cuando se midan.
+> **Estado:** borrador, en la fase del teléfono. Hechos T066 (instrumentadas) y T068 (teclado real). **T067:** la primera medida da un p95 de 5,2 s; el usuario pidió medir otra vez con el teléfono cargado y frío. **Pendiente:** esa medida, el recorrido (T069) y el cierre (T070).
 
 **Rama:** `011-chat-sources`.
 **Fecha:** 2026-10-30.
 **Dispositivos:**
 - emulador `Pixel_10`, API 37, ARM64;
-- teléfono de referencia Nothing Phone (1) A063, Android 15 (API 35): **pendiente**.
+- teléfono de referencia Nothing Phone (1) A063, Android 15 (API 35).
 
 **Versiones:**
 - app 0.1.0 (versionCode 1);
@@ -62,7 +62,9 @@
 | `CatalogAccessibilityTest` en el emulador | ✅ 78/78 |
 | Instrumentados en el emulador (sin `@RequiresModels` ni `@RequiresNetwork`) | ✅ 657/657 (F10: 490), en 18 min; repetida con los APK finales tras el arreglo de T064: 657/657 |
 | Pruebas con modelos en el emulador | ✅ `RetrievalParityTest` sigue igual con `CorpusIndex` (0,837 frente a 0,837 del escritorio); `ChatBenchmarkTest` se salta, porque el emulador no tiene Gemma |
-| Instrumentados en el teléfono | _pendiente (T066)_ |
+| Instrumentados en el teléfono | ✅ 657/657 en 16,5 min. Una primera ejecución perdió la salida por la conexión adb; en ella falló una vez `CatalogAccessibilityTest` (control de menos de 48 dp). No se reproduce: sola, 78/78, y en la batería completa, en verde |
+| `AnswerGoldenInstrumentedTest` (nueva, golden de respuestas en el dispositivo) | ✅ 3/3 en el teléfono: 426 prompts por SHA-256, lectura de citas y fichas |
+| `ChatScreenLayoutTest` en el teléfono | ✅ con el teclado real y la barra inferior |
 
 ## 3. Validación por historia y criterio
 
@@ -76,8 +78,8 @@
 | **US4** Seguimiento | `DefaultChatSessionTest`: las 50 preguntas de seguimiento del golden, pasando por la sesión, dan el prompt del escritorio | ✅ JVM |
 | **US5** Conversación guardada | `SqliteChatRepositoryTest` (emulador), `DefaultChatSessionTest`, `ResolveSourcesUseCaseTest`, `ChatViewModelTest`, `ChatScreenTest`, `NavigationTest` | ✅ |
 | **US6** Chat bloqueado o limitado | `ObserveChatAvailabilityUseCaseTest`, `ChatDuringIndexingTest`, `ChatViewModelTest`, `ChatScreenTest` | ✅ JVM |
-| **US7** Fiel al PNG y accesible | `ChatScreenTest`, `ChatScreenAccessibilityTest`, `CatalogAccessibilityTest` | ✅ emulador. `ChatScreenLayoutTest` (teclado real): _pendiente, solo A063_ |
-| **US8** Primer token | `ChatBenchmarkTest` | _pendiente del teléfono_ |
+| **US7** Fiel al PNG y accesible | `ChatScreenTest`, `ChatScreenAccessibilityTest`, `CatalogAccessibilityTest`, `ChatScreenLayoutTest` | ✅ emulador y teléfono (teclado real en el A063) |
+| **US8** Primer token | `ChatBenchmarkTest` | ⚠️ primera medida: p95 5.205 ms. Se repite (§4) |
 | **US9** Revisión de la plantilla | `template-review`, D-056 | ✅ |
 
 ### Criterios de éxito
@@ -85,14 +87,14 @@
 | Criterio | Resultado |
 |---|---|
 | SC-001 fuentes solo del contexto | ✅ `AnswerReadingTest`, `AnswerFormatterTest` y el golden: números fuera de rango, repetidos y formatos raros |
-| SC-002 prompt idéntico al del escritorio | ✅ 426/426 por SHA-256, y las 50 de seguimiento también a través de la sesión |
-| SC-003 lectura de citas y negativa como el escritorio | ✅ 426/426 |
-| SC-004 primer token p95 ≤ 5 s | _pendiente del teléfono_ |
+| SC-002 prompt idéntico al del escritorio | ✅ 426/426 por SHA-256 en la JVM y en el teléfono, y las 50 de seguimiento también a través de la sesión |
+| SC-003 lectura de citas y negativa como el escritorio | ✅ 426/426 en la JVM y en el teléfono |
+| SC-004 primer token p95 ≤ 5 s | ⚠️ primera medida 5.205 ms (+205 ms). Consulta: se mide otra vez con el detalle por pregunta |
 | SC-005 detener en < 1 s con el texto parcial | ✅ JVM, durante buscando y generando |
 | SC-006 conversación y posición tras una cita | ✅ JVM (`NavigationTest`, `ChatScreenTest`); el fragmento citado se ve sin desplazarse, en vertical y en horizontal (`DocumentScreenTest`) |
 | SC-007 recuperación tras matar el proceso | ✅ JVM y `SqliteChatRepositoryTest`. Recorrido: _pendiente del teléfono_, porque sin Gemma el emulador no puede crear conversaciones |
 | SC-008 avisos una vez y accesibilidad | ✅ `ChatViewModelTest`, `ChatScreenTest` y ATF en todos los estados |
-| SC-009 compositor visible con el teclado | ✅ con menos alto (JVM). Teclado real: _pendiente del teléfono_ |
+| SC-009 compositor visible con el teclado | ✅ con menos alto (JVM) y con el teclado real en el teléfono |
 | SC-010 registros sin texto y sin red | ✅ `DefaultChatSessionTest`, `NetworkConfinementTest`, `AppLoggerTest` |
 | SC-011 nunca dos motores en la GPU; Gemma se libera con la UI oculta | ✅ `ChatDuringIndexingTest`, con el coordinador real |
 | SC-012 negativa sin bloques en < 1 s, sin el modelo | ✅ JVM |
@@ -130,7 +132,24 @@ Sin Gemma en el emulador, el chat solo puede mostrar el bloqueo de modelos (C5):
 
 ### Teléfono de referencia
 
-_Pendiente (T067): mediana y p95 del primer token, primero en frío, tokens del prompt, velocidad, total, pico de memoria, negativas y respuestas sin cita._
+**Primera medida (T067),** con el teléfono enchufado, la batería del 40 % al 32 % y a 36–38 °C; 24 minutos generando sin pausa:
+
+| Cifra | Valor |
+|---|---:|
+| Preguntas medidas | 50 (10 de seguimiento) |
+| Backend de Gemma | GPU |
+| Primer token, mediana | 4.168 ms |
+| **Primer token, p95** | **5.205 ms** (límite 5.000) |
+| Primer token en frío (Gemma sin cargar) | 15.959 ms |
+| Tokens estimados del prompt, mediana y p95 | 1.292 y 1.627 |
+| Tiempo total, mediana y p95 | 11.085 y 28.340 ms |
+| Pico de memoria (RSS) | 3.201 MB |
+| Negativas | 4 de 50 |
+| Respuestas sin cita | 1 de 50 |
+
+- **Velocidad de generación:** salió vacía. El motor solo la da con el indicador de diagnóstico, que la app nunca activa. La prueba la estima ahora a partir de la respuesta guardada.
+- **Exceso pequeño:** con 50 medidas, el p95 es la 48.ª, así que solo 3 preguntas llegan a 5,2 s. Siguiendo FR-045 se paró y se consultó. El usuario pidió medir otra vez con una línea por pregunta y el teléfono cargado y frío antes de decidir.
+- _Segunda medida: pendiente._
 
 ## 5. Diferencias frente al mockup
 
@@ -174,6 +193,8 @@ _Pendiente (T067): mediana y p95 del primer token, primero en frío, tokens del 
 | «Copiar respuesta» quedó oculto durante el streaming al leer mal el contrato | Revisión frente a FR-024 y T043 | Vuelve a verse desactivado |
 | Una conversación que no se pudo guardar reutilizaba el id 0: «⋯» ofrecía borrarla, y la siguiente pregunta nunca se guardaba | Revisión de C16 | Se trata como no guardada, y la sesión la vuelve a crear |
 | Los estados de disponibilidad sin conversación llevaban doble margen | Revisión del contrato §2 | Sin margen propio |
+| **La app se cerraba con la primera respuesta de Gemma.** El patrón de citas `(?U)\[…]` compila en la JVM, pero el motor de Android (ICU) rechaza `(?U)`. Ni las pruebas JVM ni el emulador, que no tiene Gemma, leían una respuesta en un dispositivo | Teléfono, `ChatBenchmarkTest` (T067) | `91ad50b`: las citas se leen carácter a carácter con las clases de Python de `PyText`, iguales en los dos motores. `AnswerGoldenInstrumentedTest` pasa el golden de respuestas en el dispositivo |
+| `ChatBenchmarkTest` recorría el registro de la prueba mientras la sesión escribía en él (`ConcurrentModificationException`). En el emulador, con 3 preguntas, no saltaba | Teléfono (T067) | `5a810e9`: lee copias |
 | En horizontal, el estado sin conversación quedaba casi oculto y el aviso tapaba la conversación | Recorrido en el emulador (T064) | Disposición compacta por debajo de 480 dp de alto, con dos pruebas que reproducen la barra inferior |
 
 ## 7. Pendiente

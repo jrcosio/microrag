@@ -512,9 +512,13 @@ Historias de la spec:
 
 **Purpose**: las medidas en el A063 y el cierre. Solo cuando el usuario diga que el teléfono está disponible.
 
-- [ ] T066 En el teléfono: instalar los dos APK con `install -r` y ejecutar las instrumentadas sin modelos (quickstart §6). Deben quedar en verde.
+- [X] T066 En el teléfono: instalar los dos APK con `install -r` y ejecutar las instrumentadas sin modelos (quickstart §6). Deben quedar en verde.
+  - 657/657 en 16,5 min. Una primera ejecución perdió la salida por la conexión adb; en ella falló una vez `CatalogAccessibilityTest` (48 dp). No se reproduce: sola, 78/78, y en la batería completa, en verde.
 - [ ] T067 [US8] `ChatBenchmarkTest` en el teléfono (SC-004): mediana y p95 del primer token, la primera en frío, tokens del prompt, velocidad, total, pico de memoria, negativas y respuestas sin cita. **Si el p95 pasa de 5 s, se para y se consulta** (FR-045, riesgo 3).
-- [ ] T068 [US7] `ChatScreenLayoutTest` en el teléfono.
+  - Primera ejecución: la app se cerraba al leer la primera respuesta. El patrón de citas usaba `(?U)`, que Android rechaza; se corrigió con `AnswerGoldenInstrumentedTest` (`91ad50b`). La prueba también recorría el registro sin copiarlo (`5a810e9`).
+  - Primera medida completa: p50 4.168 ms y **p95 5.205 ms**. Se paró y se consultó; el usuario pidió medir otra vez con una línea por pregunta (`70c48a7`) y el teléfono cargado y frío.
+- [X] T068 [US7] `ChatScreenLayoutTest` en el teléfono.
+  - En verde con el teclado real y la barra inferior.
 - [ ] T069 Recorrido del chat en el teléfono. **Antes se consulta al usuario cómo hacerlo** (R15), porque su biblioteca tiene un documento propio. Se siguen las reglas de privacidad del teléfono.
 - [ ] T070 Cierre (Definición de terminado):
   - `report.md` completo: cifras del teléfono, dispositivo, versión de Android y versiones de LiteRT-LM, SQLite-Vector y la app (constitución VI); diferencias frente al PNG 04;
