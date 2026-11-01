@@ -16,7 +16,11 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -98,6 +102,14 @@ fun LanguagesScreen(
                         LisdataRadioRow(title = stringResource(R.string.languages_answer_spanish), selected = true, onSelect = {})
                     }
                 }
+                // S8: the stored choice could not be read; Spanish is in use until a save works.
+                if (state.saved?.readFailed == true) {
+                    LisdataInfoCard(
+                        icon = LisdataIcons.Warning,
+                        title = stringResource(R.string.languages_read_failed),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
                 LisdataInfoCard(
                     icon = LisdataIcons.Globe,
                     title = stringResource(R.string.languages_multilingual_title),
@@ -116,6 +128,27 @@ fun LanguagesScreen(
             }
         }
         SnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter).padding(spacing.space3))
+    }
+    SaveFailure(state.saveFailed, snackbarHostState, actions.onSaveFailureShown)
+}
+
+/**
+ * S8: «No se pudieron guardar las preferencias.» once in the snackbar, which TalkBack reads politely. It is
+ * consumed as soon as it arrives, so a rotation does not repeat it, and the snackbar follows this copy.
+ */
+@Composable
+private fun SaveFailure(failed: Boolean, snackbar: SnackbarHostState, onShown: () -> Unit) {
+    var showing by remember { mutableStateOf(false) }
+    LaunchedEffect(failed) {
+        if (!failed) return@LaunchedEffect
+        showing = true
+        onShown()
+    }
+    val text = stringResource(R.string.languages_save_failed)
+    LaunchedEffect(showing) {
+        if (!showing) return@LaunchedEffect
+        snackbar.showSnackbar(text)
+        showing = false
     }
 }
 

@@ -360,12 +360,12 @@ Historias de la spec:
 
 **Independent Test**: con fallos programados, Idiomas avisa y conserva los valores anteriores, y el resto de la app funciona (SC-007).
 
-- [ ] T054 [P] [US6] Ampliar `LanguagesViewModelTest` y `LanguagesScreenTest`:
+- [X] T054 [P] [US6] Ampliar `LanguagesViewModelTest` y `LanguagesScreenTest`:
   - con `readFailed`, la tarjeta de aviso y los valores por defecto marcados;
   - un fallo al guardar da el aviso de error, que se anuncia una vez; el botón vuelve a estar activo y los valores no cambian; reintentar funciona;
   - la app sigue usable.
-- [ ] T055 [US6] Implementar la tarjeta de aviso de lectura y el aviso de error al guardar en `LanguagesScreen`. T054 pasa.
-- [ ] T056 [US6] Prueba instrumentada `…/androidTest/…/core/locale/PlatformAppLanguageControllerTest.kt` en el emulador `MicroRAG_API33`: aplicar English y volver a Español con el `LocaleManager` real; `current()` los lee. Deja el idioma como estaba.
+- [X] T055 [US6] Implementar la tarjeta de aviso de lectura y el aviso de error al guardar en `LanguagesScreen`. T054 pasa.
+- [X] T056 [US6] Prueba instrumentada `…/androidTest/…/core/locale/PlatformAppLanguageControllerTest.kt` en el emulador `MicroRAG_API33`: aplicar English y volver a Español con el `LocaleManager` real; `current()` los lee. Deja el idioma como estaba.
 
 **Checkpoint**: preferencias robustas ante fallos.
 

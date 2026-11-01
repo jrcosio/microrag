@@ -39,6 +39,7 @@ class LanguagesScreenTest {
         onBack = { calls += "back" },
         onSelectApp = { calls += "select:$it" },
         onSave = { calls += "save" },
+        onSaveFailureShown = { calls += "failureShown" },
     )
 
     private val spanish = LanguagesUiState(saved = LanguageSettings(AppLanguage.SPANISH), selectedApp = AppLanguage.SPANISH)
@@ -125,5 +126,36 @@ class LanguagesScreenTest {
         scrollTo("ANSWER LANGUAGE")
         compose.onNode(radio and hasText("Spanish")).assertIsSelected()
         compose.onNodeWithText("Save preferences").assertExists()
+    }
+
+    // --- US6: S8 ---------------------------------------------------------------------------------------
+
+    @Test
+    fun anUnreadableChoice_showsTheNotice_andTheDefaultsMarked() {
+        show(LanguagesUiState(saved = LanguageSettings(AppLanguage.SPANISH, readFailed = true), selectedApp = AppLanguage.SPANISH))
+        scrollTo("No se pudieron leer tus preferencias.")
+
+        compose.onNodeWithText("No se pudieron leer tus preferencias. Se usan las de por defecto.", useUnmergedTree = true).assertExists()
+        compose.onNode(radio and hasText("English")).assertIsNotSelected()
+    }
+
+    @Test
+    fun withoutAReadFailure_thereIsNoNotice() {
+        show(spanish)
+
+        compose.onNodeWithText("No se pudieron leer tus preferencias.", substring = true).assertDoesNotExist()
+    }
+
+    @Test
+    fun aFailedSave_saysSoOnce_andTheButtonWorksAgain() {
+        show(spanish.copy(selectedApp = AppLanguage.ENGLISH, saveFailed = true))
+        compose.waitForIdle()
+
+        compose.onNodeWithText("No se pudieron guardar las preferencias. Se mantienen las anteriores.").assertExists()
+        assertThat(calls.count { it == "failureShown" }).isEqualTo(1)
+        compose.onNode(radio and hasText("English")).assertIsSelected()
+        scrollTo("Guardar preferencias")
+        compose.onNodeWithText("Guardar preferencias").performClick()
+        assertThat(calls).contains("save")
     }
 }

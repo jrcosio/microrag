@@ -170,4 +170,37 @@ class LanguagesViewModelTest {
 
         assertThat(recreated.state.value.selectedApp).isEqualTo(AppLanguage.SPANISH)
     }
+
+    // --- US6: preferences that are never left half written (S8) ---------------------------------------
+
+    @Test
+    fun anUnreadableChoice_opensWithSpanish_andSaysSo() = runTest(dispatcher) {
+        controller.readFailed = true
+        val viewModel = viewModel()
+        advanceUntilIdle()
+
+        assertThat(viewModel.state.value.saved).isEqualTo(LanguageSettings(AppLanguage.SPANISH, readFailed = true))
+        assertThat(viewModel.state.value.selectedApp).isEqualTo(AppLanguage.SPANISH)
+    }
+
+    @Test
+    fun afterAFailedSave_tryingAgainWorks() = runTest(dispatcher) {
+        controller.failApply = true
+        val viewModel = viewModel()
+        advanceUntilIdle()
+        viewModel.onSelectApp(AppLanguage.ENGLISH)
+        viewModel.onSave()
+        advanceUntilIdle()
+        assertThat(viewModel.state.value.saveFailed).isTrue()
+        assertThat(controller.current()).isEqualTo(AppLanguage.SPANISH)
+
+        controller.failApply = false
+        val event = async { viewModel.events.first() }
+        viewModel.onSave()
+        advanceUntilIdle()
+
+        assertThat(event.await()).isEqualTo(LanguagesEvent.Close(recreate = false))
+        assertThat(viewModel.state.value.saveFailed).isFalse()
+        assertThat(controller.current()).isEqualTo(AppLanguage.ENGLISH)
+    }
 }
