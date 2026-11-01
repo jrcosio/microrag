@@ -103,8 +103,18 @@ class CorporaTest(unittest.TestCase):
         self.assertEqual((english.manifest, english.docs, english.sources),
                          (corpus.CORPUS / "en" / "manifest.json", corpus.CORPUS / "en" / "docs", corpus.CORPUS / "en" / "SOURCES.md"))
 
-    def test_spanish_sources_text_is_unchanged(self):
-        self.assertEqual(corpus.SOURCES.read_text(encoding="utf-8"), corpus.sources_markdown(corpus.load_manifest()))
+    def test_english_manifest_has_three_wikibooks_under_cc_by_sa(self):
+        docs = corpus.load_manifest(corpus.CORPORA["en"].manifest)
+        self.assertEqual(len(docs), 3)
+        for doc in docs:
+            self.assertEqual((doc.license, doc.format, doc.fetch["type"], doc.fetch["site"]), ("CC BY-SA 4.0", "txt", "wikibooks", "en"))
+            self.assertTrue(all(isinstance(page["revid"], int) for page in doc.fetch["pages"]))
+        corpus.verify(docs, corpus.CORPORA["en"].docs)
+
+    def test_sources_files_are_generated_from_their_manifest(self):
+        for source in corpus.CORPORA.values():
+            expected = corpus.sources_markdown(corpus.load_manifest(source.manifest), source.purpose)
+            self.assertEqual(source.sources.read_text(encoding="utf-8"), expected, source.name)
 
 
 class WikitextTest(unittest.TestCase):

@@ -1,0 +1,784 @@
+"Art" vs. Readability
+
+Reading is a habitual skill. What you read most often is easiest for you to read. This is why newspapers, magazines, and books are more or less standardized. Basic Book Design will teach you to make your document look conventional.
+
+Breaking these rules usually makes your book harder to read. I.e., a book that looks "distinctive" and artistic is usually hard to read. Conversely, easy-to-read books usually look boring and conventional.
+
+A good compromise is to design a distinctive and artistic cover, chapter titles, running headers, etc.; and make your text boring and readable.
+
+About the Authors
+
+This book was originally written by Thomas David Kehoe and published in 2002. In June 2006 he released it under the GFDL licence so that Wikibooks could reproduce it.
+
+The original book included this information written by the author, Thomas David Kehoe, about himself in 2002:
+
+Five years ago, I wrote Stuttering: Science, Therapy & Practice. No one would publish it, so I published it myself. I must have done some things right, because my book became the #1 bestseller about stutter-ing (according to Amazon.com).
+
+But over these years I learned more about books many mistakes.
+
+My next book was Hearts And Minds: How Our Brains Are Hardwired For Relationships. I wanted to design the book myself. The few books about book design were written before computers, when bookmaking was an obscure art. A reader wrote the following review of one such book, on Amazon:
+
+…the book was written long before computers revolutionized the publishing industry, so it has a distinctly archaic — even obsolete — aura. Vast portions of the text are no longer relevant to modern publishing, and readers who rely on them will be very seriously misled… Unfortunately, students will ﬁnd that there is no modern alternative to this book…Proceed at your own risk, and bear in mind that many other books—none of them wholly satisfactory — must also be consulted for supplementary guidance within this sadly under-documented field.
+
+What I found more useful were LATEX manuals, as well as the Chicago Manual of Style (I picked it over other style manuals be-cause I'm a University of Chicago alumnus). But LATEX was too hard to learn. The Chicago Manual of Style is 900 pages long and doesn't tell you how to design a book. I wanted a little book like the Elements of Style, by William Strunk and E.B. White, to quickly tell me the basic rules of book design.
+
+Capitalizing Words in Titles
+
+General Capitalization Rules
+These rules are adapted from The Chicago Manual of Style for clarity in the modern age of computers and the Internet.
+
+1. The first and last words are always capitalized, even if fewer than five letters.
+
+2. Words over five letters are always capitalized.
+
+3. Verbs are always capitalized, even if fewer than five letters.
+
+4. Nouns are always capitalized, even if fewer than five letters.
+
+5. Unless the first or last words of a title, these are never capitalized:
+	articles: a, an, the;
+	conjunctions: and, but, or, nor;
+	prepositions that are fewer than five letters long: at, by, for, from, in, into, of, off, on, onto, out, over (unless used as a verb), up, with;
+	infinitives: to;
+	"as" is never capitalized;
+	o'Clock (since it means "of the clock")
+
+6. These words are capitalized, even though they are fewer than five letters.
+	also, be, if, than, that, thus, when
+
+7. Parentheses and alternate titles: Some songs, and less commonly books and movies, will have parentheses in their names. If the content of the parentheses is an alternative song title then the above rules for capitalization apply. Consider the Simon & Garfunkel song "A Simple Desultory Philippic (or How I Was Robert McNamara'd into Submission)". The word "or" is not capitalized, even though it is the first word inside the parenthesis, because it is not part of the alternate  title. The word "or" is not needed when the content of the parentheses is clearly an alternate title. When the content of the parentheses is also part of the title, the above six rules apply. An example is Buzzcocks' song "Ever Fallen in Love (with Someone You Shouldn’t Have)?"
+
+The word "or" is not needed when the content of the parentheses is clearly an alternate title.
+
+In the movie Dr. Strangelove or: How I Learned to Stop Worrying and Love the Bomb, which is sometimes referred to simply as Dr. Strangelove, there is a colon (:) after the "or". The colon is completely optional and may be included or excluded from the title by the author.
+
+Exceptions: When prepositions are used as phrasal verbs, they are capitalized to show that they are part of the verb and not showing physical relations between nouns. Examples are Turn On, Turn Off, or Give Up. Note that the word "up" is more often used as part of a verb than as a physical preposition. Likewise, a song called "Blow Up" would have a similar meaning to exploding, and not blowing in an upwards direction.
+
+Related rules
+The names of books, movies, and music albums are italicized.
+
+The names of songs are in "quotation marks".
+
+Links and hyperlinks for the Internet are underlined.
+
+Interpretations
+There is some debate between authors of style manuals of some of these rules, mostly on italicizing versus underlining. When writing with a pen and paper, it is extremely difficult to clearly italicize text so the reader knows the author is referring to titles. Thus, writers will  normally underline words instead of italicize them. With the invention of computers and text editors, italicizing and underlining has become simple. However, with the popularity of the Internet, underlining has become reserved for links.
+
+The purpose of italicizing or underlining is to clearly show the reader of text that certain words belong to titles. If a writer is writing with pen and paper they may choose to underline instead of italicize. The most important issue is to not switch between styles; all titles of books, movies, and albums should be either italicized or underlined.
+
+Captions and Legends
+
+Illustrations, tables, charts, etc. should have captions or legends.
+
+The "keep out trouble" rule is to use Microsoft Word's Insert…Caption function.
+
+The "traditional" rule is in the Chicago Manual of Style section about this (11.24-43).
+
+Bulleted Lists
+Use a tab between the bullet and the first word. A space will vary in width, if your list has justified text.
+
+Emphasizing Words
+
+Amateur writers emphasize words with CAPITAL LETTERS, underlining, bold, or larger letters.
+
+Professional writers instead use italics to emphasize words.
+
+Amateurs go on and on with really long emphasized sentences.
+Sometimes they emphasize entire paragraphs.
+
+Professionals emphasize only one word, or a few words.
+
+What about emphasizing a word in an emphasized sentence? The standard form is that in an italic sentence, the emphasized word is not in italics. Instead consider using bold italics to emphasize a word in an italic sentence.
+
+Modiﬁers
+Don't use very, really, or just. These words are just never really necessary, and always make you sound very amateurish. (Read that sentence again, removing just, really, and very.)
+
+The compound word sky-rocketing means that the speaker is reporting a problem someone should do something about—as in, someone other than the speaker. E.g., “Dog poop in parks is sky-rocketing!”
+
+Font
+
+Keep Out of Trouble Rules
+Use 11-point Palatino for text.
+Use 14-point Helvetica for chapter titles and 12-point Helvetica for section headings.
+Never use monospaced (a.k.a. “typewriter”) fonts, e.g., Courier, except when mocking up documents, i.e., reports, that actually use such a font.
+Use unusual fonts only for short items, e.g., the title and author's name on the cover, or for chapter titles.
+Don't use too many fonts. Three should be enough for almost any book.
+Check books you like the look of, and see which fonts they use. Half an hour in a bookstore looking at fonts can be very useful and enlightening.
+
+Advanced Rules
+The Elements Of Typographic Style, by Robert Bringhurst (2001), contains some useful rules about font selection.
+
+DEFINITIONS:
+serif
+sans-serif
+proportional
+monospaced
+x-height
+points
+picas
+subheads
+large-print book
+
+Serif vs. Sans-Serif
+Fonts are, in general, divided into serif and sans-serif designs. Serif fonts have little curlicues on the ends of the letters. Sans-serif fonts don't. E.g.,
+
+Times Roman is a serif font.
+Helvetica is a sans-serif font.
+
+People don't read words one letter at a time. They recognize entire words at once. Words are, in general, easier to recognize in a serif font, for three reasons:
+
+•	The curlicues give the letters a more distinctive shape.
+•	The lower-case letters are relatively smaller (and the upper-case letters relatively larger). This is called x-height.
+•	Readers are used to reading serif fonts. What you read most often is easiest for you to read.
+
+Smaller x-height makes serif fonts use less horizontal space. I.e., your book will be shorter if you use a serif font. E.g., the following two sentences are the same font size:
+
+The quick brown fox jumps over the lazy dog. (12-point Times)
+The quick brown fox jumps over the lazy dog. (12-point Helvetica)
+
+In 1931, the London Times hired typographers to design a highly readable, compact font. Times Roman is now the most widely used font. It's chicken-and-egg: Times Roman is easy to read, so it's widely used; and it's widely used, so it's easy to read.
+
+Points And Picas
+72.27 points make one inch. A point is 0.3515 millimeters. A point is neither metric nor imperial.
+
+Microsoft Word uses exactly 72 points to the inch. This is known as a "Postscript point" since it was the first computer design system to use the 72-per-inch convention. Postscript points aren't technically typesetting points; i.e. two typesetters, one using PS points and the other using real points, will discover that one's fonts are slightly too big and the other's points slightly too small. Slightly means the round-off error is insignificant for all but the largest fonts.
+
+TeX and METAFONT use 72.27 points to the inch. They support other units, like Didot point used in European typography. One Didot point is equal to 1238/1157 points.
+
+A pica is twelve points, or about one-sixth of an inch, or about four millimeters. 12 Didot points are one cicero.
+
+Chapter And Section Titles
+Use a different font for chapter titles. Helvetica is a good choice. It's the most popular sans-serif font. It's the most distinctive font from Times Roman that is still relatively easy to read. It also looks good in bold.
+
+The Chicago Manual of Style (18.28-29) advocates using the same font for text and for section and subsection headings (called subheads). The Chicagoans recommend using ALL CAPS, italics, SMALL CAPS, etc., to differentiate the levels of headings.
+
+Don't use small caps in a heading unless you buy a small caps font. The Small Caps feature that word processors offer you (scaling down capitals) isn't really small caps. More about this later. If you use a small caps font, make sure the heading font isn't smaller than the text font. That would confuse readers.
+
+ALL CAPS are harder to read. This is OK for short chapter titles, but not for long subheads.
+
+Instead, consider using the chapter title font (e.g., Helvetica) for the A-level subheads, and then switching to the text font (e.g., Times Roman) for the B-level subheads. E.g., this book has chapter titles in 14-point Helvetica Neue bold ALL CAPS, section heads in 12-point Helvetica Neue bold Title Case, and subheads in 12-point Times New Roman italic Title Case.
+
+Subheads should never be the last item on a page. In Microsoft Word, use Format...Paragraph...Line and Page Breaks...Keep with next to prevent this.
+
+Monospaced Fonts
+The third type of font should be used rarely or never. These are monospaced or typewriter fonts. The most common example is Courier. In contrast, Times Roman, Helvetica, etc. are proportionately-spaced fonts.
+
+Monospaced fonts were designed for type-writers. Each letter is the same width. E.g., compare Courier with Times Roman:
+
+ iii	mmm 	(Courier)
+iii	mmm 	(Times Roman)
+
+Notice that in Courier, the  i and the m are the same width. In Times Roman, the  i is narrow and the m is wide.
+Monospaced fonts are hard to read and take up more space.
+
+The quick brown fox jumps over the lazy dog. (12-point Times Roman)
+The quick brown fox jumps over the lazy dog. (12-point Helvetica)
+The quick brown fox jumps over the lazy dog. (12-point Courier)
+
+NOTE: If your computer does not have these fonts installed, similar ones will be displayed.
+
+Low-Res Fonts
+If you use a Macintosh running Mac OS 9 or earlier, your font library will include several fonts Apple developed in 1984 for the original Macintosh and its Image-Writer printer. These fonts include New York, Geneva, Monaco, and Chicago. These were designed to look good at the low 80 dpi resolution of the original Macintosh and its Image Writer printer. Modern printers are at least 360 dpi. Don't use these fonts unless you're trying to make your document have that authentic 1984 birthplace-of-desktop-publishing look.
+text
+
+Font Size
+Too-small fonts are hard to read, especially for older people or people who don't read much.
+
+Too-large fonts look like a children's book. Your eyes have to move more, and you have to turn more pages. This gets tiring.
+
+Compact-width fonts, e.g., Times Roman, look best in 11 or 12 points.
+Wider fonts, e.g., Palatino, look best in a smaller font size, usually 10 or 11 points.
+
+"Large print" books are at least 14 points.
+
+Gender
+
+To write gender-free text, use the words person and individual.
+
+In years past, this page read:Don’t use they, them, or their to replace he, she, him, her, his or hers. "They" and "their" are considered plural (and only plural) by many people however their usage for the 3rd person singular is becoming more common. "He," "she," "him," and "her" are singular.However, in modern times the "singular they" is becoming more accepted by casual readers and professionals alike. For example, the Washington Post Style Guide now endorses the singular they, and the American Dialect Society word of the year in 2015 was the singular they. This is especially important because some transgender people use exclusively they/them pronouns, and it would be rather difficult to talk about them if their pronouns were deemed unacceptable.
+
+They can also be used as a singular pronoun when the gender is unknown. "I heard that someone in our school did something to get them expelled, did you?"
+
+"No, what did they do?"It should be noted that when referring to a person who uses singular they, "they" is still syntactically plural.  For example:
+
+Gendered language:She sells sea shells by the sea shore.The same sentence featuring correct usage of the singular they:They sell sea shells by the sea shoreIncorrect usage of the singular they:They sells sea shells by the sea shore
+
+Headers, Footers, and Page Numbers
+
+Keeping Out of Trouble Rules
+Use a running header for the text section of your book
+Don't use footer in books, except for drop folios.
+Put the page number at the outside margin of the running header
+Put the chapter title in the recto (right-hand) running header.
+Put the book title in the verso (left-hand) running header. (unless your book includes two levels of classification i.e. "parts" In this case the higher level classification should go here.)
+
+Definitions
+header
+footer
+running header
+folios
+drop folio
+
+Header and Running Header
+To a typesetter, a header means a chapter or section title. What your word processor calls a header is called a running header by a typesetter.
+
+Folios
+Page numbers (called folios) should start with the ﬁrst page of text as page 1. If you have excessive front matter (e.g., a six-page foreword), use lower-case roman numerals (i, ii, iii…) to number the front matter.
+
+Page numbers should be placed at the outer margin of the running header. Use a font family distinctive from the text font family, e.g., Helvetica for the running header if your text is Times Roman. Also use a font size distinctive from the text font size, e.g., 10 points for the page number, if the text is 12 points.
+
+The Chicago Manual of Style (1.94) advocates not putting the book title in the verso (left hand) running header. They reason that your readers don't need to be reminded what book they're reading. However, if a reader photocopies your book and the title is in the left hand header  the title will show on each copy.
+
+Put the chapter title in the recto (right-hand) running header. Tab in one-half inch from the verso left margin to start the book title. Tab back one-half inch from the recto right margin to end the chapter title.
+
+Use the same font for the running header and the page number. Leave a space between the header and the text. A large space is unnecessary if your running header looks distinctive from the text.
+
+I guarantee that at least once you'll change a chapter title, and then forget to change the running header (i.e., at least one running header won't match the chapter title). To avoid this problem, insert the running header as a cross-reference. In the page layout program Adobe InDesign click inside the text frame where you want the chapter title to appear. Open the Cross-Reference panel and click the New Cross-Reference icon. Use the controls in the dialog box to choose the paragraph style that has formatted the chapter title. Click Save to close the cross-reference dialog box. You can also use the Text Variables to insert Running Headers based on paragraph styles on the document pages. This allows you to have the first name of a list on the verso page to appear in the header and the last name of a list on the recto page appear in the header. While there are many uses for this feature, a typical one is for alphabetical lists of employees to show which names are included between the first and last entries on each spread.
+
+In Microsoft Word, open View… Header and Footer. Click in the running header. Open Insert…Cross-Reference. Select Header and Header Text. Select the appropriate chapter title and insert.
+
+Use a professional page layout program for the best control over text placement. If you are using a word processing program, you may need to avoid using a footer if you want to minimize printing costs. Put all the necessary info into the header. Check with the print shop that will be handling the printing of your documents.
+
+First Page of Chapters
+The ﬁrst page of each chapter should not have a header.
+
+In Microsoft Word, at the start of each chapter, don't use a page break. Instead use Insert>Break>Section Break (New Page) to start a new section. Then use View…Header and Footer… Different First Page (the icon has a numeral 1 in it) to remove the header from, and possibly add a footer to, the ﬁrst page of each section.
+
+On the ﬁrst page of each chapter, the page number is centered in the footer. This is called a drop folio. Don't put anything else in this footer.
+
+In Microsoft Word, this puts a page number at the bottom of your title page. To remove it, select the first footer after your title page and turn off "Same as Previous." Then delete the page number on the title page.
+
+I said that the bottom margin should be one-half inch. The drop folio is an exception to the rule. Put a drop folio a quarter-inch from the bottom of the page.
+
+Headings and Subheads
+
+Headings and Subheads
+Set your chapter and section heading leadings in multiples of the text leading. This will align your lines of text on facing pages.
+
+E.g., you’re using 15-point leading for your text. Make the chapter headings 45 points and the section headings 30 points. The chapter heading might have a 14-point font, preceded by 20 points above and 11 points below (20+14+11=45). The section headings might have a 12-point font, preceded by 15 points above and 3 points below (15+12+3=30).
+
+If you don’t do this, the lines towards the bottom of the recto (right-hand) pages won’t align with the lines towards the bottom of the verso (left-hand) pages.
+
+Don’t use relative leading (e.g., single-spaced, double-spaced), especially if your headings are a larger font size than your text. Instead, use absolute leading (e.g., 15 points).
+
+Numbering Sections
+If you number your chapters, sections, and subsections, use whole numbers for chapters, the ﬁrst decimal place for sections, the second decimal place for subsections, etc.
+
+In contrast, the <i>Chicago Manual of Style</i> numbers its sections and subsections consecutively. E.g., its four levels (chapter, section, subsection, sub-subsection) are numbered:
+
+6. <i>Spelling and Distinctive Treatment of Words</i>
+INTRODUCTION
+6.1
+6.2
+6.3
+6.4
+SPELLING
+Preferences of Special Groups
+BRITISH VERSUS AMERICAN SPELLING
+6.5
+SPELLINGS PECULIAR TO PARTICULAR DISCIPLINES
+6.6
+Plurals
+GENERAL RULES
+6.7
+COMPOUND NOUNS
+6.8
+6.9
+PLURALS IN DICTIONARIES
+6.10
+PROPER NOUNS
+6.11…
+
+I.e., the <i>Chicago Manual of Style</i> numbers most—not all—paragraphs consecutively, restarting the numbers in each chapters.
+A better way to number subsections is:
+
+6. Spelling and Distinctive Treatment of Words
+6.1 INTRODUCTION
+6.2 SPELLING
+6.2.1 Preferences of Special Groups
+6.2.1.1 BRITISH VERSUS AMERICAN SPELLING
+6.2.1.2 SPELLINGS PECULIAR TO PARTICULAR…
+6.2.2 Plurals
+6.2.2.1 GENERAL RULES
+6.2.2.2 COMPOUND NOUNS
+6.2.2.3 PLURALS IN DICTIONARIES
+6.2.2.4 PROPER NOUNS…
+
+LaTeX automatically numbers sections in this style.
+
+Unnecessary Sections
+Each of your lowest-level subsections should have at least two paragraphs. Each next-higher-level section should have at least two subsections. Each chapter should have at least two sections.
+If you ﬁnd lone paragraphs or sections, consider removing the heading.
+
+Bleed Tabs and Thumbnail Indexes
+Bleed tabs are blocks of black ink (with something written in white in the blocks) at the outer edge of each page in a chapter so that you see black blocks when you look at the edge of the book.
+
+Bleed tabs require placing a graphic outside the text margins. A bleed tab is always placed on the outside page edge (never on the inside, top, or bottom of a page).
+
+Create the graphic in Adobe Photoshop. You might also be able to create the image in Microsoft Word using View…Toolbars…Drawing or Insert…Picture…Autoshapes.
+
+In Microsoft Word, create a table using Table…Insert > Table… Specify one column and one row. Set the initial column width to fit your graphic. Insert your illustration in the table using Insert…Picture…From File…
+
+Select the table and go to Table…Table Properties… Set the horizontal alignment to Left or Right, with zero indent. Open the Options window. Set all cell margins to zero. Close these windows.
+
+Select and drag the table’s left or right border to fit the illustration.
+
+Select the table and go to Table…Table Properties… again. Select Text Wrapping…Around and open the Positioning window. Click Move With Text.
+
+Select Horizontal…Position…Left (or Right) and Horizontal …Position… Page. This aligns the graphic with the edge of the page.
+
+Set the Vertical…Position…as you wish (e.g., aligned with a paragraph, or centered down the page).
+
+Your printer may want the bleed tabs to extend 1/8" or 1/4" beyond the paper edge (this is what “bleed” means). If so, set Microsoft Word to use a larger paper size, and let your printer crop the PDF files as he or she wishes.
+
+Thumbnail indexes are like bleed tabs, but have paper cut-outs. Expensive dictionaries have these.
+
+Indentation
+
+Don't indent the ﬁrst paragraph of a chapter or section. Only following paragraphs are indented.
+
+LaTeX automatically does this. Microsoft Word doesn’t.
+If you use Microsoft Word, you'll have to create a new style for "First Paragraph" and manually set all these ﬁrst paragraphs into that style.
+
+How Much To Indent?
+If you choose to indent paragraphs (as opposed to setting them with a small space between each), set your indentation in as far as the font is high. E.g., if you’re using a 12-pt font, indent your paragraphs about 12 points, or 0.17 inches. Visually, 12-pt Helvetica is quite different than 12-pt Times New Roman, so you might want to make adjustments based on the visual appearance.
+
+Indent no more than the leading (space between lines within a paragraph). E.g., with 15-pts leading, indent no more than 15-pts indentation, or 0.21 inches.
+
+Microsoft Word's default indentation is set to 0.5 inches. This comes from the days of creating a manuscript on a monospaced typewriter (five spaces was about one-half inch) and from the half-inch automatic tab stops made popular by the first word processing software.
+
+Spacing between paragraphs is a related consideration. If you choose the more modern digital design of having space denote a paragraph break, then paragraph indentation is overkill—unless you want it for design aesthetics. Indentation exists because it was cheaper for early printers to do that than to add strips of lead between paragraphs, thus increasing the total number of pages required per book and increasing costs per unit. As a design element, indentation raises questions, such as the questionable need for indentation of running dialogue.
+
+As e-reader devices overtake paper book sales, book design aesthetics will evolve as well. There is little reason to maintain the printer’s status quo when there is no longer a printer involved. As with all good design, use common sense, have a reason for your choices, keep things consistent, and don't be afraid to break a few so-called rules.
+
+Introduction
+
+How to help with this book
+I wrote "Basic Book Design" using Microsoft Word. I don't have time to reformat it as a wikibook but I welcome anyone who volunteers to do that. You can download my MS Word file from
+my website. The file is 1.9MB. Pick a chapter you want to work on, pull it from the MS Word file, put it into the wikibook and clean up the formatting.--Thomas David Kehoe 03:09, 7 September 2006 (UTC)
+
+Who is this book for
+This book is for those wishing to learn about Basic Book Design. It is pitched at an American audience. Many elements of book design - typesetting, copyediting, etc. - are different in North America from the rest of the English-speaking world, so this book may not be suitable for non-American readers.
+
+Traditional Rules vs. "Keep Out Of Trouble" Rules
+Often in this book you'll see two, or even three, rules regarding an issue.
+For the traditional rules of book design, we refer to the Chicago Manual of Style. When we refer to such a rule, we list the chapter and paragraph number from the Chicago Manual of Style (e.g., 12.34), so you can look up the rule. (We're using the 14th edition.)
+
+We also explain what word processors — in particular Microsoft Word — do. Sometimes word processors follow rules different from traditional rules.
+And often we present novice or "keep out of trouble" rules. These are rules that novices should follow to avoid making awful, obvious, knock 'em dead mistakes. And, usually, the Chicago Manual of Style lists 14 pages of exceptions to our rule. Professional book designers shouldn't follow our "keep out of trouble" rules.
+
+The rules for choosing between the rules is, if you understand the traditional rules, follow them. If you don't understand the traditional rules, follow our "keep out of trouble" rules.
+
+If you follow our "keep out of trouble" rules, 99.9% of your readers won't notice that you didn't follow traditional rules. Many of the traditional rules are arcane, and known only by book industry professionals. But remember that you may have to "sell" your book to key book industry professionals — e.g., book reviewers — who'll notice amateur typesetting.
+
+In a few places we'll suggest new ideas that we thought of. These aren't rules.
+
+Justification
+
+Keep Out Of Trouble Rules
+Use justified paragraphs.
+
+Justiﬁed text has even left and right margins. Unjustiﬁed text has an even left margin and a "ragged right" margin.
+
+Typeset books use justiﬁed text. Justified text looks nicer. Readers are used to reading justiﬁed text, so justiﬁed text is easier to read.
+
+"Ragged right" text improves retention. I.e., if you want readers to remember what you wrote, and especially to return and ﬁnd items they'd read earlier, use of "ragged right" may be justified (sorry, I couldn't resist the pun). Just as readers recognize words by their shape, they also remember ideas by the shape of the paragraph.
+
+"Ragged right" text should be used in one other situation. If the column is very narrow, or the font size is very big, or the words are very long (e.g., website URLs), justified text can produce huge white spaces between words, called open lines. Open lines are a sign of amateur typesetting.
+
+Instead, set a website URL centered on its own line. If you're forced to use a narrow column (e.g., ﬂowing text around an illustra-tion), look at it both justiﬁed and "ragged right," and choose what looks best.
+
+Text is always justiﬁed by increasing white space between words, never between letters within words. The latter (called letterspacing) would make word shapes difﬁcult to recognize. Text should always be justified by adding equal amounts of space between all words on a line. Early word processors (in the 1980s) put two spaces between some words and one space between other words. That looked awful.
+
+Leading
+
+Keep Out of Trouble Rules
+When using book-length lines (65-70 characters per line, including spaces), don't use single-spaced or double-spaced settings. Instead, use "At Least" settings.
+When using book-length lines, use two or three points of leading, e.g., 15 points leading with a 12-point font.
+When using wider lines, e.g., in a letter, use wider leading. Use double-spacing or one-and-a-half spacing.
+
+Definitions
+leading
+solid
+
+Leading
+Leading (pronounced like lead, the metal, not lead, what your dog does when walking you) is the space between lines of text. It's also called spacing, as in single-spaced, double-spaced, etc.
+
+Fonts and leading are referred to as two numbers. E.g., "12/13" or "12 on 13 points" is a 12-point font with 13 points of leading.
+
+Solid
+Single-spaced can be the same as the font size (called solid), e.g., a 12-point font on 12-point leading. Or it can be the font size plus one point, e.g., a 12-point font on 13 points of leading is single-spaced. Check what your word processor does.
+
+A 12-point font with one-and-a-half spacing is 18 points of leading, or 12/18.
+
+A 12-point font with double spacing is 24 points of leading, or 12/24.
+Use two or three points of leading. E.g., 11/13, or 12/15. This is easier to read than single-spaced (one point of leading).
+
+More than three points of leading is usually unnecessary. Your book will be longer, increasing printing costs. Readers will have to move their eyes more, and turn more pages.
+
+Margins
+
+Keep Out Of Trouble Rules
+For bound books 6"x 9" or smaller, use 0.5" margins on the top, outside and bottom of books, and a 0.75" inside margin.
+For 8.5"x11" documents (bound or unbound), use 1-inch margins.
+Adjust margins, font size, and columns to produce 65-70 characters per line (including spaces).
+
+Definitions
+Mirror margins
+Printers usually require minimum one-half-inch margins. Narrower margins risk smearing wet ink as the printing press’s rollers move the paper.
+
+Increasing margins (e.g., to one inch) makes your book longer and costlier to print. However, I recommend increasing the inside margin (the margin closest to the binding). This makes the book easier to read. Pages tend to curl near the binding. Less light gets into the center of a book. Increase your inner margin to three-quarter-inch.
+
+The Chicago Manual of Style (18.17) advocates printing 65 to 70 characters on each line (including spaces). In Microsoft Word, select a line and use Tools…Word Count to count the number of characters. E.g., in the last paragraph, the full lines varied from 63 to 69 characters.
+
+If your lines have substantially more than 70 characters, consider using two columns.
+
+Make your three outer margins equal. This makes the text look square on the page. E.g., set your margins at three-quarter-inch for the inside, one-half-inch for the outside, one-half-inch for the top margin, and one-half-inch for the bottom margin.
+
+Professional book designers will object that books traditionally have a narrower top margin and a wider bottom margin. This looks good if you have a running header but no running footer. I prefer equal margins, to maximize use of the page and reduce page count. As noted above with font choice, using equal margins is a rule to keep novices out of trouble. If you understand traditional book design don't follow this rule.
+
+Use mirror margins with unequal inner and outer margins, if your document will be bound (e.g., a book).
+
+Master Documents
+
+If your computer is slow, use master documents. Most word processors can make each chapter a separate chapter, then join them together as a book. Moving between chapters will be slower, but saving, typing, etc. will be faster.
+
+I’ve never used Microsoft Word in master document mode. Several people have told me that it's a "bug-ridden monstrosity." If this is true, and you need to make master documents, consider another software application, e.g., Adobe InDesign.
+
+Me, Myself and I
+
+Avoid mentioning yourself when writing. We naturally talk about ourselves in conversation, so it's easy to write this way. But it doesn't sound professional.
+
+Use Find to search for "I" and "me". Rewrite the sentences without mentioning yourself. Or take out the material—it probably doesn't add anything.
+
+Using the phrase "the author" sounds stuffy.
+
+Avoid telling personal stories. Stories take up more room than simply stating the point.
+
+Like unusual fonts, break this rule if you have a good reason. E.g., your book is a memoir, or a book of personal essays.
+
+Number of Pages
+
+Keep Out Of Trouble Rules
+For books printed on offset presses, total pages must be multiples of 8, 16, or 32, (e.g., 224 pages, not 220 pages). Ask your printer if you save money by using a multiple of 32.
+For documents printed on laser printers (including Xerox Docutech printers), any number of pages is possible.
+Minimize front and back matter, e.g., titles pages. Don't include items such as half-title pages unless you know the right way to design them.
+Ask your printer to use recycled paper and soy-based ink.
+
+Traditional Rules
+See the Chicago Manual of Style (1.4-58, 1.82-91) to design the front and back matter pages.
+
+Commentary
+Offset presses print books in signatures of eight, sixteen, or thirty-two pages. E.g., a book can be 224 pages, but not 220 pages. Ask your printer what their presses do.
+
+It may be cheaper to print a 224-page book instead of a 216-page book. 224 pages is seven thirty-two-page signatures (a signature is a set of pages printed together). 216 pages is eight signatures: six thirty-two-page signatures, one sixteen-page signature, and one eight-page signature. I.e., the printing press needs to be set up only seven times for a 224-page book, but has to be set up eight times for a 216-page book. Each set-up costs money.
+
+Xerox Docutech printers (used for small runs of under 500 books) don't print in signatures, so can print any number of pages.
+
+Front and Back Pages
+The edition notice (or copyright page) is the page in a book containing information about the current edition, usually on the back of the title page. It often contains a copyright notice, legal notices, publication information, printing history, cataloguing information from a national library, and an ISBN that uniquely identifies the work.
+
+A table of contents, usually headed simply Contents and abbreviated informally as TOC, is a list, usually found on a page before the start of a written work, of its chapter or section titles or brief descriptions with their commencing page numbers.
+
+A dedication page may found at the beginning, before the story starts, and it is a space for the author to dedicate the book to someone. The dedication normally isn't long, sometimes only a sentence or two, and is a sweet, heartfelt way to honor someone in the life of the author.
+
+A foreword is a (usually short) piece of writing sometimes placed at the beginning of a book or other piece of literature. Typically written by someone other than the primary author of the work, it often tells of some interaction between the writer of the foreword and the book's primary author or the story the book tells. Later editions of a book sometimes have a new foreword prepended (appearing before an older foreword if there was one), which might explain in what respects that edition differs from previous ones.
+
+A praise page includes endorsements for the book. Endorsements help the author to increase sales for the book and are an important aspect of the book marketing strategy.
+
+An acknowledgment page includes the author’s statement of gratitude to family, friends, and often those who assisted in the publication of the book.
+
+An index is an alphabetical list of subjects treated in a book. It usually appears at the end of the book and identifies page numbers on which information about each subject appears.
+
+Environmental Issues
+Ask your printer to use recycled paper and soy ink. Some printers will do this for no extra cost. Put the recycled logo on your back cover or title page. You could also ask for FSC-certified paper.
+
+Page Size
+
+Basic Book Design Rules
+For books printed on offset printers, use a 6"x 9" (152mm x 229mm) page size.
+For books or anything else printed on laser printers (including Xerox Docutech printers), use 5.5"x8.5" (140mm x 216mm) or 8.5"x11" (216mm x 280mm) page size mf.
+
+The standard book size is six inches wide and nine inches tall (6"x 9"). Your book will probably be cheapest to print, easiest to read, and easiest to sell (e.g., it'll fit on bookstore shelves) in this size.
+
+Larger books are harder to hold, carry, or put on a shelf.
+
+Smaller books lose disproportionately more space to margins, increasing the cost. A 6"x 9" book has nearly 20% more text space. But a 6"x 9" book costs only about 5% more than a 5.5" x 8.5" book. The result is a 15% cost savings.
+
+The cover of a 6"x 9" book is 15% larger than a 5.5"x8.5" book. The cover is your best advertising space. In a bookstore window, passersby are more likely to see a larger book.
+
+Setting up your software applications for 6"x 9" pages can be tricky. In Microsoft Word, go the File…Page Setup…Settings… Custom Paper Size.
+
+Inkjet Printer Limitations
+If you have an inkjet printer connected to your computer, Microsoft Word usually won't allow a 0.5" (12.7mm) bottom margin. Depending on the printer, it may require a minimum 0.56" (14.2mm) or 0.67" (17mm) bottom margin. 0.06 (1.5mm) inches may not sound like much, but in a 224-page book, that's two extra pages.
+
+Most newer computers and laptops can have no margin at all (using google docs.. etc), but if you are using old software, to get around this limitation, tell Microsoft Word you're using a laser printer. Word should then allow a bottom margin up to 0.2".
+
+Alternatively, use the default paper size, e.g., 8.5"x11". Save your document as a PDF file, and use Adobe Acrobat to crop the pages.
+
+Pre-Printing Checklist
+
+Pre-Printing Checklist
+Search for "there are" and rewrite these sentences.
+Search for ", and". Consider breaking these sentences into two sentences.
+Search for just, very, really, and actually, and remove.
+Search for "ly-" and remove the hyphen.
+Consistently use either "for example" or "e.g."
+Consistently use either "in other words” or "i.e."
+Search periods following quotations marks.
+Search for two spaces after periods, question marks, and exclamation marks.
+No hidden index entries in the front or back matter (e.g., title page, table of contents).
+Use a grammar checker to ﬁnd passive voice sentences, and rewrite in active voice.
+Check capitalization in all chapter and section titles.
+Search for repeated carriage returns, and remove.
+Replace ﬁ and ﬂ with ligatures (also ff, ffi and ffl if you have access to the expert set).
+M-dashes breaking at line breaks.
+Ellipses breaking at line breaks.
+Automated hyphenation on. No too-short or too-long word divisions.
+First paragraph of chapters, sections, and subsections not in-dented.
+Chapter titles in running headers correct.
+First page of chapters don't have headers, instead have drop folios (page number in footer).
+Title page, ﬁrst page, etc. on recto (right-hand) pages.
+No widows.
+Number of pages fits into signatures (e.g., 224 pages).
+Graphics neither too dark not too light.
+Table of contents page numbers correct.
+Index page numbers correct.
+Crop PDF ﬁle pages to page size.
+Bar code price correct. The price is the smaller bar code to the right. Above you'll see a number. It will start with a 5, if your price is in American dollars. Ignore the ﬁrst digit. The rest of the number is your price. E.g., “51995” means US$19.95.
+Canadian Price. Use the latest exchange rate to check this.
+
+Punctuation in Quotations
+
+Question marks and exclamation marks go inside or outside quotations, depending on whether the quoted text used the punctuation mark.
+
+She asked me, "Is this the train to Altoona?" (Correct)
+Do you really call that "borscht"? (Correct)
+
+If you're novice, always put periods and commas inside quotation marks.
+
+"Go on," he said, "I'm listening." (Correct)
+
+The Chicago Manual of Style (5.11-13) has a page and half about when to put a period outside quotation marks. If you understand these rules, follow them. E.g.,
+
+Yes, this is what they call "borscht". (Correct)
+
+Quotations and Extracts
+
+Consider rewriting long quotations in your own words. Your writing is likely easier to read, and takes up less space. Plus you’ll have no worries about copyrights or permissions.
+
+But sometimes another author writes something better than you can write.
+
+I felt like a punk who’d gone out for a switchblade and come back with a tactical nuke.
+“Shit,” I said, “screwed again. What good’s a tactical nuke in a streetfight?”
+— William Gibson, <i>Burning Chrome</i>
+
+Set apart long quotations with a different font family, font size, margins, and leading.
+
+If you’re using a serif font (e.g., Times Roman) for your text, the most different font would be sans-serif (e.g., Helvetica). But sans-serif fonts are difﬁcult to read. Instead, use a readable serif font, distinct from your text font. I like Rockwell (used in the above William Gibson quotation). In contrast, Palatino (below) doesn’t look different enough from Times Roman):
+
+I felt like a punk who’d gone out for a switchblade and come back with a tactical nuke.
+“Shit,” I said, “screwed again. What good’s a tactical nuke in a streetﬁght?”
+— William Gibson, <i>Burning Chrome</i>
+
+OK, to you it looks different, and Palatino is a beautiful font. But some idiot reader won’t notice that you’ve changed fonts, margins, and leading, and think that you wrote the quotation. Don’t be subtle. Make things very clear to your readers.
+
+Use a font size one point smaller than the text. Use single-spaced leading. Move the margins in one-quarter or one-half inch on both sides.
+
+Add space above and below the quote. Don’t add space between a new section heading and the quotation (your section heading should already have space above and below). Don’t add space if the quote is at the top or bottom of a page.
+
+Quotations have one problem I don’t know how to solve. If you change the leading, the lines on the verso and recto pages (left-hand and right-hand pages) won’t align.
+
+A page break should never break a quotation (or an extract) with one line above the page break.
+
+Extracts
+An example is called an <i>extract</i>.
+
+This is an example of an extract.
+
+Again, make your extracts look distinctive from your text. If your book has both quotations and extracts, use distinctive fonts, e.g., Rockwell for quotations and Helvetica for extracts.
+
+Indentation after Quotations and Extracts
+Some typesetters don’t indent the ﬁrst paragraph after a quotation or extract.
+This is a good idea if the left margin of your quotation/extract is close to your paragraph indentation. E.g., you set your paragraph indentation at 0.2”, and your extract left margin at 0.25”. This book has those settings. Because the extracts and paragraphs nearly line up, you might think that the paragraph after an extract was part of the extract.
+If you make your quotations/extracts and text look distinct, indent the paragraph after a quotation or extract. If your text, quotations, and extracts look similar, don’t indent the ﬁrst paragraph after a quotation or extract.
+
+Right of Privacy
+
+Invasion of privacy has three forms.
+
+Intrusion Upon Seclusion
+You may not take photographs or record a person in his or her home without his or her consent. This legal concept sometimes extends to other private places, to photos of the inside of the person’s home, or to "hidden camera" or "hidden microphone" use anywhere.
+
+Private Facts
+Details of an individual's sexual relationships, personal hygiene, contents of personal letters, etc., are off limits to the news media, except when such facts are "newsworthy."
+
+False Light Publicity
+Inventing quotes or ﬁctional events to portray a person falsely to the public, or using photos out of context to imply scandalous activity, is unlawful.
+
+Software Applications
+
+Choosing the right software application is perhaps the most important book design decision. Different software applications are better for different books.
+
+LaTeX, ConTeXt — For Academic Books and Other Long or Structured Documents
+You're writing your Ph.D. dissertation in physics. You appreciate the efficiency afforded by being able to define commands like
+
+\newcommand{\sumvec}[4]{\anvec{#3}{#4}=#1_1+2#2_1,\ldots,#1_#4+#2_#4}
+
+and then use them by typing \sumvec{1}{2}{3}{4}.
+
+You know who Donald Knuth is (he's right up there with Einstein for hard-core computer science types).
+
+LaTeX is a document markup language, while ConTeXt is more of a typesetting system. Both are created on top of the older TeX typesetting language. They'll produce the most professional-looking books. They run on Windows, Macintosh, and UNIX computers. They run reasonably well on the oldest, slowest computers. The source files never crash or become corrupted. They're free (although you can choose to spend as much money as you might wish on books).
+
+The defaults are set for professional typesetting. If you don't know what you're doing, LaTeX and ConTeXt will automatically produce a professional-looking book. They'll put chapter numbers on all your chapters and section numbers on all your sections. They'll give you a choice of three basic fonts—Roman, Sans-Serif, and Typewriter while also allowing one to use special fonts for mathematics.
+
+Of course you can change these default settings. You can install other fonts. While font installation is now well-documented for LaTeX and ConTeXt, newer tools such as XeTeX and Lua(La)Tex make accessing fonts (including TrueType ttf and otf), using utf-8 features for other alphabets, and OpenType (otf) font features like ligatures, much easier..
+
+There are even packages for embedding videos behind pictures for the electronic (screen readable) versions of your printable book pdfs.
+
+If this sounds like you, download the software (yes, for free) from http://www.tug.org or http://www.latex-project.org/ or http://www.pragma-ade.nl/.
+
+Nicola Talbot, among many others, freely offers helpful getting started information, and even packages for making newspaper or magazine formats which can also help with special book layouts, and provides an  application (Jpgfdraw) and lists others for making native drawings for LaTeX.  https://www.dickimaw-books.com/latexresources.html
+
+These OpenSource (Linux/Unix, Windows, and Mac OS X) Editors can help as well--- LyX which is a bit more WYSIWYG http://www.lyx.org/Screenshots,  and ---
+
+TeXworks, which is a typesetting LaTeX editor, which has a pdf output previewer (with editing synchronisation  built in) http://www.tug.org/texworks/ --- most up to date Developer version: http://code.google.com/p/texworks/downloads/list).
+TeXworks can  be customised with JavaScript http://twscript.paulanorman.info or Lua (Python on the way), and so extra interfaces (forms with buttons and drops downs and so on), can also be made by a user, to extend the editor's functionality.
+
+Adobe FrameMaker, BookStack, Corel Ventura Publisher—For Long, Structured Documents
+You're a technical writer working for ABC Company. Your team of tech writers is working on operations and repair manuals that will need to last for many iterations. You want a clean translation for conversion to Adobe Acrobat. The manuals will also be available on CD-ROM, and on your company's website. The manuals will be translated into sixteen languages, including Japanese, and be converted to XML at some point.
+
+The manuals have many files that need to be compiled into large manuals, as well as text that can be hidden or displayed based on conditions you set. You have multiple level indices, multiple cross-references that link to other files ("see page 234 in Chapter 16, Book 1"). You would also like to publish the book online in a completely different format without rebuilding all the tags and page formats from scratch. The modest $800 price tag doesn't concern your company.
+
+Adobe InDesign, QuarkXPress, Scribus, Microsoft Publisher—For Advertisements, Brochures, and Websites
+You're a graphic designer working for an advertising agency. You create colorful ads, brochures, catalogs, and webpages.
+
+For the Beagle Boy jeans catalog, you put a little dog in the corner of each recto (right-hand) page. Then you get an idea: let's change the dog's tail on each page, so that when readers ﬂip through the catalog, they see the dog wagging its tail!
+
+You do creative stuff with type. You love to go through your collection of 5000 fonts, pick out just the right one, twist and turn the letters to follow a complicated graphic, change the size and shape of each letter, color the letters with a rainbow of hues (subtly shifting with a gradient), and, finally, adjusting the kerning to make the words read smoothly. By lunchtime, you've written three words.
+
+You don't do footnotes or references. You don't care about typesetting conventions—you break the rules, not follow them!
+
+You use the latest Windows or Macintosh computer, with the fastest processor, gigabytes of memory, and big, beautiful monitor.
+
+Corel WordPerfect, LibreOffice Writer, Microsoft Word —For Writers
+You write books. You make your books easy to read. You want a word processor that's easy to use.
+
+You know that easy to read means looking conventional, like other books, not breaking new ground.
+
+You use graphics and tables, but you try to keep these simple. You expect your work to look professional, but learning arcane typesetting conventions isn't your hobby.
+
+You use footnotes and references. You use indices and tables of contents. Your book will be printed on paper, not on a CD-ROM or posted onto a website. Your final book will hopefully be properly typeset using a professional desktop publishing (DTP) application such as InDesign, QuarkXPress, or a typesetting system such as TeX or LaTeX. Word processors are for processing words, not laying out pages.
+
+You need to send your work to your editor, who uses the same software you use.
+
+You can afford to buy a middle-of-the-line computer every two or three years.
+
+Spaces Between Sentences
+
+Type one space between sentences.
+
+LaTeX automatically puts in a wider space between sentences. One LaTeX manual says that this is traditional for English and American typesetters, and that French typesetters don't use the wider space between sentences. The Chicago Manual of Style doesn't say anything about this issue.
+
+I.e., the "keep out of trouble" rule is one space. I'm not certain of the traditional rule. The "word processor rule" is easy: Microsoft Word can't put wider spaces between sentences.
+
+Spelling and Grammar Checkers
+
+Microsoft Word autocorrects many mistyped words. It underlines in red words that it doesn't recognize. This is helpful.
+
+Microsoft Word doesn't recognize ligatures (two letters joined, usually ﬁ or ﬂ). E.g., it thinks that ofﬁce is misspelled.
+
+Microsoft Word underlines grammatical errors in green. If you don't understand why your grammar checker ﬂagged a sentence, click on Tools…Spelling and Grammar and it will tell you. If you don't understand its explanation, look it up in a grammar book (e.g., The Chicago Manual Of Style).
+
+The Grammarian grammar checker (made by Casady & Greene, http://www.casadyg.com) is more powerful than Microsoft Word’s built-in grammar checker. If your writing is worth money, it’s worth $19.95.
+
+Spine
+
+For example if your are designing a 120 pages book plus cover on 100# gloss book for inside pages and 100# gloss cover for cover, the spine size of the cover of this perfect bound book is: 120 Pages / 2 = 60 sheets, 60x0. 005"= 0.3".
+
+Straight Quotes vs. Curly Quotes
+
+Keep out of Trouble Rules
+Use prime marks for measurements (single prime for feet, double prime for inches).
+Use curly quotes for quotations
+Use a curly apostrophe (backwards C shape) for contractions, regardless of where in the word the missing letters fall.
+Use curly single quotes (open and closed apostrophes) for quotes within quotes.
+In American English, virtually all punctuation marks fall within the quotation marks; in British English, the only punctuation marks that fall within quotation marks are those that occur in the original material being quoted. The American standard seems gradually to be giving way to the more rational British one.
+
+Table of Contents
+
+Most word processors will automatically generate a table of contents.
+
+A table of contents should be one or two pages. Readers should be able to glance through it and see what the book is about. If your table of contents is too short, increase the number of levels. If it's too long, reduce the number of levels. You can put a detailed table of contents after the primary table of contents if necessary. The detailed table of contents can be as long as you wish.
+
+Chapter Summaries
+A table of contents should include a one- or two-line chapter summary after each chapter title. The summary makes readers want to read the chapter (like the title and subtitle of the book). E.g.,
+
+Chapter 3: The Announcement………..…....……36
+Brad and Carol always wanted kittens—but for lunch?
+
+Microsoft Word can't do chapter summaries automatically. You'll have to run your table of contents, and then type in each chapter summary. This is tedious, if you have to run your table of contents several times (e.g., you add or move a chapter).
+
+Before sending your book to the printer, check the table of contents page numbers. Nothing makes a book look more amateurish than a table of contents that doesn't match the page numbers. E.g., Chapter Three is supposed to start on page 36, but actually starts on page 37.
+
+Widows And Orphans
+
+A widow is a short line (one or two words) ending a paragraph at the top of a page. Widows should be avoided.
+
+An orphan is the first line of a paragraph ending a page.
+
+Microsoft Word has automated widow/orphan control, in Format…Paragraph…Line and Page Breaks. I suggest not using it, for two reasons. First, Microsoft Word doesn't count the number of words in a widow. According to the Chicago Manual of Style (19.40), a ten-word line isn't a widow, and is acceptable.
+
+Second, the Chicago Manual of Style doesn't say anything about orphans, so I presume these are acceptable. Orphans are always full lines (never one or two words).
+
+Word Division
+
+Hyphenation (properly called <i>word division</i>) is breaking long words between lines. The purpose of hyphenation is to reduce the white space between words. A line with little white space is called a <i>close</i> line. A line with wide white spaces is called an <i>open</i> line.
+
+A second purpose of hyphenation is to make your document shorter.
+
+A sign of amateur design is too much white space between words. A professionally designed book has an even grayness on each page, not splotchy darker and lighter paragraphs.
+
+But another sign of amateur design is bad hyphenation. Follow these rules:
+
+Hyphenate only between syllables.
+Don’t hyphenate across a turned page, i.e., from a recto to a verso.
+The <i>Chicago Manual of Style</i> doesn’t allow more than three successive lines to end in hyphens (6.58). In my opinion, this is too liberal; I don’t end two lines in a row with hyphens.
+Never hyphenate a website URL. If it’s too long for a line, make a URL into an extract (see below) and break the URL at a backslash.
+
+The <i>Chicago Manual of Style</i> (6.44-49) lists four pages of addi-tional rules for word division, e.g., not dividing personal names.
+The <i>Chicago Manual of Style</i> (6.49) allows dividing words with two letters (but never one letter, 6.48) before the division. It doesn’t allow leaving two letters after the division (6.49). This makes no sense to me. The reader should be able to recognize the word from the part before the division. The part after the division doesn’t affect the reader’s recognition of a word. I suggest instead trying to keep four or ﬁve letters before the division, and accepting two letters after a division.
+
+E.g., if you know the ﬁrst ﬁve letters, you can guess most words:
+
+You shoul not have a probl readi this sente. (5 letters)
+Four lett divi are also not hard to read. (4 letters)
+In con, if you hyp at thr let, it is muc har to rec wor. (3 letters)
+Re wo fr th ﬁ tw le wo ch ev Va Wh. (2 letters— <i>Recognizing words from the ﬁrst two letters would challenge even Vanna White</i>.)
+
+Hyphenate Compound Words
+If two words have a special meaning when used together, they form a compound word. Hyphenate compound words. If you don’t, the reader might get confused.
+
+…the ear splitting log.
+…the ear-splitting siren.
+
+The former sentence means that the ear was splitting a log, like an ax. The latter sentence means that the siren was loud. I.e., in the former sentence, the ear splits the log. In the latter sentence the siren splits the ear.
+
+However, words ending in <i>ly</i> do not follow this rule. Do not hyphenate two words when the ﬁrst word ends in <i>ly</i>. E.g., “…the beautifully painted staircase.”
+
+The Chicago Manual of Style further explains compound words. It provides great examples and explanations for knowing when to hyphenate between words. The table is a great tool to use when determining proper usage. One of the latest updates to the hyphenation table can be found on Chicago Manual of Style's website, The Chicago Manual of Style Online, in chapter seven's section titled, "Spelling, Distinctive Treatment of Words, and Compounds," namely section 7.85.
+Various examples of this hyphenation table may also be found online without a subscription to CMoS, but be aware of the version and source for proper adherence to the most current grammar rules.
+
+Hanging Punctuation
+Professional typesetters extend some punctuation marks, e.g., hyphenation, beyond the right margin. Word processors can’t do this.
+
+Writing Out Numbers
+
+The Chicago Manual of Style (8.3) advocates spelling out whole numbers from one through one hundred. However, this makes text less readable (and also longer). Few people see ninety spelled out, but everyone sees 90 often. E.g., advertisements say "90 Days Same As Cash!"
+
+I suggest spelling out whole numbers one through twelve, and multiples of ten, through one hundred. Use numerals for all other numbers.
+
+Where you switch from written numbers to numerals is unimportant. What counts is being consistent. E.g., don't write "thirteen" on one page, and "13" on another.
+
+Exceptions include quotations (use what was written in the original), money, percentages (e.g., 70% is easier to read than seventy percent), and when a sentence has two or more numbers (e.g., "The average woman moves in with a man at age 20 or 21.").

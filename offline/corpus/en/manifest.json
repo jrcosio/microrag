@@ -1,0 +1,565 @@
+[
+  {
+    "id": "wb-en-git",
+    "title": "Git (Wikibooks)",
+    "format": "txt",
+    "kind": "manual",
+    "source_url": "https://en.wikibooks.org/wiki/Git",
+    "publisher": "Wikibooks (Wikimedia Foundation)",
+    "license": "CC BY-SA 4.0",
+    "attribution": "«Git», Wikibooks. Autores: ver el historial de cada página en en.wikibooks.org. Licencia CC BY-SA 4.0.",
+    "source_updated": "2026-09-13",
+    "retrieved": "2026-11-01",
+    "transformations": "Wikitexto de 23 subpáginas en revisiones fijas → texto plano: sin plantillas, tablas, imágenes, referencias ni marcado; cada subpágina precedida de su título; páginas en orden alfabético; sin la versión para imprimir",
+    "fetch": {
+      "type": "wikibooks",
+      "site": "en",
+      "book": "Git",
+      "pages": [
+        {
+          "title": "Git/Advanced",
+          "revid": 4084261
+        },
+        {
+          "title": "Git/Bitbucket",
+          "revid": 3306656
+        },
+        {
+          "title": "Git/Branching & merging",
+          "revid": 4626843
+        },
+        {
+          "title": "Git/Gerrit Code Review",
+          "revid": 4092501
+        },
+        {
+          "title": "Git/Getting help",
+          "revid": 2355949
+        },
+        {
+          "title": "Git/Git component programs",
+          "revid": 4626845
+        },
+        {
+          "title": "Git/GitHub",
+          "revid": 4655388
+        },
+        {
+          "title": "Git/Gitosis",
+          "revid": 3306659
+        },
+        {
+          "title": "Git/Giving Back/Code guidelines",
+          "revid": 4626847
+        },
+        {
+          "title": "Git/Hosting",
+          "revid": 4384277
+        },
+        {
+          "title": "Git/Internal structure",
+          "revid": 4626849
+        },
+        {
+          "title": "Git/Interoperation",
+          "revid": 4626846
+        },
+        {
+          "title": "Git/Introduction",
+          "revid": 4626848
+        },
+        {
+          "title": "Git/Obtaining Git",
+          "revid": 4626844
+        },
+        {
+          "title": "Git/Overview/Creating",
+          "revid": 3678820
+        },
+        {
+          "title": "Git/Overview/Deleting",
+          "revid": 3678076
+        },
+        {
+          "title": "Git/Rebasing",
+          "revid": 4620812
+        },
+        {
+          "title": "Git/Repository on a USB stick",
+          "revid": 4534170
+        },
+        {
+          "title": "Git/Setting up a Server",
+          "revid": 4534179
+        },
+        {
+          "title": "Git/Submodules and Superprojects",
+          "revid": 4669823
+        },
+        {
+          "title": "Git/Systems",
+          "revid": 3825013
+        },
+        {
+          "title": "Git/git-daemon",
+          "revid": 1739345
+        },
+        {
+          "title": "Git/git-svn",
+          "revid": 3678620
+        }
+      ]
+    },
+    "sha256": "8f49ee6e96028fe7c0bdc982393f959c3f52d74925f68c9d09efb2a50ba9a3a2"
+  },
+  {
+    "id": "wb-en-book-design",
+    "title": "Basic Book Design (Wikibooks)",
+    "format": "txt",
+    "kind": "manual",
+    "source_url": "https://en.wikibooks.org/wiki/Basic_Book_Design",
+    "publisher": "Wikibooks (Wikimedia Foundation)",
+    "license": "CC BY-SA 4.0",
+    "attribution": "«Basic Book Design», Wikibooks. Autores: ver el historial de cada página en en.wikibooks.org. Licencia CC BY-SA 4.0.",
+    "source_updated": "2025-09-26",
+    "retrieved": "2026-11-01",
+    "transformations": "Wikitexto de 31 subpáginas en revisiones fijas → texto plano: sin plantillas, tablas, imágenes, referencias ni marcado; cada subpágina precedida de su título; páginas en orden alfabético; sin la versión para imprimir",
+    "fetch": {
+      "type": "wikibooks",
+      "site": "en",
+      "book": "Basic Book Design",
+      "pages": [
+        {
+          "title": "Basic Book Design/\"Art\" vs. Readability",
+          "revid": 3224924
+        },
+        {
+          "title": "Basic Book Design/About the Authors",
+          "revid": 3224925
+        },
+        {
+          "title": "Basic Book Design/Capitalizing Words in Titles",
+          "revid": 3041036
+        },
+        {
+          "title": "Basic Book Design/Captions and Legends",
+          "revid": 3702203
+        },
+        {
+          "title": "Basic Book Design/Emphasizing Words",
+          "revid": 3224927
+        },
+        {
+          "title": "Basic Book Design/Font",
+          "revid": 3720938
+        },
+        {
+          "title": "Basic Book Design/Gender",
+          "revid": 4231841
+        },
+        {
+          "title": "Basic Book Design/Headers, Footers, and Page Numbers",
+          "revid": 3224930
+        },
+        {
+          "title": "Basic Book Design/Headings and Subheads",
+          "revid": 3580845
+        },
+        {
+          "title": "Basic Book Design/Indentation",
+          "revid": 3224932
+        },
+        {
+          "title": "Basic Book Design/Introduction",
+          "revid": 3224933
+        },
+        {
+          "title": "Basic Book Design/Justification",
+          "revid": 3702200
+        },
+        {
+          "title": "Basic Book Design/Leading",
+          "revid": 4059042
+        },
+        {
+          "title": "Basic Book Design/Margins",
+          "revid": 4469441
+        },
+        {
+          "title": "Basic Book Design/Master Documents",
+          "revid": 3224943
+        },
+        {
+          "title": "Basic Book Design/Me, Myself and I",
+          "revid": 3224942
+        },
+        {
+          "title": "Basic Book Design/Number of Pages",
+          "revid": 3656420
+        },
+        {
+          "title": "Basic Book Design/Page Size",
+          "revid": 4429982
+        },
+        {
+          "title": "Basic Book Design/Pre-Printing Checklist",
+          "revid": 3224939
+        },
+        {
+          "title": "Basic Book Design/Punctuation in Quotations",
+          "revid": 3224938
+        },
+        {
+          "title": "Basic Book Design/Quotations and Extracts",
+          "revid": 3702202
+        },
+        {
+          "title": "Basic Book Design/Right of Privacy",
+          "revid": 3224936
+        },
+        {
+          "title": "Basic Book Design/Software Applications",
+          "revid": 4539831
+        },
+        {
+          "title": "Basic Book Design/Spaces Between Sentences",
+          "revid": 3224947
+        },
+        {
+          "title": "Basic Book Design/Spelling and Grammar Checkers",
+          "revid": 3224948
+        },
+        {
+          "title": "Basic Book Design/Spine",
+          "revid": 4098130
+        },
+        {
+          "title": "Basic Book Design/Straight Quotes vs. Curly Quotes",
+          "revid": 3224949
+        },
+        {
+          "title": "Basic Book Design/Table of Contents",
+          "revid": 3224950
+        },
+        {
+          "title": "Basic Book Design/Widows And Orphans",
+          "revid": 3224951
+        },
+        {
+          "title": "Basic Book Design/Word Division",
+          "revid": 3224952
+        },
+        {
+          "title": "Basic Book Design/Writing Out Numbers",
+          "revid": 3224953
+        }
+      ]
+    },
+    "sha256": "015b017f0bb6ba5d0e258d67505b7df1a7147d6740774fecfeac7e6c2ed9bd22"
+  },
+  {
+    "id": "wb-en-knots",
+    "title": "Knots (Wikibooks)",
+    "format": "txt",
+    "kind": "manual",
+    "source_url": "https://en.wikibooks.org/wiki/Knots",
+    "publisher": "Wikibooks (Wikimedia Foundation)",
+    "license": "CC BY-SA 4.0",
+    "attribution": "«Knots», Wikibooks. Autores: ver el historial de cada página en en.wikibooks.org. Licencia CC BY-SA 4.0.",
+    "source_updated": "2026-02-03",
+    "retrieved": "2026-11-01",
+    "transformations": "Wikitexto de 71 subpáginas en revisiones fijas → texto plano: sin plantillas, tablas, imágenes, referencias ni marcado; cada subpágina precedida de su título; páginas en orden alfabético; sin la versión para imprimir",
+    "fetch": {
+      "type": "wikibooks",
+      "site": "en",
+      "book": "Knots",
+      "pages": [
+        {
+          "title": "Knots/Bend knots",
+          "revid": 1810634
+        },
+        {
+          "title": "Knots/Bend knots/Carrick bend",
+          "revid": 1839029
+        },
+        {
+          "title": "Knots/Bend knots/Double sheet bend",
+          "revid": 3329922
+        },
+        {
+          "title": "Knots/Bend knots/Fisherman's bend",
+          "revid": 1839033
+        },
+        {
+          "title": "Knots/Bend knots/Hunter's bend",
+          "revid": 1845346
+        },
+        {
+          "title": "Knots/Bend knots/Sheet bend",
+          "revid": 3329934
+        },
+        {
+          "title": "Knots/Bend knots/Water knot",
+          "revid": 1862175
+        },
+        {
+          "title": "Knots/Bend knots/Zeppelin bend",
+          "revid": 1921628
+        },
+        {
+          "title": "Knots/Binding knots",
+          "revid": 1937411
+        },
+        {
+          "title": "Knots/Binding knots/Constrictor",
+          "revid": 3329930
+        },
+        {
+          "title": "Knots/Binding knots/Miller's knot",
+          "revid": 3762975
+        },
+        {
+          "title": "Knots/Binding knots/Packer's knot",
+          "revid": 1845374
+        },
+        {
+          "title": "Knots/Binding knots/Reef knot",
+          "revid": 4089859
+        },
+        {
+          "title": "Knots/Binding knots/Surgeon's knot",
+          "revid": 1846167
+        },
+        {
+          "title": "Knots/Binding knots/Trucker's hitch",
+          "revid": 3699724
+        },
+        {
+          "title": "Knots/Caring for cordage",
+          "revid": 4615293
+        },
+        {
+          "title": "Knots/Components",
+          "revid": 2505929
+        },
+        {
+          "title": "Knots/Decorative knots",
+          "revid": 1937417
+        },
+        {
+          "title": "Knots/Decorative knots/Carrick mat",
+          "revid": 1863517
+        },
+        {
+          "title": "Knots/Decorative knots/Rhona-H mat",
+          "revid": 3259683
+        },
+        {
+          "title": "Knots/Decorative knots/Turk's head knot",
+          "revid": 3577354
+        },
+        {
+          "title": "Knots/Heaving knots",
+          "revid": 1844043
+        },
+        {
+          "title": "Knots/Heaving knots/Heaving line knot",
+          "revid": 1853045
+        },
+        {
+          "title": "Knots/Heaving knots/Monkey fist",
+          "revid": 1844057
+        },
+        {
+          "title": "Knots/Hitch knots",
+          "revid": 3395697
+        },
+        {
+          "title": "Knots/Hitch knots/Anchor bend",
+          "revid": 1795857
+        },
+        {
+          "title": "Knots/Hitch knots/Buntline hitch",
+          "revid": 1924883
+        },
+        {
+          "title": "Knots/Hitch knots/Cat's paw",
+          "revid": 1839538
+        },
+        {
+          "title": "Knots/Hitch knots/Clove hitch",
+          "revid": 1795855
+        },
+        {
+          "title": "Knots/Hitch knots/Icicle hitch",
+          "revid": 3329916
+        },
+        {
+          "title": "Knots/Hitch knots/Lark's head",
+          "revid": 3592627
+        },
+        {
+          "title": "Knots/Hitch knots/Pipe hitch",
+          "revid": 1846129
+        },
+        {
+          "title": "Knots/Hitch knots/Prusik hitch",
+          "revid": 3329917
+        },
+        {
+          "title": "Knots/Hitch knots/Round turn",
+          "revid": 1810622
+        },
+        {
+          "title": "Knots/Hitch knots/Timber hitch",
+          "revid": 1804638
+        },
+        {
+          "title": "Knots/Hitch knots/Two half hitches",
+          "revid": 3329936
+        },
+        {
+          "title": "Knots/Introduction",
+          "revid": 4431206
+        },
+        {
+          "title": "Knots/Lashing",
+          "revid": 1984659
+        },
+        {
+          "title": "Knots/Loop knots",
+          "revid": 1937421
+        },
+        {
+          "title": "Knots/Loop knots/Adjustable grip hitch",
+          "revid": 3329914
+        },
+        {
+          "title": "Knots/Loop knots/Alpine butterfly",
+          "revid": 2981187
+        },
+        {
+          "title": "Knots/Loop knots/Bowline",
+          "revid": 4615294
+        },
+        {
+          "title": "Knots/Loop knots/Bowline on a bight",
+          "revid": 3329921
+        },
+        {
+          "title": "Knots/Loop knots/Figure-eight loop",
+          "revid": 1844033
+        },
+        {
+          "title": "Knots/Loop knots/French bowline",
+          "revid": 3329923
+        },
+        {
+          "title": "Knots/Loop knots/Lariat knot",
+          "revid": 1845350
+        },
+        {
+          "title": "Knots/Loop knots/Man harness knot",
+          "revid": 1845367
+        },
+        {
+          "title": "Knots/Loop knots/Taut-line hitch",
+          "revid": 3576960
+        },
+        {
+          "title": "Knots/Loop knots/Triple bowline",
+          "revid": 3329905
+        },
+        {
+          "title": "Knots/Loop knots/Triple crown knot",
+          "revid": 2277770
+        },
+        {
+          "title": "Knots/Loop knots/Water bowline",
+          "revid": 3329928
+        },
+        {
+          "title": "Knots/Loop knots/Yosemite bowline",
+          "revid": 3329929
+        },
+        {
+          "title": "Knots/Properties of knots",
+          "revid": 3099977
+        },
+        {
+          "title": "Knots/Rope",
+          "revid": 2734583
+        },
+        {
+          "title": "Knots/Rope splicing",
+          "revid": 2695808
+        },
+        {
+          "title": "Knots/Seizing knots",
+          "revid": 1937422
+        },
+        {
+          "title": "Knots/Seizing knots/Sheepshank",
+          "revid": 4329033
+        },
+        {
+          "title": "Knots/Sinnet knots",
+          "revid": 1937423
+        },
+        {
+          "title": "Knots/Sinnet knots/Daisy chain",
+          "revid": 1854815
+        },
+        {
+          "title": "Knots/Sinnet knots/Five-string English sinnet",
+          "revid": 1844679
+        },
+        {
+          "title": "Knots/Sinnet knots/Three-string English sinnet",
+          "revid": 1844680
+        },
+        {
+          "title": "Knots/Stopper knots",
+          "revid": 1937425
+        },
+        {
+          "title": "Knots/Stopper knots/Figure-eight knot",
+          "revid": 3329932
+        },
+        {
+          "title": "Knots/Stopper knots/Overhand knot",
+          "revid": 1844634
+        },
+        {
+          "title": "Knots/Stopper knots/Overhand knot with draw-loop",
+          "revid": 1810653
+        },
+        {
+          "title": "Knots/Stopper knots/Stevedore knot",
+          "revid": 1846154
+        },
+        {
+          "title": "Knots/Synthetic fibre",
+          "revid": 2554201
+        },
+        {
+          "title": "Knots/Trick knots",
+          "revid": 1937426
+        },
+        {
+          "title": "Knots/Trick knots/Thief knot",
+          "revid": 3400121
+        },
+        {
+          "title": "Knots/Webbing",
+          "revid": 4368293
+        },
+        {
+          "title": "Knots/Whipping",
+          "revid": 1937427
+        }
+      ]
+    },
+    "sha256": "b5fd8812a9a5f5ac7efb56aeaab519df1bfee28954e6f24dbe21b67b7d827e3a"
+  }
+]

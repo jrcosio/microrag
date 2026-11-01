@@ -138,17 +138,19 @@ Historias de la spec:
 
 **Independent Test**: las cifras de ES·EN, EN·EN y EN·ES quedan en DECISIONS, y el texto de la tarjeta cumple la regla de L14.
 
-- [ ] T011 [P] [US8] Ampliar `offline/tests/test_corpus.py` (L8):
+- [X] T011 [P] [US8] Ampliar `offline/tests/test_corpus.py` (L8):
   - sitio de Wikibooks como parámetro, con `es` por defecto;
   - el manifiesto `corpus/en` con sus 13 campos y la licencia CC BY-SA 4.0;
   - `SOURCES.md` generado.
 
   Ampliar también `offline/tests/test_index.py` (L9): el índice `en` usa los parámetros de troceado de `rag_parameters.json` y no toca `chars_per_token.json`.
 - [X] T012 [US8] Implementar el corpus y el índice `en` en `offline/eval/corpus.py`, `offline/eval/builds.py` y `offline/run_eval.py` (`fetch-corpus corpus=en`, `sources corpus=en`, `build en`), con sus filas en `offline/README.md`. T011 pasa.
-- [ ] T013 [US8] Elegir los 3 libros de en.wikibooks (temas distintos, tamaño parecido a los españoles y `revid` fijo) y escribirlos en `offline/corpus/en/manifest.json`. Después:
+- [X] T013 [US8] Elegir los 3 libros de en.wikibooks (temas distintos, tamaño parecido a los españoles y `revid` fijo) y escribirlos en `offline/corpus/en/manifest.json`. Después:
   - `fetch-corpus corpus=en --record`;
   - `sources corpus=en`;
   - `build en`.
+
+  Resultado: Git (23 subpáginas), Basic Book Design (31) y Knots (71), sin la versión para imprimir; 229 KB de texto, 184 fragmentos y la caché `build/chars_per_token.json` sin tocar.
 - [ ] T014 [US8] Redactar `offline/testset/crosslang/en-docs.en.jsonl` con el método de F05 (L10: 40 con respuesta, 10 seguimientos y 15 sin respuesta) y su traducción `en-docs.es.jsonl`. `validate-testset set=crosslang` pasa.
 - [ ] T015 [US8] Ejecutar `crosslang-review english_answers=es` para EN·EN y EN·ES (respuestas en español, D-061), y juzgar a mano sus unas 130 respuestas (L12).
 - [ ] T016 [US8] Registrar:
