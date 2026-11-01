@@ -109,15 +109,16 @@ Historias de la spec:
   - forma de `testset/crosslang/*.jsonl`: `source_id`, `previous` dentro del fichero y tipos;
   - la selección de las 15 sin respuesta con la semilla `20261101` es determinista;
   - cada combinación lleva su índice, su fichero y su idioma de respuesta, y `english_answers` cambia solo las combinaciones con preguntas en inglés;
-  - las cifras se calculan por combinación, con el acierto de la búsqueda.
+  - las cifras se calculan por combinación, con el acierto de la búsqueda;
+  - la referencia de correctas (D-060): ES·EN frente a sus preguntas de origen con `v4` y EN·ES frente a EN·EN; la regla de 10 puntos se cumple justo en el límite y falla por debajo.
 - [ ] T007 [US9] Crear `offline/testset/crosslang/es-docs.en.jsonl` (L7):
-  - la muestra de F10, las 9 preguntas anteriores y las 15 sin respuesta, traducidas al inglés;
+  - 72 preguntas traducidas al inglés: la muestra de F10, las 7 anteriores con respuesta y 15 sin respuesta (las 2 anteriores y 13 con la semilla);
   - revisión a mano de las traducciones.
 
   Ampliar `offline/eval/testset.py` para leer y validar conjuntos `crosslang`, y `validate-testset set=crosslang` en `offline/run_eval.py`.
-- [ ] T008 [US9] Implementar `crosslang-review` en `offline/eval/pipeline.py` y `offline/run_eval.py`, con las combinaciones de L11. Al principio solo está ES·EN, porque `en` aún no existe. T006 pasa.
-- [ ] T009 [US9] Ejecutar `crosslang-review english_answers=auto` para ES·EN y juzgar a mano sus unas 74 respuestas en `offline/reports/crosslang-review.csv` (L12).
-- [ ] T010 [US9] **Decisión sobre «Automático»** (L6 más los umbrales de ES·EN):
+- [ ] T008 [US9] Implementar `crosslang-review` en `offline/eval/pipeline.py` y `offline/run_eval.py`, con las combinaciones de L11. Al principio solo está ES·EN, porque `en` aún no existe. Añadir sus filas, y la de `validate-testset set=crosslang`, a la tabla de `offline/README.md`. T006 pasa.
+- [ ] T009 [US9] Ejecutar `crosslang-review english_answers=auto` para ES·EN y juzgar a mano sus 72 respuestas en `offline/reports/crosslang-review.csv` (L12).
+- [ ] T010 [US9] **Decisión sobre «Automático»** (L6, más los umbrales de ES·EN y sus correctas a no más de 10 puntos de sus preguntas de origen con `v4`):
   - **Si se adopta:** se registra en una entrada nueva de `docs/roadmap/DECISIONS.md` con su tabla, y se sigue.
   - **Si no:** **se para** y el usuario decide con las cifras. Mientras tanto, la app se construye sin la opción (`AUTOMATIC_OFFERED = false`, T019).
 
@@ -137,7 +138,7 @@ Historias de la spec:
   - `SOURCES.md` generado.
 
   Ampliar también `offline/tests/test_index.py` (L9): el índice `en` usa los parámetros de troceado de `rag_parameters.json` y no toca `chars_per_token.json`.
-- [ ] T012 [US8] Implementar el corpus y el índice `en` en `offline/eval/corpus.py`, `offline/eval/builds.py` y `offline/run_eval.py` (`fetch-corpus corpus=en`, `sources corpus=en`, `build en`). T011 pasa.
+- [ ] T012 [US8] Implementar el corpus y el índice `en` en `offline/eval/corpus.py`, `offline/eval/builds.py` y `offline/run_eval.py` (`fetch-corpus corpus=en`, `sources corpus=en`, `build en`), con sus filas en `offline/README.md`. T011 pasa.
 - [ ] T013 [US8] Elegir los 3 libros de en.wikibooks (temas distintos, tamaño parecido a los españoles y `revid` fijo) y escribirlos en `offline/corpus/en/manifest.json`. Después:
   - `fetch-corpus corpus=en --record`;
   - `sources corpus=en`;
@@ -200,12 +201,14 @@ Historias de la spec:
 - [ ] T025 [P] [US1] `…/test/…/feature/settings/SettingsViewModelTest.kt` (parte de modelos):
   - refresca al entrar;
   - sin chip hasta la primera lectura;
+  - las filas cambian sin salir cuando cambia el estado de un modelo (FR-005), y al refrescar deja de decir «Local» si falta el fichero;
   - P14: `Ready(GPU)` es «Local», Gemma en CPU es «Modo CPU, más lento» y los demás estados van como en la Preparación;
   - la ficha abierta sobrevive en `SavedStateHandle`.
 - [ ] T026 [P] [US1] `…/test/…/feature/settings/SettingsScreenTest.kt` (Robolectric):
   - la estructura del PNG 09, con secciones y filas;
   - los chips;
   - la ficha con sus seis filas, el SHA-256 abreviado y su descripción, y «—» en el procesador;
+  - un modelo sin verificar muestra su estado real en la ficha, nunca «Local» (FR-007);
   - «Completar configuración» solo si no está listo;
   - U4: un solo nodo por fila de modelo, con la acción «Ver detalles».
 
@@ -326,9 +329,10 @@ Historias de la spec:
 - [ ] T047 [P] [US3] `…/test/…/feature/settings/LanguagesViewModelTest.kt`:
   - al abrir, marca lo guardado;
   - la selección sobrevive en `SavedStateHandle`;
-  - «Guardando…» y el segundo toque;
+  - «Guardando…», su anuncio (U7) y el segundo toque;
   - `Close(recreate)` según el controlador, y sin cambios vuelve atrás sin escribir;
-  - `AUTOMATIC_OFFERED` oculta la opción.
+  - `AUTOMATIC_OFFERED` oculta la opción;
+  - P19: tras una recreación con otro idioma del sistema, la selección sigue al actual si el usuario no la había tocado, y se conserva si la había tocado.
 - [ ] T048 [P] [US3] `…/test/…/feature/settings/LanguagesScreenTest.kt` (Robolectric):
   - la estructura del PNG 10 (eyebrow, título, hero, dos grupos, tarjeta y botón);
   - U3: grupos de opciones con rol, estado y posición;
@@ -343,7 +347,7 @@ Historias de la spec:
   - `recreate()` en Android 12 tras volver atrás;
   - el texto de la tarjeta, el que decidió T016.
 
-  Sustituir el marcador de `Languages` en `MicroRagNavHost` y registrar el ViewModel. T047 y T048 pasan.
+  Sustituir el marcador de `Languages` en `MicroRagNavHost` y registrar el ViewModel. Actualizar `NavigationTest` y cualquier prueba que aún espere el marcador «F12». T047 y T048 pasan.
 - [ ] T053 [US3] Anuncio de P7: `…/microrag/core/navigation/MicroRagAppShell.kt` consume `SettingsNotices.saved` y lo anuncia con una región en vivo. Prueba Robolectric en `…/test/…/core/navigation/` con recreación.
 
 **Checkpoint**: Idiomas guarda los dos idiomas y el chat aplica el de las respuestas.
@@ -358,7 +362,7 @@ Historias de la spec:
 
 - [ ] T054 [P] [US6] Ampliar `LanguagesViewModelTest` y `LanguagesScreenTest`:
   - con `readFailed`, la tarjeta de aviso y los valores por defecto marcados;
-  - un fallo al guardar da el aviso de error, el botón vuelve a estar activo y los valores no cambian; reintentar funciona;
+  - un fallo al guardar da el aviso de error, que se anuncia una vez; el botón vuelve a estar activo y los valores no cambian; reintentar funciona;
   - la app sigue usable.
 - [ ] T055 [US6] Implementar la tarjeta de aviso de lectura y el aviso de error al guardar en `LanguagesScreen`. T054 pasa.
 - [ ] T056 [US6] Prueba instrumentada `…/androidTest/…/data/settings/LanguageSettingsPersistenceTest.kt`: el idioma de las respuestas sobrevive a cerrar y abrir el DataStore real en un directorio temporal.
@@ -414,7 +418,8 @@ Historias de la spec:
 
 - [ ] T063 Pasar toda la batería:
   - Python (`unittest discover -s offline/tests`) y `gen_answer_golden.py --check`;
-  - `./gradlew :app:testDebugUnitTest :app:lintDebug`, sin errores nuevos.
+  - `./gradlew :app:testDebugUnitTest :app:lintDebug`, sin errores nuevos;
+  - `NetworkConfinementTest` sigue en verde, y los registros de una sesión de Ajustes e Idiomas solo llevan tipos de fallo, nunca valores (P18, SC-010).
 - [ ] T064 Batería instrumentada completa en `Pixel_10` y en `MicroRAG_API33`.
 - [ ] T065 Recorrido en el emulador (quickstart §3):
   - API 33 y API 37;
@@ -436,6 +441,9 @@ Historias de la spec:
   - cambio de idioma de ida y vuelta;
   - ficha de modelo;
   - el diálogo de borrar se abre y se **cancela**;
+  - si el usuario lo aprueba, con documentos públicos de prueba en una carpeta propia (como T069 de F11), que se borran al terminar:
+    - con «Automático» (si se adoptó), una pregunta en inglés que responde en inglés con sus fuentes;
+    - un cambio de idioma de la app con una respuesta en curso, que sigue sin reiniciarse;
   - sin tráfico de red de la app.
 
   El teléfono queda con su idioma y sus ajustes.

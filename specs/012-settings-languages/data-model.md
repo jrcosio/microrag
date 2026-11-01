@@ -147,7 +147,7 @@ enum class SettingsMessage { HISTORY_CLEARED, NO_CONVERSATIONS, CLEAR_FAILED }  
 
 data class LanguagesUiState(
     val saved: LanguageSettings? = null,          // null while loading
-    val selectedApp: AppLanguage? = null,         // SavedStateHandle; starts as saved.app
+    val selectedApp: AppLanguage? = null,         // SavedStateHandle with its starting value; follows a system change if untouched (P19)
     val selectedAnswer: AnswerLanguage? = null,   // SavedStateHandle; starts as saved.answer
     val saving: Boolean = false,
     val saveFailed: Boolean = false,              // S8
@@ -182,7 +182,7 @@ sealed interface LanguagesEvent { data class Close(val recreate: Boolean) : Lang
 
 | Fichero | Documentos | Preguntas | Composición |
 |---|---|---|---|
-| `es-docs.en.jsonl` | español (`ref`) | inglés | muestra de F10 (40 + 10), 9 anteriores y 15 sin respuesta |
+| `es-docs.en.jsonl` | español (`ref`) | inglés | 72: muestra de F10 (40 + 10), las 7 anteriores con respuesta y 15 sin respuesta (las 2 anteriores y 13 con semilla) |
 | `en-docs.en.jsonl` | inglés (`en`) | inglés | 40 con respuesta, 10 seguimientos y 15 sin respuesta |
 | `en-docs.es.jsonl` | inglés (`en`) | español | las mismas, traducidas |
 

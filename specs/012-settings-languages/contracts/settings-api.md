@@ -81,6 +81,12 @@ Se reutilizan:
 **Privacidad**
 - **P18. Registros:** las tiendas y el controlador solo registran el tipo de fallo (`IOException`, corrupción), nunca el valor. Nada en release, salvo los avisos ya existentes del `AppLogger`.
 
+**Pantalla Idiomas**
+- **P19. Selección frente a un cambio externo:**
+  - la selección de cada idioma empieza en el valor guardado y se guarda en `SavedStateHandle` junto con ese valor de partida;
+  - al recrearse (giro, cambio del sistema), si el usuario no había tocado el idioma de la app y el actual es otro, la selección pasa al actual. Así Idiomas muestra el idioma que el sistema acaba de poner (caso límite de la spec);
+  - si el usuario sí lo había tocado, se conserva lo que marcó.
+
 ## 3. Inyección (Koin)
 
 - `DataModule`:

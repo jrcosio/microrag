@@ -85,6 +85,10 @@
 - Q: ¿Qué filas de modelo abren su ficha en Ajustes, y qué se puede hacer desde ella? → A: Las dos filas llevan chip con su estado real («Local» si está listo) y chevron, y abren una ficha de solo lectura: nombre, fichero, tamaño, SHA-256 abreviado, dimensiones, GPU/CPU y estado. Si el modelo no está listo, la ficha ofrece «Completar configuración», que abre la Preparación. Ajustes no tiene acciones propias sobre los modelos: no hay «Revalidar» ni nueva descarga.
 - Q: ¿Se mide en F12 cómo responde la app con documentos o preguntas en otro idioma, y qué texto lleva la tarjeta «Búsqueda multilingüe»? → A: Se mide en F12, en el escritorio, con un conjunto pequeño: documentos públicos en inglés con preguntas en español y en inglés, y preguntas en inglés sobre los documentos en español. Las preguntas en inglés se comparten con la evaluación de «Automático». El texto de la tarjeta se ajusta a lo que digan las cifras, y el pendiente «Documentos en otro idioma» de DECISIONS se cierra con ellas. Las mejoras de búsqueda, si hacen falta, van a F14.
 
+### Session 2026-11-01 (analyze)
+
+- Q: ¿Se añade un mínimo de respuestas correctas a las reglas de las preguntas en inglés y de la tarjeta «Búsqueda multilingüe»? → A: Sí, a 10 puntos de su referencia. Las preguntas en inglés sobre los documentos en español no pueden quedar más de 10 puntos por debajo de las mismas preguntas en español con `v4`. Las preguntas en español sobre los documentos en inglés, igual frente a las mismas en inglés. Inglés con inglés no tiene referencia y solo usa los umbrales. Vale para adoptar «Automático» y para el texto de la tarjeta.
+
 ## User Scenarios & Testing *(mandatory)*
 
 **Actores:**
@@ -364,7 +368,8 @@ Quien desarrolla evalúa en el escritorio el prompt de «Automático» con pregu
 - **FR-023**: Con «Español», el prompt MUST ser idéntico, carácter a carácter, al del escritorio, sea cual sea el idioma de la app (SC-002 de F11).
 - **FR-024**: El valor por defecto del idioma de las respuestas MUST ser «Español». «Automático» MUST cambiar solo la línea del idioma del prompt por la de responder en el idioma de la pregunta (G25), sin detector de idioma. «Automático» MUST ofrecerse solo si su evaluación en el escritorio cumple la regla fijada antes de evaluar:
   - con preguntas en español y en inglés, los umbrales del informe: negativas correctas ≥ 85 % y citas correctas ≥ 90 %;
-  - con preguntas en español, sin bajar de las cifras de `v4`.
+  - con preguntas en español, sin bajar de las cifras de `v4`;
+  - con preguntas en inglés sobre los documentos en español, respuestas correctas a no más de 10 puntos por debajo de las mismas preguntas en español con `v4`.
 
   Si no la cumple, el trabajo se para y el usuario decide con las cifras.
 - **FR-025**: La redacción del prompt MUST cambiar solo con una evaluación documentada en el escritorio y una entrada en DECISIONS (constitución III).
@@ -387,7 +392,7 @@ Quien desarrolla evalúa en el escritorio el prompt de «Automático» con pregu
   - funcionar con la letra al 200 %, en horizontal y en modo oscuro.
 - **FR-031**: Ajustes e Idiomas MUST funcionar sin red, y los registros MUST NOT contener contenido privado (constitución I).
 - **FR-032**: La tarjeta «Búsqueda multilingüe» MUST ser informativa, sin interruptor ni acción. Su texto MUST ajustarse a la medida entre idiomas de F12, con una regla fijada antes de medir:
-  - si cada combinación entre idiomas cumple los umbrales del informe (negativas correctas ≥ 85 % y citas correctas ≥ 90 %), se mantiene el texto del PNG;
+  - si cada combinación entre idiomas cumple los umbrales del informe (negativas correctas ≥ 85 % y citas correctas ≥ 90 %) y sus respuestas correctas no quedan más de 10 puntos por debajo de su referencia, se mantiene el texto del PNG. Las referencias son las mismas preguntas en español con `v4` (preguntas en inglés sobre los documentos en español) y las mismas preguntas en inglés (preguntas en español sobre los documentos en inglés). Inglés con inglés solo usa los umbrales;
   - si no, se propone un texto ajustado a las cifras, que el usuario aprueba antes de implementarlo.
 - **FR-033**: La medida entre idiomas MUST hacerse en el escritorio, con documentos públicos en inglés y los documentos en español de la evaluación, preguntas en español y en inglés, y el mismo método de juicio que F05. Sus preguntas en inglés MUST ser las mismas que use la evaluación de «Automático» (FR-024). Las cifras MUST registrarse en DECISIONS y cerrar el pendiente «Documentos en otro idioma». Las mejoras de la búsqueda que las cifras pidan quedan para F14.
 

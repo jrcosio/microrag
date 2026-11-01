@@ -53,14 +53,18 @@ offline/.venv/bin/python -I offline/run_eval.py report
 
   El resultado va a `build/language-review/result.json`, con `meets_rule`.
 
-  **«Automático» se adopta** solo si se cumplen L6 y, además, la combinación ES·EN (L11) cumple los umbrales del informe con `english_answers=auto`. Son las preguntas en inglés que pide FR-024.
+  **«Automático» se adopta** solo si se cumplen L6 y, además, la combinación ES·EN (L11), con `english_answers=auto`:
+  - cumple los umbrales del informe;
+  - no queda más de 10 puntos por debajo en respuestas correctas frente a sus 57 preguntas de origen con `v4`, según los juicios mezclados (D-060).
+
+  Son las preguntas en inglés que pide FR-024.
 
 **Conjuntos y corpus en inglés**
 - **L7. `testset/crosslang/es-docs.en.jsonl`:**
   - traducción al inglés de:
     - la muestra de F10 (`golden/retrieval_parity.jsonl`: 40 con respuesta y 10 seguimientos);
-    - las 9 preguntas anteriores de esos seguimientos que faltan;
-    - 15 sin respuesta elegidas con la semilla `20261101`;
+    - las 9 preguntas anteriores de esos seguimientos que faltan: 7 con respuesta y 2 sin respuesta;
+    - 15 sin respuesta en total: esas 2 y 13 más elegidas con la semilla `20261101`;
   - cada fila conserva `doc`, `evidence`, `relevant_ref` y `expected_answer` en español, y lleva `source_id` con su id de origen;
   - los `previous` apuntan a ids del mismo fichero.
 - **L8. Corpus en inglés:**
@@ -94,11 +98,14 @@ offline/.venv/bin/python -I offline/run_eval.py report
   - con el veredicto se anota si el fallo es de la búsqueda (sin bloque relevante en el contexto) o de la generación.
 - **L13. Cifras por combinación:**
   - correctas, negativas, citas y negativas indebidas, con `report.manual_metrics`;
+  - la referencia de correctas de cada combinación (D-060): las mismas preguntas en español con `v4` para ES·EN, y EN·EN para EN·ES;
   - acierto de la búsqueda: preguntas con un bloque relevante en el contexto.
 
   Resultado en `build/crosslang-review/result.json`, con `meets_thresholds` por combinación.
-- **L14. Regla de la tarjeta** (FR-032, fijada antes de generar):
-  - si ES·EN, EN·EN y EN·ES cumplen los umbrales del informe, se queda el texto del PNG;
+- **L14. Regla de la tarjeta** (FR-032, fijada antes de generar; D-060):
+  - se queda el texto del PNG si ES·EN, EN·EN y EN·ES cumplen los umbrales del informe y, además:
+    - ES·EN no queda más de 10 puntos por debajo de sus preguntas de origen con `v4` en respuestas correctas;
+    - EN·ES no queda más de 10 puntos por debajo de EN·EN;
   - si no, se para con las cifras y una propuesta de texto (S10).
 
 **Registro**
@@ -120,7 +127,7 @@ offline/.venv/bin/python -I offline/run_eval.py report
 
 1. L2–L4 con sus pruebas.
 2. `language-review`: unos 6 minutos de generación y unas 220 respuestas a juzgar, por lotes.
-3. Traducción de `es-docs.en` y `crosslang-review` de ES·EN con `english_answers=auto` (74 respuestas).
+3. Traducción de `es-docs.en` y `crosslang-review` de ES·EN con `english_answers=auto` (72 respuestas).
 4. **Decisión sobre «Automático»** (L6 y ES·EN). Si no cumple, **se para** y el usuario decide (FR-024).
 5. Corpus e índice `en`, preguntas `en-docs.*`, y EN·EN y EN·ES (130 respuestas).
 6. Informe y decisión. **Se para** si el texto de la tarjeta tiene que cambiar (S10).

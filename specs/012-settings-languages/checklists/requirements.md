@@ -37,3 +37,4 @@
   - idioma de las respuestas: «Español» por defecto y «Automático» solo tras evaluarlo (FR-024, G25);
   - ficha de modelo de solo lectura en las dos filas, con acceso a la Preparación (FR-006, G24);
   - medida entre idiomas en F12 y texto de la tarjeta «Búsqueda multilingüe» según las cifras (FR-032, FR-033).
+- **Analyze (2026-11-01):** una pregunta respondida e integrada (D-060): las reglas de las preguntas en inglés y de la tarjeta exigen además respuestas correctas a no más de 10 puntos de su referencia (FR-024, FR-032).

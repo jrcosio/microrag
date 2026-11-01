@@ -1281,6 +1281,25 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
 
 ---
 
+## D-060 — Ajustes del analyze de F12
+
+- **Fecha:** 2026-11-01
+- **Decisión:**
+  1. **Mínimo de respuestas correctas** en las reglas de las preguntas en inglés: a no más de 10 puntos por debajo de su referencia.
+     - Para adoptar «Automático» (FR-024): las preguntas en inglés sobre los documentos en español (ES·EN), frente a las mismas 57 preguntas en español con `v4`, según los juicios ya hechos.
+     - Para el texto de la tarjeta «Búsqueda multilingüe» (FR-032): ES·EN con la misma referencia, y las preguntas en español sobre los documentos en inglés (EN·ES), frente a las mismas en inglés (EN·EN). EN·EN no tiene referencia y solo usa los umbrales del informe.
+  2. **Correcciones sin decisión del usuario:**
+     - si el sistema cambia el idioma de la app con Idiomas abierta y el usuario no lo había tocado, la selección sigue al idioma nuevo (P19);
+     - el conjunto de preguntas en inglés sobre los documentos en español tiene 72 preguntas: las 15 sin respuesta incluyen las 2 que son anteriores de seguimientos;
+     - pruebas añadidas: filas de modelo que cambian en vivo, modelo sin verificar en la ficha, anuncios de guardado, sin red y registros;
+     - el recorrido del teléfono puede incluir, con permiso, una pregunta en inglés y un cambio de idioma con una respuesta en curso, sobre documentos públicos de prueba.
+- **Motivo:** las reglas aprobadas solo miraban negativas y citas. Una combinación podía pasar con muchas respuestas incorrectas, y la tarjeta seguiría prometiendo la consulta entre idiomas.
+- **Alternativas descartadas:** 5 puntos de margen; o dejar las reglas solo con negativas y citas.
+- **Origen:** usuario (analyze de F12).
+- **Afecta:** F12 (FR-024, FR-032, research R7 y R9, contrato `eval-language.md` L6, L13 y L14).
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.

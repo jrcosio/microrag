@@ -135,7 +135,7 @@ Fecha: 2026-11-01. Todas las decisiones parten de:
   - negativas ≥ 51 de 56, que además cumple el umbral de 85 %;
   - citas ≥ 94,3 %.
 - **Salida:** `build/language-review/result.json` y la sección del informe (R9).
-- **Adopción de «Automático»:** se cumple esta regla y, además, las preguntas en inglés sobre los documentos en español (ES·EN de R9, con «Automático») cumplen los umbrales del informe. Así se aplican las dos partes de FR-024.
+- **Adopción de «Automático»:** se cumple esta regla y, además, las preguntas en inglés sobre los documentos en español (ES·EN de R9, con «Automático») cumplen los umbrales del informe. Sus respuestas correctas no pueden quedar más de 10 puntos por debajo de las mismas 57 preguntas en español con `v4`, según los juicios ya hechos (analyze, D-060). Así se aplican las dos partes de FR-024.
 
 ## R8. Preguntas en inglés y corpus en inglés
 
@@ -144,9 +144,9 @@ Fecha: 2026-11-01. Todas las decisiones parten de:
 **Preguntas en inglés sobre los documentos en español** (`testset/crosslang/es-docs.en.jsonl`):
 - traducción al inglés de:
   - la muestra de F10 (40 con respuesta y 10 seguimientos);
-  - las 9 preguntas anteriores de esos seguimientos que no están en la muestra;
-  - 15 de las 56 sin respuesta, con la semilla fija `20261101`;
-- son unas 74 preguntas. Con 15 sin respuesta, cada una vale 6,7 puntos, así que el umbral del 85 % tolera 2 fallos;
+  - las 9 preguntas anteriores de esos seguimientos que no están en la muestra: 7 con respuesta y 2 sin respuesta;
+  - 15 sin respuesta en total: esas 2 y 13 más de las 56, elegidas con la semilla fija `20261101`;
+- son 72 preguntas, 57 de ellas con respuesta. Con 15 sin respuesta, cada una vale 6,7 puntos, así que el umbral del 85 % tolera 2 fallos;
 - se conservan el `id` de origen, `evidence`, `relevant_ref` y `expected_answer`, en español. La lectura de citas funciona igual;
 - la traducción la hace el asistente y se revisa a mano. Los términos legales se traducen por su sentido, sin calcar las siglas.
 
@@ -177,11 +177,11 @@ Fecha: 2026-11-01. Todas las decisiones parten de:
 | EN·ES | inglés | español | Español | FR-033 |
 
 - **Si «Automático» no se adopta**, las combinaciones con preguntas en inglés se repiten con «Español», que es lo que vería el usuario. Antes se para y decide el usuario (FR-024).
-- **Esfuerzo:** unas 74 + 65 + 65 = 204 respuestas a juzgar, además de las unas 220 de R7.
+- **Esfuerzo:** 72 + 65 + 65 = 202 respuestas a juzgar, además de las unas 220 de R7.
 - **Columnas del CSV:** `combinacion, id, id_origen, tipo, pregunta, respuesta_esperada, datos_clave, fuentes, respuesta, regla, regla_citas, manual, manual_citas, comentario`.
 - **Cifras:** las mismas de `report.manual_metrics` por combinación: correctas, negativas, citas y negativas indebidas. También el acierto de la búsqueda (bloques relevantes en el contexto), para separar los fallos de búsqueda de los de generación.
-- **Regla de la tarjeta** (FR-032, fijada antes de medir):
-  - si ES·EN, EN·EN y EN·ES cumplen los umbrales del informe (negativas ≥ 85 % y citas ≥ 90 %), se queda el texto del PNG;
+- **Regla de la tarjeta** (FR-032, fijada antes de medir; D-060):
+  - si ES·EN, EN·EN y EN·ES cumplen los umbrales del informe (negativas ≥ 85 % y citas ≥ 90 %) y, además, las respuestas correctas de ES·EN no quedan más de 10 puntos por debajo de sus preguntas de origen con `v4`, ni las de EN·ES más de 10 por debajo de EN·EN, se queda el texto del PNG;
   - si no, se propone un texto con las cifras, y se para para que el usuario lo apruebe (S10).
 - **Registro:** sección «Idiomas (F12)» en `reports/eval-report.md`, y una decisión nueva en DECISIONS que cierra el pendiente «Documentos en otro idioma». Las mejoras de la búsqueda que pidan las cifras, por ejemplo normalizar según el idioma del documento, van a F14.
 - **Lo que se mide tal cual es:**
