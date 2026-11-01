@@ -6,6 +6,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.click
+import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasScrollToIndexAction
@@ -68,10 +69,21 @@ import com.lisdatasolutions.microrag.domain.model.ModelCatalog
 import com.lisdatasolutions.microrag.domain.model.ModelId
 import com.lisdatasolutions.microrag.domain.model.OnboardingStage
 import com.lisdatasolutions.microrag.domain.model.StartDestination
+import com.lisdatasolutions.microrag.domain.onboarding.BuildDownloadConfirmationUseCase
+import com.lisdatasolutions.microrag.domain.onboarding.CompleteOnboardingUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.FakeOnboardingStore
+import com.lisdatasolutions.microrag.domain.onboarding.ImportModelFileUseCase
+import com.lisdatasolutions.microrag.domain.onboarding.ModelFileSource
 import com.lisdatasolutions.microrag.domain.onboarding.ObserveLocalAiUseCase
+import com.lisdatasolutions.microrag.domain.onboarding.PauseModelDownloadUseCase
+import com.lisdatasolutions.microrag.domain.onboarding.PrepareModelsUseCase
+import com.lisdatasolutions.microrag.domain.onboarding.PrepareStorageUseCase
+import com.lisdatasolutions.microrag.domain.onboarding.ReconcileDownloadsUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.RefreshLocalAiUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.ResolveStartDestinationUseCase
+import com.lisdatasolutions.microrag.domain.onboarding.ResumeModelDownloadUseCase
+import com.lisdatasolutions.microrag.domain.onboarding.RetryModelUseCase
+import com.lisdatasolutions.microrag.domain.onboarding.StartModelDownloadUseCase
 import com.lisdatasolutions.microrag.domain.settings.ObserveLanguageSettingsUseCase
 import com.lisdatasolutions.microrag.domain.settings.ObserveModelOverviewUseCase
 import com.lisdatasolutions.microrag.domain.settings.SaveLanguageSettingsUseCase
@@ -82,8 +94,10 @@ import com.lisdatasolutions.microrag.feature.home.HomeViewModel
 import com.lisdatasolutions.microrag.feature.indexing.IndexViewModel
 import com.lisdatasolutions.microrag.feature.ingest.IngestViewModel
 import com.lisdatasolutions.microrag.feature.library.LibraryViewModel
+import com.lisdatasolutions.microrag.feature.onboarding.setup.SetupViewModel
 import com.lisdatasolutions.microrag.feature.settings.LanguagesViewModel
 import com.lisdatasolutions.microrag.feature.settings.SettingsViewModel
+import com.lisdatasolutions.microrag.rag.runtime.CompatibilityResult
 import com.lisdatasolutions.microrag.testing.ChatTestGraph
 import com.lisdatasolutions.microrag.testing.FakeAppLanguageController
 import com.lisdatasolutions.microrag.testing.FakeChatSession
@@ -93,6 +107,7 @@ import com.lisdatasolutions.microrag.testing.FakeModelSetup
 import com.lisdatasolutions.microrag.testing.InMemoryChatRepository
 import com.lisdatasolutions.microrag.testing.InMemoryModelFileRepository
 import com.lisdatasolutions.microrag.testing.RecordingLogger
+import java.io.ByteArrayInputStream
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -153,27 +168,52 @@ internal fun homeViewModels() = module {
 }
 
 /** Ajustes (F12) takes its ViewModel from Koin too, over the Preparation's fakes with both models ready. */
-internal fun settingsViewModels() = module {
+internal fun settingsViewModels(
+    models: FakeModelSetup = FakeModelSetup().apply {
+        ready(ModelId.GEMMA4_E2B, ComputeBackend.GPU)
+        ready(ModelId.EG2_270M, ComputeBackend.CPU)
+    },
+    language: FakeAppLanguageController = FakeAppLanguageController(),
+) = module {
+    single { SettingsNotices() }
     viewModel {
-        val setup = FakeModelSetup().apply {
-            ready(ModelId.GEMMA4_E2B, ComputeBackend.GPU)
-            ready(ModelId.EG2_270M, ComputeBackend.CPU)
-        }
         val chats = InMemoryChatRepository()
         val session = FakeChatSession(chats)
         SettingsViewModel(
-            ObserveModelOverviewUseCase(setup.useCase, RefreshLocalAiUseCase(setup.repository)),
-            RefreshLocalAiUseCase(setup.repository),
+            ObserveModelOverviewUseCase(models.useCase, RefreshLocalAiUseCase(models.repository)),
+            RefreshLocalAiUseCase(models.repository),
+            ObserveLanguageSettingsUseCase(language),
             CountConversationsUseCase(chats),
             IsAnswerInProgressUseCase(session),
             ClearChatHistoryUseCase(session),
             get(),
         )
     }
-    single { SettingsNotices() }
+    viewModel { LanguagesViewModel(ObserveLanguageSettingsUseCase(language), SaveLanguageSettingsUseCase(language, get()), get()) }
+    // «Completar configuración» in a model sheet opens the Preparation (F12 S2), over the same fakes.
     viewModel {
-        val controller = FakeAppLanguageController()
-        LanguagesViewModel(ObserveLanguageSettingsUseCase(controller), SaveLanguageSettingsUseCase(controller, SettingsNotices()), get())
+        val scope = ApplicationScope(CoroutineScope(SupervisorJob() + Dispatchers.Unconfined))
+        val prepare = PrepareModelsUseCase(
+            models.repository, { _, _ -> CompatibilityResult.Compatible(ComputeBackend.CPU) }, models.work, scope,
+        )
+        val source = object : ModelFileSource {
+            override fun sizeOf(uri: String) = 0L
+            override fun open(uri: String) = ByteArrayInputStream(ByteArray(0))
+        }
+        SetupViewModel(
+            observeSetup = models.useCase,
+            buildConfirmation = BuildDownloadConfirmationUseCase(models.repository, models.controller, models.resources),
+            startDownload = StartModelDownloadUseCase(models.repository, models.controller, models.resources, models.store, models.work),
+            pauseDownload = PauseModelDownloadUseCase(models.store, models.controller),
+            resumeDownload = ResumeModelDownloadUseCase(models.repository, models.store, models.controller),
+            retryModel = RetryModelUseCase(models.repository, models.controller, models.store, models.work),
+            reconcile = ReconcileDownloadsUseCase(models.repository, models.controller, models.store, models.resources, RecordingLogger()),
+            prepareModels = prepare,
+            importModel = ImportModelFileUseCase(models.repository, source, models.work, prepare, scope),
+            prepareStorage = PrepareStorageUseCase(models.repository, models.controller, models.resources),
+            completeOnboarding = CompleteOnboardingUseCase(models.repository, models.store),
+            backgroundDispatcher = Dispatchers.Unconfined,
+        )
     }
 }
 
@@ -204,6 +244,10 @@ class NavigationTest {
 
     /** The import (F06), indexing (F07) and library (F08) screens take their ViewModels from Koin; fakes are enough here. */
     private val library = navigationLibrary()
+    private val models = FakeModelSetup().apply {
+        ready(ModelId.GEMMA4_E2B, ComputeBackend.GPU)
+        ready(ModelId.EG2_270M, ComputeBackend.CPU)
+    }
     private val chat = ChatTestGraph()
 
     @get:Rule(order = 0)
@@ -214,7 +258,7 @@ class NavigationTest {
                 modules(
                     libraryViewModels(library),
                     homeViewModels(),
-                    settingsViewModels(),
+                    settingsViewModels(models),
                     chatViewModels(chat),
                     module {
                         viewModel {
@@ -658,6 +702,98 @@ class NavigationTest {
         compose.waitForIdle()
 
         assertThat(nav.currentDestination?.hasRoute(Home::class)).isTrue()
+    }
+
+    // --- F12 T057: moving from Ajustes (contracts/settings-ui.md §5) ---------------------------------
+
+    private fun openSettings() {
+        tab(TopLevelDestination.SETTINGS).performClick()
+        compose.waitForIdle()
+        assertThat(nav.currentTopLevel()).isEqualTo(TopLevelDestination.SETTINGS)
+    }
+
+    private fun settingsControl(text: String) {
+        compose.onNode(hasScrollAction()).performScrollToNode(hasText(text))
+        compose.onNodeWithText(text).performClick()
+        compose.waitForIdle()
+    }
+
+    private fun backArrow() {
+        compose.onNodeWithContentDescription(context.getString(R.string.action_back)).performClick()
+        compose.waitForIdle()
+    }
+
+    private fun entriesOf(route: kotlin.reflect.KClass<*>) = nav.currentBackStack.value.count { it.destination.hasRoute(route) }
+
+    @Test
+    fun languagesFromSettings_backOrSave_returnToSettings() {
+        launchShell()
+        openSettings()
+
+        settingsControl(context.getString(R.string.settings_languages))
+        assertThat(nav.currentDestination?.hasRoute(Languages::class)).isTrue()
+        backArrow()
+        assertThat(nav.currentDestination?.hasRoute(Settings::class)).isTrue()
+
+        settingsControl(context.getString(R.string.settings_languages))
+        settingsControl(context.getString(R.string.languages_save))
+        assertThat(nav.currentDestination?.hasRoute(Settings::class)).isTrue()
+        assertThat(routesInBackStack()).hasSize(2)
+    }
+
+    @Test
+    fun indexFromSettings_backReturnsToSettings() {
+        launchShell()
+        openSettings()
+
+        settingsControl(context.getString(R.string.settings_index))
+        assertThat(nav.currentDestination?.hasRoute(Index::class)).isTrue()
+        compose.runOnUiThread { nav.popBackStack() }
+        compose.waitForIdle()
+
+        assertThat(nav.currentDestination?.hasRoute(Settings::class)).isTrue()
+    }
+
+    @Test
+    fun backFromSettings_returnsToASingleHome() {
+        launchShell()
+        openSettings()
+
+        backArrow()
+
+        assertThat(nav.currentDestination?.hasRoute(Home::class)).isTrue()
+        assertThat(routesInBackStack()).hasSize(1)
+    }
+
+    @Test
+    fun aDoubleTapOnLanguages_opensASingleScreen() {
+        launchShell()
+        openSettings()
+        val row = context.getString(R.string.settings_languages)
+        compose.onNode(hasScrollAction()).performScrollToNode(hasText(row))
+
+        // Both taps land before the screen changes.
+        compose.mainClock.autoAdvance = false
+        compose.onNodeWithText(row).performClick()
+        compose.onNodeWithText(row).performClick()
+        compose.mainClock.autoAdvance = true
+        compose.waitForIdle()
+
+        assertThat(nav.currentDestination?.hasRoute(Languages::class)).isTrue()
+        assertThat(entriesOf(Languages::class)).isEqualTo(1)
+    }
+
+    @Test
+    fun aModelSheet_opensThePreparation() {
+        models.missing(ModelId.GEMMA4_E2B)
+        launchShell()
+        openSettings()
+
+        settingsControl(context.getString(R.string.settings_model_answers))
+        compose.onNode(hasText(context.getString(R.string.chat_models_action)) and hasClickAction()).performClick()
+        compose.waitForIdle()
+
+        assertThat(nav.currentDestination?.hasRoute(Setup::class)).isTrue()
     }
 }
 

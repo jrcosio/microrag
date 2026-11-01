@@ -377,7 +377,7 @@ Historias de la spec:
 
 **Independent Test**: recorrer las entradas con Atrás en cada pantalla (`NavigationTest`).
 
-- [ ] T057 [P] [US5] Ampliar `NavigationTest`:
+- [X] T057 [P] [US5] Ampliar `NavigationTest`:
   - Ajustes → Idiomas → Guardar o Atrás → Ajustes;
   - Inicio → Idiomas → Inicio;
   - Ajustes → Índice → Atrás → Ajustes;
@@ -388,7 +388,7 @@ Historias de la spec:
   Ampliar `SettingsScreenTest`:
   - el subtítulo de «Idiomas» es el idioma de la app;
   - «Procesamiento 100% local» no tiene acción y lleva la descripción de S5 (U5).
-- [ ] T058 [US5] Conectar las acciones de «Idiomas» y de «Índice y rendimiento» en `MicroRagNavHost`, con el subtítulo de `AppLanguageController.current()` en `SettingsViewModel`. T057 pasa.
+- [X] T058 [US5] Conectar las acciones de «Idiomas» y de «Índice y rendimiento» en `MicroRagNavHost`, con el subtítulo de `AppLanguageController.current()` en `SettingsViewModel`. T057 pasa.
 
 **Checkpoint**: navegación completa.
 

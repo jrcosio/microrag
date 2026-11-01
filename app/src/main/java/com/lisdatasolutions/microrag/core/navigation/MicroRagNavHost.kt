@@ -109,8 +109,8 @@ fun MicroRagNavHost(
             SettingsRoute(
                 onBack = back,
                 onCompleteSetup = { navController.navigate(Setup) { launchSingleTop = true } },
-                onLanguages = {},
-                onIndex = {},
+                onLanguages = { navController.navigate(Languages) { launchSingleTop = true } },
+                onIndex = { navController.navigate(Index) { launchSingleTop = true } },
             )
         }
         // S7: Back and a save both return to where Idiomas was opened from, Ajustes or Home.

@@ -8,11 +8,14 @@ import com.lisdatasolutions.microrag.domain.chat.CountConversationsUseCase
 import com.lisdatasolutions.microrag.domain.chat.IsAnswerInProgressUseCase
 import com.lisdatasolutions.microrag.domain.model.ModelId
 import com.lisdatasolutions.microrag.domain.onboarding.RefreshLocalAiUseCase
+import com.lisdatasolutions.microrag.domain.settings.AppLanguage
+import com.lisdatasolutions.microrag.domain.settings.ObserveLanguageSettingsUseCase
 import com.lisdatasolutions.microrag.domain.settings.ObserveModelOverviewUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -23,6 +26,7 @@ import kotlinx.coroutines.launch
 class SettingsViewModel(
     observeModels: ObserveModelOverviewUseCase,
     private val refreshLocalAi: RefreshLocalAiUseCase,
+    private val observeLanguage: ObserveLanguageSettingsUseCase,
     private val countConversations: CountConversationsUseCase,
     private val isAnswering: IsAnswerInProgressUseCase,
     private val clearHistory: ClearChatHistoryUseCase,
@@ -32,26 +36,41 @@ class SettingsViewModel(
     private val models = observeModels().stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     private val clearing = MutableStateFlow(false)
     private val message = MutableStateFlow<SettingsMessage?>(null)
+    private val appLanguage = MutableStateFlow(AppLanguage.SPANISH)
 
-    val state: StateFlow<SettingsUiState> = combine(
-        models,
+    private val dialogs = combine(
         savedState.getStateFlow<String?>(OPEN_SHEET, null),
         savedState.getStateFlow<Boolean?>(CONFIRM_CLEAR, null),
         clearing,
         message,
-    ) { models, sheet, confirm, clearing, message ->
+    ) { sheet, confirm, clearing, message -> Dialogs(sheet?.let(ModelId::valueOf), confirm?.let(::ConfirmClear), clearing, message) }
+
+    val state: StateFlow<SettingsUiState> = combine(models, appLanguage, dialogs) { models, language, dialogs ->
         SettingsUiState(
             models = models,
-            openSheet = sheet?.let(ModelId::valueOf),
-            confirmClear = confirm?.let(::ConfirmClear),
-            clearing = clearing,
-            message = message,
+            appLanguage = language,
+            openSheet = dialogs.sheet,
+            confirmClear = dialogs.confirm,
+            clearing = dialogs.clearing,
+            message = dialogs.message,
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, SettingsUiState())
+
+    private data class Dialogs(val sheet: ModelId?, val confirm: ConfirmClear?, val clearing: Boolean, val message: SettingsMessage?)
+
+    init {
+        readLanguage()
+    }
+
+    private fun readLanguage() {
+        viewModelScope.launch { appLanguage.value = observeLanguage().first().app }
+    }
 
     /** Back to the screen: the files are rescanned, so a model deleted meanwhile stops saying «Local». */
     fun onResume() {
         viewModelScope.launch { refreshLocalAi() }
+        // S3: back from Idiomas, or from the system's per-app language settings.
+        readLanguage()
     }
 
     fun onOpenModel(id: ModelId) {

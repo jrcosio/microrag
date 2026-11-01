@@ -23,6 +23,7 @@ import com.lisdatasolutions.microrag.domain.model.ModelCatalog
 import com.lisdatasolutions.microrag.domain.model.ModelId
 import com.lisdatasolutions.microrag.domain.model.ModelSetupStatus
 import com.lisdatasolutions.microrag.domain.rag.RagParameters
+import com.lisdatasolutions.microrag.domain.settings.AppLanguage
 import com.lisdatasolutions.microrag.domain.settings.ModelOverview
 import org.junit.Rule
 import org.junit.Test
@@ -244,5 +245,13 @@ class SettingsScreenTest {
     fun aFailureNotice() {
         show(png.copy(message = SettingsMessage.CLEAR_FAILED))
         compose.onNodeWithText("No se pudo borrar el historial.").assertExists()
+    }
+
+    @Test
+    fun s3_theLanguagesRow_saysTheAppLanguage_inItsOwnName() {
+        show(png.copy(appLanguage = AppLanguage.ENGLISH))
+        scrollTo("English")
+
+        compose.onNodeWithText("English", useUnmergedTree = true).assertExists()
     }
 }

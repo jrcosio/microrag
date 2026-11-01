@@ -12,8 +12,11 @@ import com.lisdatasolutions.microrag.domain.model.ModelCatalog
 import com.lisdatasolutions.microrag.domain.model.ModelId
 import com.lisdatasolutions.microrag.domain.model.ModelSetupStatus
 import com.lisdatasolutions.microrag.domain.onboarding.RefreshLocalAiUseCase
+import com.lisdatasolutions.microrag.domain.settings.AppLanguage
 import com.lisdatasolutions.microrag.domain.settings.ModelOverview
+import com.lisdatasolutions.microrag.domain.settings.ObserveLanguageSettingsUseCase
 import com.lisdatasolutions.microrag.domain.settings.ObserveModelOverviewUseCase
+import com.lisdatasolutions.microrag.testing.FakeAppLanguageController
 import com.lisdatasolutions.microrag.testing.FakeChatSession
 import com.lisdatasolutions.microrag.testing.FakeModelSetup
 import com.lisdatasolutions.microrag.testing.InMemoryChatRepository
@@ -35,6 +38,7 @@ class SettingsViewModelTest {
     private val setup = FakeModelSetup()
     private val chats = InMemoryChatRepository()
     private val session = FakeChatSession(chats)
+    private val language = FakeAppLanguageController()
 
     @Before
     fun setUp() = Dispatchers.setMain(dispatcher)
@@ -45,6 +49,7 @@ class SettingsViewModelTest {
     private fun viewModel(saved: SavedStateHandle = SavedStateHandle()) = SettingsViewModel(
         observeModels = ObserveModelOverviewUseCase(setup.useCase, RefreshLocalAiUseCase(setup.repository)),
         refreshLocalAi = RefreshLocalAiUseCase(setup.repository),
+        observeLanguage = ObserveLanguageSettingsUseCase(language),
         countConversations = CountConversationsUseCase(chats),
         isAnswering = IsAnswerInProgressUseCase(session),
         clearHistory = ClearChatHistoryUseCase(session),
@@ -241,5 +246,20 @@ class SettingsViewModelTest {
         advanceUntilIdle()
 
         assertThat(restored.state.value.confirmClear).isEqualTo(ConfirmClear(stopsAnswer = false))
+    }
+
+    // --- US5: the subtitle of «Idiomas» (S3) ------------------------------------------------------------
+
+    @Test
+    fun theLanguagesRow_saysTheAppLanguage_andFollowsAChange() = runTest(dispatcher) {
+        val viewModel = viewModel()
+        advanceUntilIdle()
+        assertThat(viewModel.state.value.appLanguage).isEqualTo(AppLanguage.SPANISH)
+
+        language.language = AppLanguage.ENGLISH
+        viewModel.onResume()
+        advanceUntilIdle()
+
+        assertThat(viewModel.state.value.appLanguage).isEqualTo(AppLanguage.ENGLISH)
     }
 }
