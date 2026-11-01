@@ -45,6 +45,7 @@ Por tipo: {'normativa': 9, 'guia': 3, 'manual': 9}. Por formato: {'md': 6, 'pdf'
 | dim768 | 1913 | 1594 / 2113 | 4.554 | 7 | derivada de ref (dims) |
 | fts_raw | 1913 | 1594 / 2113 | 4.554 | 7 | derivada de ref (fts) |
 | fts_stop | 1913 | 1594 / 2113 | 4.554 | 7 | derivada de ref (fts) |
+| en | 184 | 1594 / 2113 | 4.554 | 1 | 19.6 s |
 
 ## Conjunto de prueba
 
@@ -203,6 +204,31 @@ Regla de adopción (clarify de F11, D-053): al menos 2 puntos más de respuestas
 | v4 | 220 | 72.4 % | 89.3 % | 75.4 % | pasa | 81.1 % | 91.1 % | 94.3 % | sí |
 
 Decisión: se adopta «v4»; la app y el escritorio pasan a usar esa plantilla.
+
+## Idiomas (F12)
+
+### «Automático» con las preguntas en español
+
+La configuración elegida con `v4` y la respuesta en el idioma de la pregunta. Las 196 respuestas que cambian se juzgaron a mano (`reports/language-review.csv`); las demás heredan el juicio de `v4`. Regla (fijada antes de generar): ninguna cifra por debajo de `v4`, negativas ≥ 85 % y citas ≥ 90 %.
+
+| Variante | Correctas | Negativas | Citas | Negativas indebidas |
+|---|---|---|---|---|
+| v4 | 81.1 % | 91.1 % | 94.3 % | 23 |
+| Automático | 81.1 % | 89.3 % | 92.9 % | 20 |
+
+Regla: no cumple.
+
+### Documentos y preguntas en idiomas distintos
+
+Todas las respuestas en español y juzgadas a mano (`reports/crosslang-review.csv`). La referencia de ES·EN son sus mismas preguntas en español con `v4`; la de EN·ES, EN·EN. Regla de la tarjeta «Búsqueda multilingüe» (D-060): negativas ≥ 85 %, citas ≥ 90 % y correctas a no más de 10 puntos de su referencia. La búsqueda acierta cuando el contexto lleva un fragmento con la evidencia.
+
+| Combinación | Documentos | Preguntas | Búsqueda | Correctas | Referencia | Negativas | Citas | Negativas indebidas | Cumple |
+|---|---|---|---|---|---|---|---|---|---|
+| ES·EN | español | inglés (72) | 57.9 % | 50.9 % | 82.5 % | 100.0 % | 96.1 % | 16 | no |
+| EN·EN | inglés | inglés (65) | 90.0 % | 80.0 % | — | 100.0 % | 95.5 % | 3 | sí |
+| EN·ES | inglés | español (65) | 78.0 % | 64.0 % | 80.0 % | 86.7 % | 90.8 % | 11 | no |
+
+Decisión: el texto de la tarjeta del PNG no se sostiene con estas cifras y cambia (S10).
 
 ## Limitaciones
 

@@ -75,5 +75,48 @@ class TemplateReviewSectionTest(unittest.TestCase):
             report.TEMPLATE_REVIEW = original
 
 
+class LanguageSectionTest(unittest.TestCase):
+    """F12 L15: the «Idiomas (F12)» section of the report."""
+
+    LANGUAGE = {"template": "v4", "changed": 196, "pending": 0, "meets_rule": False,
+                "v4": {"answer_correct": 0.811, "refusal_correct": 0.911, "citations_correct": 0.943, "undue_refusals": 23},
+                "manual": {"answer_correct": 0.811, "refusal_correct": 0.893, "citations_correct": 0.929, "undue_refusals": 20}}
+    FIGURES = {"answer_correct": 0.509, "refusal_correct": 1.0, "citations_correct": 0.961, "undue_refusals": 16}
+    CROSSLANG = {"english_answers": "es", "skipped": [], "keeps_card_text": False, "combinations": {
+        "ES·EN": {"questions": 72, "pending": 0, "blocks_hit": 0.579, "manual": FIGURES, "reference": 0.825, "ok": False},
+        "EN·EN": {"questions": 65, "pending": 3, "blocks_hit": 0.9, "manual": None, "ok": None}}}
+
+    def render(self, language, crosslang):
+        import json
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as folder:
+            paths = []
+            for name, content in (("language.json", language), ("crosslang.json", crosslang)):
+                path = Path(folder) / name
+                if content is not None:
+                    path.write_text(json.dumps(content))
+                paths.append(path)
+            original = report.LANGUAGE_REVIEW, report.CROSSLANG_REVIEW
+            report.LANGUAGE_REVIEW, report.CROSSLANG_REVIEW = paths
+            try:
+                return "\n".join(report.language_section())
+            finally:
+                report.LANGUAGE_REVIEW, report.CROSSLANG_REVIEW = original
+
+    def test_renders_both_reviews_and_the_card_decision(self):
+        lines = self.render(self.LANGUAGE, self.CROSSLANG)
+        self.assertIn("## Idiomas (F12)", lines)
+        self.assertIn("| Automático | 81.1 % | 89.3 % | 92.9 % | 20 |", lines)
+        self.assertIn("Regla: no cumple.", lines)
+        self.assertIn("| ES·EN | español | inglés (72) | 57.9 % | 50.9 % | 82.5 % | 100.0 % | 96.1 % | 16 | no |", lines)
+        self.assertIn("| EN·EN | inglés | inglés (65) | 90.0 % | pendiente (3) | — | — | — | — | — |", lines)
+        self.assertIn("Todas las respuestas en español", lines)
+        self.assertIn("el texto de la tarjeta del PNG no se sostiene", lines)
+
+    def test_without_results_there_is_no_section(self):
+        self.assertEqual(self.render(None, None), "")
+
+
 if __name__ == "__main__":
     unittest.main()

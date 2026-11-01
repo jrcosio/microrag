@@ -340,6 +340,66 @@ def template_review_section():
     return lines + [""]
 
 
+LANGUAGE_REVIEW = OFFLINE / "build" / "language-review" / "result.json"
+CROSSLANG_REVIEW = OFFLINE / "build" / "crosslang-review" / "result.json"
+COMBINATION_TEXT = {"ES·EN": ("español", "inglés"), "EN·EN": ("inglés", "inglés"), "EN·ES": ("inglés", "español")}
+
+
+def language_section():
+    """F12 (D-058, D-060, D-061): «Automático» with the Spanish questions, and documents and questions in different
+    languages, from run_eval.py language-review and crosslang-review."""
+    from eval import language_review as lr
+
+    if not LANGUAGE_REVIEW.exists() and not CROSSLANG_REVIEW.exists():
+        return []
+    lines = ["## Idiomas (F12)", ""]
+    if LANGUAGE_REVIEW.exists():
+        r = json.loads(LANGUAGE_REVIEW.read_text(encoding="utf-8"))
+        lines += ["### «Automático» con las preguntas en español", "",
+                  f"La configuración elegida con `{r['template']}` y la respuesta en el idioma de la pregunta. Las {r['changed']} "
+                  "respuestas que cambian se juzgaron a mano (`reports/language-review.csv`); las demás heredan el juicio de "
+                  f"`{r['template']}`. Regla (fijada antes de generar): ninguna cifra por debajo de `{r['template']}`, "
+                  f"negativas ≥ {lr.tr.REFUSAL_MIN * 100:.0f} % y citas ≥ {lr.tr.CITATIONS_MIN * 100:.0f} %.", "",
+                  "| Variante | Correctas | Negativas | Citas | Negativas indebidas |", "|---|---|---|---|---|"]
+        for label, m in ((r["template"], r["v4"]), ("Automático", r["manual"])):
+            if m:
+                lines.append(f"| {label} | {pct(m['answer_correct'])} | {pct(m['refusal_correct'])} | "
+                             f"{pct(m['citations_correct'])} | {m['undue_refusals']} |")
+        verdict = {True: "cumple", False: "no cumple", None: "pendiente"}[r["meets_rule"]]
+        lines += ["", f"Regla: {verdict}.", ""]
+    if CROSSLANG_REVIEW.exists():
+        r = json.loads(CROSSLANG_REVIEW.read_text(encoding="utf-8"))
+        answers = {"es": "en español", "auto": "en el idioma de la pregunta"}[r["english_answers"]]
+        lines += ["### Documentos y preguntas en idiomas distintos", "",
+                  f"Todas las respuestas {answers} y juzgadas a mano (`reports/crosslang-review.csv`). La referencia de ES·EN "
+                  "son sus mismas preguntas en español con `v4`; la de EN·ES, EN·EN. Regla de la tarjeta «Búsqueda "
+                  f"multilingüe» (D-060): negativas ≥ {lr.tr.REFUSAL_MIN * 100:.0f} %, citas ≥ {lr.tr.CITATIONS_MIN * 100:.0f} % "
+                  f"y correctas a no más de {lr.CROSS_POINTS:.0f} puntos de su referencia. La búsqueda acierta cuando el "
+                  "contexto lleva un fragmento con la evidencia.", "",
+                  "| Combinación | Documentos | Preguntas | Búsqueda | Correctas | Referencia | Negativas | Citas | "
+                  "Negativas indebidas | Cumple |", "|---|---|---|---|---|---|---|---|---|---|"]
+        for key, c in r["combinations"].items():
+            docs, questions = COMBINATION_TEXT[key]
+            m = c["manual"]
+            figures = [pct(m[k]) for k in ("answer_correct",)] if m else [f"pendiente ({c['pending']})"]
+            rest = [pct(c.get("reference")), *(pct(m[k]) for k in ("refusal_correct", "citations_correct")),
+                    str(m["undue_refusals"])] if m else [pct(c.get("reference")), "—", "—", "—"]
+            ok = {True: "sí", False: "no", None: "—"}[c["ok"]]
+            lines.append(f"| {key} | {docs} | {questions} ({c['questions']}) | {pct(c['blocks_hit'])} | {figures[0]} | "
+                         f"{' | '.join(rest)} | {ok} |")
+        lines.append("")
+        if r["skipped"]:
+            lines.append(f"Sin medir: {', '.join(r['skipped'])}.")
+        elif r["keeps_card_text"] is None:
+            lines.append("Juicio manual pendiente.")
+        elif r["keeps_card_text"]:
+            lines.append("Decisión: se queda el texto de la tarjeta del PNG.")
+        else:
+            lines.append("Decisión: el texto de la tarjeta del PNG no se sostiene con estas cifras y cambia (S10).")
+        lines.append("")
+    return lines
+
+
 def limitations_section():
     return ["## Limitaciones", "", *[f"- {item}" for item in LIMITATIONS], ""]
 
@@ -367,6 +427,7 @@ def render(extra_sections=()):
         lines += failures_section(ablations, params) + comparisons_section(ablations, params)
     lines += order_review_section()
     lines += template_review_section()
+    lines += language_section()
     lines += limitations_section()
     for section in extra_sections:
         lines += section

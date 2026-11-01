@@ -152,7 +152,10 @@ Historias de la spec:
 
   Resultado: Git (23 subpáginas), Basic Book Design (31) y Knots (71), sin la versión para imprimir; 229 KB de texto, 184 fragmentos y la caché `build/chars_per_token.json` sin tocar.
 - [X] T014 [US8] Redactar `offline/testset/crosslang/en-docs.en.jsonl` con el método de F05 (L10: 40 con respuesta, 10 seguimientos y 15 sin respuesta) y su traducción `en-docs.es.jsonl`. `validate-testset set=crosslang` pasa. Resultado: 13, 13 y 14 preguntas con respuesta por libro, sobre una muestra fija de 16 fragmentos por libro (semilla `20261101`); las 15 sin respuesta se comprobaron contra el texto de los tres libros.
-- [ ] T015 [US8] Ejecutar `crosslang-review english_answers=es` para EN·EN y EN·ES (respuestas en español, D-061), y juzgar a mano sus unas 130 respuestas (L12).
+- [X] T015 [US8] Ejecutar `crosslang-review english_answers=es` para EN·EN y EN·ES (respuestas en español, D-061), y juzgar a mano sus unas 130 respuestas (L12). Resultado:
+  - EN·EN: 40 de 50 correctas (80,0 %), 15 de 15 negativas, el 95,5 % de citas y la búsqueda acierta en el 90 %; cumple los umbrales;
+  - EN·ES: 32 de 50 correctas (64,0 %), 16 puntos por debajo de EN·EN; 13 de 15 negativas, el 90,8 % de citas y la búsqueda acierta en el 78 %; no cumple L14;
+  - 2 de las 65 respuestas de EN·EN salieron en inglés, o casi, aunque el prompt pide español.
 - [ ] T016 [US8] Registrar:
   - la sección «Idiomas (F12)» en `offline/eval/report.py`, con su prueba en `offline/tests/test_report.py`, y regenerar `offline/reports/eval-report.md`;
   - una entrada nueva en `docs/roadmap/DECISIONS.md` con las cifras por combinación, que **cierra el pendiente «Documentos en otro idioma»**; las mejoras que pidan las cifras van a la ficha de F14 en `docs/roadmap/FEATURES.md`;
