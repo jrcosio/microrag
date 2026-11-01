@@ -8,6 +8,8 @@ import com.lisdatasolutions.microrag.domain.model.ModelCatalog
 import com.lisdatasolutions.microrag.domain.model.ModelId
 import com.lisdatasolutions.microrag.domain.model.ModelSetupStatus
 import com.lisdatasolutions.microrag.domain.rag.RagParameters
+import com.lisdatasolutions.microrag.domain.settings.AppLanguage
+import com.lisdatasolutions.microrag.domain.settings.LanguageSettings
 import com.lisdatasolutions.microrag.domain.settings.ModelOverview
 
 /** Labelled sample states for previews and UI tests only (constitution V): never shown in the app. */
@@ -38,6 +40,54 @@ object SettingsPreviewData {
     val unconfiguredGemma = overview(ModelId.GEMMA4_E2B, ModelSetupStatus.Unconfigured())
 
     val readyEmbedding = embeddingCpu
+
+    /** S2: the sheet of Gemma open while it is not set up. */
+    val sheet = SettingsUiState(models = listOf(unconfiguredGemma, embeddingCpu), openSheet = ModelId.GEMMA4_E2B)
+
+    /** S6: the confirmation with an answer in progress. */
+    val confirmClear = png.copy(confirmClear = ConfirmClear(stopsAnswer = true))
+
+    /** S6: the notice after clearing. */
+    val cleared = png.copy(message = SettingsMessage.HISTORY_CLEARED)
+
+    val all: List<Pair<String, SettingsUiState>> = listOf(
+        "png" to png,
+        "opening" to opening,
+        "degraded" to degraded,
+        "sheet" to sheet,
+        "confirmClear" to confirmClear,
+        "cleared" to cleared,
+    )
+}
+
+/** Labelled sample states of Idiomas for previews and UI tests only (constitution V). */
+object LanguagesPreviewData {
+
+    /** PNG 10, with «Español» as the only answer language (S12). */
+    val png = LanguagesUiState(saved = LanguageSettings(AppLanguage.SPANISH), selectedApp = AppLanguage.SPANISH)
+
+    val opening = LanguagesUiState()
+
+    /** English marked, not saved yet. */
+    val english = png.copy(selectedApp = AppLanguage.ENGLISH)
+
+    /** S8: saving. */
+    val saving = english.copy(saving = true)
+
+    /** S8: the stored choice could not be read. */
+    val readFailed = LanguagesUiState(saved = LanguageSettings(AppLanguage.SPANISH, readFailed = true), selectedApp = AppLanguage.SPANISH)
+
+    /** S8: the save failed. */
+    val saveFailed = english.copy(saveFailed = true)
+
+    val all: List<Pair<String, LanguagesUiState>> = listOf(
+        "png" to png,
+        "opening" to opening,
+        "english" to english,
+        "saving" to saving,
+        "readFailed" to readFailed,
+        "saveFailed" to saveFailed,
+    )
 }
 
 @LisdataPreviews
@@ -59,3 +109,15 @@ private fun ModelSheetReadyPreview() = LisdataTheme { ModelSheetContent(Settings
 @LisdataPreviews
 @Composable
 private fun ModelSheetUnconfiguredPreview() = LisdataTheme { ModelSheetContent(SettingsPreviewData.unconfiguredGemma, onCompleteSetup = {}) }
+
+@LisdataPreviews
+@Composable
+private fun LanguagesPngPreview() = LisdataTheme { LanguagesScreen(LanguagesPreviewData.png, LanguagesActions()) }
+
+@LisdataPreviews
+@Composable
+private fun LanguagesSavingPreview() = LisdataTheme { LanguagesScreen(LanguagesPreviewData.saving, LanguagesActions()) }
+
+@LisdataPreviews
+@Composable
+private fun LanguagesReadFailedPreview() = LisdataTheme { LanguagesScreen(LanguagesPreviewData.readFailed, LanguagesActions()) }

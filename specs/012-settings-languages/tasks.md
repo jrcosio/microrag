@@ -400,14 +400,14 @@ Historias de la spec:
 
 **Independent Test**: ATF en verde en todos los estados y configuraciones; `StringsParityTest` en verde; las correcciones del inglés, listadas.
 
-- [ ] T059 [P] [US7] `…/test/…/resources/StringsParityTest.kt`:
+- [X] T059 [P] [US7] `…/test/…/resources/StringsParityTest.kt`:
   - los mismos `string` y `plurals` traducibles en `values` y `values-en`;
   - los mismos marcadores de formato en cada par;
   - los `translatable="false"`, solo en `values`.
-- [ ] T060 [P] [US7] `…/androidTest/…/feature/settings/SettingsScreenAccessibilityTest.kt` y `LanguagesScreenAccessibilityTest.kt`:
+- [X] T060 [P] [US7] `…/androidTest/…/feature/settings/SettingsScreenAccessibilityTest.kt` y `LanguagesScreenAccessibilityTest.kt`:
   - ATF en Ajustes, la ficha, el diálogo e Idiomas, con los estados de S1, S6 y S8;
   - en claro y en oscuro, con la letra al 200 % y en horizontal.
-- [ ] T061 [US7] Ajustar las pantallas hasta que T059 y T060 pasen en el emulador. Si ATF marca algo que contradice el PNG o una propuesta aprobada, **se para y se consulta**.
+- [X] T061 [US7] Ajustar las pantallas hasta que T059 y T060 pasen en el emulador. Si ATF marca algo que contradice el PNG o una propuesta aprobada, **se para y se consulta**. Resultado: las 72 combinaciones pasan en `MicroRAG_API33` sin cambiar las pantallas; solo se ajustó la prueba para medir sobre la raíz de la actividad cuando hay una ficha o un diálogo abiertos.
 - [ ] T062 [US7] Revisión del inglés de todos los textos de `app/src/main/res/values-en/` (R13), en un commit propio, con la lista de correcciones para el informe de cierre.
 
 **Checkpoint**: accesibilidad y textos completos.
