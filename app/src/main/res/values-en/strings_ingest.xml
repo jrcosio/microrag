@@ -38,7 +38,7 @@
     </plurals>
 
     <string name="ingest_error_unsupported_format">Unsupported format</string>
-    <string name="ingest_error_unsupported_format_detail">Only PDF with text, TXT and Markdown are supported.</string>
+    <string name="ingest_error_unsupported_format_detail">Only text-based PDFs, TXT and Markdown files are supported.</string>
     <string name="ingest_error_damaged">Damaged file</string>
     <string name="ingest_error_damaged_detail">The file is damaged or is not a valid %1$s.</string>
     <string name="ingest_error_damaged_detail_generic">The file is damaged or cannot be read.</string>

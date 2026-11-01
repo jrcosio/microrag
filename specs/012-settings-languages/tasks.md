@@ -408,7 +408,14 @@ Historias de la spec:
   - ATF en Ajustes, la ficha, el diálogo e Idiomas, con los estados de S1, S6 y S8;
   - en claro y en oscuro, con la letra al 200 % y en horizontal.
 - [X] T061 [US7] Ajustar las pantallas hasta que T059 y T060 pasen en el emulador. Si ATF marca algo que contradice el PNG o una propuesta aprobada, **se para y se consulta**. Resultado: las 72 combinaciones pasan en `MicroRAG_API33` sin cambiar las pantallas; solo se ajustó la prueba para medir sobre la raíz de la actividad cuando hay una ficha o un diálogo abiertos.
-- [ ] T062 [US7] Revisión del inglés de todos los textos de `app/src/main/res/values-en/` (R13), en un commit propio, con la lista de correcciones para el informe de cierre.
+- [X] T062 [US7] Revisión del inglés de todos los textos de `app/src/main/res/values-en/` (R13), en un commit propio, con la lista de correcciones para el informe de cierre. Resultado: 451 textos revisados y 12 corregidos:
+  - citas: «Fragment»/«Fragments» pasan a «Chunk»/«Chunks», como el resto de la app;
+  - «Open source» pasa a «Open the source», que no se confunde con código abierto;
+  - «What do you want to explore today?» pasa a «What would you like to explore today?»;
+  - indexación: las dos pausas dicen «Indexing will resume…» en lugar de «It will go on…», y «It is needed to index» pasa a «It is needed for indexing»;
+  - importación: «Only text-based PDFs, TXT and Markdown files are supported.»;
+  - borrar documento: comillas inglesas “…” en lugar de «…»;
+  - modelos: «Download failed (…)», «Free space: … (… will be left)» y «No connection: the download will start once you are online».
 
 **Checkpoint**: accesibilidad y textos completos.
 

@@ -26,8 +26,8 @@
     <!-- Design system components (F01) -->
     <string name="cd_include_in_rag">Include %1$s in answers</string>
     <string name="citation_page">Page %1$d</string>
-    <string name="citation_fragment">Fragment %1$d</string>
-    <string name="citation_fragments">Fragments %1$d–%2$d</string>
+    <string name="citation_fragment">Chunk %1$d</string>
+    <string name="citation_fragments">Chunks %1$d–%2$d</string>
     <string name="answer_cancelled">Generation cancelled</string>
     <string name="answer_failed">The answer could not be generated</string>
     <string name="action_clear_search">Clear search</string>

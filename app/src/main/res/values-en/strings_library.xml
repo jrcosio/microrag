@@ -113,7 +113,7 @@
     <!-- D7 -->
     <string name="document_citation_missing">The cited chunk is no longer in this document.</string>
     <!-- D8 -->
-    <string name="document_delete_title">Delete «%1$s»?</string>
+    <string name="document_delete_title">Delete “%1$s”?</string>
     <string name="document_delete_body">The copy kept by the app, its text, its chunks and vectors, and its data will be deleted. The original file on your phone does not change.</string>
     <string name="document_delete_confirm">Delete</string>
     <string name="document_remove_from_index">Remove from index</string>

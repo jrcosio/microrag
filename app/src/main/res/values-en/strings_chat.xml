@@ -38,7 +38,7 @@
     <string name="chat_delete_title">Delete this conversation?</string>
     <string name="chat_delete_body">Its questions and answers will be removed from this phone.</string>
     <string name="chat_delete_confirm">Delete</string>
-    <string name="chat_open_source">Open source</string>
+    <string name="chat_open_source">Open the source</string>
     <string name="chat_source_sentence">Source %1$d: %2$s</string>
     <string name="chat_you_sentence">You: %1$s</string>
     <string name="chat_announce_searching">Searching your documents</string>

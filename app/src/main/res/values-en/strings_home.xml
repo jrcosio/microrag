@@ -6,7 +6,7 @@
     <!-- P1 -->
     <string name="home_ai_pending">Setup pending</string>
     <string name="home_complete_setup">Complete setup</string>
-    <string name="home_greeting">What do you want to explore today?</string>
+    <string name="home_greeting">What would you like to explore today?</string>
     <string name="home_hero_eyebrow">Ask your library</string>
     <string name="home_hero_title">One answer.\nAll your sources.</string>
     <string name="home_new_chat">New chat</string>

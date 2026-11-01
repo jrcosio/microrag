@@ -566,7 +566,7 @@ class ChatScreenTest {
             .forEach { exists(it) }
         compose.onNodeWithContentDescription("More options").assertExists()
         compose.onNodeWithContentDescription("You: ¿Qué indica el protocolo sobre la validación final?").assertExists()
-        row("Source 1: Manual de procesos.pdf, Page 12, Fragment 86").assertIsDisplayed()
+        row("Source 1: Manual de procesos.pdf, Page 12, Chunk 86").assertIsDisplayed()
         listOf("Chat con documentos", "Copiar respuesta", "FUENTES CONSULTADAS").forEach { absent(it) }
     }
 
