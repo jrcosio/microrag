@@ -1202,13 +1202,54 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
 
 ---
 
+## D-058 — Ajustes e Idiomas (clarify de F12)
+
+- **Fecha:** 2026-11-01
+- **Decisión:**
+  1. **Idioma de las respuestas (G25):**
+     - «Español» por defecto: quien no toque nada sigue con el prompt de `v4`, idéntico al del escritorio;
+     - «Automático» cambia solo la línea del idioma del prompt por «responde en el idioma de la pregunta», sin detector de idioma;
+     - antes de ofrecerlo se evalúa en el escritorio con preguntas en español y en inglés. Regla fijada antes de evaluar: negativas ≥ 85 % y citas ≥ 90 % (umbrales del informe) y, con preguntas en español, sin bajar de las cifras de `v4`;
+     - la app reconoce la negativa en español y en inglés;
+     - si no cumple la regla, el trabajo se para y el usuario decide con las cifras.
+  2. **Ficha de modelo (G24):**
+     - las dos filas de modelo llevan chip con su estado real («Local» si está verificado y preparado) y chevron;
+     - las dos abren una ficha de solo lectura con nombre, fichero, tamaño, SHA-256 abreviado, dimensiones, GPU/CPU y estado;
+     - si el modelo no está listo, la ficha ofrece «Completar configuración», que abre la Preparación (D-046);
+     - Ajustes no tiene acciones propias sobre los modelos: ni «Revalidar» ni nueva descarga.
+  3. **Consulta entre idiomas** (pendiente «Documentos en otro idioma»):
+     - se mide en F12, en el escritorio, con un conjunto pequeño: documentos públicos en inglés con preguntas en español y en inglés, y preguntas en inglés sobre los documentos en español;
+     - las preguntas en inglés son las mismas de la evaluación de «Automático»;
+     - la tarjeta «Búsqueda multilingüe» mantiene el texto del PNG si cada combinación cumple los umbrales del informe; si no, se propone un texto con las cifras y el usuario lo aprueba;
+     - las cifras cierran el pendiente; las mejoras de la búsqueda que pidan van a F14.
+  4. **Alcance (G23, en la spec):** las filas del MD que el PNG no tiene (protección de la biblioteca, almacenamiento, batería, información y licencias) quedan fuera de F12: al backlog, y las licencias a F15.
+- **Motivo:**
+  - **Idioma:** la constitución III exige evaluar cualquier cambio en la redacción del prompt, y ninguna plantilla se ha evaluado en otro idioma (D-056). Con el español por defecto, nada cambia para quien no elige.
+  - **Ficha:** FEATURES pide el estado real y el detalle de los dos modelos. La Preparación ya resuelve descargar, importar y verificar, y repetirlo en Ajustes añadiría estados sin valor nuevo.
+  - **Consulta entre idiomas:** el PNG promete algo sin medir y el MD pide mensajes honestos. Las preguntas en inglés sirven a la vez para «Automático».
+- **Alternativas descartadas:**
+  - idioma:
+    - «Automático» por defecto, como el PNG;
+    - «Automático» como idioma de la app;
+    - solo «Español» en F12;
+  - ficha: añadir «Revalidar» (propuesta de G24); o solo la fila de embeddings, como el PNG;
+  - consulta entre idiomas: el texto del PNG sin medir, o un texto prudente sin medir, con la medida en F14.
+- **Propuestas de UI:** S1–S11 de la spec, que se revisan en la parada del clarify.
+- **Origen:** usuario (clarify de F12).
+- **Afecta:**
+  - F12;
+  - F11: el prompt en español no cambia, y la lectura de la negativa admite el inglés;
+  - F13: «Borrar historial» de Ajustes vacía lo guardado;
+  - F14: mejoras de la búsqueda entre idiomas, si las cifras las piden;
+  - F15: avisos de licencias (G23).
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.
 
-- **G08** — Flecha Atrás en las pestañas, que vuelve a Inicio. Queda aplicada en la spec de F01 como supuesto por la precedencia del PNG; se revisa en el checkpoint de F01.
-- **G10** — Contenido de los pasos 2 y 3 de Preparación.
-- **G14–G17, G21, G22, G24, G25, G29–G31** — Propuestas para estados y acciones no maquetados. G11, G13 y G26 quedan resueltas en D-053; G12 y G39 se hicieron en F01.
+- **Huecos G del inventario:** ninguno queda abierto. Los últimos, G23, G24 y G25, quedan resueltos en D-058. Los demás se resolvieron en sus features; el estado de cada uno está en `INVENTARIO.md` §6.
 - **Documentos en otro idioma** — Sin medir.
   - **Lo que hay:** toda la evaluación usa documentos y preguntas en español (F05, la paridad de F10 y la medida del primer token de F11).
   - **Generación:** Gemma 4 E2B lee el contexto en inglés y responde en español.
@@ -1219,3 +1260,4 @@ Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.
 
     Encaja con F12 (selector de idioma) o con F14.
   - **Origen:** pregunta del usuario en la fase del teléfono de F11 (2026-10-31), que pidió dejarlo pendiente.
+  - **Estado:** se mide en F12 (D-058, FR-033 de su spec) y se cierra con esas cifras.
