@@ -5,23 +5,23 @@ import android.content.Context
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.click
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasScrollToIndexAction
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.click
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTouchInput
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.ComposeNavigator
-import androidx.navigation.toRoute
 import androidx.navigation.testing.TestNavHostController
+import androidx.navigation.toRoute
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
@@ -29,6 +29,10 @@ import com.lisdatasolutions.microrag.MainActivity
 import com.lisdatasolutions.microrag.R
 import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
 import com.lisdatasolutions.microrag.core.di.ApplicationScope
+import com.lisdatasolutions.microrag.domain.chat.ActiveAnswer
+import com.lisdatasolutions.microrag.domain.chat.AnswerSource
+import com.lisdatasolutions.microrag.domain.chat.TurnState
+import com.lisdatasolutions.microrag.domain.chat.TurnUpdate
 import com.lisdatasolutions.microrag.domain.indexing.IndexingRepository
 import com.lisdatasolutions.microrag.domain.indexing.IndexingState
 import com.lisdatasolutions.microrag.domain.indexing.ObserveIndexingUseCase
@@ -36,6 +40,7 @@ import com.lisdatasolutions.microrag.domain.indexing.PauseIndexingUseCase
 import com.lisdatasolutions.microrag.domain.indexing.ReconcileIndexingUseCase
 import com.lisdatasolutions.microrag.domain.indexing.ResumeIndexingUseCase
 import com.lisdatasolutions.microrag.domain.indexing.RetryIndexingUseCase
+import com.lisdatasolutions.microrag.domain.ingest.DocumentFormat
 import com.lisdatasolutions.microrag.domain.ingest.ImportDocumentsUseCase
 import com.lisdatasolutions.microrag.domain.ingest.ObserveImportQueueUseCase
 import com.lisdatasolutions.microrag.domain.ingest.RemoveQueueItemUseCase
@@ -46,6 +51,8 @@ import com.lisdatasolutions.microrag.domain.library.DetailResult
 import com.lisdatasolutions.microrag.domain.library.DiscardReindexUseCase
 import com.lisdatasolutions.microrag.domain.library.DocumentDetail
 import com.lisdatasolutions.microrag.domain.library.DocumentDetailState
+import com.lisdatasolutions.microrag.domain.library.LibraryDocument
+import com.lisdatasolutions.microrag.domain.library.LibraryDocumentState
 import com.lisdatasolutions.microrag.domain.library.LoadPreviewUseCase
 import com.lisdatasolutions.microrag.domain.library.ObserveDocumentUseCase
 import com.lisdatasolutions.microrag.domain.library.ObserveLibrarySummaryUseCase
@@ -53,30 +60,27 @@ import com.lisdatasolutions.microrag.domain.library.ObserveLibraryUseCase
 import com.lisdatasolutions.microrag.domain.library.ReindexDocumentUseCase
 import com.lisdatasolutions.microrag.domain.library.RemoveFromIndexUseCase
 import com.lisdatasolutions.microrag.domain.library.SetIncludedUseCase
-import com.lisdatasolutions.microrag.domain.chat.ActiveAnswer
-import com.lisdatasolutions.microrag.domain.chat.AnswerSource
-import com.lisdatasolutions.microrag.domain.chat.TurnState
-import com.lisdatasolutions.microrag.domain.chat.TurnUpdate
-import com.lisdatasolutions.microrag.feature.chat.chatViewModel
-import com.lisdatasolutions.microrag.feature.document.DocumentViewModel
-import com.lisdatasolutions.microrag.feature.home.HomeViewModel
+import com.lisdatasolutions.microrag.domain.model.ComputeBackend
+import com.lisdatasolutions.microrag.domain.model.ModelCatalog
+import com.lisdatasolutions.microrag.domain.model.ModelId
 import com.lisdatasolutions.microrag.domain.model.OnboardingStage
 import com.lisdatasolutions.microrag.domain.model.StartDestination
 import com.lisdatasolutions.microrag.domain.onboarding.FakeOnboardingStore
+import com.lisdatasolutions.microrag.domain.onboarding.ObserveLocalAiUseCase
+import com.lisdatasolutions.microrag.domain.onboarding.RefreshLocalAiUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.ResolveStartDestinationUseCase
+import com.lisdatasolutions.microrag.domain.settings.ObserveModelOverviewUseCase
+import com.lisdatasolutions.microrag.feature.chat.chatViewModel
+import com.lisdatasolutions.microrag.feature.document.DocumentViewModel
+import com.lisdatasolutions.microrag.feature.home.HomeViewModel
 import com.lisdatasolutions.microrag.feature.indexing.IndexViewModel
 import com.lisdatasolutions.microrag.feature.ingest.IngestViewModel
 import com.lisdatasolutions.microrag.feature.library.LibraryViewModel
-import com.lisdatasolutions.microrag.domain.ingest.DocumentFormat
-import com.lisdatasolutions.microrag.domain.library.LibraryDocument
-import com.lisdatasolutions.microrag.domain.library.LibraryDocumentState
+import com.lisdatasolutions.microrag.feature.settings.SettingsViewModel
 import com.lisdatasolutions.microrag.testing.ChatTestGraph
 import com.lisdatasolutions.microrag.testing.FakeImportQueueRepository
 import com.lisdatasolutions.microrag.testing.FakeLibraryRepository
-import com.lisdatasolutions.microrag.domain.model.ComputeBackend
-import com.lisdatasolutions.microrag.domain.model.ModelCatalog
-import com.lisdatasolutions.microrag.domain.onboarding.ObserveLocalAiUseCase
-import com.lisdatasolutions.microrag.domain.onboarding.RefreshLocalAiUseCase
+import com.lisdatasolutions.microrag.testing.FakeModelSetup
 import com.lisdatasolutions.microrag.testing.InMemoryModelFileRepository
 import com.lisdatasolutions.microrag.testing.RecordingLogger
 import kotlinx.coroutines.CoroutineScope
@@ -138,6 +142,21 @@ internal fun homeViewModels() = module {
     }
 }
 
+/** Ajustes (F12) takes its ViewModel from Koin too, over the Preparation's fakes with both models ready. */
+internal fun settingsViewModels() = module {
+    viewModel {
+        val setup = FakeModelSetup().apply {
+            ready(ModelId.GEMMA4_E2B, ComputeBackend.GPU)
+            ready(ModelId.EG2_270M, ComputeBackend.CPU)
+        }
+        SettingsViewModel(
+            ObserveModelOverviewUseCase(setup.useCase, RefreshLocalAiUseCase(setup.repository)),
+            RefreshLocalAiUseCase(setup.repository),
+            get(),
+        )
+    }
+}
+
 /** The chat (F11) takes its ViewModel from Koin too; [graph] holds its fakes. */
 internal fun chatViewModels(graph: ChatTestGraph = ChatTestGraph()) = module {
     viewModel { graph.chatViewModel(get()) }
@@ -175,6 +194,7 @@ class NavigationTest {
                 modules(
                     libraryViewModels(library),
                     homeViewModels(),
+                    settingsViewModels(),
                     chatViewModels(chat),
                     module {
                         viewModel {
@@ -643,6 +663,7 @@ class NavigationRestorationTest {
                 modules(
                     libraryViewModels(),
                     homeViewModels(),
+                    settingsViewModels(),
                     module {
                         factory { ResolveStartDestinationUseCase(FakeOnboardingStore(OnboardingStage.COMPLETED)) }
                         factory { ReconcileIndexingUseCase(indexing) }

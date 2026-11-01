@@ -8,6 +8,7 @@ import com.lisdatasolutions.microrag.feature.library.LibraryViewModel
 import com.lisdatasolutions.microrag.feature.onboarding.setup.SetupViewModel
 import com.lisdatasolutions.microrag.feature.onboarding.welcome.WelcomeViewModel
 import com.lisdatasolutions.microrag.feature.home.HomeViewModel
+import com.lisdatasolutions.microrag.feature.settings.SettingsViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
@@ -24,4 +25,5 @@ val featureModule = module {
     viewModel { HomeViewModel(get(), get(), get(), get(), get()) }
     viewModel { DocumentViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { ChatViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    viewModelOf(::SettingsViewModel)
 }

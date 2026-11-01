@@ -18,6 +18,7 @@ import com.lisdatasolutions.microrag.feature.library.LibraryMessage
 import com.lisdatasolutions.microrag.feature.library.LibraryRoute
 import com.lisdatasolutions.microrag.feature.onboarding.setup.SetupRoute
 import com.lisdatasolutions.microrag.feature.onboarding.welcome.WelcomeRoute
+import com.lisdatasolutions.microrag.feature.settings.SettingsRoute
 
 /** Key of the Library entry's SavedStateHandle where the detail leaves a [LibraryMessage] (F08 B8). */
 private const val LIBRARY_MESSAGE = "library_message"
@@ -102,7 +103,15 @@ fun MicroRagNavHost(
             )
         }
         composable<Index> { IndexRoute(onBack = back, onPrepareModels = { navController.navigate(Setup) }) }
-        composable<Settings> { PendingDestination("settings", "F12", onBack = back) }
+        composable<Settings> {
+            // G08: the Ajustes tab sits over Home, so Back returns to Home.
+            SettingsRoute(
+                onBack = back,
+                onCompleteSetup = { navController.navigate(Setup) { launchSingleTop = true } },
+                onLanguages = {},
+                onIndex = {},
+            )
+        }
         composable<Languages> { PendingDestination("languages", "F12", onBack = back) }
     }
 }

@@ -30,6 +30,7 @@ import com.lisdatasolutions.microrag.domain.onboarding.ObserveModelSetupUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.PauseModelDownloadUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.PrepareModelsUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.PrepareStorageUseCase
+import com.lisdatasolutions.microrag.domain.settings.ObserveModelOverviewUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.ReconcileDownloadsUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.ResolveStartDestinationUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.ResumeModelDownloadUseCase
@@ -70,6 +71,7 @@ val domainModule = module {
     factoryOf(::CompleteOnboardingUseCase)
     factoryOf(::ObserveLocalAiUseCase)
     factoryOf(::RefreshLocalAiUseCase)
+    factoryOf(::ObserveModelOverviewUseCase)
 
     // Document import (F06).
     factoryOf(::ObserveImportQueueUseCase)

@@ -289,7 +289,7 @@ val catalogEntries: List<CatalogEntry> = listOf(
     entry("Filas", "fact", "LisdataFactRow") {
         LisdataCardGroup {
             LisdataFactRow("Fichero", "embeddinggemma-2-text-270m.litertlm")
-            LisdataFactRow("SHA-256", "2d079ee2f6f0…", valueDescription = "empieza por 2d079ee2f6f0")
+            LisdataFactRow("SHA-256", "2d079ee2f6f0…", accessibilityText = "SHA-256, empieza por 2d079ee2f6f0")
             LisdataFactRow("Estado") { LisdataStatusChip(text = "Local", kind = StatusKind.Local) }
         }
     },

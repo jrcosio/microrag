@@ -343,14 +343,14 @@ fun LisdataSettingsRow(
 
 /**
  * Label and value of a detail sheet («Fichero», «SHA-256»). The value sits right of the label and moves
- * to its own line when they do not fit. [valueDescription] replaces what TalkBack reads for the value
- * («empieza por …» for a shortened hash); [value] holds richer content such as a status chip.
+ * to its own line when they do not fit. [accessibilityText] replaces what TalkBack reads for the row
+ * («SHA-256, empieza por …» for a shortened hash); [value] holds richer content such as a status chip.
  */
 @Composable
 fun LisdataFactRow(
     label: String,
     modifier: Modifier = Modifier,
-    valueDescription: String? = null,
+    accessibilityText: String? = null,
     value: @Composable () -> Unit,
 ) {
     val spacing = LisdataTheme.spacing
@@ -359,8 +359,8 @@ fun LisdataFactRow(
             .fillMaxWidth()
             .heightIn(min = 48.dp)
             .then(
-                if (valueDescription != null) {
-                    Modifier.clearAndSetSemantics { contentDescription = "$label, $valueDescription" }
+                if (accessibilityText != null) {
+                    Modifier.clearAndSetSemantics { contentDescription = accessibilityText }
                 } else {
                     Modifier.semantics(mergeDescendants = true) {}
                 },
@@ -386,9 +386,9 @@ fun LisdataFactRow(
     label: String,
     value: String,
     modifier: Modifier = Modifier,
-    valueDescription: String? = null,
+    accessibilityText: String? = null,
 ) {
-    LisdataFactRow(label = label, modifier = modifier, valueDescription = valueDescription) {
+    LisdataFactRow(label = label, modifier = modifier, accessibilityText = accessibilityText) {
         Text(text = value, style = LisdataTheme.typography.material.bodyLarge, color = LisdataTheme.colors.textPrimary)
     }
 }

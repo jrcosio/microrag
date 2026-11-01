@@ -189,7 +189,7 @@ Historias de la spec:
 
   `CatalogAccessibilityTest` las cubre.
 - [X] T022 [P] Textos: `app/src/main/res/values/strings_settings.xml` y `app/src/main/res/values-en/strings_settings.xml`, con todas las claves de `settings-ui.md` §4. Los nombres de idioma van con `translatable="false"`.
-- [ ] T023 [P] Regla nueva en `…/test/…/architecture/LayeringTest.kt` (U1): `feature/settings` no importa `data.`, `androidx.sqlite`, `androidx.work`, LiteRT, `java.io.File` ni `android.app.LocaleManager`.
+- [X] T023 [P] Regla nueva en `…/test/…/architecture/LayeringTest.kt` (U1): `feature/settings` no importa `data.`, `androidx.sqlite`, `androidx.work`, LiteRT, `java.io.File` ni `android.app.LocaleManager`.
 
 **Checkpoint**: tipos, fakes, componentes y textos listos; el prompt y la negativa, con paridad con el escritorio.
 
@@ -203,17 +203,17 @@ Historias de la spec:
 
 ### Tests for User Story 1
 
-- [ ] T024 [P] [US1] `…/test/…/domain/settings/ObserveModelOverviewUseCaseTest.kt`:
+- [X] T024 [P] [US1] `…/test/…/domain/settings/ObserveModelOverviewUseCaseTest.kt`:
   - el orden y los datos del catálogo;
   - `dimensions` solo en `EG2_270M`;
   - el estado es el de `ObserveModelSetupUseCase`.
-- [ ] T025 [P] [US1] `…/test/…/feature/settings/SettingsViewModelTest.kt` (parte de modelos):
+- [X] T025 [P] [US1] `…/test/…/feature/settings/SettingsViewModelTest.kt` (parte de modelos):
   - refresca al entrar;
   - sin chip hasta la primera lectura;
   - las filas cambian sin salir cuando cambia el estado de un modelo (FR-005), y al refrescar deja de decir «Local» si falta el fichero;
   - P14: `Ready(GPU)` es «Local», Gemma en CPU es «Modo CPU, más lento» y los demás estados van como en la Preparación;
   - la ficha abierta sobrevive en `SavedStateHandle`.
-- [ ] T026 [P] [US1] `…/test/…/feature/settings/SettingsScreenTest.kt` (Robolectric):
+- [X] T026 [P] [US1] `…/test/…/feature/settings/SettingsScreenTest.kt` (Robolectric):
   - la estructura del PNG 09, con secciones y filas;
   - los chips;
   - la ficha con sus seis filas, el SHA-256 abreviado y su descripción, y «—» en el procesador;
@@ -223,8 +223,8 @@ Historias de la spec:
 
 ### Implementation for User Story 1
 
-- [ ] T027 [US1] Implementar `ObserveModelOverviewUseCase` en `…/microrag/domain/settings/SettingsUseCases.kt` y registrarlo en `…/microrag/domain/di/DomainModule.kt`. T024 pasa.
-- [ ] T028 [US1] Crear `…/microrag/feature/settings/`:
+- [X] T027 [US1] Implementar `ObserveModelOverviewUseCase` en `…/microrag/domain/settings/SettingsUseCases.kt` y registrarlo en `…/microrag/domain/di/DomainModule.kt`. T024 pasa.
+- [X] T028 [US1] Crear `…/microrag/feature/settings/`:
   - `SettingsUiState.kt` y `SettingsViewModel.kt` (modelos);
   - `SettingsScreen.kt`, con la estructura completa del PNG 09; las acciones de las demás filas son callbacks;
   - `ModelSheet.kt`;
@@ -232,7 +232,7 @@ Historias de la spec:
   - `SettingsPreviewData.kt`.
 
   Registrar el ViewModel en `…/microrag/feature/di/FeatureModule.kt`.
-- [ ] T029 [US1] Sustituir el marcador de `Settings` en `…/microrag/core/navigation/MicroRagNavHost.kt`:
+- [X] T029 [US1] Sustituir el marcador de `Settings` en `…/microrag/core/navigation/MicroRagNavHost.kt`:
   - Atrás va a Inicio;
   - «Completar configuración» abre `Setup`.
 
