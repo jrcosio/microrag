@@ -1245,6 +1245,42 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
 
 ---
 
+## D-059 — Diseño de Ajustes e Idiomas (plan de F12)
+
+- **Fecha:** 2026-11-01
+- **Decisión:**
+  1. **Idioma de la app sin AppCompat:**
+     - en Android 13+ la fuente es el `LocaleManager` del sistema: guardar llama a `setApplicationLocales` y el sistema recrea la actividad;
+     - en Android 12, un fichero de una línea en `noBackupFilesDir/settings/app_language`, leído una vez al arrancar, con `recreate()`;
+     - al pasar de Android 12 a 13, el valor del fichero se aplica una vez;
+     - las notificaciones construyen sus textos con el idioma vigente en cada llamada.
+  2. **Idioma de las respuestas** en un DataStore nuevo (`settings.preferences_pb`) con manejo de errores: un fallo al leer da español y avisa, y uno al escribir conserva el valor anterior. DataStore se queda en 1.2.1.
+  3. **Guardar en Idiomas:** primero el idioma de las respuestas y después el de la app. Si falla el segundo, se repone el primero. «Preferencias guardadas» se anuncia después de la recreación, en el idioma nuevo.
+  4. **Prompt:** `PromptLanguage.AUTOMATIC` con la línea «- Responde en el idioma de la PREGUNTA, de forma clara y breve.». La negativa se reconoce también como «I can't find that information in the available documents.», en la app y en el escritorio. El golden de 426 casos no cambia.
+  5. **Borrar el historial a través de la sesión del chat:** detiene la respuesta en curso, borra todo y avisa a la pestaña Chat, que vuelve a un chat vacío. Una pregunta con una conversación ya borrada abre otra en lugar de perderse.
+  6. **Modelos en Ajustes:** el mismo estado que la Preparación, refrescado al entrar, y una ficha de solo lectura con los datos del catálogo.
+  7. **Evaluaciones en el escritorio, antes que la app:**
+     - `language-review`: «Automático» con las 426 preguntas en español frente a `v4`, juzgando las respuestas que cambian;
+     - `crosslang-review`: preguntas en inglés sobre los documentos en español (muestra de F10 traducida), y 3 libros de en.wikibooks con preguntas en inglés y en español;
+     - los conjuntos y el corpus en inglés van en ficheros aparte, para no cambiar las huellas ni los golden;
+     - «Automático» se adopta si `language-review` cumple su regla y las preguntas en inglés sobre los documentos en español cumplen los umbrales del informe.
+  8. **Pruebas en el teléfono al final.** «Borrar historial» no se confirma en el teléfono del usuario sin su permiso expreso.
+- **Motivo:**
+  - AppCompat exigiría cambiar la actividad y el tema y añadir una dependencia;
+  - DataStore no se puede leer de forma síncrona al arrancar;
+  - las evaluaciones van primero porque deciden qué se construye;
+  - los ficheros aparte protegen las cifras ya juzgadas.
+- **Alternativas descartadas:**
+  - AppCompat 1.8.0;
+  - el idioma de la app en DataStore leído con `runBlocking`;
+  - el selector solo en Android 13+;
+  - añadir las preguntas en inglés a `questions.jsonl`;
+  - reconstruir el índice `ref`.
+- **Origen:** plan de F12 (`specs/012-settings-languages/plan.md` y `research.md`).
+- **Afecta:** F12, F11 (sesión del chat, prompt y negativa), F03 (notificaciones de descarga) y F07 (notificaciones de indexación).
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.
