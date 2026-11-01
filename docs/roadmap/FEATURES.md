@@ -46,7 +46,7 @@ Al cerrar cada feature se entrega:
 | F09 | Inicio | Producto | F03, F07, F08 | ✅ cerrada |
 | F10 | Recuperación híbrida | Técnica | F05, F07 | ✅ cerrada |
 | F11 | Chat con fuentes | Producto | F08, F10 | ✅ cerrada |
-| F12 | Ajustes e Idiomas | Producto | F03, F11 | 🟨 en curso (analyze) |
+| F12 | Ajustes e Idiomas | Producto | F03, F11 | 🟨 en curso (implementación) |
 | F13 | Historial de chats | Producto (UI propuesta) | F11, F12 | ⬜ |
 | F14 | Rendimiento en dispositivo y decisión INT8 | Técnica | F10, F11 | ⬜ |
 | F15 | Pulido y release | Producto | F01–F14 | ⬜ |
@@ -581,7 +581,7 @@ También se introduce `EngineCoordinator`, que garantiza que nunca haya dos engi
 ## F12 — Ajustes e Idiomas
 
 - **Tipo:** Producto.
-- **Estado:** 🟨 en curso, en la rama `012-settings-languages`: specify y clarify aprobados el 2026-11-01, con las propuestas de UI S1–S11; plan, tasks y analyze hechos el 2026-11-01, pendientes de la revisión del usuario. Decisiones D-058 (clarify: «Español» por defecto y «Automático» solo tras evaluarlo; ficha de modelo de solo lectura en las dos filas; medida de la consulta entre idiomas en F12) y D-059 (plan: idioma de la app sin AppCompat, evaluaciones en el escritorio antes que la app) y D-060 (analyze: mínimo de respuestas correctas en las reglas en inglés). Spec en `specs/012-settings-languages/spec.md`.
+- **Estado:** 🟨 en curso, en la rama `012-settings-languages`: specify y clarify aprobados el 2026-11-01, con las propuestas de UI S1–S11; plan, tasks y analyze aprobados el 2026-11-01; implementación en curso. Decisiones D-058 (clarify: «Español» por defecto y «Automático» solo tras evaluarlo; ficha de modelo de solo lectura en las dos filas; medida de la consulta entre idiomas en F12) y D-059 (plan: idioma de la app sin AppCompat, evaluaciones en el escritorio antes que la app) y D-060 (analyze: mínimo de respuestas correctas en las reglas en inglés). Spec en `specs/012-settings-languages/spec.md`.
 
 **Objetivo.**
 - Ajustes con el estado real de los modelos y su detalle (G24).

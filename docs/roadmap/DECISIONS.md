@@ -1295,7 +1295,7 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
      - el recorrido del teléfono puede incluir, con permiso, una pregunta en inglés y un cambio de idioma con una respuesta en curso, sobre documentos públicos de prueba.
 - **Motivo:** las reglas aprobadas solo miraban negativas y citas. Una combinación podía pasar con muchas respuestas incorrectas, y la tarjeta seguiría prometiendo la consulta entre idiomas.
 - **Alternativas descartadas:** 5 puntos de margen; o dejar las reglas solo con negativas y citas.
-- **Origen:** usuario (analyze de F12).
+- **Origen:** usuario (analyze de F12). El usuario aprobó el plan, las tareas y el analyze el 2026-11-01.
 - **Afecta:** F12 (FR-024, FR-032, research R7 y R9, contrato `eval-language.md` L6, L13 y L14).
 
 ---
