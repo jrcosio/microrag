@@ -13,7 +13,7 @@ sys.path.insert(0, str(HERE))  # -I leaves the script directory out of sys.path
 COMMANDS = [
     "fetch-corpus", "sources", "build", "validate-testset", "review-sheet", "review-apply", "sample",
     "retrieve", "generate", "ablations", "report", "chunker-golden", "calibrate", "rejudge", "device-extraction",
-    "order-review", "template-review", "limit-review", "language-review",
+    "order-review", "template-review", "limit-review", "language-review", "crosslang-review",
 ]
 
 
@@ -98,7 +98,10 @@ def validate_testset(args):
     options = argparse.ArgumentParser(prog="validate-testset")
     options.add_argument("--pre-review", action="store_true", help="do not require the reviewed minimum (T3)")
     options.add_argument("--write-relevants", action="store_true", help="store relevant_ref derived from the evidence")
+    options.add_argument("set", nargs="?", help="set=crosslang validates the F12 cross-language sets instead")
     opts = options.parse_args(args)
+    if opts.set == "set=crosslang":
+        return validate_crosslang()
     ctx = pipeline.load_context("ref")
     questions, errors = pipeline.validate_testset(ctx, require_review=not opts.pre_review)
     if opts.write_relevants:
@@ -111,6 +114,26 @@ def validate_testset(args):
     if errors:
         raise SystemExit(f"{len(errors)} errors")
     print("test set valid")
+
+
+def validate_crosslang():
+    from collections import Counter
+
+    from eval import crosslang, pipeline
+
+    failed = 0
+    for combo in crosslang.COMBINATIONS:
+        if not crosslang.set_path(combo.set_name).exists():
+            print(f"{combo.set_name}: missing")
+            continue
+        questions, errors = pipeline.validate_crosslang(combo.set_name)
+        print(f"{combo.set_name}: {len(questions)} questions, types {dict(Counter(q.type for q in questions))}")
+        for error in errors:
+            print(f"  {error}")
+        failed += len(errors)
+    if failed:
+        raise SystemExit(f"{failed} errors")
+    print("crosslang sets valid")
 
 
 def review_sheet(args):
@@ -285,6 +308,25 @@ def language_review(args):
     print(f"wrote {pipeline.LANGUAGE_REVIEW_DIR / 'result.json'}")
 
 
+def crosslang_review(args):
+    """F12 (D-058, D-060): documents and questions in different languages, judged by hand."""
+    from eval import pipeline
+
+    english_answers = "auto"
+    for pair in args:
+        key, _, raw = pair.partition("=")
+        if key != "english_answers":
+            raise SystemExit(f"unknown parameter {key}; use english_answers=auto|es")
+        english_answers = raw
+    r = pipeline.crosslang_review(english_answers)
+    for key, c in r["combinations"].items():
+        print(f"{key}: answers={c['answer_language']} questions={c['questions']} pending={c['pending']} "
+              f"blocks_hit={c['blocks_hit']} reference={c.get('reference')} ok={c['ok']}")
+        print(f"  manual: {c['manual']}")
+    print(f"skipped={r['skipped']} keeps_card_text={r['keeps_card_text']}")
+    print(f"wrote {pipeline.CROSSLANG_REVIEW_DIR / 'result.json'}")
+
+
 def report(args):
     from eval import report as report_module
 
@@ -297,6 +339,7 @@ HANDLERS = {
     "retrieve": retrieve, "generate": generate, "ablations": ablations, "report": report, "calibrate": calibrate, "chunker-golden": chunker_golden, "rejudge": rejudge,
     "device-extraction": device_extraction, "order-review": order_review,
     "template-review": template_review, "limit-review": limit_review, "language-review": language_review,
+    "crosslang-review": crosslang_review,
 }
 
 

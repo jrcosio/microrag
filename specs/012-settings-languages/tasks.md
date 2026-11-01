@@ -105,18 +105,18 @@ Historias de la spec:
 - [X] T005 [US9] Ejecutar `run_eval.py language-review` (≈ 6 min) y juzgar a mano las respuestas que cambian, en `offline/reports/language-review.csv`:
   - método D-033, por lotes, con el juicio de `v4` a la vista;
   - informe de avance al usuario tras cada lote.
-- [ ] T006 [P] [US9] Pruebas de Python, nuevo `offline/tests/test_crosslang.py` (L7, L11–L13):
+- [X] T006 [P] [US9] Pruebas de Python, nuevo `offline/tests/test_crosslang.py` (L7, L11–L13):
   - forma de `testset/crosslang/*.jsonl`: `source_id`, `previous` dentro del fichero y tipos;
   - la selección de las 15 sin respuesta con la semilla `20261101` es determinista;
   - cada combinación lleva su índice, su fichero y su idioma de respuesta, y `english_answers` cambia solo las combinaciones con preguntas en inglés;
   - las cifras se calculan por combinación, con el acierto de la búsqueda;
   - la referencia de correctas (D-060): ES·EN frente a sus preguntas de origen con `v4` y EN·ES frente a EN·EN; la regla de 10 puntos se cumple justo en el límite y falla por debajo.
-- [ ] T007 [US9] Crear `offline/testset/crosslang/es-docs.en.jsonl` (L7):
+- [X] T007 [US9] Crear `offline/testset/crosslang/es-docs.en.jsonl` (L7):
   - 72 preguntas traducidas al inglés: la muestra de F10, las 7 anteriores con respuesta y 15 sin respuesta (las 2 anteriores y 13 con la semilla);
   - revisión a mano de las traducciones.
 
   Ampliar `offline/eval/testset.py` para leer y validar conjuntos `crosslang`, y `validate-testset set=crosslang` en `offline/run_eval.py`.
-- [ ] T008 [US9] Implementar `crosslang-review` en `offline/eval/pipeline.py` y `offline/run_eval.py`, con las combinaciones de L11. Al principio solo está ES·EN, porque `en` aún no existe. Añadir sus filas, y la de `validate-testset set=crosslang`, a la tabla de `offline/README.md`. T006 pasa.
+- [X] T008 [US9] Implementar `crosslang-review` en `offline/eval/pipeline.py` y `offline/run_eval.py`, con las combinaciones de L11. Al principio solo está ES·EN, porque `en` aún no existe. Añadir sus filas, y la de `validate-testset set=crosslang`, a la tabla de `offline/README.md`. T006 pasa.
 - [ ] T009 [US9] Ejecutar `crosslang-review english_answers=auto` para ES·EN y juzgar a mano sus 72 respuestas en `offline/reports/crosslang-review.csv` (L12).
 - [ ] T010 [US9] **Decisión sobre «Automático»** (L6, más los umbrales de ES·EN y sus correctas a no más de 10 puntos de sus preguntas de origen con `v4`):
   - **Si se adopta:** se registra en una entrada nueva de `docs/roadmap/DECISIONS.md` con su tabla, y se sigue.

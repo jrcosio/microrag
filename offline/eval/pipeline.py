@@ -152,10 +152,12 @@ def _neighbor(db):
     return load
 
 
-def fingerprints(ctx, config):
+def fingerprints(ctx, config, questions_path=None):
+    """[questions_path] is a crosslang set (F12); None is the F05 test set, so its runs keep their fingerprints."""
     db = ctx.db
     index_fp = index.fingerprint(db) + json.dumps(index.build_info(db), sort_keys=True)
-    testset_fp = hashlib.sha256(testset.TESTSET.read_bytes()).hexdigest() if testset.TESTSET.exists() else ""
+    path = questions_path or testset.TESTSET
+    testset_fp = hashlib.sha256(path.read_bytes()).hexdigest() if path.exists() else ""
     model_ids = [models.EMBEDDING] + ([models.LLMS[config.llm]] if config.llm else [])
     models_fp = "|".join(models.spec(m).sha256 for m in model_ids)
     return hashlib.sha256(index_fp.encode()).hexdigest(), testset_fp, models_fp
@@ -174,11 +176,15 @@ def relevant_ids(ctx, question):
     return {row[0] for row in rows}
 
 
-def live_questions():
+def live_questions(questions_path=None):
+    if questions_path is not None:
+        from eval import crosslang
+
+        return [q for q in crosslang.load_set(questions_path)[0] if q.review != "discarded"]
     return [q for q in testset.load() if q.review != "discarded"]
 
 
-def retrieve(config, ctx=None):
+def retrieve(config, ctx=None, questions_path=None):
     ctx = ctx or load_context(config.build)
     info = index.build_info(ctx.db)
     fts_variant = info.get("fts", "v1")
@@ -186,9 +192,9 @@ def retrieve(config, ctx=None):
     retriever = Retriever(ctx.db, embedder, fts_variant)
     selector = ContextSelector(config.max_blocks, config.max_per_document, budget_tokens(config, info["chars_per_token"]),
                                2 if config.neighbors else 0)
-    questions = live_questions()
+    questions = live_questions(questions_path)
     by_id = {q.id: q for q in questions}
-    fingerprint = EvalConfig.fingerprint(config, *fingerprints(ctx, config))
+    fingerprint = EvalConfig.fingerprint(config, *fingerprints(ctx, config, questions_path))
     folder = run_dir(fingerprint)
     folder.mkdir(parents=True, exist_ok=True)
     (folder / "config.json").write_text(json.dumps({"config": dataclasses.asdict(config), "fingerprint": fingerprint,
@@ -250,20 +256,20 @@ def retrieval_metrics(ctx, rows):
 
 # --- generation ------------------------------------------------------------------------------------
 
-def generate(config, backend="gpu", ids=None, out_name="answers.jsonl"):
+def generate(config, backend="gpu", ids=None, out_name="answers.jsonl", questions_path=None):
     """Generates and judges the answers of a retrieval run (the same config without the LLM)."""
     ctx = load_context(config.build)
     retrieval_config = dataclasses.replace(config, llm=None)
-    retrieval_fp = EvalConfig.fingerprint(retrieval_config, *fingerprints(ctx, retrieval_config))
+    retrieval_fp = EvalConfig.fingerprint(retrieval_config, *fingerprints(ctx, retrieval_config, questions_path))
     retrieval_path = run_dir(retrieval_fp) / "retrieval.jsonl"
     if not retrieval_path.exists():
-        retrieve(retrieval_config, ctx)
+        retrieve(retrieval_config, ctx, questions_path)
     rows = {json.loads(line)["id"]: json.loads(line) for line in retrieval_path.read_text(encoding="utf-8").splitlines()}
-    questions = [q for q in live_questions() if ids is None or q.id in ids]
+    questions = [q for q in live_questions(questions_path) if ids is None or q.id in ids]
     # Previous turns go first, so follow-ups see the generated previous answer.
     questions.sort(key=lambda q: (q.type == "followup", q.id))
-    by_id = {q.id: q for q in live_questions()}
-    fingerprint = EvalConfig.fingerprint(config, *fingerprints(ctx, config))
+    by_id = {q.id: q for q in live_questions(questions_path)}
+    fingerprint = EvalConfig.fingerprint(config, *fingerprints(ctx, config, questions_path))
     folder = run_dir(fingerprint)
     folder.mkdir(parents=True, exist_ok=True)
     (folder / "config.json").write_text(json.dumps({"config": dataclasses.asdict(config), "fingerprint": fingerprint,
@@ -393,10 +399,10 @@ def order_review():
 TEMPLATE_REVIEW_FILE = builds.BUILD / "template_review.json"
 
 
-def _retrieval_rows(ctx, config):
+def _retrieval_rows(ctx, config, questions_path=None):
     """Retrieval rows by question id of the retrieval run behind a generation config."""
     retrieval_config = dataclasses.replace(config, llm=None)
-    fingerprint = EvalConfig.fingerprint(retrieval_config, *fingerprints(ctx, retrieval_config))
+    fingerprint = EvalConfig.fingerprint(retrieval_config, *fingerprints(ctx, retrieval_config, questions_path))
     lines = (run_dir(fingerprint) / "retrieval.jsonl").read_text(encoding="utf-8").splitlines()
     return {json.loads(line)["id"]: json.loads(line) for line in lines}
 
@@ -726,6 +732,104 @@ def language_review():
     LANGUAGE_REVIEW_DIR.mkdir(parents=True, exist_ok=True)
     (LANGUAGE_REVIEW_DIR / "result.json").write_text(json.dumps(summary, ensure_ascii=False, indent=1))
     return summary
+
+
+# --- cross-language measure (F12, D-058, D-060) ----------------------------------------------------
+
+CROSSLANG_REVIEW_DIR = builds.BUILD / "crosslang-review"
+
+
+def crosslang_review(english_answers="auto"):
+    """Each combination of document and question language (contracts/eval-language.md L11–L14).
+
+    A combination runs when its set and its index exist. Every answer goes to reports/crosslang-review.csv
+    to be judged by hand; a verdict carries over between runs only while its answer stays the same.
+    """
+    import csv
+
+    from eval import crosslang as cl
+    from eval import report
+    from eval.selector import ContextBlock
+
+    if english_answers not in ("auto", "es"):
+        raise SystemExit("english_answers must be auto or es")
+    base_config, _, _, base_rows = _active_template_base()
+    v4_by_id = {r["id"]: r for r in base_rows}
+    review_path = report.MANUAL.parent / "crosslang-review.csv"
+    existing = {}
+    if review_path.exists():
+        existing = {cl.review_key(r): r for r in csv.DictReader(review_path.open(encoding="utf-8-sig"))}
+    rows_out, results, skipped = [], {}, set()
+    for combo in cl.COMBINATIONS:
+        path = cl.set_path(combo.set_name)
+        if not path.exists() or not builds.index_path(combo.build).exists():
+            skipped.add(combo.key)
+            continue
+        config = dataclasses.replace(base_config, build=combo.build,
+                                     answer_language=cl.answer_language(combo, english_answers))
+        ctx = load_context(combo.build)
+        result = generate(config, questions_path=path)
+        lines = _answers_of(result)
+        retrieval = _retrieval_rows(ctx, config, questions_path=path)
+        questions, sources = cl.load_set(path)
+        combo_rows, hits = [], []
+        for q in questions:
+            line, row = lines[q.id], retrieval[q.id]
+            blocks = [ContextBlock(**b) for b in row["blocks"]]
+            judged = line["judge"]
+            if q.has_answer and row["relevant"]:
+                hits.append(metrics.blocks_hit(blocks, _pairs(ctx, row["relevant"])))
+            combo_rows.append({
+                "combinacion": combo.key, "id": q.id, "id_origen": sources.get(q.id) or "", "tipo": q.type,
+                "pregunta": q.question, "respuesta_esperada": q.expected_answer or "", "datos_clave": " | ".join(q.key_facts),
+                "fuentes": _describe(blocks), "respuesta": line["answer"],
+                "regla": "correcta" if judged["correct"] else "incorrecta",
+                "regla_citas": f"{judged['citations_ok']}/{judged['citations_total']}",
+                **cl.kept_verdict(existing.get((combo.key, q.id)), line["answer"]),
+            })
+        manual = None
+        if all(r["manual"] for r in combo_rows):
+            manual = _manual_figures(report.manual_metrics([{**r, "respuesta_modelo": r["respuesta"]} for r in combo_rows]))
+        results[combo.key] = {
+            "fingerprint": result["fingerprint"], "answer_language": config.answer_language, "questions": len(combo_rows),
+            "pending": sum(1 for r in combo_rows if not r["manual"]), "blocks_hit": metrics.mean(hits) if hits else None,
+            "auto_rule": {key: result[key] for key in ("answer_correct", "refusal_correct", "citations_correct")},
+            "manual": manual, "sources": [sources[q.id] for q in questions if sources.get(q.id)],
+        }
+        rows_out += combo_rows
+    if "ES·EN" in results:
+        results["ES·EN"]["reference"] = cl.reference_correct(v4_by_id, results["ES·EN"]["sources"])
+    if "EN·ES" in results and results.get("EN·EN", {}).get("manual"):
+        results["EN·ES"]["reference"] = results["EN·EN"]["manual"]["answer_correct"]
+    for key, result in results.items():
+        reference = result.get("reference")
+        result["ok"] = None if result["manual"] is None else cl.combination_ok(result["manual"], reference)
+        del result["sources"]
+    complete = len(results) == len(cl.COMBINATIONS) and all(r["manual"] for r in results.values())
+    summary = {
+        "english_answers": english_answers, "combinations": results, "skipped": sorted(skipped),
+        "keeps_card_text": cl.keeps_card_text({k: (r["manual"], r.get("reference")) for k, r in results.items()})
+        if complete else None,
+    }
+    kept_rows = [r for key, r in existing.items() if key[0] in skipped]
+    review_path.parent.mkdir(parents=True, exist_ok=True)
+    with review_path.open("w", encoding="utf-8-sig", newline="") as out:
+        writer = csv.DictWriter(out, fieldnames=cl.REVIEW_FIELDS)
+        writer.writeheader()
+        writer.writerows(sorted(kept_rows + rows_out, key=lambda r: (r["combinacion"], r["id"])))
+    CROSSLANG_REVIEW_DIR.mkdir(parents=True, exist_ok=True)
+    (CROSSLANG_REVIEW_DIR / "result.json").write_text(json.dumps(summary, ensure_ascii=False, indent=1))
+    return summary
+
+
+def validate_crosslang(name):
+    """Rules T1–T9 of a crosslang set against its index, with the crosslang minimums (L10)."""
+    from eval import crosslang as cl
+
+    combo = next(c for c in cl.COMBINATIONS if c.set_name == name)
+    ctx = load_context(combo.build)
+    questions = cl.load_set(cl.set_path(name))[0]
+    return questions, testset.validate(questions, ctx.doc_texts, ctx.doc_sha, ctx.chunks_by_sha, **cl.MINIMUMS)
 
 
 # --- prompt budget calibration ---------------------------------------------------------------------

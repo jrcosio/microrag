@@ -80,6 +80,7 @@ Contratos en `specs/005-offline-eval-harness/contracts/`. Todo se ejecuta con `o
 | Revisión de la plantilla (D-035, F11): variantes `v3` y `v4`, criba con la regla automática y juicio manual de las respuestas que cambian | `template-review [variants=v3,v4]` → `build/template_review.json` y `reports/template-review.csv` |
 | Revisión del límite del prompt (fase del teléfono de F11, D-057): la regla A6 de la app (`within_limit`) con otro límite, las respuestas que cambian generadas otra vez y juzgadas a mano frente a `v4` | `limit-review limit=1500` → `build/limit-review/<límite>/result.json` y `reports/limit-review.csv` |
 | Revisión de «Automático» (F12, D-058): la configuración elegida con `v4` y la respuesta en el idioma de la pregunta, las respuestas que cambian juzgadas a mano frente a `v4` | `language-review` → `build/language-review/result.json` y `reports/language-review.csv` |
+| Medida entre idiomas (F12, D-058 y D-060): documentos y preguntas en idiomas distintos, juzgados a mano | `validate-testset set=crosslang` y `crosslang-review [english_answers=auto\|es]` → `build/crosslang-review/result.json` y `reports/crosslang-review.csv` |
 | Informe | `report` → `reports/eval-report.md` |
 
 **Corpus:** documentos públicos (BOE, Agencia Tributaria y Wikilibros). Se versionan con su origen, licencia, atribución y transformaciones en `corpus/manifest.json` y `corpus/SOURCES.md` (D-032). Un documento nuevo se añade al manifiesto con `"sha256": "pending"` y se registra con `fetch-corpus --record`.
