@@ -72,15 +72,20 @@ import com.lisdatasolutions.microrag.domain.onboarding.FakeOnboardingStore
 import com.lisdatasolutions.microrag.domain.onboarding.ObserveLocalAiUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.RefreshLocalAiUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.ResolveStartDestinationUseCase
+import com.lisdatasolutions.microrag.domain.settings.ObserveLanguageSettingsUseCase
 import com.lisdatasolutions.microrag.domain.settings.ObserveModelOverviewUseCase
+import com.lisdatasolutions.microrag.domain.settings.SaveLanguageSettingsUseCase
+import com.lisdatasolutions.microrag.domain.settings.SettingsNotices
 import com.lisdatasolutions.microrag.feature.chat.chatViewModel
 import com.lisdatasolutions.microrag.feature.document.DocumentViewModel
 import com.lisdatasolutions.microrag.feature.home.HomeViewModel
 import com.lisdatasolutions.microrag.feature.indexing.IndexViewModel
 import com.lisdatasolutions.microrag.feature.ingest.IngestViewModel
 import com.lisdatasolutions.microrag.feature.library.LibraryViewModel
+import com.lisdatasolutions.microrag.feature.settings.LanguagesViewModel
 import com.lisdatasolutions.microrag.feature.settings.SettingsViewModel
 import com.lisdatasolutions.microrag.testing.ChatTestGraph
+import com.lisdatasolutions.microrag.testing.FakeAppLanguageController
 import com.lisdatasolutions.microrag.testing.FakeChatSession
 import com.lisdatasolutions.microrag.testing.FakeImportQueueRepository
 import com.lisdatasolutions.microrag.testing.FakeLibraryRepository
@@ -164,6 +169,11 @@ internal fun settingsViewModels() = module {
             ClearChatHistoryUseCase(session),
             get(),
         )
+    }
+    single { SettingsNotices() }
+    viewModel {
+        val controller = FakeAppLanguageController()
+        LanguagesViewModel(ObserveLanguageSettingsUseCase(controller), SaveLanguageSettingsUseCase(controller, SettingsNotices()), get())
     }
 }
 

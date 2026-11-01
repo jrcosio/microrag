@@ -1,5 +1,6 @@
 package com.lisdatasolutions.microrag.core.navigation
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -11,19 +12,31 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.lisdatasolutions.microrag.R
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataBottomBar
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataBottomBarItem
 import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
+import com.lisdatasolutions.microrag.core.locale.AppLocale
 import com.lisdatasolutions.microrag.domain.model.StartDestination
+import com.lisdatasolutions.microrag.domain.settings.SettingsNotices
 import kotlinx.coroutines.flow.first
+import org.koin.compose.koinInject
 
 /**
  * App shell: navigation graph plus the bottom bar on tab roots (FR-017, FR-020). [startDestination]
@@ -39,6 +52,7 @@ fun MicroRagAppShell(
     navController: NavHostController = rememberNavController(),
     /** Grows with every tap on the indexing notification that should open Index (F07 research R3). */
     openIndexing: Int = 0,
+    notices: SettingsNotices = koinInject(),
 ) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val tabRoot = backStackEntry?.destination?.asTopLevelRoot()
@@ -85,6 +99,8 @@ fun MicroRagAppShell(
         navController.navigate(Index) { launchSingleTop = true }
     }
 
+    SettingsSavedAnnouncement(notices)
+
     var initialRouteHandled by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(initialRoute) {
         if (initialRoute == null || initialRouteHandled) return@LaunchedEffect
@@ -94,3 +110,31 @@ fun MicroRagAppShell(
         if (tab != null) navController.navigateToTopLevel(tab) else navController.navigate(initialRoute)
     }
 }
+
+/**
+ * F12 P7 (S9): «Preferencias guardadas», read politely once. It waits until this screen shows the new app
+ * language, so the activity about to be recreated never says it with the old resources.
+ */
+@Composable
+internal fun SettingsSavedAnnouncement(notices: SettingsNotices) {
+    val pending by notices.savedPending.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val shown = LocalConfiguration.current.locales[0].language
+    val savedText = stringResource(R.string.languages_saved)
+    var announcement by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(pending, shown) {
+        if (pending && shown == AppLocale.resolve(context).language) {
+            announcement = savedText
+            notices.consumeSaved()
+        }
+    }
+    announcement?.let { text ->
+        Box(
+            modifier = Modifier.semantics {
+                liveRegion = LiveRegionMode.Polite
+                stateDescription = text
+            },
+        )
+    }
+}
+

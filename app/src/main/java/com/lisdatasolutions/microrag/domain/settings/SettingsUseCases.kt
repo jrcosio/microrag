@@ -43,3 +43,28 @@ class ObserveModelOverviewUseCase(
         val ORDER = listOf(ModelId.GEMMA4_E2B, ModelId.EG2_270M)
     }
 }
+
+/** What Idiomas opens with (F12 P1): the app language of this moment and whether its file was unreadable (S8). */
+class ObserveLanguageSettingsUseCase(private val controller: AppLanguageController) {
+    operator fun invoke(): Flow<LanguageSettings> = flow { emit(LanguageSettings(controller.current(), controller.readFailed)) }
+}
+
+/**
+ * «Guardar preferencias» (F12 P6, R4). Only the app language is a preference (D-061): unchanged writes
+ * nothing; a failed apply changes nothing; a saved one leaves «Preferencias guardadas» for the shell to
+ * announce after the recreation (P7).
+ */
+class SaveLanguageSettingsUseCase(
+    private val controller: AppLanguageController,
+    private val notices: SettingsNotices,
+) {
+    /** True from Android 13: the system recreates the screen; below it, the screen does. */
+    val recreatesItself: Boolean get() = controller.recreatesItself
+
+    suspend operator fun invoke(app: AppLanguage): SaveResult {
+        if (app == controller.current()) return SaveResult.Unchanged
+        if (!controller.apply(app)) return SaveResult.Failed
+        notices.announceSaved()
+        return SaveResult.Saved(appLanguageChanged = true)
+    }
+}

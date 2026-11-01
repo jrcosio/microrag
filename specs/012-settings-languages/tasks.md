@@ -321,19 +321,19 @@ Historias de la spec:
 ### Tests for User Story 3
 
 - [X] T044 [P] [US3] **Retirada (D-061):** no hay tienda del idioma de las respuestas.
-- [ ] T045 [P] [US3] `…/test/…/domain/settings/SaveLanguageSettingsUseCaseTest.kt` (P6):
+- [X] T045 [P] [US3] `…/test/…/domain/settings/SaveLanguageSettingsUseCaseTest.kt` (P6):
   - sin cambios, `Unchanged` y ninguna escritura;
   - si aplicar el idioma de la app falla, `Failed` y nada cambia;
   - `SettingsNotices.saved` solo cuando va bien.
 - [X] T046 [P] [US3] **Retirada (D-061):** el prompt no cambia. La negativa en inglés como negativa (C1) se cubre en T017 y en `DefaultChatSessionTest`, que ya usa `AnswerReading`.
-- [ ] T047 [P] [US3] `…/test/…/feature/settings/LanguagesViewModelTest.kt`:
+- [X] T047 [P] [US3] `…/test/…/feature/settings/LanguagesViewModelTest.kt`:
   - al abrir, marca lo guardado;
   - la selección sobrevive en `SavedStateHandle`;
   - «Guardando…», su anuncio (U7) y el segundo toque;
   - `Close(recreate)` según el controlador, y sin cambios vuelve atrás sin escribir;
   - la sección de respuestas tiene una sola opción, «Español», marcada (S12);
   - P19: tras una recreación con otro idioma del sistema, la selección sigue al actual si el usuario no la había tocado, y se conserva si la había tocado.
-- [ ] T048 [P] [US3] `…/test/…/feature/settings/LanguagesScreenTest.kt` (Robolectric):
+- [X] T048 [P] [US3] `…/test/…/feature/settings/LanguagesScreenTest.kt` (Robolectric):
   - la estructura del PNG 10 (eyebrow, título, hero, dos grupos, tarjeta y botón), con una sola opción en «Idioma de las respuestas» (S12);
   - U3: grupos de opciones con rol, estado y posición («1 de 1» en el de las respuestas);
   - con la app en inglés, las opciones de S11.
@@ -341,14 +341,14 @@ Historias de la spec:
 ### Implementation for User Story 3
 
 - [X] T049 [US3] **Retirada (D-061):** sin tienda del idioma de las respuestas.
-- [ ] T050 [US3] Implementar `ObserveLanguageSettingsUseCase` y `SaveLanguageSettingsUseCase` (solo el idioma de la app) en `…/microrag/domain/settings/SettingsUseCases.kt`, con DI. T045 pasa.
+- [X] T050 [US3] Implementar `ObserveLanguageSettingsUseCase` y `SaveLanguageSettingsUseCase` (solo el idioma de la app) en `…/microrag/domain/settings/SettingsUseCases.kt`, con DI. T045 pasa.
 - [X] T051 [US3] **Retirada (D-061):** `DefaultChatSession` no cambia de prompt.
-- [ ] T052 [US3] Crear `LanguagesUiState.kt`, `LanguagesViewModel.kt`, `LanguagesScreen.kt` y `LanguagesRoute.kt` en `…/microrag/feature/settings/`:
+- [X] T052 [US3] Crear `LanguagesUiState.kt`, `LanguagesViewModel.kt`, `LanguagesScreen.kt` y `LanguagesRoute.kt` en `…/microrag/feature/settings/`:
   - `recreate()` en Android 12 tras volver atrás;
   - el texto de la tarjeta, el que decidió T016.
 
   Sustituir el marcador de `Languages` en `MicroRagNavHost` y registrar el ViewModel. Actualizar `NavigationTest` y cualquier prueba que aún espere el marcador «F12». T047 y T048 pasan.
-- [ ] T053 [US3] Anuncio de P7: `…/microrag/core/navigation/MicroRagAppShell.kt` consume `SettingsNotices.saved` y lo anuncia con una región en vivo. Prueba Robolectric en `…/test/…/core/navigation/` con recreación.
+- [X] T053 [US3] Anuncio de P7: `…/microrag/core/navigation/MicroRagAppShell.kt` consume `SettingsNotices.saved` y lo anuncia con una región en vivo. Prueba Robolectric en `…/test/…/core/navigation/` con recreación.
 
 **Checkpoint**: Idiomas guarda el idioma de la app y dice en qué idioma responde el chat.
 

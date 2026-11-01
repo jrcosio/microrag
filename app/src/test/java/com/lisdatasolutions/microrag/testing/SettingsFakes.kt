@@ -12,6 +12,7 @@ import com.lisdatasolutions.microrag.domain.onboarding.ObserveModelSetupUseCase
 import com.lisdatasolutions.microrag.domain.settings.AppLanguage
 import com.lisdatasolutions.microrag.domain.settings.AppLanguageController
 import java.io.File
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.update
 
 /**
@@ -26,10 +27,14 @@ class FakeAppLanguageController(
     var failApply = false
     val applied = mutableListOf<AppLanguage>()
 
+    /** While set and not completed, apply() waits: what Idiomas shows while it saves. */
+    var gate: CompletableDeferred<Unit>? = null
+
     override fun current() = language
 
     override suspend fun apply(language: AppLanguage): Boolean {
         applied += language
+        gate?.await()
         if (failApply) return false
         this.language = language
         return true

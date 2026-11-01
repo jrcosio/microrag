@@ -18,6 +18,7 @@ import com.lisdatasolutions.microrag.feature.library.LibraryMessage
 import com.lisdatasolutions.microrag.feature.library.LibraryRoute
 import com.lisdatasolutions.microrag.feature.onboarding.setup.SetupRoute
 import com.lisdatasolutions.microrag.feature.onboarding.welcome.WelcomeRoute
+import com.lisdatasolutions.microrag.feature.settings.LanguagesRoute
 import com.lisdatasolutions.microrag.feature.settings.SettingsRoute
 
 /** Key of the Library entry's SavedStateHandle where the detail leaves a [LibraryMessage] (F08 B8). */
@@ -112,6 +113,7 @@ fun MicroRagNavHost(
                 onIndex = {},
             )
         }
-        composable<Languages> { PendingDestination("languages", "F12", onBack = back) }
+        // S7: Back and a save both return to where Idiomas was opened from, Ajustes or Home.
+        composable<Languages> { LanguagesRoute(onBack = back) }
     }
 }
