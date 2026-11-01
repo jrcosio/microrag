@@ -17,24 +17,43 @@ COMMANDS = [
 ]
 
 
+def corpus_option(options):
+    options.add_argument("corpus", nargs="?", default="corpus=es", help="corpus=es (default) or corpus=en (F12)")
+
+
+def chosen_corpus(value):
+    from eval import corpus
+
+    key, _, name = value.partition("=")
+    if key != "corpus" or name not in corpus.CORPORA:
+        raise SystemExit(f"unknown corpus {value}; use corpus={'|'.join(corpus.CORPORA)}")
+    return corpus.CORPORA[name]
+
+
 def fetch_corpus(args):
     from eval import corpus
 
     options = argparse.ArgumentParser(prog="fetch-corpus")
     options.add_argument("--record", action="store_true", help="download entries marked pending and record their hash")
-    if options.parse_args(args).record:
-        corpus.record()
-    docs = corpus.load_manifest()
-    corpus.fetch(docs)
-    corpus.verify(docs)
+    corpus_option(options)
+    opts = options.parse_args(args)
+    source = chosen_corpus(opts.corpus)
+    if opts.record:
+        corpus.record(source.manifest, source.docs)
+    docs = corpus.load_manifest(source.manifest)
+    corpus.fetch(docs, source.docs)
+    corpus.verify(docs, source.docs)
     print(f"{len(docs)} documents verified")
 
 
 def sources(args):
     from eval import corpus
 
-    corpus.SOURCES.write_text(corpus.sources_markdown(corpus.load_manifest()), encoding="utf-8")
-    print(f"wrote {corpus.SOURCES}")
+    options = argparse.ArgumentParser(prog="sources")
+    corpus_option(options)
+    source = chosen_corpus(options.parse_args(args).corpus)
+    source.sources.write_text(corpus.sources_markdown(corpus.load_manifest(source.manifest), source.purpose), encoding="utf-8")
+    print(f"wrote {source.sources}")
 
 
 def build(args):
@@ -45,7 +64,7 @@ def build(args):
     options = argparse.ArgumentParser(prog="build")
     options.add_argument("variants", nargs="+", help="variant names or 'all'")
     names = options.parse_args(args).variants
-    names = list(builds.VARIANTS) if names == ["all"] else names
+    names = [n for n in builds.VARIANTS if builds.corpus_of(n).name == "es"] if names == ["all"] else names
     for name in names:
         if name not in builds.VARIANTS:
             raise SystemExit(f"unknown variant {name}; choose from {', '.join(builds.VARIANTS)}")

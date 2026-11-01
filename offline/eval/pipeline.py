@@ -49,14 +49,15 @@ def load_context(variant="ref"):
     if not path.exists():
         raise SystemExit(f"index {variant} is missing: run_eval.py build {variant}")
     db = index.connect(path)
-    docs = corpus.load_manifest()
+    source = builds.corpus_of(variant)
+    docs = corpus.load_manifest(source.manifest)
     chunks = defaultdict(list)
     for sha, ordinal, content in db.execute(
             "SELECT d.content_hash, c.ordinal, c.content FROM chunks c JOIN documents d ON d.id = c.document_id ORDER BY c.id"):
         chunks[sha].append((ordinal, content))
     return Context(
         variant=variant, db=db, docs=docs, doc_sha={d.id: d.sha256 for d in docs},
-        doc_texts={d.id: document_text(builds.extracted(d)) for d in docs}, titles={d.id: d.title for d in docs},
+        doc_texts={d.id: document_text(builds.extracted(d, source.docs)) for d in docs}, titles={d.id: d.title for d in docs},
         chunks_by_sha=dict(chunks),
         doc_id_by_sha=dict(db.execute("SELECT content_hash, id FROM documents").fetchall()),
     )

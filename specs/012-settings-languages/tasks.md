@@ -144,7 +144,7 @@ Historias de la spec:
   - `SOURCES.md` generado.
 
   Ampliar también `offline/tests/test_index.py` (L9): el índice `en` usa los parámetros de troceado de `rag_parameters.json` y no toca `chars_per_token.json`.
-- [ ] T012 [US8] Implementar el corpus y el índice `en` en `offline/eval/corpus.py`, `offline/eval/builds.py` y `offline/run_eval.py` (`fetch-corpus corpus=en`, `sources corpus=en`, `build en`), con sus filas en `offline/README.md`. T011 pasa.
+- [X] T012 [US8] Implementar el corpus y el índice `en` en `offline/eval/corpus.py`, `offline/eval/builds.py` y `offline/run_eval.py` (`fetch-corpus corpus=en`, `sources corpus=en`, `build en`), con sus filas en `offline/README.md`. T011 pasa.
 - [ ] T013 [US8] Elegir los 3 libros de en.wikibooks (temas distintos, tamaño parecido a los españoles y `revid` fijo) y escribirlos en `offline/corpus/en/manifest.json`. Después:
   - `fetch-corpus corpus=en --record`;
   - `sources corpus=en`;

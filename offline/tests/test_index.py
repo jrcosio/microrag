@@ -115,5 +115,38 @@ class IndexTest(unittest.TestCase):
         self.assertEqual(first, second)
 
 
+class EnglishIndexTest(unittest.TestCase):
+    """F12 L9: the en index chunks as the app does and leaves the tokenizer ratio cache alone."""
+
+    def test_en_variant_uses_the_english_corpus_and_the_app_chunking(self):
+        import json
+
+        from eval import builds
+
+        self.assertEqual(builds.VARIANTS["en"]["corpus"], "en")
+        params = json.loads(builds.PARAMETERS.read_text(encoding="utf-8"))
+        ref = {"prefix_tokens": 8, "max_input_chars": 2113}
+        original_ratio, original_ref = builds.tokenizer_ratio, builds.ref_build_info
+        builds.tokenizer_ratio = lambda docs: self.fail("the ratio must not be measured again")
+        builds.ref_build_info = lambda: ref
+        try:
+            chunking = builds.chunking("en", [])
+        finally:
+            builds.tokenizer_ratio, builds.ref_build_info = original_ratio, original_ref
+        self.assertEqual(chunking, (params["chars_per_token"], ref["prefix_tokens"], ref["max_input_chars"],
+                                    params["chunk_target_chars"], params["chunk_max_chars"]))
+        self.assertEqual(chunking[2:], (2113, 1594, 2113))
+
+    def test_spanish_variants_keep_measuring_the_ratio(self):
+        from eval import builds
+
+        original = builds.tokenizer_ratio
+        builds.tokenizer_ratio = lambda docs: (4.554, 8)
+        try:
+            self.assertEqual(builds.chunking("ref", []), (4.554, 8, 2113, 1594, 2113))
+        finally:
+            builds.tokenizer_ratio = original
+
+
 if __name__ == "__main__":
     unittest.main()

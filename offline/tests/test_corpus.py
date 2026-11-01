@@ -72,6 +72,41 @@ class SourcesTest(unittest.TestCase):
             self.assertIn(expected, text)
 
 
+class WikibooksSiteTest(unittest.TestCase):
+    """F12 L8: the Wikibooks site comes from the fetch entry, with es by default."""
+
+    def urls(self, spec):
+        urls = []
+        original = corpus.http_get
+        corpus.http_get = lambda url, accept=None, pause=0.0: urls.append(url) or b"Text"
+        try:
+            corpus.fetch_wikibooks(spec, None)
+        finally:
+            corpus.http_get = original
+        return urls
+
+    def test_spanish_site_by_default_and_english_when_asked(self):
+        pages = [{"title": "Book/Page", "revid": 7}]
+        self.assertTrue(self.urls({"type": "wikibooks", "pages": pages})[0].startswith("https://es.wikibooks.org/"))
+        self.assertTrue(self.urls({"type": "wikibooks", "site": "en", "pages": pages})[0].startswith("https://en.wikibooks.org/"))
+
+    def test_unknown_site_fails(self):
+        with self.assertRaises(ValueError):
+            self.urls({"type": "wikibooks", "site": "evil.example/", "pages": [{"title": "P", "revid": 1}]})
+
+
+class CorporaTest(unittest.TestCase):
+    def test_spanish_corpus_keeps_its_paths_and_english_has_its_own(self):
+        self.assertEqual((corpus.CORPORA["es"].manifest, corpus.CORPORA["es"].docs, corpus.CORPORA["es"].sources),
+                         (corpus.MANIFEST, corpus.DOCS, corpus.SOURCES))
+        english = corpus.CORPORA["en"]
+        self.assertEqual((english.manifest, english.docs, english.sources),
+                         (corpus.CORPUS / "en" / "manifest.json", corpus.CORPUS / "en" / "docs", corpus.CORPUS / "en" / "SOURCES.md"))
+
+    def test_spanish_sources_text_is_unchanged(self):
+        self.assertEqual(corpus.SOURCES.read_text(encoding="utf-8"), corpus.sources_markdown(corpus.load_manifest()))
+
+
 class WikitextTest(unittest.TestCase):
     def test_markup_is_removed_and_code_samples_kept(self):
         wikitext = (

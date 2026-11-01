@@ -4,7 +4,11 @@ The documents are versioned in offline/corpus/docs. Fetching only fills in missi
 written only if its SHA-256 matches the manifest. `fetch` entries pin what is downloaded:
 - boe: a consolidated law from the BOE open data API, converted to Markdown;
 - pdf: a PDF URL, optionally reduced to a page range;
-- wikibooks: Wikilibros pages at fixed revisions, converted to plain text.
+- wikibooks: Wikibooks pages at fixed revisions, converted to plain text; `site` picks the language edition (es by
+  default; en for the English corpus of F12).
+
+Two corpora share this code: the Spanish one of F05 (offline/corpus) and the English one of F12 (offline/corpus/en,
+contracts/eval-language.md L8), each with its own manifest, documents and SOURCES.md.
 """
 
 import hashlib
@@ -23,6 +27,22 @@ CORPUS = OFFLINE / "corpus"
 MANIFEST = CORPUS / "manifest.json"
 DOCS = CORPUS / "docs"
 SOURCES = CORPUS / "SOURCES.md"
+
+
+@dataclass(frozen=True)
+class Corpus:
+    name: str
+    manifest: Path
+    docs: Path
+    sources: Path
+    purpose: str
+
+
+CORPORA = {
+    "es": Corpus("es", MANIFEST, DOCS, SOURCES, "Documentos públicos reutilizados para la evaluación offline de MicroRAG (F05, D-032)."),
+    "en": Corpus("en", CORPUS / "en" / "manifest.json", CORPUS / "en" / "docs", CORPUS / "en" / "SOURCES.md",
+                 "Documentos públicos en inglés para la medida entre idiomas de MicroRAG (F12)."),
+}
 
 USER_AGENT = "MicroRAG-eval/0.1 (desktop evaluation tooling; https://github.com/jrcosio/microrag)"
 FIELDS = (
@@ -128,12 +148,12 @@ def verify(docs, docs_dir=DOCS):
             raise SystemExit(f"{doc.id}: file does not match the manifest (sha256 {found})")
 
 
-def sources_markdown(docs):
+def sources_markdown(docs, purpose=CORPORA["es"].purpose):
     lines = [
         "# Corpus de evaluación — fuentes y licencias",
         "",
         "Generado desde `manifest.json` (`run_eval.py sources`); no se edita a mano.",
-        "Documentos públicos reutilizados para la evaluación offline de MicroRAG (F05, D-032).",
+        purpose,
         "No forman parte de la app y no se distribuyen con ella.",
         "",
     ]
@@ -193,14 +213,18 @@ def fetch_pdf(spec, doc):
     return out.getvalue()
 
 
-WIKI_API = "https://es.wikibooks.org/w/index.php"
+WIKI_API = "https://{site}.wikibooks.org/w/index.php"
+WIKI_SITES = ("es", "en")
 
 
 def fetch_wikibooks(spec, doc):
+    site = spec.get("site", "es")
+    if site not in WIKI_SITES:
+        raise ValueError(f"unknown Wikibooks site {site!r}")
     parts = []
     for page in spec["pages"]:
         query = urllib.parse.urlencode({"oldid": page["revid"], "action": "raw"})
-        wikitext = http_get(f"{WIKI_API}?{query}", pause=1.5).decode("utf-8")
+        wikitext = http_get(f"{WIKI_API.format(site=site)}?{query}", pause=1.5).decode("utf-8")
         text = wikitext_to_text(wikitext)
         if text:
             parts.append(page["title"].split("/")[-1] + "\n\n" + text)

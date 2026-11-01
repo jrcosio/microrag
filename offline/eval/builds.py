@@ -1,4 +1,7 @@
-"""Evaluation index variants and how each one is built (F05 data-model §3, research R4–R5)."""
+"""Evaluation index variants and how each one is built (F05 data-model §3, research R4–R5).
+
+`en` indexes the English corpus of F12 with the chunking of the app (contracts/eval-language.md L9).
+"""
 
 import hashlib
 import json
@@ -14,6 +17,7 @@ OFFLINE = Path(__file__).resolve().parents[1]
 BUILD = OFFLINE / "build"
 INDEX_DIR = BUILD / "index"
 EXTRACT_DIR = BUILD / "extract"
+PARAMETERS = OFFLINE / "config" / "rag_parameters.json"
 
 MAX_INPUT_TOKENS = 512        # max_input_length of the embedding model, as in the app
 HEADER_ALLOWANCE_TOKENS = 40  # room kept for the contextual header (research R4)
@@ -28,19 +32,24 @@ VARIANTS = {
     "dim768": {"derive": "dims", "dims": 768},
     "fts_raw": {"derive": "fts", "fts": "raw"},
     "fts_stop": {"derive": "fts", "fts": "stop"},
+    "en": {"tokens": 350, "header": True, "corpus": "en"},
 }
+
+
+def corpus_of(variant):
+    return corpus.CORPORA[VARIANTS[variant].get("corpus", "es")]
 
 
 def index_path(variant):
     return INDEX_DIR / f"{variant}.db"
 
 
-def extracted(doc):
+def extracted(doc, docs_dir=corpus.DOCS):
     """Blocks of a corpus document, cached by its hash."""
     cache = EXTRACT_DIR / f"{doc.sha256}.json"
     if cache.exists():
         return [RawBlock(tuple(b["heading_path"]), b["text"], b["page"]) for b in json.loads(cache.read_text(encoding="utf-8"))]
-    blocks = extract(corpus.DOCS / doc.file_name, doc.format)
+    blocks = extract(docs_dir / doc.file_name, doc.format)
     cache.parent.mkdir(parents=True, exist_ok=True)
     cache.write_text(json.dumps([{"heading_path": list(b.heading_path), "text": b.text, "page": b.page} for b in blocks],
                                 ensure_ascii=False), encoding="utf-8")
@@ -72,6 +81,35 @@ def tokenizer_ratio(docs):
     cache.parent.mkdir(parents=True, exist_ok=True)
     cache.write_text(json.dumps({"corpus": key, "chars_per_token": ratio, "prefix_tokens": prefix_tokens, "chars": chars, "tokens": tokens}))
     return ratio, prefix_tokens
+
+
+def ref_build_info():
+    path = index_path("ref")
+    if not path.exists():
+        raise SystemExit("build ref first")
+    db = index.connect(path)
+    try:
+        return index.build_info(db)
+    finally:
+        db.close()
+
+
+def chunking(variant, docs):
+    """(chars per token, prefix tokens, max input chars, target chars, max chars) of a built variant.
+
+    The Spanish variants measure the tokenizer ratio of their corpus (research R4). Another corpus takes the
+    chunking of the app from rag_parameters.json, as the phone would, and the prefix and input limit of ref:
+    measuring it again would replace the cache in build/chars_per_token.json (F12 L9).
+    """
+    spec = VARIANTS[variant]
+    if corpus_of(variant).name == "es":
+        ratio, prefix_tokens = tokenizer_ratio(docs)
+        max_input_chars = round((MAX_INPUT_TOKENS - prefix_tokens - HEADER_ALLOWANCE_TOKENS) * ratio)
+        return (ratio, prefix_tokens, max_input_chars, *chunk_params(spec["tokens"], ratio, max_input_chars))
+    params = json.loads(PARAMETERS.read_text(encoding="utf-8"))
+    ref = ref_build_info()
+    return (params["chars_per_token"], ref["prefix_tokens"], ref["max_input_chars"],
+            params["chunk_target_chars"], params["chunk_max_chars"])
 
 
 class Embedder:
@@ -126,17 +164,16 @@ def build(variant):
         db.close()
         return {"variant": variant, **spec}
 
-    docs = corpus.load_manifest()
-    corpus.verify(docs)
-    ratio, prefix_tokens = tokenizer_ratio(docs)
-    max_input_chars = round((MAX_INPUT_TOKENS - prefix_tokens - HEADER_ALLOWANCE_TOKENS) * ratio)
-    target_chars, max_chars = chunk_params(spec["tokens"], ratio, max_input_chars)
+    source = corpus_of(variant)
+    docs = corpus.load_manifest(source.manifest)
+    corpus.verify(docs, source.docs)
+    ratio, prefix_tokens, max_input_chars, target_chars, max_chars = chunking(variant, docs)
     documents = []
     for doc in docs:
-        blocks = extracted(doc)
+        blocks = extracted(doc, source.docs)
         pages = max((b.page for b in blocks if b.page), default=None)
         documents.append(index.IndexDocument(doc.id, doc.title, doc.sha256, doc.mime_type,
-                                             (corpus.DOCS / doc.file_name).stat().st_size, pages, blocks))
+                                             (source.docs / doc.file_name).stat().st_size, pages, blocks))
     engine, embed = embedder()
     started = time.time()
     try:

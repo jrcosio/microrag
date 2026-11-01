@@ -71,6 +71,7 @@ Contratos en `specs/005-offline-eval-harness/contracts/`. Todo se ejecuta con `o
 |---|---|
 | Corpus (solo descarga lo que falta y verifica huellas) | `fetch-corpus` y `sources` |
 | Índices (`ref`, `chunk250`, `chunk500`, `nohdr`, `dim128/512/768`, `fts_raw`, `fts_stop`) | `build all` |
+| Corpus e índice en inglés (F12): 3 libros de en.wikibooks y el índice `en`, con el troceado de la app (`config/rag_parameters.json`) | `fetch-corpus corpus=en`, `sources corpus=en` y `build en` |
 | Muestra para redactar preguntas | `sample` |
 | Validación del conjunto (reglas T1–T9) | `validate-testset` (`--pre-review` antes de la revisión) |
 | Revisión del usuario (hoja `testset/review.csv`) | `review-sheet` y, tras rellenarla, `review-apply` |
@@ -83,7 +84,7 @@ Contratos en `specs/005-offline-eval-harness/contracts/`. Todo se ejecuta con `o
 | Medida entre idiomas (F12, D-058 y D-060): documentos y preguntas en idiomas distintos, juzgados a mano | `validate-testset set=crosslang` y `crosslang-review [english_answers=auto\|es]` → `build/crosslang-review/result.json` y `reports/crosslang-review.csv` |
 | Informe | `report` → `reports/eval-report.md` |
 
-**Corpus:** documentos públicos (BOE, Agencia Tributaria y Wikilibros). Se versionan con su origen, licencia, atribución y transformaciones en `corpus/manifest.json` y `corpus/SOURCES.md` (D-032). Un documento nuevo se añade al manifiesto con `"sha256": "pending"` y se registra con `fetch-corpus --record`.
+**Corpus:** documentos públicos (BOE, Agencia Tributaria y Wikilibros). Se versionan con su origen, licencia, atribución y transformaciones en `corpus/manifest.json` y `corpus/SOURCES.md` (D-032). Un documento nuevo se añade al manifiesto con `"sha256": "pending"` y se registra con `fetch-corpus --record`. El corpus en inglés de F12 vive aparte, en `corpus/en/`, con su propio manifiesto y su `SOURCES.md`.
 
 **Fuera de git** (`offline/build/`): índices, extracciones, cachés y ejecuciones. Cada ejecución vive en `build/runs/<huella>/`. La huella identifica la configuración, el índice, el conjunto de prueba y los modelos, y una generación interrumpida se reanuda donde se quedó.
 
