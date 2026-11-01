@@ -1,6 +1,6 @@
 # Informe de cierre — F11 Chat con fuentes
 
-> **Estado:** implementada; pendiente de la revisión de cierre.
+> **Estado:** aprobada por el usuario el 2026-11-01.
 > - T001–T070 hechas.
 > - **Primer token:** no cumple los 5 s y queda como excepción documentada (D-057).
 > - **Fallos de la fase del teléfono:** tres, corregidos (§6).
@@ -274,7 +274,7 @@ Hecho como acordó el usuario:
 
 ## 7. Pendiente
 
-- **Revisión de cierre del usuario.**
+- **Nada de F11 queda abierto.** El usuario aprobó el cierre el 2026-11-01, y la rama se sube con esa aprobación.
 - **TalkBack real** en el chat, a cargo del usuario, como en F01, F03 y F06–F10.
 - **Emulador:** la última batería completa en el emulador (657/657) es anterior a los tres arreglos de la fase del teléfono. Con los APK finales se repitió en el teléfono (660/660) y en la JVM (818/818).
 - **Observaciones para otras features:**

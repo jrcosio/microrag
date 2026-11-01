@@ -1197,7 +1197,7 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
 - **Alternativas descartadas:**
   - límite de 1.500 (arriba);
   - 3 bloques para todas las preguntas, que cambia la calidad de D-034 en el 100 % de los casos.
-- **Origen:** consulta de FR-045 en T067 de F11; el usuario eligió la excepción a la vista de las cifras.
+- **Origen:** consulta de FR-045 en T067 de F11; el usuario eligió la excepción a la vista de las cifras. En la revisión de cierre (2026-11-01), aprobó el cierre de F11 con esta excepción.
 - **Afecta:** F11 (FR-045, SC-004, cierre) y F14.
 
 ---
