@@ -291,22 +291,22 @@ Historias de la spec:
 
 ### Tests for User Story 2
 
-- [ ] T038 [P] [US2] `…/test/…/core/locale/AppLocaleTest.kt` (Robolectric):
+- [X] T038 [P] [US2] `…/test/…/core/locale/AppLocaleTest.kt` (Robolectric):
   - P1: español por defecto, aunque el sistema esté en inglés;
   - en `sdk = 32`: el fichero se lee en `init`, y ausente o ilegible da español;
   - en `sdk = 36`: `LocaleManager`;
   - P4: el paso de Android 12 a 13 aplica el fichero una vez y lo borra;
   - `localized(context)` sigue al idioma vigente.
-- [ ] T039 [P] [US2] `…/test/…/core/locale/PlatformAppLanguageControllerTest.kt`:
+- [X] T039 [P] [US2] `…/test/…/core/locale/PlatformAppLanguageControllerTest.kt`:
   - en `sdk = 32`: `apply` escribe de forma atómica, actualiza la memoria y devuelve `false` si falla, sin cambiar nada; `recreatesItself = false`;
   - en `sdk = 36`: `setApplicationLocales` con `es` o `en`; `current()` sigue al sistema; `recreatesItself = true`.
-- [ ] T040 [P] [US2] Ampliar `…/test/…/data/indexing/IndexingNotificationsTest.kt` y crear `…/test/…/data/download/DownloadNotificationsTest.kt` (P5): tras cambiar el idioma, la notificación siguiente sale en el idioma nuevo sin reiniciar.
+- [X] T040 [P] [US2] Ampliar `…/test/…/data/indexing/IndexingNotificationsTest.kt` y crear `…/test/…/data/download/DownloadNotificationsTest.kt` (P5): tras cambiar el idioma, la notificación siguiente sale en el idioma nuevo sin reiniciar.
 
 ### Implementation for User Story 2
 
-- [ ] T041 [US2] Ampliar `…/microrag/core/locale/AppLocale.kt` (`init`, `localized`, fichero) y crear `…/microrag/core/locale/PlatformAppLanguageController.kt`. Registrarlo en `…/microrag/core/di/CoreModule.kt`, junto con `SettingsNotices`. T038 y T039 pasan.
-- [ ] T042 [US2] `…/microrag/MicroRagApplication.kt`: `AppLocale.init(base)` antes de `wrap`, y la migración de P4 en `onCreate`.
-- [ ] T043 [US2] `…/microrag/data/indexing/IndexingNotifications.kt` y `…/microrag/data/download/DownloadNotifications.kt` con `AppLocale.localized(context)`. T040 pasa.
+- [X] T041 [US2] Ampliar `…/microrag/core/locale/AppLocale.kt` (`init`, `localized`, fichero) y crear `…/microrag/core/locale/PlatformAppLanguageController.kt`. Registrarlo en `…/microrag/core/di/CoreModule.kt`, junto con `SettingsNotices`. T038 y T039 pasan.
+- [X] T042 [US2] `…/microrag/MicroRagApplication.kt`: `AppLocale.init(base)` antes de `wrap`, y la migración de P4 en `onCreate`.
+- [X] T043 [US2] `…/microrag/data/indexing/IndexingNotifications.kt` y `…/microrag/data/download/DownloadNotifications.kt` con `AppLocale.localized(context)`. T040 pasa.
 
 **Checkpoint**: el idioma de la app se guarda y se aplica en las dos rutas de versión.
 

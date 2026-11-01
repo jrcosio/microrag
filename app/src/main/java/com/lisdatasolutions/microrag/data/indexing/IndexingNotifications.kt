@@ -8,8 +8,10 @@ import android.content.Context
 import android.content.Intent
 import com.lisdatasolutions.microrag.MainActivity
 import com.lisdatasolutions.microrag.R
+import com.lisdatasolutions.microrag.core.locale.AppLocale
 import com.lisdatasolutions.microrag.domain.ingest.IngestProgress
 import java.text.NumberFormat
+import java.util.Locale
 
 /**
  * The indexing notification (F07 research R3, proposal P11): real progress of the whole run, the same
@@ -20,12 +22,22 @@ class IndexingNotifications(private val context: Context) {
 
     private val manager = context.getSystemService(NotificationManager::class.java)
 
+    @Volatile
+    private var localized: Pair<Locale, Context>? = null
+
+    /** F12 P5: texts in the app language of this moment, so a change applies without restarting the process. */
+    private fun texts(): Context {
+        val locale = AppLocale.resolve(context)
+        localized?.takeIf { it.first == locale }?.let { return it.second }
+        return AppLocale.localized(context).also { localized = locale to it }
+    }
+
     fun ensureChannel() {
         val channel = NotificationChannel(
             CHANNEL_ID,
-            context.getString(R.string.index_channel_name),
+            texts().getString(R.string.index_channel_name),
             NotificationManager.IMPORTANCE_LOW,
-        ).apply { description = context.getString(R.string.index_channel_description) }
+        ).apply { description = texts().getString(R.string.index_channel_description) }
         manager.createNotificationChannel(channel)
     }
 
@@ -34,25 +46,25 @@ class IndexingNotifications(private val context: Context) {
         ensureChannel()
         val builder = Notification.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_database)
-            .setContentTitle(context.getString(R.string.index_notification_title))
+            .setContentTitle(texts().getString(R.string.index_notification_title))
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setCategory(Notification.CATEGORY_PROGRESS)
             // Android never times out a foreground service's notification; any other one goes by itself (D-041).
             .setTimeoutAfter(TIMEOUT_MS)
             .setContentIntent(openIndex())
-            .addAction(Notification.Action.Builder(null, context.getString(R.string.index_notification_pause), pauseIntent()).build())
+            .addAction(Notification.Action.Builder(null, texts().getString(R.string.index_notification_pause), pauseIntent()).build())
         val (done, total) = when {
             progress?.runChunksTotal != null -> progress.runChunksDone to progress.runChunksTotal
             else -> progress?.chunksDone to progress?.chunksTotal
         }
         return when {
             progress?.waiting == IngestProgress.WaitReason.THERMAL ->
-                builder.setContentText(context.getString(R.string.index_paused_thermal)).setProgress(0, 0, false)
+                builder.setContentText(texts().getString(R.string.index_paused_thermal)).setProgress(0, 0, false)
             done != null && total != null && total > 0 ->
-                builder.setContentText(context.getString(R.string.index_notification_chunks, done.grouped(), total.grouped()))
+                builder.setContentText(texts().getString(R.string.index_notification_chunks, done.grouped(), total.grouped()))
                     .setProgress(total, done.coerceAtMost(total), false)
-            else -> builder.setContentText(context.getString(R.string.index_preparing)).setProgress(0, 0, true)
+            else -> builder.setContentText(texts().getString(R.string.index_preparing)).setProgress(0, 0, true)
         }.build()
     }
 

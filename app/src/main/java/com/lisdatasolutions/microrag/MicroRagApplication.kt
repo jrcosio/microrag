@@ -34,13 +34,19 @@ class MicroRagApplication : Application(), Configuration.Provider {
             .setGreedySchedulerEnabled(false)
             .build()
 
-    /** Spanish by default for everything built from the app context, such as notifications (D-029). */
+    /**
+     * Spanish by default for everything built from the app context (D-029). On Android 12 the stored app
+     * language is read here, once and before StrictMode (F12 P3).
+     */
     override fun attachBaseContext(base: Context) {
+        AppLocale.init(base)
         super.attachBaseContext(AppLocale.wrap(base))
     }
 
     override fun onCreate() {
         super.onCreate()
+        // F12 P4: after an update from Android 12, its stored choice becomes the system's per-app language.
+        AppLocale.migrate(this)
         DebugStrictMode.install()
         startKoin {
             androidContext(this@MicroRagApplication)

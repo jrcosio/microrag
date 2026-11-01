@@ -1,9 +1,11 @@
 package com.lisdatasolutions.microrag.data.indexing
 
 import android.app.Application
+import android.app.LocaleManager
 import android.app.Notification
 import android.app.NotificationManager
 import android.content.Context
+import android.os.LocaleList
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
@@ -88,5 +90,21 @@ class IndexingNotificationsTest {
         assertThat(tap.isImmutable).isTrue()
         assertThat(tap.savedIntent.component?.className).isEqualTo(MainActivity::class.java.name)
         assertThat(tap.savedIntent.action).isEqualTo(MainActivity.ACTION_OPEN_INDEXING)
+    }
+
+    /** F12 P5: built from the app context, the next notification follows a new app language without a restart. */
+    @Test
+    @Config(sdk = [36])
+    fun theNextNotification_followsTheAppLanguage() {
+        assertThat(notifications.build(null).text()).isEqualTo("Preparando documentos")
+
+        context.getSystemService(LocaleManager::class.java).applicationLocales = LocaleList.forLanguageTags("en")
+        try {
+            val english = notifications.build(null)
+            assertThat(english.extras.getCharSequence(Notification.EXTRA_TITLE).toString()).isEqualTo("Indexing documents")
+            assertThat(english.text()).isEqualTo("Preparing documents")
+        } finally {
+            context.getSystemService(LocaleManager::class.java).applicationLocales = LocaleList.getEmptyLocaleList()
+        }
     }
 }

@@ -9,9 +9,11 @@ import android.content.Intent
 import android.text.format.Formatter
 import com.lisdatasolutions.microrag.MainActivity
 import com.lisdatasolutions.microrag.R
+import com.lisdatasolutions.microrag.core.locale.AppLocale
 import com.lisdatasolutions.microrag.domain.model.DownloadProgress
 import com.lisdatasolutions.microrag.domain.model.ModelId
 import com.lisdatasolutions.microrag.domain.model.percentOf
+import java.util.Locale
 
 /**
  * Ongoing notification of the model download (FR-012, contracts/onboarding-ui.md): model, real
@@ -21,12 +23,22 @@ class DownloadNotifications(private val context: Context) {
 
     private val manager = context.getSystemService(NotificationManager::class.java)
 
+    @Volatile
+    private var localized: Pair<Locale, Context>? = null
+
+    /** F12 P5: texts in the app language of this moment, so a change applies without restarting the process. */
+    private fun texts(): Context {
+        val locale = AppLocale.resolve(context)
+        localized?.takeIf { it.first == locale }?.let { return it.second }
+        return AppLocale.localized(context).also { localized = locale to it }
+    }
+
     fun ensureChannel() {
         val channel = NotificationChannel(
             CHANNEL_ID,
-            context.getString(R.string.download_channel_name),
+            texts().getString(R.string.download_channel_name),
             NotificationManager.IMPORTANCE_LOW,
-        ).apply { description = context.getString(R.string.download_channel_description) }
+        ).apply { description = texts().getString(R.string.download_channel_description) }
         manager.createNotificationChannel(channel)
     }
 
@@ -39,22 +51,22 @@ class DownloadNotifications(private val context: Context) {
             .setCategory(Notification.CATEGORY_PROGRESS)
             .setContentIntent(openApp())
             .addAction(
-                Notification.Action.Builder(null, context.getString(R.string.action_stop), pauseIntent()).build(),
+                Notification.Action.Builder(null, texts().getString(R.string.action_stop), pauseIntent()).build(),
             )
         val active = progress.active
         return if (active == null || progress.totalBytes <= 0) {
-            builder.setContentTitle(context.getString(R.string.download_notification_starting))
+            builder.setContentTitle(texts().getString(R.string.download_notification_starting))
                 .setProgress(0, 0, true)
                 .build()
         } else {
             val percent = percentOf(progress.bytesDone, progress.totalBytes)
-            builder.setContentTitle(context.getString(R.string.download_notification_title, context.getString(nameOf(active))))
+            builder.setContentTitle(texts().getString(R.string.download_notification_title, texts().getString(nameOf(active))))
                 .setContentText(
-                    context.getString(
+                    texts().getString(
                         R.string.download_notification_text,
                         percent,
-                        Formatter.formatShortFileSize(context, progress.bytesDone),
-                        Formatter.formatShortFileSize(context, progress.totalBytes),
+                        Formatter.formatShortFileSize(texts(), progress.bytesDone),
+                        Formatter.formatShortFileSize(texts(), progress.totalBytes),
                     ),
                 )
                 .setProgress(PROGRESS_MAX, percent * PROGRESS_MAX / 100, false)
