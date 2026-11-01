@@ -116,7 +116,7 @@ Mandan los PNG `09-configuracion.png` y `10-idiomas.png`. Los estados sin maquet
 | `languages_section_answers` | Idioma de las respuestas | Answer language |
 | `languages_answer_spanish` | Español | Spanish |
 | `languages_multilingual_title` | Búsqueda multilingüe | Multilingual search |
-| `languages_multilingual_body` | Consulta documentos en distintos idiomas desde el mismo chat. (S10: se confirma o cambia con la medida) | Ask about documents in different languages from the same chat. |
+| `languages_multilingual_body` | Consulta documentos en español o en inglés. Funciona mejor si preguntas en el idioma del documento. (D-062) | Ask about documents in Spanish or English. It works best when you ask in the document's language. |
 | `languages_save` | Guardar preferencias | Save preferences |
 | `languages_saving` | Guardando… | Saving… |
 | `languages_saved` | Preferencias guardadas | Preferences saved |
@@ -166,5 +166,5 @@ Se reutilizan:
 - **Chip de Gemma en CPU:** «Modo CPU, más lento» en lugar de «Local» (D-027).
 - **Botones de opción:** el aspecto de Material 3 (D-018, G18), aceptado desde F01.
 - **Idioma de las respuestas:** una sola opción, «Español», en lugar de «Automático» y «Español» (D-061, S12).
-- **Tarjeta «Búsqueda multilingüe»:** su texto puede cambiar según la medida (S10).
+- **Tarjeta «Búsqueda multilingüe»:** el texto del PNG cambia por el de D-062, que la medida entre idiomas sí sostiene (S10).
 - **Barra de estado y franja de inicio** de iOS: no aplican (G40).

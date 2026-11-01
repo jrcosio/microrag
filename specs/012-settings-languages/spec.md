@@ -94,6 +94,7 @@
 - Q: Con las preguntas en español, «Automático» queda 1 negativa y 1,4 puntos de citas por debajo de `v4`: ¿qué se hace? → A: Medir antes las preguntas en inglés y decidir con todas las cifras.
 - Q: «Automático» contesta en español a las 72 preguntas en inglés: ¿qué se hace con él en F12? → A: No se ofrece en F12 (D-061). El idioma de las respuestas es siempre español, con el prompt del escritorio sin cambios. Las respuestas en inglés pasan al backlog, con un enfoque que haya que evaluar. La medida entre idiomas se hace con respuestas en español.
 - Q: Sin «Automático», ¿cómo se muestra la sección «Idioma de las respuestas»? → A: Con «Español» como única opción, marcada. Informa del idioma de las respuestas sin ofrecer nada que no exista, y no guarda nada.
+- Q: La medida entre idiomas no cumple la regla de FR-032 (correctas 31,6 y 16,0 puntos por debajo de su referencia): ¿qué texto lleva la tarjeta «Búsqueda multilingüe»? → A: «Consulta documentos en español o en inglés. Funciona mejor si preguntas en el idioma del documento.» (D-062). El título y el icono se quedan.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -297,7 +298,7 @@ Quien desarrolla evalúa en el escritorio el prompt de «Automático» con pregu
 - **Gemma preparada en GPU y la de embeddings en CPU** (o al revés): cada fila muestra su propio procesador. Solo Gemma lleva el aviso «Modo CPU, más lento» (D-027).
 - **Nombres de idioma largos o letra grande:** las filas crecen en alto y el texto no se corta.
 - **Pregunta en un idioma distinto del de la respuesta elegida:** con «Español», la respuesta pide español aunque la pregunta esté en inglés.
-- **Pregunta en otro idioma:** la respuesta llega en español. Que conteste bien depende de lo que mida la consulta entre idiomas (FR-033).
+- **Pregunta en otro idioma:** la respuesta llega en español. Con el documento en otro idioma acierta bastante menos (D-062), y la tarjeta «Búsqueda multilingüe» aconseja preguntar en el idioma del documento.
 
 ## Requirements *(mandatory)*
 
@@ -458,7 +459,7 @@ Quien desarrolla evalúa en el escritorio el prompt de «Automático» con pregu
     - si falla, el aviso «No se pudieron guardar las preferencias. Se mantienen las anteriores.», y el usuario puede volver a pulsar;
     - si falla la lectura, Idiomas muestra «No se pudieron leer tus preferencias. Se usan las de por defecto.».
   - **S9 — Cambio del idioma de la app:** al guardar, la app se redibuja en el idioma nuevo y vuelve a la pantalla de origen. TalkBack anuncia «Preferencias guardadas» en el idioma nuevo.
-  - **S10 — Tarjeta «Búsqueda multilingüe»:** el texto del PNG si la medida cumple la regla de FR-032. Si no, el texto propuesto con las cifras se aprueba en una parada antes de implementarlo.
+  - **S10 — Tarjeta «Búsqueda multilingüe»:** el texto del PNG si la medida cumple la regla de FR-032. Si no, el texto propuesto con las cifras se aprueba en una parada antes de implementarlo. Resultado (D-062): no la cumple, y el texto aprobado es «Consulta documentos en español o en inglés. Funciona mejor si preguntas en el idioma del documento.»
   - **S11 — Nombres de opciones con la app en inglés:** los idiomas de la app siguen como «Español» y «English». La opción de las respuestas pasa a «Spanish».
   - **S12 — Idioma de las respuestas** (D-061): la sección muestra una sola fila, «Español», marcada. TalkBack la lee como «Español, botón de opción, seleccionado, 1 de 1».
 - **Ficha de modelo:** solo muestra los dos modelos de producto (Gemma 4 E2B y EmbeddingGemma 2 270M). Los modelos de diagnóstico de debug no aparecen.

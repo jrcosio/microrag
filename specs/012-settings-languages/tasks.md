@@ -156,10 +156,12 @@ Historias de la spec:
   - EN·EN: 40 de 50 correctas (80,0 %), 15 de 15 negativas, el 95,5 % de citas y la búsqueda acierta en el 90 %; cumple los umbrales;
   - EN·ES: 32 de 50 correctas (64,0 %), 16 puntos por debajo de EN·EN; 13 de 15 negativas, el 90,8 % de citas y la búsqueda acierta en el 78 %; no cumple L14;
   - 2 de las 65 respuestas de EN·EN salieron en inglés, o casi, aunque el prompt pide español.
-- [ ] T016 [US8] Registrar:
+- [X] T016 [US8] Registrar:
   - la sección «Idiomas (F12)» en `offline/eval/report.py`, con su prueba en `offline/tests/test_report.py`, y regenerar `offline/reports/eval-report.md`;
   - una entrada nueva en `docs/roadmap/DECISIONS.md` con las cifras por combinación, que **cierra el pendiente «Documentos en otro idioma»**; las mejoras que pidan las cifras van a la ficha de F14 en `docs/roadmap/FEATURES.md`;
   - el texto de la tarjeta (L14). **Si tiene que cambiar, se para** para que el usuario apruebe el texto propuesto (S10).
+
+  Resultado (D-062): ES·EN y EN·ES no cumplen L14. El usuario aprobó el texto «Consulta documentos en español o en inglés. Funciona mejor si preguntas en el idioma del documento.» El pendiente queda cerrado y la palanca, en la ficha de F14.
 
 **Checkpoint**: medida registrada, pendiente cerrado y texto de la tarjeta decidido.
 

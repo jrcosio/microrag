@@ -1335,19 +1335,47 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
 
 ---
 
+## D-062 — Documentos y preguntas en idiomas distintos (medida entre idiomas de F12)
+
+- **Fecha:** 2026-11-01
+- **Decisión:**
+  - **La tarjeta «Búsqueda multilingüe» de Idiomas cambia de texto.** Deja el del PNG («Consulta documentos en distintos idiomas desde el mismo chat.») por:
+    - español: «Consulta documentos en español o en inglés. Funciona mejor si preguntas en el idioma del documento.»;
+    - inglés: "Ask about documents in Spanish or English. It works best when you ask in the document's language."
+  - El título «Búsqueda multilingüe» y el icono se quedan. La tarjeta sigue siendo informativa, sin interruptor ni acción.
+  - **Se cierra el pendiente «Documentos en otro idioma»** con estas cifras. Las mejoras de la búsqueda entre idiomas pasan a F14.
+- **Medida** (escritorio, configuración elegida con `v4` y respuestas siempre en español, D-061; juicio manual con el método D-033; regla fijada antes de medir, D-058 y D-060):
+
+  | Combinación | Documentos | Preguntas | Búsqueda | Correctas | Referencia | Negativas | Citas | Negativas indebidas |
+  |---|---|---|---:|---:|---:|---:|---:|---:|
+  | ES·EN | español (`ref`) | 72 en inglés (muestra de F10 traducida) | 57,9 % | **50,9 %** (29/57) | 82,5 % | 100 % (15/15) | 96,1 % | 16 |
+  | EN·EN | inglés (`en`) | 65 en inglés | 90,0 % | 80,0 % (40/50) | — | 100 % (15/15) | 95,5 % | 3 |
+  | EN·ES | inglés (`en`) | las mismas 65 en español | 78,0 % | **64,0 %** (32/50) | 80,0 % | 86,7 % (13/15) | 90,8 % | 11 |
+
+  - **Búsqueda:** preguntas con un fragmento que lleva la evidencia en el contexto.
+  - **Referencia:** ES·EN, sus mismas preguntas en español con `v4`; EN·ES, EN·EN.
+  - **Corpus en inglés:** 3 libros de en.wikibooks (Git, Basic Book Design y Knots, CC BY-SA 4.0, revisiones fijas) en `offline/corpus/en/`. El índice `en` tiene 184 fragmentos, con el troceado de la app.
+  - **Fallos:** de las respuestas que no son correctas, son de búsqueda 21 de 28 en ES·EN, 4 de 10 en EN·EN y 11 de 18 en EN·ES. El resto son de generación.
+  - **Idioma de las respuestas:** 2 de las 65 respuestas de EN·EN salen en inglés, o casi, aunque el prompt pide español.
+- **Lectura:**
+  - con documento y pregunta en el mismo idioma, el inglés rinde como el español: 80,0 % frente al 81,1 % de `v4`;
+  - con idiomas distintos, ES·EN queda 31,6 puntos por debajo de su referencia y EN·ES 16,0. No se cumple la regla del texto del PNG (no más de 10 puntos);
+  - la causa principal es la búsqueda: la parte por palabras usa palabras vacías y raíces del español, y la búsqueda por significado sola no basta para cruzar idiomas.
+- **Motivo del texto:** dice lo que funciona (documentos en español y en inglés) y el consejo que más ayuda, sin prometer la consulta entre idiomas.
+- **Alternativas descartadas:**
+  - solo el consejo, sin nombrar los idiomas;
+  - el consejo con «Las respuestas llegan en español», que Idiomas ya muestra en «IDIOMA DE LAS RESPUESTAS».
+- **Origen:** usuario, a la vista de las cifras (T016 de F12, S10).
+- **Afecta:**
+  - F12: FR-032 y S10; claves `languages_multilingual_body` del contrato `settings-ui.md`;
+  - F14: palanca de calidad nueva, la búsqueda entre idiomas;
+  - informe de evaluación: sección «Idiomas (F12)».
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.
 
 - **Huecos G del inventario:** ninguno queda abierto. Los últimos, G23, G24 y G25, quedan resueltos en D-058. Los demás se resolvieron en sus features; el estado de cada uno está en `INVENTARIO.md` §6.
-- **Documentos en otro idioma** — Sin medir.
-  - **Lo que hay:** toda la evaluación usa documentos y preguntas en español (F05, la paridad de F10 y la medida del primer token de F11).
-  - **Generación:** Gemma 4 E2B lee el contexto en inglés y responde en español.
-  - **Búsqueda:** la mitad por palabras está pensada para el español (palabras vacías y raíces del español). Con un documento en inglés y la pregunta en español, solo ayuda la búsqueda por significado (EmbeddingGemma 2, multilingüe). Se esperan más negativas o respuestas incompletas.
-  - **Pendiente:**
-    - medirlo en el escritorio con documentos en inglés y preguntas en español y en inglés;
-    - decidir con cifras, por ejemplo una normalización según el idioma del documento.
-
-    Encaja con F12 (selector de idioma) o con F14.
-  - **Origen:** pregunta del usuario en la fase del teléfono de F11 (2026-10-31), que pidió dejarlo pendiente.
-  - **Estado:** se mide en F12 (D-058, FR-033 de su spec) y se cierra con esas cifras.
+- **Documentos en otro idioma** — Cerrado en D-062 (medida entre idiomas de F12). Las mejoras de la búsqueda entre idiomas están en la ficha de F14.

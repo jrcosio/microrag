@@ -581,7 +581,7 @@ También se introduce `EngineCoordinator`, que garantiza que nunca haya dos engi
 ## F12 — Ajustes e Idiomas
 
 - **Tipo:** Producto.
-- **Estado:** 🟨 en curso, en la rama `012-settings-languages`: specify y clarify aprobados el 2026-11-01, con las propuestas de UI S1–S11; plan, tasks y analyze aprobados el 2026-11-01; implementación en curso. Decisiones D-058 (clarify: «Español» por defecto y «Automático» solo tras evaluarlo; ficha de modelo de solo lectura en las dos filas; medida de la consulta entre idiomas en F12) y D-059 (plan: idioma de la app sin AppCompat, evaluaciones en el escritorio antes que la app) y D-060 (analyze: mínimo de respuestas correctas en las reglas en inglés). En la implementación, D-061: «Automático» no se ofrece; el chat responde siempre en español. Spec en `specs/012-settings-languages/spec.md`.
+- **Estado:** 🟨 en curso, en la rama `012-settings-languages`: specify y clarify aprobados el 2026-11-01, con las propuestas de UI S1–S11; plan, tasks y analyze aprobados el 2026-11-01; implementación en curso. Decisiones D-058 (clarify: «Español» por defecto y «Automático» solo tras evaluarlo; ficha de modelo de solo lectura en las dos filas; medida de la consulta entre idiomas en F12) y D-059 (plan: idioma de la app sin AppCompat, evaluaciones en el escritorio antes que la app) y D-060 (analyze: mínimo de respuestas correctas en las reglas en inglés). En la implementación, D-061 («Automático» no se ofrece; el chat responde siempre en español) y D-062 (medida entre idiomas: la tarjeta «Búsqueda multilingüe» cambia de texto y la búsqueda entre idiomas pasa a F14). Spec en `specs/012-settings-languages/spec.md`.
 
 **Objetivo.**
 - Ajustes con el estado real de los modelos y su detalle (G24).
@@ -678,6 +678,12 @@ F14 implementa INT8 + precarga (criterio 2) y vuelve a medir el total frente a 2
 - **Límite de 1.500 tokens:** evaluado y descartado (80,5 % de respuestas correctas, con el p95 proyectado en unos 5,3 s).
 
 F14 evalúa las palancas y mide con el teléfono en reposo entre preguntas y en sesión sostenida. La prueba de partida es `ChatBenchmarkTest`, que escribe una línea por pregunta.
+
+**Palanca de calidad (F12, D-062):** la búsqueda entre idiomas. Con documento y pregunta en el mismo idioma, el inglés rinde como el español (80,0 % de respuestas correctas). Con idiomas distintos baja:
+- preguntas en inglés sobre documentos en español: 50,9 %, con la búsqueda acertando en el 57,9 %;
+- preguntas en español sobre documentos en inglés: 64,0 %, con la búsqueda acertando en el 78,0 %.
+
+Opciones a evaluar: normalizar la búsqueda por palabras según el idioma del documento (palabras vacías y raíces del inglés) y dar más peso a la búsqueda por significado cuando los idiomas no coinciden. Se mide otra vez con `crosslang-review`. Si mejora lo bastante, la tarjeta «Búsqueda multilingüe» puede volver a prometer la consulta entre idiomas.
 
 **Criterios de aceptación.**
 1. `benchmarks.md` con cifras reales, dispositivo y versiones, que sustituyen los presupuestos del informe.

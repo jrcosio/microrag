@@ -604,7 +604,7 @@ Abreviaturas de componentes: ver §4. «No maquetado» significa que el estado l
   - `LisdataHeroCard` con tile `ic_globe` y «Tus documentos.» en blanco / «Tu idioma.» en `ice200`;
   - «IDIOMA DE LA APLICACIÓN»: `LisdataRadioRow` con Español (seleccionado) y English;
   - «IDIOMA DE LAS RESPUESTAS»: Automático «Detectar idioma de la pregunta» (seleccionado) y Español;
-  - `LisdataInfoCard` «Búsqueda multilingüe / Consulta documentos en distintos idiomas desde el mismo chat.»;
+  - `LisdataInfoCard` «Búsqueda multilingüe / Consulta documentos en distintos idiomas desde el mismo chat.» (en la app, el texto de D-062);
   - CTA «Guardar preferencias ✓».
 - **Estados según el MD (no maquetados):**
   - guardando;
