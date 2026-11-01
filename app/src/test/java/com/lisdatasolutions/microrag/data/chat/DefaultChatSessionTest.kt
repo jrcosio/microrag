@@ -5,6 +5,7 @@ import com.google.common.truth.Truth.assertWithMessage
 import com.lisdatasolutions.microrag.domain.chat.ActiveAnswer
 import com.lisdatasolutions.microrag.domain.chat.AnswerSource
 import com.lisdatasolutions.microrag.domain.chat.ChatAvailability
+import com.lisdatasolutions.microrag.domain.chat.ChatStorageException
 import com.lisdatasolutions.microrag.domain.chat.ChatStorageState
 import com.lisdatasolutions.microrag.domain.chat.TurnFailure
 import com.lisdatasolutions.microrag.domain.chat.TurnState
@@ -23,7 +24,9 @@ import com.lisdatasolutions.microrag.testing.RecordingLogger
 import java.io.File
 import java.security.MessageDigest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -597,5 +600,85 @@ class DefaultChatSessionTest {
             assertThat(sources.map { it.promptNumber }).containsExactly(1)
         }
         assertThat(session.retry(lastTurn().id)).isTrue()
+    }
+
+    // --- F12 US4: «Borrar historial de chat» (P9, P10) ----------------------------------------------
+
+    @Test
+    fun deleteAll_stopsTheAnswerInProgress_waits_andDeletesEveryConversation() = runTest {
+        retriever.outcome = blocks(block(1))
+        val session = session()
+        session.ask(null, "¿Uno?")
+        advanceUntilIdle()
+        engine.tokens = listOf("a", "b")
+        engine.delayPerTokenMs = 5_000
+        session.ask(null, "¿Dos?")
+        advanceTimeBy(retriever.delayMs + engine.prefillMs + 1)
+        assertThat(session.active.value!!.state).isEqualTo(TurnState.GENERATING)
+
+        session.deleteAll()
+
+        assertThat(engine.generating).isFalse()
+        assertThat(repository.turns).isEmpty()
+        assertThat(repository.lastConversationId()).isNull()
+        assertThat(session.active.value).isNull()
+        assertThat(session.historyCleared.value).isEqualTo(1)
+    }
+
+    @Test
+    fun aStorageError_propagates_andTheCounterStays() = runTest {
+        retriever.outcome = blocks(block(1))
+        val session = session()
+        session.ask(null, "¿Uno?")
+        advanceUntilIdle()
+        repository.failWrites = true
+
+        val error = runCatching { session.deleteAll() }.exceptionOrNull()
+
+        assertThat(error).isInstanceOf(ChatStorageException::class.java)
+        assertThat(session.historyCleared.value).isEqualTo(0)
+        assertThat(repository.turns).hasSize(1)
+    }
+
+    @Test
+    fun noQuestionStartsBetweenTheStopAndTheDeletion() = runTest {
+        retriever.outcome = blocks(block(1))
+        engine.tokens = listOf("a", "b")
+        engine.delayPerTokenMs = 5_000
+        val session = session()
+        session.ask(null, "¿Uno?")
+        advanceTimeBy(retriever.delayMs + engine.prefillMs + 1)
+
+        val deleting = launch { session.deleteAll() }
+        val asking = async { session.ask(null, "¿Dos?") }
+        advanceUntilIdle()
+
+        assertThat(deleting.isCompleted).isTrue()
+        val id = asking.await()
+        // The question waited for the deletion: it is the only turn left, in a new conversation.
+        assertThat(repository.turns.values.map { it.question }).containsExactly("¿Dos?")
+        assertThat(lastTurn().conversationId).isEqualTo(id)
+        assertThat(lastTurn().state).isEqualTo(TurnState.COMPLETED)
+    }
+
+    @Test
+    fun askingInADeletedConversation_startsANewOne_andTheAnswerIsSaved() = runTest {
+        retriever.outcome = blocks(block(1))
+        val session = session()
+        val deleted = session.ask(null, "¿Uno?")!!
+        advanceUntilIdle()
+        session.deleteAll()
+
+        val id = session.ask(deleted, "¿Dos?")
+        advanceUntilIdle()
+
+        assertThat(id).isNotEqualTo(deleted)
+        assertThat(id).isNotEqualTo(ActiveAnswer.UNSAVED)
+        with(lastTurn()) {
+            assertThat(conversationId).isEqualTo(id)
+            assertThat(question).isEqualTo("¿Dos?")
+            assertThat(state).isEqualTo(TurnState.COMPLETED)
+        }
+        assertThat(session.active.value).isNull()
     }
 }

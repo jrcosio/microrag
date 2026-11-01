@@ -13,7 +13,17 @@ data class SettingsUiState(
     val appLanguage: AppLanguage = AppLanguage.SPANISH,
     /** The model whose sheet is open; kept in the SavedStateHandle. */
     val openSheet: ModelId? = null,
+    /** The confirmation of «Borrar historial de chat», kept in the SavedStateHandle (S6). */
+    val confirmClear: ConfirmClear? = null,
+    val clearing: Boolean = false,
+    /** Shown once in the snackbar, which TalkBack reads (S6). */
+    val message: SettingsMessage? = null,
 )
+
+/** S6: [stopsAnswer] adds «La respuesta en curso se detendrá.». */
+data class ConfirmClear(val stopsAnswer: Boolean)
+
+enum class SettingsMessage { HISTORY_CLEARED, NO_CONVERSATIONS, CLEAR_FAILED }
 
 /** What the chip of a model row says (F12 P14). */
 sealed interface ModelChip {

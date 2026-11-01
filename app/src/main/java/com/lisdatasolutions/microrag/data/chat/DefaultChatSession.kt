@@ -61,6 +61,9 @@ class DefaultChatSession(
     private val lock = Mutex()
     private var job: Job? = null
 
+    private val cleared = MutableStateFlow(0L)
+    override val historyCleared: StateFlow<Long> = cleared.asStateFlow()
+
     /** How the answer in progress ends when its job is cancelled: by the user, or by the system (C13). */
     @Volatile
     private var stopAs = TurnState.CANCELLED
@@ -79,8 +82,9 @@ class DefaultChatSession(
         if (job?.isActive == true) return@withLock null
         val ready = availability().first() as? ChatAvailability.Ready ?: return@withLock null
         startup.join()
-        // A conversation that could not be saved (C16) is tried again with the next question.
-        val saved = conversationId?.takeIf { it != ActiveAnswer.UNSAVED }
+        // A conversation that could not be saved (C16) is tried again with the next question, and so is one
+        // deleted meanwhile (F12 P10); an unreadable file keeps the id, as the write will fail anyway.
+        val saved = conversationId?.takeIf { it != ActiveAnswer.UNSAVED && saveOrNull { repository.conversationExists(it) } != false }
         val conversation = saved ?: saveOrNull { repository.createConversation(now()) } ?: ActiveAnswer.UNSAVED
         val turns = if (conversation == ActiveAnswer.UNSAVED) emptyList() else saveOrNull { repository.conversation(conversation).first() }.orEmpty()
         val turn = if (conversation == ActiveAnswer.UNSAVED) null else saveOrNull {
@@ -116,6 +120,18 @@ class DefaultChatSession(
         }
         repository.deleteConversation(conversationId)
         current.update { if (it?.conversationId == conversationId) null else it }
+    }
+
+    /**
+     * F12 P9: under the session lock, so no question starts between the stop and the deletion. A failed
+     * deletion leaves the counter as it was.
+     */
+    override suspend fun deleteAll() = lock.withLock {
+        stop(TurnState.CANCELLED)
+        job?.join()
+        repository.deleteAll()
+        current.value = null
+        cleared.update { it + 1 }
     }
 
     /** A11: the UI is hidden or memory runs low; the answer stops before Gemma is released. */

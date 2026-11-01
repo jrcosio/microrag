@@ -11,6 +11,7 @@ import com.lisdatasolutions.microrag.domain.rag.IndexUnavailableException
 import com.lisdatasolutions.microrag.domain.rag.RagIndex
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -108,6 +109,35 @@ class DeleteConversationUseCase(private val session: ChatSession) {
 
 class LastConversationUseCase(private val repository: ChatRepository) {
     suspend operator fun invoke(): Long? = repository.lastConversationId()
+}
+
+/** F12 P12: the conversations «Borrar historial» would delete; null when `chat.db` cannot be read. */
+class CountConversationsUseCase(private val repository: ChatRepository) {
+    suspend operator fun invoke(): Int? = try {
+        repository.conversationCount()
+    } catch (e: ChatStorageException) {
+        null
+    }
+}
+
+/** F12 P12: whether the confirmation must say that an answer in progress will stop. */
+class IsAnswerInProgressUseCase(private val session: ChatSession) {
+    operator fun invoke(): Boolean = session.active.value?.state.let { it == TurnState.RETRIEVING || it == TurnState.GENERATING }
+}
+
+/** F12 P9: deletes every conversation through the session; false when `chat.db` refused it. Never throws. */
+class ClearChatHistoryUseCase(private val session: ChatSession) {
+    suspend operator fun invoke(): Boolean = try {
+        session.deleteAll()
+        true
+    } catch (e: ChatStorageException) {
+        false
+    }
+}
+
+/** F12 P11: bumped by every deletion of the whole history. */
+class ObserveHistoryClearedUseCase(private val session: ChatSession) {
+    operator fun invoke(): StateFlow<Long> = session.historyCleared
 }
 
 /** Loads Gemma ahead of the first question, only when the chat is Ready (never during a batch, D-053). */

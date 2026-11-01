@@ -28,6 +28,10 @@ fun SettingsRoute(
             onCompleteSetup = onCompleteSetup,
             onLanguages = onLanguages,
             onIndex = onIndex,
+            onClearHistory = viewModel::onClearHistory,
+            onConfirmClear = viewModel::onConfirmClear,
+            onDismissClear = viewModel::onDismissClear,
+            onMessageShown = viewModel::onMessageShown,
         ),
     )
 }

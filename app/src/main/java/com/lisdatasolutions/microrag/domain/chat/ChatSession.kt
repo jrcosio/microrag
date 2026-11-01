@@ -19,4 +19,10 @@ interface ChatSession {
     fun startNewConversation()
 
     suspend fun delete(conversationId: Long)
+
+    /** Bumped by every [deleteAll]; the chat screen then drops the conversation it shows (F12 P11). */
+    val historyCleared: StateFlow<Long>
+
+    /** Stops the answer in progress, then deletes every conversation (F12 P9). Throws ChatStorageException. */
+    suspend fun deleteAll()
 }

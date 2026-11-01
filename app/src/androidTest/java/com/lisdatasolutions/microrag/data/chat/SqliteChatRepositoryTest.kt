@@ -134,6 +134,34 @@ class SqliteChatRepositoryTest {
         assertThat(repo.lastConversationId()).isNull()
     }
 
+    /** F12 T030 (P12, research R10): what «Borrar historial de chat» relies on. */
+    @Test
+    fun countExistenceAndDeleteAll_leaveTheIndexAlone() = runBlocking<Unit> {
+        val repo = repository()
+        val withoutTurns = repo.createConversation(now = 1)
+        val withTurn = repo.createConversation(now = 2)
+        val turn = repo.insertTurn(withTurn, "¿Uno?", partialCoverage = false, now = 3)
+        repo.replaceSources(turn.id, listOf(source(1)))
+        // The index is another file next to it (D-054): deleting the history never touches it.
+        val index = File(folder, "rag.db").apply { writeBytes(byteArrayOf(1, 2, 3)) }
+
+        assertThat(repo.conversationCount()).isEqualTo(1)
+        assertThat(repo.conversationExists(withTurn)).isTrue()
+        assertThat(repo.conversationExists(withoutTurns)).isTrue()
+        assertThat(repo.conversationExists(999)).isFalse()
+
+        repo.deleteAll()
+
+        assertThat(repo.conversationCount()).isEqualTo(0)
+        assertThat(repo.conversationExists(withTurn)).isFalse()
+        RagConnection.open(dbFile, extensionPath = null).use { db ->
+            for (table in listOf("conversations", "turns", "sources")) {
+                assertThat(db.queryOne("SELECT count(*) FROM $table") { it.getLong(0) }).isEqualTo(0)
+            }
+        }
+        assertThat(index.readBytes()).isEqualTo(byteArrayOf(1, 2, 3))
+    }
+
     @Test
     fun onlyAnswersInProgressBecomeInterrupted() = runBlocking<Unit> {
         val repo = repository()

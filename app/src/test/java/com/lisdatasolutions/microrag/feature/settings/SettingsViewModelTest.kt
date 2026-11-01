@@ -2,6 +2,11 @@ package com.lisdatasolutions.microrag.feature.settings
 
 import androidx.lifecycle.SavedStateHandle
 import com.google.common.truth.Truth.assertThat
+import com.lisdatasolutions.microrag.domain.chat.ActiveAnswer
+import com.lisdatasolutions.microrag.domain.chat.ClearChatHistoryUseCase
+import com.lisdatasolutions.microrag.domain.chat.CountConversationsUseCase
+import com.lisdatasolutions.microrag.domain.chat.IsAnswerInProgressUseCase
+import com.lisdatasolutions.microrag.domain.chat.TurnState
 import com.lisdatasolutions.microrag.domain.model.ComputeBackend
 import com.lisdatasolutions.microrag.domain.model.ModelCatalog
 import com.lisdatasolutions.microrag.domain.model.ModelId
@@ -9,7 +14,9 @@ import com.lisdatasolutions.microrag.domain.model.ModelSetupStatus
 import com.lisdatasolutions.microrag.domain.onboarding.RefreshLocalAiUseCase
 import com.lisdatasolutions.microrag.domain.settings.ModelOverview
 import com.lisdatasolutions.microrag.domain.settings.ObserveModelOverviewUseCase
+import com.lisdatasolutions.microrag.testing.FakeChatSession
 import com.lisdatasolutions.microrag.testing.FakeModelSetup
+import com.lisdatasolutions.microrag.testing.InMemoryChatRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -21,11 +28,13 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
-/** F12 T025: the model rows of Ajustes (P13–P15, S1, S2). */
+/** F12 T025 and T033: the model rows of Ajustes (P13–P15, S1, S2) and «Borrar historial de chat» (P12, S6). */
 @OptIn(ExperimentalCoroutinesApi::class)
 class SettingsViewModelTest {
     private val dispatcher = StandardTestDispatcher()
     private val setup = FakeModelSetup()
+    private val chats = InMemoryChatRepository()
+    private val session = FakeChatSession(chats)
 
     @Before
     fun setUp() = Dispatchers.setMain(dispatcher)
@@ -36,6 +45,9 @@ class SettingsViewModelTest {
     private fun viewModel(saved: SavedStateHandle = SavedStateHandle()) = SettingsViewModel(
         observeModels = ObserveModelOverviewUseCase(setup.useCase, RefreshLocalAiUseCase(setup.repository)),
         refreshLocalAi = RefreshLocalAiUseCase(setup.repository),
+        countConversations = CountConversationsUseCase(chats),
+        isAnswering = IsAnswerInProgressUseCase(session),
+        clearHistory = ClearChatHistoryUseCase(session),
         savedState = saved,
     )
 
@@ -123,5 +135,111 @@ class SettingsViewModelTest {
         restored.onCloseSheet()
         advanceUntilIdle()
         assertThat(restored.state.value.openSheet).isNull()
+    }
+
+    // --- US4: «Borrar historial de chat» (P12, S6) ----------------------------------------------------
+
+    private suspend fun aConversation(): Long {
+        val id = chats.createConversation(0)
+        chats.insertTurn(id, "¿Plazo?", partialCoverage = false, now = 0)
+        return id
+    }
+
+    @Test
+    fun withoutConversations_aNoticeAndNoDialog() = runTest(dispatcher) {
+        val viewModel = viewModel()
+        advanceUntilIdle()
+
+        viewModel.onClearHistory()
+        advanceUntilIdle()
+
+        assertThat(viewModel.state.value.confirmClear).isNull()
+        assertThat(viewModel.state.value.message).isEqualTo(SettingsMessage.NO_CONVERSATIONS)
+        viewModel.onMessageShown()
+        advanceUntilIdle()
+        assertThat(viewModel.state.value.message).isNull()
+    }
+
+    @Test
+    fun theDialogSays_whenAnAnswerWillStop() = runTest(dispatcher) {
+        aConversation()
+        val viewModel = viewModel()
+        advanceUntilIdle()
+
+        viewModel.onClearHistory()
+        advanceUntilIdle()
+        assertThat(viewModel.state.value.confirmClear).isEqualTo(ConfirmClear(stopsAnswer = false))
+        viewModel.onDismissClear()
+
+        session.active.value = ActiveAnswer(1, 1, "¿Plazo?", TurnState.GENERATING)
+        viewModel.onClearHistory()
+        advanceUntilIdle()
+        assertThat(viewModel.state.value.confirmClear).isEqualTo(ConfirmClear(stopsAnswer = true))
+    }
+
+    @Test
+    fun confirming_clearsTheHistory_andSaysSo() = runTest(dispatcher) {
+        aConversation()
+        val viewModel = viewModel()
+        advanceUntilIdle()
+        viewModel.onClearHistory()
+        advanceUntilIdle()
+
+        viewModel.onConfirmClear()
+        advanceUntilIdle()
+
+        assertThat(session.calls).containsExactly("deleteAll")
+        assertThat(chats.turns).isEmpty()
+        assertThat(viewModel.state.value.confirmClear).isNull()
+        assertThat(viewModel.state.value.clearing).isFalse()
+        assertThat(viewModel.state.value.message).isEqualTo(SettingsMessage.HISTORY_CLEARED)
+    }
+
+    @Test
+    fun aFailedDeletion_saysSo_andKeepsTheHistory() = runTest(dispatcher) {
+        aConversation()
+        val viewModel = viewModel()
+        advanceUntilIdle()
+        viewModel.onClearHistory()
+        advanceUntilIdle()
+        chats.failWrites = true
+
+        viewModel.onConfirmClear()
+        advanceUntilIdle()
+
+        assertThat(chats.turns).hasSize(1)
+        assertThat(viewModel.state.value.message).isEqualTo(SettingsMessage.CLEAR_FAILED)
+    }
+
+    @Test
+    fun cancelling_deletesNothing() = runTest(dispatcher) {
+        aConversation()
+        val viewModel = viewModel()
+        advanceUntilIdle()
+        viewModel.onClearHistory()
+        advanceUntilIdle()
+
+        viewModel.onDismissClear()
+        advanceUntilIdle()
+
+        assertThat(session.calls).isEmpty()
+        assertThat(viewModel.state.value.confirmClear).isNull()
+        assertThat(chats.turns).hasSize(1)
+    }
+
+    @Test
+    fun theDialogSurvivesARotation() = runTest(dispatcher) {
+        aConversation()
+        val saved = SavedStateHandle()
+        viewModel(saved).apply {
+            advanceUntilIdle()
+            onClearHistory()
+            advanceUntilIdle()
+        }
+
+        val restored = viewModel(saved)
+        advanceUntilIdle()
+
+        assertThat(restored.state.value.confirmClear).isEqualTo(ConfirmClear(stopsAnswer = false))
     }
 }

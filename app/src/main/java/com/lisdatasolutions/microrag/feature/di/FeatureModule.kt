@@ -24,6 +24,6 @@ val featureModule = module {
     viewModel { LibraryViewModel(get(), get(), get()) }
     viewModel { HomeViewModel(get(), get(), get(), get(), get()) }
     viewModel { DocumentViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
-    viewModel { ChatViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    viewModel { ChatViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModelOf(::SettingsViewModel)
 }

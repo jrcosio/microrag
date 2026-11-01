@@ -140,6 +140,14 @@ class SqliteChatRepository(
         db.exec("DELETE FROM conversations")
     }
 
+    override suspend fun conversationCount(): Int = read { db ->
+        db.queryOne("SELECT count(DISTINCT conversation_id) FROM turns") { it.getLong(0) }?.toInt() ?: 0
+    } ?: throw ChatStorageException("chat storage unavailable")
+
+    override suspend fun conversationExists(id: Long): Boolean = read { db ->
+        db.queryOne("SELECT 1 FROM conversations WHERE id = ?", id) { true } ?: false
+    } ?: throw ChatStorageException("chat storage unavailable")
+
     private fun turns(db: RagConnection, conversationId: Long): List<ChatTurn> {
         val sources = db.query(
             "SELECT s.turn_id, s.position, s.prompt_number, s.document_id, s.chunk_id, s.first_ordinal, s.last_ordinal, " +

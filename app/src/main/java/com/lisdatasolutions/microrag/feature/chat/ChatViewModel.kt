@@ -22,6 +22,7 @@ import com.lisdatasolutions.microrag.domain.chat.DeleteConversationUseCase
 import com.lisdatasolutions.microrag.domain.chat.LastConversationUseCase
 import com.lisdatasolutions.microrag.domain.chat.ObserveChatAvailabilityUseCase
 import com.lisdatasolutions.microrag.domain.chat.ObserveConversationUseCase
+import com.lisdatasolutions.microrag.domain.chat.ObserveHistoryClearedUseCase
 import com.lisdatasolutions.microrag.domain.chat.PromptBlockRef
 import com.lisdatasolutions.microrag.domain.chat.ResolveSourcesUseCase
 import com.lisdatasolutions.microrag.domain.chat.RetryAnswerUseCase
@@ -41,6 +42,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -66,6 +68,7 @@ class ChatViewModel(
     private val lastConversation: LastConversationUseCase,
     private val warmUp: WarmUpAnswerEngineUseCase,
     private val resolveSources: ResolveSourcesUseCase,
+    private val historyCleared: ObserveHistoryClearedUseCase,
     /** The confirmation of a copy is the system's from Android 13 (research R14). */
     private val sdkInt: Int = Build.VERSION.SDK_INT,
 ) : ViewModel() {
@@ -131,6 +134,13 @@ class ChatViewModel(
     init {
         if (!resolved.value) viewModelScope.launch { resolve() }
         viewModelScope.launch { announceChanges() }
+        // F12 P11: «Borrar historial» in Ajustes deleted what this chat shows; its current value is not news.
+        viewModelScope.launch {
+            historyCleared().drop(1).collect {
+                savedState[CONFIRM_DELETE] = false
+                setConversation(null)
+            }
+        }
         // Gemma loads whenever the chat is ready on screen: back from hidden, and when a batch ends or the
         // models get ready while it shows (found on the phone, T069). Never while hidden: it was released.
         viewModelScope.launch {

@@ -15,7 +15,11 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -25,6 +29,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import com.lisdatasolutions.microrag.R
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataCardGroup
+import com.lisdatasolutions.microrag.core.designsystem.component.LisdataConfirmationDialog
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataDivider
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataSectionHeader
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataSettingsRow
@@ -48,6 +53,9 @@ data class SettingsActions(
     val onLanguages: () -> Unit = {},
     val onIndex: () -> Unit = {},
     val onClearHistory: () -> Unit = {},
+    val onConfirmClear: () -> Unit = {},
+    val onDismissClear: () -> Unit = {},
+    val onMessageShown: () -> Unit = {},
 )
 
 /** P09 (PNG 09 with the approved proposals S1–S6, contracts/settings-ui.md §1). */
@@ -117,6 +125,8 @@ fun SettingsScreen(
         }
         SnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter).padding(spacing.space3))
     }
+    state.confirmClear?.let { ClearHistoryDialog(it, actions) }
+    Notices(state.message, snackbarHostState, actions.onMessageShown)
     val sheet = state.openSheet?.let { id -> state.models.firstOrNull { it.id == id } }
     if (sheet != null) {
         ModelSheet(
@@ -127,6 +137,48 @@ fun SettingsScreen(
                 actions.onCompleteSetup()
             },
         )
+    }
+}
+
+/** S6: destructive confirmation; «Cancelar» takes the focus. */
+@Composable
+private fun ClearHistoryDialog(confirm: ConfirmClear, actions: SettingsActions) {
+    val body = stringResource(R.string.settings_clear_body)
+    LisdataConfirmationDialog(
+        title = stringResource(R.string.settings_clear_title),
+        body = if (confirm.stopsAnswer) body + "\n\n" + stringResource(R.string.settings_clear_body_answering) else body,
+        confirmText = stringResource(R.string.settings_clear_confirm),
+        onConfirm = actions.onConfirmClear,
+        onDismiss = actions.onDismissClear,
+    )
+}
+
+/**
+ * S6: each notice once in the snackbar, which TalkBack reads politely. It is consumed as soon as it
+ * arrives, so a rotation does not repeat it; the snackbar follows this copy, as consuming it must not
+ * cancel it.
+ */
+@Composable
+private fun Notices(message: SettingsMessage?, snackbar: SnackbarHostState, onShown: () -> Unit) {
+    var showing by remember { mutableStateOf<SettingsMessage?>(null) }
+    LaunchedEffect(message) {
+        if (message == null) return@LaunchedEffect
+        showing = message
+        onShown()
+    }
+    val text = showing?.let {
+        stringResource(
+            when (it) {
+                SettingsMessage.HISTORY_CLEARED -> R.string.settings_history_cleared
+                SettingsMessage.NO_CONVERSATIONS -> R.string.settings_no_conversations
+                SettingsMessage.CLEAR_FAILED -> R.string.settings_clear_failed
+            },
+        )
+    }
+    LaunchedEffect(showing) {
+        if (text == null) return@LaunchedEffect
+        snackbar.showSnackbar(text)
+        showing = null
     }
 }
 

@@ -36,8 +36,14 @@ interface ChatRepository {
 
     suspend fun deleteConversation(id: Long)
 
-    /** For F12 «Borrar historial»; no UI in F11. */
+    /** Every conversation, with its turns and sources (F12 «Borrar historial»). */
     suspend fun deleteAll()
+
+    /** Conversations with at least one turn (F12 S6); throws [ChatStorageException] when the file is unavailable. */
+    suspend fun conversationCount(): Int
+
+    /** Throws [ChatStorageException] when the file is unavailable. */
+    suspend fun conversationExists(id: Long): Boolean
 }
 
 /** A write on `chat.db` that could not be done: the file is unavailable (C17) or the disk is full (C16). */

@@ -437,6 +437,36 @@ class ChatViewModelTest {
         assertThat(vm.state.value.announcement).isEqualTo(ChatAnnouncement.DELETED)
     }
 
+    /** F12 P11: «Borrar historial» in Ajustes empties the chat and closes its delete dialog. */
+    @Test
+    fun clearingTheHistory_emptiesTheChat_andClosesTheDeleteDialog() = runTest(dispatcher) {
+        val id = answered(graph.addDocument("Manual de procesos.pdf"))
+        val vm = graph.chatViewModel(saved())
+        advanceUntilIdle()
+        assertThat(vm.state.value.conversationId).isEqualTo(id)
+        vm.onDelete()
+        advanceUntilIdle()
+        assertThat(vm.state.value.confirmDelete).isTrue()
+
+        graph.session.deleteAll()
+        advanceUntilIdle()
+
+        assertThat(vm.state.value.conversationId).isNull()
+        assertThat(vm.state.value.turns).isEmpty()
+        assertThat(vm.state.value.confirmDelete).isFalse()
+    }
+
+    @Test
+    fun aHistoryClearedBeforeTheChatOpened_doesNothing() = runTest(dispatcher) {
+        graph.session.historyCleared.value = 3
+        val id = answered(graph.addDocument("Manual de procesos.pdf"))
+        val vm = graph.chatViewModel(saved())
+        advanceUntilIdle()
+
+        assertThat(vm.state.value.conversationId).isEqualTo(id)
+        assertThat(vm.state.value.turns).isNotEmpty()
+    }
+
     @Test
     fun deleting_needsASavedConversation() = runTest(dispatcher) {
         val vm = graph.chatViewModel(saved())

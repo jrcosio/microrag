@@ -2,6 +2,7 @@ package com.lisdatasolutions.microrag.feature.settings
 
 import android.app.Application
 import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertCountEquals
@@ -28,7 +29,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
 
-/** F12 T026: Ajustes as in PNG 09, with the model chips and sheet of S1 and S2 (contracts/settings-ui.md §1). */
+/** F12 T026 and T033: Ajustes as in PNG 09, with the chips and sheet of S1–S2 and the deletion of S6 (settings-ui.md §1). */
 @RunWith(AndroidJUnit4::class)
 @Config(application = Application::class, qualifiers = "es-w390dp-h844dp")
 class SettingsScreenTest {
@@ -49,6 +50,9 @@ class SettingsScreenTest {
         onLanguages = { calls += "languages" },
         onIndex = { calls += "index" },
         onClearHistory = { calls += "clear" },
+        onConfirmClear = { calls += "confirm" },
+        onDismissClear = { calls += "dismiss" },
+        onMessageShown = { calls += "shown" },
     )
 
     private fun overview(id: ModelId, status: ModelSetupStatus): ModelOverview = ModelCatalog.byId(id).let {
@@ -187,5 +191,58 @@ class SettingsScreenTest {
 
         compose.onAllNodesWithText("Local", useUnmergedTree = true).assertCountEquals(1)
         compose.onNodeWithText("Verificando", useUnmergedTree = true).assertExists()
+    }
+
+    // --- US4: «Borrar historial de chat» (S6) -------------------------------------------------------
+
+    private val png = SettingsUiState(models = listOf(gemmaGpu, embeddingCpu))
+
+    @Test
+    fun theDialog_withoutAnAnswerInProgress() {
+        show(png.copy(confirmClear = ConfirmClear(stopsAnswer = false)))
+
+        compose.onNodeWithText("¿Borrar el historial de chat?").assertExists()
+        compose.onNodeWithText(
+            "Se eliminarán todas tus conversaciones de este teléfono. Tus documentos y el índice no cambian.", substring = true,
+        ).assertExists()
+        compose.onNodeWithText("La respuesta en curso se detendrá.", substring = true).assertDoesNotExist()
+        compose.onNodeWithText("Cancelar").performClick()
+
+        assertThat(calls).containsExactly("dismiss")
+    }
+
+    @Test
+    fun theDialog_warnsThatTheAnswerWillStop_andConfirms() {
+        show(png.copy(confirmClear = ConfirmClear(stopsAnswer = true)))
+
+        compose.onNodeWithText("La respuesta en curso se detendrá.", substring = true).assertExists()
+        compose.onNodeWithText("Borrar").performClick()
+
+        assertThat(calls).containsExactly("confirm")
+    }
+
+    @Test
+    fun theNotice_isShownOnce_andAnnounced() {
+        show(png.copy(message = SettingsMessage.HISTORY_CLEARED))
+        compose.waitForIdle()
+
+        val notice = compose.onNodeWithText("Historial borrado")
+        notice.assertExists()
+        assertThat(calls).contains("shown")
+        // The snackbar host reads its message politely (TalkBack, S6).
+        val announced = compose.onAllNodes(SemanticsMatcher.keyIsDefined(SemanticsProperties.LiveRegion)).fetchSemanticsNodes()
+        assertThat(announced).isNotEmpty()
+    }
+
+    @Test
+    fun otherNotices() {
+        show(png.copy(message = SettingsMessage.NO_CONVERSATIONS))
+        compose.onNodeWithText("No hay conversaciones guardadas.").assertExists()
+    }
+
+    @Test
+    fun aFailureNotice() {
+        show(png.copy(message = SettingsMessage.CLEAR_FAILED))
+        compose.onNodeWithText("No se pudo borrar el historial.").assertExists()
     }
 }

@@ -3,26 +3,50 @@ package com.lisdatasolutions.microrag.feature.settings
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.lisdatasolutions.microrag.domain.chat.ClearChatHistoryUseCase
+import com.lisdatasolutions.microrag.domain.chat.CountConversationsUseCase
+import com.lisdatasolutions.microrag.domain.chat.IsAnswerInProgressUseCase
 import com.lisdatasolutions.microrag.domain.model.ModelId
 import com.lisdatasolutions.microrag.domain.onboarding.RefreshLocalAiUseCase
 import com.lisdatasolutions.microrag.domain.settings.ObserveModelOverviewUseCase
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-/** P09 (contracts/settings-api.md): the model rows follow the Preparation (P13), and the open sheet survives. */
+/**
+ * P09 (contracts/settings-api.md): the model rows follow the Preparation (P13), the open sheet and the
+ * clearing confirmation survive a rotation, and «Borrar historial de chat» goes through the chat session (P12).
+ */
 class SettingsViewModel(
     observeModels: ObserveModelOverviewUseCase,
     private val refreshLocalAi: RefreshLocalAiUseCase,
+    private val countConversations: CountConversationsUseCase,
+    private val isAnswering: IsAnswerInProgressUseCase,
+    private val clearHistory: ClearChatHistoryUseCase,
     private val savedState: SavedStateHandle,
 ) : ViewModel() {
 
     private val models = observeModels().stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    private val clearing = MutableStateFlow(false)
+    private val message = MutableStateFlow<SettingsMessage?>(null)
 
-    val state: StateFlow<SettingsUiState> = combine(models, savedState.getStateFlow<String?>(OPEN_SHEET, null)) { models, sheet ->
-        SettingsUiState(models = models, openSheet = sheet?.let(ModelId::valueOf))
+    val state: StateFlow<SettingsUiState> = combine(
+        models,
+        savedState.getStateFlow<String?>(OPEN_SHEET, null),
+        savedState.getStateFlow<Boolean?>(CONFIRM_CLEAR, null),
+        clearing,
+        message,
+    ) { models, sheet, confirm, clearing, message ->
+        SettingsUiState(
+            models = models,
+            openSheet = sheet?.let(ModelId::valueOf),
+            confirmClear = confirm?.let(::ConfirmClear),
+            clearing = clearing,
+            message = message,
+        )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, SettingsUiState())
 
     /** Back to the screen: the files are rescanned, so a model deleted meanwhile stops saying «Local». */
@@ -38,7 +62,38 @@ class SettingsViewModel(
         savedState[OPEN_SHEET] = null
     }
 
+    /** P12: nothing to delete is a notice; otherwise the confirmation, saying whether an answer will stop. */
+    fun onClearHistory() {
+        if (clearing.value) return
+        viewModelScope.launch {
+            if (countConversations() == 0) {
+                message.value = SettingsMessage.NO_CONVERSATIONS
+            } else {
+                savedState[CONFIRM_CLEAR] = isAnswering()
+            }
+        }
+    }
+
+    fun onDismissClear() {
+        savedState[CONFIRM_CLEAR] = null
+    }
+
+    fun onConfirmClear() {
+        savedState[CONFIRM_CLEAR] = null
+        clearing.value = true
+        viewModelScope.launch {
+            val cleared = clearHistory()
+            clearing.value = false
+            message.value = if (cleared) SettingsMessage.HISTORY_CLEARED else SettingsMessage.CLEAR_FAILED
+        }
+    }
+
+    fun onMessageShown() {
+        message.value = null
+    }
+
     private companion object {
         const val OPEN_SHEET = "settings_open_sheet"
+        const val CONFIRM_CLEAR = "settings_confirm_clear"
     }
 }

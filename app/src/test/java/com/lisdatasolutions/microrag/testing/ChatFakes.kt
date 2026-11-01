@@ -68,6 +68,8 @@ class InMemoryChatRepository : ChatRepository {
 
     override suspend fun insertTurn(conversationId: Long, question: String, partialCoverage: Boolean, now: Long): ChatTurn =
         write("insert") {
+            // The foreign key of chat.db: a deleted conversation takes no more turns (F12 R10).
+            if (conversationId !in conversations) throw ChatStorageException("fake: no conversation $conversationId")
             val ordinal = turns.values.count { it.conversationId == conversationId }
             val turn = ChatTurn(
                 id = nextTurn++, conversationId = conversationId, ordinal = ordinal, question = question, answer = "",
@@ -117,6 +119,15 @@ class InMemoryChatRepository : ChatRepository {
     override suspend fun deleteAll() = write("deleteAll") {
         conversations.clear()
         turns.clear()
+    }
+
+    override suspend fun conversationCount(): Int = read { turns.values.map { it.conversationId }.distinct().size }
+
+    override suspend fun conversationExists(id: Long): Boolean = read { id in conversations }
+
+    private fun <T> read(block: () -> T): T {
+        if (storage != ChatStorageState.OK) throw ChatStorageException("fake storage unavailable")
+        return block()
     }
 
     private fun <T> write(name: String, block: () -> T): T {
@@ -229,6 +240,16 @@ class FakeChatSession(private val repository: InMemoryChatRepository) : ChatSess
     override suspend fun delete(conversationId: Long) {
         calls += "delete:$conversationId"
         repository.deleteConversation(conversationId)
+    }
+
+    override val historyCleared = MutableStateFlow(0L)
+
+    /** Throws as the real session when the repository refuses the write. */
+    override suspend fun deleteAll() {
+        calls += "deleteAll"
+        repository.deleteAll()
+        active.value = null
+        historyCleared.value += 1
     }
 }
 

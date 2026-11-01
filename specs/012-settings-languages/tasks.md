@@ -250,17 +250,17 @@ Historias de la spec:
 
 ### Tests for User Story 4
 
-- [ ] T030 [P] [US4] Ampliar `…/androidTest/…/data/chat/SqliteChatRepositoryTest.kt`:
+- [X] T030 [P] [US4] Ampliar `…/androidTest/…/data/chat/SqliteChatRepositoryTest.kt`:
   - `conversationCount`: cuenta solo las conversaciones con turnos;
   - `conversationExists`;
   - `deleteAll` borra conversaciones, turnos y fuentes, y no toca un `rag.db` de prueba.
-- [ ] T031 [P] [US4] Ampliar `…/test/…/data/chat/DefaultChatSessionTest.kt` y `…/test/…/testing/ChatFakes.kt`:
+- [X] T031 [P] [US4] Ampliar `…/test/…/data/chat/DefaultChatSessionTest.kt` y `…/test/…/testing/ChatFakes.kt`:
   - P9: con una respuesta en curso, `deleteAll` la detiene, espera y borra; `current` queda en `null` y `historyCleared` sube 1;
   - una `ChatStorageException` no sube el contador;
   - ninguna pregunta empieza entre la parada y el borrado;
   - P10: `ask` con un id borrado crea una conversación y la respuesta se guarda.
-- [ ] T032 [P] [US4] Ampliar `…/test/…/feature/chat/ChatViewModelTest.kt` (P11): tras `historyCleared`, el chat queda vacío y se cierra el diálogo de borrar; el valor inicial no hace nada.
-- [ ] T033 [P] [US4] Ampliar `SettingsViewModelTest` y `SettingsScreenTest`:
+- [X] T032 [P] [US4] Ampliar `…/test/…/feature/chat/ChatViewModelTest.kt` (P11): tras `historyCleared`, el chat queda vacío y se cierra el diálogo de borrar; el valor inicial no hace nada.
+- [X] T033 [P] [US4] Ampliar `SettingsViewModelTest` y `SettingsScreenTest`:
   - P12: con 0 conversaciones, aviso sin diálogo;
   - el diálogo, con y sin la frase de la respuesta en curso;
   - al confirmar, aviso de éxito o de fallo y su anuncio;
@@ -269,15 +269,15 @@ Historias de la spec:
 
 ### Implementation for User Story 4
 
-- [ ] T034 [US4] Implementar `conversationCount` y `conversationExists` en `…/microrag/domain/chat/ChatRepository.kt` y `…/microrag/data/chat/SqliteChatRepository.kt`. T030 pasa en el emulador.
-- [ ] T035 [US4] Implementar:
+- [X] T034 [US4] Implementar `conversationCount` y `conversationExists` en `…/microrag/domain/chat/ChatRepository.kt` y `…/microrag/data/chat/SqliteChatRepository.kt`. T030 pasa en el emulador.
+- [X] T035 [US4] Implementar:
   - `deleteAll` y `historyCleared` en `…/microrag/domain/chat/ChatSession.kt` y `…/microrag/data/chat/DefaultChatSession.kt`;
   - P10 en `ask`;
   - `CountConversationsUseCase`, `ClearChatHistoryUseCase` y `ObserveHistoryClearedUseCase` en `…/microrag/domain/chat/ChatUseCases.kt`, con DI.
 
   T031 pasa.
-- [ ] T036 [US4] Implementar P11 en `…/microrag/feature/chat/ChatViewModel.kt`. T032 pasa.
-- [ ] T037 [US4] Implementar en Ajustes el diálogo, los avisos (`SnackbarHost`) y su anuncio (S6). T033 pasa.
+- [X] T036 [US4] Implementar P11 en `…/microrag/feature/chat/ChatViewModel.kt`. T032 pasa.
+- [X] T037 [US4] Implementar en Ajustes el diálogo, los avisos (`SnackbarHost`) y su anuncio (S6). T033 pasa.
 
 **Checkpoint**: borrar el historial funciona de extremo a extremo, y el chat lo sigue.
 

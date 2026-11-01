@@ -31,6 +31,9 @@ import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
 import com.lisdatasolutions.microrag.core.di.ApplicationScope
 import com.lisdatasolutions.microrag.domain.chat.ActiveAnswer
 import com.lisdatasolutions.microrag.domain.chat.AnswerSource
+import com.lisdatasolutions.microrag.domain.chat.ClearChatHistoryUseCase
+import com.lisdatasolutions.microrag.domain.chat.CountConversationsUseCase
+import com.lisdatasolutions.microrag.domain.chat.IsAnswerInProgressUseCase
 import com.lisdatasolutions.microrag.domain.chat.TurnState
 import com.lisdatasolutions.microrag.domain.chat.TurnUpdate
 import com.lisdatasolutions.microrag.domain.indexing.IndexingRepository
@@ -78,9 +81,11 @@ import com.lisdatasolutions.microrag.feature.ingest.IngestViewModel
 import com.lisdatasolutions.microrag.feature.library.LibraryViewModel
 import com.lisdatasolutions.microrag.feature.settings.SettingsViewModel
 import com.lisdatasolutions.microrag.testing.ChatTestGraph
+import com.lisdatasolutions.microrag.testing.FakeChatSession
 import com.lisdatasolutions.microrag.testing.FakeImportQueueRepository
 import com.lisdatasolutions.microrag.testing.FakeLibraryRepository
 import com.lisdatasolutions.microrag.testing.FakeModelSetup
+import com.lisdatasolutions.microrag.testing.InMemoryChatRepository
 import com.lisdatasolutions.microrag.testing.InMemoryModelFileRepository
 import com.lisdatasolutions.microrag.testing.RecordingLogger
 import kotlinx.coroutines.CoroutineScope
@@ -149,9 +154,14 @@ internal fun settingsViewModels() = module {
             ready(ModelId.GEMMA4_E2B, ComputeBackend.GPU)
             ready(ModelId.EG2_270M, ComputeBackend.CPU)
         }
+        val chats = InMemoryChatRepository()
+        val session = FakeChatSession(chats)
         SettingsViewModel(
             ObserveModelOverviewUseCase(setup.useCase, RefreshLocalAiUseCase(setup.repository)),
             RefreshLocalAiUseCase(setup.repository),
+            CountConversationsUseCase(chats),
+            IsAnswerInProgressUseCase(session),
+            ClearChatHistoryUseCase(session),
             get(),
         )
     }
