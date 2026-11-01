@@ -1,19 +1,19 @@
 # Informe de cierre — F11 Chat con fuentes
 
-> **Estado:** borrador, en la fase del teléfono.
-> - **Hechos:** T066 (instrumentadas), T067 (primer token) y T068 (teclado real).
+> **Estado:** implementada; pendiente de la revisión de cierre.
+> - T001–T070 hechas.
 > - **Primer token:** no cumple los 5 s y queda como excepción documentada (D-057).
-> - **Pendiente:** el recorrido (T069) y el cierre (T070).
+> - **Fallos de la fase del teléfono:** tres, corregidos (§6).
 
 **Rama:** `011-chat-sources`.
-**Fecha:** 2026-10-30.
+**Fecha:** 2026-10-30; fase del teléfono del 2026-10-30 al 2026-11-01.
 **Dispositivos:**
 - emulador `Pixel_10`, API 37, ARM64;
 - teléfono de referencia Nothing Phone (1) A063, Android 15 (API 35).
 
 **Versiones:**
 - app 0.1.0 (versionCode 1);
-- LiteRT-LM 0.18.1 y SQLite-Vector 1.1.2;
+- LiteRT-LM 0.18.1 y SQLite-Vector 1.1.2. Durante el cierre, lint avisó de que ya existe LiteRT-LM 0.19.0. No se ha actualizado: hay que verificarla en Maven y decidirlo aparte;
 - sin dependencias nuevas;
 - esquema del índice v3, sin cambios;
 - `chat.db` nuevo, esquema v1.
@@ -55,17 +55,18 @@
 
 | Puerta | Resultado |
 |---|---|
-| Pruebas Python (`unittest`) | ✅ 147/147 (F10: 131) |
+| Pruebas Python (`unittest`) | ✅ 152/152 (F10: 131), con `within_limit` |
 | `gen_answer_golden.py --check` | ✅ al día |
 | `assembleDebug`, `assembleRelease` | ✅ |
-| `lintDebug`, `lintRelease` | ✅ sin avisos |
-| Tests JVM | ✅ 815/815 (F10: 657) |
-| `apkanalyzer dex packages` del APK de release | ✅ 0 clases de `microrag.debug` |
+| `lintDebug`, `lintRelease` | ✅ 0 errores; 1 aviso nuevo y ajeno a F11: LiteRT-LM 0.19.0 disponible (`GradleDependency`) |
+| Tests JVM | ✅ 818/818 (F10: 657) |
+| `apkanalyzer dex packages` del APK de release | ✅ de `microrag.debug` solo están los 3 stubs vacíos de `src/release` (`DebugModules`, `DebugRouting` y `DebugStrictMode`); nada de `catalog`, `feasibility`, `retrieval` ni `routes` |
 | `ChatScreenAccessibilityTest` en el emulador | ✅ 156/156 |
 | `CatalogAccessibilityTest` en el emulador | ✅ 78/78 |
 | Instrumentados en el emulador (sin `@RequiresModels` ni `@RequiresNetwork`) | ✅ 657/657 (F10: 490), en 18 min; repetida con los APK finales tras el arreglo de T064: 657/657 |
 | Pruebas con modelos en el emulador | ✅ `RetrievalParityTest` sigue igual con `CorpusIndex` (0,837 frente a 0,837 del escritorio); `ChatBenchmarkTest` se salta, porque el emulador no tiene Gemma |
-| Instrumentados en el teléfono | ✅ 657/657 en 16,5 min. Una primera ejecución perdió la salida por la conexión adb; en ella falló una vez `CatalogAccessibilityTest` (control de menos de 48 dp). No se reproduce: sola, 78/78, y en la batería completa, en verde |
+| Instrumentados en el teléfono, con los APK finales | ✅ **660/660** en 18 min (con `AnswerGoldenInstrumentedTest`) |
+| Instrumentados en el teléfono, primera vez | ✅ 657/657 en 16,5 min. Una primera ejecución perdió la salida por la conexión adb; en ella falló una vez `CatalogAccessibilityTest` (control de menos de 48 dp). No se reproduce: sola, 78/78, y en la batería completa, en verde |
 | `AnswerGoldenInstrumentedTest` (nueva, golden de respuestas en el dispositivo) | ✅ 3/3 en el teléfono: 426 prompts por SHA-256, lectura de citas y fichas |
 | `ChatScreenLayoutTest` en el teléfono | ✅ con el teclado real y la barra inferior |
 
@@ -75,12 +76,12 @@
 
 | Historia | Evidencia | Resultado |
 |---|---|---|
-| **US1** Preguntar y recibir una respuesta con fuentes | `DefaultChatSessionTest`, `EngineAnswerEngineTest`, `AnswerGoldenTest`, `ChatViewModelTest`, `ChatScreenTest`, `NavigationTest`, `DocumentScreenTest` | ✅ JVM. En un dispositivo: _pendiente_ |
-| **US2** Negativa | `DefaultChatSessionTest`, `ChatViewModelTest`, `ChatScreenTest` | ✅ JVM |
-| **US3** Detener, copiar y reintentar | ídem | ✅ JVM |
-| **US4** Seguimiento | `DefaultChatSessionTest`: las 50 preguntas de seguimiento del golden, pasando por la sesión, dan el prompt del escritorio | ✅ JVM |
+| **US1** Preguntar y recibir una respuesta con fuentes | `DefaultChatSessionTest`, `EngineAnswerEngineTest`, `AnswerGoldenTest`, `ChatViewModelTest`, `ChatScreenTest`, `NavigationTest`, `DocumentScreenTest` | ✅ JVM y recorrido en el teléfono (§4): respuesta real con 3 fuentes, ficha → fragmento resaltado → Atrás |
+| **US2** Negativa | `DefaultChatSessionTest`, `ChatViewModelTest`, `ChatScreenTest` | ✅ JVM y teléfono: la negativa del modelo sale con el texto del MD, sin fuentes |
+| **US3** Detener, copiar y reintentar | ídem | ✅ JVM y teléfono: detener conserva el texto parcial; reintentar completa la respuesta interrumpida |
+| **US4** Seguimiento | `DefaultChatSessionTest`: las 50 preguntas de seguimiento del golden, pasando por la sesión, dan el prompt del escritorio | ✅ JVM y teléfono (`follow_up=true` en el registro) |
 | **US5** Conversación guardada | `SqliteChatRepositoryTest` (emulador), `DefaultChatSessionTest`, `ResolveSourcesUseCaseTest`, `ChatViewModelTest`, `ChatScreenTest`, `NavigationTest` | ✅ |
-| **US6** Chat bloqueado o limitado | `ObserveChatAvailabilityUseCaseTest`, `ChatDuringIndexingTest`, `ChatViewModelTest`, `ChatScreenTest` | ✅ JVM |
+| **US6** Chat bloqueado o limitado | `ObserveChatAvailabilityUseCaseTest`, `ChatDuringIndexingTest`, `ChatViewModelTest`, `ChatScreenTest` | ✅ JVM y teléfono: con una tanda en marcha, «Se están indexando tus documentos» y el compositor desactivado |
 | **US7** Fiel al PNG y accesible | `ChatScreenTest`, `ChatScreenAccessibilityTest`, `CatalogAccessibilityTest`, `ChatScreenLayoutTest` | ✅ emulador y teléfono (teclado real en el A063) |
 | **US8** Primer token | `ChatBenchmarkTest` | ⚠️ medido y por encima de 5 s: excepción documentada (D-057, §4) |
 | **US9** Revisión de la plantilla | `template-review`, D-056 | ✅ |
@@ -93,15 +94,15 @@
 | SC-002 prompt idéntico al del escritorio | ✅ 426/426 por SHA-256 en la JVM y en el teléfono, y las 50 de seguimiento también a través de la sesión |
 | SC-003 lectura de citas y negativa como el escritorio | ✅ 426/426 en la JVM y en el teléfono |
 | SC-004 primer token p95 ≤ 5 s | ⚠️ no se cumple: p95 de 5.205 ms y, en frío, de 5.826 ms. Excepción documentada (D-057); las palancas pasan a F14 |
-| SC-005 detener en < 1 s con el texto parcial | ✅ JVM, durante buscando y generando |
-| SC-006 conversación y posición tras una cita | ✅ JVM (`NavigationTest`, `ChatScreenTest`); el fragmento citado se ve sin desplazarse, en vertical y en horizontal (`DocumentScreenTest`) |
-| SC-007 recuperación tras matar el proceso | ✅ JVM y `SqliteChatRepositoryTest`. Recorrido: _pendiente del teléfono_, porque sin Gemma el emulador no puede crear conversaciones |
+| SC-005 detener en < 1 s con el texto parcial | ✅ JVM, durante buscando y generando; en el teléfono, «Generación cancelada» con el texto parcial |
+| SC-006 conversación y posición tras una cita | ✅ JVM (`NavigationTest`, `ChatScreenTest`); el fragmento citado se ve sin desplazarse, en vertical y en horizontal (`DocumentScreenTest`). En el teléfono, la ficha abre el detalle con el fragmento resaltado en pantalla, y Atrás vuelve al chat con las mismas posiciones |
+| SC-007 recuperación tras matar el proceso | ✅ JVM y `SqliteChatRepositoryTest`. En el teléfono, `am force-stop` a mitad de una respuesta: al volver, las respuestas anteriores siguen y la cortada sale con su texto parcial, «La respuesta se interrumpió» y «Reintentar» |
 | SC-008 avisos una vez y accesibilidad | ✅ `ChatViewModelTest`, `ChatScreenTest` y ATF en todos los estados |
-| SC-009 compositor visible con el teclado | ✅ con menos alto (JVM) y con el teclado real en el teléfono |
-| SC-010 registros sin texto y sin red | ✅ `DefaultChatSessionTest`, `NetworkConfinementTest`, `AppLoggerTest` |
-| SC-011 nunca dos motores en la GPU; Gemma se libera con la UI oculta | ✅ `ChatDuringIndexingTest`, con el coordinador real |
+| SC-009 compositor visible con el teclado | ✅ con menos alto (JVM) y con el teclado real en el teléfono, en vertical, en horizontal y con la letra al 200 % (§4) |
+| SC-010 registros sin texto y sin red | ✅ `DefaultChatSessionTest`, `NetworkConfinementTest`, `AppLoggerTest`. En el teléfono: 174 líneas de la app en el recorrido, solo cifras e ids; el contador de red de su uid sigue sin tráfico desde el arranque |
+| SC-011 nunca dos motores en la GPU; Gemma se libera con la UI oculta | ✅ `ChatDuringIndexingTest`, con el coordinador real. En el teléfono: Gemma se carga después de liberar EG2 y se libera al ocultar la app |
 | SC-012 negativa sin bloques en < 1 s, sin el modelo | ✅ JVM |
-| SC-013 captura igual al PNG | _pendiente del teléfono_ |
+| SC-013 captura igual al PNG | ✅ con las diferencias de §5 (captura del teléfono en claro) |
 | SC-014 revisión de la plantilla registrada | ✅ D-056 |
 
 ## 4. Cifras medidas
@@ -177,6 +178,45 @@ Sin Gemma en el emulador, el chat solo puede mostrar el bloqueo de modelos (C5):
   - en el teléfono, el p95 en frío bajaría solo a unos 5,3 s.
 - **Decisión (D-057):** el usuario mantiene el límite de 2.000 tokens y deja el p95 como excepción documentada. Las palancas pasan a F14. `ChatBenchmarkTest` informa `sc004=met|exceeded` sin fallar.
 
+### Recorrido del chat en el teléfono (T069)
+
+Hecho como acordó el usuario:
+- **Documentos:** tres documentos públicos del corpus (Ley de Arrendamientos Urbanos, Ley de Propiedad Horizontal y Ley de trabajo a distancia) en una carpeta propia, importados con el selector.
+- **Ajustes temporales:** giro, letra al 200 % y modo claro, restaurados al final.
+- **Privacidad:**
+  - capturas sin la barra de estado;
+  - cada pantalla del chat se volcaba primero con un filtro que no imprime nada si aparece una fuente que no es de prueba;
+  - los volcados van a `/data/local/tmp` y se borran al momento.
+
+| Paso | Resultado |
+|---|---|
+| Chat con una tanda en marcha | «Se están indexando tus documentos», con «Ver indexación» y el compositor desactivado (C14) |
+| Primera pregunta (derechos del teletrabajo) | «Generando respuesta…» con «Detener»; respuesta con 3 fuentes. Búsqueda 0,79 s (embedding en frío) y primer token 6,9 s, el primero tras cargar Gemma |
+| Ficha `[1]` → detalle → Atrás | El fragmento citado sale resaltado en pantalla. Atrás vuelve al chat en la misma posición |
+| Copiar respuesta | Copia; en Android 13+ confirma el sistema, como prevé el contrato |
+| Seguimiento («Y quién paga los gastos…») | `follow_up=true`, 1 fuente, primer token 4,3 s |
+| Detener a mitad | Texto parcial con viñetas y «Generación cancelada»; `outcome=cancelled` |
+| Pregunta sin respuesta (ajedrez) en un chat nuevo | La negativa del modelo sale con el texto del MD, sin fuentes |
+| `am force-stop` a mitad de una respuesta | Al volver: turnos anteriores intactos, la respuesta cortada con su texto parcial, «La respuesta se interrumpió» y «Reintentar». Reintentar la completa con 1 fuente |
+| App oculta (Inicio) | Se liberan Gemma y el modelo de consulta; al volver al chat, Gemma se carga otra vez |
+| Horizontal | Disposición correcta. Con el teclado flotante de Gboard (no ocupa insets), la barra inferior se oculta y el compositor sigue visible |
+| Letra al 200 % | Vertical: título en dos líneas y «Bibliot…» en la barra inferior (pendiente de F15). Horizontal: la lista solo deja ver una línea de la conversación |
+| Modo oscuro | Correcto |
+| «⋯» → Borrar conversación | Diálogo de confirmación; borra la conversación |
+
+- **Fallo encontrado y corregido:** si el chat está abierto cuando termina la tanda, Gemma no se precargaba, y la primera respuesta pagaba la carga en frío.
+  - Corregido en `3782824`, con su prueba.
+  - Comprobado en el teléfono: Gemma se carga 6,5 s después de terminar la tanda, sin salir del chat.
+- **Conversación del usuario:** la pestaña Chat abrió una conversación guardada del usuario, con su documento. No se volcó ni se capturó, y el filtro la detectó.
+  - El recorrido usó «Nuevo chat».
+  - Las dos conversaciones de prueba se borraron con «Borrar conversación», y la del usuario sigue intacta.
+- **Limitación:** `adb input text` no escribe tildes ni «¿», así que las preguntas van sin ellos.
+- **Limpieza:**
+  - documentos de prueba borrados desde la app;
+  - carpeta y entradas del escáner borradas;
+  - ajustes restaurados (`accelerometer_rotation=1`, `user_rotation=0`, `font_scale=1.0`, modo oscuro);
+  - el fichero `/sdcard/ui.xml` de otra app, que ya estaba en el teléfono, no se tocó.
+
 ## 5. Diferencias frente al mockup
 
 - **Asistente:** «MicroRAG» en lugar de «LISDATA» (D-014). TalkBack lo lee «MicroRAG», no las mayúsculas del antetítulo.
@@ -191,7 +231,11 @@ Sin Gemma en el emulador, el chat solo puede mostrar el bloqueo de modelos (C5):
   - con conversación, el aviso pasa a ser el último elemento de la lista, abierto por su título, en lugar de ir fijo sobre el compositor.
 
   En vertical no cambia nada.
-- _Captura del teléfono frente al PNG: pendiente (SC-013)._
+- **Captura del teléfono frente al PNG** (SC-013, en claro):
+  - coinciden la estructura, los textos fijos, los colores y la tipografía: barra superior, subtítulo con el punto verde, burbuja, tarjeta «MICRORAG», pie con «Copiar respuesta» y el chip, «FUENTES CONSULTADAS» con sus filas, compositor y barra inferior;
+  - **botón de enviar:** con la caja vacía se ve atenuado (desactivado); en el PNG está azul;
+  - **forma de la respuesta:** depende del modelo. Párrafos con fichas en la respuesta de derechos del teletrabajo, y viñetas en la de obligaciones del arrendador y el arrendatario;
+  - **filas de fuente:** «Página N · Fragmento M» como en el PNG; sin página en los Markdown, como en F08.
 
 ## 6. Desviaciones respecto al plan y fallos encontrados
 
@@ -210,6 +254,10 @@ Sin Gemma en el emulador, el chat solo puede mostrar el bloqueo de modelos (C5):
 9. **Golden:** 2,76 MB, más de lo estimado (≈ 1,6 MB).
 10. **Gemma no está en el emulador:** tiene 3,2 GB libres, y el modelo (2,6 GB) más su caché compilada no caben. El camino completo con Gemma (respuesta real, detener, copiar, cita y negativa en pantalla) se ejecuta por primera vez en el teléfono.
 11. **Observación previa, no de F11:** con la ruta de depuración y la preparación sin terminar, al girar la pantalla la app vuelve a la Preparación. La ruta de depuración solo se lee al crear la actividad. En release no ocurre; no se ha tocado.
+12. **`ChatBenchmarkTest` en la fase del teléfono:**
+    - escribe una línea `chat-benchmark-q` por pregunta, solo con cifras, y estima la velocidad de generación a partir de la respuesta guardada, porque el motor solo la da con el indicador de diagnóstico;
+    - con D-057, informa `sc004=met|exceeded` en lugar de fallar por el p95.
+13. **Revisión del límite del prompt** (`run_eval.py limit-review`): porta a Python la regla A6 de la sesión (`within_limit`, con pruebas) y queda en el arnés para F14.
 
 ### Fallos encontrados y corregidos
 
@@ -221,11 +269,15 @@ Sin Gemma en el emulador, el chat solo puede mostrar el bloqueo de modelos (C5):
 | Los estados de disponibilidad sin conversación llevaban doble margen | Revisión del contrato §2 | Sin margen propio |
 | **La app se cerraba con la primera respuesta de Gemma.** El patrón de citas `(?U)\[…]` compila en la JVM, pero el motor de Android (ICU) rechaza `(?U)`. Ni las pruebas JVM ni el emulador, que no tiene Gemma, leían una respuesta en un dispositivo | Teléfono, `ChatBenchmarkTest` (T067) | `91ad50b`: las citas se leen carácter a carácter con las clases de Python de `PyText`, iguales en los dos motores. `AnswerGoldenInstrumentedTest` pasa el golden de respuestas en el dispositivo |
 | `ChatBenchmarkTest` recorría el registro de la prueba mientras la sesión escribía en él (`ConcurrentModificationException`). En el emulador, con 3 preguntas, no saltaba | Teléfono (T067) | `5a810e9`: lee copias |
+| Con el chat abierto al terminar una tanda, Gemma no se precargaba: la primera respuesta pagaba la carga en frío (≈ 15 s). La precarga solo se pedía en ON_START | Recorrido en el teléfono (T069) | `3782824`: el chat carga Gemma siempre que está listo en pantalla, entre ON_START y ON_STOP, y nunca oculto |
 | En horizontal, el estado sin conversación quedaba casi oculto y el aviso tapaba la conversación | Recorrido en el emulador (T064) | Disposición compacta por debajo de 480 dp de alto, con dos pruebas que reproducen la barra inferior |
 
 ## 7. Pendiente
 
-- **Teléfono:**
-  - recorrido (T069), con documentos públicos en una carpeta propia y giro, letra al 200 % y modo claro temporales, como acordó el usuario;
-  - repetir las instrumentadas con los APK finales (ahora 660, con `AnswerGoldenInstrumentedTest`);
-  - cierre (T070).
+- **Revisión de cierre del usuario.**
+- **TalkBack real** en el chat, a cargo del usuario, como en F01, F03 y F06–F10.
+- **Emulador:** la última batería completa en el emulador (657/657) es anterior a los tres arreglos de la fase del teléfono. Con los APK finales se repitió en el teléfono (660/660) y en la JVM (818/818).
+- **Observaciones para otras features:**
+  - con la letra al 200 % en horizontal, la lista del chat deja ver una sola línea, porque la barra inferior de la app ocupa mucho (F15);
+  - LiteRT-LM 0.19.0 está disponible (decisión aparte);
+  - el primer token en F14 (D-057).

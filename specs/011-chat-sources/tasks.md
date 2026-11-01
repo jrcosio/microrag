@@ -520,8 +520,10 @@ Historias de la spec:
   - Segunda medida: p95 5.826 ms en frío (30 preguntas) y 6.638 ms con las 50, ya con limitación térmica. Segunda consulta: el límite de 1.500 tokens se evaluó en el escritorio (`87898ba`: 80,5 % de correctas) y no se adoptó. El usuario eligió la excepción documentada (D-057); la prueba informa `sc004=` sin fallar (`987afe8`).
 - [X] T068 [US7] `ChatScreenLayoutTest` en el teléfono.
   - En verde con el teclado real y la barra inferior.
-- [ ] T069 Recorrido del chat en el teléfono. **Antes se consulta al usuario cómo hacerlo** (R15), porque su biblioteca tiene un documento propio. Se siguen las reglas de privacidad del teléfono.
-- [ ] T070 Cierre (Definición de terminado):
+- [X] T069 Recorrido del chat en el teléfono. **Antes se consulta al usuario cómo hacerlo** (R15), porque su biblioteca tiene un documento propio. Se siguen las reglas de privacidad del teléfono.
+  - Hecho con documentos públicos en `Download/MicroRAG-F11` y giro, letra al 200 % y modo claro temporales, restaurados. Detalle en `report.md` §4.
+  - Encontró que, con el chat abierto al terminar una tanda, Gemma no se precargaba. Corregido en `3782824` y comprobado en el teléfono.
+- [X] T070 Cierre (Definición de terminado):
   - `report.md` completo: cifras del teléfono, dispositivo, versión de Android y versiones de LiteRT-LM, SQLite-Vector y la app (constitución VI); diferencias frente al PNG 04;
   - `FEATURES.md` con F11 pendiente de aprobación;
   - las decisiones del cierre en DECISIONS.

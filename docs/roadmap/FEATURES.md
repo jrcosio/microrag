@@ -45,7 +45,7 @@ Al cerrar cada feature se entrega:
 | F08 | Biblioteca y detalle de documento | Producto | F07 | ✅ cerrada |
 | F09 | Inicio | Producto | F03, F07, F08 | ✅ cerrada |
 | F10 | Recuperación híbrida | Técnica | F05, F07 | ✅ cerrada |
-| F11 | Chat con fuentes | Producto | F08, F10 | 🟨 en curso (implementación; falta la fase del teléfono) |
+| F11 | Chat con fuentes | Producto | F08, F10 | 🟨 en curso (implementada; pendiente de la revisión de cierre) |
 | F12 | Ajustes e Idiomas | Producto | F03, F11 | ⬜ |
 | F13 | Historial de chats | Producto (UI propuesta) | F11, F12 | ⬜ |
 | F14 | Rendimiento en dispositivo y decisión INT8 | Técnica | F10, F11 | ⬜ |
@@ -516,15 +516,23 @@ También se introduce `EngineCoordinator`, que garantiza que nunca haya dos engi
 ## F11 — Chat con fuentes
 
 - **Tipo:** Producto.
-- **Estado:** 🟨 en curso, en la rama `011-chat-sources`.
+- **Estado:** 🟨 en curso, en la rama `011-chat-sources`, pendiente de la revisión de cierre.
   - Specify, clarify, plan, tasks y analyze aprobados el 2026-10-29.
-  - Implementación del 2026-10-29 al 2026-10-30: todo lo que no necesita el teléfono está hecho y probado en la JVM y en el emulador. Falta la última fase en el A063 (medida del primer token, prueba del teclado y recorrido).
+  - Implementación del 2026-10-29 al 2026-10-30, y fase del teléfono del 2026-10-30 al 2026-11-01: instrumentadas 660/660 en el A063, teclado real y recorrido del chat.
+  - **Fallos de la fase del teléfono, corregidos:**
+    - la lectura de citas cerraba la app en Android;
+    - Gemma no se precargaba al terminar una tanda;
+    - un error de la prueba de medida.
+  - **Primer token:** por encima de 5 s, como excepción documentada (D-057).
 
   Decisiones:
   - D-053 (clarify; spec y propuestas de UI C1–C15 aprobadas);
   - D-054 (plan);
   - D-055 (analyze: turno tras una negativa como el escritorio, app oculta que interrumpe, C16–C17);
-  - D-056 (plantilla v4 adoptada tras la revisión en el escritorio).
+  - D-056 (plantilla v4 adoptada tras la revisión en el escritorio);
+  - D-057 (primer token en el teléfono como excepción documentada; el límite de 1.500 tokens se evaluó y no se adoptó).
+
+  Informe de cierre en `specs/011-chat-sources/report.md`.
 
   Spec, plan, contratos y tareas en `specs/011-chat-sources/`.
 
