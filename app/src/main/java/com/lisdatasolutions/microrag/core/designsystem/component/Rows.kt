@@ -4,6 +4,7 @@ import androidx.annotation.DrawableRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -279,10 +280,17 @@ fun LisdataSourceCitation(
 sealed interface SettingsTrailing {
     data object Chevron : SettingsTrailing
     data class Chip(val text: String, val kind: StatusKind) : SettingsTrailing
+
+    /** A status chip that also opens a detail (the model rows of Ajustes, F12 S1). */
+    data class ChipAndChevron(val text: String, val kind: StatusKind) : SettingsTrailing
     data object None : SettingsTrailing
 }
 
-/** Settings entry; place several inside [LisdataCardGroup] separated by [LisdataDivider]. */
+/**
+ * Settings entry; place several inside [LisdataCardGroup] separated by [LisdataDivider]. Without
+ * [onClick] the row is read as one item but is not a button; [onClickLabel] names its action for
+ * TalkBack («Ver detalles»).
+ */
 @Composable
 fun LisdataSettingsRow(
     @DrawableRes icon: Int,
@@ -292,6 +300,7 @@ fun LisdataSettingsRow(
     trailing: SettingsTrailing = SettingsTrailing.Chevron,
     destructive: Boolean = false,
     iconTint: Color? = null,
+    onClickLabel: String? = null,
     onClick: (() -> Unit)? = null,
 ) {
     val colors = LisdataTheme.colors
@@ -300,7 +309,7 @@ fun LisdataSettingsRow(
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = 64.dp)
-            .then(if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier)
+            .then(if (onClick != null) Modifier.clickable(onClickLabel = onClickLabel, role = Role.Button, onClick = onClick) else Modifier)
             .semantics(mergeDescendants = true) {}
             .padding(horizontal = spacing.cardPadding, vertical = spacing.space3),
         verticalAlignment = Alignment.CenterVertically,
@@ -320,8 +329,67 @@ fun LisdataSettingsRow(
         when (trailing) {
             SettingsTrailing.Chevron -> LisdataIcon(LisdataIcons.ChevronRight, contentDescription = null, tint = colors.textSecondary)
             is SettingsTrailing.Chip -> LisdataStatusChip(text = trailing.text, kind = trailing.kind)
+            is SettingsTrailing.ChipAndChevron -> Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(spacing.space2),
+            ) {
+                LisdataStatusChip(text = trailing.text, kind = trailing.kind)
+                LisdataIcon(LisdataIcons.ChevronRight, contentDescription = null, tint = colors.textSecondary)
+            }
             SettingsTrailing.None -> Unit
         }
+    }
+}
+
+/**
+ * Label and value of a detail sheet («Fichero», «SHA-256»). The value sits right of the label and moves
+ * to its own line when they do not fit. [valueDescription] replaces what TalkBack reads for the value
+ * («empieza por …» for a shortened hash); [value] holds richer content such as a status chip.
+ */
+@Composable
+fun LisdataFactRow(
+    label: String,
+    modifier: Modifier = Modifier,
+    valueDescription: String? = null,
+    value: @Composable () -> Unit,
+) {
+    val spacing = LisdataTheme.spacing
+    FlowRow(
+        modifier = modifier
+            .fillMaxWidth()
+            .heightIn(min = 48.dp)
+            .then(
+                if (valueDescription != null) {
+                    Modifier.clearAndSetSemantics { contentDescription = "$label, $valueDescription" }
+                } else {
+                    Modifier.semantics(mergeDescendants = true) {}
+                },
+            )
+            .padding(vertical = spacing.space2),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalArrangement = Arrangement.spacedBy(spacing.space1),
+        itemVerticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = label,
+            style = LisdataTheme.typography.material.bodyMedium,
+            color = LisdataTheme.colors.textSecondary,
+            modifier = Modifier.padding(end = spacing.space4),
+        )
+        value()
+    }
+}
+
+/** [LisdataFactRow] with a text value. */
+@Composable
+fun LisdataFactRow(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+    valueDescription: String? = null,
+) {
+    LisdataFactRow(label = label, modifier = modifier, valueDescription = valueDescription) {
+        Text(text = value, style = LisdataTheme.typography.material.bodyLarge, color = LisdataTheme.colors.textPrimary)
     }
 }
 

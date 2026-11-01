@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.Dp
@@ -14,16 +15,21 @@ import com.lisdatasolutions.microrag.core.designsystem.icon.LisdataIcon
 import com.lisdatasolutions.microrag.core.designsystem.model.IconTileStyle
 import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
 
-/** Rounded square behind an icon. Decorative: meaning must come from nearby text. */
+/**
+ * Rounded square behind an icon. Decorative: meaning must come from nearby text. [tint] overrides the
+ * style's icon color (the Languages hero has an accent globe on the dark tile, PNG 10).
+ */
 @Composable
 fun LisdataIconTile(
     @DrawableRes icon: Int,
     modifier: Modifier = Modifier,
     style: IconTileStyle = IconTileStyle.Light,
     size: Dp = LisdataTheme.spacing.iconTileSize,
+    tint: Color? = null,
+    iconSize: Dp = LisdataTheme.spacing.iconSize,
 ) {
     val colors = LisdataTheme.colors
-    val (background, tint) = when (style) {
+    val (background, styleTint) = when (style) {
         IconTileStyle.Light -> SolidColor(colors.surfaceInfoAlt) to colors.brandBlue
         IconTileStyle.OnDark -> SolidColor(colors.onDarkTile) to colors.onDarkText
         IconTileStyle.Success -> SolidColor(colors.successContainer) to colors.success
@@ -38,6 +44,6 @@ fun LisdataIconTile(
             .background(background),
         contentAlignment = Alignment.Center,
     ) {
-        LisdataIcon(icon, contentDescription = null, tint = tint, size = LisdataTheme.spacing.iconSize)
+        LisdataIcon(icon, contentDescription = null, tint = tint ?: styleTint, size = iconSize)
     }
 }

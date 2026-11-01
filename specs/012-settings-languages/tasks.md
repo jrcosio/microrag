@@ -173,22 +173,22 @@ Historias de la spec:
 
 - [X] T017 [P] Pruebas JVM de la negativa (P17): `…/test/…/rag/answer/AnswerReadingTest.kt`, con los mismos casos que `test_judge.py` para `REFUSAL_EN`. El prompt no cambia (D-061): ni `PromptBuilderTest` ni `AnswerGoldenTest` (426 casos) se tocan.
 - [X] T018 Implementar `REFUSAL_EN` en `…/microrag/rag/answer/PromptBuilder.kt`, junto a `REFUSAL`, e `isRefusal` con las dos frases en `…/microrag/rag/answer/AnswerReading.kt`. `PromptLanguage` se queda solo con `SPANISH`. T017 pasa.
-- [ ] T019 Crear el dominio de ajustes (data-model §1–§2, contrato `settings-api.md`) en `…/microrag/domain/settings/`:
+- [X] T019 Crear el dominio de ajustes (data-model §1–§2, contrato `settings-api.md`) en `…/microrag/domain/settings/`:
   - `SettingsModels.kt`: `AppLanguage`, `LanguageSettings` (idioma de la app y `readFailed`), `SaveResult` y `ModelOverview`;
   - `AppLanguageController.kt` y `SettingsNotices.kt`.
 
   Sin idioma de las respuestas ni tienda de preferencias (D-061).
-- [ ] T020 [P] Crear `…/test/…/testing/SettingsFakes.kt`:
+- [X] T020 [P] Crear `…/test/…/testing/SettingsFakes.kt`:
   - un controlador de idioma con `recreatesItself`, fallo al aplicar y fallo de lectura programables;
   - una vista de modelos programable.
-- [ ] T021 [P] Design system (contrato `settings-ui.md` §3):
+- [X] T021 [P] Design system (contrato `settings-ui.md` §3):
   - `SettingsTrailing.ChipAndChevron` y `onClickLabel` en `LisdataSettingsRow`;
   - `LisdataFactRow` en `…/microrag/core/designsystem/component/Rows.kt`;
   - el tile del hero, si hace falta, en `Cards.kt`;
   - entradas en `…/debug/…/debug/catalog/CatalogEntries.kt`.
 
   `CatalogAccessibilityTest` las cubre.
-- [ ] T022 [P] Textos: `app/src/main/res/values/strings_settings.xml` y `app/src/main/res/values-en/strings_settings.xml`, con todas las claves de `settings-ui.md` §4. Los nombres de idioma van con `translatable="false"`.
+- [X] T022 [P] Textos: `app/src/main/res/values/strings_settings.xml` y `app/src/main/res/values-en/strings_settings.xml`, con todas las claves de `settings-ui.md` §4. Los nombres de idioma van con `translatable="false"`.
 - [ ] T023 [P] Regla nueva en `…/test/…/architecture/LayeringTest.kt` (U1): `feature/settings` no importa `data.`, `androidx.sqlite`, `androidx.work`, LiteRT, `java.io.File` ni `android.app.LocaleManager`.
 
 **Checkpoint**: tipos, fakes, componentes y textos listos; el prompt y la negativa, con paridad con el escritorio.

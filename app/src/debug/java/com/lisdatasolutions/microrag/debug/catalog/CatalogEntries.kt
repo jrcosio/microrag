@@ -28,6 +28,7 @@ import com.lisdatasolutions.microrag.core.designsystem.component.LisdataConfirma
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataCountChip
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataDarkButton
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataDivider
+import com.lisdatasolutions.microrag.core.designsystem.component.LisdataFactRow
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataDocumentRow
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataEmptyState
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataErrorState
@@ -163,7 +164,10 @@ val catalogEntries: List<CatalogEntry> = listOf(
                     trailingIconPlacement = TrailingIconPlacement.AfterText,
                 )
             }
-            LisdataHeroCard(title = "Tus documentos.", titleAccent = "Tu idioma.", decoration = false, modifier = Modifier.fillMaxWidth())
+            LisdataHeroCard(
+                title = "Tus documentos.", titleAccent = "Tu idioma.", decoration = false, leadingIcon = LisdataIcons.Globe,
+                modifier = Modifier.fillMaxWidth(),
+            )
         }
     },
     entry("Tarjetas", "info", "LisdataInfoCard") {
@@ -267,6 +271,11 @@ val catalogEntries: List<CatalogEntry> = listOf(
         LisdataCardGroup {
             LisdataSettingsRow(LisdataIcons.Sparkle, "Modelo de respuestas", subtitle = "Gemma 4", trailing = SettingsTrailing.Chip("Local", StatusKind.Local))
             LisdataDivider()
+            LisdataSettingsRow(
+                LisdataIcons.Layers, "Modelo de embeddings", subtitle = "EmbeddingGemma 2",
+                trailing = SettingsTrailing.ChipAndChevron("Local", StatusKind.Local), onClickLabel = "Ver detalles", onClick = {},
+            )
+            LisdataDivider()
             LisdataSettingsRow(LisdataIcons.Globe, "Idiomas", subtitle = "Español", onClick = {})
             LisdataDivider()
             LisdataSettingsRow(
@@ -275,6 +284,13 @@ val catalogEntries: List<CatalogEntry> = listOf(
             )
             LisdataDivider()
             LisdataSettingsRow(LisdataIcons.Trash, "Borrar historial de chat", subtitle = "Eliminar conversaciones locales", destructive = true, onClick = {})
+        }
+    },
+    entry("Filas", "fact", "LisdataFactRow") {
+        LisdataCardGroup {
+            LisdataFactRow("Fichero", "embeddinggemma-2-text-270m.litertlm")
+            LisdataFactRow("SHA-256", "2d079ee2f6f0…", valueDescription = "empieza por 2d079ee2f6f0")
+            LisdataFactRow("Estado") { LisdataStatusChip(text = "Local", kind = StatusKind.Local) }
         }
     },
     entry("Filas", "switch", "LisdataSwitchRow") {

@@ -67,7 +67,8 @@ fun LisdataDivider(modifier: Modifier = Modifier) {
  * Dark gradient hero (Home, Document detail, Indexing, Languages). [titleAccent] renders a second
  * title line in the accent color; the Indexing hero (PNG 08) has no title at all. The orbit
  * decoration is purely visual and hidden from TalkBack, as is [decorationIcon] at its center (the
- * Home sparkle, PNG 03). [compact] has the tighter padding and gaps of PNG 08 (D-042).
+ * Home sparkle, PNG 03). [compact] has the tighter padding and gaps of PNG 08 (D-042). [leadingIcon]
+ * puts a decorative tile left of the title (the Languages globe, PNG 10).
  */
 @Composable
 fun LisdataHeroCard(
@@ -78,6 +79,7 @@ fun LisdataHeroCard(
     decoration: Boolean = true,
     @DrawableRes decorationIcon: Int? = null,
     compact: Boolean = false,
+    @DrawableRes leadingIcon: Int? = null,
     content: @Composable ColumnScope.() -> Unit = {},
 ) {
     val colors = LisdataTheme.colors
@@ -104,10 +106,21 @@ fun LisdataHeroCard(
         ) {
             if (eyebrow != null) LisdataEyebrow(text = eyebrow, color = colors.onDarkAccent)
             if (title != null) {
-                Column {
-                    Text(text = title, style = LisdataTheme.typography.material.headlineMedium, color = colors.onDarkText)
-                    if (titleAccent != null) {
-                        Text(text = titleAccent, style = LisdataTheme.typography.material.headlineMedium, color = colors.onDarkAccent)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(spacing.space4)) {
+                    if (leadingIcon != null) {
+                        LisdataIconTile(
+                            icon = leadingIcon,
+                            style = IconTileStyle.OnDark,
+                            size = HERO_TILE_SIZE,
+                            tint = colors.onDarkAccent,
+                            iconSize = HERO_TILE_ICON_SIZE,
+                        )
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(text = title, style = LisdataTheme.typography.material.headlineMedium, color = colors.onDarkText)
+                        if (titleAccent != null) {
+                            Text(text = titleAccent, style = LisdataTheme.typography.material.headlineMedium, color = colors.onDarkAccent)
+                        }
                     }
                 }
             }
@@ -130,6 +143,8 @@ private fun BoxScope.OrbitCenter(content: @Composable () -> Unit) {
     }
 }
 
+private val HERO_TILE_SIZE = 56.dp
+private val HERO_TILE_ICON_SIZE = 32.dp
 private const val ORBIT_CENTER_X = 0.86f
 private const val ORBIT_CENTER_Y = 0.22f
 

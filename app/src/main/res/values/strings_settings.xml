@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- F12 Ajustes e Idiomas (PNG 09 y 10, propuestas S1–S12, contracts/settings-ui.md §4). -->
+<resources>
+    <string name="settings_top_title">Configuración</string>
+    <string name="settings_title">Ajustes</string>
+    <string name="settings_subtitle">Personaliza tu experiencia local.</string>
+    <string name="settings_section_ai">Inteligencia artificial</string>
+    <string name="settings_model_answers">Modelo de respuestas</string>
+    <string name="settings_model_embeddings">Modelo de embeddings</string>
+    <string name="settings_model_local">Local</string>
+    <string name="settings_model_cpu">Modo CPU, más lento</string>
+    <string name="settings_section_preferences">Preferencias</string>
+    <string name="settings_languages">Idiomas</string>
+    <string name="settings_index">Índice y rendimiento</string>
+    <string name="settings_index_subtitle">Almacenamiento y procesamiento</string>
+    <string name="settings_section_privacy">Privacidad y datos</string>
+    <string name="settings_local">Procesamiento 100% local</string>
+    <string name="settings_local_subtitle">Sin enviar documentos a la nube</string>
+    <string name="settings_local_active">Activo</string>
+    <string name="settings_local_a11y">Procesamiento 100 % local: activo. Sin enviar documentos a la nube.</string>
+    <string name="settings_clear_history">Borrar historial de chat</string>
+    <string name="settings_clear_history_subtitle">Eliminar conversaciones locales</string>
+    <string name="settings_show_details">Ver detalles</string>
+    <string name="settings_sheet_file">Fichero</string>
+    <string name="settings_sheet_size">Tamaño</string>
+    <string name="settings_sheet_sha" translatable="false">SHA-256</string>
+    <string name="settings_sheet_sha_a11y">SHA-256, empieza por %1$s</string>
+    <string name="settings_sheet_dimensions">Dimensiones</string>
+    <string name="settings_sheet_processor">Procesador</string>
+    <string name="settings_sheet_status">Estado</string>
+    <string name="settings_sheet_none" translatable="false">—</string>
+    <string name="settings_clear_title">¿Borrar el historial de chat?</string>
+    <string name="settings_clear_body">Se eliminarán todas tus conversaciones de este teléfono. Tus documentos y el índice no cambian.</string>
+    <string name="settings_clear_body_answering">La respuesta en curso se detendrá.</string>
+    <string name="settings_clear_confirm">Borrar</string>
+    <string name="settings_history_cleared">Historial borrado</string>
+    <string name="settings_no_conversations">No hay conversaciones guardadas.</string>
+    <string name="settings_clear_failed">No se pudo borrar el historial.</string>
+
+    <string name="languages_title">Idiomas</string>
+    <string name="languages_eyebrow">Configuración lingüística</string>
+    <string name="languages_headline">Habla en tu idioma</string>
+    <string name="languages_hero_title">Tus documentos.</string>
+    <string name="languages_hero_accent">Tu idioma.</string>
+    <string name="languages_section_app">Idioma de la aplicación</string>
+    <string name="languages_section_answers">Idioma de las respuestas</string>
+    <string name="languages_answer_spanish">Español</string>
+    <string name="languages_multilingual_title">Búsqueda multilingüe</string>
+    <!-- D-062: the measure across languages does not support the PNG text. -->
+    <string name="languages_multilingual_body">Consulta documentos en español o en inglés. Funciona mejor si preguntas en el idioma del documento.</string>
+    <string name="languages_save">Guardar preferencias</string>
+    <string name="languages_saving">Guardando…</string>
+    <string name="languages_saved">Preferencias guardadas</string>
+    <string name="languages_save_failed">No se pudieron guardar las preferencias. Se mantienen las anteriores.</string>
+    <string name="languages_read_failed">No se pudieron leer tus preferencias. Se usan las de por defecto.</string>
+    <!-- Each language is named in itself, whatever the app language (S11). -->
+    <string name="language_name_es" translatable="false">Español</string>
+    <string name="language_name_en" translatable="false">English</string>
+</resources>

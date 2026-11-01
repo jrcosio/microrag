@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- F12 Settings and Languages (contracts/settings-ui.md §4). -->
+<resources>
+    <string name="settings_top_title">Configuration</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings_subtitle">Customize your on-device experience.</string>
+    <string name="settings_section_ai">Artificial intelligence</string>
+    <string name="settings_model_answers">Answer model</string>
+    <string name="settings_model_embeddings">Embedding model</string>
+    <string name="settings_model_local">On device</string>
+    <string name="settings_model_cpu">CPU mode, slower</string>
+    <string name="settings_section_preferences">Preferences</string>
+    <string name="settings_languages">Languages</string>
+    <string name="settings_index">Index and performance</string>
+    <string name="settings_index_subtitle">Storage and processing</string>
+    <string name="settings_section_privacy">Privacy and data</string>
+    <string name="settings_local">100% on-device processing</string>
+    <string name="settings_local_subtitle">No documents sent to the cloud</string>
+    <string name="settings_local_active">On</string>
+    <string name="settings_local_a11y">100% on-device processing: on. No documents sent to the cloud.</string>
+    <string name="settings_clear_history">Clear chat history</string>
+    <string name="settings_clear_history_subtitle">Delete local conversations</string>
+    <string name="settings_show_details">Show details</string>
+    <string name="settings_sheet_file">File</string>
+    <string name="settings_sheet_size">Size</string>
+    <string name="settings_sheet_sha_a11y">SHA-256, starts with %1$s</string>
+    <string name="settings_sheet_dimensions">Dimensions</string>
+    <string name="settings_sheet_processor">Processor</string>
+    <string name="settings_sheet_status">Status</string>
+    <string name="settings_clear_title">Clear the chat history?</string>
+    <string name="settings_clear_body">All your conversations will be deleted from this phone. Your documents and the index stay as they are.</string>
+    <string name="settings_clear_body_answering">The answer in progress will stop.</string>
+    <string name="settings_clear_confirm">Delete</string>
+    <string name="settings_history_cleared">History cleared</string>
+    <string name="settings_no_conversations">There are no saved conversations.</string>
+    <string name="settings_clear_failed">The history could not be cleared.</string>
+
+    <string name="languages_title">Languages</string>
+    <string name="languages_eyebrow">Language settings</string>
+    <string name="languages_headline">Speak your language</string>
+    <string name="languages_hero_title">Your documents.</string>
+    <string name="languages_hero_accent">Your language.</string>
+    <string name="languages_section_app">App language</string>
+    <string name="languages_section_answers">Answer language</string>
+    <string name="languages_answer_spanish">Spanish</string>
+    <string name="languages_multilingual_title">Multilingual search</string>
+    <string name="languages_multilingual_body">Ask about documents in Spanish or English. It works best when you ask in the document\'s language.</string>
+    <string name="languages_save">Save preferences</string>
+    <string name="languages_saving">Saving…</string>
+    <string name="languages_saved">Preferences saved</string>
+    <string name="languages_save_failed">Your preferences could not be saved. The previous ones are kept.</string>
+    <string name="languages_read_failed">Your preferences could not be read. The defaults are in use.</string>
+</resources>
