@@ -1234,7 +1234,7 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
     - solo «Español» en F12;
   - ficha: añadir «Revalidar» (propuesta de G24); o solo la fila de embeddings, como el PNG;
   - consulta entre idiomas: el texto del PNG sin medir, o un texto prudente sin medir, con la medida en F14.
-- **Propuestas de UI:** S1–S11 de la spec, que se revisan en la parada del clarify.
+- **Propuestas de UI:** el usuario aprobó en la revisión del clarify (2026-11-01) la spec y las propuestas S1–S11.
 - **Origen:** usuario (clarify de F12).
 - **Afecta:**
   - F12;
