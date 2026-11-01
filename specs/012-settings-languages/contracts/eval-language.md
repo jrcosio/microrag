@@ -110,8 +110,9 @@ offline/.venv/bin/python -I offline/run_eval.py report
   - `test_judge` (negativa en inglés);
   - `test_runs`: huellas sin cambios con `"es"` y distintas con `"auto"`;
   - `test_corpus`: sitio y manifiesto `en`;
-  - `test_testset`: conjuntos `crosslang` y su validación;
-  - `test_pipeline`: filas de `language-review` heredadas o cambiadas, combinaciones de `crosslang-review` y cálculo de la regla.
+  - `test_language_review` (nuevo): filas heredadas o cambiadas y cálculo de la regla;
+  - `test_crosslang` (nuevo): conjuntos, combinaciones y cifras por combinación;
+  - `test_index` y `test_report`: índice `en` y sección «Idiomas (F12)».
 
   Toda la batería pasa (152 pruebas hoy, más las nuevas).
 
