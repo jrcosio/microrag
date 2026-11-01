@@ -4,7 +4,7 @@ import com.lisdatasolutions.microrag.domain.rag.RagParameters
 import com.lisdatasolutions.microrag.rag.ingest.PyText
 import kotlin.math.ceil
 
-/** Response language of the prompt (F11 FR-014, G25); F12 adds the others and their wording. */
+/** Response language of the prompt (F11 FR-014, G25). F12 evaluated «Automático» and kept Spanish only (D-061). */
 enum class PromptLanguage(internal val inPrompt: String) { SPANISH("español") }
 
 /**
@@ -14,6 +14,9 @@ enum class PromptLanguage(internal val inPrompt: String) { SPANISH("español") }
  */
 object PromptBuilder {
     const val REFUSAL = "No encuentro esa información en los documentos disponibles."
+
+    /** The refusal when the model answers in English anyway; `judge.REFUSAL_EN` (F12 P17, D-061). */
+    const val REFUSAL_EN = "I can't find that information in the available documents."
     const val PREVIOUS_QUESTION_CHARS = 300
     const val PREVIOUS_ANSWER_CHARS = 500
 

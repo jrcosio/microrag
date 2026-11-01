@@ -49,6 +49,18 @@ class AnswerReadingTest {
             .isFalse()
     }
 
+    /** F12 P17 (D-061): the English refusal counts too, with the same cases as `test_judge.py`. */
+    @Test
+    fun englishRefusal() {
+        assertThat(PromptBuilder.REFUSAL_EN).isEqualTo("I can't find that information in the available documents.")
+        assertThat(AnswerReading.isRefusal("I can't find that information in the available documents.")).isTrue()
+        assertThat(AnswerReading.isRefusal("  \"I CAN’T FIND THAT INFORMATION IN THE AVAILABLE DOCUMENTS\"  ")).isTrue()
+        assertThat(AnswerReading.isRefusal("I can't find that information in the available documents. However, the deadline is 30 days."))
+            .isFalse()
+        assertThat(AnswerReading.isRefusal("I cannot find that information in the available documents.")).isFalse()
+        assertThat(AnswerReading.isRefusal("I couldn't find that information in the available documents.")).isFalse()
+    }
+
     @Test
     fun normRemovesThousandsCaseAccentsAndPunctuation() {
         assertThat(AnswerReading.norm("Hasta 1.000 euros.")).isEqualTo("hasta 1000 euros")

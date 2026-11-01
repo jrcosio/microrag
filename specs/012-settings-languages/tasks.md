@@ -171,8 +171,8 @@ Historias de la spec:
 
 **Purpose**: la paridad del prompt y de la negativa, el dominio de ajustes, los fakes, el design system y los textos.
 
-- [ ] T017 [P] Pruebas JVM de la negativa (P17): `…/test/…/rag/answer/AnswerReadingTest.kt`, con los mismos casos que `test_judge.py` para `REFUSAL_EN`. El prompt no cambia (D-061): ni `PromptBuilderTest` ni `AnswerGoldenTest` (426 casos) se tocan.
-- [ ] T018 Implementar `REFUSAL_EN` en `…/microrag/rag/answer/PromptBuilder.kt`, junto a `REFUSAL`, e `isRefusal` con las dos frases en `…/microrag/rag/answer/AnswerReading.kt`. `PromptLanguage` se queda solo con `SPANISH`. T017 pasa.
+- [X] T017 [P] Pruebas JVM de la negativa (P17): `…/test/…/rag/answer/AnswerReadingTest.kt`, con los mismos casos que `test_judge.py` para `REFUSAL_EN`. El prompt no cambia (D-061): ni `PromptBuilderTest` ni `AnswerGoldenTest` (426 casos) se tocan.
+- [X] T018 Implementar `REFUSAL_EN` en `…/microrag/rag/answer/PromptBuilder.kt`, junto a `REFUSAL`, e `isRefusal` con las dos frases en `…/microrag/rag/answer/AnswerReading.kt`. `PromptLanguage` se queda solo con `SPANISH`. T017 pasa.
 - [ ] T019 Crear el dominio de ajustes (data-model §1–§2, contrato `settings-api.md`) en `…/microrag/domain/settings/`:
   - `SettingsModels.kt`: `AppLanguage`, `LanguageSettings` (idioma de la app y `readFailed`), `SaveResult` y `ModelOverview`;
   - `AppLanguageController.kt` y `SettingsNotices.kt`.

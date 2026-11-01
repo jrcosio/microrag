@@ -11,7 +11,7 @@ import java.util.Locale
  * classes than the JVM's and rejects `(?U)`, so the code points are read with [PyText] on both.
  */
 object AnswerReading {
-    private val NORM_REFUSAL by lazy { norm(PromptBuilder.REFUSAL) }
+    private val NORM_REFUSALS by lazy { setOf(norm(PromptBuilder.REFUSAL), norm(PromptBuilder.REFUSAL_EN)) }
 
     /** One `[n]` or `[n, m]` mark: where it is in the text and the numbers it cites. */
     data class CitationMark(val range: IntRange, val numbers: List<Int>)
@@ -87,7 +87,8 @@ object AnswerReading {
         return out.toString()
     }
 
-    fun isRefusal(answer: String): Boolean = norm(answer) == NORM_REFUSAL
+    /** The answer is one of the two refusal sentences, Spanish or English, after [norm]. */
+    fun isRefusal(answer: String): Boolean = norm(answer) in NORM_REFUSALS
 
     /** Valid numbers (1..[blockCount]) in the order of their first citation, without repeats (D-053). */
     fun citedOrder(answer: String, blockCount: Int): List<Int> = citations(answer).filter { it in 1..blockCount }.distinct()
