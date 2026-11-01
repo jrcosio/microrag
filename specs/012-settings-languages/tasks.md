@@ -89,14 +89,14 @@ Historias de la spec:
 
 **Independent Test**: `language-review` y la combinación ES·EN dan sus cifras, y la decisión queda en DECISIONS.
 
-- [ ] T003 [P] [US9] Pruebas de Python, nuevo `offline/tests/test_language_review.py` (contrato L5–L6), con datos de ejemplo:
+- [X] T003 [P] [US9] Pruebas de Python, nuevo `offline/tests/test_language_review.py` (contrato L5–L6), con datos de ejemplo:
   - las respuestas iguales a `v4` heredan su juicio;
   - las que cambian van al CSV con sus columnas;
   - los juicios del CSV se conservan al regenerar;
   - una fila sin juicio deja el resultado pendiente;
   - la regla: 300 de 370, 51 de 56 y 94,3 %, que se cumple justo en el límite y falla con una sola cifra por debajo;
   - los bloques distintos de `v4` paran la revisión.
-- [ ] T004 [US9] Implementar `language-review`:
+- [X] T004 [US9] Implementar `language-review`:
   - en `offline/eval/pipeline.py`, con el patrón de `limit_review`;
   - el comando en `offline/run_eval.py`;
   - una fila en la tabla de comandos de `offline/README.md`.

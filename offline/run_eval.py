@@ -13,7 +13,7 @@ sys.path.insert(0, str(HERE))  # -I leaves the script directory out of sys.path
 COMMANDS = [
     "fetch-corpus", "sources", "build", "validate-testset", "review-sheet", "review-apply", "sample",
     "retrieve", "generate", "ablations", "report", "chunker-golden", "calibrate", "rejudge", "device-extraction",
-    "order-review", "template-review", "limit-review",
+    "order-review", "template-review", "limit-review", "language-review",
 ]
 
 
@@ -272,6 +272,19 @@ def limit_review(args):
     print(f"wrote {pipeline.LIMIT_REVIEW_DIR / str(limit) / 'result.json'}")
 
 
+def language_review(args):
+    """F12 (D-058): «Automático» with the 426 Spanish questions, judged against v4."""
+    from eval import pipeline
+
+    if args:
+        raise SystemExit("language-review takes no parameters")
+    r = pipeline.language_review()
+    print(f"auto: changed={r['changed']} pending={r['pending']} rule_auto={r['auto_rule']}")
+    print(f"v4: {r['v4']}")
+    print(f"manual: {r['manual']} meets_rule={r['meets_rule']}")
+    print(f"wrote {pipeline.LANGUAGE_REVIEW_DIR / 'result.json'}")
+
+
 def report(args):
     from eval import report as report_module
 
@@ -283,7 +296,7 @@ HANDLERS = {
     "validate-testset": validate_testset, "review-sheet": review_sheet, "review-apply": review_apply,
     "retrieve": retrieve, "generate": generate, "ablations": ablations, "report": report, "calibrate": calibrate, "chunker-golden": chunker_golden, "rejudge": rejudge,
     "device-extraction": device_extraction, "order-review": order_review,
-    "template-review": template_review, "limit-review": limit_review,
+    "template-review": template_review, "limit-review": limit_review, "language-review": language_review,
 }
 
 

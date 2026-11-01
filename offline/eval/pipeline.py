@@ -516,6 +516,31 @@ def _describe(blocks):
                        for n, b in enumerate(blocks, start=1))
 
 
+def _active_template_base():
+    """The decided configuration with the active template (v4), its answers and its merged manual rows (D-056).
+
+    The run is complete, so nothing is generated again. The rows are the F05 verdicts with the template
+    review's verdicts for the answers v4 changed.
+    """
+    import csv
+
+    from eval import report
+    from eval import template_review as tr
+
+    template = json.loads(report.PARAMETERS.read_text(encoding="utf-8"))["prompt_template"]
+    config = dataclasses.replace(decided_config(), llm="E2B", prompt_template=template)
+    lines = _answers_of(generate(config))
+    answers = {qid: line["answer"] for qid, line in lines.items()}
+    rules = {qid: "correcta" if line["judge"]["correct"] else "incorrecta" for qid, line in lines.items()}
+    template_path = report.MANUAL.parent / "template-review.csv"
+    template_rows = [r for r in csv.DictReader(template_path.open(encoding="utf-8-sig")) if r["variante"] == template]
+    rows = tr.merged_rows(report.manual_rows(), answers, rules,
+                          {r["id"]: {"manual": r["manual"], "manual_citas": r["manual_citas"]} for r in template_rows})
+    if rows is None:
+        raise SystemExit(f"{template}: the template review has unjudged answers")
+    return config, answers, rules, rows
+
+
 def limit_review(limit):
     """The decided configuration with a lower prompt limit (F11 phone phase, SC-004).
 
@@ -534,17 +559,8 @@ def limit_review(limit):
 
     params = json.loads(report.PARAMETERS.read_text(encoding="utf-8"))
     template, chars_per_token = params["prompt_template"], params["chars_per_token"]
-    config = dataclasses.replace(decided_config(), llm="E2B", prompt_template=template)
+    config, base_answers, base_rules, base_rows = _active_template_base()
     ctx = load_context(config.build)
-    base_lines = _answers_of(generate(config))  # the run judged in D-056: complete, nothing is generated again
-    base_answers = {qid: line["answer"] for qid, line in base_lines.items()}
-    base_rules = {qid: "correcta" if line["judge"]["correct"] else "incorrecta" for qid, line in base_lines.items()}
-    template_path = report.MANUAL.parent / "template-review.csv"
-    template_rows = [r for r in csv.DictReader(template_path.open(encoding="utf-8-sig")) if r["variante"] == template]
-    base_rows = tr.merged_rows(report.manual_rows(), base_answers, base_rules,
-                               {r["id"]: {"manual": r["manual"], "manual_citas": r["manual_citas"]} for r in template_rows})
-    if base_rows is None:
-        raise SystemExit(f"{template}: the template review has unjudged answers")
     base_by_id = {r["id"]: r for r in base_rows}
 
     retrieval = _retrieval_rows(ctx, config)
@@ -644,6 +660,72 @@ def limit_review(limit):
         writer.writerows(sorted(kept_rows + review_rows, key=lambda r: (int(r["limite"]), r["id"])))
     (folder / "result.json").write_text(json.dumps(result, ensure_ascii=False, indent=1))
     return result
+
+
+# --- «Automático» review (F12, D-058, D-060) -------------------------------------------------------
+
+LANGUAGE_REVIEW_DIR = builds.BUILD / "language-review"
+
+
+def _manual_figures(manual):
+    return {key: manual[key] for key in ("answer_correct", "refusal_correct", "citations_correct", "undue_refusals")}
+
+
+def language_review():
+    """The decided configuration with v4 and the answer language «auto» (contracts/eval-language.md L5–L6).
+
+    All 426 answers are generated again; the ones equal to v4 keep their manual verdict, the others are judged
+    by hand in reports/language-review.csv. The verdicts already there are kept between runs.
+    """
+    import csv
+
+    from eval import language_review as lr
+    from eval import report
+    from eval import template_review as tr
+    from eval.selector import ContextBlock
+
+    config, base_answers, _, base_rows = _active_template_base()
+    ctx = load_context(config.build)
+    auto_config = dataclasses.replace(config, answer_language="auto")
+    result = generate(auto_config)
+    try:
+        lr.check_blocks(_blocks_of(ctx, config), _blocks_of(ctx, auto_config))
+    except ValueError as error:
+        raise SystemExit(f"auto: {error} (G8)")
+    lines = _answers_of(result)
+    answers = {qid: line["answer"] for qid, line in lines.items()}
+    rules = {qid: "correcta" if line["judge"]["correct"] else "incorrecta" for qid, line in lines.items()}
+    review_path = report.MANUAL.parent / "language-review.csv"
+    existing = {}
+    if review_path.exists():
+        existing = {r["id"]: r for r in csv.DictReader(review_path.open(encoding="utf-8-sig"))}
+    by_id = {q.id: q for q in live_questions()}
+    base_by_id = {r["id"]: r for r in base_rows}
+    retrieval = _retrieval_rows(ctx, auto_config)
+    changed = tr.changed_ids(base_rows, answers)
+    review_rows = [
+        lr.review_row(by_id[qid], _describe([ContextBlock(**b) for b in retrieval[qid]["blocks"]]), base_answers[qid],
+                      base_by_id[qid]["manual"], answers[qid], rules[qid], lines[qid]["judge"], existing.get(qid, {}))
+        for qid in changed
+    ]
+    reviewed = {r["id"]: {"manual": r["manual"], "manual_citas": r["manual_citas"]} for r in review_rows if r["manual"]}
+    merged = tr.merged_rows(base_rows, answers, rules, reviewed)
+    v4 = _manual_figures(report.manual_metrics(base_rows))
+    manual = _manual_figures(report.manual_metrics(merged)) if merged is not None else None
+    summary = {
+        "template": config.prompt_template, "fingerprint": result["fingerprint"], "questions": len(answers),
+        "changed": len(changed), "pending": sum(1 for r in review_rows if not r["manual"]),
+        "auto_rule": {key: result[key] for key in lr.FIGURES}, "v4": v4, "manual": manual,
+        "meets_rule": None if manual is None else lr.meets_rule(v4, manual),
+    }
+    review_path.parent.mkdir(parents=True, exist_ok=True)
+    with review_path.open("w", encoding="utf-8-sig", newline="") as out:
+        writer = csv.DictWriter(out, fieldnames=lr.REVIEW_FIELDS)
+        writer.writeheader()
+        writer.writerows(sorted(review_rows, key=lambda r: r["id"]))
+    LANGUAGE_REVIEW_DIR.mkdir(parents=True, exist_ok=True)
+    (LANGUAGE_REVIEW_DIR / "result.json").write_text(json.dumps(summary, ensure_ascii=False, indent=1))
+    return summary
 
 
 # --- prompt budget calibration ---------------------------------------------------------------------
