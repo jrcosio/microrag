@@ -151,7 +151,7 @@ Historias de la spec:
   - `build en`.
 
   Resultado: Git (23 subpáginas), Basic Book Design (31) y Knots (71), sin la versión para imprimir; 229 KB de texto, 184 fragmentos y la caché `build/chars_per_token.json` sin tocar.
-- [ ] T014 [US8] Redactar `offline/testset/crosslang/en-docs.en.jsonl` con el método de F05 (L10: 40 con respuesta, 10 seguimientos y 15 sin respuesta) y su traducción `en-docs.es.jsonl`. `validate-testset set=crosslang` pasa.
+- [X] T014 [US8] Redactar `offline/testset/crosslang/en-docs.en.jsonl` con el método de F05 (L10: 40 con respuesta, 10 seguimientos y 15 sin respuesta) y su traducción `en-docs.es.jsonl`. `validate-testset set=crosslang` pasa. Resultado: 13, 13 y 14 preguntas con respuesta por libro, sobre una muestra fija de 16 fragmentos por libro (semilla `20261101`); las 15 sin respuesta se comprobaron contra el texto de los tres libros.
 - [ ] T015 [US8] Ejecutar `crosslang-review english_answers=es` para EN·EN y EN·ES (respuestas en español, D-061), y juzgar a mano sus unas 130 respuestas (L12).
 - [ ] T016 [US8] Registrar:
   - la sección «Idiomas (F12)» en `offline/eval/report.py`, con su prueba en `offline/tests/test_report.py`, y regenerar `offline/reports/eval-report.md`;
