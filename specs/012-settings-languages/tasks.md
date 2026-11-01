@@ -117,7 +117,10 @@ Historias de la spec:
 
   Ampliar `offline/eval/testset.py` para leer y validar conjuntos `crosslang`, y `validate-testset set=crosslang` en `offline/run_eval.py`.
 - [X] T008 [US9] Implementar `crosslang-review` en `offline/eval/pipeline.py` y `offline/run_eval.py`, con las combinaciones de L11. Al principio solo está ES·EN, porque `en` aún no existe. Añadir sus filas, y la de `validate-testset set=crosslang`, a la tabla de `offline/README.md`. T006 pasa.
-- [ ] T009 [US9] Ejecutar `crosslang-review english_answers=es` para ES·EN y juzgar a mano sus 72 respuestas en `offline/reports/crosslang-review.csv` (L12). Con `auto`, las 72 respuestas salieron en español, y por eso «Automático» no se adopta (D-061); la medida sigue con las respuestas en español que dará la app.
+- [X] T009 [US9] Ejecutar `crosslang-review english_answers=es` para ES·EN y juzgar a mano sus 72 respuestas en `offline/reports/crosslang-review.csv` (L12). Con `auto`, las 72 respuestas salieron en español, y por eso «Automático» no se adopta (D-061); la medida sigue con las respuestas en español que dará la app. Resultado de ES·EN:
+  - 29 de 57 correctas (50,9 %), frente al 82,5 % de sus preguntas de origen con `v4`: 31,6 puntos por debajo, así que no cumple L14;
+  - 15 de 15 negativas y el 96,1 % de citas;
+  - 16 negativas indebidas, 12 de ellas en preguntas que en español se respondían bien. La búsqueda acierta el bloque esperado en el 57,9 % de las preguntas.
 - [X] T010 [US9] **Decisión sobre «Automático»** (L6, más los umbrales de ES·EN y sus correctas a no más de 10 puntos de sus preguntas de origen con `v4`). Resultado: no se adopta; lo decidió el usuario con las cifras (D-061):
   - con las preguntas en español, 1 negativa y 1,4 puntos de citas por debajo de `v4`;
   - con las preguntas en inglés, las 72 respuestas en español.
