@@ -23,7 +23,7 @@ class EvalConfigTest(unittest.TestCase):
             "build": "chunk250", "mode": "vector", "follow_up_rule": False, "candidates": 40, "rrf_k": 30,
             "max_blocks": 4, "neighbors": False, "max_per_document": 2, "budget_tokens": 1500,
             "prompt_limit_tokens": 1800, "llm": "E2B", "max_output_tokens": 256, "prompt_template": "v2",
-            "third_list": "trigram", "rerank_alpha": 0.5, "rerank_top": 10,
+            "third_list": "trigram", "rerank_alpha": 0.5, "rerank_top": 10, "answer_language": "auto",
         }
         self.assertEqual(set(changes), {f.name for f in dataclasses.fields(EvalConfig)})
         for name, value in changes.items():
@@ -44,6 +44,11 @@ class EvalConfigTest(unittest.TestCase):
         })
         for name, value in {"third_list": "trigram", "rerank_alpha": 0.5, "rerank_top": 10}.items():
             self.assertIn(name, dataclasses.replace(d034, **{name: value}).to_json())
+        # F12 (D-059): Spanish answers keep the informe and v4 runs where they were; «Automático» is a new run.
+        v4 = dataclasses.replace(d034, llm="E2B", prompt_template="v4")
+        self.assertEqual(dataclasses.replace(v4, answer_language="es").to_json(), v4.to_json())
+        self.assertNotIn("answer_language", v4.to_json())
+        self.assertIn('"answer_language":"auto"', dataclasses.replace(v4, answer_language="auto").to_json())
 
     def test_json_is_canonical(self):
         text = EvalConfig().to_json()
@@ -56,6 +61,8 @@ class EvalConfigTest(unittest.TestCase):
             EvalConfig(llm="E8B")
         with self.assertRaises(ValueError):
             EvalConfig(third_list="ngram")
+        with self.assertRaises(ValueError):
+            EvalConfig(answer_language="en")
 
 
 if __name__ == "__main__":

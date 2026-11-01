@@ -11,7 +11,10 @@ RUNS_DIR = OFFLINE / "build" / "runs"
 MODES = ("vector", "fts", "hybrid")
 LLM_CHOICES = (None, "E2B", "E4B")
 THIRD_LISTS = (None, "trigram")
-LATE_FIELDS = {"prompt_template": "informe", "third_list": None, "rerank_alpha": None, "rerank_top": 20}
+ANSWER_LANGUAGES = ("es", "auto")
+LATE_FIELDS = {
+    "prompt_template": "informe", "third_list": None, "rerank_alpha": None, "rerank_top": 20, "answer_language": "es",
+}
 
 
 @dataclasses.dataclass(frozen=True)
@@ -36,6 +39,8 @@ class EvalConfig:
     third_list: str | None = None
     rerank_alpha: float | None = None
     rerank_top: int = 20
+    # F12 (D-058): the answer language of the prompt; «auto» answers in the question's language.
+    answer_language: str = "es"
 
     def __post_init__(self):
         if self.mode not in MODES:
@@ -44,6 +49,8 @@ class EvalConfig:
             raise ValueError(f"Unknown LLM {self.llm}")
         if self.third_list not in THIRD_LISTS:
             raise ValueError(f"Unknown third list {self.third_list}")
+        if self.answer_language not in ANSWER_LANGUAGES:
+            raise ValueError(f"Unknown answer language {self.answer_language}")
 
     def to_json(self):
         values = dataclasses.asdict(self)

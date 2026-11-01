@@ -59,7 +59,7 @@ Historias de la spec:
 
 **Purpose**: el idioma de las respuestas y la negativa en inglés en el harness, sin cambiar nada de lo ya medido (contrato `eval-language.md`, L1–L4).
 
-- [ ] T001 [P] Pruebas de Python:
+- [X] T001 [P] Pruebas de Python:
   - `offline/tests/test_prompt.py`:
     - `build_prompt(…, language="es")` es idéntico al de hoy;
     - con `language="auto"`, la única línea distinta es «- Responde en el idioma de la PREGUNTA, de forma clara y breve.»;
@@ -71,7 +71,7 @@ Historias de la spec:
     - `answer_language="es"` no entra en el JSON y conserva las huellas de `informe` y de `v4`;
     - `"auto"` cambia la huella;
     - un valor desconocido se rechaza.
-- [ ] T002 Implementar L2–L4:
+- [X] T002 Implementar L2–L4:
   - `LANGUAGES` y el parámetro `language` en `offline/eval/prompt.py`;
   - `REFUSAL_EN` e `is_refusal` en `offline/eval/judge.py`;
   - `answer_language` en `EvalConfig` y en `LATE_FIELDS` de `offline/eval/runs.py`;

@@ -36,6 +36,15 @@ class RefusalTest(unittest.TestCase):
         self.assertTrue(judge.is_refusal("  no encuentro esa informacion en los documentos disponibles  "))
         self.assertFalse(judge.is_refusal("No encuentro esa información en los documentos disponibles. Sin embargo, el plazo es 30 días."))
 
+    def test_english_refusal(self):
+        # F12 (D-059, research R6): «Automático» may write the sentence in English; one fixed translation counts.
+        self.assertEqual(judge.REFUSAL_EN, "I can't find that information in the available documents.")
+        self.assertTrue(judge.is_refusal("I can't find that information in the available documents."))
+        self.assertTrue(judge.is_refusal('  "I CAN’T FIND THAT INFORMATION IN THE AVAILABLE DOCUMENTS"  '))
+        self.assertFalse(judge.is_refusal("I can't find that information in the available documents. However, the deadline is 30 days."))
+        self.assertFalse(judge.is_refusal("I cannot find that information in the available documents."))
+        self.assertFalse(judge.is_refusal("I couldn't find that information in the available documents."))
+
 
 class CitationsTest(unittest.TestCase):
     def test_citation_forms(self):

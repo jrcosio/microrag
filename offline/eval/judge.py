@@ -1,7 +1,8 @@
 """Automatic judgement of generated answers (F05 research R9, D-032).
 
 - An answer is correct when it is not a refusal and contains every key fact of the expected answer.
-- A refusal is the fixed sentence, after normalizing case, accents, punctuation and spaces.
+- A refusal is the fixed sentence, after normalizing case, accents, punctuation and spaces; its English
+  translation also counts, for «Automático» answers to questions in English (F12, D-059).
 - A citation [n] is correct when block n holds a relevant chunk; an answer without citations counts
   as one wrong citation.
 """
@@ -12,6 +13,7 @@ from dataclasses import dataclass
 
 from eval.prompt import REFUSAL
 
+REFUSAL_EN = "I can't find that information in the available documents."
 CITATION = re.compile(r"\[(\d+(?:\s*,\s*\d+)*)\]")
 THOUSANDS = re.compile(r"(?<=\d)[.,\s](?=\d{3}\b)")
 STEM = 5  # words match by their first 5 letters: renovado ~ renovarse, destruidos ~ destruyen
@@ -36,7 +38,7 @@ def has_key_facts(answer, facts):
 
 
 def is_refusal(answer):
-    return norm(answer) == norm(REFUSAL)
+    return norm(answer) in (norm(REFUSAL), norm(REFUSAL_EN))
 
 
 def citations(answer):

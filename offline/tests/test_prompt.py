@@ -6,7 +6,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from eval.prompt import REFUSAL, build_prompt, estimated_tokens, within_limit  # noqa: E402
+from eval.prompt import LANGUAGES, REFUSAL, build_prompt, estimated_tokens, within_limit  # noqa: E402
 from eval.selector import ContextBlock  # noqa: E402
 
 RULES = (
@@ -71,6 +71,34 @@ class PromptTest(unittest.TestCase):
 
     def test_refusal_sentence(self):
         self.assertEqual(REFUSAL, "No encuentro esa información en los documentos disponibles.")
+
+
+class PromptLanguageTest(unittest.TestCase):
+    """F12 «Automático» (D-058, research R5): only the language line changes."""
+
+    BLOCKS = [ContextBlock("Manual", "Plazos", 3, 1, 0, 0, "Texto.", 2)]
+
+    def test_spanish_is_the_report_text(self):
+        for template in ("informe", "v4"):
+            self.assertEqual(build_prompt("¿Plazo?", self.BLOCKS, ("p", "r"), template, language="es"),
+                             build_prompt("¿Plazo?", self.BLOCKS, ("p", "r"), template))
+        self.assertTrue(build_prompt("¿Plazo?", [], None, language="es").startswith(RULES))
+
+    def test_automatic_changes_only_the_language_line(self):
+        spanish = build_prompt("Deadline?", self.BLOCKS, ("p", "r"), "v4")
+        automatic = build_prompt("Deadline?", self.BLOCKS, ("p", "r"), "v4", language="auto")
+        self.assertEqual(automatic, spanish.replace(
+            "- Responde en español, de forma clara y breve.\n",
+            "- Responde en el idioma de la PREGUNTA, de forma clara y breve.\n", 1))
+        self.assertEqual(len(automatic.split("\n")), len(spanish.split("\n")))
+        changed = [(a, b) for a, b in zip(spanish.split("\n"), automatic.split("\n")) if a != b]
+        self.assertEqual(changed, [("- Responde en español, de forma clara y breve.",
+                                    "- Responde en el idioma de la PREGUNTA, de forma clara y breve.")])
+
+    def test_languages(self):
+        self.assertEqual(LANGUAGES, {"es": "español", "auto": "el idioma de la PREGUNTA"})
+        with self.assertRaises(ValueError):
+            build_prompt("¿Plazo?", [], None, language="en")
 
 
 class PromptLimitTest(unittest.TestCase):

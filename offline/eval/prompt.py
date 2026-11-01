@@ -23,17 +23,21 @@ V4_RULES = V3_RULES + [
     "con la frase anterior.",
 ]
 EXTRA_RULES = {"informe": [], "v2": V2_RULES, "v3": V3_RULES, "v4": V4_RULES}
+# Answer language (F12, D-058, research R5): «Automático» changes only the language line, with no detector.
+LANGUAGES = {"es": "español", "auto": "el idioma de la PREGUNTA"}
 
 
-def build_prompt(question, blocks, previous, template="informe"):
+def build_prompt(question, blocks, previous, template="informe", language="es"):
     """[previous] is the (question, answer) of the previous turn for a follow-up, or None."""
     if template not in TEMPLATES:
         raise ValueError(f"Unknown prompt template {template}")
+    if language not in LANGUAGES:
+        raise ValueError(f"Unknown answer language {language}")
     lines = [
         "Responde a la PREGUNTA usando únicamente las FUENTES.",
         "",
         "Reglas:",
-        "- Responde en español, de forma clara y breve.",
+        f"- Responde en {LANGUAGES[language]}, de forma clara y breve.",
         "- Después de cada afirmación, indica la fuente entre corchetes, por ejemplo [2].",
         "- Si las fuentes no contienen la respuesta, responde exactamente:",
         f'  "{REFUSAL}"',
