@@ -6,6 +6,8 @@
 
 ## Summary
 
+> **Cambio en la implementación (D-061):** la evaluación descartó «Automático». No hay tienda del idioma de las respuestas, el prompt no cambia, e Idiomas solo guarda el idioma de la app. Las tareas afectadas están marcadas en `tasks.md`.
+
 F12 sustituye los marcadores de Ajustes e Idiomas por las pantallas de los PNG 09 y 10.
 
 - **Ajustes** (`feature/settings`):
@@ -18,10 +20,7 @@ F12 sustituye los marcadores de Ajustes e Idiomas por las pantallas de los PNG 0
   - en Android 13+, el `LocaleManager` del sistema;
   - en Android 12, un fichero propio en `noBackupFilesDir`, leído al arrancar, con `recreate()`;
   - las notificaciones construyen sus textos con el idioma vigente.
-- **Idioma de las respuestas:**
-  - DataStore con manejo de errores;
-  - «Español» por defecto, con el prompt idéntico al del escritorio;
-  - «Automático» cambia solo la línea del idioma, y la negativa se reconoce también en inglés.
+- **Idioma de las respuestas:** siempre español, con el prompt idéntico al del escritorio. Idiomas lo muestra como única opción. La negativa se reconoce también en inglés. «Automático» se evaluó y no se ofrece (D-061).
 - **Escritorio**, antes que la app:
   - `language-review` evalúa «Automático» con las 426 preguntas en español frente a `v4`;
   - `crosslang-review` mide las preguntas en inglés sobre los documentos en español, y los documentos en inglés (3 libros de en.wikibooks) con preguntas en inglés y en español;
@@ -39,7 +38,6 @@ F12 sustituye los marcadores de Ajustes e Idiomas por las pantallas de los PNG 0
 - en el escritorio, `litert-lm-api` 0.18.1.
 
 **Storage**:
-- DataStore nuevo `noBackupFilesDir/datastore/settings.preferences_pb`, con la clave `answer_language`;
 - solo en Android 12, `noBackupFilesDir/settings/app_language`;
 - `chat.db` sin cambio de esquema (v1), con dos consultas nuevas;
 - en el escritorio: corpus `offline/corpus/en/`, índice `build/index/en.db`, conjuntos `testset/crosslang/*.jsonl` e informes `reports/{language,crosslang}-review.csv`.
@@ -138,14 +136,13 @@ app/src/main/java/com/lisdatasolutions/microrag/
 ├── MicroRagApplication.kt                      # AppLocale.init y migración (P4)
 ├── domain/settings/
 │   ├── SettingsModels.kt                       # data-model §1–§2
-│   ├── LanguageSettingsStore.kt, AppLanguageController.kt, SettingsNotices.kt
+│   ├── AppLanguageController.kt, SettingsNotices.kt
 │   └── SettingsUseCases.kt                     # idiomas y modelos
 ├── domain/chat/{ChatSession, ChatRepository, ChatUseCases}.kt   # deleteAll, historyCleared, recuento
-├── data/settings/DataStoreLanguageSettingsStore.kt              # R3
 ├── data/chat/{DefaultChatSession, SqliteChatRepository}.kt      # R10, P16
 ├── data/indexing/IndexingNotifications.kt, data/download/DownloadNotifications.kt   # P5
 ├── data/di/DataModule.kt, domain/di/DomainModule.kt, feature/di/FeatureModule.kt
-├── rag/answer/{PromptBuilder, AnswerReading}.kt                 # AUTOMATIC, REFUSAL_EN
+├── rag/answer/{PromptBuilder, AnswerReading}.kt                 # REFUSAL_EN
 ├── feature/settings/
 │   ├── SettingsRoute.kt, SettingsScreen.kt, SettingsViewModel.kt, SettingsUiState.kt
 │   ├── ModelSheet.kt
@@ -157,7 +154,6 @@ app/src/debug/java/com/lisdatasolutions/microrag/debug/catalog/CatalogEntries.kt
 
 app/src/test/java/com/lisdatasolutions/microrag/
 ├── core/locale/{AppLocaleTest, PlatformAppLanguageControllerTest}.kt
-├── data/settings/DataStoreLanguageSettingsStoreTest.kt
 ├── domain/settings/{SaveLanguageSettingsUseCaseTest, ObserveModelOverviewUseCaseTest}.kt
 ├── feature/settings/{SettingsViewModelTest, LanguagesViewModelTest, SettingsScreenTest, LanguagesScreenTest}.kt
 ├── resources/StringsParityTest.kt

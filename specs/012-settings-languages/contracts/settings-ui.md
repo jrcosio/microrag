@@ -49,7 +49,7 @@ Mandan los PNG `09-configuracion.png` y `10-idiomas.png`. Los estados sin maquet
 | Cabecera | `LisdataEyebrow` + `Text` `headlineLarge` | «Configuración lingüística» y «Habla en tu idioma» |
 | Hero | `LisdataHeroCard` (`decoration = false`: el PNG no tiene órbitas) | Tile con `ic_globe` (`LisdataIconTile`), «Tus documentos.» y `titleAccent` «Tu idioma.». Si el hero no admite el tile a la izquierda del título, se añade esa variante al componente |
 | Idioma de la aplicación | `LisdataSectionHeader` + `LisdataCardGroup(Modifier.selectableGroup())` | `LisdataRadioRow` «Español» y «English» |
-| Idioma de las respuestas | ídem | `LisdataRadioRow` «Automático» (subtítulo «Detectar idioma de la pregunta») y «Español». «Automático» solo si `automaticOffered` |
+| Idioma de las respuestas | ídem | Una sola `LisdataRadioRow` «Español», marcada y sin acción (S12, D-061) |
 | Aviso de lectura | `LisdataInfoCard` (aviso) | Solo con `readFailed`: «No se pudieron leer tus preferencias. Se usan las de por defecto.» (S8) |
 | Búsqueda multilingüe | `LisdataInfoCard` | `ic_globe`, «Búsqueda multilingüe» y el texto de S10 |
 | Acción | `LisdataGradientButton` | «Guardar preferencias» con ✓. Mientras guarda: «Guardando…» y sin respuesta a toques (S8) |
@@ -114,8 +114,6 @@ Mandan los PNG `09-configuracion.png` y `10-idiomas.png`. Los estados sin maquet
 | `languages_hero_accent` | Tu idioma. | Your language. |
 | `languages_section_app` | Idioma de la aplicación | App language |
 | `languages_section_answers` | Idioma de las respuestas | Answer language |
-| `languages_automatic` | Automático | Automatic |
-| `languages_automatic_subtitle` | Detectar idioma de la pregunta | Detect the question's language |
 | `languages_answer_spanish` | Español | Spanish |
 | `languages_multilingual_title` | Búsqueda multilingüe | Multilingual search |
 | `languages_multilingual_body` | Consulta documentos en distintos idiomas desde el mismo chat. (S10: se confirma o cambia con la medida) | Ask about documents in different languages from the same chat. |
@@ -167,5 +165,6 @@ Se reutilizan:
 - **Filas de modelo:** las dos llevan chip y chevron (S1). En el PNG, el chip solo está en «Modelo de respuestas» y el chevron solo en «Modelo de embeddings».
 - **Chip de Gemma en CPU:** «Modo CPU, más lento» en lugar de «Local» (D-027).
 - **Botones de opción:** el aspecto de Material 3 (D-018, G18), aceptado desde F01.
+- **Idioma de las respuestas:** una sola opción, «Español», en lugar de «Automático» y «Español» (D-061, S12).
 - **Tarjeta «Búsqueda multilingüe»:** su texto puede cambiar según la medida (S10).
 - **Barra de estado y franja de inicio** de iOS: no aplican (G40).

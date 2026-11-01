@@ -89,6 +89,12 @@
 
 - Q: ¿Se añade un mínimo de respuestas correctas a las reglas de las preguntas en inglés y de la tarjeta «Búsqueda multilingüe»? → A: Sí, a 10 puntos de su referencia. Las preguntas en inglés sobre los documentos en español no pueden quedar más de 10 puntos por debajo de las mismas preguntas en español con `v4`. Las preguntas en español sobre los documentos en inglés, igual frente a las mismas en inglés. Inglés con inglés no tiene referencia y solo usa los umbrales. Vale para adoptar «Automático» y para el texto de la tarjeta.
 
+### Session 2026-11-01 (evaluación de «Automático»)
+
+- Q: Con las preguntas en español, «Automático» queda 1 negativa y 1,4 puntos de citas por debajo de `v4`: ¿qué se hace? → A: Medir antes las preguntas en inglés y decidir con todas las cifras.
+- Q: «Automático» contesta en español a las 72 preguntas en inglés: ¿qué se hace con él en F12? → A: No se ofrece en F12 (D-061). El idioma de las respuestas es siempre español, con el prompt del escritorio sin cambios. Las respuestas en inglés pasan al backlog, con un enfoque que haya que evaluar. La medida entre idiomas se hace con respuestas en español.
+- Q: Sin «Automático», ¿cómo se muestra la sección «Idioma de las respuestas»? → A: Con «Español» como única opción, marcada. Informa del idioma de las respuestas sin ofrecer nada que no exista, y no guarda nada.
+
 ## User Scenarios & Testing *(mandatory)*
 
 **Actores:**
@@ -141,25 +147,22 @@ El usuario abre Idiomas, elige «English» en «IDIOMA DE LA APLICACIÓN» y pul
 
 ---
 
-### User Story 3 - Elegir el idioma de las respuestas (Priority: P1)
+### User Story 3 - Saber en qué idioma responde el chat (Priority: P1)
 
-El usuario elige en «IDIOMA DE LAS RESPUESTAS» entre «Automático» y «Español» y guarda. Las respuestas siguientes del chat siguen esa elección, sea cual sea el idioma de la app.
+En «IDIOMA DE LAS RESPUESTAS», Idiomas muestra «Español» como única opción, marcada: el chat responde siempre en español, sea cual sea el idioma de la app. «Automático» no se ofrece en F12, porque su evaluación mostró que no cambia el idioma de las respuestas (D-061).
 
-**Why this priority**: es el criterio 3 de F12 y completa el parámetro de idioma que F11 dejó preparado (D-055).
+**Why this priority**: es el criterio 3 de F12, ajustado por la evaluación de US9: la pantalla dice la verdad sobre el idioma de las respuestas, y el prompt sigue siendo el evaluado.
 
-**Independent Test**: con cada opción guardada, hacer preguntas en el chat:
-- el prompt lleva la regla de idioma de la opción;
-- con «Español», el prompt es idéntico al del escritorio;
-- la negativa se reconoce en las dos opciones.
+**Independent Test**: con la app en español y en inglés:
+- Idiomas muestra «Español» como única opción de respuesta, marcada;
+- el prompt es idéntico al del escritorio;
+- una negativa en español o en inglés se reconoce.
 
 **Acceptance Scenarios**:
 
-1. **Given** ninguna elección hecha, **When** el usuario abre Idiomas, **Then** está marcado «Español».
-2. **Given** «Español» guardado y la app en inglés, **When** el usuario pregunta, **Then** el prompt es idéntico al del escritorio y la respuesta pide español.
-3. **Given** «Automático» guardado, **When** el usuario pregunta en inglés, **Then** el prompt pide responder en el idioma de la pregunta, y la respuesta llega en inglés con sus fuentes.
-4. **Given** una respuesta en curso, **When** el usuario cambia el idioma de las respuestas, **Then** esa respuesta no cambia y la elección se aplica a la siguiente pregunta.
-5. **Given** cualquiera de las dos opciones, **When** el modelo responde con la negativa en español o en inglés, **Then** la app la reconoce y muestra el texto de negativa de F11 en el idioma de la app, sin fuentes.
-6. **Given** una opción guardada, **When** se cierra y se vuelve a abrir la app, **Then** sigue elegida.
+1. **Given** Idiomas, **When** el usuario mira «IDIOMA DE LAS RESPUESTAS», **Then** ve «Español» como única opción, marcada, sin otras opciones ni interruptores.
+2. **Given** la app en inglés, **When** el usuario pregunta, **Then** el prompt es idéntico al del escritorio y la respuesta pide español.
+3. **Given** el modelo responde con la negativa en español o en inglés, **When** termina, **Then** la app la reconoce y muestra el texto de negativa de F11 en el idioma de la app, sin fuentes.
 
 ---
 
@@ -206,7 +209,7 @@ Desde Ajustes, el usuario llega a Idiomas y a Índice, y ve que todo se procesa 
 
 ### User Story 6 - Preferencias que no se pierden (Priority: P2)
 
-Las preferencias se guardan en el teléfono y se mantienen tras cerrar la app. Si guardar o leer falla, la app no se queda en un estado a medias: conserva los valores anteriores y lo dice.
+El idioma de la app se guarda en el teléfono y se mantiene tras cerrar la app. Si guardar o leer falla, la app no se queda en un estado a medias: conserva el valor anterior y lo dice.
 
 **Why this priority**: es el criterio 6 de F12. Hoy no hay manejo de errores al leer o guardar preferencias.
 
@@ -263,6 +266,8 @@ Quien desarrolla mide en el escritorio cómo responde la app cuando el documento
 
 Quien desarrolla evalúa en el escritorio el prompt de «Automático» con preguntas en español y en inglés, con el mismo método de juicio que F05 y F11. «Automático» solo se ofrece si cumple la regla fijada antes de evaluar.
 
+**Resultado** (D-061): no la cumple. Con las preguntas en español queda 1 negativa y 1,4 puntos de citas por debajo de `v4`, y contesta en español a las 72 preguntas en inglés. No se ofrece en F12.
+
 **Why this priority**: la constitución III exige una evaluación documentada para cambiar la redacción del prompt, y ninguna plantilla se ha evaluado en otro idioma (D-056).
 
 **Independent Test**: la evaluación queda en DECISIONS con sus cifras, junto a las de `v4` con las mismas preguntas en español.
@@ -292,9 +297,7 @@ Quien desarrolla evalúa en el escritorio el prompt de «Automático» con pregu
 - **Gemma preparada en GPU y la de embeddings en CPU** (o al revés): cada fila muestra su propio procesador. Solo Gemma lleva el aviso «Modo CPU, más lento» (D-027).
 - **Nombres de idioma largos o letra grande:** las filas crecen en alto y el texto no se corta.
 - **Pregunta en un idioma distinto del de la respuesta elegida:** con «Español», la respuesta pide español aunque la pregunta esté en inglés.
-- **«Automático» con una pregunta en otro idioma que no sea el español ni el inglés:** el prompt pide el idioma de la pregunta; la evaluación solo cubre español e inglés, y la negativa solo se reconoce en esos dos.
-- **«Automático» con una pregunta de seguimiento corta o ambigua** («¿y el plazo?»): el modelo decide el idioma con la pregunta; el turno anterior solo es contexto.
-- **Evaluación de «Automático» no superada:** el usuario decide con las cifras (FR-024); mientras tanto, la app no ofrece «Automático».
+- **Pregunta en otro idioma:** la respuesta llega en español. Que conteste bien depende de lo que mida la consulta entre idiomas (FR-033).
 
 ## Requirements *(mandatory)*
 
@@ -349,36 +352,31 @@ Quien desarrolla evalúa en el escritorio el prompt de «Automático» con pregu
   - «CONFIGURACIÓN LINGÜÍSTICA» y el título «Habla en tu idioma»;
   - la tarjeta «Tus documentos. / Tu idioma.»;
   - «IDIOMA DE LA APLICACIÓN» con «Español» y «English»;
-  - «IDIOMA DE LAS RESPUESTAS» con «Automático / Detectar idioma de la pregunta» y «Español»;
+  - «IDIOMA DE LAS RESPUESTAS» con «Español» como única opción, marcada (D-061);
   - la tarjeta «Búsqueda multilingüe» (FR-032);
   - el botón «Guardar preferencias».
-- **FR-016**: Idiomas MUST abrirse desde Ajustes y desde Inicio. «Guardar preferencias» MUST guardar las dos elecciones y volver a la pantalla de origen. Atrás sin guardar MUST descartar los cambios.
-- **FR-017**: Idiomas MUST ofrecer solo esas opciones, sin interruptores para funciones que no existen (G25, MD 10). Al abrirse, MUST marcar los valores guardados.
+- **FR-016**: Idiomas MUST abrirse desde Ajustes y desde Inicio. «Guardar preferencias» MUST guardar el idioma de la app y volver a la pantalla de origen. Atrás sin guardar MUST descartar los cambios.
+- **FR-017**: Idiomas MUST ofrecer solo esas opciones, sin interruptores para funciones que no existen (G25, MD 10). Al abrirse, MUST marcar el idioma de la app guardado.
 
 **Idioma de la app**
 
 - **FR-018**: La app MUST mostrarse en español mientras el usuario no elija otro idioma. El idioma del sistema por sí solo nunca la cambia (D-029).
 - **FR-019**: Al guardar otro idioma, todos los textos de la app MUST pasar a ese idioma: pantallas, avisos, frases de TalkBack y notificaciones. El cambio MUST hacerse sin perder el estado: la pestaña, la conversación abierta y la respuesta en curso. Tampoco MUST lanzar ninguna indexación.
 - **FR-020**: La elección MUST funcionar en todas las versiones de Android que soporta la app (12 o superior). En Android 13+, MUST quedar coherente en los dos sentidos con el ajuste de idioma por app del sistema.
-- **FR-021**: El idioma de la app y el de las respuestas MUST ser independientes.
+- **FR-021**: El idioma de la app MUST NOT cambiar el de las respuestas, que es siempre español.
 
 **Idioma de las respuestas**
 
-- **FR-022**: El idioma de las respuestas MUST guardarse y aplicarse al prompt de la siguiente pregunta. Una respuesta en curso no cambia.
-- **FR-023**: Con «Español», el prompt MUST ser idéntico, carácter a carácter, al del escritorio, sea cual sea el idioma de la app (SC-002 de F11).
-- **FR-024**: El valor por defecto del idioma de las respuestas MUST ser «Español». «Automático» MUST cambiar solo la línea del idioma del prompt por la de responder en el idioma de la pregunta (G25), sin detector de idioma. «Automático» MUST ofrecerse solo si su evaluación en el escritorio cumple la regla fijada antes de evaluar:
-  - con preguntas en español y en inglés, los umbrales del informe: negativas correctas ≥ 85 % y citas correctas ≥ 90 %;
-  - con preguntas en español, sin bajar de las cifras de `v4`;
-  - con preguntas en inglés sobre los documentos en español, respuestas correctas a no más de 10 puntos por debajo de las mismas preguntas en español con `v4`.
-
-  Si no la cumple, el trabajo se para y el usuario decide con las cifras.
+- **FR-022**: El idioma de las respuestas MUST ser siempre español. Idiomas MUST mostrarlo como única opción, marcada, y no guarda nada para él (D-061).
+- **FR-023**: El prompt MUST ser idéntico, carácter a carácter, al del escritorio, sea cual sea el idioma de la app (SC-002 de F11).
+- **FR-024**: «Automático» MUST NOT ofrecerse en F12. Su evaluación (US9) no cumplió la regla fijada antes de evaluar: con preguntas en español quedó por debajo de `v4` en negativas y citas, y contestó en español a todas las preguntas en inglés (D-061). Las respuestas en otro idioma quedan en el backlog, con un enfoque nuevo que haya que evaluar.
 - **FR-025**: La redacción del prompt MUST cambiar solo con una evaluación documentada en el escritorio y una entrada en DECISIONS (constitución III).
 - **FR-026**: La negativa del modelo MUST reconocerse en español y en inglés, con la misma lectura en la app y en el escritorio. Se muestra con el texto de negativa de F11 en el idioma de la app, sin fuentes (C1 de F11).
 
 **Persistencia**
 
-- **FR-027**: Las preferencias MUST guardarse en el almacenamiento privado del teléfono, sin copia de seguridad, y mantenerse tras cerrar la app (constitución I).
-- **FR-028**: Si guardar falla, MUST mantenerse los valores anteriores, avisar y permitir reintentar. Si leer falla, MUST usarse los valores por defecto (español y español), avisar en Idiomas y seguir funcionando el resto de la app.
+- **FR-027**: El idioma de la app MUST guardarse en el almacenamiento privado del teléfono, sin copia de seguridad, o en el ajuste de idioma por app del sistema, y mantenerse tras cerrar la app (constitución I).
+- **FR-028**: Si guardar falla, MUST mantenerse el valor anterior, avisar y permitir reintentar. Si leer falla, MUST usarse el español, avisar en Idiomas y seguir funcionando el resto de la app.
 
 **Textos, accesibilidad y privacidad**
 
@@ -398,7 +396,7 @@ Quien desarrolla evalúa en el escritorio el prompt de «Automático» con pregu
 
 ### Key Entities
 
-- **Preferencias de idioma:** el idioma de la app («Español» o «English») y el de las respuestas («Automático» o «Español»). Los dos son español por defecto (FR-018, FR-024) y se guardan en el teléfono.
+- **Idioma de la app:** «Español» o «English», español por defecto (FR-018). Se guarda en el teléfono. El idioma de las respuestas no es una preferencia: es siempre español (D-061).
 - **Ficha de modelo:** vista de un modelo del catálogo con su nombre, propósito, fichero, tamaño, SHA-256 publicado, dimensiones, procesador preparado y estado real. Se lee; F12 no la modifica.
 - **Historial de chat:** todas las conversaciones guardadas por F11, con sus mensajes y fuentes. F12 solo lo borra entero.
 
@@ -414,7 +412,7 @@ Quien desarrolla evalúa en el escritorio el prompt de «Automático» con pregu
   - no se lanza ninguna indexación;
   - el idioma se mantiene tras cerrar la app.
 - **SC-004**: Con «Español», el prompt es idéntico al del escritorio para todas las preguntas del conjunto de evaluación, con la app en español y en inglés.
-- **SC-005**: Con cada opción guardada, el 100 % de las preguntas siguientes usan la regla de idioma de esa opción, y la negativa se reconoce con cada una.
+- **SC-005**: El 100 % de las preguntas usan el prompt del escritorio, con la app en español y en inglés, y la negativa se reconoce en español y en inglés.
 - **SC-006**: Tras «Borrar historial de chat» confirmado:
   - quedan 0 conversaciones guardadas;
   - el número de documentos y de fragmentos indexados no cambia;
@@ -425,7 +423,7 @@ Quien desarrolla evalúa en el escritorio el prompt de «Automático» con pregu
 - **SC-009**: Los textos en español y en inglés tienen las mismas claves (100 % de paridad), y la revisión de las traducciones al inglés queda en el informe de cierre.
 - **SC-010**: Ajustes e Idiomas no hacen ninguna llamada de red, y los registros de una sesión de prueba no contienen contenido privado.
 - **SC-011**: Las capturas del teléfono coinciden con los PNG 09 y 10 en estructura, textos, colores y tipografía, salvo las diferencias documentadas en el informe de cierre.
-- **SC-012**: La evaluación de «Automático» queda registrada en DECISIONS con sus cifras por idioma de la pregunta, y «Automático» solo se ofrece si cumple la regla de FR-024.
+- **SC-012**: La evaluación de «Automático» queda registrada en DECISIONS con sus cifras por idioma de la pregunta (D-061), y la app no lo ofrece.
 - **SC-013**: La medida entre idiomas queda registrada en DECISIONS con sus cifras por combinación de idiomas, el pendiente «Documentos en otro idioma» queda cerrado y el texto de la tarjeta cumple la regla de FR-032.
 
 ## Assumptions
@@ -461,7 +459,8 @@ Quien desarrolla evalúa en el escritorio el prompt de «Automático» con pregu
     - si falla la lectura, Idiomas muestra «No se pudieron leer tus preferencias. Se usan las de por defecto.».
   - **S9 — Cambio del idioma de la app:** al guardar, la app se redibuja en el idioma nuevo y vuelve a la pantalla de origen. TalkBack anuncia «Preferencias guardadas» en el idioma nuevo.
   - **S10 — Tarjeta «Búsqueda multilingüe»:** el texto del PNG si la medida cumple la regla de FR-032. Si no, el texto propuesto con las cifras se aprueba en una parada antes de implementarlo.
-  - **S11 — Nombres de opciones con la app en inglés:** los idiomas de la app siguen como «Español» y «English». Las respuestas pasan a «Automatic / Detect the question's language» y «Spanish».
+  - **S11 — Nombres de opciones con la app en inglés:** los idiomas de la app siguen como «Español» y «English». La opción de las respuestas pasa a «Spanish».
+  - **S12 — Idioma de las respuestas** (D-061): la sección muestra una sola fila, «Español», marcada. TalkBack la lee como «Español, botón de opción, seleccionado, 1 de 1».
 - **Ficha de modelo:** solo muestra los dos modelos de producto (Gemma 4 E2B y EmbeddingGemma 2 270M). Los modelos de diagnóstico de debug no aparecen.
 - **Idioma de la app:** español e inglés. Otros idiomas se añaden después por el mismo mecanismo (D-029).
 - **Corpus en inglés:** documentos públicos que se pueden guardar en el repositorio, como los del corpus de evaluación en español. El plan elige cuáles, cuántas preguntas se hacen y cómo se traducen.

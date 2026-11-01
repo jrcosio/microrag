@@ -7,17 +7,15 @@ Fecha: 2026-11-01. Fuentes:
 
 ## 1. Preferencias de idioma (`domain/settings`)
 
+> **D-061:** «Automático» no se ofrece. El idioma de las respuestas es siempre español: no es una preferencia, no tiene tienda y el prompt no cambia. Lo que sigue solo modela el idioma de la app.
+
 ```kotlin
 /** Language of the app's texts (D-029): Spanish unless the user picks English. */
 enum class AppLanguage(val tag: String) { SPANISH("es"), ENGLISH("en") }
 
-/** Language of the chat's answers (D-058): Spanish by default; AUTOMATIC follows the question. */
-enum class AnswerLanguage(val key: String) { SPANISH("es"), AUTOMATIC("auto") }
-
-/** What Idiomas shows; [readFailed] when the answer language could not be read and the default is used (S8). */
+/** What Idiomas shows; [readFailed] when the stored app language could not be read and Spanish is used (S8). */
 data class LanguageSettings(
     val app: AppLanguage,
-    val answer: AnswerLanguage,
     val readFailed: Boolean = false,
 )
 
@@ -29,27 +27,20 @@ sealed interface SaveResult {
 }
 ```
 
-**Dónde se guarda cada valor** (R2, R3; constitución I):
+**Dónde se guarda** (R2; constitución I):
 
 | Valor | Android 13+ | Android 12 | Por defecto |
 |---|---|---|---|
-| Idioma de la app | `LocaleManager.applicationLocales`, que guarda el sistema | `noBackupFilesDir/settings/app_language`, una línea `es` o `en` | `SPANISH`, si está vacío o falta |
-| Idioma de las respuestas | DataStore `noBackupFilesDir/datastore/settings.preferences_pb`, clave `answer_language` (`es` o `auto`) | igual | `SPANISH`, si falta, es desconocido o falla la lectura |
+| Idioma de la app | `LocaleManager.applicationLocales`, que guarda el sistema | `noBackupFilesDir/settings/app_language`, una línea `es` o `en` | `SPANISH`, si está vacío, falta o no se puede leer |
 
 **Interfaces:**
 
 ```kotlin
-/** The answer language on disk (data/settings, R3). */
-interface LanguageSettingsStore {
-    /** Never fails: a read error emits the default with readFailed = true. */
-    val answerLanguage: Flow<Pair<AnswerLanguage, Boolean>>
-    /** False when the write failed; the previous value stays. */
-    suspend fun saveAnswerLanguage(language: AnswerLanguage): Boolean
-}
-
 /** The app language on the platform (core/locale, R2). */
 interface AppLanguageController {
     fun current(): AppLanguage
+    /** True when the Android 12 file exists but could not be read, so Spanish is in use (S8). */
+    val readFailed: Boolean
     /** False when it could not be stored (Android 12 file write). */
     suspend fun apply(language: AppLanguage): Boolean
     /** True below Android 13: the screen calls recreate() after applying. */
@@ -104,9 +95,7 @@ suspend fun conversationCount(): Int
 suspend fun conversationExists(id: Long): Boolean
 ```
 
-**`DefaultChatSession`:**
-- recibe `answerLanguage: () -> Flow<AnswerLanguage>` y lo lee al empezar cada respuesta (R5);
-- `ask(id, …)` crea una conversación nueva si `id` ya no existe (R10).
+**`DefaultChatSession`:** `ask(id, …)` crea una conversación nueva si `id` ya no existe (R10). El prompt no cambia (D-061).
 
 **Casos de uso nuevos:**
 - `CountConversationsUseCase`;
@@ -118,15 +107,10 @@ suspend fun conversationExists(id: Long): Boolean
 ## 4. Prompt (`rag/answer`)
 
 ```kotlin
-enum class PromptLanguage(internal val inPrompt: String) {
-    SPANISH("español"),
-    AUTOMATIC("el idioma de la PREGUNTA"),
-}
-
-const val REFUSAL_EN = "I can't find that information in the available documents."
+const val REFUSAL_EN = "I can't find that information in the available documents."   // next to REFUSAL
 ```
 
-- **`AnswerLanguage` a `PromptLanguage`:** `SPANISH` → `SPANISH` y `AUTOMATIC` → `AUTOMATIC`. La traducción la hace `data/chat`.
+- **`PromptLanguage`** se queda solo con `SPANISH` (D-061).
 - **`AnswerReading.isRefusal`:** acepta `REFUSAL` o `REFUSAL_EN` tras `norm`, igual que `judge.is_refusal`.
 
 ## 5. Estado de las pantallas (`feature/settings`)
@@ -148,16 +132,14 @@ enum class SettingsMessage { HISTORY_CLEARED, NO_CONVERSATIONS, CLEAR_FAILED }  
 data class LanguagesUiState(
     val saved: LanguageSettings? = null,          // null while loading
     val selectedApp: AppLanguage? = null,         // SavedStateHandle with its starting value; follows a system change if untouched (P19)
-    val selectedAnswer: AnswerLanguage? = null,   // SavedStateHandle; starts as saved.answer
     val saving: Boolean = false,
     val saveFailed: Boolean = false,              // S8
-    val automaticOffered: Boolean = true,         // false only if the evaluation did not pass (FR-024)
 )
 
 sealed interface LanguagesEvent { data class Close(val recreate: Boolean) : LanguagesEvent }
 ```
 
-`automaticOffered` es una constante de la app (`LanguageOptions.AUTOMATIC_OFFERED`), que fija la decisión de la evaluación (R7). No es una preferencia del usuario.
+La sección «Idioma de las respuestas» no tiene estado: muestra «Español» marcada (S12, D-061).
 
 ## 6. Escritorio (`offline/`)
 

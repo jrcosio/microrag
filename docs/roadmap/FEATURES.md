@@ -581,7 +581,7 @@ También se introduce `EngineCoordinator`, que garantiza que nunca haya dos engi
 ## F12 — Ajustes e Idiomas
 
 - **Tipo:** Producto.
-- **Estado:** 🟨 en curso, en la rama `012-settings-languages`: specify y clarify aprobados el 2026-11-01, con las propuestas de UI S1–S11; plan, tasks y analyze aprobados el 2026-11-01; implementación en curso. Decisiones D-058 (clarify: «Español» por defecto y «Automático» solo tras evaluarlo; ficha de modelo de solo lectura en las dos filas; medida de la consulta entre idiomas en F12) y D-059 (plan: idioma de la app sin AppCompat, evaluaciones en el escritorio antes que la app) y D-060 (analyze: mínimo de respuestas correctas en las reglas en inglés). Spec en `specs/012-settings-languages/spec.md`.
+- **Estado:** 🟨 en curso, en la rama `012-settings-languages`: specify y clarify aprobados el 2026-11-01, con las propuestas de UI S1–S11; plan, tasks y analyze aprobados el 2026-11-01; implementación en curso. Decisiones D-058 (clarify: «Español» por defecto y «Automático» solo tras evaluarlo; ficha de modelo de solo lectura en las dos filas; medida de la consulta entre idiomas en F12) y D-059 (plan: idioma de la app sin AppCompat, evaluaciones en el escritorio antes que la app) y D-060 (analyze: mínimo de respuestas correctas en las reglas en inglés). En la implementación, D-061: «Automático» no se ofrece; el chat responde siempre en español. Spec en `specs/012-settings-languages/spec.md`.
 
 **Objetivo.**
 - Ajustes con el estado real de los modelos y su detalle (G24).

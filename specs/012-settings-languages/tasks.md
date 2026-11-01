@@ -117,10 +117,12 @@ Historias de la spec:
 
   Ampliar `offline/eval/testset.py` para leer y validar conjuntos `crosslang`, y `validate-testset set=crosslang` en `offline/run_eval.py`.
 - [X] T008 [US9] Implementar `crosslang-review` en `offline/eval/pipeline.py` y `offline/run_eval.py`, con las combinaciones de L11. Al principio solo está ES·EN, porque `en` aún no existe. Añadir sus filas, y la de `validate-testset set=crosslang`, a la tabla de `offline/README.md`. T006 pasa.
-- [ ] T009 [US9] Ejecutar `crosslang-review english_answers=auto` para ES·EN y juzgar a mano sus 72 respuestas en `offline/reports/crosslang-review.csv` (L12).
-- [ ] T010 [US9] **Decisión sobre «Automático»** (L6, más los umbrales de ES·EN y sus correctas a no más de 10 puntos de sus preguntas de origen con `v4`):
-  - **Si se adopta:** se registra en una entrada nueva de `docs/roadmap/DECISIONS.md` con su tabla, y se sigue.
-  - **Si no:** **se para** y el usuario decide con las cifras. Mientras tanto, la app se construye sin la opción (`AUTOMATIC_OFFERED = false`, T019).
+- [ ] T009 [US9] Ejecutar `crosslang-review english_answers=es` para ES·EN y juzgar a mano sus 72 respuestas en `offline/reports/crosslang-review.csv` (L12). Con `auto`, las 72 respuestas salieron en español, y por eso «Automático» no se adopta (D-061); la medida sigue con las respuestas en español que dará la app.
+- [X] T010 [US9] **Decisión sobre «Automático»** (L6, más los umbrales de ES·EN y sus correctas a no más de 10 puntos de sus preguntas de origen con `v4`). Resultado: no se adopta; lo decidió el usuario con las cifras (D-061):
+  - con las preguntas en español, 1 negativa y 1,4 puntos de citas por debajo de `v4`;
+  - con las preguntas en inglés, las 72 respuestas en español.
+
+  Idiomas muestra «Español» como única opción de respuesta (S12), y el prompt no cambia.
 
 **Checkpoint**: «Automático» decidido y registrado.
 
@@ -144,7 +146,7 @@ Historias de la spec:
   - `sources corpus=en`;
   - `build en`.
 - [ ] T014 [US8] Redactar `offline/testset/crosslang/en-docs.en.jsonl` con el método de F05 (L10: 40 con respuesta, 10 seguimientos y 15 sin respuesta) y su traducción `en-docs.es.jsonl`. `validate-testset set=crosslang` pasa.
-- [ ] T015 [US8] Ejecutar `crosslang-review` para EN·EN y EN·ES, con el idioma de respuesta que decidió T010, y juzgar a mano sus unas 130 respuestas (L12).
+- [ ] T015 [US8] Ejecutar `crosslang-review english_answers=es` para EN·EN y EN·ES (respuestas en español, D-061), y juzgar a mano sus unas 130 respuestas (L12).
 - [ ] T016 [US8] Registrar:
   - la sección «Idiomas (F12)» en `offline/eval/report.py`, con su prueba en `offline/tests/test_report.py`, y regenerar `offline/reports/eval-report.md`;
   - una entrada nueva en `docs/roadmap/DECISIONS.md` con las cifras por combinación, que **cierra el pendiente «Documentos en otro idioma»**; las mejoras que pidan las cifras van a la ficha de F14 en `docs/roadmap/FEATURES.md`;
@@ -158,19 +160,15 @@ Historias de la spec:
 
 **Purpose**: la paridad del prompt y de la negativa, el dominio de ajustes, los fakes, el design system y los textos.
 
-- [ ] T017 [P] Pruebas JVM del prompt y de la negativa (P16, P17):
-  - `…/test/…/rag/answer/PromptBuilderTest.kt`: los mismos casos literales que T001 para `AUTOMATIC`;
-  - `…/test/…/rag/answer/AnswerReadingTest.kt`: los mismos casos que `test_judge.py` para `REFUSAL_EN`.
-
-  `AnswerGoldenTest` no cambia: 426 casos.
-- [ ] T018 Implementar `PromptLanguage.AUTOMATIC` y `REFUSAL_EN` en `…/microrag/rag/answer/PromptBuilder.kt`, e `isRefusal` con las dos frases en `…/microrag/rag/answer/AnswerReading.kt`. T017 pasa.
+- [ ] T017 [P] Pruebas JVM de la negativa (P17): `…/test/…/rag/answer/AnswerReadingTest.kt`, con los mismos casos que `test_judge.py` para `REFUSAL_EN`. El prompt no cambia (D-061): ni `PromptBuilderTest` ni `AnswerGoldenTest` (426 casos) se tocan.
+- [ ] T018 Implementar `REFUSAL_EN` en `…/microrag/rag/answer/PromptBuilder.kt`, junto a `REFUSAL`, e `isRefusal` con las dos frases en `…/microrag/rag/answer/AnswerReading.kt`. `PromptLanguage` se queda solo con `SPANISH`. T017 pasa.
 - [ ] T019 Crear el dominio de ajustes (data-model §1–§2, contrato `settings-api.md`) en `…/microrag/domain/settings/`:
-  - `SettingsModels.kt`: `AppLanguage`, `AnswerLanguage`, `LanguageSettings`, `SaveResult` y `ModelOverview`;
-  - `LanguageSettingsStore.kt`, `AppLanguageController.kt` y `SettingsNotices.kt`;
-  - `LanguageOptions.kt`, con `AUTOMATIC_OFFERED` según T010.
+  - `SettingsModels.kt`: `AppLanguage`, `LanguageSettings` (idioma de la app y `readFailed`), `SaveResult` y `ModelOverview`;
+  - `AppLanguageController.kt` y `SettingsNotices.kt`.
+
+  Sin idioma de las respuestas ni tienda de preferencias (D-061).
 - [ ] T020 [P] Crear `…/test/…/testing/SettingsFakes.kt`:
-  - una tienda en memoria con fallos programables de lectura y escritura;
-  - un controlador de idioma con `recreatesItself` y fallo programables;
+  - un controlador de idioma con `recreatesItself`, fallo al aplicar y fallo de lectura programables;
   - una vista de modelos programable.
 - [ ] T021 [P] Design system (contrato `settings-ui.md` §3):
   - `SettingsTrailing.ChipAndChevron` y `onClickLabel` en `LisdataSettingsRow`;
@@ -307,42 +305,33 @@ Historias de la spec:
 
 **Goal**: Idiomas sustituye al marcador. Guarda los dos idiomas, y el chat aplica el de las respuestas al prompt (FR-015–FR-017, FR-022–FR-026).
 
-**Independent Test**: guardar «Automático» (si se adopta) o «Español», y preguntar. El prompt lleva la regla de la opción, y con «Español» es idéntico al del escritorio (SC-004, SC-005).
+**Independent Test**: Idiomas guarda el idioma de la app y muestra «Español» como única opción de respuesta. El prompt sigue siendo el del escritorio (SC-004, SC-005).
 
 ### Tests for User Story 3
 
-- [ ] T044 [P] [US3] `…/test/…/data/settings/DataStoreLanguageSettingsStoreTest.kt`:
-  - guardar y leer;
-  - P8: un `IOException` al leer da `(SPANISH, readFailed)`; un fichero dañado se sustituye; un valor desconocido da `SPANISH`;
-  - un fallo al escribir devuelve `false` y conserva el valor anterior.
+- [X] T044 [P] [US3] **Retirada (D-061):** no hay tienda del idioma de las respuestas.
 - [ ] T045 [P] [US3] `…/test/…/domain/settings/SaveLanguageSettingsUseCaseTest.kt` (P6):
-  - el orden;
-  - `Unchanged` sin escrituras;
-  - si falla el idioma de las respuestas, no se toca el de la app;
-  - si falla el de la app, se repone el de las respuestas;
-  - `SettingsNotices.saved` solo cuando todo va bien.
-- [ ] T046 [P] [US3] Ampliar `DefaultChatSessionTest` (P16):
-  - el idioma se lee al empezar cada respuesta, también al reintentar;
-  - un cambio durante una respuesta solo afecta a la siguiente;
-  - con `SPANISH`, el prompt es el de siempre;
-  - una negativa en inglés queda como negativa (C1).
+  - sin cambios, `Unchanged` y ninguna escritura;
+  - si aplicar el idioma de la app falla, `Failed` y nada cambia;
+  - `SettingsNotices.saved` solo cuando va bien.
+- [X] T046 [P] [US3] **Retirada (D-061):** el prompt no cambia. La negativa en inglés como negativa (C1) se cubre en T017 y en `DefaultChatSessionTest`, que ya usa `AnswerReading`.
 - [ ] T047 [P] [US3] `…/test/…/feature/settings/LanguagesViewModelTest.kt`:
   - al abrir, marca lo guardado;
   - la selección sobrevive en `SavedStateHandle`;
   - «Guardando…», su anuncio (U7) y el segundo toque;
   - `Close(recreate)` según el controlador, y sin cambios vuelve atrás sin escribir;
-  - `AUTOMATIC_OFFERED` oculta la opción;
+  - la sección de respuestas tiene una sola opción, «Español», marcada (S12);
   - P19: tras una recreación con otro idioma del sistema, la selección sigue al actual si el usuario no la había tocado, y se conserva si la había tocado.
 - [ ] T048 [P] [US3] `…/test/…/feature/settings/LanguagesScreenTest.kt` (Robolectric):
-  - la estructura del PNG 10 (eyebrow, título, hero, dos grupos, tarjeta y botón);
-  - U3: grupos de opciones con rol, estado y posición;
+  - la estructura del PNG 10 (eyebrow, título, hero, dos grupos, tarjeta y botón), con una sola opción en «Idioma de las respuestas» (S12);
+  - U3: grupos de opciones con rol, estado y posición («1 de 1» en el de las respuestas);
   - con la app en inglés, las opciones de S11.
 
 ### Implementation for User Story 3
 
-- [ ] T049 [US3] Crear `…/microrag/data/settings/DataStoreLanguageSettingsStore.kt` (R3) y registrarlo en `…/microrag/data/di/DataModule.kt`. T044 pasa.
-- [ ] T050 [US3] Implementar `ObserveLanguageSettingsUseCase`, `SaveLanguageSettingsUseCase` y `ObserveAnswerLanguageUseCase` en `…/microrag/domain/settings/SettingsUseCases.kt`, con DI. T045 pasa.
-- [ ] T051 [US3] `DefaultChatSession` recibe el idioma de las respuestas y lo pasa a `PromptBuilder` (P16), con DI en `DataModule`. T046 pasa.
+- [X] T049 [US3] **Retirada (D-061):** sin tienda del idioma de las respuestas.
+- [ ] T050 [US3] Implementar `ObserveLanguageSettingsUseCase` y `SaveLanguageSettingsUseCase` (solo el idioma de la app) en `…/microrag/domain/settings/SettingsUseCases.kt`, con DI. T045 pasa.
+- [X] T051 [US3] **Retirada (D-061):** `DefaultChatSession` no cambia de prompt.
 - [ ] T052 [US3] Crear `LanguagesUiState.kt`, `LanguagesViewModel.kt`, `LanguagesScreen.kt` y `LanguagesRoute.kt` en `…/microrag/feature/settings/`:
   - `recreate()` en Android 12 tras volver atrás;
   - el texto de la tarjeta, el que decidió T016.
@@ -350,7 +339,7 @@ Historias de la spec:
   Sustituir el marcador de `Languages` en `MicroRagNavHost` y registrar el ViewModel. Actualizar `NavigationTest` y cualquier prueba que aún espere el marcador «F12». T047 y T048 pasan.
 - [ ] T053 [US3] Anuncio de P7: `…/microrag/core/navigation/MicroRagAppShell.kt` consume `SettingsNotices.saved` y lo anuncia con una región en vivo. Prueba Robolectric en `…/test/…/core/navigation/` con recreación.
 
-**Checkpoint**: Idiomas guarda los dos idiomas y el chat aplica el de las respuestas.
+**Checkpoint**: Idiomas guarda el idioma de la app y dice en qué idioma responde el chat.
 
 ---
 
@@ -365,7 +354,7 @@ Historias de la spec:
   - un fallo al guardar da el aviso de error, que se anuncia una vez; el botón vuelve a estar activo y los valores no cambian; reintentar funciona;
   - la app sigue usable.
 - [ ] T055 [US6] Implementar la tarjeta de aviso de lectura y el aviso de error al guardar en `LanguagesScreen`. T054 pasa.
-- [ ] T056 [US6] Prueba instrumentada `…/androidTest/…/data/settings/LanguageSettingsPersistenceTest.kt`: el idioma de las respuestas sobrevive a cerrar y abrir el DataStore real en un directorio temporal.
+- [ ] T056 [US6] Prueba instrumentada `…/androidTest/…/core/locale/PlatformAppLanguageControllerTest.kt` en el emulador `MicroRAG_API33`: aplicar English y volver a Español con el `LocaleManager` real; `current()` los lee. Deja el idioma como estaba.
 
 **Checkpoint**: preferencias robustas ante fallos.
 
@@ -425,7 +414,7 @@ Historias de la spec:
   - API 33 y API 37;
   - cambio de idioma de ida y vuelta, con la pestaña Chat y una notificación de indexación;
   - ajuste del sistema;
-  - «Automático» con una pregunta en inglés, si Gemma está preparada allí;
+  - una pregunta en inglés, que responde en español (D-061), si Gemma está preparada allí;
   - borrar el historial;
   - letra al 200 %, horizontal y modo oscuro;
   - capturas.
@@ -442,7 +431,7 @@ Historias de la spec:
   - ficha de modelo;
   - el diálogo de borrar se abre y se **cancela**;
   - si el usuario lo aprueba, con documentos públicos de prueba en una carpeta propia (como T069 de F11), que se borran al terminar:
-    - con «Automático» (si se adoptó), una pregunta en inglés que responde en inglés con sus fuentes;
+    - una pregunta en inglés, que responde en español con sus fuentes (D-061);
     - un cambio de idioma de la app con una respuesta en curso, que sigue sin reiniciarse;
   - sin tráfico de red de la app.
 
@@ -460,7 +449,7 @@ Historias de la spec:
 - **US8 (fase 3):** depende de T008 (comando) y de T010 (idioma de respuesta de las preguntas en inglés). **T016 puede parar** si cambia el texto de la tarjeta.
 - **Foundational (fase 4):**
   - T017 y T018 dependen de T002, por la paridad con los mismos casos;
-  - T019 necesita T010 para `AUTOMATIC_OFFERED`. Se puede escribir antes con `true` y ajustar después;
+  - T019 no depende ya de T010: «Automático» no se ofrece (D-061);
   - el resto, sin dependencias.
 
   **Bloquea US1–US7.**
@@ -479,7 +468,7 @@ Historias de la spec:
 - Las pruebas primero, y deben fallar.
 - Dominio y datos antes que el ViewModel; el ViewModel antes que la pantalla.
 - **Paradas de consulta:**
-  - T010, si «Automático» no se adopta;
+  - T010 (hecha: «Automático» no se adopta, D-061);
   - T016, si cambia el texto de la tarjeta;
   - T061, si ATF contradice el PNG;
   - T068: el recorrido se acuerda antes con el usuario.
@@ -491,7 +480,7 @@ Historias de la spec:
 - **US1:** T024–T026.
 - **US4:** T030–T033.
 - **US2:** T038–T040.
-- **US3:** T044–T048.
+- **US3:** T045, T047 y T048.
 
 ## Parallel Example: User Story 4
 

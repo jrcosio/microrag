@@ -1300,6 +1300,41 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
 
 ---
 
+## D-061 — «Automático» no se ofrece en F12 (evaluación del idioma de las respuestas)
+
+- **Fecha:** 2026-11-01
+- **Decisión:**
+  - **El chat responde siempre en español.** El prompt es el del escritorio (`v4`), sin cambios.
+  - **Idiomas muestra «Español» como única opción**, marcada, en «IDIOMA DE LAS RESPUESTAS». No se guarda nada para ella.
+  - **«Automático» no se ofrece en F12.** Las respuestas en otro idioma pasan al backlog, con un enfoque nuevo que haya que evaluar (plantilla en inglés, detección del idioma…).
+  - **La negativa se reconoce también en inglés**, en la app y en el escritorio, por robustez y para que las dos lecturas sean iguales.
+  - **La medida entre idiomas** (FR-033 de F12) sigue, con respuestas en español.
+- **Cifras** (regla fijada antes de evaluar, D-058 y D-060):
+
+  | `language-review`: las 426 preguntas en español, juicio manual | `v4` | «Automático» |
+  |---|---:|---:|
+  | Respuestas correctas | 81,1 % (300/370) | 81,1 % (300/370) |
+  | Negativas correctas | 91,1 % (51/56) | **89,3 % (50/56)** |
+  | Citas correctas | 94,3 % | **92,9 %** |
+  | Negativas indebidas | 23 | 20 |
+
+  - Cambian 196 respuestas, juzgadas a mano: gana 6 correctas y pierde 6. La negativa que falla es q0120.
+  - Las citas bajan por números de fuente inexistentes ([11], [8], [4]) y por cifras mal copiadas.
+  - **Preguntas en inglés sobre los documentos en español** (72, muestra de F10 traducida): **las 72 respuestas salen en español.** La línea «Responde en el idioma de la PREGUNTA», dentro de un prompt y unas fuentes en español, no cambia el idioma.
+- **Motivo:**
+  - con las preguntas en español queda por debajo de `v4` en dos cifras;
+  - con las preguntas en inglés no hace lo que promete el PNG («Detectar idioma de la pregunta»).
+- **Alternativas descartadas:**
+  - probar una variante de la línea (por ejemplo, en inglés), que exigía otra ronda de unas 270 respuestas a juzgar sin garantía;
+  - que «Automático» siga el idioma de la app, que cambia el PNG y también exigía evaluar;
+  - ocultar la sección, o mostrar «Automático» desactivado con «próximamente».
+- **Origen:** usuario, a la vista de las cifras (T010 de F12).
+- **Afecta:**
+  - F12: US3, FR-016, FR-017, FR-021, FR-022, FR-024, FR-027, FR-028, S11 y S12 nueva. Sobra la tienda del idioma de las respuestas;
+  - el backlog: «English (respuestas) y detección de idioma» (G25) sigue ahí, ahora con estas cifras como punto de partida.
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.

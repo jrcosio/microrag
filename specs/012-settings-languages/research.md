@@ -59,6 +59,8 @@ Fecha: 2026-11-01. Todas las decisiones parten de:
 
 ## R3. Idioma de las respuestas: DataStore con manejo de errores
 
+> **Retirada (D-061):** «Automático» no se ofrece, así que no hay nada que guardar para el idioma de las respuestas.
+
 **Decisión:** `DataStoreLanguageSettingsStore` sobre `noBackupFilesDir/datastore/settings.preferences_pb`, con la clave `answer_language` (`es` o `auto`). Se registra como `single` en `DataModule`, con el patrón `create(noBackupDir, scope)` de las otras tiendas.
 
 - **Lectura** (FR-028):
@@ -93,6 +95,8 @@ Fecha: 2026-11-01. Todas las decisiones parten de:
 
 ## R5. El idioma de las respuestas en el prompt
 
+> **D-061:** en la app, `PromptLanguage` se queda solo con `SPANISH` y la sesión no cambia. En el escritorio, `answer_language` se queda para documentar la evaluación.
+
 **Decisión:**
 - `PromptLanguage` pasa a ser `SPANISH("español")` y `AUTOMATIC("el idioma de la PREGUNTA")`. Con `AUTOMATIC`, la única línea que cambia es «- Responde en el idioma de la PREGUNTA, de forma clara y breve.»
   - «PREGUNTA» va en mayúsculas, igual que las etiquetas y las reglas de `v3` y `v4`.
@@ -114,6 +118,8 @@ Fecha: 2026-11-01. Todas las decisiones parten de:
 - **Variantes no previstas:** una negativa en inglés con otras palabras se lee como respuesta sin citas (C2 de F11). La evaluación la cuenta como negativa fallida, y el juicio manual lo anota.
 
 ## R7. Evaluación de «Automático» con preguntas en español (`language-review`)
+
+> **Resultado (D-061):** 300/370, 50/56 y 92,9 % frente a 300/370, 51/56 y 94,3 % de `v4`; con las preguntas en inglés, las 72 respuestas salieron en español. No se adopta.
 
 **Decisión:** un comando nuevo, `run_eval.py language-review`, con el patrón de `limit-review`.
 

@@ -1,14 +1,15 @@
 # Contrato: idiomas, modelos e historial (F12)
 
+> **D-061:** «Automático» no se ofrece. No hay tienda del idioma de las respuestas (P8 retirada) y el prompt no cambia (P16 retirada). Guardar solo afecta al idioma de la app (P6).
+
 Capas (constitución II): `feature/settings` → casos de uso (`domain/settings`, `domain/chat`, `domain/onboarding`) → `LanguageSettingsStore`, `AppLanguageController`, `ChatSession` y `ModelFileRepository`. Tipos en data-model §1–§4.
 
 ## 1. Casos de uso nuevos
 
 | Caso de uso | Paquete | Qué hace |
 |---|---|---|
-| `ObserveLanguageSettingsUseCase` | `domain/settings` | `Flow<LanguageSettings>`: el idioma de la app de `AppLanguageController.current()` y el de las respuestas del store, con `readFailed` |
+| `ObserveLanguageSettingsUseCase` | `domain/settings` | `Flow<LanguageSettings>`: el idioma de la app de `AppLanguageController.current()`, con `readFailed` |
 | `SaveLanguageSettingsUseCase` | `domain/settings` | Guarda con el orden de P6 y devuelve `SaveResult` |
-| `ObserveAnswerLanguageUseCase` | `domain/settings` | `Flow<AnswerLanguage>` para la sesión del chat (P12) |
 | `ObserveModelOverviewUseCase` | `domain/settings` | `Flow<List<ModelOverview>>` (P11) |
 | `CountConversationsUseCase` | `domain/chat` | `repository.conversationCount()` |
 | `ClearChatHistoryUseCase` | `domain/chat` | `session.deleteAll()`; devuelve `true` o `false` y nunca lanza |
@@ -23,7 +24,7 @@ Se reutilizan:
 **Idioma de la app**
 - **P1. Por defecto, español** (D-029):
   - en Android 13+, un `LocaleManager.applicationLocales` vacío se lee como `SPANISH`;
-  - en Android 12, un fichero ausente o ilegible se lee igual;
+  - en Android 12, un fichero ausente o ilegible se lee igual; si es ilegible, `readFailed = true` (S8);
   - el idioma del sistema nunca cuenta.
 - **P2. Android 13+:**
   - `current()` lee `LocaleManager` en cada llamada, así que un cambio hecho en los ajustes del sistema se ve al volver;
@@ -36,19 +37,13 @@ Se reutilizan:
 - **P4. Paso a Android 13:** al arrancar en API 33+, si `LocaleManager` está vacío y existe el fichero, se aplica su valor y se borra el fichero. Una sola vez.
 - **P5. Textos fuera de la actividad:** las notificaciones de indexación y de descarga construyen sus textos con `AppLocale.localized(context)` en cada llamada. Nunca usan el contexto de la `Application` envuelto al arrancar.
 
-**Idioma de las respuestas**
-- **P6. Guardado:**
-  1. si el idioma de las respuestas ha cambiado, se guarda primero; si falla, `Failed`;
-  2. si el idioma de la app ha cambiado, se aplica después; si falla, se repone el idioma de las respuestas anterior y se devuelve `Failed`;
-  3. sin cambios, `Unchanged` y no se escribe nada;
-  4. si todo va bien, `Saved(appLanguageChanged)`, y `SettingsNotices.saved` pasa a `true`.
+**Guardado y aviso**
+- **P6. Guardado** (D-061: solo el idioma de la app):
+  - sin cambios, `Unchanged` y no se escribe nada;
+  - si `apply()` falla, `Failed` y nada cambia;
+  - si va bien, `Saved(appLanguageChanged = true)` y `SettingsNotices.saved` pasa a `true`.
 - **P7. Aviso:** `SettingsNotices.saved` lo consume el armazón de la app, una sola vez, después de la recreación si la hay. Lo anuncia con el texto «Preferencias guardadas» de los recursos ya recreados.
-- **P8. Lectura del store** (FR-028):
-  - un `IOException` emite `(SPANISH, readFailed = true)`;
-  - un fichero dañado se sustituye por uno vacío;
-  - un valor desconocido se lee como `SPANISH`.
-
-  Escritura: un `IOException` devuelve `false` y el valor anterior sigue en el fichero.
+- **P8.** Retirada (D-061): no hay tienda del idioma de las respuestas.
 
 **Historial**
 - **P9. `ChatSession.deleteAll()`** se hace bajo el `Mutex` de la sesión:
@@ -75,7 +70,7 @@ Se reutilizan:
   - «Completar configuración» navega a `Setup` y solo aparece si no está `Ready`.
 
 **Prompt**
-- **P16. Idioma en el prompt:** `DefaultChatSession` lee `answerLanguage().first()` al empezar cada respuesta, también al reintentar. Lo pasa como `PromptLanguage` a `PromptBuilder.build`. Con `SPANISH`, el prompt es idéntico al del escritorio y al del golden (SC-004).
+- **P16.** Retirada (D-061): el prompt no cambia; `DefaultChatSession` sigue pasando `SPANISH`.
 - **P17. Negativa:** `AnswerReading.isRefusal(answer)` es `norm(answer) == norm(REFUSAL) || norm(answer) == norm(REFUSAL_EN)`. El escritorio hace lo mismo en `judge.is_refusal`.
 
 **Privacidad**
@@ -90,8 +85,7 @@ Se reutilizan:
 ## 3. Inyección (Koin)
 
 - `DataModule`:
-  - `single<LanguageSettingsStore> { DataStoreLanguageSettingsStore.create(noBackupDir, applicationScope) }`;
-  - `DefaultChatSession` recibe `answerLanguage = { get<ObserveAnswerLanguageUseCase>()() }`.
+  - nada nuevo para las preferencias (D-061).
 - `CoreModule`, o donde vive hoy el `ApplicationScope`:
   - `single<AppLanguageController> { PlatformAppLanguageController(androidContext(), dispatchers) }`;
   - `single { SettingsNotices() }`.
@@ -106,10 +100,10 @@ Se reutilizan:
 | `core/locale/AppLocale.kt` | `init(base)` (fichero en API 31–32), `localized(context)`, `resolve()` con el valor en memoria por debajo de API 33 |
 | `MicroRagApplication.kt` | `AppLocale.init(base)` antes de `wrap`; la migración de P4 en `onCreate` |
 | `data/indexing/IndexingNotifications.kt`, `data/download/DownloadNotifications.kt` | Textos con `AppLocale.localized(context)` (P5) |
-| `rag/answer/PromptBuilder.kt` | `PromptLanguage.AUTOMATIC` y `REFUSAL_EN` |
+| `rag/answer/PromptBuilder.kt` | `REFUSAL_EN`, junto a `REFUSAL` |
 | `rag/answer/AnswerReading.kt` | `isRefusal` con las dos frases (P17) |
 | `domain/chat/ChatSession.kt`, `ChatRepository.kt` | Data-model §3 |
-| `data/chat/DefaultChatSession.kt` | `deleteAll`, `historyCleared`, idioma de las respuestas (P16) y P10 |
+| `data/chat/DefaultChatSession.kt` | `deleteAll`, `historyCleared` y P10 |
 | `data/chat/SqliteChatRepository.kt` | `conversationCount` y `conversationExists` |
 | `feature/chat/ChatViewModel.kt` | P11 |
 | `core/navigation/MicroRagNavHost.kt` | Las rutas `Settings` y `Languages` sin marcador (settings-ui §5) |
