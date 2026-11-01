@@ -77,6 +77,14 @@
 - **«Índice y rendimiento»:** su subtítulo es «Almacenamiento y procesamiento», pero la pantalla de Indexación no muestra almacenamiento (G21).
 - **«Búsqueda multilingüe»:** el PNG dice «Consulta documentos en distintos idiomas desde el mismo chat.», y el MD pide no prometer resultados perfectos. La búsqueda por palabras está pensada para el español y la consulta entre idiomas no se ha medido.
 
+## Clarifications
+
+### Session 2026-11-01
+
+- Q: ¿Qué hace «Automático» en el idioma de las respuestas, y cuál es el valor por defecto? → A: «Español» por defecto, con el prompt ya evaluado e idéntico al del escritorio. «Automático» cambia solo la línea del idioma por «responde en el idioma de la pregunta». Se ofrece solo tras evaluarlo en el escritorio con preguntas en español y en inglés. Debe cumplir los umbrales del informe (negativas ≥ 85 %, citas ≥ 90 %) y, con preguntas en español, no bajar de las cifras de `v4`. La app reconoce la negativa en español y en inglés. Si no pasa, se para y el usuario decide con las cifras.
+- Q: ¿Qué filas de modelo abren su ficha en Ajustes, y qué se puede hacer desde ella? → A: Las dos filas llevan chip con su estado real («Local» si está listo) y chevron, y abren una ficha de solo lectura: nombre, fichero, tamaño, SHA-256 abreviado, dimensiones, GPU/CPU y estado. Si el modelo no está listo, la ficha ofrece «Completar configuración», que abre la Preparación. Ajustes no tiene acciones propias sobre los modelos: no hay «Revalidar» ni nueva descarga.
+- Q: ¿Se mide en F12 cómo responde la app con documentos o preguntas en otro idioma, y qué texto lleva la tarjeta «Búsqueda multilingüe»? → A: Se mide en F12, en el escritorio, con un conjunto pequeño: documentos públicos en inglés con preguntas en español y en inglés, y preguntas en inglés sobre los documentos en español. Las preguntas en inglés se comparten con la evaluación de «Automático». El texto de la tarjeta se ajusta a lo que digan las cifras, y el pendiente «Documentos en otro idioma» de DECISIONS se cierra con ellas. Las mejoras de búsqueda, si hacen falta, van a F14.
+
 ## User Scenarios & Testing *(mandatory)*
 
 **Actores:**
@@ -99,8 +107,8 @@ El usuario abre Ajustes y ve, en «INTELIGENCIA ARTIFICIAL», los dos modelos co
 1. **Given** los dos modelos verificados y preparados en GPU, **When** el usuario abre Ajustes, **Then** «Modelo de respuestas / Gemma 4» y «Modelo de embeddings / EmbeddingGemma 2» muestran el chip «Local».
 2. **Given** Gemma preparada solo en CPU, **When** se abre Ajustes, **Then** su fila muestra «Modo CPU, más lento» en lugar de «Local».
 3. **Given** un modelo sin descargar, descargándose, incompatible o con la verificación fallida, **When** se abre Ajustes, **Then** su fila muestra el estado de la Preparación y nunca «Local».
-4. **Given** un modelo, **When** el usuario abre su ficha, **Then** ve el fichero, el tamaño, el SHA-256 abreviado, las dimensiones (256 en el de embeddings), el procesador y el estado (alcance en FR-006).
-5. **Given** un modelo que no está listo, **When** el usuario abre su ficha, **Then** tiene un acceso a la Preparación (D-046).
+4. **Given** cualquiera de los dos modelos, **When** el usuario toca su fila, **Then** se abre su ficha con el fichero, el tamaño, el SHA-256 abreviado, las dimensiones (256 en el de embeddings), el procesador y el estado, sin acciones sobre el modelo.
+5. **Given** un modelo que no está listo, **When** el usuario abre su ficha, **Then** ve «Completar configuración», que abre la Preparación (D-046).
 6. **Given** Ajustes abierto mientras termina una descarga, **When** el modelo queda verificado y preparado, **Then** la fila cambia a «Local» sin salir de la pantalla.
 
 ---
@@ -142,11 +150,12 @@ El usuario elige en «IDIOMA DE LAS RESPUESTAS» entre «Automático» y «Espa�
 
 **Acceptance Scenarios**:
 
-1. **Given** «Español» guardado y la app en inglés, **When** el usuario pregunta, **Then** el prompt es idéntico al del escritorio y la respuesta pide español.
-2. **Given** «Automático» guardado, **When** el usuario pregunta, **Then** el prompt lleva la regla de «Automático» (FR-024).
-3. **Given** una respuesta en curso, **When** el usuario cambia el idioma de las respuestas, **Then** esa respuesta no cambia y la elección se aplica a la siguiente pregunta.
-4. **Given** cualquiera de las dos opciones, **When** el modelo responde con la negativa, **Then** la app la reconoce y muestra el texto de negativa de F11 en el idioma de la app, sin fuentes.
-5. **Given** una opción guardada, **When** se cierra y se vuelve a abrir la app, **Then** sigue elegida.
+1. **Given** ninguna elección hecha, **When** el usuario abre Idiomas, **Then** está marcado «Español».
+2. **Given** «Español» guardado y la app en inglés, **When** el usuario pregunta, **Then** el prompt es idéntico al del escritorio y la respuesta pide español.
+3. **Given** «Automático» guardado, **When** el usuario pregunta en inglés, **Then** el prompt pide responder en el idioma de la pregunta, y la respuesta llega en inglés con sus fuentes.
+4. **Given** una respuesta en curso, **When** el usuario cambia el idioma de las respuestas, **Then** esa respuesta no cambia y la elección se aplica a la siguiente pregunta.
+5. **Given** cualquiera de las dos opciones, **When** el modelo responde con la negativa en español o en inglés, **Then** la app la reconoce y muestra el texto de negativa de F11 en el idioma de la app, sin fuentes.
+6. **Given** una opción guardada, **When** se cierra y se vuelve a abrir la app, **Then** sigue elegida.
 
 ---
 
@@ -230,17 +239,35 @@ Ajustes e Idiomas se ven como los PNG 09 y 10, se usan con TalkBack, con la letr
 
 ---
 
-### User Story 8 - Búsqueda multilingüe sin promesas que no se cumplen (Priority: P3)
+### User Story 8 - Búsqueda multilingüe medida, sin promesas que no se cumplen (Priority: P3)
 
-La tarjeta «Búsqueda multilingüe» de Idiomas informa de lo que la app puede hacer con documentos y preguntas en otro idioma, sin prometer más de lo que se ha medido.
+Quien desarrolla mide en el escritorio cómo responde la app cuando el documento y la pregunta están en idiomas distintos. La tarjeta «Búsqueda multilingüe» de Idiomas dice lo que esas cifras permiten decir.
 
-**Why this priority**: el MD pide mensajes honestos sobre el soporte multilingüe, y la consulta entre idiomas está sin medir (pendiente en DECISIONS).
+**Why this priority**: el MD pide mensajes honestos sobre el soporte multilingüe, y la consulta entre idiomas está sin medir. Es el pendiente «Documentos en otro idioma» de DECISIONS, que surgió de una pregunta del usuario en F11.
 
-**Independent Test**: el texto de la tarjeta se contrasta con las cifras registradas en DECISIONS.
+**Independent Test**: las cifras quedan en DECISIONS por combinación de idiomas, y el texto de la tarjeta se contrasta con ellas.
 
 **Acceptance Scenarios**:
 
-1. **Given** Idiomas, **When** el usuario lee la tarjeta «Búsqueda multilingüe», **Then** es informativa, sin interruptor ni acción, y su texto es el de FR-032.
+1. **Given** documentos públicos en inglés y los documentos en español de la evaluación, **When** se mide con preguntas en español y en inglés, **Then** quedan en DECISIONS las respuestas correctas, las negativas y las citas de cada combinación (documento en inglés con pregunta en español, documento en inglés con pregunta en inglés, documento en español con pregunta en inglés), junto a la referencia en español.
+2. **Given** las cifras, **When** se fija el texto de la tarjeta, **Then** sigue la regla de FR-032.
+3. **Given** Idiomas, **When** el usuario lee la tarjeta «Búsqueda multilingüe», **Then** es informativa, sin interruptor ni acción.
+
+---
+
+### User Story 9 - Evaluación de «Automático» antes de ofrecerlo (Priority: P2)
+
+Quien desarrolla evalúa en el escritorio el prompt de «Automático» con preguntas en español y en inglés, con el mismo método de juicio que F05 y F11. «Automático» solo se ofrece si cumple la regla fijada antes de evaluar.
+
+**Why this priority**: la constitución III exige una evaluación documentada para cambiar la redacción del prompt, y ninguna plantilla se ha evaluado en otro idioma (D-056).
+
+**Independent Test**: la evaluación queda en DECISIONS con sus cifras, junto a las de `v4` con las mismas preguntas en español.
+
+**Acceptance Scenarios**:
+
+1. **Given** la regla fijada antes de evaluar (umbrales del informe y, en español, sin bajar de `v4`), **When** termina la evaluación, **Then** sus cifras de respuestas correctas, negativas y citas quedan en DECISIONS, separadas por idioma de la pregunta.
+2. **Given** una evaluación que no cumple la regla, **When** termina, **Then** el trabajo se para y el usuario decide con las cifras, sin ofrecer «Automático» mientras tanto.
+3. **Given** respuestas en inglés con la negativa, **When** se juzgan, **Then** la negativa se reconoce con la misma lectura que usará la app.
 
 ---
 
@@ -261,6 +288,9 @@ La tarjeta «Búsqueda multilingüe» de Idiomas informa de lo que la app puede 
 - **Gemma preparada en GPU y la de embeddings en CPU** (o al revés): cada fila muestra su propio procesador. Solo Gemma lleva el aviso «Modo CPU, más lento» (D-027).
 - **Nombres de idioma largos o letra grande:** las filas crecen en alto y el texto no se corta.
 - **Pregunta en un idioma distinto del de la respuesta elegida:** con «Español», la respuesta pide español aunque la pregunta esté en inglés.
+- **«Automático» con una pregunta en otro idioma que no sea el español ni el inglés:** el prompt pide el idioma de la pregunta; la evaluación solo cubre español e inglés, y la negativa solo se reconoce en esos dos.
+- **«Automático» con una pregunta de seguimiento corta o ambigua** («¿y el plazo?»): el modelo decide el idioma con la pregunta; el turno anterior solo es contexto.
+- **Evaluación de «Automático» no superada:** el usuario decide con las cifras (FR-024); mientras tanto, la app no ofrece «Automático».
 
 ## Requirements *(mandatory)*
 
@@ -283,9 +313,17 @@ La tarjeta «Búsqueda multilingüe» de Idiomas informa de lo que la app puede 
   - si Gemma solo está preparada en CPU, «Modo CPU, más lento» (D-027);
   - en cualquier otro estado, el mismo texto que la Preparación.
 - **FR-005**: Las filas MUST actualizarse mientras Ajustes está abierto, cuando cambia el estado de un modelo.
-- **FR-006**: La ficha de un modelo MUST mostrar el nombre, el propósito, el fichero, el tamaño, el SHA-256 abreviado, las dimensiones (256 en el de embeddings), el procesador preparado (GPU o CPU) y el estado. [NEEDS CLARIFICATION: ¿qué filas abren la ficha (las dos, o solo la de embeddings como en el PNG) y qué acciones ofrece (solo lectura con acceso a la Preparación, o también volver a verificar el SHA-256)?]
+- **FR-006**: Las dos filas de modelo MUST llevar chevron y abrir la ficha de su modelo, de solo lectura, con:
+  - el nombre y el propósito;
+  - el fichero y el tamaño;
+  - el SHA-256 abreviado;
+  - las dimensiones (256 en el de embeddings);
+  - el procesador preparado (GPU o CPU);
+  - el estado.
+
+  Ajustes MUST NOT ofrecer acciones propias sobre los modelos (ni revalidar ni volver a descargar): eso se hace en la Preparación.
 - **FR-007**: El SHA-256 de la ficha MUST ser el publicado para ese modelo, el mismo con el que se verificó el fichero (D-011). Si el fichero no está verificado, la ficha MUST decirlo.
-- **FR-008**: Si un modelo no está listo, su ficha MUST ofrecer un acceso a la Preparación, que ya descarga, importa y verifica (D-046).
+- **FR-008**: Si un modelo no está listo, su ficha MUST ofrecer «Completar configuración», que abre la Preparación, donde ya se descarga, se importa y se verifica (D-046).
 
 **Preferencias y privacidad**
 
@@ -324,9 +362,13 @@ La tarjeta «Búsqueda multilingüe» de Idiomas informa de lo que la app puede 
 
 - **FR-022**: El idioma de las respuestas MUST guardarse y aplicarse al prompt de la siguiente pregunta. Una respuesta en curso no cambia.
 - **FR-023**: Con «Español», el prompt MUST ser idéntico, carácter a carácter, al del escritorio, sea cual sea el idioma de la app (SC-002 de F11).
-- **FR-024**: «Automático» MUST pedir al modelo que responda en el idioma de la pregunta (G25). [NEEDS CLARIFICATION: ¿qué hace «Automático» exactamente, con qué evaluación se adopta y cuál es el valor por defecto, «Español» (F11, D-055) o «Automático» (marcado en el PNG)?]
+- **FR-024**: El valor por defecto del idioma de las respuestas MUST ser «Español». «Automático» MUST cambiar solo la línea del idioma del prompt por la de responder en el idioma de la pregunta (G25), sin detector de idioma. «Automático» MUST ofrecerse solo si su evaluación en el escritorio cumple la regla fijada antes de evaluar:
+  - con preguntas en español y en inglés, los umbrales del informe: negativas correctas ≥ 85 % y citas correctas ≥ 90 %;
+  - con preguntas en español, sin bajar de las cifras de `v4`.
+
+  Si no la cumple, el trabajo se para y el usuario decide con las cifras.
 - **FR-025**: La redacción del prompt MUST cambiar solo con una evaluación documentada en el escritorio y una entrada en DECISIONS (constitución III).
-- **FR-026**: La negativa del modelo MUST reconocerse en el idioma en que la escriba con la opción elegida. Se muestra con el texto de negativa de F11 en el idioma de la app, sin fuentes (C1 de F11).
+- **FR-026**: La negativa del modelo MUST reconocerse en español y en inglés, con la misma lectura en la app y en el escritorio. Se muestra con el texto de negativa de F11 en el idioma de la app, sin fuentes (C1 de F11).
 
 **Persistencia**
 
@@ -344,11 +386,14 @@ La tarjeta «Búsqueda multilingüe» de Idiomas informa de lo que la app puede 
   - anunciar con TalkBack «Guardando», «Preferencias guardadas», el error al guardar y «Historial borrado»;
   - funcionar con la letra al 200 %, en horizontal y en modo oscuro.
 - **FR-031**: Ajustes e Idiomas MUST funcionar sin red, y los registros MUST NOT contener contenido privado (constitución I).
-- **FR-032**: La tarjeta «Búsqueda multilingüe» MUST ser informativa, sin interruptor ni acción. [NEEDS CLARIFICATION: ¿se mide en F12 la consulta con documentos y preguntas en otro idioma, y qué texto lleva la tarjeta: el del PNG o uno ajustado a lo medido?]
+- **FR-032**: La tarjeta «Búsqueda multilingüe» MUST ser informativa, sin interruptor ni acción. Su texto MUST ajustarse a la medida entre idiomas de F12, con una regla fijada antes de medir:
+  - si cada combinación entre idiomas cumple los umbrales del informe (negativas correctas ≥ 85 % y citas correctas ≥ 90 %), se mantiene el texto del PNG;
+  - si no, se propone un texto ajustado a las cifras, que el usuario aprueba antes de implementarlo.
+- **FR-033**: La medida entre idiomas MUST hacerse en el escritorio, con documentos públicos en inglés y los documentos en español de la evaluación, preguntas en español y en inglés, y el mismo método de juicio que F05. Sus preguntas en inglés MUST ser las mismas que use la evaluación de «Automático» (FR-024). Las cifras MUST registrarse en DECISIONS y cerrar el pendiente «Documentos en otro idioma». Las mejoras de la búsqueda que las cifras pidan quedan para F14.
 
 ### Key Entities
 
-- **Preferencias de idioma:** el idioma de la app («Español» o «English») y el de las respuestas («Automático» o «Español»). Tienen valores por defecto (FR-018, FR-024) y se guardan en el teléfono.
+- **Preferencias de idioma:** el idioma de la app («Español» o «English») y el de las respuestas («Automático» o «Español»). Los dos son español por defecto (FR-018, FR-024) y se guardan en el teléfono.
 - **Ficha de modelo:** vista de un modelo del catálogo con su nombre, propósito, fichero, tamaño, SHA-256 publicado, dimensiones, procesador preparado y estado real. Se lee; F12 no la modifica.
 - **Historial de chat:** todas las conversaciones guardadas por F11, con sus mensajes y fuentes. F12 solo lo borra entero.
 
@@ -375,12 +420,14 @@ La tarjeta «Búsqueda multilingüe» de Idiomas informa de lo que la app puede 
 - **SC-009**: Los textos en español y en inglés tienen las mismas claves (100 % de paridad), y la revisión de las traducciones al inglés queda en el informe de cierre.
 - **SC-010**: Ajustes e Idiomas no hacen ninguna llamada de red, y los registros de una sesión de prueba no contienen contenido privado.
 - **SC-011**: Las capturas del teléfono coinciden con los PNG 09 y 10 en estructura, textos, colores y tipografía, salvo las diferencias documentadas en el informe de cierre.
+- **SC-012**: La evaluación de «Automático» queda registrada en DECISIONS con sus cifras por idioma de la pregunta, y «Automático» solo se ofrece si cumple la regla de FR-024.
+- **SC-013**: La medida entre idiomas queda registrada en DECISIONS con sus cifras por combinación de idiomas, el pendiente «Documentos en otro idioma» queda cerrado y el texto de la tarjeta cumple la regla de FR-032.
 
 ## Assumptions
 
 - **Propuestas de UI para estados sin PNG** (constitución VII: se aprueban antes de implementar). Los textos son propuestas en español; la versión inglesa se traduce igual:
-  - **S1 — Chip de estado de los modelos:** las dos filas llevan chip. Con el modelo listo dice «Local», en color de éxito como en el PNG. Con Gemma solo en CPU dice «Modo CPU, más lento», en color de aviso. En los demás estados lleva el chip de la Preparación («Por configurar», «Descargando N %», «Verificando», «Incompatible», «Error»…). El PNG solo muestra chip en «Modelo de respuestas»; se añade al de embeddings para no ocultar su estado.
-  - **S2 — Ficha de modelo** (contenido final según FR-006): hoja inferior con el nombre y el propósito, y las filas:
+  - **S1 — Chip de estado de los modelos:** las dos filas llevan chip y chevron. Con el modelo listo dice «Local», en color de éxito como en el PNG. Con Gemma solo en CPU dice «Modo CPU, más lento», en color de aviso. En los demás estados lleva el chip de la Preparación («Por configurar», «Descargando N %», «Verificando», «Incompatible», «Error»…). El PNG solo muestra chip en «Modelo de respuestas» y chevron en «Modelo de embeddings»; las dos filas llevan los dos para no ocultar ningún estado ni ninguna ficha.
+  - **S2 — Ficha de modelo** (FR-006): hoja inferior que se abre desde las dos filas, con el nombre y el propósito, y las filas:
     - «Fichero»;
     - «Tamaño»;
     - «SHA-256»: los 12 primeros caracteres seguidos de «…»;
@@ -408,17 +455,18 @@ La tarjeta «Búsqueda multilingüe» de Idiomas informa de lo que la app puede 
     - si falla, el aviso «No se pudieron guardar las preferencias. Se mantienen las anteriores.», y el usuario puede volver a pulsar;
     - si falla la lectura, Idiomas muestra «No se pudieron leer tus preferencias. Se usan las de por defecto.».
   - **S9 — Cambio del idioma de la app:** al guardar, la app se redibuja en el idioma nuevo y vuelve a la pantalla de origen. TalkBack anuncia «Preferencias guardadas» en el idioma nuevo.
-  - **S10 — Tarjeta «Búsqueda multilingüe»:** el texto según FR-032.
+  - **S10 — Tarjeta «Búsqueda multilingüe»:** el texto del PNG si la medida cumple la regla de FR-032. Si no, el texto propuesto con las cifras se aprueba en una parada antes de implementarlo.
   - **S11 — Nombres de opciones con la app en inglés:** los idiomas de la app siguen como «Español» y «English». Las respuestas pasan a «Automatic / Detect the question's language» y «Spanish».
 - **Ficha de modelo:** solo muestra los dos modelos de producto (Gemma 4 E2B y EmbeddingGemma 2 270M). Los modelos de diagnóstico de debug no aparecen.
 - **Idioma de la app:** español e inglés. Otros idiomas se añaden después por el mismo mecanismo (D-029).
+- **Corpus en inglés:** documentos públicos que se pueden guardar en el repositorio, como los del corpus de evaluación en español. El plan elige cuáles, cuántas preguntas se hacen y cómo se traducen.
 - **Revisión del inglés:** la hace quien desarrolla sobre todos los textos de la app. Las correcciones se listan en el informe de cierre para que el usuario las revise.
 - **Fuera de alcance:**
   - protección de la biblioteca, gestión del almacenamiento, batería, información y licencias: al backlog (G23); las licencias, en F15;
   - Português en la app, inglés como idioma fijo de respuesta y un detector de idioma: al backlog (G25);
   - selector de tema (D-016) y elección del procesador (D-039);
   - lista e historial de conversaciones (F13);
-  - INT8 y palancas de rendimiento (F14);
+  - INT8 y palancas de rendimiento (F14), incluidas las mejoras de la búsqueda entre idiomas que pida la medida (por ejemplo, normalizar según el idioma del documento);
   - exportar y restaurar (D-007);
   - cambiar de modelo de embeddings, y por tanto reindexar desde Ajustes.
 - **Dependencias:**
