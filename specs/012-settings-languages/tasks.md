@@ -102,7 +102,7 @@ Historias de la spec:
   - una fila en la tabla de comandos de `offline/README.md`.
 
   T003 pasa.
-- [ ] T005 [US9] Ejecutar `run_eval.py language-review` (≈ 6 min) y juzgar a mano las respuestas que cambian, en `offline/reports/language-review.csv`:
+- [X] T005 [US9] Ejecutar `run_eval.py language-review` (≈ 6 min) y juzgar a mano las respuestas que cambian, en `offline/reports/language-review.csv`:
   - método D-033, por lotes, con el juicio de `v4` a la vista;
   - informe de avance al usuario tras cada lote.
 - [ ] T006 [P] [US9] Pruebas de Python, nuevo `offline/tests/test_crosslang.py` (L7, L11–L13):
