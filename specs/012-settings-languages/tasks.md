@@ -444,8 +444,8 @@ Historias de la spec:
 
 ## Phase 13: Última fase — teléfono de referencia y cierre
 
-- [ ] T067 Batería instrumentada completa en el A063 con los APK finales.
-- [ ] T068 Recorrido acordado con el usuario antes de empezar (quickstart §4):
+- [X] T067 Batería instrumentada completa en el A063 con los APK finales.
+- [X] T068 Recorrido acordado con el usuario antes de empezar (quickstart §4):
   - capturas de Ajustes y de Idiomas para compararlas con los PNG;
   - cambio de idioma de ida y vuelta;
   - ficha de modelo;
@@ -456,7 +456,7 @@ Historias de la spec:
   - sin tráfico de red de la app.
 
   El teléfono queda con su idioma y sus ajustes.
-- [ ] T069 Cerrar `report.md` y actualizar `docs/roadmap/FEATURES.md` a «implementada; pendiente de la revisión de cierre». **Parada para la revisión de cierre.**
+- [X] T069 Cerrar `report.md` y actualizar `docs/roadmap/FEATURES.md` a «implementada; pendiente de la revisión de cierre». **Parada para la revisión de cierre.**
 
 ---
 

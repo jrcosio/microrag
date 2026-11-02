@@ -1,12 +1,12 @@
 # Informe de cierre — F12 Ajustes e Idiomas
 
-> **Estado:** borrador (T066). Hechos la batería y el recorrido en los dos emuladores (T063–T065). Falta la fase del teléfono (T067–T068).
+> **Estado:** implementada; pendiente de la revisión de cierre del usuario. Nada de F12 está subido.
 
 **Rama:** `012-settings-languages`, creada desde `88bf187`.
 **Fecha:** 2026-11-01 y 2026-11-02.
 **Dispositivos:**
 - emuladores `MicroRAG_API33` (API 33) y `Pixel_10` (API 37);
-- teléfono de referencia Nothing Phone (1) A063, Android 15 (API 35): pendiente, en la última fase.
+- teléfono de referencia Nothing Phone (1) A063, Android 15 (API 35), en la última fase.
 
 **Versiones:**
 - app 0.1.0 (versionCode 1);
@@ -49,10 +49,11 @@
 | `NetworkConfinementTest` | ✅ |
 | `SettingsScreenAccessibilityTest` y `LanguagesScreenAccessibilityTest` en `MicroRAG_API33` | ✅ 72/72: todos los estados de muestra, en claro y oscuro, en horizontal y al 200 % |
 | `SqliteChatRepositoryTest` y `PlatformAppLanguageControllerTest` en `MicroRAG_API33` | ✅ 9/9 y 1/1 |
-| Batería instrumentada completa en `MicroRAG_API33` | ⚠️ 736 pruebas: 713 bien, 19 omitidas (necesitan modelos o red) y 4 fallos anteriores a F12 (abajo) |
-| Batería instrumentada completa en `Pixel_10` (API 37) | ✅ 736 pruebas: 730 bien y 6 omitidas (necesitan modelos o red), ningún fallo |
+| Batería instrumentada completa en `MicroRAG_API33` | ⚠️ 736 pruebas: 713 bien, 19 omitidas por sus propias condiciones (`assume`) y 4 fallos anteriores a F12 (abajo). Las que necesitan modelos o red se excluyen, como siempre |
+| Batería instrumentada completa en `Pixel_10` (API 37) | ✅ 736 pruebas: 730 bien y 6 omitidas por sus propias condiciones (`assume`), ningún fallo |
 | Tras los dos últimos arreglos (`fa9bda1`, `55113aa`): `SystemBackTest` y la accesibilidad de Ajustes e Idiomas en `Pixel_10` | ✅ 73/73 |
-| Batería instrumentada en el teléfono | ⏳ T067 |
+| Batería instrumentada en el teléfono, con los APK finales | ✅ **OK (736 pruebas)** en 20,7 min, sin fallos, con la pantalla despierta |
+| Batería en el teléfono, primer intento | ❌ 174 fallos en 7 clases que abren una actividad («No compose hierarchies found» y esperas agotadas): se lanzó con la pantalla apagada. Esas 7 clases, repetidas con la pantalla despierta: 258/258. La batería completa de arriba lo confirma |
 
 **Los 4 fallos de API 33 no son de F12.** `SystemBackTest` y tres casos de `OnboardingNavigationTest` esperan que Atrás desde la pantalla raíz cierre la actividad (`DESTROYED`), pero en API 33 queda en segundo plano (`CREATED`). Desde Android 12, Atrás en la actividad raíz de una tarea la manda al fondo en lugar de cerrarla. Se comprobó en una copia temporal de `88bf187`, en el mismo emulador: fallan igual las tres de Onboarding y también `SystemBackTest`, en la misma línea. En `Pixel_10` (API 37) pasan las cuatro. Se dejan como están y se anotan para revisarlas fuera de F12.
 
@@ -61,15 +62,15 @@
 | Criterio | Cómo se comprueba | Estado |
 |---|---|---|
 | SC-001 | `ObserveModelOverviewUseCaseTest`, `SettingsViewModelTest` (P14) y `SettingsScreenTest`: «Local» nunca sin `Ready` | ✅ JVM |
-| SC-002 | La ficha toma fichero, tamaño y SHA-256 de `ModelCatalog`, el mismo con el que se verificó el fichero (`SettingsScreenTest`) | ✅ JVM; ⏳ teléfono |
-| SC-003 | `AppLocaleTest` y `PlatformAppLanguageControllerTest` en `sdk = 32` y `sdk = 36`; notificaciones; anuncio tras la recreación; cambio de ida y vuelta, desde la app y desde el sistema, en API 33 y 37 | ✅ JVM y emuladores; ⏳ teléfono |
+| SC-002 | La ficha toma fichero, tamaño y SHA-256 de `ModelCatalog`, el mismo con el que se verificó el fichero (`SettingsScreenTest`); en el teléfono, las dos fichas con «Local», GPU para Gemma y CPU para EmbeddingGemma | ✅ |
+| SC-003 | `AppLocaleTest` y `PlatformAppLanguageControllerTest` en `sdk = 32` y `sdk = 36`; notificaciones; anuncio tras la recreación; cambio de ida y vuelta, desde la app y desde el sistema, en API 33 y 37 y en el teléfono, también con Gemma respondiendo y con la indexación en marcha | ✅ |
 | SC-004, SC-005 | El prompt no cambia (golden de 426 casos al día); `AnswerReadingTest` con las dos negativas | ✅ |
 | SC-006 | `DefaultChatSessionTest` (P9, P10), `ChatViewModelTest` (P11), `SqliteChatRepositoryTest` (índice intacto); sin conversaciones, el aviso en los dos emuladores. Borrar con conversaciones no se prueba a mano: los emuladores no tienen Gemma y en el teléfono el diálogo solo se abre y se cancela | ✅ pruebas y emuladores |
 | SC-007 | `LanguagesViewModelTest` y `LanguagesScreenTest` con fallos programados; `SaveLanguageSettingsUseCaseTest` | ✅ JVM |
 | SC-008 | ATF en el emulador, 72/72 | ✅ |
 | SC-009 | `StringsParityTest` y la revisión del inglés (§5) | ✅ |
-| SC-010 | `NetworkConfinementTest`; el único registro nuevo lleva solo el tipo de fallo, y en release no se registra nada | ✅; ⏳ tráfico en el teléfono |
-| SC-011 | Capturas del teléfono frente a los PNG 09 y 10 | ⏳ T068 |
+| SC-010 | `NetworkConfinementTest`; el único registro nuevo lleva solo el tipo de fallo, y en release no se registra nada; en el teléfono, 0 bytes de la app en toda la sesión y un registro sin nombres ni textos | ✅ |
+| SC-011 | Capturas del teléfono frente a los PNG 09 y 10, en claro y oscuro, al 200 % y en horizontal; diferencias en §6 | ✅ |
 | SC-012 | D-061 en DECISIONS; Idiomas no ofrece «Automático» | ✅ |
 | SC-013 | D-062 en DECISIONS; pendiente cerrado; texto de la tarjeta aprobado por el usuario | ✅ |
 
@@ -134,7 +135,28 @@ El emulador quedó con su letra, su giro, el modo claro y sin idioma por app (`[
 
 **Registros de la sesión (T063, P18).** Filtrados al proceso de la app en `Pixel_10`: la app solo escribió «chat db open: OK in 7 ms» y «rag index open: Compatible in 8 ms», sin nombres ni textos. StrictMode (solo en depuración) marcó cinco lecturas de disco en el hilo principal. Cuatro son de crear las dependencias en `DataModule`, que F12 no toca, y vienen de antes. La quinta era de F12 y está corregida (§8).
 
-⏳ T068 (teléfono).
+**Teléfono A063 (T068).** Recorrido acordado con el usuario, con documentos de prueba y cambios temporales de letra, giro y modo.
+
+| Paso | Resultado |
+|---|---|
+| Ajustes | Las dos filas con «Local»; «Idiomas: Español»; «Activo» |
+| Fichas | Gemma 4 E2B: 2,6 GB, GPU, «Local». EmbeddingGemma 2 270M: 165 MB, 256 dimensiones, CPU, «Local» |
+| Idiomas → English → Guardar y vuelta | La app cambia sin reiniciarse; el sistema guarda `[en]` y luego `[es]` |
+| Idioma desde el sistema | Idiomas marca «English» |
+| «Clear chat history» | El diálogo se abrió y se **canceló**; no se borró nada |
+| Notificación de indexación | Con la app en inglés, «Indexing documents · 0 of 119 chunks». Al pasar a español sin parar: «Indexando documentos · 49 de 119 fragmentos». La indexación siguió hasta el final |
+| Pregunta en inglés (D-061) | «Which typeface and size are recommended for the body text and for chapter titles?» se respondió en español, citando solo «Wikibooks Basic Book Design.txt» |
+| Cambio de idioma con Gemma respondiendo, desde el sistema y con el chat a la vista | Primer token a las 06:33:23,8 (hora del teléfono) y cambio a las 06:33:24. La respuesta siguió creciendo en pantalla y el registro tiene una sola respuesta completada, a las 06:34:03 |
+| Cambio de idioma con Gemma respondiendo, desde Idiomas (sale del chat) | Primer token hacia las 06:35:57 y guardado hacia las 06:36:01. La respuesta terminó a las 06:36:18,9 con su fuente, sin reiniciarse |
+| Modo claro, letra al 200 % y horizontal | Ajustes, Idiomas y la ficha completos, desplazables y sin palabras partidas |
+| Red | 0 bytes de la app (uid 10628) desde el arranque del teléfono, antes y después |
+| Registro de la app | Solo cifras e identificadores (`retrieval …`, `chat answer outcome=completed …`, `library delete id=3 chunks=70 …`); ninguna mención de los documentos ni de las preguntas |
+
+**Limpieza y estado final.** Los dos documentos se borraron en la app, y su carpeta y sus entradas de medios, del teléfono. En el historial queda la conversación de prueba, como se acordó. El teléfono quedó con letra 1.0, giro automático en vertical, modo oscuro y la app sin idioma propio (`[]`), como estaba.
+
+**Dos cosas que no salieron como estaban propuestas:**
+- **La pestaña Chat no se abre vacía.** Abre la última conversación guardada (R13 de F11), que era la del usuario. Se detectó antes de escribir nada, solo con las etiquetas de la app: no se capturó ni se leyó su contenido. Las preguntas de prueba se hicieron en un «Nuevo chat», comprobado vacío. Al terminar, la pestaña abrirá la conversación de prueba, que ahora es la última.
+- **La primera batería en el teléfono** se lanzó con la pantalla apagada (§2).
 
 ## 5. Revisión del inglés (T062)
 
@@ -162,6 +184,7 @@ Se revisaron los 451 textos de `values-en` frente a los españoles. Se corrigier
 - **Idioma de las respuestas:** una sola opción, «Español», en lugar de «Automático» y «Español» (D-061, S12).
 - **Tarjeta «Búsqueda multilingüe»:** «Consulta documentos en español o en inglés. Funciona mejor si preguntas en el idioma del documento.» en lugar del texto del PNG (D-062).
 - **Chip al lado o debajo:** con un estado largo («Por configurar») o letra grande, el chip baja bajo los textos para no partir palabras como «EmbeddingGemma 2». Con «Local» y «Activo» y letra normal queda al lado, como en el PNG.
+- **Título de modelo en dos líneas en el teléfono:** con «Local» al lado, «Modelo de respuestas» ocupa dos líneas; en el PNG cabe en una. El ancho útil del teléfono es menor que el de la maqueta.
 - **Barra de estado y franja de inicio** de iOS: no aplican (G40).
 
 ## 7. Desviaciones respecto al plan
@@ -178,7 +201,6 @@ Se revisaron los 451 textos de `values-en` frente a los españoles. Se corrigier
 ## 8. Fallos encontrados y corregidos
 
 - **Prueba del chat con el texto inglés antiguo:** `ChatScreenTest` esperaba «Fragment 86». Se actualizó junto a la revisión del inglés. Por un error de orden en la consola, el commit se hizo antes de ver la prueba roja; se corrigió con `--amend` antes de subir nada.
-
 - **Palabras partidas junto a un chip** (recorrido en API 33): «EmbeddingGemm / a 2» con «Por configurar» a su lado, y «Procesamie / nto» con letra al 200 %. `LisdataSettingsRow` deja el chip al lado solo si la palabra más larga de los textos cabe entera; si no, lo pone debajo. Nueva prueba `SettingsRowChipTest`, que falla sin el arreglo (`b33faa3`).
 - **Ficha a media altura** (recorrido en API 33): la de embeddings abría a media pantalla con «Completar configuración» fuera de ella. `LisdataBottomSheet` abre entera y su contenido se desplaza cuando tiene un alto máximo. Afecta también a la ficha de la cola de importación de F06, que gana lo mismo (`34e9d69`).
 - **`SystemBackTest` en API 33:** buscaba «Ajustes», que ahora está dos veces (pestaña y título); busca el subtítulo (`0474f33`).
@@ -187,5 +209,14 @@ Se revisaron los 451 textos de `values-en` frente a los españoles. Se corrigier
 
 ## 9. Pendiente
 
-- T067–T068: fase del teléfono, con un recorrido acordado antes con el usuario.
-- T069: cerrar este informe y FEATURES, y la parada para la revisión de cierre.
+- La revisión de cierre del usuario. Después, si la aprueba: integrar en `main` y subir.
+
+**Visto durante las pruebas, fuera de F12** (no se ha tocado):
+- **Atrás desde la raíz en API 33:** las 4 pruebas que esperan que la actividad se cierre (§2).
+- **StrictMode en depuración:** 4 lecturas de disco al crear las dependencias de `DataModule`, anteriores a F12.
+- **Indexación (F07):** el porcentaje de la pantalla va por detrás de la notificación: se quedó en 70 de 119 mientras la notificación pasaba de 89 a 107.
+- **Chat (F11, calidad para F14):**
+  - las preguntas nuevas dentro de una misma conversación salen como `follow_up=true`;
+  - una de ellas, sobre montar un repositorio Git compartido, terminó en negativa aunque el libro lo trata;
+  - primer token entre 4,6 y 8,1 s (D-057).
+- **Barra inferior al 200 %:** «Biblioteca» se corta como «Bibliot…», igual que antes de F12.
