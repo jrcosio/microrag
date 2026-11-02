@@ -1235,7 +1235,7 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
   - ficha: añadir «Revalidar» (propuesta de G24); o solo la fila de embeddings, como el PNG;
   - consulta entre idiomas: el texto del PNG sin medir, o un texto prudente sin medir, con la medida en F14.
 - **Propuestas de UI:** el usuario aprobó en la revisión del clarify (2026-11-01) la spec y las propuestas S1–S11.
-- **Origen:** usuario (clarify de F12).
+- **Origen:** usuario (clarify de F12). En la revisión de cierre (2026-11-02), aprobó el cierre de F12 con las diferencias frente a los PNG del informe (§6), entre ellas que el chip de estado baje bajo los textos cuando a su lado se partiría una palabra.
 - **Afecta:**
   - F12;
   - F11: el prompt en español no cambia, y la lectura de la negativa admite el inglés;

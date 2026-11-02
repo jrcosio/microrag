@@ -46,7 +46,7 @@ Al cerrar cada feature se entrega:
 | F09 | Inicio | Producto | F03, F07, F08 | ✅ cerrada |
 | F10 | Recuperación híbrida | Técnica | F05, F07 | ✅ cerrada |
 | F11 | Chat con fuentes | Producto | F08, F10 | ✅ cerrada |
-| F12 | Ajustes e Idiomas | Producto | F03, F11 | 🟨 en curso (implementada; pendiente de la revisión de cierre) |
+| F12 | Ajustes e Idiomas | Producto | F03, F11 | ✅ cerrada |
 | F13 | Historial de chats | Producto (UI propuesta) | F11, F12 | ⬜ |
 | F14 | Rendimiento en dispositivo y decisión INT8 | Técnica | F10, F11 | ⬜ |
 | F15 | Pulido y release | Producto | F01–F14 | ⬜ |
@@ -581,7 +581,7 @@ También se introduce `EngineCoordinator`, que garantiza que nunca haya dos engi
 ## F12 — Ajustes e Idiomas
 
 - **Tipo:** Producto.
-- **Estado:** 🟨 en curso, en la rama `012-settings-languages`, pendiente de la revisión de cierre. Specify y clarify aprobados el 2026-11-01, con las propuestas de UI S1–S11; plan, tasks y analyze aprobados el 2026-11-01; implementación del 2026-11-01 al 2026-11-02, con la fase del teléfono el 2026-11-02 (instrumentadas 736/736 en el A063 y recorrido acordado, con Gemma respondiendo durante el cambio de idioma). Decisiones D-058 (clarify: «Español» por defecto y «Automático» solo tras evaluarlo; ficha de modelo de solo lectura en las dos filas; medida de la consulta entre idiomas en F12) y D-059 (plan: idioma de la app sin AppCompat, evaluaciones en el escritorio antes que la app) y D-060 (analyze: mínimo de respuestas correctas en las reglas en inglés). En la implementación, D-061 («Automático» no se ofrece; el chat responde siempre en español) y D-062 (medida entre idiomas: la tarjeta «Búsqueda multilingüe» cambia de texto y la búsqueda entre idiomas pasa a F14). Spec en `specs/012-settings-languages/spec.md`; informe de cierre en `specs/012-settings-languages/report.md`.
+- **Estado:** ✅ cerrada: implementada en la rama `012-settings-languages` y aprobada por el usuario el 2026-11-02. Specify y clarify aprobados el 2026-11-01, con las propuestas de UI S1–S11; plan, tasks y analyze aprobados el 2026-11-01; implementación del 2026-11-01 al 2026-11-02, con la fase del teléfono el 2026-11-02 (instrumentadas 736/736 en el A063 y recorrido acordado, con Gemma respondiendo durante el cambio de idioma). Decisiones D-058 (clarify: «Español» por defecto y «Automático» solo tras evaluarlo; ficha de modelo de solo lectura en las dos filas; medida de la consulta entre idiomas en F12) y D-059 (plan: idioma de la app sin AppCompat, evaluaciones en el escritorio antes que la app) y D-060 (analyze: mínimo de respuestas correctas en las reglas en inglés). En la implementación, D-061 («Automático» no se ofrece; el chat responde siempre en español) y D-062 (medida entre idiomas: la tarjeta «Búsqueda multilingüe» cambia de texto y la búsqueda entre idiomas pasa a F14). Spec en `specs/012-settings-languages/spec.md`; informe de cierre en `specs/012-settings-languages/report.md`.
 
 **Objetivo.**
 - Ajustes con el estado real de los modelos y su detalle (G24).

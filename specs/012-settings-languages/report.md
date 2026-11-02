@@ -1,6 +1,6 @@
 # Informe de cierre — F12 Ajustes e Idiomas
 
-> **Estado:** implementada; pendiente de la revisión de cierre del usuario. Nada de F12 está subido.
+> **Estado:** aprobada por el usuario el 2026-11-02.
 
 **Rama:** `012-settings-languages`, creada desde `88bf187`.
 **Fecha:** 2026-11-01 y 2026-11-02.
@@ -209,7 +209,7 @@ Se revisaron los 451 textos de `values-en` frente a los españoles. Se corrigier
 
 ## 9. Pendiente
 
-- La revisión de cierre del usuario. Después, si la aprueba: integrar en `main` y subir.
+- **Nada de F12 queda abierto.** El usuario aprobó el cierre el 2026-11-02, y la rama se integra en `main` y se sube con esa aprobación.
 
 **Visto durante las pruebas, fuera de F12** (no se ha tocado):
 - **Atrás desde la raíz en API 33:** las 4 pruebas que esperan que la actividad se cierre (§2).
