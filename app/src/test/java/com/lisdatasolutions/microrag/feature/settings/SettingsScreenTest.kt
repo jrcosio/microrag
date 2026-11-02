@@ -82,7 +82,8 @@ class SettingsScreenTest {
         compose.onNodeWithText("Configuración").assertExists()
         for (text in listOf(
             "Ajustes", "Personaliza tu experiencia local.", "INTELIGENCIA ARTIFICIAL",
-            "Modelo de respuestas", "Gemma 4", "Modelo de embeddings", "EmbeddingGemma 2", "PREFERENCIAS",
+            // The model names keep their spaces unbreakable (T065).
+            "Modelo de respuestas", "Gemma\u00A04", "Modelo de embeddings", "EmbeddingGemma\u00A02", "PREFERENCIAS",
             "Idiomas", "Español", "Índice y rendimiento", "Almacenamiento y procesamiento", "PRIVACIDAD Y DATOS",
             "Borrar historial de chat", "Eliminar conversaciones locales",
         )) {

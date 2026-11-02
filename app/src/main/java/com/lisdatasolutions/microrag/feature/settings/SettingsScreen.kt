@@ -205,9 +205,12 @@ private fun Section(title: String, content: @Composable () -> Unit) {
     }
 }
 
+private const val NO_BREAK_SPACE = '\u00A0'
+
 /**
  * A model row (S1): its real state and a chevron to the sheet. Before the first rescan there is no
- * state, so the row shows neither chip nor action rather than guessing (constitution V).
+ * state, so the row shows neither chip nor action rather than guessing (constitution V). The model's
+ * name keeps its spaces unbreakable, so beside a chip it moves whole instead of leaving «2» alone.
  */
 @Composable
 private fun ModelRow(id: ModelId, models: List<ModelOverview>, onOpen: (ModelId) -> Unit) {
@@ -215,7 +218,8 @@ private fun ModelRow(id: ModelId, models: List<ModelOverview>, onOpen: (ModelId)
     LisdataSettingsRow(
         icon = if (id == ModelId.GEMMA4_E2B) LisdataIcons.Sparkle else LisdataIcons.Layers,
         title = stringResource(if (id == ModelId.GEMMA4_E2B) R.string.settings_model_answers else R.string.settings_model_embeddings),
-        subtitle = stringResource(if (id == ModelId.GEMMA4_E2B) R.string.setup_model_gemma_name else R.string.setup_model_embedding_name),
+        subtitle = stringResource(if (id == ModelId.GEMMA4_E2B) R.string.setup_model_gemma_name else R.string.setup_model_embedding_name)
+            .replace(' ', NO_BREAK_SPACE),
         trailing = model?.let { SettingsTrailing.ChipAndChevron(it.chip().text(), it.chip().kind()) } ?: SettingsTrailing.None,
         onClickLabel = stringResource(R.string.settings_show_details),
         onClick = model?.let { { onOpen(id) } },
