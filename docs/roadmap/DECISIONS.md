@@ -1373,6 +1373,45 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
 
 ---
 
+## D-063 — Historial de chats (clarify de F13)
+
+- **Fecha:** 2026-11-02
+- **Decisión:**
+  1. **Orden y grupos de la lista:**
+     - por última actividad, que es la fecha de la última pregunta: arriba la más reciente, y una conversación continuada sube;
+     - grupos «Hoy», «Ayer», «Últimos 7 días» (de 2 a 6 días antes) y, después, uno por mes y año;
+     - carga por tandas al desplazarse, como la Biblioteca.
+  2. **Borrar desde la lista:**
+     - un botón de papelera visible en cada fila, de 48 dp, con la confirmación de F11 (C15);
+     - tocar el resto de la fila abre la conversación;
+     - se borra de una en una, sin deslizar, pulsación larga ni modo de selección; borrar todo sigue en Ajustes (F12).
+  3. **Respuesta en curso:** abrir otra conversación desde el Historial la detiene como «Nuevo chat» (D-054). Queda «Generación cancelada», con su texto parcial, en su conversación. Abrir la misma conversación no detiene nada.
+  4. **Almacenamiento:**
+     - nada se borra solo: no hay límite, borrado automático ni aviso de tamaño (FR-026 de F11);
+     - se miden en el teléfono de referencia el tamaño de 1.000 conversaciones de 5 preguntas y el tiempo de apertura del Historial, con datos de prueba aparte, y las cifras van al informe de cierre;
+     - la estimación previa es de unos 5–10 MB.
+- **Motivo:**
+  - **Orden:** es lo habitual en las apps de chat, y lo reciente se encuentra antes.
+  - **Borrar:** la papelera se ve y funciona con TalkBack. Deslizar y mantener pulsado no se ven y no existen en el design system.
+  - **Respuesta en curso:** es coherente con «Nuevo chat», mantiene una sola respuesta en toda la app y no añade estados al chat.
+  - **Almacenamiento:** borrar solo podría eliminar algo que el usuario quería. Con las cifras se puede decidir más adelante si hace falta un límite.
+- **Alternativas descartadas:**
+  - orden: por última actividad sin grupos; o por fecha de creación con grupos;
+  - borrar: solo desde dentro de la conversación («⋯» → «Borrar conversación»); o un modo de selección para borrar varias;
+  - respuesta en curso: dejarla terminar con el campo de pregunta en espera; o preguntar antes de detenerla;
+  - almacenamiento: un límite con borrado automático; o un aviso a partir de un tamaño.
+- **Propuestas de UI:** el wireframe y las propuestas H1–H11 (`specs/013-chat-history/wireframe.md` y la spec) quedan pendientes de la aprobación del usuario antes de `/speckit-plan` (criterio 1 de F13).
+- **Origen:** usuario (clarify de F13).
+- **Afecta:**
+  - F13;
+  - F11:
+    - «Historial» en el menú «⋯»;
+    - el chat abre una conversación concreta;
+    - las fichas `[n]` de documentos borrados dejan de abrir nada;
+  - F12: «Borrar historial de chat» vacía también la lista.
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.
