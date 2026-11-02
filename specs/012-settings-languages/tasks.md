@@ -423,12 +423,12 @@ Historias de la spec:
 
 ## Phase 12: Polish sin teléfono
 
-- [ ] T063 Pasar toda la batería:
+- [X] T063 Pasar toda la batería:
   - Python (`unittest discover -s offline/tests`) y `gen_answer_golden.py --check`;
   - `./gradlew :app:testDebugUnitTest :app:lintDebug`, sin errores nuevos;
   - `NetworkConfinementTest` sigue en verde, y los registros de una sesión de Ajustes e Idiomas solo llevan tipos de fallo, nunca valores (P18, SC-010).
-- [ ] T064 Batería instrumentada completa en `Pixel_10` y en `MicroRAG_API33`.
-- [ ] T065 Recorrido en el emulador (quickstart §3):
+- [X] T064 Batería instrumentada completa en `Pixel_10` y en `MicroRAG_API33`.
+- [X] T065 Recorrido en el emulador (quickstart §3):
   - API 33 y API 37;
   - cambio de idioma de ida y vuelta, con la pestaña Chat y una notificación de indexación;
   - ajuste del sistema;
@@ -436,7 +436,9 @@ Historias de la spec:
   - borrar el historial;
   - letra al 200 %, horizontal y modo oscuro;
   - capturas.
-- [ ] T066 Borrador de `specs/012-settings-languages/report.md`: cifras de US8 y US9, diferencias con los PNG, correcciones del inglés y resultados. Avance de tareas en este fichero.
+
+  Hecho en los dos emuladores (`report.md` §4). Sin modelos ni documentos en ellos, la pregunta en inglés y la notificación de indexación quedan para la propuesta del teléfono (T068).
+- [X] T066 Borrador de `specs/012-settings-languages/report.md`: cifras de US8 y US9, diferencias con los PNG, correcciones del inglés y resultados. Avance de tareas en este fichero.
 
 ---
 
