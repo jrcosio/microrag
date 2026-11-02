@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain
+- [x] No [NEEDS CLARIFICATION] markers remain
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -33,7 +33,8 @@
 
 - **Feature de producto sin mockup.** La pantalla se propone en `wireframe.md` con componentes `Lisdata*` y propuestas H, que el usuario aprueba antes de `/speckit-plan` (criterio 1 de F13, constitución VII).
 - **Contrato, no implementación:** continuar una conversación usa el prompt y la recuperación de F11 sin cambios (constitución III). Los nombres de ficheros solo aparecen en «Fuentes» y en las Assumptions.
-- **Quedan tres marcas [NEEDS CLARIFICATION], que se resuelven en `/speckit-clarify`:**
-  - FR-004: orden y agrupación de la lista;
-  - FR-013: abrir una conversación con una respuesta en curso en otra;
-  - FR-015: cómo se borra desde la lista.
+- **Clarify (2026-11-02):** cuatro preguntas respondidas e integradas, sin marcas pendientes:
+  - orden por última actividad, con grupos «Hoy», «Ayer», «Últimos 7 días» y por mes (FR-004);
+  - papelera visible en cada fila, con la confirmación de F11 (FR-015);
+  - abrir otra conversación detiene la respuesta en curso, como «Nuevo chat» (FR-013);
+  - nada se borra solo; el tamaño se mide y va al informe (FR-022, SC-010).

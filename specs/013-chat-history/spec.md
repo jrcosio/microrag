@@ -60,6 +60,15 @@
 
   No hay deslizar para borrar, pulsación larga, menú por fila ni «Deshacer».
 
+## Clarifications
+
+### Session 2026-11-02
+
+- Q: ¿En qué orden y con qué agrupación se muestran las conversaciones en el Historial? → A: Por última actividad: arriba la de la pregunta más reciente, y una conversación continuada sube. Con grupos por fecha: «Hoy», «Ayer», «Últimos 7 días» y, después, uno por mes y año.
+- Q: ¿Cómo se borra una conversación desde la lista del Historial? → A: Con un botón de papelera visible en cada fila, de 48 dp, que abre la confirmación de F11 («¿Borrar esta conversación?»). Tocar el resto de la fila abre la conversación. No hay deslizar, pulsación larga ni modo de selección, y se borra de una en una.
+- Q: Si hay una respuesta generándose en una conversación y se abre otra desde el Historial, ¿qué pasa con esa respuesta? → A: Se detiene, como con «Nuevo chat» (D-054): queda «Generación cancelada» con su texto parcial en su conversación, y la otra se abre lista para preguntar.
+- Q: ¿Las conversaciones guardadas se borran alguna vez solas para que el historial no crezca sin límite? → A: Nunca solas: solo por una acción del usuario, como en F11. Se mide en el teléfono de referencia cuánto ocupan 1.000 conversaciones de 5 preguntas (estimación previa: unos 5–10 MB, frente a varios GB de los modelos) y las cifras van al informe de cierre. Si alguna vez hiciera falta un límite, se decide con ellas en otra feature.
+
 ## User Scenarios & Testing *(mandatory)*
 
 **Actores:**
@@ -80,7 +89,7 @@ En el chat, el usuario abre «⋯» y toca «Historial». Ve sus conversaciones 
 **Acceptance Scenarios**:
 
 1. **Given** el chat, **When** el usuario abre «⋯», **Then** ve «Historial», además de «Nuevo chat» y, si hay una conversación abierta, «Borrar conversación».
-2. **Given** conversaciones guardadas, **When** el usuario toca «Historial», **Then** ve una fila por conversación con al menos una pregunta, en el orden y con la agrupación de FR-004.
+2. **Given** conversaciones guardadas, **When** el usuario toca «Historial», **Then** ve una fila por conversación con al menos una pregunta, de la de actividad más reciente a la más antigua, bajo los grupos «Hoy», «Ayer», «Últimos 7 días» y uno por mes y año (FR-004).
 3. **Given** una conversación cuya primera pregunta es «¿Cuál es el plazo de devolución?», **When** aparece en la lista, **Then** su título es «¿Cuál es el plazo de devolución?».
 4. **Given** más conversaciones de las que caben en una tanda, **When** el usuario se desplaza hasta el final, **Then** se cargan las siguientes sin saltos, duplicados ni huecos.
 5. **Given** ninguna conversación guardada, **When** el usuario abre Historial, **Then** ve el estado vacío, con «Nuevo chat».
@@ -106,9 +115,10 @@ El usuario toca una conversación de la lista y vuelve al chat con ella: sus pre
 3. **Given** una fuente cuyo documento se borró, **When** se muestra, **Then** su fila dice «Fuente ya no disponible» y no abre nada, y su ficha `[n]` del texto tampoco abre nada.
 4. **Given** una fuente cuyo documento existe pero cuyo fragmento ya no, **When** el usuario la toca, **Then** se abre el documento con el aviso de F08, como en F11.
 5. **Given** una conversación abierta desde el historial, **When** el usuario gira el teléfono, cambia de pestaña o cambia el idioma de la app, **Then** el chat sigue en esa conversación.
-6. **Given** una respuesta en curso en otra conversación, **When** el usuario abre una conversación del historial, **Then** se aplica la regla de FR-013, y ninguna pregunta se pierde sin aviso.
-7. **Given** los modelos sin preparar o una indexación en marcha, **When** el usuario abre una conversación del historial, **Then** la ve completa, y preguntar sigue las mismas reglas que el chat de F11 (C5, C14).
-8. **Given** una conversación abierta desde el historial, **When** el usuario pulsa Atrás, **Then** el chat se comporta como siempre: lleva a Inicio (G08).
+6. **Given** una respuesta en curso en otra conversación, **When** el usuario abre una conversación del historial, **Then** esa respuesta se detiene y queda «Generación cancelada» con su texto parcial, y la conversación abierta acepta preguntas (FR-013).
+7. **Given** una respuesta en curso, **When** el usuario abre desde el historial esa misma conversación, **Then** la respuesta sigue y el chat la muestra generándose.
+8. **Given** los modelos sin preparar o una indexación en marcha, **When** el usuario abre una conversación del historial, **Then** la ve completa, y preguntar sigue las mismas reglas que el chat de F11 (C5, C14).
+9. **Given** una conversación abierta desde el historial, **When** el usuario pulsa Atrás, **Then** el chat se comporta como siempre: lleva a Inicio (G08).
 
 ---
 
@@ -126,7 +136,7 @@ En la lista, el usuario borra una conversación que ya no quiere. La app le pide
 
 **Acceptance Scenarios**:
 
-1. **Given** la lista, **When** el usuario elige borrar una conversación (FR-015), **Then** aparece la confirmación, y «Cancelar» no borra nada.
+1. **Given** la lista, **When** el usuario toca la papelera de una fila, **Then** aparece la confirmación «¿Borrar esta conversación?» (FR-015), y «Cancelar» no borra nada.
 2. **Given** la confirmación, **When** el usuario confirma, **Then** esa conversación desaparece de la lista y del teléfono con sus mensajes y fuentes, y se anuncia «Conversación borrada».
 3. **Given** la conversación borrada era la abierta en la pestaña Chat, **When** el usuario vuelve al chat, **Then** ve un chat vacío, y su siguiente pregunta empieza una conversación nueva que se guarda con normalidad.
 4. **Given** la conversación borrada tenía una respuesta en curso, **When** el usuario confirma, **Then** la respuesta se detiene primero y no queda nada guardado de esa conversación.
@@ -163,7 +173,7 @@ La lista refleja lo que pasa en el resto de la app: una pregunta nueva, una conv
 
 1. **Given** Historial abierto, **When** el usuario va a Ajustes, confirma «Borrar historial de chat» y vuelve al chat, **Then** el historial está vacío.
 2. **Given** una conversación borrada con «⋯» → «Borrar conversación» en el chat, **When** el usuario abre Historial, **Then** ya no aparece.
-3. **Given** una pregunta nueva en una conversación, **When** el usuario abre Historial, **Then** su fecha de última actividad se ha actualizado y la lista la ordena según FR-004.
+3. **Given** una pregunta nueva en una conversación, **When** el usuario abre Historial, **Then** la conversación aparece la primera, en «Hoy».
 4. **Given** una respuesta generándose, **When** Historial se muestra, **Then** la lista no parpadea ni pierde la posición de desplazamiento.
 
 ---
@@ -209,13 +219,16 @@ Quien desarrolla mide cuánto ocupan las conversaciones guardadas y cuánto tard
 - **Títulos repetidos:** dos conversaciones con la misma primera pregunta se distinguen por su fecha.
 - **Conversación sin preguntas** (un «Nuevo chat» sin usar): no aparece.
 - **Abrir una conversación sin preguntar:** su fecha de última actividad no cambia. Tras cerrar la app, la pestaña Chat abre la de última actividad más reciente (F11).
-- **Tocar dos veces seguidas una fila:** se abre una sola vez.
+- **Volver del Historial con Atrás, sin abrir nada, con una respuesta en curso:** la respuesta sigue; solo abrir otra conversación o «Nuevo chat» la detienen.
+- **Tocar dos veces seguidas una fila o su papelera:** se abre una sola vez, o aparece un solo diálogo.
 - **Borrar desde la lista la conversación abierta en el chat con una respuesta en curso:** se detiene primero, se borra, y el chat queda vacío.
 - **Preguntar en una conversación borrada por otra vía** (por ejemplo, desde Ajustes con el chat en otra pestaña): la pregunta empieza una conversación nueva y no se pierde (F12).
 - **«Borrar historial» de Ajustes con Historial abierto en la pila del chat:** al volver, la lista está vacía.
 - **Fuente de un documento que se borró y se volvió a importar:** sigue como «Fuente ya no disponible», porque la cita apunta al documento original.
 - **Cambio de idioma de la app con Historial abierto:** los textos y las fechas cambian de idioma, y la lista y su posición se conservan.
-- **Cambio de día con Historial abierto, o cambio de zona horaria:** al volver a la pantalla, las fechas y los grupos se recalculan con la fecha y la zona actuales.
+- **Cambio de día con Historial abierto, o cambio de zona horaria:** al volver a la pantalla, las fechas y los grupos se recalculan con la fecha y la zona actuales. Las conversaciones de «Hoy» pasan a «Ayer».
+- **Fecha del teléfono atrasada** (una última actividad posterior a hoy): la conversación va en «Hoy», arriba.
+- **Grupo partido entre dos tandas:** su cabecera aparece una sola vez, y las filas de la tanda siguiente se añaden debajo.
 - **Miles de conversaciones:** Historial abre sin esperar a leerlas todas (SC-001).
 - **Conversaciones guardadas ilegibles:** Historial muestra el aviso de C17 y no ofrece borrar ni abrir nada. «Borrar historial» de Ajustes sigue disponible.
 
@@ -231,7 +244,13 @@ Quien desarrolla mide cuánto ocupan las conversaciones guardadas y cuánto tard
 
 **Lista**
 
-- **FR-004**: Historial MUST listar todas las conversaciones guardadas con al menos una pregunta, y solo esas. [NEEDS CLARIFICATION: ¿en qué orden y con qué agrupación: por última actividad o por fecha de creación, con grupos por fecha («Hoy», «Ayer»…) o sin ellos?]
+- **FR-004**: Historial MUST listar todas las conversaciones guardadas con al menos una pregunta, y solo esas, por última actividad: primero la de la pregunta más reciente. Una conversación en la que se pregunta de nuevo MUST pasar arriba. Las conversaciones MUST ir agrupadas por la fecha de su última actividad:
+  - «Hoy»;
+  - «Ayer»;
+  - «Últimos 7 días»: de 2 a 6 días antes de hoy;
+  - después, un grupo por mes y año («Octubre de 2026»).
+
+  Los grupos vacíos no se muestran. Con la misma fecha, va primero la conversación creada después.
 - **FR-005**: Cada fila MUST mostrar un título derivado de la primera pregunta de la conversación, con los espacios y saltos de línea normalizados y cortado si no cabe, y su fecha. Las conversaciones no tienen otro título y no se renombran.
 - **FR-006**: La lista MUST cargarse por tandas. Abrir Historial no espera a leer todas las conversaciones. Al acercarse al final se cargan las siguientes, sin duplicados ni huecos, aunque la lista cambie mientras tanto.
 - **FR-007**: Historial MUST tener los estados de carga, vacío (con «Nuevo chat»), error (conversaciones ilegibles, C17 de F11, sin borrar nada) y contenido.
@@ -243,12 +262,12 @@ Quien desarrolla mide cuánto ocupan las conversaciones guardadas y cuánto tard
 - **FR-010**: Abrir una conversación MUST restaurar todas sus preguntas y respuestas, en orden, con su estado (completada, negativa, cancelada, interrumpida o fallida), sus notas y sus fuentes, igual que la pestaña Chat de F11.
 - **FR-011**: Una fuente cuyo documento se borró MUST mostrar «Fuente ya no disponible» y no abrir nada, tanto en «Fuentes consultadas» como en su ficha `[n]` del texto. Vale para cualquier conversación del chat, no solo para las abiertas desde Historial. Si el documento existe pero el fragmento no, la fuente MUST abrir el documento con el aviso de F08, como en F11.
 - **FR-012**: Preguntar en una conversación abierta desde Historial MUST añadir la pregunta a esa conversación y usar su último turno completado como en F11 (D-055), sin cambios en el prompt ni en la recuperación (constitución III). Preguntar MUST seguir las mismas reglas del chat de F11: modelos preparados y sin tanda de indexación en marcha (C5, C14).
-- **FR-013**: Con una respuesta en curso en otra conversación, abrir una conversación desde Historial MUST seguir una regla que nunca pierda una pregunta sin aviso (una sola respuesta en curso en toda la app, D-054). [NEEDS CLARIFICATION: ¿se detiene la respuesta en curso, como con «Nuevo chat», o se deja terminar y el campo de pregunta espera, con un aviso, hasta que acabe?]
+- **FR-013**: Con una respuesta en curso en otra conversación, abrir una conversación desde Historial MUST detener esa respuesta como «Nuevo chat» (D-054): queda «Generación cancelada», con su texto parcial y sus citas válidas, en su conversación. La conversación abierta MUST quedar lista para preguntar, y ninguna pregunta MUST perderse sin aviso. Abrir la misma conversación que se está respondiendo MUST NOT detener nada.
 - **FR-014**: La conversación abierta desde Historial MUST quedarse como la del chat al girar el teléfono, cambiar de pestaña o cambiar el idioma de la app.
 
 **Borrar**
 
-- **FR-015**: Historial MUST permitir borrar una conversación, con confirmación (constitución V). «Cancelar» MUST NOT borrar nada. [NEEDS CLARIFICATION: ¿cómo se borra desde la lista: con un botón visible en cada fila, solo desde dentro de la conversación («⋯» → «Borrar conversación»), o con un modo de selección que permita borrar varias?]
+- **FR-015**: Cada fila de Historial MUST llevar un botón de papelera visible, de 48 dp, con su propia etiqueta para TalkBack, que pide confirmación antes de borrar esa conversación (constitución V). Tocar el resto de la fila MUST abrir la conversación. «Cancelar» MUST NOT borrar nada. Se borra de una en una: no hay deslizar, pulsación larga ni modo de selección.
 - **FR-016**: Al confirmar, la app MUST eliminar del teléfono esa conversación con sus mensajes y fuentes, y solo esa. Los documentos, el índice, las preferencias y las demás conversaciones MUST quedar intactos.
 - **FR-017**: Si la conversación borrada tiene una respuesta en curso, la respuesta MUST detenerse primero, y MUST NOT quedar nada guardado de esa conversación.
 - **FR-018**: Si la conversación borrada era la abierta en la pestaña Chat, el chat MUST quedar vacío y usable: su siguiente pregunta empieza una conversación nueva y se guarda.
@@ -261,7 +280,7 @@ Quien desarrolla mide cuánto ocupan las conversaciones guardadas y cuánto tard
 
 **Almacenamiento**
 
-- **FR-022**: Las conversaciones MUST seguir en el almacenamiento privado del teléfono, sin copia de seguridad (constitución I). Nada MUST borrarse si no es por una acción del usuario (FR-026 de F11). El tamaño que ocupan y el tiempo de apertura de Historial con un historial grande MUST medirse y quedar en el informe de cierre.
+- **FR-022**: Las conversaciones MUST seguir en el almacenamiento privado del teléfono, sin copia de seguridad (constitución I). Nada MUST borrarse si no es por una acción del usuario (FR-026 de F11): no hay límite de conversaciones, borrado automático ni aviso de tamaño. El tamaño que ocupan y el tiempo de apertura de Historial con un historial grande MUST medirse en el teléfono de referencia y quedar en el informe de cierre (SC-001, SC-010).
 
 **Textos, accesibilidad, privacidad y fidelidad**
 
@@ -308,12 +327,12 @@ Quien desarrolla mide cuánto ocupan las conversaciones guardadas y cuánto tard
 - **Título:** es la primera pregunta tal cual, sin resumirla con el modelo. Generar títulos cargaría Gemma solo para eso, contra el uso de recursos de la constitución IV.
 - **Fecha de última actividad:** es la de la última pregunta. Abrir una conversación sin preguntar no la cambia.
 - **Tandas:** del mismo tamaño que las de la Biblioteca (50), con el mismo comportamiento al desplazarse. El plan confirma el valor.
-- **Sin borrado automático:** nada se borra solo (FR-022). Clarify confirma esta política con el riesgo de crecimiento del almacenamiento a la vista.
+- **Sin borrado automático** (clarify): nada se borra solo (FR-022). Un límite, si hiciera falta, se decidiría con las cifras de SC-010 en otra feature.
 - **Historial grande de prueba** (SC-001, SC-010): conversaciones sintéticas creadas solo para medir, en un almacenamiento de prueba aparte que se borra al terminar. Nunca se mezclan con el historial del usuario.
 - **Teléfono del usuario:** tiene una conversación suya y una de prueba de F12. En la fase del teléfono no se abre, no se captura ni se borra la del usuario. La de prueba se borra desde Historial solo con su permiso.
 - **Fuera de alcance:**
   - renombrar conversaciones, buscar en el historial, fijar o marcar favoritas, y «Deshacer» tras borrar;
-  - borrar varias a la vez, salvo que clarify lo pida (FR-015);
+  - borrar varias a la vez (FR-015); borrarlas todas sigue en Ajustes (F12);
   - exportar y restaurar (D-007);
   - títulos generados por el modelo;
   - cambios en el prompt o en la recuperación (constitución III);
