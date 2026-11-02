@@ -33,7 +33,7 @@ class SystemBackTest {
     @Test
     fun systemBackFromTabReturnsHome_andBackFromHomeExits() {
         compose.onNodeWithText(context.getString(TopLevelDestination.SETTINGS.label)).performClick()
-        compose.onNodeWithText(context.getString(R.string.settings_title)).assertIsDisplayed()
+        compose.onNodeWithText(context.getString(R.string.settings_subtitle)).assertIsDisplayed()
 
         Espresso.pressBack()
         compose.onNodeWithText(context.getString(R.string.home_greeting)).assertIsDisplayed()
