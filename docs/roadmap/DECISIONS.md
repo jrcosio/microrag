@@ -1400,7 +1400,7 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
   - borrar: solo desde dentro de la conversación («⋯» → «Borrar conversación»); o un modo de selección para borrar varias;
   - respuesta en curso: dejarla terminar con el campo de pregunta en espera; o preguntar antes de detenerla;
   - almacenamiento: un límite con borrado automático; o un aviso a partir de un tamaño.
-- **Propuestas de UI:** el wireframe y las propuestas H1–H11 (`specs/013-chat-history/wireframe.md` y la spec) quedan pendientes de la aprobación del usuario antes de `/speckit-plan` (criterio 1 de F13).
+- **Propuestas de UI:** el usuario aprobó en la revisión del clarify (2026-11-02) la spec, el wireframe (`specs/013-chat-history/wireframe.md`) y las propuestas H1–H11, antes de `/speckit-plan` (criterio 1 de F13).
 - **Origen:** usuario (clarify de F13).
 - **Afecta:**
   - F13;

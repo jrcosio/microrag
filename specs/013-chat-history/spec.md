@@ -68,6 +68,7 @@
 - Q: ¿Cómo se borra una conversación desde la lista del Historial? → A: Con un botón de papelera visible en cada fila, de 48 dp, que abre la confirmación de F11 («¿Borrar esta conversación?»). Tocar el resto de la fila abre la conversación. No hay deslizar, pulsación larga ni modo de selección, y se borra de una en una.
 - Q: Si hay una respuesta generándose en una conversación y se abre otra desde el Historial, ¿qué pasa con esa respuesta? → A: Se detiene, como con «Nuevo chat» (D-054): queda «Generación cancelada» con su texto parcial en su conversación, y la otra se abre lista para preguntar.
 - Q: ¿Las conversaciones guardadas se borran alguna vez solas para que el historial no crezca sin límite? → A: Nunca solas: solo por una acción del usuario, como en F11. Se mide en el teléfono de referencia cuánto ocupan 1.000 conversaciones de 5 preguntas (estimación previa: unos 5–10 MB, frente a varios GB de los modelos) y las cifras van al informe de cierre. Si alguna vez hiciera falta un límite, se decide con ellas en otra feature.
+- Q: ¿Se aprueban la spec, el wireframe y las propuestas H1–H11? → A: Sí (revisión del clarify, 2026-11-02).
 
 ## User Scenarios & Testing *(mandatory)*
 

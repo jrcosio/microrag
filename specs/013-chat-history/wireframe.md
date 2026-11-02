@@ -1,6 +1,6 @@
 # Wireframe: Historial de chats (F13)
 
-**Estado:** propuesta, pendiente de la aprobación del usuario antes de `/speckit-plan` (criterio 1 de F13, constitución VII).
+**Estado:** aprobado por el usuario el 2026-11-02, antes de `/speckit-plan` (criterio 1 de F13, constitución VII).
 **Fecha:** 2026-11-02
 **Spec:** [spec.md](spec.md) (FR-001 a FR-026; propuestas H1–H11 en «Assumptions»).
 
