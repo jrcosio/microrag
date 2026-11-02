@@ -613,7 +613,7 @@ También se introduce `EngineCoordinator`, que garantiza que nunca haya dos engi
 ## F13 — Historial de chats
 
 - **Tipo:** Producto, **sin mockup**. Requiere una propuesta de UI aprobada (D-007, G13).
-- **Estado:** 🟨 en curso en la rama `013-chat-history`. Specify, clarify y wireframe aprobados el 2026-11-02, con las propuestas de UI H1–H11 (`specs/013-chat-history/wireframe.md`). Decisión D-063 (orden por última actividad con grupos por fecha, papelera en cada fila, abrir otra conversación detiene la respuesta en curso, nada se borra solo). Spec en `specs/013-chat-history/spec.md`.
+- **Estado:** 🟨 en curso en la rama `013-chat-history`. Specify, clarify y wireframe aprobados el 2026-11-02, con las propuestas de UI H1–H11 (`specs/013-chat-history/wireframe.md`). Decisión D-063 (orden por última actividad con grupos por fecha, papelera en cada fila, abrir otra conversación detiene la respuesta en curso, nada se borra solo). Plan hecho el 2026-11-02, con la decisión D-064 (lista sin cambio de esquema, petición devuelta al chat, borrado bajo el cerrojo de la sesión y fichas de documentos borrados sin enlace). Spec en `specs/013-chat-history/spec.md`.
 
 **Objetivo.** Lista de conversaciones previas: abrir, continuar y borrar conversaciones locales.
 

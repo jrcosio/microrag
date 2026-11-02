@@ -1412,6 +1412,52 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
 
 ---
 
+## D-064 — Diseño del Historial de chats (plan de F13)
+
+- **Fecha:** 2026-11-02
+- **Decisión:**
+  1. **Lista sin cambio de esquema:**
+     - una consulta sobre `chat.db` v1 da el título (la primera pregunta, hasta 300 caracteres), la última actividad y el número de preguntas, solo de las conversaciones con preguntas;
+     - orden `updated_at DESC, id DESC`;
+     - tandas de 50 con un límite creciente, como la Biblioteca.
+  2. **La lista se vuelve a leer solo cuando cambia:** un contador propio sube con cada pregunta nueva y con cada borrado, y no con los guardados de cada segundo de una respuesta.
+  3. **Fechas y grupos con `java.time`:**
+     - por días de calendario en la zona del teléfono, con «hoy» recalculado al volver a la pantalla;
+     - formatos en el idioma de la app, y frases largas para TalkBack.
+  4. **Abrir desde Historial:**
+     - Historial devuelve la petición (`open:<id>` o `new`) a la entrada del chat, como el detalle devuelve su aviso a la Biblioteca;
+     - el chat la atiende una vez;
+     - la sesión detiene la respuesta en curso solo si es de otra conversación.
+  5. **Borrar una conversación:**
+     - la sesión borra bajo su cerrojo, como «borrar todo», y avisa con el id borrado;
+     - el chat vuelve a un chat vacío si era la suya;
+     - borrar deja de lanzar excepciones: un fallo se avisa en Historial y en el chat, y no quita nada.
+  6. **Fichas `[n]` de documentos borrados:**
+     - en gris y sin enlace, con la misma disponibilidad que las filas de fuentes;
+     - TalkBack lee su número sin acción, y la frase «Fuente ya no disponible» la da su fila de fuentes.
+
+     Es una corrección a H7, que se aprueba en la parada del analyze.
+  7. **Medida** con un fichero de prueba aparte: 1.000 conversaciones de 5 preguntas, en el emulador y en el teléfono, con su tamaño y su tiempo de apertura.
+  8. **Fase del teléfono al final**, sin capturar ni volcar Historial mientras liste la conversación del usuario.
+- **Motivo:**
+  - un título guardado repetiría un dato que ya está en `chat.db` y obligaría a migrar ficheros del usuario;
+  - releer la lista con cada guardado haría una consulta por segundo durante cada respuesta;
+  - navegar de nuevo al chat crearía otra instancia de la pestaña, y la ruta no se refresca (R13 de F11);
+  - el borrado fuera del cerrojo dejaba empezar una pregunta entre la parada y el borrado, y una excepción de borrado sin capturar cerraba la app;
+  - Compose no permite poner a una parte del texto una frase propia sin quitar los enlaces de las demás.
+- **Alternativas descartadas:**
+  - una columna de título con migración a v2; Paging 3; paginación por cursor;
+  - releer la lista con cada escritura;
+  - `navigate(Chat(id))` sustituyendo la entrada del chat; una petición guardada en la sesión;
+  - una `contentDescription` para toda la respuesta, o `VerbatimTtsAnnotation`, para las fichas inertes.
+- **Origen:** plan de F13 (`specs/013-chat-history/plan.md` y `research.md`).
+- **Afecta:**
+  - F13;
+  - F11: la sesión, el ViewModel y la pantalla del chat, y la tarjeta de respuesta;
+  - F08: `LoadMoreNearTheEnd` pasa al design system.
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.
