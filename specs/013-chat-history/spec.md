@@ -284,7 +284,7 @@ Quien desarrolla mide cuánto ocupan las conversaciones guardadas y cuánto tard
 
 **Textos, accesibilidad, privacidad y fidelidad**
 
-- **FR-023**: Todos los textos nuevos MUST estar en español y en inglés en los recursos de la app, con las mismas claves. Los textos que ya dicen lo mismo en F11 o F12 (confirmación de borrado, «Conversación borrada», «No hay conversaciones guardadas.», «Nuevo chat», el error de C17) MUST reutilizarse.
+- **FR-023**: Todos los textos nuevos MUST estar en español y en inglés en los recursos de la app, con las mismas claves. Los textos que ya dicen lo mismo en F11 o F12 (la confirmación de borrado, «La respuesta en curso se detendrá.», «Conversación borrada», «Nuevo chat», «Reintentar» y el error de C17) MUST reutilizarse.
 - **FR-024**: Historial MUST:
   - tener objetivos táctiles de 48 dp;
   - leer cada fila como una sola frase, con su acción;
@@ -323,7 +323,61 @@ Quien desarrolla mide cuánto ocupan las conversaciones guardadas y cuánto tard
 
 ## Assumptions
 
-- **Wireframe y propuestas de UI (serie H):** F13 no tiene PNG. Tras clarify, la pantalla se propone en `specs/013-chat-history/wireframe.md`, con los componentes `Lisdata*` del design system, y se resume aquí como propuestas H. El usuario las aprueba antes de `/speckit-plan` (criterio 1 de F13, constitución VII).
+- **Wireframe y propuestas de UI (serie H)** (constitución VII: se aprueban antes de `/speckit-plan`, criterio 1 de F13). F13 no tiene PNG. Los dibujos están en [wireframe.md](wireframe.md), con los componentes `Lisdata*` de cada zona. Los textos son propuestas en español; la versión inglesa va en H11:
+  - **H1 — Acceso:**
+    - «Historial» en el menú «⋯» del chat, entre «Nuevo chat» y «Borrar conversación» (orden de G13), siempre visible;
+    - Historial es una pantalla encima del chat, sin barra inferior; Atrás vuelve al chat sin cambiar su conversación.
+  - **H2 — Barra superior:** «‹ Historial» con la acción «＋», que TalkBack lee como «Nuevo chat», como el «＋» de la Biblioteca.
+    - Cierra Historial y deja el chat vacío (FR-021).
+    - No hay encabezado ni texto introductorio: la lista empieza bajo la barra.
+  - **H3 — Fila de conversación** (pieza nueva sobre `LisdataCard`):
+    - **Título:** la primera pregunta, en 2 líneas como mucho y cortada con «…».
+    - **Línea de datos:** la fecha de la última actividad y el número de preguntas, por ejemplo «10:42 · 3 preguntas». La fecha va según el grupo:
+      - en «Hoy» y «Ayer», la hora;
+      - en «Últimos 7 días», el día de la semana («lunes»);
+      - en los grupos de mes, «12 oct.».
+    - **Chip «Abierta»:** informativo, solo en la conversación abierta en la pestaña Chat.
+    - **Papelera:** a la derecha, de 48 dp y en el color secundario del texto, no en rojo, para no llenar la lista de iconos rojos. El rojo queda para «Borrar» en el diálogo.
+    - Sin chevron.
+    - Tocar el resto de la tarjeta abre la conversación.
+    - **TalkBack:**
+      - la fila: «¿Cuál es el plazo de devolución? Hoy, 10:42. 3 preguntas. Abierta.», con la acción «Abrir conversación»;
+      - la papelera, aparte: «Borrar conversación: ¿Cuál es el plazo de devolución?».
+  - **H4 — Vacío:** icono de chat, «Aún no hay conversaciones», «Las conversaciones que tengas en el chat aparecerán aquí.» y el botón «Nuevo chat».
+  - **H5 — Cargando y error:**
+    - mientras carga, 4 filas esqueleto;
+    - si no se pueden leer las conversaciones, «No se pueden abrir tus conversaciones guardadas.» (C17) con «Reintentar», sin borrar nada y sin ofrecer abrir ni borrar.
+  - **H6 — Borrar:**
+    - el diálogo de F11 (C15): «¿Borrar esta conversación?», «Se eliminarán sus preguntas y respuestas de este teléfono.», con «Cancelar» (foco por defecto) y «Borrar»;
+    - si esa conversación tiene una respuesta en curso, se añade «La respuesta en curso se detendrá.» (S6 de F12);
+    - al terminar, el aviso inferior «Conversación borrada», que TalkBack anuncia; sin «Deshacer»;
+    - si falla, «No se pudo borrar la conversación.».
+  - **H7 — Abrir:**
+    - el chat muestra la conversación como al abrir la última en F11, en el punto de la última respuesta;
+    - las fuentes de documentos borrados dicen «Fuente ya no disponible» y no abren nada;
+    - sus fichas `[n]` del texto se ven en gris, como esa fila, y TalkBack las lee «Fuente N: Fuente ya no disponible», sin acción.
+  - **H8 — Respuesta en curso** (clarify, FR-013): abrir otra conversación la detiene sin preguntar, como «Nuevo chat». Queda «Generación cancelada» en su conversación.
+  - **H9 — Lista al día:**
+    - una pregunta nueva sube su conversación a «Hoy»;
+    - borrar desde el chat o «Borrar historial» en Ajustes la quitan de la lista;
+    - durante una respuesta, la lista no parpadea.
+  - **H10 — Accesibilidad:**
+    - objetivos de 48 dp; cabeceras de grupo como encabezados;
+    - en horizontal, la misma lista a todo el ancho, y el estado vacío sin icono;
+    - con la letra al 200 %, el chip «Abierta» baja bajo la fecha si no cabe a su lado;
+    - modo oscuro con los tokens de siempre.
+  - **H11 — Textos nuevos en inglés:**
+    - «Historial» → "History";
+    - «Hoy» → "Today", «Ayer» → "Yesterday", «Últimos 7 días» → "Last 7 days", «Octubre de 2026» → "October 2026";
+    - «1 pregunta / N preguntas» → "1 question / N questions";
+    - «Abierta» → "Open";
+    - «Abrir conversación» → "Open conversation";
+    - «Borrar conversación: …» → "Delete conversation: …";
+    - «Aún no hay conversaciones» → "No conversations yet";
+    - «Las conversaciones que tengas en el chat aparecerán aquí.» → "Your chat conversations will appear here.";
+    - «No se pudo borrar la conversación.» → "Couldn't delete the conversation.".
+
+    Los demás textos ya existen en los dos idiomas (FR-023).
 - **Título:** es la primera pregunta tal cual, sin resumirla con el modelo. Generar títulos cargaría Gemma solo para eso, contra el uso de recursos de la constitución IV.
 - **Fecha de última actividad:** es la de la última pregunta. Abrir una conversación sin preguntar no la cambia.
 - **Tandas:** del mismo tamaño que las de la Biblioteca (50), con el mismo comportamiento al desplazarse. El plan confirma el valor.
