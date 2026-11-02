@@ -3,6 +3,7 @@ package com.lisdatasolutions.microrag.core.designsystem.component
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
@@ -23,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
@@ -35,6 +37,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import com.lisdatasolutions.microrag.R
 import com.lisdatasolutions.microrag.core.designsystem.icon.LisdataIcon
@@ -320,23 +323,64 @@ fun LisdataSettingsRow(
             contentDescription = null,
             tint = iconTint ?: if (destructive) colors.error else colors.brandBlue,
         )
-        Column(modifier = Modifier.weight(1f)) {
-            Text(text = title, style = LisdataTheme.typography.material.titleMedium, color = colors.textPrimary)
-            if (subtitle != null) {
-                Text(text = subtitle, style = LisdataTheme.typography.material.bodyMedium, color = colors.textSecondary)
+        val texts: @Composable () -> Unit = {
+            Column {
+                Text(text = title, style = LisdataTheme.typography.material.titleMedium, color = colors.textPrimary)
+                if (subtitle != null) {
+                    Text(text = subtitle, style = LisdataTheme.typography.material.bodyMedium, color = colors.textSecondary)
+                }
             }
         }
         when (trailing) {
-            SettingsTrailing.Chevron -> LisdataIcon(LisdataIcons.ChevronRight, contentDescription = null, tint = colors.textSecondary)
-            is SettingsTrailing.Chip -> LisdataStatusChip(text = trailing.text, kind = trailing.kind)
-            is SettingsTrailing.ChipAndChevron -> Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(spacing.space2),
-            ) {
-                LisdataStatusChip(text = trailing.text, kind = trailing.kind)
+            SettingsTrailing.Chevron -> {
+                Box(modifier = Modifier.weight(1f)) { texts() }
                 LisdataIcon(LisdataIcons.ChevronRight, contentDescription = null, tint = colors.textSecondary)
             }
-            SettingsTrailing.None -> Unit
+            is SettingsTrailing.Chip -> TextsWithChip(
+                texts = texts,
+                chip = { LisdataStatusChip(text = trailing.text, kind = trailing.kind) },
+                modifier = Modifier.weight(1f),
+            )
+            is SettingsTrailing.ChipAndChevron -> {
+                TextsWithChip(
+                    texts = texts,
+                    chip = { LisdataStatusChip(text = trailing.text, kind = trailing.kind) },
+                    modifier = Modifier.weight(1f),
+                )
+                LisdataIcon(LisdataIcons.ChevronRight, contentDescription = null, tint = colors.textSecondary)
+            }
+            SettingsTrailing.None -> Box(modifier = Modifier.weight(1f)) { texts() }
+        }
+    }
+}
+
+/**
+ * The texts of a row with its status chip beside them, or under them when, beside it, a word of the texts
+ * would not fit whole: a long status («Por configurar») or large text never breaks «EmbeddingGemma 2» or
+ * «Procesamiento» in two (F12 T065). The longest word is the texts' minimum intrinsic width.
+ */
+@Composable
+private fun TextsWithChip(texts: @Composable () -> Unit, chip: @Composable () -> Unit, modifier: Modifier = Modifier) {
+    val spacing = LisdataTheme.spacing
+    Layout(contents = listOf(texts, chip), modifier = modifier) { (textsMeasurables, chipMeasurables), constraints ->
+        val textsMeasurable = textsMeasurables.single()
+        val width = constraints.maxWidth
+        val chipPlaceable = chipMeasurables.single().measure(Constraints(maxWidth = width))
+        val besideWidth = width - chipPlaceable.width - spacing.space4.roundToPx()
+        if (besideWidth >= textsMeasurable.minIntrinsicWidth(Constraints.Infinity)) {
+            val textsPlaceable = textsMeasurable.measure(Constraints(maxWidth = besideWidth))
+            val height = maxOf(textsPlaceable.height, chipPlaceable.height)
+            layout(width, height) {
+                textsPlaceable.placeRelative(0, (height - textsPlaceable.height) / 2)
+                chipPlaceable.placeRelative(width - chipPlaceable.width, (height - chipPlaceable.height) / 2)
+            }
+        } else {
+            val textsPlaceable = textsMeasurable.measure(Constraints(maxWidth = width))
+            val gap = spacing.space1.roundToPx()
+            layout(width, textsPlaceable.height + gap + chipPlaceable.height) {
+                textsPlaceable.placeRelative(0, 0)
+                chipPlaceable.placeRelative(0, textsPlaceable.height + gap)
+            }
         }
     }
 }
