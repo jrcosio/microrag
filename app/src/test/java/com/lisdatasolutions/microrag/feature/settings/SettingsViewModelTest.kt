@@ -54,6 +54,7 @@ class SettingsViewModelTest {
         isAnswering = IsAnswerInProgressUseCase(session),
         clearHistory = ClearChatHistoryUseCase(session),
         savedState = saved,
+        backgroundDispatcher = dispatcher,
     )
 
     private fun SettingsViewModel.model(id: ModelId) = state.value.models.single { it.id == id }

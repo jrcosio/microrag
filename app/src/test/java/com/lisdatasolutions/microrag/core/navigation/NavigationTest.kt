@@ -187,6 +187,7 @@ internal fun settingsViewModels(
             IsAnswerInProgressUseCase(session),
             ClearChatHistoryUseCase(session),
             get(),
+            Dispatchers.Unconfined,
         )
     }
     viewModel { LanguagesViewModel(ObserveLanguageSettingsUseCase(language), SaveLanguageSettingsUseCase(language, get()), get()) }

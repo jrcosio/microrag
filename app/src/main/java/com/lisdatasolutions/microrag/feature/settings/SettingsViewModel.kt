@@ -11,17 +11,21 @@ import com.lisdatasolutions.microrag.domain.onboarding.RefreshLocalAiUseCase
 import com.lisdatasolutions.microrag.domain.settings.AppLanguage
 import com.lisdatasolutions.microrag.domain.settings.ObserveLanguageSettingsUseCase
 import com.lisdatasolutions.microrag.domain.settings.ObserveModelOverviewUseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 /**
  * P09 (contracts/settings-api.md): the model rows follow the Preparation (P13), the open sheet and the
  * clearing confirmation survive a rotation, and «Borrar historial de chat» goes through the chat session (P12).
+ * The rows' state reads the model files, so, as in the Preparation, it is gathered on [backgroundDispatcher].
  */
 class SettingsViewModel(
     observeModels: ObserveModelOverviewUseCase,
@@ -31,9 +35,10 @@ class SettingsViewModel(
     private val isAnswering: IsAnswerInProgressUseCase,
     private val clearHistory: ClearChatHistoryUseCase,
     private val savedState: SavedStateHandle,
+    private val backgroundDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : ViewModel() {
 
-    private val models = observeModels().stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    private val models = observeModels().flowOn(backgroundDispatcher).stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     private val clearing = MutableStateFlow(false)
     private val message = MutableStateFlow<SettingsMessage?>(null)
     private val appLanguage = MutableStateFlow(AppLanguage.SPANISH)

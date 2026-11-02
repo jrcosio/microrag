@@ -26,6 +26,6 @@ val featureModule = module {
     viewModel { HomeViewModel(get(), get(), get(), get(), get()) }
     viewModel { DocumentViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { ChatViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
-    viewModelOf(::SettingsViewModel)
+    viewModel { SettingsViewModel(get(), get(), get(), get(), get(), get(), get()) }
     viewModelOf(::LanguagesViewModel)
 }
