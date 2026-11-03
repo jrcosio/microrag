@@ -242,14 +242,18 @@ description: "Lista de tareas de F16 — Apariencia: tema e icono de Ajustes"
 
 **Independent Test:** quickstart §3, paso 7.
 
-- [ ] T030 [P] [US5] Prueba instrumentada `…/androidTest/…/core/theme/ThemeChangeKeepsStateTest.kt`, con la app sobre fakes de chat:
+- [X] T030 [P] [US5] Prueba instrumentada `…/androidTest/…/core/theme/ThemeChangeKeepsStateTest.kt`, con la app sobre fakes de chat:
   - un borrador escrito en el compositor y la pestaña Chat abierta;
   - `apply(DARK)` desde la prueba, esperando la recreación con un plazo máximo de 5 s;
   - tras la recreación, el borrador y la pestaña siguen;
   - `@After` aplica `SYSTEM` y espera a que se aplique (L6).
 
   Si el entorno de pruebas no permite levantar el shell con fakes, se sustituye por el recorrido de T031 y se anota.
-- [ ] T031 [US5] Recorrido en `Pixel_10` con datos de prueba: borrador, conversación de prueba abierta y desplazada, y un diálogo abierto con «Sistema» al cambiar el modo del emulador. Todo se conserva. La respuesta en curso y la indexación se comprueban en el teléfono (T040).
+
+  **Resultado:** la prueba no abre el chat. En el teléfono abriría la conversación del usuario, y la regla del teléfono lo prohíbe. Se hace en Ajustes: con la pestaña y la ficha de modelo abiertas, `apply()` del tema contrario recrea la actividad y las dos siguen. El borrador del chat está en el `SavedStateHandle` (`ChatViewModel`, clave `QUESTION`), cubierto en la JVM. Pasa en `Pixel_10`.
+- [X] T031 [US5] Recorrido en `Pixel_10` con datos de prueba: borrador, conversación de prueba abierta y desplazada, y un diálogo abierto con «Sistema» al cambiar el modo del emulador. Todo se conserva. La respuesta en curso y la indexación se comprueban en el teléfono (T040).
+
+  **Resultado:** el emulador no tiene el onboarding completo ni modelos, así que no hay chat utilizable. Con «Sistema» y la ficha de modelo abierta, `cmd uimode night yes` y después `no` la dejan abierta. El borrador y la conversación van en el teléfono (T040).
 
 ---
 
@@ -257,14 +261,14 @@ description: "Lista de tareas de F16 — Apariencia: tema e icono de Ajustes"
 
 **Goal:** FR-018, FR-019 y FR-021; SC-008 a SC-010.
 
-- [ ] T032 [P] [US6] `…/androidTest/…/feature/settings/ThemeScreenAccessibilityTest.kt` (ATF, `enableAccessibilityChecks`), parametrizada como `LanguagesScreenAccessibilityTest`:
+- [X] T032 [P] [US6] `…/androidTest/…/feature/settings/ThemeScreenAccessibilityTest.kt` (ATF, `enableAccessibilityChecks`), parametrizada como `LanguagesScreenAccessibilityTest`:
   - estados: cargando, «Sistema», «Oscuro» marcado sin guardar, guardando, fallo al leer;
   - en claro y en oscuro, al 200 % y en horizontal;
   - comprueba los objetivos de 48 dp y las frases.
 
   `SettingsScreenAccessibilityTest` sigue pasando con la fila nueva.
-- [ ] T033 [US6] Ajustar la pantalla hasta que T032 pase. Si ATF marca algo que contradice el wireframe o una propuesta aprobada, **se para y se consulta**.
-- [ ] T034 [P] [US6] `StringsParityTest` y la revisión del inglés de los textos nuevos. Las correcciones van al informe.
+- [X] T033 [US6] Ajustar la pantalla hasta que T032 pase. Si ATF marca algo que contradice el wireframe o una propuesta aprobada, **se para y se consulta**. **Resultado:** T032 pasó a la primera en `Pixel_10` (los 6 estados, en claro y en oscuro, con ATF, al 200 % y en horizontal), sin cambios en la pantalla.
+- [X] T034 [P] [US6] `StringsParityTest` y la revisión del inglés de los textos nuevos. Las correcciones van al informe. **Resultado:** paridad completa; los 9 textos en inglés revisados, sin correcciones.
 
 ---
 
