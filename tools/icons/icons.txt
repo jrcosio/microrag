@@ -8,8 +8,8 @@ ic_shield_check = shield-check
 ic_home = house
 ic_chat = message-square-text
 ic_folder = folder
-# Mockups use a sun for Settings (INVENTARIO G19).
-ic_settings = sun
+# Gear for Settings (D-067; the mockups use a sun, G19).
+ic_settings = settings
 ic_chevron_left = chevron-left
 ic_chevron_right = chevron-right
 ic_arrow_right = arrow-right
@@ -33,3 +33,5 @@ ic_check_circle = circle-check
 ic_warning = triangle-alert
 # Clear actions (search field), added during F01 implementation.
 ic_close = x
+# Theme row of Settings, added in F16 (D-067).
+ic_sun_moon = sun-moon

@@ -37,11 +37,12 @@ object LisdataIcons {
     val CheckCircle = R.drawable.ic_check_circle
     val Warning = R.drawable.ic_warning
     val Close = R.drawable.ic_close
+    val SunMoon = R.drawable.ic_sun_moon
 
     /** All icons, for the debug catalog and resource checks. */
     val all: List<Int> = listOf(
         Sparkle, Layers, Database, Cpu, ShieldCheck, Home, Chat, Folder, Settings, ChevronLeft,
         ChevronRight, ArrowRight, MoreHorizontal, Upload, Send, Stop, Copy, Trash, Plus, Search,
-        Pause, Play, Refresh, Globe, FileText, Info, Check, CheckCircle, Warning, Close,
+        Pause, Play, Refresh, Globe, FileText, Info, Check, CheckCircle, Warning, Close, SunMoon,
     )
 }
