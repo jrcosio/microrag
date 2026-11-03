@@ -482,7 +482,8 @@ class ChatViewModelTest {
     fun aDeletedDocument_readsUnavailable_andABlockOfSeveralFragments_givesItsRange_C11() = runTest(dispatcher) {
         val document = graph.addDocument("Manual de procesos.pdf")
         val id = graph.chats.createConversation(0)
-        val turn = graph.chats.insertTurn(id, "¿Plazo?", partialCoverage = false, now = 0)
+        // Asked after the document was imported: one created later would be another document (F13 Q15).
+        val turn = graph.chats.insertTurn(id, "¿Plazo?", partialCoverage = false, now = 5_000)
         graph.chats.updateTurn(turn.id, TurnUpdate(state = TurnState.COMPLETED, answer = "Son 30 días [1][2].", promptBlocks = 2))
         graph.chats.replaceSources(
             turn.id,

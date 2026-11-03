@@ -11,6 +11,7 @@ import com.lisdatasolutions.microrag.domain.rag.IndexUnavailableException
 import com.lisdatasolutions.microrag.domain.rag.RagIndex
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
@@ -21,7 +22,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.onStart
 
 /**
  * Whether the chat can be used (F11 research R11), from the real state of the saved conversations, the
@@ -103,8 +106,14 @@ class StartNewConversationUseCase(private val session: ChatSession) {
     operator fun invoke() = session.startNewConversation()
 }
 
+/** F13 Q7: deletes one conversation through the session; false when `chat.db` refused it. Never throws. */
 class DeleteConversationUseCase(private val session: ChatSession) {
-    suspend operator fun invoke(conversationId: Long) = session.delete(conversationId)
+    suspend operator fun invoke(conversationId: Long): Boolean = try {
+        session.delete(conversationId)
+        true
+    } catch (e: ChatStorageException) {
+        false
+    }
 }
 
 class LastConversationUseCase(private val repository: ChatRepository) {
@@ -140,6 +149,51 @@ class ObserveHistoryClearedUseCase(private val session: ChatSession) {
     operator fun invoke(): StateFlow<Long> = session.historyCleared
 }
 
+/**
+ * F13 Q1–Q5: the history list for a growing [limit] (research R1). Titles keep single spaces; a storage
+ * that cannot be read gives [HistoryContent.Unavailable], and nothing is deleted.
+ */
+class ObserveConversationsUseCase(private val repository: ChatRepository) {
+    @OptIn(ExperimentalCoroutinesApi::class)
+    operator fun invoke(limit: Flow<Int>): Flow<HistoryContent> = limit.distinctUntilChanged().flatMapLatest { rows ->
+        repository.conversations(rows)
+            .map<ConversationPage, HistoryContent> { page -> HistoryContent.Page(page.copy(entries = page.entries.map { it.copy(title = normalized(it.title)) })) }
+            .catch { error -> if (error is ChatStorageException) emit(HistoryContent.Unavailable) else throw error }
+    }.onStart { emit(HistoryContent.Loading) }.distinctUntilChanged()
+
+    private fun normalized(title: String): String = title.replace(WHITESPACE, " ").trim()
+
+    private companion object {
+        val WHITESPACE = Regex("\\s+")
+    }
+}
+
+/** F13 Q6: shows another conversation; an answer of another one stops first. */
+class OpenConversationUseCase(private val session: ChatSession) {
+    suspend operator fun invoke(conversationId: Long) = session.openConversation(conversationId)
+}
+
+/** F13 Q8: the ids of the conversations deleted one by one. */
+class ObserveConversationDeletionsUseCase(private val session: ChatSession) {
+    operator fun invoke(): SharedFlow<Long> = session.deletions
+}
+
+/** F13 Q9: the conversation whose answer is being searched for or generated; null otherwise. */
+class ObserveAnswerInProgressUseCase(private val session: ChatSession) {
+    operator fun invoke(): Flow<Long?> = session.active
+        .map { answer -> answer?.takeIf { it.state == TurnState.RETRIEVING || it.state == TurnState.GENERATING }?.conversationId }
+        .distinctUntilChanged()
+}
+
+/** F13 Q16: whether a restored conversation still exists; true when it cannot be checked, so a read failure never empties the chat. */
+class ConversationExistsUseCase(private val repository: ChatRepository) {
+    suspend operator fun invoke(conversationId: Long): Boolean = try {
+        repository.conversationExists(conversationId)
+    } catch (e: ChatStorageException) {
+        true
+    }
+}
+
 /** Loads Gemma ahead of the first question, only when the chat is Ready (never during a batch, D-053). */
 class WarmUpAnswerEngineUseCase(private val engine: AnswerEngine, private val observeAvailability: ObserveChatAvailabilityUseCase) {
     suspend operator fun invoke() {
@@ -155,18 +209,21 @@ class WarmUpAnswerEngineUseCase(private val engine: AnswerEngine, private val ob
  */
 class ResolveSourcesUseCase(private val index: RagIndex) {
     @OptIn(ExperimentalCoroutinesApi::class)
-    operator fun invoke(sources: List<AnswerSource>): Flow<Map<Long, SourceAvailability>> =
+    operator fun invoke(sources: List<CitedSource>): Flow<Map<CitedSource, SourceAvailability>> =
         if (sources.isEmpty()) flowOf(emptyMap()) else index.documentChanges.mapLatest { resolve(sources) }
-            .catch { error -> if (error is IndexUnavailableException) emit(sources.associate { it.chunkId to SourceAvailability.AVAILABLE }) else throw error }
+            .catch { error -> if (error is IndexUnavailableException) emit(sources.associateWith { SourceAvailability.AVAILABLE }) else throw error }
             .distinctUntilChanged()
 
-    private suspend fun resolve(sources: List<AnswerSource>): Map<Long, SourceAvailability> {
-        if (index.open() != IndexCompatibility.Compatible) return sources.associate { it.chunkId to SourceAvailability.AVAILABLE }
-        val documents = sources.map { it.documentId }.distinct().associateWith { index.document(it) != null }
-        val chunks = index.loadChunks(sources.map { it.chunkId })
-        return sources.associate { source ->
-            source.chunkId to when {
-                documents[source.documentId] != true -> SourceAvailability.DOCUMENT_GONE
+    /** By cited source, not by chunk: the same chunk id may be two documents' at two times (Q15). */
+    private suspend fun resolve(cited: List<CitedSource>): Map<CitedSource, SourceAvailability> {
+        if (index.open() != IndexCompatibility.Compatible) return cited.associateWith { SourceAvailability.AVAILABLE }
+        val created = cited.map { it.source.documentId }.distinct().associateWith { index.document(it)?.createdAtMs }
+        val chunks = index.loadChunks(cited.map { it.source.chunkId })
+        return cited.associateWith { (source, citedAt) ->
+            val documentCreated = created[source.documentId]
+            when {
+                // F13 Q15: rag.db reuses the id of a deleted last document; one created after the answer is another.
+                documentCreated == null || documentCreated > citedAt -> SourceAvailability.DOCUMENT_GONE
                 chunks[source.chunkId]?.documentId != source.documentId -> SourceAvailability.FRAGMENT_GONE
                 else -> SourceAvailability.AVAILABLE
             }

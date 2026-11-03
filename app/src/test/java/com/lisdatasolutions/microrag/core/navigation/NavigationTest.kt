@@ -479,7 +479,8 @@ class NavigationTest {
         runBlocking {
             val documentId = chat.addDocument("Manual.pdf")
             val id = chat.chats.createConversation(0)
-            val turn = chat.chats.insertTurn(id, "¿Qué plazo hay?", partialCoverage = false, now = 0)
+            // Asked after the document was imported (F13 Q15).
+            val turn = chat.chats.insertTurn(id, "¿Qué plazo hay?", partialCoverage = false, now = 5_000)
             chat.chats.updateTurn(turn.id, TurnUpdate(state = TurnState.COMPLETED, answer = "Son 30 días [1].", promptBlocks = 1))
             chat.chats.replaceSources(turn.id, listOf(AnswerSource(1, 1, documentId, 3, 2, 2, "Manual.pdf", 2)))
         }

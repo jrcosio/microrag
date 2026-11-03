@@ -42,13 +42,18 @@ import com.lisdatasolutions.microrag.domain.onboarding.StartOnboardingUseCase
 import com.lisdatasolutions.microrag.domain.chat.AskQuestionUseCase
 import com.lisdatasolutions.microrag.domain.chat.CancelAnswerUseCase
 import com.lisdatasolutions.microrag.domain.chat.ClearChatHistoryUseCase
+import com.lisdatasolutions.microrag.domain.chat.ConversationExistsUseCase
 import com.lisdatasolutions.microrag.domain.chat.CountConversationsUseCase
 import com.lisdatasolutions.microrag.domain.chat.DeleteConversationUseCase
 import com.lisdatasolutions.microrag.domain.chat.IsAnswerInProgressUseCase
 import com.lisdatasolutions.microrag.domain.chat.LastConversationUseCase
+import com.lisdatasolutions.microrag.domain.chat.ObserveAnswerInProgressUseCase
 import com.lisdatasolutions.microrag.domain.chat.ObserveChatAvailabilityUseCase
+import com.lisdatasolutions.microrag.domain.chat.ObserveConversationDeletionsUseCase
 import com.lisdatasolutions.microrag.domain.chat.ObserveConversationUseCase
+import com.lisdatasolutions.microrag.domain.chat.ObserveConversationsUseCase
 import com.lisdatasolutions.microrag.domain.chat.ObserveHistoryClearedUseCase
+import com.lisdatasolutions.microrag.domain.chat.OpenConversationUseCase
 import com.lisdatasolutions.microrag.domain.chat.ResolveSourcesUseCase
 import com.lisdatasolutions.microrag.domain.chat.RetryAnswerUseCase
 import com.lisdatasolutions.microrag.domain.chat.StartNewConversationUseCase
@@ -125,4 +130,11 @@ val domainModule = module {
     factoryOf(::ObserveHistoryClearedUseCase)
     factoryOf(::WarmUpAnswerEngineUseCase)
     factoryOf(::ResolveSourcesUseCase)
+
+    // Chat history (F13).
+    factoryOf(::ObserveConversationsUseCase)
+    factoryOf(::OpenConversationUseCase)
+    factoryOf(::ObserveConversationDeletionsUseCase)
+    factoryOf(::ObserveAnswerInProgressUseCase)
+    factoryOf(::ConversationExistsUseCase)
 }

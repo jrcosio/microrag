@@ -9,6 +9,9 @@ import com.lisdatasolutions.microrag.domain.chat.ChatSession
 import com.lisdatasolutions.microrag.domain.chat.ChatStorageException
 import com.lisdatasolutions.microrag.domain.chat.ChatStorageState
 import com.lisdatasolutions.microrag.domain.chat.ChatTurn
+import com.lisdatasolutions.microrag.domain.chat.ConversationPage
+import com.lisdatasolutions.microrag.domain.chat.ConversationSummary
+import com.lisdatasolutions.microrag.domain.chat.HistoryLimits
 import com.lisdatasolutions.microrag.domain.chat.ObserveChatAvailabilityUseCase
 import com.lisdatasolutions.microrag.domain.chat.TurnState
 import com.lisdatasolutions.microrag.domain.chat.TurnUpdate
@@ -28,6 +31,7 @@ import com.lisdatasolutions.microrag.domain.retrieval.RetrievalTimings
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -60,7 +64,27 @@ class InMemoryChatRepository : ChatRepository {
 
     override suspend fun turn(id: Long): ChatTurn? = turns[id]
 
-    override suspend fun lastConversationId(): Long? = conversations.maxByOrNull { it.value }?.key
+    override suspend fun lastConversationId(): Long? = asked().firstOrNull()
+
+    override fun conversations(limit: Int): Flow<ConversationPage> = changes.map {
+        if (storage != ChatStorageState.OK) throw ChatStorageException("fake storage unavailable")
+        val ids = asked()
+        ConversationPage(ids.take(limit).map(::summary), ids.size)
+    }.distinctUntilChanged()
+
+    /** Conversations with questions: the newest activity first, then the one created later (F13 Q1, Q2). */
+    private fun asked(): List<Long> = conversations.entries
+        .filter { (id, _) -> turns.values.any { it.conversationId == id } }
+        .sortedWith(compareByDescending<Map.Entry<Long, Long>> { it.value }.thenByDescending { it.key })
+        .map { it.key }
+
+    private fun summary(id: Long): ConversationSummary {
+        val mine = turns.values.filter { it.conversationId == id }
+        return ConversationSummary(
+            id = id, title = mine.minBy { it.ordinal }.question.take(HistoryLimits.TITLE_CHARS),
+            lastActivityAt = conversations.getValue(id), questions = mine.size,
+        )
+    }
 
     override suspend fun createConversation(now: Long): Long = write("create") {
         nextConversation++.also { conversations[it] = now }
@@ -237,9 +261,18 @@ class FakeChatSession(private val repository: InMemoryChatRepository) : ChatSess
         calls += "new"
     }
 
+    override suspend fun openConversation(conversationId: Long) {
+        calls += "open:$conversationId"
+    }
+
+    override val deletions = MutableSharedFlow<Long>(extraBufferCapacity = 8)
+
+    /** Throws as the real session when the repository refuses the write; announces only a confirmed deletion. */
     override suspend fun delete(conversationId: Long) {
         calls += "delete:$conversationId"
         repository.deleteConversation(conversationId)
+        if (active.value?.conversationId == conversationId) active.value = null
+        deletions.emit(conversationId)
     }
 
     override val historyCleared = MutableStateFlow(0L)

@@ -28,7 +28,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
@@ -64,6 +66,9 @@ class DefaultChatSession(
     private val cleared = MutableStateFlow(0L)
     override val historyCleared: StateFlow<Long> = cleared.asStateFlow()
 
+    private val deleted = MutableSharedFlow<Long>(extraBufferCapacity = DELETIONS_BUFFER)
+    override val deletions: SharedFlow<Long> = deleted
+
     /** How the answer in progress ends when its job is cancelled: by the user, or by the system (C13). */
     @Volatile
     private var stopAs = TurnState.CANCELLED
@@ -80,6 +85,7 @@ class DefaultChatSession(
     override suspend fun ask(conversationId: Long?, question: String): Long? = lock.withLock {
         if (question.isBlank() || question.length > ChatLimits.MAX_QUESTION_CHARS) return@withLock null
         if (job?.isActive == true) return@withLock null
+        awaitStopped()
         val ready = availability().first() as? ChatAvailability.Ready ?: return@withLock null
         startup.join()
         // A conversation that could not be saved (C16) is tried again with the next question, and so is one
@@ -100,6 +106,7 @@ class DefaultChatSession(
 
     override suspend fun retry(turnId: Long): Boolean = lock.withLock {
         if (job?.isActive == true) return@withLock false
+        awaitStopped()
         if (availability().first() !is ChatAvailability.Ready) return@withLock false
         val target = saveOrNull { repository.turn(turnId) } ?: return@withLock false
         if (target.state != TurnState.FAILED && target.state != TurnState.INTERRUPTED) return@withLock false
@@ -113,13 +120,30 @@ class DefaultChatSession(
         stop(TurnState.CANCELLED)
     }
 
-    override suspend fun delete(conversationId: Long) {
-        if (current.value?.conversationId == conversationId) {
+    override suspend fun openConversation(conversationId: Long) = lock.withLock {
+        if (current.value?.let { it.conversationId != conversationId } == true) {
             stop(TurnState.CANCELLED)
             job?.join()
         }
-        repository.deleteConversation(conversationId)
-        current.update { if (it?.conversationId == conversationId) null else it }
+    }
+
+    override suspend fun delete(conversationId: Long) {
+        lock.withLock {
+            if (current.value?.conversationId == conversationId) {
+                stop(TurnState.CANCELLED)
+                job?.join()
+            }
+            try {
+                repository.deleteConversation(conversationId)
+            } catch (e: ChatStorageException) {
+                logger.w(TAG) { "chat delete outcome=failed" }
+                throw e
+            }
+            current.update { if (it?.conversationId == conversationId) null else it }
+            logger.i(TAG) { "chat delete outcome=ok" }
+        }
+        // Outside the lock: a slow collector never holds the session (F13 analyze AN-10).
+        deleted.emit(conversationId)
     }
 
     /**
@@ -145,6 +169,14 @@ class DefaultChatSession(
         if (!running.isActive) return
         stopAs = state
         running.cancel()
+    }
+
+    /**
+     * F13 Q14: a cancelled answer stops being active at once but still saves its end. The next one starts
+     * after it, so the old end never clears the new answer.
+     */
+    private suspend fun awaitStopped() {
+        job?.takeIf { !it.isCompleted }?.join()
     }
 
     /** A4 (C12 as the desktop): the last turn before the asked one counts only when completed, refusal included. */
@@ -267,7 +299,8 @@ class DefaultChatSession(
         if (saved) saved = save(turnId) { repository.replaceSources(turnId, sources) }
         current.update { answer ->
             when {
-                answer == null -> null
+                // F13 Q14: another answer may already be the current one; this end is not its own.
+                answer == null || answer.turnId != turnId -> answer
                 saved && !answer.saveFailed -> null
                 // C16: an answer that could not be saved stays in memory, finished, until the next question.
                 else -> answer.copy(state = state, text = text, saveFailed = true, refusal = refusal, failure = failure)
@@ -332,5 +365,8 @@ class DefaultChatSession(
 
     private companion object {
         const val TAG = "MicroRAG"
+
+        /** Deletions waiting for a slow collector; one per tap, so a few are plenty. */
+        const val DELETIONS_BUFFER = 8
     }
 }

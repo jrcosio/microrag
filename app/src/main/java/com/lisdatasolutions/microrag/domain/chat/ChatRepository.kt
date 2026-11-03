@@ -17,8 +17,15 @@ interface ChatRepository {
     /** One turn with its sources; null when it does not exist. */
     suspend fun turn(id: Long): ChatTurn?
 
-    /** The conversation with the most recent question. */
+    /** The conversation with the most recent question; never one without questions (F13 Q1). */
     suspend fun lastConversationId(): Long?
+
+    /**
+     * F13 (research R1, R2): the first [limit] conversations with questions, by last activity, and their
+     * total. Read again only when a question or a deletion changes the list. Fails with
+     * [ChatStorageException] when `chat.db` cannot be read.
+     */
+    fun conversations(limit: Int): Flow<ConversationPage>
 
     suspend fun createConversation(now: Long): Long
 

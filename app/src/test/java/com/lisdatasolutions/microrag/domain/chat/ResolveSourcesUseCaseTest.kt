@@ -27,7 +27,9 @@ class ResolveSourcesUseCaseTest {
         return id
     }
 
-    private fun source(documentId: Long, chunkId: Long) = AnswerSource(1, 1, documentId, chunkId, 0, 0, "Doc.pdf", 1)
+    /** Cited after every document of these tests was created, unless [citedAt] says otherwise (Q15). */
+    private fun source(documentId: Long, chunkId: Long, citedAt: Long = 9_999L) =
+        CitedSource(AnswerSource(1, 1, documentId, chunkId, 0, 0, "Doc.pdf", 1), citedAt)
 
     private fun chunkIdOf(documentId: Long, ordinal: Int): Long = index.chunkId(documentId, ordinal)
 
@@ -40,9 +42,9 @@ class ResolveSourcesUseCaseTest {
         index.deleteDocument(deleted)
 
         assertThat(resolve(sources).first()).containsExactly(
-            chunkIdOf(kept, 0), SourceAvailability.AVAILABLE,
-            sources[1].chunkId, SourceAvailability.DOCUMENT_GONE,
-            999L, SourceAvailability.FRAGMENT_GONE,
+            sources[0], SourceAvailability.AVAILABLE,
+            sources[1], SourceAvailability.DOCUMENT_GONE,
+            sources[2], SourceAvailability.FRAGMENT_GONE,
         )
     }
 
@@ -63,7 +65,7 @@ class ResolveSourcesUseCaseTest {
     @Test
     fun itFollowsTheChangesOfTheIndex() = runTest(UnconfinedTestDispatcher()) {
         val id = document("Doc.txt")
-        val seen = mutableListOf<Map<Long, SourceAvailability>>()
+        val seen = mutableListOf<Map<CitedSource, SourceAvailability>>()
         val job = launch { resolve(listOf(source(id, chunkIdOf(id, 0)))).toList(seen) }
         runCurrent()
         index.deleteDocument(id)
@@ -76,5 +78,19 @@ class ResolveSourcesUseCaseTest {
     fun noSources_noLookups() = runTest {
         assertThat(resolve(emptyList()).first()).isEmpty()
         assertThat(index.calls).doesNotContain("open")
+    }
+
+    /**
+     * F13 Q15 (analyze AN-01): `rag.db` reuses the id of a deleted last document, so a document created
+     * after the answer is another one, even with the cited id and chunk.
+     */
+    @Test
+    fun aDocumentCreatedAfterTheAnswer_isNotItsSource() = runTest {
+        index.now = 5_000L
+        val id = document("Nuevo.txt")
+        val chunk = chunkIdOf(id, 0)
+
+        assertThat(resolve(listOf(source(id, chunk, citedAt = 4_000L))).first().values.single()).isEqualTo(SourceAvailability.DOCUMENT_GONE)
+        assertThat(resolve(listOf(source(id, chunk, citedAt = 6_000L))).first().values.single()).isEqualTo(SourceAvailability.AVAILABLE)
     }
 }

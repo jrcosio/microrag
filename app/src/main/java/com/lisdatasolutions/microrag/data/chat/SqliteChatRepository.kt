@@ -8,10 +8,14 @@ import com.lisdatasolutions.microrag.domain.chat.ChatRepository
 import com.lisdatasolutions.microrag.domain.chat.ChatStorageException
 import com.lisdatasolutions.microrag.domain.chat.ChatStorageState
 import com.lisdatasolutions.microrag.domain.chat.ChatTurn
+import com.lisdatasolutions.microrag.domain.chat.ConversationPage
+import com.lisdatasolutions.microrag.domain.chat.ConversationSummary
+import com.lisdatasolutions.microrag.domain.chat.HistoryLimits
 import com.lisdatasolutions.microrag.domain.chat.TurnFailure
 import com.lisdatasolutions.microrag.domain.chat.TurnState
 import com.lisdatasolutions.microrag.domain.chat.TurnUpdate
 import java.io.File
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -41,6 +45,9 @@ class SqliteChatRepository(
     /** Bumped after every committed write; the flows read again on each value. */
     private val changes = MutableStateFlow(0L)
 
+    /** Bumped only by the writes that change the history list: a question, a deletion (F13 research R2). */
+    private val listChanges = MutableStateFlow(0L)
+
     private var connection: RagConnection? = null
 
     override suspend fun open(): ChatStorageState = withContext(dispatcher) { ensureOpen() }
@@ -55,7 +62,38 @@ class SqliteChatRepository(
     }
 
     override suspend fun lastConversationId(): Long? = read { db ->
-        db.queryOne("SELECT id FROM conversations ORDER BY updated_at DESC, id DESC LIMIT 1") { it.getLong(0) }
+        db.queryOne("SELECT c.id FROM conversations c WHERE $HAS_QUESTIONS ORDER BY c.updated_at DESC, c.id DESC LIMIT 1") { it.getLong(0) }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun conversations(limit: Int): Flow<ConversationPage> =
+        listChanges.mapLatest { page(limit) }.distinctUntilChanged()
+
+    /** One read for the rows and their total, so both see the same file (F13 research R1). */
+    private suspend fun page(limit: Int): ConversationPage {
+        val started = System.nanoTime()
+        val page = try {
+            read { db ->
+                val entries = db.query(
+                    "SELECT c.id, c.updated_at, " +
+                        "(SELECT substr(t.question, 1, ${HistoryLimits.TITLE_CHARS}) FROM turns t WHERE t.conversation_id = c.id ORDER BY t.ordinal LIMIT 1), " +
+                        "(SELECT count(*) FROM turns t WHERE t.conversation_id = c.id) " +
+                        "FROM conversations c WHERE $HAS_QUESTIONS ORDER BY c.updated_at DESC, c.id DESC LIMIT ?",
+                    limit,
+                ) { ConversationSummary(id = it.getLong(0), title = it.getText(2), lastActivityAt = it.getLong(1), questions = it.getLong(3).toInt()) }
+                val total = db.queryOne("SELECT count(DISTINCT conversation_id) FROM turns") { it.getLong(0).toInt() } ?: 0
+                ConversationPage(entries, total)
+            } ?: throw ChatStorageException("chat storage unavailable")
+        } catch (e: ChatStorageException) {
+            throw e
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            logger.w(TAG, e) { "history read failed: ${e.javaClass.simpleName}" }
+            throw ChatStorageException("chat db read failed", e)
+        }
+        logger.i(TAG) { "history page rows=${page.entries.size} total=${page.total} ms=${(System.nanoTime() - started) / 1_000_000}" }
+        return page
     }
 
     override suspend fun createConversation(now: Long): Long = write { db ->
@@ -64,7 +102,7 @@ class SqliteChatRepository(
     }
 
     override suspend fun insertTurn(conversationId: Long, question: String, partialCoverage: Boolean, now: Long): ChatTurn =
-        write { db ->
+        write(listChanged = true) { db ->
             db.transaction {
                 val ordinal = db.queryOne(
                     "SELECT COALESCE(MAX(ordinal) + 1, 0) FROM turns WHERE conversation_id = ?", conversationId,
@@ -132,11 +170,11 @@ class SqliteChatRepository(
         db.changes()
     }
 
-    override suspend fun deleteConversation(id: Long) = write { db ->
+    override suspend fun deleteConversation(id: Long) = write(listChanged = true) { db ->
         db.exec("DELETE FROM conversations WHERE id = ?", id)
     }
 
-    override suspend fun deleteAll() = write { db ->
+    override suspend fun deleteAll() = write(listChanged = true) { db ->
         db.exec("DELETE FROM conversations")
     }
 
@@ -183,8 +221,11 @@ class SqliteChatRepository(
         block(checkNotNull(connection))
     }
 
-    /** Throws [ChatStorageException] when the storage is unavailable or the write fails (contract A15). */
-    private suspend fun <T> write(block: (RagConnection) -> T): T = withContext(dispatcher) {
+    /**
+     * Throws [ChatStorageException] when the storage is unavailable or the write fails (contract A15).
+     * [listChanged] marks the writes that change the history list.
+     */
+    private suspend fun <T> write(listChanged: Boolean = false, block: (RagConnection) -> T): T = withContext(dispatcher) {
         if (ensureOpen() != ChatStorageState.OK) throw ChatStorageException("chat storage unavailable")
         val result = try {
             block(checkNotNull(connection))
@@ -193,6 +234,7 @@ class SqliteChatRepository(
             throw ChatStorageException("chat db write failed", e)
         }
         changes.value += 1
+        if (listChanged) listChanges.value += 1
         result
     }
 
@@ -261,6 +303,9 @@ class SqliteChatRepository(
     private companion object {
         const val TAG = "MicroRAG"
         const val META_TABLE = "chat_meta"
+
+        /** Only conversations with at least one question are listed or opened as the last one (F13 Q1). */
+        const val HAS_QUESTIONS = "EXISTS (SELECT 1 FROM turns t WHERE t.conversation_id = c.id)"
 
         val TurnState.sql: String get() = name.lowercase()
         val TurnFailure.sql: String get() = name.lowercase()

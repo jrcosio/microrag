@@ -5,6 +5,43 @@ package com.lisdatasolutions.microrag.domain.chat
 
 data class Conversation(val id: Long, val createdAt: Long, val updatedAt: Long)
 
+/** One row of the history (F13 FR-005): computed from the conversation, never edited. */
+data class ConversationSummary(
+    val id: Long,
+    /** The first question; at most [HistoryLimits.TITLE_CHARS] characters, whitespace runs as single spaces. */
+    val title: String,
+    /** The time of the last question (F13 FR-004). */
+    val lastActivityAt: Long,
+    /** Turns of the conversation, at least 1. */
+    val questions: Int,
+)
+
+/** The first [entries] of [total] conversations with questions, by last activity (F13 research R1). */
+data class ConversationPage(val entries: List<ConversationSummary>, val total: Int) {
+    val hasMore: Boolean get() = entries.size < total
+}
+
+object HistoryLimits {
+    /** Rows per block, as the Library (F13 research R1). */
+    const val PAGE = 50
+
+    /** Enough for two lines of title, even in landscape. */
+    const val TITLE_CHARS = 300
+}
+
+/** What Historial shows (F13 contract Q5). */
+sealed interface HistoryContent {
+    data object Loading : HistoryContent
+
+    /** C17: the saved conversations cannot be read; nothing is deleted. */
+    data object Unavailable : HistoryContent
+
+    data class Page(val page: ConversationPage) : HistoryContent
+}
+
+/** A cited block and the time its answer was given: a document created later is another one (F13 Q15). */
+data class CitedSource(val source: AnswerSource, val citedAt: Long)
+
 enum class TurnState {
     RETRIEVING,
     /** From the moment the model receives the prompt (prefill included). */

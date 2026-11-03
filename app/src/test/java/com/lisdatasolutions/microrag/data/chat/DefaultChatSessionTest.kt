@@ -681,4 +681,173 @@ class DefaultChatSessionTest {
         }
         assertThat(session.active.value).isNull()
     }
+
+    // --- F13 (research R5; contract Q6–Q8, Q10, Q13, Q14) ----------------------------------------------
+
+    @Test
+    fun openingAnotherConversation_stopsTheAnswer_andReturnsOnceItIsSaved() = runTest {
+        retriever.outcome = blocks(block(1), block(2))
+        engine.tokens = listOf("Primero [2]. ", "Segundo.")
+        engine.delayPerTokenMs = 5_000
+        val other = repository.createConversation(0)
+        val session = session()
+        session.ask(null, "¿Uno?")
+        advanceTimeBy(retriever.delayMs + engine.prefillMs + 1)
+
+        session.openConversation(other)
+
+        with(lastTurn()) {
+            assertThat(state).isEqualTo(TurnState.CANCELLED)
+            assertThat(answer).isEqualTo("Primero [2]. ")
+            assertThat(sources.map { it.promptNumber }).containsExactly(2)
+        }
+        assertThat(engine.generating).isFalse()
+        assertThat(session.active.value).isNull()
+    }
+
+    @Test
+    fun openingTheConversationBeingAnswered_letsTheAnswerGoOn() = runTest {
+        retriever.outcome = blocks(block(1))
+        engine.tokens = listOf("a", "b")
+        engine.delayPerTokenMs = 5_000
+        val session = session()
+        val id = session.ask(null, "¿Uno?")!!
+        advanceTimeBy(retriever.delayMs + engine.prefillMs + 1)
+
+        session.openConversation(id)
+        runCurrent()
+
+        assertThat(session.active.value!!.state).isEqualTo(TurnState.GENERATING)
+        advanceUntilIdle()
+        assertThat(lastTurn().state).isEqualTo(TurnState.COMPLETED)
+    }
+
+    /** Q14 (analyze AN-04): a question right after a stop waits for it, and is never shown as interrupted. */
+    @Test
+    fun askingRightAfterANewConversationOrACancel_waitsForTheStoppedAnswer() = runTest {
+        retriever.outcome = blocks(block(1))
+        engine.tokens = listOf("a", "b")
+        engine.delayPerTokenMs = 5_000
+        val session = session()
+        session.ask(null, "¿Uno?")
+        advanceTimeBy(retriever.delayMs + engine.prefillMs + 1)
+
+        session.startNewConversation()
+        session.ask(null, "¿Dos?")
+        advanceTimeBy(retriever.delayMs + engine.prefillMs + 1)
+
+        assertThat(session.active.value!!.question).isEqualTo("¿Dos?")
+        assertThat(session.active.value!!.state).isEqualTo(TurnState.GENERATING)
+        assertThat(repository.turns.values.map { it.state }).containsExactly(TurnState.CANCELLED, TurnState.GENERATING).inOrder()
+
+        session.cancel()
+        session.ask(null, "¿Tres?")
+        advanceTimeBy(retriever.delayMs + engine.prefillMs + 1)
+
+        assertThat(session.active.value!!.question).isEqualTo("¿Tres?")
+        advanceUntilIdle()
+        assertThat(lastTurn().state).isEqualTo(TurnState.COMPLETED)
+    }
+
+    @Test
+    fun retryingRightAfterACancel_waitsForTheStoppedAnswer() = runTest {
+        retriever.outcome = blocks(block(1))
+        engine.failAt = 0
+        val session = session()
+        session.ask(null, "¿Uno?")
+        advanceUntilIdle()
+        val failed = lastTurn()
+        assertThat(failed.state).isEqualTo(TurnState.FAILED)
+        engine.failAt = null
+        engine.tokens = listOf("a", "b")
+        engine.delayPerTokenMs = 5_000
+        session.ask(failed.conversationId, "¿Dos?")
+        advanceTimeBy(retriever.delayMs + engine.prefillMs + 1)
+
+        session.cancel()
+        assertThat(session.retry(failed.id)).isTrue()
+        advanceTimeBy(retriever.delayMs + engine.prefillMs + 1)
+
+        assertThat(session.active.value!!.turnId).isEqualTo(failed.id)
+        assertThat(session.active.value!!.state).isEqualTo(TurnState.GENERATING)
+    }
+
+    @Test
+    fun deletingOneConversation_stopsItsAnswer_inLessThanASecond_andNoQuestionSlipsIn() = runTest {
+        retriever.outcome = blocks(block(1))
+        engine.tokens = listOf("a", "b")
+        engine.delayPerTokenMs = 5_000
+        val session = session()
+        val id = session.ask(null, "¿Uno?")!!
+        advanceTimeBy(retriever.delayMs + engine.prefillMs + 1)
+        val stoppedAt = testScheduler.currentTime
+
+        val deleting = launch { session.delete(id) }
+        val asking = async { session.ask(id, "¿Dos?") }
+        runCurrent()
+        assertThat(deleting.isCompleted).isTrue()
+        assertThat(testScheduler.currentTime - stoppedAt).isLessThan(1000)
+        advanceUntilIdle()
+
+        // The question waited for the deletion: it went to a new conversation, and was answered there.
+        val newId = asking.await()
+        assertThat(newId).isNotEqualTo(id)
+        assertThat(repository.turns.values.map { it.question }).containsExactly("¿Dos?")
+        assertThat(lastTurn().conversationId).isEqualTo(newId)
+        assertThat(lastTurn().state).isEqualTo(TurnState.COMPLETED)
+    }
+
+    @Test
+    fun deletions_carryTheIdOfEachConfirmedDeletion_andTheLogSaysTheOutcome() = runTest {
+        retriever.outcome = blocks(block(1))
+        val session = session()
+        val seen = mutableListOf<Long>()
+        val collecting = launch { session.deletions.collect { seen += it } }
+        val first = session.ask(null, "¿Uno?")!!
+        advanceUntilIdle()
+        val second = session.ask(null, "¿Dos?")!!
+        advanceUntilIdle()
+
+        session.delete(first)
+        runCurrent()
+        repository.failWrites = true
+        val error = runCatching { session.delete(second) }.exceptionOrNull()
+        runCurrent()
+        repository.failWrites = false
+        session.deleteAll()
+        runCurrent()
+        collecting.cancel()
+
+        assertThat(error).isInstanceOf(ChatStorageException::class.java)
+        assertThat(seen).containsExactly(first)
+        assertThat(logger.lines.filter { it.startsWith("chat delete ") }).containsExactly(
+            "chat delete outcome=ok", "chat delete outcome=failed",
+        ).inOrder()
+    }
+
+    /** Q10, SC-004: an older conversation, opened from Historial, continues from its own last turn. */
+    @Test
+    fun anOlderConversation_continuesFromItsOwnLastTurn() = runTest {
+        retriever.outcome = blocks(block(1))
+        val older = repository.createConversation(0)
+        val olderTurn = repository.insertTurn(older, "¿Plazo de devolución?", partialCoverage = false, now = 0)
+        repository.updateTurn(olderTurn.id, TurnUpdate(state = TurnState.COMPLETED, answer = "30 días [1]."))
+        val newer = repository.createConversation(1)
+        val newerTurn = repository.insertTurn(newer, "¿Horario?", partialCoverage = false, now = 1)
+        repository.updateTurn(newerTurn.id, TurnUpdate(state = TurnState.COMPLETED, answer = "De 9 a 14."))
+        val session = session()
+
+        session.openConversation(older)
+        session.ask(older, "¿Y para empresas?")
+        advanceUntilIdle()
+
+        assertThat(retriever.requests.last().previousQuestion).isEqualTo("¿Plazo de devolución?")
+        val expected = PromptBuilder.build(
+            "¿Y para empresas?",
+            listOf(block(1)).map { PromptBuilder.Block(it.documentName, it.headingPath, it.page, it.text) },
+            "¿Plazo de devolución?" to "30 días [1].",
+        )
+        assertThat(engine.prompts.last()).isEqualTo(expected)
+        assertThat(lastTurn().conversationId).isEqualTo(older)
+    }
 }

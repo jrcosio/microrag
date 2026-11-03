@@ -17,6 +17,7 @@ import com.lisdatasolutions.microrag.domain.chat.CancelAnswerUseCase
 import com.lisdatasolutions.microrag.domain.chat.ChatAvailability
 import com.lisdatasolutions.microrag.domain.chat.ChatLimits
 import com.lisdatasolutions.microrag.domain.chat.ChatTurn
+import com.lisdatasolutions.microrag.domain.chat.CitedSource
 import com.lisdatasolutions.microrag.domain.chat.ConversationView
 import com.lisdatasolutions.microrag.domain.chat.DeleteConversationUseCase
 import com.lisdatasolutions.microrag.domain.chat.LastConversationUseCase
@@ -104,8 +105,8 @@ class ChatViewModel(
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val sources: StateFlow<Map<Long, SourceAvailability>> = view
-        .map { v -> v?.turns.orEmpty().flatMap { it.sources } }
+    private val sources: StateFlow<Map<CitedSource, SourceAvailability>> = view
+        .map { v -> v?.turns.orEmpty().flatMap { turn -> turn.sources.map { CitedSource(it, turn.createdAt) } } }
         .flatMapLatest { resolveSources(it) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
 
@@ -235,7 +236,7 @@ class ChatViewModel(
         savedState[CONFIRM_DELETE] = false
         val id = savedConversation ?: return
         viewModelScope.launch {
-            deleteConversation(id)
+            if (!deleteConversation(id)) return@launch
             setConversation(null)
             announcement.value = ChatAnnouncement.DELETED
         }
@@ -276,7 +277,7 @@ class ChatViewModel(
         onScreen.value = false
     }
 
-    private fun turnsOf(view: ConversationView, availability: ChatAvailability?, available: Map<Long, SourceAvailability>): List<TurnUi> {
+    private fun turnsOf(view: ConversationView, availability: ChatAvailability?, available: Map<CitedSource, SourceAvailability>): List<TurnUi> {
         val canRetry = availability is ChatAvailability.Ready && view.active?.state?.let { it == TurnState.RETRIEVING || it == TurnState.GENERATING } != true
         val saved = view.turns.map { turn ->
             val active = view.active?.takeIf { it.turnId == turn.id }
@@ -287,7 +288,7 @@ class ChatViewModel(
         return saved + listOfNotNull(unsaved?.let { unsavedTurn(it) })
     }
 
-    private fun turnUi(turn: ChatTurn, active: ActiveAnswer?, available: Map<Long, SourceAvailability>, canRetry: Boolean): TurnUi {
+    private fun turnUi(turn: ChatTurn, active: ActiveAnswer?, available: Map<CitedSource, SourceAvailability>, canRetry: Boolean): TurnUi {
         val streaming = turn.state == TurnState.RETRIEVING || turn.state == TurnState.GENERATING
         val retryable = turn.state == TurnState.FAILED || turn.state == TurnState.INTERRUPTED
         val blocks = active?.blocks.orEmpty()
@@ -303,7 +304,7 @@ class ChatViewModel(
             refusal = turn.refusal,
             failureText = failureText(turn.state, turn.failure),
             notes = notes(turn.state, turn.refusal, content, sources, turn.partialCoverage, active?.saveFailed == true),
-            sources = sources.map { sourceRow(it, available[it.chunkId] ?: SourceAvailability.AVAILABLE) },
+            sources = sources.map { sourceRow(it, available[CitedSource(it, turn.createdAt)] ?: SourceAvailability.AVAILABLE) },
             chipTargets = if (streaming) chipTargets(turn.answer, blocks) else sources.map { SourceTarget(it.documentId, it.chunkId) },
             retryable = retryable,
             canRetry = canRetry && retryable,

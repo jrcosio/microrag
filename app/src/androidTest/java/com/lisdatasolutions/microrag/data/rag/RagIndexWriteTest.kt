@@ -323,5 +323,19 @@ class RagIndexWriteTest {
             SpanishText.normalize("Manual técnico"),
         ).inOrder()
     }
-}
 
+    /**
+     * F13 Q15 (analyze AN-01): ids are plain rowids, so the next document takes the id of a deleted last
+     * one. A citation must therefore not trust the id alone (ResolveSourcesUseCase compares the times).
+     */
+    @Test
+    fun deletingTheNewestDocument_letsTheNextOneReuseItsId() = runBlocking<Unit> {
+        addDoc("Primero")
+        val newest = addDoc("Segundo")
+
+        index.deleteDocument(newest)
+        val next = addDoc("Tercero")
+
+        assertThat(next).isEqualTo(newest)
+    }
+}
