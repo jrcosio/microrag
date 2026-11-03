@@ -16,7 +16,10 @@ import com.lisdatasolutions.microrag.domain.settings.AppLanguage
 import com.lisdatasolutions.microrag.domain.settings.ModelOverview
 import com.lisdatasolutions.microrag.domain.settings.ObserveLanguageSettingsUseCase
 import com.lisdatasolutions.microrag.domain.settings.ObserveModelOverviewUseCase
+import com.lisdatasolutions.microrag.domain.settings.ObserveThemeSettingsUseCase
+import com.lisdatasolutions.microrag.domain.settings.ThemePreference
 import com.lisdatasolutions.microrag.testing.FakeAppLanguageController
+import com.lisdatasolutions.microrag.testing.FakeAppThemeStore
 import com.lisdatasolutions.microrag.testing.FakeChatSession
 import com.lisdatasolutions.microrag.testing.FakeModelSetup
 import com.lisdatasolutions.microrag.testing.InMemoryChatRepository
@@ -39,6 +42,7 @@ class SettingsViewModelTest {
     private val chats = InMemoryChatRepository()
     private val session = FakeChatSession(chats)
     private val language = FakeAppLanguageController()
+    private val themeStore = FakeAppThemeStore()
 
     @Before
     fun setUp() = Dispatchers.setMain(dispatcher)
@@ -50,6 +54,7 @@ class SettingsViewModelTest {
         observeModels = ObserveModelOverviewUseCase(setup.useCase, RefreshLocalAiUseCase(setup.repository)),
         refreshLocalAi = RefreshLocalAiUseCase(setup.repository),
         observeLanguage = ObserveLanguageSettingsUseCase(language),
+        observeTheme = ObserveThemeSettingsUseCase(themeStore),
         countConversations = CountConversationsUseCase(chats),
         isAnswering = IsAnswerInProgressUseCase(session),
         clearHistory = ClearChatHistoryUseCase(session),
@@ -262,5 +267,21 @@ class SettingsViewModelTest {
         advanceUntilIdle()
 
         assertThat(viewModel.state.value.appLanguage).isEqualTo(AppLanguage.ENGLISH)
+    }
+
+    // --- F16 T018: the subtitle of «Tema» (A1) ----------------------------------------------------------
+
+    @Test
+    fun theThemeRow_saysTheSavedTheme_andFollowsAChange() = runTest(dispatcher) {
+        themeStore.preference = ThemePreference.DARK
+        val viewModel = viewModel()
+        advanceUntilIdle()
+        assertThat(viewModel.state.value.theme).isEqualTo(ThemePreference.DARK)
+
+        themeStore.preference = ThemePreference.LIGHT
+        viewModel.onResume()
+        advanceUntilIdle()
+
+        assertThat(viewModel.state.value.theme).isEqualTo(ThemePreference.LIGHT)
     }
 }

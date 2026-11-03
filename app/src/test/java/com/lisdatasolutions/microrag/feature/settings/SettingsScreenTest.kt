@@ -25,6 +25,7 @@ import com.lisdatasolutions.microrag.domain.model.ModelSetupStatus
 import com.lisdatasolutions.microrag.domain.rag.RagParameters
 import com.lisdatasolutions.microrag.domain.settings.AppLanguage
 import com.lisdatasolutions.microrag.domain.settings.ModelOverview
+import com.lisdatasolutions.microrag.domain.settings.ThemePreference
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -49,6 +50,7 @@ class SettingsScreenTest {
         onOpenModel = { calls += "open:$it" },
         onCompleteSetup = { calls += "setup" },
         onLanguages = { calls += "languages" },
+        onTheme = { calls += "theme" },
         onIndex = { calls += "index" },
         onClearHistory = { calls += "clear" },
         onConfirmClear = { calls += "confirm" },
@@ -84,7 +86,8 @@ class SettingsScreenTest {
             "Ajustes", "Personaliza tu experiencia local.", "INTELIGENCIA ARTIFICIAL",
             // The model names keep their spaces unbreakable (T065).
             "Modelo de respuestas", "Gemma\u00A04", "Modelo de embeddings", "EmbeddingGemma\u00A02", "PREFERENCIAS",
-            "Idiomas", "Español", "Índice y rendimiento", "Almacenamiento y procesamiento", "PRIVACIDAD Y DATOS",
+            // F16 A1: «Tema» with the saved theme, between «Idiomas» and «Índice y rendimiento».
+            "Idiomas", "Español", "Tema", "Sistema", "Índice y rendimiento", "Almacenamiento y procesamiento", "PRIVACIDAD Y DATOS",
             "Borrar historial de chat", "Eliminar conversaciones locales",
         )) {
             scrollTo(text)
@@ -99,13 +102,13 @@ class SettingsScreenTest {
     fun theOtherRowsAskForTheirDestination() {
         show(SettingsUiState(models = listOf(gemmaGpu, embeddingCpu)))
 
-        for (text in listOf("Idiomas", "Índice y rendimiento", "Borrar historial de chat")) {
+        for (text in listOf("Idiomas", "Tema", "Índice y rendimiento", "Borrar historial de chat")) {
             scrollTo(text)
             compose.onNodeWithText(text, useUnmergedTree = true).performClick()
         }
         compose.onNode(hasContentDescription("Volver")).performClick()
 
-        assertThat(calls).containsExactly("languages", "index", "clear", "back").inOrder()
+        assertThat(calls).containsExactly("languages", "theme", "index", "clear", "back").inOrder()
     }
 
     @Test
@@ -246,6 +249,19 @@ class SettingsScreenTest {
     fun aFailureNotice() {
         show(png.copy(message = SettingsMessage.CLEAR_FAILED))
         compose.onNodeWithText("No se pudo borrar el historial.").assertExists()
+    }
+
+    /** F16 T018 (A1): the row's subtitle is the saved theme, and the row sits between its neighbours. */
+    @Test
+    fun a1_theThemeRow_saysTheSavedTheme_belowLanguages() {
+        show(png.copy(theme = ThemePreference.DARK))
+        scrollTo("Oscuro")
+        compose.onNodeWithText("Oscuro", useUnmergedTree = true).assertExists()
+
+        val top = { text: String -> compose.onNodeWithText(text, useUnmergedTree = true).fetchSemanticsNode().boundsInRoot.top }
+        scrollTo("Índice y rendimiento")
+        assertThat(top("Idiomas")).isLessThan(top("Tema"))
+        assertThat(top("Tema")).isLessThan(top("Índice y rendimiento"))
     }
 
     @Test

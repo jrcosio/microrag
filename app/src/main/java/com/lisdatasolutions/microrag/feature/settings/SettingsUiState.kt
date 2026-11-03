@@ -5,12 +5,15 @@ import com.lisdatasolutions.microrag.domain.model.ModelId
 import com.lisdatasolutions.microrag.domain.model.ModelSetupStatus
 import com.lisdatasolutions.microrag.domain.settings.AppLanguage
 import com.lisdatasolutions.microrag.domain.settings.ModelOverview
+import com.lisdatasolutions.microrag.domain.settings.ThemePreference
 
 /** P09 (data-model §5). [models] is empty until the first rescan, so the rows show no state yet. */
 data class SettingsUiState(
     val models: List<ModelOverview> = emptyList(),
     /** Subtitle of «Idiomas» (S3). */
     val appLanguage: AppLanguage = AppLanguage.SPANISH,
+    /** Subtitle of «Tema» (F16 A1). */
+    val theme: ThemePreference = ThemePreference.SYSTEM,
     /** The model whose sheet is open; kept in the SavedStateHandle. */
     val openSheet: ModelId? = null,
     /** The confirmation of «Borrar historial de chat», kept in the SavedStateHandle (S6). */

@@ -47,3 +47,7 @@ data object Settings
 
 @Serializable
 data object Languages
+
+/** F16: Tema, opened from Ajustes (D-067). */
+@Serializable
+data object Theme

@@ -21,6 +21,7 @@ import com.lisdatasolutions.microrag.feature.onboarding.setup.SetupRoute
 import com.lisdatasolutions.microrag.feature.onboarding.welcome.WelcomeRoute
 import com.lisdatasolutions.microrag.feature.settings.LanguagesRoute
 import com.lisdatasolutions.microrag.feature.settings.SettingsRoute
+import com.lisdatasolutions.microrag.feature.settings.ThemeRoute
 
 /** Key of the Library entry's SavedStateHandle where the detail leaves a [LibraryMessage] (F08 B8). */
 private const val LIBRARY_MESSAGE = "library_message"
@@ -133,10 +134,13 @@ fun MicroRagNavHost(
                 onBack = back,
                 onCompleteSetup = { navController.navigate(Setup) { launchSingleTop = true } },
                 onLanguages = { navController.navigate(Languages) { launchSingleTop = true } },
+                onTheme = { navController.navigate(Theme) { launchSingleTop = true } },
                 onIndex = { navController.navigate(Index) { launchSingleTop = true } },
             )
         }
         // S7: Back and a save both return to where Idiomas was opened from, Ajustes or Home.
         composable<Languages> { LanguagesRoute(onBack = back) }
+        // F16 U3: Back and a save both return to Ajustes; the system recreates the activity in the new theme.
+        composable<Theme> { ThemeRoute(onBack = back) }
     }
 }

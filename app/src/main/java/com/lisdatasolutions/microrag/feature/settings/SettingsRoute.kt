@@ -13,6 +13,7 @@ fun SettingsRoute(
     onBack: () -> Unit,
     onCompleteSetup: () -> Unit,
     onLanguages: () -> Unit,
+    onTheme: () -> Unit,
     onIndex: () -> Unit,
     viewModel: SettingsViewModel = koinViewModel(),
 ) {
@@ -27,6 +28,7 @@ fun SettingsRoute(
             onCloseSheet = viewModel::onCloseSheet,
             onCompleteSetup = onCompleteSetup,
             onLanguages = onLanguages,
+            onTheme = onTheme,
             onIndex = onIndex,
             onClearHistory = viewModel::onClearHistory,
             onConfirmClear = viewModel::onConfirmClear,

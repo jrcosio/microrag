@@ -51,6 +51,7 @@ data class SettingsActions(
     val onCloseSheet: () -> Unit = {},
     val onCompleteSetup: () -> Unit = {},
     val onLanguages: () -> Unit = {},
+    val onTheme: () -> Unit = {},
     val onIndex: () -> Unit = {},
     val onClearHistory: () -> Unit = {},
     val onConfirmClear: () -> Unit = {},
@@ -91,6 +92,14 @@ fun SettingsScreen(
                         title = stringResource(R.string.settings_languages),
                         subtitle = state.appLanguage.displayName(),
                         onClick = actions.onLanguages,
+                    )
+                    LisdataDivider()
+                    // F16 A1: between «Idiomas» and «Índice y rendimiento», with the saved theme.
+                    LisdataSettingsRow(
+                        icon = LisdataIcons.SunMoon,
+                        title = stringResource(R.string.settings_theme),
+                        subtitle = stringResource(state.theme.label()),
+                        onClick = actions.onTheme,
                     )
                     LisdataDivider()
                     LisdataSettingsRow(

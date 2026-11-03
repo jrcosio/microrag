@@ -11,6 +11,8 @@ import com.lisdatasolutions.microrag.domain.onboarding.RefreshLocalAiUseCase
 import com.lisdatasolutions.microrag.domain.settings.AppLanguage
 import com.lisdatasolutions.microrag.domain.settings.ObserveLanguageSettingsUseCase
 import com.lisdatasolutions.microrag.domain.settings.ObserveModelOverviewUseCase
+import com.lisdatasolutions.microrag.domain.settings.ObserveThemeSettingsUseCase
+import com.lisdatasolutions.microrag.domain.settings.ThemePreference
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,6 +33,7 @@ class SettingsViewModel(
     observeModels: ObserveModelOverviewUseCase,
     private val refreshLocalAi: RefreshLocalAiUseCase,
     private val observeLanguage: ObserveLanguageSettingsUseCase,
+    private val observeTheme: ObserveThemeSettingsUseCase,
     private val countConversations: CountConversationsUseCase,
     private val isAnswering: IsAnswerInProgressUseCase,
     private val clearHistory: ClearChatHistoryUseCase,
@@ -42,6 +45,7 @@ class SettingsViewModel(
     private val clearing = MutableStateFlow(false)
     private val message = MutableStateFlow<SettingsMessage?>(null)
     private val appLanguage = MutableStateFlow(AppLanguage.SPANISH)
+    private val theme = MutableStateFlow(ThemePreference.SYSTEM)
 
     private val dialogs = combine(
         savedState.getStateFlow<String?>(OPEN_SHEET, null),
@@ -50,10 +54,11 @@ class SettingsViewModel(
         message,
     ) { sheet, confirm, clearing, message -> Dialogs(sheet?.let(ModelId::valueOf), confirm?.let(::ConfirmClear), clearing, message) }
 
-    val state: StateFlow<SettingsUiState> = combine(models, appLanguage, dialogs) { models, language, dialogs ->
+    val state: StateFlow<SettingsUiState> = combine(models, appLanguage, theme, dialogs) { models, language, theme, dialogs ->
         SettingsUiState(
             models = models,
             appLanguage = language,
+            theme = theme,
             openSheet = dialogs.sheet,
             confirmClear = dialogs.confirm,
             clearing = dialogs.clearing,
@@ -65,10 +70,16 @@ class SettingsViewModel(
 
     init {
         readLanguage()
+        readTheme()
     }
 
     private fun readLanguage() {
         viewModelScope.launch { appLanguage.value = observeLanguage().first().app }
+    }
+
+    /** F16 A1: the copy of the theme, which the system cannot be asked for (research R2). */
+    private fun readTheme() {
+        viewModelScope.launch { theme.value = observeTheme().first().preference }
     }
 
     /** Back to the screen: the files are rescanned, so a model deleted meanwhile stops saying «Local». */
@@ -76,6 +87,8 @@ class SettingsViewModel(
         viewModelScope.launch { refreshLocalAi() }
         // S3: back from Idiomas, or from the system's per-app language settings.
         readLanguage()
+        // F16: back from Tema.
+        readTheme()
     }
 
     fun onOpenModel(id: ModelId) {

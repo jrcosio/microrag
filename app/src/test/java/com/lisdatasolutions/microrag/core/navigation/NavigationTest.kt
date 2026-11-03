@@ -90,7 +90,9 @@ import com.lisdatasolutions.microrag.domain.onboarding.RetryModelUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.StartModelDownloadUseCase
 import com.lisdatasolutions.microrag.domain.settings.ObserveLanguageSettingsUseCase
 import com.lisdatasolutions.microrag.domain.settings.ObserveModelOverviewUseCase
+import com.lisdatasolutions.microrag.domain.settings.ObserveThemeSettingsUseCase
 import com.lisdatasolutions.microrag.domain.settings.SaveLanguageSettingsUseCase
+import com.lisdatasolutions.microrag.domain.settings.SaveThemeSettingsUseCase
 import com.lisdatasolutions.microrag.domain.settings.SettingsNotices
 import com.lisdatasolutions.microrag.feature.chat.chatViewModel
 import com.lisdatasolutions.microrag.feature.document.DocumentViewModel
@@ -101,10 +103,13 @@ import com.lisdatasolutions.microrag.feature.ingest.IngestViewModel
 import com.lisdatasolutions.microrag.feature.library.LibraryViewModel
 import com.lisdatasolutions.microrag.feature.onboarding.setup.SetupViewModel
 import com.lisdatasolutions.microrag.feature.settings.LanguagesViewModel
+import com.lisdatasolutions.microrag.feature.settings.ThemeViewModel
 import com.lisdatasolutions.microrag.feature.settings.SettingsViewModel
 import com.lisdatasolutions.microrag.rag.runtime.CompatibilityResult
 import com.lisdatasolutions.microrag.testing.ChatTestGraph
 import com.lisdatasolutions.microrag.testing.FakeAppLanguageController
+import com.lisdatasolutions.microrag.testing.FakeAppThemeController
+import com.lisdatasolutions.microrag.testing.FakeAppThemeStore
 import com.lisdatasolutions.microrag.testing.FakeChatSession
 import com.lisdatasolutions.microrag.testing.FakeImportQueueRepository
 import com.lisdatasolutions.microrag.testing.FakeLibraryRepository
@@ -179,6 +184,8 @@ internal fun settingsViewModels(
         ready(ModelId.EG2_270M, ComputeBackend.CPU)
     },
     language: FakeAppLanguageController = FakeAppLanguageController(),
+    themeStore: FakeAppThemeStore = FakeAppThemeStore(),
+    themeController: FakeAppThemeController = FakeAppThemeController(),
 ) = module {
     single { SettingsNotices() }
     viewModel {
@@ -188,6 +195,7 @@ internal fun settingsViewModels(
             ObserveModelOverviewUseCase(models.useCase, RefreshLocalAiUseCase(models.repository)),
             RefreshLocalAiUseCase(models.repository),
             ObserveLanguageSettingsUseCase(language),
+            ObserveThemeSettingsUseCase(themeStore),
             CountConversationsUseCase(chats),
             IsAnswerInProgressUseCase(session),
             ClearChatHistoryUseCase(session),
@@ -196,6 +204,7 @@ internal fun settingsViewModels(
         )
     }
     viewModel { LanguagesViewModel(ObserveLanguageSettingsUseCase(language), SaveLanguageSettingsUseCase(language, get()), get()) }
+    viewModel { ThemeViewModel(ObserveThemeSettingsUseCase(themeStore), SaveThemeSettingsUseCase(themeStore, themeController, get()), get()) }
     // «Completar configuración» in a model sheet opens the Preparation (F12 S2), over the same fakes.
     viewModel {
         val scope = ApplicationScope(CoroutineScope(SupervisorJob() + Dispatchers.Unconfined))
@@ -399,7 +408,7 @@ class NavigationTest {
     fun n6_bottomBarOnlyOnTabRoots() {
         launchShell()
         // Welcome and Setup need the Koin graph since F03: OnboardingNavigationTest (androidTest) covers them.
-        val secondary = listOf(Ingest, Document(documentId = 1), Index, Languages)
+        val secondary = listOf(Ingest, Document(documentId = 1), Index, Languages, Theme)
         secondary.forEach { route ->
             compose.runOnUiThread { nav.navigate(route) }
             compose.waitForIdle()
@@ -752,6 +761,23 @@ class NavigationTest {
         assertThat(nav.currentDestination?.hasRoute(Settings::class)).isTrue()
 
         settingsControl(context.getString(R.string.settings_languages))
+        settingsControl(context.getString(R.string.languages_save))
+        assertThat(nav.currentDestination?.hasRoute(Settings::class)).isTrue()
+        assertThat(routesInBackStack()).hasSize(2)
+    }
+
+    /** F16 T019 (U3, U4): Tema sits over Ajustes; Back and a save both return there. */
+    @Test
+    fun themeFromSettings_backOrSave_returnToSettings() {
+        launchShell()
+        openSettings()
+
+        settingsControl(context.getString(R.string.settings_theme))
+        assertThat(nav.currentDestination?.hasRoute(Theme::class)).isTrue()
+        backArrow()
+        assertThat(nav.currentDestination?.hasRoute(Settings::class)).isTrue()
+
+        settingsControl(context.getString(R.string.settings_theme))
         settingsControl(context.getString(R.string.languages_save))
         assertThat(nav.currentDestination?.hasRoute(Settings::class)).isTrue()
         assertThat(routesInBackStack()).hasSize(2)
