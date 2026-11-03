@@ -71,50 +71,60 @@ description: "Lista de tareas de F16 — Apariencia: tema e icono de Ajustes"
 
 ### Pruebas (antes, y deben fallar)
 
-- [ ] T005 [P] Fakes en `…/test/…/testing/SettingsFakes.kt`:
+- [ ] T005 Tipos y fakes (analyze, L3):
+  - primero los tipos, sin lógica, en `…/microrag/domain/settings/`: `ThemeModels.kt` (data-model §1), `AppThemeStore.kt` y `AppThemeController.kt` (theme-api §1; `isShowing` solo si T015 elige la variante B);
+  - después, en `…/test/…/testing/SettingsFakes.kt`:
   - `FakeAppThemeStore`, con el valor guardado, `failWrite`, `failRead` y el registro de escrituras;
-  - `FakeAppThemeController`, con `failApply`, `appDark` y `phoneDark` configurables, y el registro de lo aplicado.
+  - `FakeAppThemeController`, con `failApply`, `showing` configurable y el registro de lo aplicado.
 - [ ] T006 [P] `…/test/…/domain/settings/ThemeUseCasesTest.kt` (theme-api P1, P3 y P5):
   - **Observe:** emite lo que lee el almacén, también `readFailed`.
   - **Save:**
     - el mismo valor da `Unchanged`, sin escribir ni aplicar;
     - con la lectura fallida, se guarda aunque el valor sea `SYSTEM`;
     - un fallo de escritura da `Failed` sin aplicar;
-    - un fallo al aplicar da `Failed` y restaura la copia anterior;
-    - un guardado bueno escribe, aplica, da `Saved` y deja `announceSaved(expectDark = isDark(pref))`.
-  - **Reconcile:**
-    - `LIGHT` con `appDark` aplica `LIGHT`, y `DARK` sin `appDark` aplica `DARK`;
-    - `SYSTEM` con `appDark ≠ phoneDark` aplica `SYSTEM`;
-    - sin discrepancia no aplica nada, y con la lectura fallida tampoco.
+    - un fallo al aplicar da `Failed` y restaura la copia anterior, o `SYSTEM` si la lectura había fallado;
+    - un guardado bueno escribe, aplica, da `Saved` y deja `announceSaved(settle = true)`.
+  - **Reconcile** (P5; los casos de la variante que elija T015):
+    - aplica la copia leída;
+    - con la lectura fallida, aplica `SYSTEM` (FR-016, H2);
+    - en la variante B, no aplica cuando `isShowing` es `true`.
 - [ ] T007 [P] `…/test/…/data/settings/DataStoreAppThemeStoreTest.kt`, con el patrón de `DataStoreOnboardingStoreTest`:
   - sin fichero, `SYSTEM` sin `readFailed`;
   - escribir `DARK` y reabrir el almacén da `DARK`;
   - una clave desconocida da `SYSTEM`;
-  - con un `DataStore` que lanza `IOException` al leer, `SYSTEM` con `readFailed`; al escribir, `false`. Nunca lanza.
-- [ ] T008 [P] Ampliar `…/test/…/core/navigation/SettingsSavedAnnouncementTest.kt` (theme-api P6, research R6):
-  - con `announceSaved(expectDark = true)` y la configuración en claro, no anuncia;
-  - con la configuración en oscuro (Robolectric, calificador `night`), anuncia una vez y consume el aviso;
-  - `announceSaved()` sin modo esperado sigue igual que en F12.
-- [ ] T009 [P] `…/androidTest/…/core/theme/PlatformAppThemeControllerTest.kt` (research R1, theme-api P4), sobre el contexto de la app instrumentada:
-  - `apply(DARK)` y después `apply(LIGHT)`: el modo nocturno de la configuración de una actividad recién creada (`ActivityScenario` de una actividad de prueba) es `YES` y `NO`, e `isShowing` es `true`;
-  - `apply(SYSTEM)`: vuelve al del teléfono (`Resources.getSystem()`), probado con `cmd uimode night yes|no` vía `UiAutomation.executeShellCommand`;
-  - `isDark(SYSTEM)` sigue al teléfono;
-  - `@After` deja `apply(SYSTEM)` y el modo del teléfono como estaba.
+  - con un `DataStore` que lanza `IOException` al leer, `SYSTEM` con `readFailed`; al escribir, `false`. Nunca lanza;
+  - con el fichero corrupto (bytes basura), la lectura da `SYSTEM` con `readFailed`, y la escritura siguiente funciona y se lee en otra sesión (M2);
+  - el `RecordingLogger` solo recibe el tipo de fallo, nunca el valor (FR-020).
+- [ ] T008 [P] Ampliar `…/test/…/core/navigation/SettingsSavedAnnouncementTest.kt` (theme-api P6, research R6), con el calificador `es` porque el anuncio también exige el idioma resuelto (L4):
+  - con `announceSaved(settle = true)`, no anuncia antes de 1 s del reloj de la prueba, anuncia una vez después y consume el aviso;
+  - si la composición se descarta antes del margen y se vuelve a crear, el anuncio sale una sola vez, en la nueva;
+  - `announceSaved()` sin margen sigue igual que en F12.
+- [ ] T009 [P] `…/androidTest/…/core/theme/PlatformAppThemeControllerTest.kt` (research R1, R3 y R12; theme-api P4), con el controlador construido sobre el mismo contexto que inyecta Koin (M1):
+  - se fija el modo del emulador con `cmd uimode night no` (vía `UiAutomation.executeShellCommand`). `apply(DARK)`: una actividad recién creada (`ActivityScenario`) tiene el modo nocturno `YES`. Con `night yes` y `apply(LIGHT)`, tiene `NO`. Nunca se compara con `Resources.getSystem()` (H1);
+  - `apply(SYSTEM)`: la actividad sigue al modo fijado del emulador en los dos sentidos;
+  - **reaplicar no recrea:** con `DARK` aplicado y una actividad abierta, otro `apply(DARK)` no la recrea ni le llega un cambio de configuración. Lo dice un contador de `onCreate`/`onConfigurationChanged` tras 2 s. Esto decide entre las variantes A y B (R3);
+  - cada cambio se espera con un plazo máximo de 5 s;
+  - `@After` aplica `SYSTEM` y restaura el `cmd uimode night` que había, incluidos `auto` y `custom` (L6).
 
 ### Implementación
 
-- [ ] T010 Dominio en `…/microrag/domain/settings/`:
-  - `ThemeModels.kt`: `ThemePreference` con `fromName`, `ThemeSettings` y `ThemeSaveResult` (data-model §1);
-  - `AppThemeStore.kt` y `AppThemeController.kt` (theme-api §1);
+- [ ] T010 Dominio en `…/microrag/domain/settings/` (los tipos ya existen desde T005):
   - `ThemeUseCases.kt`: `ObserveThemeSettingsUseCase`, `SaveThemeSettingsUseCase` y `ReconcileThemeUseCase`;
-  - `SettingsNotices.kt`: `announceSaved(expectDark: Boolean? = null)`, `expectedDark` y `consumeSaved()`, que también limpia el modo esperado.
+  - `SettingsNotices.kt`: `announceSaved(settle: Boolean = false)`, `settlePending` y `consumeSaved()`, que también limpia el margen.
 
   T006 pasa.
-- [ ] T011 [P] `…/microrag/data/settings/DataStoreAppThemeStore.kt`, con `create(noBackupDir, scope)` hacia `datastore/appearance.preferences_pb`, la clave `theme` y registro solo del tipo de fallo con `AppLogger`. T007 pasa.
-- [ ] T012 [P] `…/microrag/core/theme/PlatformAppThemeController.kt` (theme-api P4): `UiModeManager.setApplicationNightMode` con `AUTO`, `NO` o `YES`, captura de `RuntimeException` → `false`, `isShowing` e `isDark`.
+- [ ] T011 [P] `…/microrag/data/settings/DataStoreAppThemeStore.kt`, con `create(noBackupDir, scope)` hacia `datastore/appearance.preferences_pb`, `ReplaceFileCorruptionHandler` que marca la lectura fallida (M2), la clave `theme` y registro solo del tipo de fallo con `AppLogger`. T007 pasa.
+- [ ] T012 [P] `…/microrag/core/theme/PlatformAppThemeController.kt` (theme-api P4): `UiModeManager.setApplicationNightMode` con `AUTO`, `NO` o `YES`, y captura de `RuntimeException` → `false`. `isShowing` solo con la variante B, con `UiModeManager.getNightMode()` para `SYSTEM` y nunca con `Resources.getSystem()`.
 - [ ] T013 Inyección (theme-api §4): `…/microrag/core/di/CoreModule.kt`, `…/microrag/data/di/DataModule.kt` y `…/microrag/domain/di/DomainModule.kt`. `AppModulesTest` pasa.
-- [ ] T014 `SettingsSavedAnnouncement` en `…/microrag/core/navigation/MicroRagAppShell.kt`: espera también a que el modo nocturno de `LocalConfiguration` coincida con `expectedDark` (P6). T008 pasa.
-- [ ] T015 **Puerta de R1:** T009 en `Pixel_10` y en `MicroRAG_API33` (`connectedDebugAndroidTest` filtrado a la clase). Si `MODE_NIGHT_AUTO` no devuelve la app al modo del teléfono, **se para y se consulta** antes de seguir. La alternativa a evaluar es `MODE_NIGHT_CUSTOM`.
+- [ ] T014 `SettingsSavedAnnouncement` en `…/microrag/core/navigation/MicroRagAppShell.kt`: con `settlePending`, espera también `SETTLE_MS = 1000` en la composición (P6). T008 pasa.
+- [ ] T015 **Puerta de R1 y R3:**
+  - crear el AVD `MicroRAG_API32` si no existe: `sdkmanager "system-images;android-32;google_apis;arm64-v8a"` y `avdmanager create avd`, con el mismo perfil que `MicroRAG_API33`. Aprobado por el usuario en el analyze (D-069);
+  - pasar T009 en `MicroRAG_API32`, `MicroRAG_API33` y `Pixel_10` (`connectedDebugAndroidTest` filtrado a la clase).
+
+  **Resultado esperado:**
+  - si `MODE_NIGHT_AUTO` no devuelve la app al modo del emulador, **se para y se consulta**: `CUSTOM` no es alternativa (L5);
+  - si reaplicar no recrea en los tres, se usa la variante A, y si no, la B;
+  - la variante elegida se anota en `research.md` R3 y en el informe, y T010 y T012 se completan con ella.
 
 **Checkpoint:** dominio, almacén, controlador y aviso listos y probados. El modo por app está verificado en los dos emuladores.
 
@@ -145,7 +155,9 @@ description: "Lista de tareas de F16 — Apariencia: tema e icono de Ajustes"
   - la fila pide su destino (`theOtherRowsAskForTheirDestination`);
   - el subtítulo es «Claro» u «Oscuro» según `theme`;
   - el ViewModel lee el tema al crearse y en `onResume`.
-- [ ] T019 [P] [US1] Ampliar `…/test/…/core/navigation/NavigationTest.kt`: Ajustes → Tema, sin barra inferior en `Theme`, y Atrás vuelve a Ajustes.
+- [ ] T019 [P] [US1] Ampliar `…/test/…/core/navigation/NavigationTest.kt`:
+  - Ajustes → Tema, sin barra inferior en `Theme`, y Atrás vuelve a Ajustes;
+  - `settingsViewModels()` construye `SettingsViewModel` con el caso de uso nuevo y registra `ThemeViewModel` con fakes (L3).
 
 ### Implementación
 
@@ -172,14 +184,15 @@ description: "Lista de tareas de F16 — Apariencia: tema e icono de Ajustes"
 
 **Independent Test:** quickstart §3, pasos 4–6 y 9.
 
-- [ ] T023 [US2] Reconciliación al arrancar en `…/microrag/MicroRagApplication.kt` (theme-api P5): después de `startKoin`, lanzar `ReconcileThemeUseCase` en `get<ApplicationScope>().scope`. StrictMode en depuración no registra violaciones nuevas en el arranque (logcat filtrado a la app).
+- [ ] T023 [US2] Reconciliación al arrancar en `…/microrag/MicroRagApplication.kt` (theme-api P5): después de `startKoin`, lanzar en `get<ApplicationScope>().scope` una corrutina que resuelva y ejecute `ReconcileThemeUseCase` dentro de ella, de modo que nada toca disco en el hilo principal (L9). StrictMode en depuración no registra violaciones nuevas en el arranque (logcat filtrado a la app). La recreación rara tras el primer fotograma, si hay discrepancia, va al informe.
 - [ ] T024 [US2] Verificación en `Pixel_10` (quickstart §3, pasos 4–6 y 9):
   - 10 arranques en frío grabados por combinación (Claro y Oscuro con el emulador en el modo contrario), revisados fotograma a fotograma (SC-002);
+  - el tiempo hasta ver el tema nuevo tras «Guardar preferencias» (SC-001) y tras `cmd uimode` (SC-004), medido con las marcas de tiempo de `screenrecord` (M6);
   - reinicio del emulador (SC-003);
   - «Sistema» con `cmd uimode night yes|no` (SC-004);
   - barras del sistema legibles (FR-011).
 
-  Se repite lo esencial en `MicroRAG_API33`. Las cifras van al informe. Si hay destello, **se para y se consulta**.
+  Se repite lo esencial en `MicroRAG_API33` y `MicroRAG_API32`. Las cifras van al informe. Si hay destello, **se para y se consulta**.
 
 ---
 
@@ -192,6 +205,7 @@ description: "Lista de tareas de F16 — Apariencia: tema e icono de Ajustes"
 - [ ] T025 [P] [US3] Documentación del icono:
   - `docs/roadmap/INVENTARIO.md` §2.6: la fila de `ic_settings` pasa a `settings` con «Engranaje por decisión del usuario (D-067); el PNG usa un sol (G19)», y se añade la fila de `ic_sun_moon` («Ajustes: fila Tema»);
   - la ficha P03: «`ic_settings` (engranaje)»;
+  - G19: «✅ Implementado en F16 (`ic_settings` = Lucide `settings`, D-067)», y G45: «✅ Implementado en F16» (L1);
   - `specs/001-foundations-design-system/quickstart.md`: el comando de regenerar iconos pasa `"$TMP/package/icons"`.
 - [ ] T026 [US3] Comprobación visual en `Pixel_10`: la barra inferior (pestaña Ajustes seleccionada y sin seleccionar) y la cabecera de Inicio, con datos de prueba, en claro y en oscuro. El catálogo de depuración muestra el engranaje y `SunMoon`. `CatalogAccessibilityTest` sigue pasando.
 
@@ -216,7 +230,7 @@ description: "Lista de tareas de F16 — Apariencia: tema e icono de Ajustes"
 
 ### Implementación
 
-- [ ] T029 [US4] Estados de fallo en `ThemeViewModel.kt` y `ThemeScreen.kt` (`SaveFailure` y `LisdataInfoCard`, como en Idiomas). T027 y T028 pasan.
+- [ ] T029 [US4] Estados de fallo en `ThemeViewModel.kt` y `ThemeScreen.kt` (`LisdataInfoCard` y el snackbar). `SaveFailure`, hoy `private` en `LanguagesScreen.kt`, pasa a un composable `internal` de `feature/settings` que usan las dos pantallas (L2). T027 y T028 pasan, y `LanguagesScreenTest` sigue pasando sin tocarlo.
 
 ---
 
@@ -228,9 +242,9 @@ description: "Lista de tareas de F16 — Apariencia: tema e icono de Ajustes"
 
 - [ ] T030 [P] [US5] Prueba instrumentada `…/androidTest/…/core/theme/ThemeChangeKeepsStateTest.kt`, con la app sobre fakes de chat:
   - un borrador escrito en el compositor y la pestaña Chat abierta;
-  - `apply(DARK)` desde la prueba;
+  - `apply(DARK)` desde la prueba, esperando la recreación con un plazo máximo de 5 s;
   - tras la recreación, el borrador y la pestaña siguen;
-  - `@After` deja `SYSTEM`.
+  - `@After` aplica `SYSTEM` y espera a que se aplique (L6).
 
   Si el entorno de pruebas no permite levantar el shell con fakes, se sustituye por el recorrido de T031 y se anota.
 - [ ] T031 [US5] Recorrido en `Pixel_10` con datos de prueba: borrador, conversación de prueba abierta y desplazada, y un diálogo abierto con «Sistema» al cambiar el modo del emulador. Todo se conserva. La respuesta en curso y la indexación se comprueban en el teléfono (T040).
@@ -258,7 +272,7 @@ description: "Lista de tareas de F16 — Apariencia: tema e icono de Ajustes"
   - `./gradlew :app:testDebugUnitTest :app:lintDebug`, con solo los avisos previos de LiteRT-LM 0.19.0 y SQLite-Vector 1.2.0;
   - `offline/.venv/bin/python -I -m unittest discover -s offline/tests`, que no cambia.
 - [ ] T036 Batería instrumentada completa en `Pixel_10` y en `MicroRAG_API33`. En API 33 siguen los 4 fallos previos de Atrás desde la raíz. Cada prueba que toca el modo por app lo deja en «Sistema».
-- [ ] T037 Recorrido en el emulador (quickstart §3, pasos 1–9), con capturas frente al wireframe en español e inglés, en claro y en oscuro, al 200 % y en horizontal.
+- [ ] T037 Recorrido en el emulador (quickstart §3, pasos 1–9), con capturas frente al wireframe en español e inglés, en claro y en oscuro, al 200 % y en horizontal. Con cada tema se abren al menos un diálogo de confirmación, una hoja inferior (la ficha de modelo), un menú «⋯» y un snackbar (FR-009).
 - [ ] T038 Borrador de `specs/016-appearance-theme/report.md`:
   - resumen;
   - resultados de build, lint y pruebas;
@@ -273,13 +287,13 @@ description: "Lista de tareas de F16 — Apariencia: tema e icono de Ajustes"
 
 ## Phase 10: Última fase — teléfono de referencia y cierre
 
-- [ ] T039 Batería instrumentada completa en el A063, con los APK finales y la pantalla despierta. Antes y después se anota el modo por app; al terminar queda en «Sistema».
+- [ ] T039 Batería instrumentada completa en el A063, con los APK finales y la pantalla despierta. El modo por app no se puede leer (R2), así que al terminar se fuerza siempre «Sistema» desde la app. El `cmd uimode night` del teléfono se anota antes y se restaura después, incluidos `auto` y `custom` (L6).
 - [ ] T040 Recorrido **acordado con el usuario antes de empezar** (quickstart §4):
   - el engranaje;
   - la fila y la pantalla Tema con los tres temas y los dos modos del teléfono;
   - el reinicio;
   - arranques en frío, con el muestreo de un píxel sin guardar imágenes;
-  - una respuesta y una indexación durante el cambio, sobre documentos de prueba en una carpeta propia;
+  - una respuesta y una indexación durante el cambio, sobre documentos de prueba en una carpeta propia. Se cuentan documentos y fragmentos indexados antes y después (SC-005);
   - red a 0 bytes para el uid de la app;
   - limpieza y teléfono restaurado.
 - [ ] T041 Cerrar `report.md` y poner F16 en `docs/roadmap/FEATURES.md` como «implementada; pendiente de la revisión de cierre». **Parada para la revisión de cierre.**
@@ -291,7 +305,7 @@ description: "Lista de tareas de F16 — Apariencia: tema e icono de Ajustes"
 ### Phase Dependencies
 
 - **Setup (fase 1):** sin dependencias. T002 antes que T003.
-- **Foundational (fase 2):** T005 antes que T006; T010 antes que T011–T014; T015 después de T012. **Bloquea US1–US5.**
+- **Foundational (fase 2):** T005 (tipos y fakes) antes que T006–T009; T010 antes que T013 y T014; T015 después de T009 y T012, y antes de cerrar T010 y T012 con la variante elegida. **Bloquea US1–US5.**
 - **US1 (fase 3):** depende de la fase 2. Es el MVP.
 - **US2 (fase 4):** depende de US1, para guardar desde la pantalla, y de T015.
 - **US3 (fase 5):** depende solo de T003. Puede ir en paralelo con US1 y US2.
@@ -306,7 +320,7 @@ description: "Lista de tareas de F16 — Apariencia: tema e icono de Ajustes"
 - Las pruebas primero, y deben fallar.
 - Dominio antes que datos y plataforma; los casos de uso antes que el ViewModel; el ViewModel antes que la pantalla.
 - **Paradas de consulta:**
-  - la del analyze, solo si deja algo que decidir (D-068);
+  - la del analyze (hecha: A3 confirmado y emulador de API 32 aprobado, D-069);
   - T003, si la regeneración cambia otros iconos;
   - T015, si `MODE_NIGHT_AUTO` no se comporta como en R1;
   - T024, si hay destello en el arranque;

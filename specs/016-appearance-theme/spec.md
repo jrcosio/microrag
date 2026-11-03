@@ -53,6 +53,12 @@
 - Q: En la pantalla Tema, ¿el tema elegido se aplica al tocar «Guardar preferencias» o al marcar la opción? → A: Al guardar, como Idiomas. Marcar una opción no cambia nada; «Guardar preferencias» aplica el tema, vuelve a Ajustes y anuncia «Preferencias guardadas»; Atrás sin guardar no cambia nada (FR-006, FR-007, A3).
 - Q: ¿Se aprueban la spec, el wireframe y las propuestas A1–A9? → A: Sí (revisión del clarify, 2026-11-03). Queda en D-067.
 
+### Session 2026-11-03 (analyze)
+
+- Q: Al guardar el tema, ¿«Preferencias guardadas» lo anuncia solo TalkBack, como en Idiomas, o se muestra un aviso visible? → A: Solo TalkBack, como Idiomas. Confirma la corrección de A3 del plan (D-068, D-069).
+- Q: Android 12 (API 31–32) no tiene dispositivo de prueba. ¿Se crea un emulador de API 32 para verificar el modo por app? → A: Sí. `MicroRAG_API32` entra en la puerta del modo por app (T015) y en los arranques en frío (T024).
+- Q: ¿Se aprueban el plan, las tareas y el analyze con sus correcciones, y se sigue con la implementación? → A: Sí. El ciclo sigue en automático hasta la fase del teléfono, que se consulta antes (D-069).
+
 ## User Scenarios & Testing *(mandatory)*
 
 **Actores:**
@@ -114,7 +120,7 @@ El icono de Ajustes es un engranaje en la barra inferior y en el botón de Ajust
 
 1. **Given** cualquier pestaña, **When** el usuario mira la barra inferior, **Then** la pestaña «Ajustes» muestra un engranaje, seleccionada o no.
 2. **Given** Inicio, **When** el usuario mira la cabecera, **Then** el botón de Ajustes muestra el mismo engranaje, y TalkBack lo lee como «Ajustes».
-3. **Given** el catálogo de componentes de depuración, **When** se muestra la rejilla de iconos, **Then** aparece el engranaje y ya no hay ningún sol.
+3. **Given** el catálogo de componentes de depuración, **When** se muestra la rejilla de iconos, **Then** aparece el engranaje, y ningún icono sale ya del Lucide `sun` (el `sun-moon` de la fila «Tema» es otro icono).
 
 ---
 
@@ -196,7 +202,7 @@ La fila «Tema» y la pantalla Tema siguen el wireframe aprobado por el usuario,
 
 **Icono de Ajustes**
 
-- **FR-001**: El icono de Ajustes MUST ser un engranaje del mismo conjunto de iconos lineales que el resto (Lucide), en la barra inferior, en el botón de Ajustes de la cabecera de Inicio y en el catálogo y las vistas previas. MUST NOT quedar ningún sol en la app.
+- **FR-001**: El icono de Ajustes MUST ser un engranaje del mismo conjunto de iconos lineales que el resto (Lucide), en la barra inferior, en el botón de Ajustes de la cabecera de Inicio y en el catálogo y las vistas previas. MUST NOT quedar ningún icono generado del Lucide `sun`.
 - **FR-002**: Las etiquetas y descripciones de TalkBack de Ajustes MUST NOT cambiar («Ajustes»).
 - **FR-003**: La fuente del mapeo de iconos y el inventario (§2.6 y G19) MUST quedar actualizados con el engranaje y el motivo (D-066), y el procedimiento documentado para regenerar los iconos MUST funcionar tal como está escrito.
 
@@ -223,7 +229,7 @@ La fila «Tema» y la pantalla Tema siguen el wireframe aprobado por el usuario,
 **Fallos**
 
 - **FR-015**: Si el tema no se puede guardar, la app MUST seguir con el anterior, mantener la pantalla Tema abierta con la opción elegida marcada y avisar con «No se pudieron guardar las preferencias. Se mantienen las anteriores.». Un nuevo intento MUST poder funcionar.
-- **FR-016**: Si el tema guardado no se puede leer, la app MUST usar «Sistema», y la pantalla Tema MUST mostrar «No se pudieron leer tus preferencias. Se usan las de por defecto.» con «Sistema» marcada, hasta que un guardado funcione.
+- **FR-016**: Si el tema guardado no se puede leer, la app MUST usar y aplicar «Sistema», y la pantalla Tema MUST mostrar «No se pudieron leer tus preferencias. Se usan las de por defecto.» con «Sistema» marcada, hasta que un guardado funcione.
 - **FR-017**: Aplicar el tema al arrancar MUST NOT retrasar la primera pantalla ni añadir lecturas de disco en el hilo principal (constitución IV).
 
 **Textos, accesibilidad, privacidad y fidelidad**
@@ -254,7 +260,7 @@ La fila «Tema» y la pantalla Tema siguen el wireframe aprobado por el usuario,
 - **SC-004**: Con «Sistema», cambiar el modo oscuro del teléfono cambia la app en menos de 1 s sin cerrarla; con «Claro» u «Oscuro», no la cambia, en el 100 % de las pruebas.
 - **SC-005**: Al cambiar el tema durante una respuesta, el 100 % de las respuestas terminan con su texto y sus citas, y el 100 % de las tandas de indexación siguen sin volver a empezar. El número de documentos y fragmentos indexados no cambia.
 - **SC-006**: Tras un fallo de guardado simulado, el tema sigue siendo el anterior en el 100 % de las pruebas, con el aviso de FR-015.
-- **SC-007**: Hay 0 soles en la app: el icono de Ajustes es el engranaje en la barra inferior, en Inicio y en el catálogo.
+- **SC-007**: Ningún icono de la app sale del Lucide `sun`: el icono de Ajustes es el engranaje en la barra inferior, en Inicio y en el catálogo.
 - **SC-008**: Las comprobaciones automáticas de accesibilidad pasan en Ajustes y en Tema, en claro y en oscuro, con la letra al 200 % y en horizontal. Las pruebas de contraste de los dos temas siguen en verde.
 - **SC-009**: Los textos en español y en inglés tienen las mismas claves (100 % de paridad).
 - **SC-010**: Las capturas del teléfono coinciden con el wireframe aprobado en estructura, textos y componentes, salvo las diferencias documentadas en el informe de cierre.

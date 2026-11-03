@@ -6,7 +6,7 @@ Guía de validación de extremo a extremo. Los detalles están en los contratos 
 
 - **JBR de Android Studio:** `export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"`.
 - **`adb`:** `$HOME/Library/Android/sdk/platform-tools/adb`.
-- **Emuladores:** `MicroRAG_API33` (API 33) y `Pixel_10` (API 37). Android 12 no tiene emulador (research R4).
+- **Emuladores:** `MicroRAG_API32` (API 32, se crea en T015 con `system-images;android-32;google_apis;arm64-v8a`), `MicroRAG_API33` (API 33) y `Pixel_10` (API 37).
 - **Iconos, solo si se regeneran:** `npm` y `python3`.
 - **Teléfono de referencia (A063, API 35):** **solo en la última fase**, con las reglas de privacidad de F11–F13 (research R11).
 
@@ -28,15 +28,16 @@ git status --short app/src/main/res/drawable
 
 **Esperado:**
 - **dominio:**
-  - `SaveThemeSettingsUseCaseTest`: sin cambios, fallo de escritura, fallo al aplicar con la copia restaurada, y guardado con el aviso y su modo esperado;
-  - `ReconcileThemeUseCaseTest`: discrepancia en los tres valores, sin discrepancia y lectura fallida (theme-api P3, P5);
-- **datos:** `DataStoreAppThemeStoreTest`: por defecto `SYSTEM`, sobrevive a reabrir, valor desconocido, y fallos de lectura y escritura (P1);
+  - `ThemeUseCasesTest`:
+    - guardar: sin cambios, con la lectura fallida, fallo de escritura, fallo al aplicar con la copia restaurada, y guardado con el aviso con margen;
+    - reconciliar: la copia, o `SYSTEM` con la lectura fallida, según la variante elegida en T015 (theme-api P3, P5);
+- **datos:** `DataStoreAppThemeStoreTest`: por defecto `SYSTEM`, sobrevive a reabrir, valor desconocido, fichero corrupto que se sustituye, y fallos de lectura y escritura (P1);
 - **pantallas:**
   - `ThemeViewModelTest`: U1–U4;
   - `ThemeScreenTest`: estructura del wireframe §3, estados A4–A5 y semántica U7;
   - `SettingsScreenTest`: la fila «Tema» entre «Idiomas» e «Índice y rendimiento», con su subtítulo y su clic;
   - `SettingsViewModelTest`: relectura en `onResume`;
-- **shell:** el anuncio espera al modo nocturno esperado (P6);
+- **shell:** `SettingsSavedAnnouncementTest`, con el anuncio tras el margen de 1 s (P6, calificador `es`);
 - **resto:** `NavigationTest` (sin barra inferior en `Theme`), `StringsParityTest`, `LayeringTest` (regla de `UiModeManager`), `AppModulesTest` y `DesignSystemConformanceTest` (el engranaje, SC-007);
 - **lint:** sin errores nuevos.
 
@@ -54,10 +55,11 @@ Escribe la salida en un fichero; no la pases por `tail`.
 
 **Esperado:**
 - **instrumentadas:**
-  - `PlatformAppThemeControllerTest`: `NO` y `YES` cambian el modo nocturno de la app, y `AUTO` lo devuelve al del teléfono (research R1). Deja `AUTO` al terminar;
+  - `PlatformAppThemeControllerTest`: `NO` y `YES` imponen el modo contrario al del emulador, `AUTO` lo devuelve al del emulador, y reaplicar el mismo valor no recrea (research R1, R3). Deja `AUTO` y el modo del emulador como estaban;
+  - `ThemeChangeKeepsStateTest` (R5);
   - `ThemeScreenAccessibilityTest` y `SettingsScreenAccessibilityTest` (ATF), en claro y en oscuro, al 200 % y en horizontal;
   - la batería de F01–F13.
-- **recorrido, en API 33 y API 37:**
+- **recorrido, en API 32, API 33 y API 37:**
   1. **Engranaje** en la barra inferior y en la cabecera de Inicio, en claro y en oscuro.
   2. **Ajustes:** la fila «Tema» dice «Sistema».
   3. **Tema:** marcar «Oscuro» con el emulador en claro y volver con Atrás no cambia nada. Marcar «Oscuro» y guardar: la app pasa a oscuro, vuelve a Ajustes y la fila dice «Oscuro». Con TalkBack, se anuncia «Preferencias guardadas».
@@ -68,10 +70,10 @@ Escribe la salida en un fichero; no la pases por `tail`.
      adb shell screenrecord --time-limit 4 /data/local/tmp/start.mp4 & adb shell am start -n com.lisdatasolutions.microrag/.MainActivity
      ```
 
-     Ningún fotograma sale en el otro tema. Se hacen 10 por combinación, con «Claro» y «Oscuro» y el emulador en el modo contrario (SC-002).
+     Ningún fotograma sale en el otro tema. Se hacen 10 por combinación, con «Claro» y «Oscuro» y el emulador en el modo contrario (SC-002). Con las marcas de tiempo de la grabación se mide también el tiempo hasta ver el tema nuevo tras «Guardar preferencias» (SC-001) y tras `cmd uimode` (SC-004).
   5. **Reinicio del emulador:** sigue en el tema guardado (SC-003).
   6. **«Sistema»** y `adb shell cmd uimode night yes|no`: la app cambia sin cerrarse. Con «Claro» u «Oscuro», no cambia (SC-004).
-  7. **Durante una respuesta y una indexación** con datos de prueba: cambiar el tema no corta la respuesta ni la tanda, y el borrador del compositor sigue ahí (SC-005).
+  7. **Estado conservado:** cambiar el tema no pierde el borrador del compositor, la conversación de prueba ni un diálogo abierto. La respuesta en curso y la indexación (SC-005) se comprueban en el teléfono (§4), que tiene los modelos.
   8. **Fallos:** con el almacén de pruebas que falla (prueba JVM), A4 y A5.
   9. **Barras del sistema** legibles en claro y en oscuro (FR-011).
 

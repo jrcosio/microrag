@@ -12,8 +12,8 @@ F16 cambia el icono de Ajustes y añade el tema de la app (D-066, D-067).
 - **Tema:** «Sistema» (por defecto), «Claro» u «Oscuro», en una fila de Preferencias que abre la pantalla Tema, copiada de Idiomas. Se aplica al guardar.
   - **Quién aplica:** el **modo oscuro por app del sistema** (`UiModeManager.setApplicationNightMode`, API 31). Lo guarda el sistema y lo aplica antes de la primera ventana, así que la pantalla de arranque, las barras y Compose lo siguen sin cambios en `LisdataTheme` ni en `MainActivity` (R1, R4).
   - **Qué se muestra:** una **copia propia** en un DataStore, porque el sistema no deja leer el valor (R2).
-  - **Al guardar,** primero la copia y después el sistema. **Al arrancar,** una reconciliación en segundo plano aplica la copia si no se refleja (R3).
-- **Aviso:** «Preferencias guardadas» lo anuncia TalkBack cuando la app ya se ve en el tema nuevo, como en Idiomas. Esto corrige A3 (R6, D-068).
+  - **Al guardar,** primero la copia y después el sistema. **Al arrancar,** una reconciliación en segundo plano vuelve a aplicar la copia, o «Sistema» si no se pudo leer (R3, D-069).
+- **Aviso:** «Preferencias guardadas» lo anuncia TalkBack tras un margen de 1 s, en la pantalla ya recreada si la hay, como en Idiomas. Esto corrige A3 (R6, D-068), y el usuario lo confirmó en el analyze (D-069).
 - **Pruebas en el teléfono, en la última fase.**
 
 ## Technical Context
@@ -36,16 +36,16 @@ F16 cambia el icono de Ajustes y añade el tema de la app (D-066, D-067).
   - almacén sobre un DataStore temporal;
   - ViewModels y pantallas de Tema y Ajustes con Robolectric;
   - `NavigationTest`, `StringsParityTest`, `LayeringTest`, `AppModulesTest` y `DesignSystemConformanceTest`.
-- **Instrumentadas en el emulador:**
-  - `PlatformAppThemeControllerTest` (R1);
+- **Instrumentadas en los emuladores (API 32, 33 y 37):**
+  - `PlatformAppThemeControllerTest` (R1, R3);
+  - `ThemeChangeKeepsStateTest` (R5);
   - ATF de Tema y Ajustes;
   - la batería de F01–F13.
 - **Teléfono A063:** batería y recorrido, en la última fase.
 
 **Target Platform**: Android, minSdk 31 y targetSdk 37.
-- Emuladores `MicroRAG_API33` y `Pixel_10` (API 37).
+- Emuladores `MicroRAG_API32` (nuevo, aprobado en el analyze), `MicroRAG_API33` y `Pixel_10` (API 37).
 - Teléfono A063 (API 35), al final.
-- Android 12 sin dispositivo (riesgo residual, R4).
 
 **Project Type**: mobile-app, módulo único `:app` (D-009).
 
@@ -80,7 +80,7 @@ F16 cambia el icono de Ajustes y añade el tema de la app (D-066, D-067).
 | V. Veracidad del estado | La fila muestra la copia, y la reconciliación garantiza que la copia es lo que se ve (R3). Un fallo al guardar no cambia nada y se dice. Un fallo al leer se dice | ✅ |
 | VI. Calidad y pruebas | Casos de uso, almacén y ViewModels con fakes y pruebas JVM. Controlador de plataforma con prueba instrumentada. ATF en el emulador. Conformidad del icono | ✅ |
 | VII. UI fiel y accesible | La fila y la pantalla siguen el wireframe aprobado (A1–A9, D-067), con la corrección de A3 de D-068, que se alinea con Idiomas. Componentes `Lisdata*` y tokens. U6–U8. Textos ES/EN con paridad. Las diferencias frente al PNG 09 (la fila nueva y el engranaje) van al informe de cierre | ✅ |
-| VIII. Proceso | Documentación en español y código en inglés. D-067 (clarify) y D-068 (plan). El usuario pidió el ciclo automático salvo preguntas (2026-11-03), y la parada tras analyze se mantiene si el analyze deja algo para decidir. Pruebas en el teléfono al final | ✅ |
+| VIII. Proceso | Documentación en español y código en inglés. D-067 (clarify), D-068 (plan) y D-069 (analyze). El usuario pidió el ciclo automático salvo preguntas (2026-11-03). La parada tras analyze se hizo porque había decisiones pendientes: A3 y el emulador de Android 12. Pruebas en el teléfono al final | ✅ |
 
 **Re-check post-diseño:** sin violaciones.
 - El modo por app del sistema no es un dato de la app, igual que el idioma por app de Android 13+ (F12).
@@ -126,7 +126,7 @@ app/src/main/java/com/lisdatasolutions/microrag/
 ├── feature/di/FeatureModule.kt
 └── MicroRagApplication.kt                              # reconciliación al arrancar
 app/src/test/java/com/lisdatasolutions/microrag/        # pruebas JVM nuevas y ampliadas
-app/src/androidTest/java/com/lisdatasolutions/microrag/ # PlatformAppThemeControllerTest, ThemeScreenAccessibilityTest
+app/src/androidTest/java/com/lisdatasolutions/microrag/ # PlatformAppThemeControllerTest, ThemeChangeKeepsStateTest, ThemeScreenAccessibilityTest
 docs/roadmap/INVENTARIO.md                              # §2.6 iconos y P03
 specs/001-foundations-design-system/quickstart.md       # comando de regenerar iconos corregido
 ```

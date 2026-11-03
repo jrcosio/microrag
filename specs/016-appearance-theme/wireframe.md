@@ -63,7 +63,7 @@ El selector de tema no tiene PNG. La fila nueva de Ajustes y la pantalla Tema se
 | Fila «Tema» | `LisdataSettingsRow(icon = SunMoon, title, subtitle, trailing = Chevron)`, entre `LisdataDivider` | Título «Tema» y subtítulo «Sistema», «Claro» u «Oscuro» según el guardado. Abre la pantalla Tema |
 | TalkBack | La semántica de la fila | «Tema, Sistema», con la acción de abrir |
 
-- La fila va entre «Idiomas» e «Índice y rendimiento». Es la única diferencia frente al PNG 09 y se reporta al cierre (FR-021).
+- La fila va entre «Idiomas» e «Índice y rendimiento». Con el engranaje de la barra inferior, son las dos diferencias frente al PNG 09, y se reportan al cierre (FR-021).
 
 ## 3. Pantalla Tema (A2, A3)
 

@@ -16,8 +16,8 @@ Cada punto sigue el formato **Decisión / Motivo / Alternativas**. Lo verificado
 - **Verificado:**
   - **Firma:** `public void setApplicationNightMode(int)` está en `android.jar` de las plataformas 33 y 37.1 (`javap`), y existe desde la API 31, el `minSdk` de la app.
   - **Documentación** (`sources/android-36.1/android/app/UiModeManager.java`): «Sets and persist the night mode for this application… will result in a configuration change (and potentially an Activity lifecycle event)… The mode is persisted for this application until it is either modified by the application, the user clears the data for the application, or this application is uninstalled.».
-  - **«Sistema» equivale a no imponer nada:** `MODE_NIGHT_AUTO` vale `0`, que es `Configuration.UI_MODE_NIGHT_UNDEFINED >> 4`. La app queda en el modo del teléfono.
-  - **Pendiente de comprobar en el emulador:** una prueba instrumentada lo verifica antes de construir nada encima (T005).
+  - **«Sistema» equivale a no imponer nada:** `MODE_NIGHT_AUTO` vale `0`, que es `Configuration.UI_MODE_NIGHT_UNDEFINED >> 4`. La app queda en el modo del teléfono. El javadoc describe AUTO para el modo global («por ubicación y sensores»), no para el modo por app. Según AOSP, `CUSTOM` también acaba en `UNDEFINED`, así que no sirve de alternativa (analyze, L5).
+  - **Pendiente de comprobar en el emulador:** una prueba instrumentada lo verifica antes de construir nada encima (T009, puerta T015), en API 32, 33 y 37. Si AUTO no devuelve la app al modo del teléfono, se para y se consulta.
 - **Motivo:**
   - Es la única forma de que la **pantalla de arranque** salga en el tema elegido (FR-010). La dibuja el sistema antes de que exista el proceso de la app, con los recursos `values-night` según la configuración de la app.
   - No hay que leer nada al arrancar (FR-017).
@@ -37,9 +37,10 @@ Cada punto sigue el formato **Decisión / Motivo / Alternativas**. Lo verificado
   - La copia se lee solo fuera del hilo principal: en los ViewModels y en la reconciliación, nunca para pintar el primer fotograma.
   - DataStore ya está en el proyecto (1.2.1), con el patrón de `DataStoreOnboardingStore` (`create(noBackupDir, scope)`).
 - **Fallos** (FR-015, FR-016):
-  - Una lectura que lanza `IOException` (también `CorruptionException`) da `ThemeSettings(SYSTEM, readFailed = true)`.
+  - Una lectura que lanza `IOException` da `ThemeSettings(SYSTEM, readFailed = true)`.
+  - **Fichero corrupto** (analyze, M2): sin más, `edit` también lanzaría `CorruptionException` y ningún guardado arreglaría el fallo. Por eso el almacén se crea con `ReplaceFileCorruptionHandler`, que sustituye el fichero por uno vacío y marca en memoria que la lectura falló. Así esa sesión da `readFailed = true` y el siguiente guardado funciona.
   - Una escritura que lanza `IOException` devuelve `false`.
-  - Los dos se registran solo con el tipo de fallo, nunca con el valor (FR-020).
+  - Los fallos se registran solo con su tipo, nunca con el valor (FR-020).
 - **Alternativas descartadas:**
   - un fichero de una línea, como el idioma en Android 12: DataStore ya trae escritura atómica y es el patrón de los demás almacenes;
   - deducirlo de `Resources.getSystem()` frente a la configuración de la app: no distingue «Sistema» de un valor igual al del teléfono.
@@ -47,21 +48,25 @@ Cada punto sigue el formato **Decisión / Motivo / Alternativas**. Lo verificado
 ## R3 — Orden al guardar y reconciliación al arrancar
 
 - **Decisión al guardar**, en `SaveThemeSettingsUseCase`:
-  1. si el valor es el guardado → `Unchanged`, y no se escribe ni se aplica nada;
+  1. si la lectura funcionó y el valor es el guardado → `Unchanged`, y no se escribe ni se aplica nada. Con la lectura fallida se guarda siempre, para que un guardado arregle el fallo (FR-016);
   2. se escribe la copia; si falla → `Failed`, sin aplicar nada;
-  3. se aplica en el sistema; si lanza una excepción → se intenta restaurar la copia anterior → `Failed`;
+  3. se aplica en el sistema; si lanza una excepción → se intenta restaurar la copia anterior (el valor leído, o `SYSTEM` si la lectura falló) → `Failed`;
   4. → `Saved`, que deja «Preferencias guardadas» pendiente de anunciar (R6).
-- **Decisión al arrancar:** `ReconcileThemeUseCase` corre una vez en el `ApplicationScope`, fuera del hilo principal, después de Koin. Lee la copia y solo aplica si la configuración de la app no la refleja:
-  - con `LIGHT` o `DARK`, si el modo nocturno de la app no es el esperado;
-  - con `SYSTEM`, si el de la app no coincide con el del teléfono.
+- **Decisión al arrancar:** `ReconcileThemeUseCase` corre una vez en el `ApplicationScope`, fuera del hilo principal, después de Koin. Resuelve sus dependencias dentro de la corrutina (analyze, L9). Lee la copia y aplica:
+  - la copia, si se leyó;
+  - `SYSTEM`, si la lectura falló. Es lo que dice FR-016 («la app usa “Sistema”») y lo que marca la pantalla (analyze, H2).
+- **Variante A, preferida:** aplicar siempre. Solo vale si reaplicar el mismo valor no cambia la configuración ni recrea la actividad. Lo comprueba T009 en la puerta T015.
+- **Variante B, si reaplicar recrea:** aplicar solo si la configuración de la app no refleja la copia.
+  - Con `LIGHT` o `DARK`, se compara con el modo nocturno de la configuración de la app. Al arrancar el proceso vale el contexto de la `Application`, aunque su configuración quede fija desde ese momento (analyze, M1).
+  - Con `SYSTEM`, se compara con el modo del teléfono que da `UiModeManager.getNightMode()` (`YES` o `NO`). Con `AUTO` o `CUSTOM` no se sabe y no se aplica nada (R12).
 - **Motivo:**
   - La intención del usuario se escribe primero. Si el proceso muere entre la escritura y la aplicación, la reconciliación la aplica en el siguiente arranque, y la fila nunca dice un tema que no se ve (constitución V).
-  - Aplicar solo cuando no coincide evita recrear la actividad en cada arranque.
   - Con los datos borrados se pierden la copia y el valor del sistema a la vez (R1), así que no hay nada que reconciliar.
+  - **Destello posible:** si alguna vez hay discrepancia, la recreación llega después del primer fotograma. Es un caso raro (proceso muerto a mitad de un guardado) y va anotado en el informe.
 - **Alternativas descartadas:**
   - aplicar primero y escribir después: si el proceso muere entre medias, la reconciliación desharía el cambio del usuario;
-  - aplicar en cada arranque: recrea la actividad sin necesidad;
-  - no reconciliar: deja una ventana, pequeña pero real, en la que la fila mentiría.
+  - no reconciliar: deja una ventana, pequeña pero real, en la que la fila mentiría;
+  - con la lectura fallida, no hacer nada: la pantalla marcaría «Sistema» mientras el sistema sigue con el último valor (analyze, H2).
 
 ## R4 — Pantalla de arranque, barras del sistema y Compose
 
@@ -71,10 +76,10 @@ Cada punto sigue el formato **Decisión / Motivo / Alternativas**. Lo verificado
   - `enableEdgeToEdge()` sin argumentos usa `SystemBarStyle.auto`, que decide el color de los iconos con los recursos de la actividad: los mismos.
   - `values-night/themes.xml` y `values-night/colors.xml` dan la pantalla de arranque oscura con el modo nocturno de la app.
   - `AppLocale.wrap` copia la configuración entera al crear el contexto de la actividad, también `uiMode`. Al recrearse por el cambio de tema, la copia sale ya con el nuevo modo.
-- **Se verifica en el emulador y en el teléfono:**
-  - grabación de pantalla de 10 arranques en frío por combinación (SC-002, T030);
+- **Se verifica en los emuladores y en el teléfono:**
+  - grabación de pantalla de 10 arranques en frío por combinación, solo en los emuladores (SC-002, T024);
   - legibilidad de los iconos de las barras en claro y en oscuro (FR-011).
-- **Riesgo residual:** en Android 12 (API 31–32) no hay emulador ni teléfono. Se apoya en la documentación de la API y en Robolectric para el resto del código. Queda anotado en el informe.
+- **Android 12:** el usuario aprobó en el analyze crear un emulador de API 32, `MicroRAG_API32`, con la imagen `system-images;android-32;google_apis;arm64-v8a`. En él pasan la puerta T015 y los arranques de T024. API 31 no se prueba: comparte con la 32 la versión de la API del modo por app.
 
 ## R5 — Recreación y estado
 
@@ -92,16 +97,27 @@ Cada punto sigue el formato **Decisión / Motivo / Alternativas**. Lo verificado
 
   Nunca hace falta `recreate()`: el sistema recrea en todas las versiones.
 
-## R6 — «Preferencias guardadas»: solo TalkBack, cuando ya se ve el tema nuevo
+## R6 — «Preferencias guardadas»: solo TalkBack, cuando la pantalla ya no va a recrearse
 
 - **Decisión:**
-  - Como en Idiomas (S9 de F12), «Preferencias guardadas» lo **anuncia TalkBack** una vez, con la región en vivo del shell (`SettingsSavedAnnouncement`). No hay aviso visible.
-  - `SettingsNotices.announceSaved(expectDark: Boolean? = null)` guarda el modo esperado.
-  - El anuncio espera a que `LocalConfiguration` tenga ese modo nocturno, igual que ya espera al idioma nuevo. Así no se dice en la actividad que está a punto de destruirse.
-- **Corrección de A3 y del wireframe:** la propuesta aprobada decía «aparece el aviso inferior “Preferencias guardadas”». En Idiomas ese aviso no se ve: solo se anuncia. Como el usuario eligió «como Idiomas» (clarify), A3 y §3 del wireframe se corrigen a «TalkBack anuncia». Queda en D-068.
+  - Como en Idiomas (S9 de F12), «Preferencias guardadas» lo **anuncia TalkBack** una vez, con la región en vivo del shell (`SettingsSavedAnnouncement`). No hay aviso visible. El usuario lo confirmó en el analyze (D-069).
+  - `SettingsNotices.announceSaved(settle = true)` pide esperar un margen (`SETTLE_MS = 1000`) en la composición antes de anunciar.
+  - Si la actividad se recrea por el cambio de tema, la composición vieja se descarta con su espera y la nueva empieza la suya, así que el anuncio sale en la pantalla nueva.
+  - Si no hay recreación, porque el modo efectivo no cambia (por ejemplo, de «Oscuro» a «Sistema» con el teléfono en oscuro), sale en la misma pantalla tras el margen.
+  - La condición del idioma de F12 se mantiene, y `announceSaved()` sin margen sigue igual para Idiomas.
+- **Corrección de A3 y del wireframe:** la propuesta aprobada decía «aparece el aviso inferior “Preferencias guardadas”». En Idiomas ese aviso no se ve: solo se anuncia. A3 y §3 del wireframe pasan a «TalkBack anuncia» (D-068), y el usuario lo confirmó (D-069).
 - **Alternativas descartadas:**
-  - un aviso visible solo para el tema: rompería el patrón elegido;
-  - anunciar sin esperar: TalkBack lo cortaría al recrearse la actividad.
+  - **esperar a que la configuración tenga el modo nocturno esperado:** para «Sistema» habría que saber el modo del teléfono, y la app no lo ve (R12);
+  - **un aviso visible solo para el tema:** rompería el patrón elegido;
+  - **anunciar sin esperar:** TalkBack lo cortaría al recrearse la actividad.
+
+## R12 — El modo del teléfono no se ve desde la configuración de la app
+
+- **Verificado** (analyze, H1): `ResourcesManager.applyConfigurationToResources` (`sources/android-36.1`, línea 1577) llama a `Resources.updateSystemConfiguration` con la configuración del proceso, que ya incluye el modo por app. Por tanto, `Resources.getSystem()` refleja el modo de la app, no el del teléfono.
+- **Decisión:**
+  - el modo del teléfono solo se usa en la variante B de la reconciliación (R3);
+  - se lee con `UiModeManager.getNightMode()`, que devuelve el ajuste global: `YES` y `NO` dicen el modo, y con `AUTO` o `CUSTOM` no se sabe;
+  - ninguna otra pieza depende de él: el anuncio usa el margen de R6.
 
 ## R7 — Iconos: Lucide `settings` y `sun-moon`
 
@@ -146,13 +162,17 @@ Cada punto sigue el formato **Decisión / Motivo / Alternativas**. Lo verificado
   - `ThemeScreen`: estructura, estados y TalkBack;
   - `SettingsScreen` y `SettingsViewModel`: la fila nueva, su subtítulo y su navegación;
   - `NavigationTest`, `StringsParityTest`, `LayeringTest`, `AppModulesTest` y `DesignSystemConformanceTest`.
-- **Instrumentadas en el emulador** (`MicroRAG_API33` y `Pixel_10`):
-  - `PlatformAppThemeControllerTest`: `NO` y `YES` cambian el modo nocturno de la configuración de la app, y `AUTO` lo devuelve al del teléfono (R1), restaurando `AUTO` al terminar;
+- **Instrumentadas en los emuladores** (`MicroRAG_API32`, `MicroRAG_API33` y `Pixel_10`):
+  - `PlatformAppThemeControllerTest`:
+    - con el modo del emulador fijado por `cmd uimode`, `NO` y `YES` imponen el modo contrario en una actividad recién creada, y `AUTO` la devuelve al del emulador (R1);
+    - reaplicar el mismo valor no recrea la actividad (R3, variante A);
+    - espera a cada cambio con un plazo máximo, y al terminar deja `AUTO` y el modo del emulador como estaba;
+  - `ThemeChangeKeepsStateTest` (R5);
   - `ThemeScreenAccessibilityTest` (ATF) en claro y en oscuro, al 200 % y en horizontal;
   - `SettingsScreenAccessibilityTest` con la fila nueva;
   - la batería de F01–F13.
 - **Teléfono de referencia (A063, API 35), en la última fase:**
-  - arranques en frío grabados (SC-002);
+  - arranques en frío, sin grabar, con el muestreo de un píxel (SC-002, R11);
   - reinicio (SC-003);
   - «Sistema» con el modo del teléfono (SC-004);
   - una respuesta y una indexación durante el cambio (SC-005);

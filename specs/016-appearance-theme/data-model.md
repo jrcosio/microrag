@@ -51,17 +51,18 @@ sealed interface ThemeSaveResult { data object Saved; data object Unchanged; dat
 
 | Paso | Si falla |
 |---|---|
-| 1. Mismo valor que el guardado | → `Unchanged`: no se escribe ni se aplica nada |
+| 1. Lectura buena y mismo valor que el guardado | → `Unchanged`: no se escribe ni se aplica nada. Con la lectura fallida se sigue siempre |
 | 2. Escribir la copia | → `Failed`: no se aplica nada y el tema sigue siendo el anterior |
-| 3. Aplicar en el sistema | → se restaura la copia anterior (si se puede) → `Failed` |
-| 4. Anunciar | `SettingsNotices.announceSaved(expectDark)` → `Saved` |
+| 3. Aplicar en el sistema | → se restaura la copia anterior (el valor leído, o `SYSTEM` si la lectura falló), si se puede → `Failed` |
+| 4. Anunciar | `SettingsNotices.announceSaved(settle = true)` → `Saved` |
 
-**Reconciliar al arrancar** (R3): con la copia en `c`, `appDark` (modo nocturno de la configuración de la app) y `phoneDark` (el del teléfono), se aplica `c` solo si:
-- `c = LIGHT` y `appDark`;
-- `c = DARK` y no `appDark`;
-- `c = SYSTEM` y `appDark ≠ phoneDark`.
-
-Con la lectura fallida no se hace nada.
+**Reconciliar al arrancar** (R3):
+- **Valor que se aplica:** la copia `c`, o `SYSTEM` si la lectura falló (FR-016).
+- **Variante A**, si reaplicar el mismo valor no recrea (lo decide T015): se aplica siempre.
+- **Variante B**, si reaplicar recrea: se aplica solo cuando no se refleja. `appDark` es el modo nocturno de la configuración de la app al arrancar, y `phone` es `UiModeManager.getNightMode()`:
+  - `c = LIGHT` y `appDark`;
+  - `c = DARK` y no `appDark`;
+  - `c = SYSTEM`, con `phone` en `YES` o `NO` y distinto de `appDark`. Con `AUTO` o `CUSTOM` no se aplica nada (R12).
 
 ## 4. Estado de las pantallas
 
@@ -86,9 +87,9 @@ data class SettingsUiState(/* … F12 fields … */ val theme: ThemePreference =
 
 ## 5. Aviso pendiente
 
-`SettingsNotices` (vive lo que el proceso) pasa a guardar, además de que hay un aviso pendiente, el modo nocturno esperado:
+`SettingsNotices` (vive lo que el proceso) pasa a guardar, además de que hay un aviso pendiente, si hay que esperar un margen:
 
 | Llamada | Quién | Cuándo se anuncia |
 |---|---|---|
 | `announceSaved()` | Idiomas (F12, sin cambios) | Cuando la pantalla ya muestra el idioma nuevo |
-| `announceSaved(expectDark)` | Tema | Cuando, además, `LocalConfiguration` tiene ese modo nocturno (R6) |
+| `announceSaved(settle = true)` | Tema | Cuando, además, han pasado `SETTLE_MS` (1 s) en la misma composición. Si la actividad se recrea, la espera vuelve a empezar en la nueva (R6) |
