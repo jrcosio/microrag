@@ -91,3 +91,19 @@ private fun RowsLongTextPreview() = LisdataPreviewSurface {
         )
     }
 }
+
+/** F13 history rows: short and long titles, with and without «Abierta». Large font comes with [LisdataPreviews]. */
+@LisdataPreviews
+@Composable
+private fun ConversationRowsPreview() = LisdataPreviewSurface {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        LisdataConversationRow(
+            "¿Cuál es el plazo de devolución?", "10:42 · 3 preguntas", onOpen = {}, onDelete = {},
+            deleteLabel = "Borrar conversación", chipText = "Abierta",
+        )
+        LisdataConversationRow(
+            "Diferencias entre la versión 2 y la versión 3 del procedimiento de devoluciones para clientes de empresa",
+            "lunes · 2 preguntas", onOpen = {}, onDelete = {}, deleteLabel = "Borrar conversación",
+        )
+    }
+}

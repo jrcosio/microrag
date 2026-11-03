@@ -45,6 +45,7 @@ import com.lisdatasolutions.microrag.core.designsystem.component.LisdataModelSta
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataOutlinedButton
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataProgressCard
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataProgressRing
+import com.lisdatasolutions.microrag.core.designsystem.component.LisdataConversationRow
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataQueueRow
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataQuickActionTile
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataRadioRow
@@ -257,6 +258,16 @@ val catalogEntries: List<CatalogEntry> = listOf(
             LisdataQueueRow("Manual técnico.pdf", "2,4 MB · Listo para procesar", onClick = {})
             LisdataQueueRow("Notas de reunión.md", "48 KB · Extrayendo", progress = ProgressValue.Indeterminate)
             LisdataQueueRow("Contrato.pdf", "1,2 MB", statusText = "Archivo cifrado", status = StatusKind.Error, onClick = {})
+        }
+    },
+    entry("Filas", "conversation", "LisdataConversationRow") {
+        Stack {
+            LisdataConversationRow(
+                "¿Cuál es el plazo de devolución?", "10:42 · 3 preguntas", onOpen = {}, onDelete = {},
+                deleteLabel = "Borrar conversación", chipText = "Abierta",
+            )
+            LisdataConversationRow("Resume las condiciones de garantía del manual", "Ayer · 1 pregunta", onOpen = {}, onDelete = {}, deleteLabel = "Borrar conversación")
+            LisdataConversationRow(SampleData.LONG_DOCUMENT, "12 oct. · 5 preguntas", onOpen = {}, onDelete = {}, deleteLabel = "Borrar conversación")
         }
     },
     entry("Filas", "citation", "LisdataSourceCitation") {

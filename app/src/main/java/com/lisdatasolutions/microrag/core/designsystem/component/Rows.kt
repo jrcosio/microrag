@@ -10,9 +10,11 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
@@ -219,6 +221,67 @@ fun LisdataQueueRow(
             }
             if (onClick != null) {
                 LisdataIcon(LisdataIcons.ChevronRight, contentDescription = null, tint = colors.textSecondary)
+            }
+        }
+    }
+}
+
+/**
+ * F13 history row (contracts/history-ui.md §2): the first question as [title], two lines at most; [meta]
+ * with the date and the questions; [chipText] («Abierta») beside the meta when it fits, under it otherwise;
+ * and a 48 dp bin. The card opens with [onClickLabel]; [accessibilityText] replaces what TalkBack reads for
+ * the texts only, so the bin stays its own node, read as [deleteLabel].
+ */
+@Composable
+fun LisdataConversationRow(
+    title: String,
+    meta: String,
+    onOpen: () -> Unit,
+    onDelete: () -> Unit,
+    deleteLabel: String,
+    modifier: Modifier = Modifier,
+    chipText: String? = null,
+    accessibilityText: String? = null,
+    onClickLabel: String? = null,
+) {
+    val colors = LisdataTheme.colors
+    val spacing = LisdataTheme.spacing
+    // The bin's 48 dp reach into the padding, so its icon lines up with the title.
+    LisdataCard(
+        modifier = modifier,
+        onClick = onOpen,
+        onClickLabel = onClickLabel,
+        contentPadding = PaddingValues(start = spacing.cardPadding, top = spacing.space1, end = spacing.space1, bottom = spacing.cardPadding),
+    ) {
+        Row(verticalAlignment = Alignment.Top) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(top = spacing.cardPadding - spacing.space1)
+                    .then(
+                        if (accessibilityText != null) Modifier.clearAndSetSemantics { contentDescription = accessibilityText }
+                        else Modifier,
+                    ),
+                verticalArrangement = Arrangement.spacedBy(spacing.space1),
+            ) {
+                Text(
+                    text = title,
+                    style = LisdataTheme.typography.material.titleMedium,
+                    color = colors.textPrimary,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(spacing.space2),
+                    verticalArrangement = Arrangement.spacedBy(spacing.space1),
+                    itemVerticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(text = meta, style = LisdataTheme.typography.material.bodyMedium, color = colors.textSecondary)
+                    if (chipText != null) LisdataStatusChip(text = chipText, kind = StatusKind.Info)
+                }
+            }
+            IconButton(onClick = onDelete, modifier = Modifier.size(spacing.minTouchTarget)) {
+                LisdataIcon(LisdataIcons.Trash, contentDescription = deleteLabel, tint = colors.textSecondary)
             }
         }
     }

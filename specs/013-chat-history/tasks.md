@@ -69,7 +69,7 @@ Historias de la spec:
 
 ### Pruebas (antes, y deben fallar)
 
-- [ ] T003 [P] Ampliar `…/androidTest/…/data/chat/SqliteChatRepositoryTest.kt` (research R1, R2; Q1–Q5):
+- [X] T003 [P] Ampliar `…/androidTest/…/data/chat/SqliteChatRepositoryTest.kt` (research R1, R2; Q1–Q5):
   - **orden:** `updated_at DESC`; con la misma fecha, va primero el id mayor;
   - **qué entra:** una conversación sin preguntas (creada sin turno) no aparece;
   - **título:** es la pregunta de `ordinal` más bajo, cortada a 300 caracteres;
@@ -83,7 +83,7 @@ Historias de la spec:
   - **fichero no disponible** (versión más nueva): el flujo falla con `ChatStorageException`, nunca con una excepción de SQLite (Q5).
 
   Y en `…/androidTest/…/data/rag/RagIndexWriteTest.kt`: borrar el documento de id más alto e importar otro le da el mismo id (confirma la premisa de Q15).
-- [ ] T004 [P] Ampliar `…/test/…/data/chat/DefaultChatSessionTest.kt` y `…/test/…/testing/ChatFakes.kt` (research R5; Q6–Q8, Q10):
+- [X] T004 [P] Ampliar `…/test/…/data/chat/DefaultChatSessionTest.kt` y `…/test/…/testing/ChatFakes.kt` (research R5; Q6–Q8, Q10):
   - **`openConversation(otra)`** con una respuesta en curso: queda `CANCELLED` con su texto parcial y sus citas válidas, y `openConversation` vuelve cuando ya está guardada;
   - **`openConversation(la misma)`:** la respuesta sigue;
   - **Q14:** tras `openConversation`, `startNewConversation` o `cancel`, un `ask` o un `retry` inmediatos esperan a que la respuesta anterior termine, y la nueva no se ve «interrumpida» ni pierde su `active`;
@@ -95,7 +95,7 @@ Historias de la spec:
     - cada borrado escribe `chat delete outcome=ok|failed` (Q13);
     - con tiempo virtual, la respuesta en curso se detiene en menos de 1 s (SC-005);
   - **SC-004:** preguntar en una conversación antigua, que no es la última, construye el mismo prompt que con esa conversación abierta como la última: el mismo turno anterior y el mismo texto que recibe el motor.
-- [ ] T005 [P] `…/test/…/domain/chat/HistoryUseCasesTest.kt` (Q5, Q7, Q9):
+- [X] T005 [P] `…/test/…/domain/chat/HistoryUseCasesTest.kt` (Q5, Q7, Q9):
   - `ObserveConversationsUseCase`:
     - pasa de `Loading` a `Page`;
     - normaliza los títulos (`\s+` → « », `trim`);
@@ -106,7 +106,7 @@ Historias de la spec:
   - `ConversationExistsUseCase`: `true` si no se puede leer (Q16).
 
   Y ampliar `…/test/…/domain/chat/ResolveSourcesUseCaseTest.kt` (Q15): un documento con `created_at_ms` posterior a la hora del turno es `DOCUMENT_GONE`; uno anterior sigue `AVAILABLE` o `FRAGMENT_GONE` como en F11.
-- [ ] T006 [P] `…/test/…/core/designsystem/component/ConversationRowTest.kt` (Robolectric, `@GraphicsMode(NATIVE)`, calificadores `es-w390dp-h844dp`; research R10, U3, U4, U6):
+- [X] T006 [P] `…/test/…/core/designsystem/component/ConversationRowTest.kt` (Robolectric, `@GraphicsMode(NATIVE)`, calificadores `es-w390dp-h844dp`; research R10, U3, U4, U6):
   - dos nodos: la tarjeta, con la frase y la acción «Abrir conversación», y la papelera, con «Borrar conversación: título»; la frase va solo sobre la columna de textos y no tapa la papelera;
   - la papelera mide 48 dp;
   - el título va en 2 líneas como mucho;
@@ -115,28 +115,28 @@ Historias de la spec:
 
 ### Implementación
 
-- [ ] T007 Modelos y repositorio:
+- [X] T007 Modelos y repositorio:
   - `ConversationSummary`, `ConversationPage`, `HistoryLimits` y `HistoryContent` en `…/microrag/domain/chat/ChatModels.kt`;
   - `conversations(limit)` en `…/microrag/domain/chat/ChatRepository.kt`;
   - la consulta de research R1, con el total en el mismo bloque y los fallos como `ChatStorageException`, `listChanges` y `lastConversationId()` con `EXISTS`, en `…/microrag/data/chat/SqliteChatRepository.kt`;
   - lo mismo en `InMemoryChatRepository` (`ChatFakes.kt`).
 
   T003 pasa en el emulador `Pixel_10`.
-- [ ] T008 Sesión, en `…/microrag/domain/chat/ChatSession.kt` y `…/microrag/data/chat/DefaultChatSession.kt`, y en `FakeChatSession`:
+- [X] T008 Sesión, en `…/microrag/domain/chat/ChatSession.kt` y `…/microrag/data/chat/DefaultChatSession.kt`, y en `FakeChatSession`:
   - `openConversation`, suspendida, bajo el cerrojo, con espera;
   - `delete` bajo el cerrojo, con su registro, y `deletions` con búfer, emitido fuera del cerrojo;
   - Q14 en `ask`, `retry` y `finish()`.
 
   T004 pasa, y las pruebas de F11 y F12 de la sesión siguen pasando sin cambios.
-- [ ] T009 Casos de uso:
+- [X] T009 Casos de uso:
   - `ObserveConversationsUseCase`, `OpenConversationUseCase`, `ObserveConversationDeletionsUseCase`, `ObserveAnswerInProgressUseCase` y `ConversationExistsUseCase` en `…/microrag/domain/chat/ChatUseCases.kt`, registrados en `…/microrag/domain/di/DomainModule.kt`;
   - `DeleteConversationUseCase` devuelve `Boolean`;
   - `ResolveSourcesUseCase` recibe `CitedSource` y aplica Q15; `ChatViewModel` le pasa la hora de cada turno;
   - `ChatViewModel.onConfirmDelete` se adapta sin cambiar aún de comportamiento (el fallo llega en T030).
 
   T005 pasa.
-- [ ] T010 [P] Mover `LoadMoreNearTheEnd` de `…/microrag/feature/library/LibraryScreen.kt` a `…/microrag/core/designsystem/component/Lists.kt`, con la firma `LoadMoreNearTheEnd(listState, loaded: Int, hasMore: Boolean, onLoadMore)` y sin cambiar su comportamiento. Las pruebas de la Biblioteca siguen pasando sin tocarlas.
-- [ ] T011 [P] `LisdataConversationRow` en `…/microrag/core/designsystem/component/Rows.kt` (`history-ui.md` §2):
+- [X] T010 [P] Mover `LoadMoreNearTheEnd` de `…/microrag/feature/library/LibraryScreen.kt` a `…/microrag/core/designsystem/component/Lists.kt`, con la firma `LoadMoreNearTheEnd(listState, loaded: Int, hasMore: Boolean, onLoadMore)` y sin cambiar su comportamiento. Las pruebas de la Biblioteca siguen pasando sin tocarlas.
+- [X] T011 [P] `LisdataConversationRow` en `…/microrag/core/designsystem/component/Rows.kt` (`history-ui.md` §2):
   - con sus vistas previas (título corto y largo, con y sin chip, claro y oscuro, 200 %);
   - con su entrada en `…/debug/…/catalog/CatalogEntries.kt`.
 
