@@ -35,6 +35,7 @@ import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
 import com.lisdatasolutions.microrag.core.locale.AppLocale
 import com.lisdatasolutions.microrag.domain.model.StartDestination
 import com.lisdatasolutions.microrag.domain.settings.SettingsNotices
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import org.koin.compose.koinInject
 
@@ -121,17 +122,21 @@ fun MicroRagAppShell(
 
 /**
  * F12 P7 (S9): «Preferencias guardadas», read politely once. It waits until this screen shows the new app
- * language, so the activity about to be recreated never says it with the old resources.
+ * language, so the activity about to be recreated never says it with the old resources. After a theme
+ * save it also waits [THEME_SETTLE_MS] in this composition (F16 P6): a recreation discards the wait and
+ * the new screen starts its own, so it is said there.
  */
 @Composable
 internal fun SettingsSavedAnnouncement(notices: SettingsNotices) {
     val pending by notices.savedPending.collectAsStateWithLifecycle()
+    val settle by notices.settlePending.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val shown = LocalConfiguration.current.locales[0].language
     val savedText = stringResource(R.string.languages_saved)
     var announcement by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(pending, shown) {
         if (pending && shown == AppLocale.resolve(context).language) {
+            if (settle) delay(THEME_SETTLE_MS)
             announcement = savedText
             notices.consumeSaved()
         }
@@ -146,3 +151,5 @@ internal fun SettingsSavedAnnouncement(notices: SettingsNotices) {
     }
 }
 
+/** F16 P6: the margin a theme save waits before «Preferencias guardadas», longer than a recreation takes. */
+private const val THEME_SETTLE_MS = 1_000L

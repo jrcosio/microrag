@@ -93,4 +93,44 @@ class SettingsSavedAnnouncementTest {
 
         announcements("Preferencias guardadas").assertCountEquals(1)
     }
+
+    /** F16 T008 (theme-api P6, research R6): a theme save waits its margin, so a recreation can come first. */
+    @Test
+    @Config(qualifiers = "es")
+    fun aThemeSave_waitsItsMargin_thenIsAnnouncedOnce() {
+        compose.mainClock.autoAdvance = false
+        notices.announceSaved(settle = true)
+
+        show()
+        compose.mainClock.advanceTimeBy(SETTLE_MS / 2)
+
+        announcements("Preferencias guardadas").assertCountEquals(0)
+        assertThat(notices.savedPending.value).isTrue()
+
+        compose.mainClock.autoAdvance = true
+        compose.waitUntil(timeoutMillis = 5_000) { announcements("Preferencias guardadas").fetchSemanticsNodes().size == 1 }
+        assertThat(notices.savedPending.value).isFalse()
+        assertThat(notices.settlePending.value).isFalse()
+    }
+
+    @Test
+    @Config(qualifiers = "es")
+    fun aRecreationDuringTheMargin_announcesItOnce_inTheNewScreen() {
+        compose.mainClock.autoAdvance = false
+        notices.announceSaved(settle = true)
+        show()
+        compose.mainClock.advanceTimeBy(SETTLE_MS / 2)
+
+        generation++
+        compose.mainClock.autoAdvance = true
+        compose.waitUntil(timeoutMillis = 5_000) { announcements("Preferencias guardadas").fetchSemanticsNodes().size == 1 }
+
+        generation++
+        compose.waitForIdle()
+        announcements("Preferencias guardadas").assertCountEquals(0)
+    }
+
+    private companion object {
+        const val SETTLE_MS = 1_000L
+    }
 }
