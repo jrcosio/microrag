@@ -2,7 +2,7 @@
 
 Registro vivo con fecha, decisión, motivo, origen y alcance. Cada decisión nueva se añade al final con el siguiente identificador. Las decisiones no se borran: si una se sustituye, se marca como «Sustituida por D-XXX».
 
-Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
+Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G47).
 
 ---
 
@@ -1493,9 +1493,68 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
 
 ---
 
+## D-066 — Features F16–F20 antes de F14: apariencia, carpetas y RAG visual
+
+- **Fecha:** 2026-11-03
+- **Decisión** (respuestas del usuario):
+  1. **Cinco features nuevas** se ejecutan antes de F14 y F15:
+     - F16, Apariencia: tema e icono de Ajustes;
+     - F17, Carpetas y ámbito del chat;
+     - F18, Viabilidad del RAG visual;
+     - F19, Indexación visual;
+     - F20, Chat con páginas.
+  2. **Numeración:** F14 y F15 conservan su número, porque D-052, D-057, D-062 y los informes de cierre las citan así. Las ramas nuevas se crean con `--number` (016…020), y F14 se lanzará con `--number 14`.
+  3. **Orden de ejecución:** F16 → F17 → F18 → F19 → F20 → F14 → F15.
+  4. **RAG visual:**
+     - el modo se elige por documento al importar: Texto, Visual o Ambos;
+     - el valor por defecto va en Ajustes, y el modo se cambia reindexando;
+     - entran los PDF, también los escaneados, y las imágenes sueltas (JPG y PNG), que siempre van en Visual;
+     - el índice de texto y el visual conviven.
+  5. **Modelo de embeddings:**
+     - EmbeddingGemma 2 de 440M (texto y visión) **sustituye a la 270M** y se descarga en el onboarding;
+     - las instalaciones existentes migran sin reindexar el texto, porque las dos variantes dan los mismos vectores de texto (D-025, R15 de F02);
+     - está sujeto a lo que mida F18.
+  6. **Carpetas:**
+     - un solo nivel, y cada documento está en una carpeta o en «Sin carpeta», donde quedan los actuales;
+     - el ámbito del chat se elige **por conversación** (carpetas completas y documentos sueltos de carpetas distintas) y se conserva al reabrirla desde Historial;
+     - «Incluir en RAG» sigue siendo la exclusión global.
+  7. **Tema:**
+     - Sistema (por defecto), Claro y Oscuro, en una pantalla propia como Idiomas;
+     - el icono de Ajustes pasa a ser un engranaje.
+- **Motivo:**
+  - **Por qué estas features van antes:** cambian la ingesta, el esquema, la recuperación y el prompt, así que F14 debe medir el sistema final.
+  - **Por qué el orden:** lo pequeño va primero. F17 deja hecho el filtro de ámbito que reutiliza el RAG visual, y la viabilidad visual va justo antes de construirlo.
+  - **LiteRT-LM 0.18.1 ya admite imágenes** (verificado en el AAR):
+    - `InputData.Image` y `visionTokensPerImage` en los embeddings;
+    - `Content.ImageBytes`, `visionBackend`, `maxNumImages` y `ExperimentalFlags.visualTokenBudget` en el LLM.
+  - **Riesgo principal:** el primer token con imágenes. Ya supera los 5 s sin ellas (D-057), y cada página añade cientos de tokens visuales. Por eso F18 es una feature de viabilidad, con un sí o un no a F19–F20.
+- **Alternativas descartadas:**
+  - renumerar F14 y F15 detrás de las nuevas;
+  - un interruptor global del modo visual, o indexar siempre los dos modos;
+  - descargar la 440M solo al activar el modo visual y mantener la 270M;
+  - la selección global de carpetas en Biblioteca;
+  - varias carpetas por documento, o carpetas anidadas;
+  - una hoja inferior para el tema;
+  - el RAG visual solo para PDF;
+  - empezar por la viabilidad visual.
+- **Origen:** usuario (encargo y respuestas del 2026-11-03, antes de F14).
+- **Afecta:**
+  - FEATURES (F16–F20, F14, F15 y backlog) e INVENTARIO (G45–G47);
+  - se sustituyen formalmente en el clarify de cada feature:
+    - G19 (sol de Ajustes), en F16: es una excepción del usuario a la precedencia del PNG (D-004);
+    - D-016, en la parte de «sin selector propio», en F16;
+    - D-025 (270M), en F18–F19;
+    - D-007 (formatos del MVP y OCR al backlog), en F19;
+  - la constitución:
+    - III: `embedding_model_sha256`, 256D y citas trazables a un `chunkId`;
+    - Restricciones técnicas: «270M de solo texto» y los formatos del MVP;
+    - la enmienda se propone en F18 y se aplica en F19.
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.
 
-- **Huecos G del inventario:** ninguno queda abierto. Los últimos, G23, G24 y G25, quedan resueltos en D-058. Los demás se resolvieron en sus features; el estado de cada uno está en `INVENTARIO.md` §6.
+- **Huecos G del inventario:** quedan abiertos G45 (selector de tema, F16), G46 (carpetas y ámbito del chat, F17) y G47 (UI del modo visual, F19–F20), añadidos con D-066. Su UI se propone y se aprueba en el clarify de su feature. Los anteriores se resolvieron en sus features; el estado de cada uno está en `INVENTARIO.md` §6.
 - **Documentos en otro idioma** — Cerrado en D-062 (medida entre idiomas de F12). Las mejoras de la búsqueda entre idiomas están en la ficha de F14.
