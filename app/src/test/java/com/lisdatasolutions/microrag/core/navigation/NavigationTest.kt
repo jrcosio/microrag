@@ -933,6 +933,37 @@ class NavigationTest {
         assertThat(nav.currentDestination?.hasRoute(Home::class)).isTrue()
     }
 
+    /** FR-021: «＋» of Historial leaves an empty chat, stopping an answer as «Nuevo chat» does (D-054). */
+    @Test
+    fun thePlusOfHistory_leavesAnEmptyChat() {
+        twoConversations()
+        launchShell()
+        tab(TopLevelDestination.CHAT).performClick()
+        compose.waitForIdle()
+        openHistory()
+
+        compose.onNodeWithContentDescription(context.getString(R.string.chat_new)).performClick()
+        compose.waitForIdle()
+
+        assertThat(nav.currentDestination?.hasRoute(Chat::class)).isTrue()
+        assertThat(chat.session.calls).contains("new")
+        compose.onNodeWithContentDescription("¿La reciente?", substring = true).assertDoesNotExist()
+    }
+
+    @Test
+    fun theNewChatOfAnEmptyHistory_leavesAnEmptyChat() {
+        launchShell()
+        tab(TopLevelDestination.CHAT).performClick()
+        compose.waitForIdle()
+        openHistory()
+
+        compose.onNodeWithText(context.getString(R.string.chat_new)).performClick()
+        compose.waitForIdle()
+
+        assertThat(nav.currentDestination?.hasRoute(Chat::class)).isTrue()
+        assertThat(chat.session.calls).contains("new")
+    }
+
     @Test
     fun anEmptyChat_alsoOffersHistory() {
         launchShell()

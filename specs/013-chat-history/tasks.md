@@ -295,12 +295,12 @@ Historias de la spec:
 
 **Independent Test**: desde Historial, «＋» abre un chat vacío y detiene una respuesta en curso. La conversación nueva no aparece en la lista hasta su primera pregunta.
 
-- [ ] T031 [P] [US4] Pruebas:
+- [X] T031 [P] [US4] Pruebas:
   - **`NavigationTest`:** «＋» y el botón del vacío vuelven al chat vacío por `CHAT_REQUEST = "new"`;
   - **`HistoryViewModelTest`:** el evento `NewChat`;
   - **`ChatViewModelTest`:** la petición `new` llama a `StartNewConversationUseCase` y deja el chat vacío;
   - **`HistoryViewModelTest`, con el repositorio falso:** un chat nuevo sin preguntas no aparece en la lista.
-- [ ] T032 [US4] Implementar el evento `NewChat` y su paso a `onNewChat()` del chat. T031 pasa.
+- [X] T032 [US4] Implementar el evento `NewChat` y su paso a `onNewChat()` del chat. T031 pasa.
 
 ---
 
@@ -310,7 +310,7 @@ Historias de la spec:
 
 **Independent Test**: con Historial abierto y una respuesta generándose, la lista no cambia. Tras preguntar, borrar desde el chat o «Borrar historial» en Ajustes, sí cambia.
 
-- [ ] T033 [P] [US5] Ampliar `HistoryViewModelTest` con `InMemoryChatRepository`:
+- [X] T033 [P] [US5] Ampliar `HistoryViewModelTest` con `InMemoryChatRepository`:
   - una pregunta en una conversación antigua la sube la primera, a «Hoy»;
   - borrar desde el chat la quita;
   - `deleteAll` deja `Empty` (SC-006);

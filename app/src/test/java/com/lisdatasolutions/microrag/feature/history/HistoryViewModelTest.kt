@@ -10,6 +10,7 @@ import com.lisdatasolutions.microrag.domain.chat.DeleteConversationUseCase
 import com.lisdatasolutions.microrag.domain.chat.ObserveAnswerInProgressUseCase
 import com.lisdatasolutions.microrag.domain.chat.ObserveConversationsUseCase
 import com.lisdatasolutions.microrag.domain.chat.TurnState
+import com.lisdatasolutions.microrag.domain.chat.TurnUpdate
 import com.lisdatasolutions.microrag.testing.FakeChatSession
 import com.lisdatasolutions.microrag.testing.InMemoryChatRepository
 import java.time.Clock
@@ -232,6 +233,82 @@ class HistoryViewModelTest {
 
         assertThat(vm.state.value.confirmDeleteId).isNull()
         assertThat(vm.state.value.content).isEqualTo(HistoryScreenContent.Empty)
+    }
+
+    // --- US4: «Nuevo chat» (FR-021) -----------------------------------------------------------------
+
+    @Test
+    fun newChat_isAnEvent_andANewConversationWithoutQuestions_isNotListed() = runTest(dispatcher) {
+        repository.createConversation(at("2026-11-03T10:00").toEpochMilli())
+        val vm = viewModel()
+        val events = mutableListOf<HistoryEvent>()
+        val collecting = launch { vm.eventFlow.toList(events) }
+        advanceUntilIdle()
+
+        vm.onNewChat()
+        advanceUntilIdle()
+        collecting.cancel()
+
+        assertThat(events).containsExactly(HistoryEvent.NewChat)
+        assertThat(vm.state.value.content).isEqualTo(HistoryScreenContent.Empty)
+    }
+
+    @Test
+    fun opening_isAnEvent() = runTest(dispatcher) {
+        val vm = viewModel()
+        val events = mutableListOf<HistoryEvent>()
+        val collecting = launch { vm.eventFlow.toList(events) }
+
+        vm.onOpen(7)
+        advanceUntilIdle()
+        collecting.cancel()
+
+        assertThat(events).containsExactly(HistoryEvent.Open(7))
+    }
+
+    // --- US5: a list always up to date (FR-008, FR-020, Q4) ----------------------------------------------
+
+    @Test
+    fun theListFollowsQuestionsAndDeletions() = runTest(dispatcher) {
+        val older = conversation("¿Antigua?", "2026-11-02T10:00")
+        val newer = conversation("¿Reciente?", "2026-11-03T11:00")
+        val vm = viewModel()
+        advanceUntilIdle()
+        fun ids() = (vm.state.value.content as? HistoryScreenContent.Sections)?.sections?.flatMap { s -> s.entries.map { it.id } }
+        assertThat(ids()).containsExactly(newer, older).inOrder()
+
+        repository.now = at("2026-11-03T12:00").toEpochMilli()
+        session.ask(older, "¿Otra pregunta?")
+        session.active.value = null
+        advanceUntilIdle()
+        assertThat(ids()).containsExactly(older, newer).inOrder()
+        assertThat(vm.sections().sections.single().group).isEqualTo(HistoryGroup.Today)
+
+        session.delete(newer)
+        advanceUntilIdle()
+        assertThat(ids()).containsExactly(older)
+
+        session.deleteAll()
+        advanceUntilIdle()
+        assertThat(vm.state.value.content).isEqualTo(HistoryScreenContent.Empty)
+    }
+
+    /** Q4: the checkpoints of an answer in progress never produce a new state of the list. */
+    @Test
+    fun theCheckpointsOfAnAnswer_doNotChangeTheList() = runTest(dispatcher) {
+        val id = conversation("¿Uno?", "2026-11-03T10:00")
+        val turn = repository.turns.values.single { it.conversationId == id }
+        val vm = viewModel()
+        advanceUntilIdle()
+        val states = mutableListOf<HistoryUiState>()
+        val collecting = launch { vm.state.toList(states) }
+        advanceUntilIdle()
+
+        repeat(5) { i -> repository.updateTurn(turn.id, TurnUpdate(state = TurnState.GENERATING, answer = "Parcial $i")) }
+        advanceUntilIdle()
+        collecting.cancel()
+
+        assertThat(states).hasSize(1)
     }
 
     private class MutableClock(var now: Instant) : Clock() {
