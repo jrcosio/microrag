@@ -42,8 +42,8 @@ data class TurnUi(
     /** C2, C6 and C16. */
     val notes: List<Int>,
     val sources: List<SourceRow>,
-    /** What chip `n` opens: the cited source, also while the answer streams. */
-    val chipTargets: List<SourceTarget>,
+    /** What chip `n` opens: the cited source, also while the answer streams; null for a deleted document (F13 Q12). */
+    val chipTargets: List<SourceTarget?>,
     /** A saved FAILED or INTERRUPTED turn: the card shows «Reintentar». */
     val retryable: Boolean,
     /** «Reintentar» works now: the chat is Ready and no other answer runs (A10). */

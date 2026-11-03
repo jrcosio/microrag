@@ -69,6 +69,8 @@ fun MicroRagNavHost(
                     if (message != null) entry.savedStateHandle[LIBRARY_MESSAGE] = null
                 }
             }
+            // F13 research R4: what Historial asked for, read once.
+            val request by entry.savedStateHandle.getStateFlow<String?>(CHAT_REQUEST, null).collectAsStateWithLifecycle()
             val resumed: (() -> Unit) -> Unit = { navigate ->
                 if (entry.lifecycle.currentState == Lifecycle.State.RESUMED) navigate()
             }
@@ -80,6 +82,8 @@ fun MicroRagNavHost(
                 onImport = { resumed { navController.navigate(Ingest) { launchSingleTop = true } } },
                 onOpenIndex = { resumed { navController.navigate(Index) { launchSingleTop = true } } },
                 onOpenHistory = { id -> resumed { navController.navigate(History(openConversationId = id)) { launchSingleTop = true } } },
+                request = ChatRequest.parse(request),
+                onRequestHandled = { entry.savedStateHandle[CHAT_REQUEST] = null },
             )
         }
         composable<History> { entry ->

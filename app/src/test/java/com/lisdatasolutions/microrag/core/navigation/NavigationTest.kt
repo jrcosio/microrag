@@ -1,9 +1,5 @@
 package com.lisdatasolutions.microrag.core.navigation
 
-import com.lisdatasolutions.microrag.domain.chat.ObserveAnswerInProgressUseCase
-import com.lisdatasolutions.microrag.domain.chat.DeleteConversationUseCase
-import com.lisdatasolutions.microrag.domain.chat.ObserveConversationsUseCase
-import com.lisdatasolutions.microrag.feature.history.HistoryViewModel
 import android.app.Application
 import android.content.Context
 import androidx.compose.ui.platform.LocalContext
@@ -39,7 +35,10 @@ import com.lisdatasolutions.microrag.domain.chat.ActiveAnswer
 import com.lisdatasolutions.microrag.domain.chat.AnswerSource
 import com.lisdatasolutions.microrag.domain.chat.ClearChatHistoryUseCase
 import com.lisdatasolutions.microrag.domain.chat.CountConversationsUseCase
+import com.lisdatasolutions.microrag.domain.chat.DeleteConversationUseCase
 import com.lisdatasolutions.microrag.domain.chat.IsAnswerInProgressUseCase
+import com.lisdatasolutions.microrag.domain.chat.ObserveAnswerInProgressUseCase
+import com.lisdatasolutions.microrag.domain.chat.ObserveConversationsUseCase
 import com.lisdatasolutions.microrag.domain.chat.TurnState
 import com.lisdatasolutions.microrag.domain.chat.TurnUpdate
 import com.lisdatasolutions.microrag.domain.indexing.IndexingRepository
@@ -95,6 +94,7 @@ import com.lisdatasolutions.microrag.domain.settings.SaveLanguageSettingsUseCase
 import com.lisdatasolutions.microrag.domain.settings.SettingsNotices
 import com.lisdatasolutions.microrag.feature.chat.chatViewModel
 import com.lisdatasolutions.microrag.feature.document.DocumentViewModel
+import com.lisdatasolutions.microrag.feature.history.HistoryViewModel
 import com.lisdatasolutions.microrag.feature.home.HomeViewModel
 import com.lisdatasolutions.microrag.feature.indexing.IndexViewModel
 import com.lisdatasolutions.microrag.feature.ingest.IngestViewModel
@@ -866,6 +866,73 @@ class NavigationTest {
         assertThat(routesInBackStack().none { it.hasRoute(History::class) }).isTrue()
     }
 
+    /** Research R4: the row asked for comes back to the chat, which shows it (Q11). */
+    private fun openFromHistory(question: String) {
+        openHistory()
+        compose.onNodeWithContentDescription(question, substring = true).performClick()
+        compose.waitForIdle()
+    }
+
+    private fun twoConversations(): Pair<Long, Long> = runBlocking {
+        chat.addDocument("Manual.pdf")
+        savedConversation("¿La antigua?", at = 5_000) to savedConversation("¿La reciente?", at = 6_000)
+    }
+
+    @Test
+    fun aRowOfHistory_opensThatConversationInTheChat() {
+        val (older, _) = twoConversations()
+        launchShell()
+        tab(TopLevelDestination.CHAT).performClick()
+        compose.waitForIdle()
+
+        openFromHistory("¿La antigua? ")
+
+        assertThat(nav.currentDestination?.hasRoute(Chat::class)).isTrue()
+        assertThat(chat.session.calls).contains("open:$older")
+        compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasContentDescription("¿La antigua?", substring = true))
+        compose.onNodeWithContentDescription("¿La reciente?", substring = true).assertDoesNotExist()
+    }
+
+    /** U8: once Historial is leaving, a second tap does nothing, so the chat is not popped too. */
+    @Test
+    fun aDoubleTapOnARow_opensItOnce() {
+        twoConversations()
+        launchShell()
+        tab(TopLevelDestination.CHAT).performClick()
+        compose.waitForIdle()
+        openHistory()
+
+        compose.onNodeWithContentDescription("¿La antigua? ", substring = true).performTouchInput {
+            click()
+            advanceEventTime(100)
+            click()
+        }
+        compose.waitForIdle()
+
+        assertThat(nav.currentDestination?.hasRoute(Chat::class)).isTrue()
+        assertThat(routesInBackStack().count { it.hasRoute(Chat::class) }).isEqualTo(1)
+    }
+
+    /** FR-014 and FR-003: the conversation stays across tabs, and Back from the chat still goes Home. */
+    @Test
+    fun theConversationOpenedFromHistory_staysAcrossTabs_andBackGoesHome() {
+        twoConversations()
+        launchShell()
+        tab(TopLevelDestination.CHAT).performClick()
+        compose.waitForIdle()
+        openFromHistory("¿La antigua? ")
+
+        tab(TopLevelDestination.LIBRARY).performClick()
+        tab(TopLevelDestination.CHAT).performClick()
+        compose.waitForIdle()
+        compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasContentDescription("¿La antigua?", substring = true))
+        compose.onNodeWithContentDescription("¿La reciente?", substring = true).assertDoesNotExist()
+
+        Espresso.pressBack()
+        compose.waitForIdle()
+        assertThat(nav.currentDestination?.hasRoute(Home::class)).isTrue()
+    }
+
     @Test
     fun anEmptyChat_alsoOffersHistory() {
         launchShell()
@@ -902,6 +969,8 @@ class NavigationTest {
 @Config(application = Application::class)
 class NavigationRestorationTest {
 
+    private val chat = ChatTestGraph()
+
     /** Since F03 the activity asks Koin where to start: Home, with the onboarding completed; since F07 it reconciles the run. */
     @get:Rule(order = 0)
     val completedOnboarding = object : ExternalResource() {
@@ -920,6 +989,7 @@ class NavigationRestorationTest {
                     libraryViewModels(),
                     homeViewModels(),
                     settingsViewModels(),
+                    chatViewModels(chat),
                     module {
                         factory { ResolveStartDestinationUseCase(FakeOnboardingStore(OnboardingStage.COMPLETED)) }
                         factory { ReconcileIndexingUseCase(indexing) }
@@ -960,6 +1030,39 @@ class NavigationRestorationTest {
         RuntimeEnvironment.setQualifiers("+night")
         compose.activityRule.scenario.recreate()
         assertOnLibrary()
+    }
+
+
+    /** F13 research R4, U8: Historial's request survives a recreation and is done once. */
+    @Test
+    fun aHistoryRequest_survivesARecreation_andIsDoneOnce() {
+        runBlocking {
+            chat.addDocument("Manual.pdf")
+            listOf(5_000L to "¿La antigua?", 6_000L to "¿La reciente?").forEach { (at, question) ->
+                val id = chat.chats.createConversation(at)
+                val turn = chat.chats.insertTurn(id, question, partialCoverage = false, now = at)
+                chat.chats.updateTurn(turn.id, TurnUpdate(state = TurnState.COMPLETED, answer = "Sí."))
+            }
+        }
+        compose.onNodeWithText(text(TopLevelDestination.CHAT.label)).performClick()
+        compose.onNodeWithContentDescription(text(R.string.action_more_options)).performClick()
+        compose.onNodeWithText(text(R.string.history_title)).performClick()
+        compose.waitForIdle()
+
+        RuntimeEnvironment.setQualifiers("+land")
+        compose.activityRule.scenario.recreate()
+        compose.onNodeWithContentDescription("¿La antigua? ", substring = true).performClick()
+        compose.waitForIdle()
+        compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasContentDescription("¿La antigua?", substring = true))
+
+        compose.onNodeWithContentDescription(text(R.string.action_more_options)).performClick()
+        compose.onNodeWithText(text(R.string.chat_new)).performClick()
+        compose.waitForIdle()
+        RuntimeEnvironment.setQualifiers("+port")
+        compose.activityRule.scenario.recreate()
+        compose.waitForIdle()
+
+        compose.onNodeWithContentDescription("¿La antigua?", substring = true).assertDoesNotExist()
     }
 
 }

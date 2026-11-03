@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lisdatasolutions.microrag.R
+import com.lisdatasolutions.microrag.core.navigation.ChatRequest
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataAnswerCard
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataChatBubble
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataChatComposer
@@ -102,6 +103,9 @@ fun ChatRoute(
     onOpenIndex: () -> Unit,
     /** F13 H1: Historial, with the conversation this chat shows for «Abierta». */
     onOpenHistory: (Long?) -> Unit = {},
+    /** F13 research R4: what Historial asked for; [onRequestHandled] clears it, so it is done once. */
+    request: ChatRequest? = null,
+    onRequestHandled: () -> Unit = {},
     viewModel: ChatViewModel = koinViewModel(),
     listState: LazyListState = rememberLazyListState(),
 ) {
@@ -115,6 +119,14 @@ fun ChatRoute(
                 is ChatEvent.Copy -> clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(clipLabel, event.text)))
             }
         }
+    }
+    LaunchedEffect(request) {
+        when (request) {
+            null -> return@LaunchedEffect
+            is ChatRequest.Open -> viewModel.onOpenConversation(request.conversationId)
+            ChatRequest.New -> viewModel.onNewChat()
+        }
+        onRequestHandled()
     }
     // Gemma is released when the app is hidden (constitution IV): back on screen, it is loaded again if ready.
     LifecycleStartEffect(viewModel) {
@@ -155,7 +167,8 @@ fun ChatScreen(
 ) {
     val colors = LisdataTheme.colors
     val spacing = LisdataTheme.spacing
-    var follow by rememberSaveable { mutableStateOf(true) }
+    // F13 R8: per conversation, so one opened from Historial starts at its latest answer.
+    var follow by rememberSaveable(state.conversationId) { mutableStateOf(true) }
     BoxWithConstraints(modifier = modifier.fillMaxSize().background(colors.background)) {
         // T064: a phone in landscape leaves little height between the bars; the availability then takes less.
         val compact = maxHeight < COMPACT_HEIGHT
@@ -266,7 +279,7 @@ private fun Messages(
     val progress = "${state.turns.size}:${last.id}:${last.state}:${last.content.length()}"
     // A conversation opens at its latest answer. Saved, so coming back from a source or recreating does not
     // jump to the end again (SC-006).
-    var seen by rememberSaveable { mutableStateOf<String?>(null) }
+    var seen by rememberSaveable(state.conversationId) { mutableStateOf<String?>(null) }
     LaunchedEffect(progress) {
         val end = state.turns.size * ITEMS_PER_TURN - 1
         when {
@@ -321,6 +334,7 @@ private fun Answer(turn: TurnUi, state: ChatUiState, actions: ChatActions, onSou
         onRetry = if (turn.retryable) ({ actions.onRetry(turn.id) }) else null,
         retryEnabled = turn.canRetry,
         onCitation = { n -> turn.chipTargets.getOrNull(n - 1)?.let(actions.onOpenSource) },
+        unavailableCitations = turn.chipTargets.withIndex().filter { it.value == null }.map { it.index + 1 }.toSet(),
         notes = turn.notes.map { stringResource(it) },
         failureText = turn.failureText?.let { stringResource(it) },
         copiedLabel = if (state.copiedTurnId == turn.id) stringResource(R.string.chat_copied) else null,

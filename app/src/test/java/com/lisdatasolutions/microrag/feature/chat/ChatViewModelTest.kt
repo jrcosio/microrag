@@ -8,6 +8,7 @@ import com.lisdatasolutions.microrag.R
 import com.lisdatasolutions.microrag.core.designsystem.model.AnswerState
 import com.lisdatasolutions.microrag.domain.chat.ActiveAnswer
 import com.lisdatasolutions.microrag.domain.chat.ChatAvailability
+import com.lisdatasolutions.microrag.domain.chat.ChatStorageState
 import com.lisdatasolutions.microrag.domain.chat.AnswerSource
 import com.lisdatasolutions.microrag.domain.chat.PromptBlockRef
 import com.lisdatasolutions.microrag.domain.chat.TurnFailure
@@ -617,5 +618,153 @@ class ChatViewModelTest {
         advanceUntilIdle()
 
         assertThat(vm.state.value.turns.single().notes).containsExactly(R.string.chat_partial_coverage)
+    }
+
+    // --- F13 (research R5, R7, R8; contracts/history-api.md Q8, Q11, Q12, Q16) ----------------------
+
+    /** Q11: Historial's request shows that conversation; the draft stays, and the next question goes to it. */
+    @Test
+    fun openingFromHistory_showsThatConversation_andTheNextQuestionGoesToIt() = runTest(dispatcher) {
+        val document = graph.addDocument("Manual de procesos.pdf")
+        val older = answered(document, at = 5_000)
+        answered(document, at = 6_000)
+        val saved = saved()
+        val vm = graph.chatViewModel(saved)
+        advanceUntilIdle()
+        vm.onQuestionChange("¿Y para empresas?")
+        vm.onDelete()
+
+        vm.onOpenConversation(older)
+        advanceUntilIdle()
+
+        assertThat(graph.session.calls).contains("open:$older")
+        assertThat(vm.state.value.conversationId).isEqualTo(older)
+        assertThat(saved.get<Long>("chat_conversation")).isEqualTo(older)
+        assertThat(vm.state.value.confirmDelete).isFalse()
+        assertThat(vm.state.value.question).isEqualTo("¿Y para empresas?")
+
+        vm.onSend()
+        advanceUntilIdle()
+        assertThat(graph.chats.turns.values.last().conversationId).isEqualTo(older)
+    }
+
+    /** SC-002: every state of a turn comes back as it was saved. */
+    @Test
+    fun aConversationOpenedFromHistory_keepsEveryStateOfItsTurns() = runTest(dispatcher) {
+        graph.addDocument("Manual de procesos.pdf")
+        val id = graph.chats.createConversation(5_000)
+        val states = listOf(TurnState.COMPLETED, TurnState.COMPLETED, TurnState.CANCELLED, TurnState.INTERRUPTED, TurnState.FAILED)
+        states.forEachIndexed { i, state ->
+            val turn = graph.chats.insertTurn(id, "¿$i?", partialCoverage = false, now = 5_000L + i)
+            graph.chats.updateTurn(turn.id, TurnUpdate(state = state, answer = if (i == 1) "No encuentro esa información en los documentos disponibles." else "Texto $i", refusal = i == 1, finishedAt = 5_100L + i))
+        }
+        val vm = graph.chatViewModel(saved())
+        advanceUntilIdle()
+
+        vm.onOpenConversation(id)
+        advanceUntilIdle()
+
+        val turns = vm.state.value.turns
+        assertThat(turns.map { it.question }).containsExactly("¿0?", "¿1?", "¿2?", "¿3?", "¿4?").inOrder()
+        assertThat(turns.map { it.state }).containsExactly(
+            AnswerState.Completed, AnswerState.Completed, AnswerState.Cancelled, AnswerState.Failed, AnswerState.Failed,
+        ).inOrder()
+        assertThat(turns[1].refusal).isTrue()
+        assertThat(turns[3].failureText).isEqualTo(R.string.chat_interrupted)
+        assertThat(turns[3].retryable).isTrue()
+    }
+
+    /** Q12, FR-011: the chip of a deleted document opens nothing; one whose fragment is gone still opens. */
+    @Test
+    fun chipsOfDeletedDocuments_openNothing() = runTest(dispatcher) {
+        val kept = graph.addDocument("Manual de procesos.pdf")
+        val deleted = graph.addDocument("Protocolo interno.pdf")
+        val id = graph.chats.createConversation(0)
+        val turn = graph.chats.insertTurn(id, "¿Plazo?", partialCoverage = false, now = 5_000)
+        graph.chats.updateTurn(turn.id, TurnUpdate(state = TurnState.COMPLETED, answer = "Son 30 días [1][2].", promptBlocks = 2))
+        graph.chats.replaceSources(
+            turn.id,
+            listOf(source(kept).copy(chunkId = 9_999), source(deleted).copy(position = 2, promptNumber = 2, chunkId = 241)),
+        )
+        graph.index.deleteDocument(deleted)
+        val vm = graph.chatViewModel(saved(conversationId = id))
+        advanceUntilIdle()
+
+        val targets = vm.state.value.turns.single().chipTargets
+        assertThat(targets).containsExactly(SourceTarget(kept, 9_999), null).inOrder()
+    }
+
+    @Test
+    fun chipsOfDeletedDocuments_openNothing_alsoWhileGenerating() = runTest(dispatcher) {
+        val deleted = graph.addDocument("Manual de procesos.pdf")
+        graph.addDocument("Otro.pdf")
+        val id = graph.chats.createConversation(0)
+        val turn = graph.chats.insertTurn(id, "¿Plazo?", partialCoverage = false, now = 5_000)
+        graph.chats.updateTurn(turn.id, TurnUpdate(state = TurnState.GENERATING))
+        graph.session.active.value = ActiveAnswer(id, turn.id, "¿Plazo?", TurnState.GENERATING, text = "Son 30 días [1].", blocks = listOf(block(deleted)))
+        val vm = graph.chatViewModel(saved(conversationId = id))
+        advanceUntilIdle()
+        assertThat(vm.state.value.turns.single().chipTargets).containsExactly(SourceTarget(deleted, 186))
+
+        graph.index.deleteDocument(deleted)
+        advanceUntilIdle()
+
+        assertThat(vm.state.value.turns.single().chipTargets).containsExactly(null)
+    }
+
+    /** Q8: a conversation deleted elsewhere (Historial) leaves this chat empty; another one changes nothing. */
+    @Test
+    fun aDeletionOfThisConversation_emptiesTheChat_andClosesItsDialog() = runTest(dispatcher) {
+        val document = graph.addDocument("Manual de procesos.pdf")
+        val shown = answered(document, at = 5_000)
+        val other = answered(document, at = 4_000)
+        val saved = saved(conversationId = shown)
+        val vm = graph.chatViewModel(saved)
+        advanceUntilIdle()
+
+        graph.session.delete(other)
+        advanceUntilIdle()
+        assertThat(vm.state.value.conversationId).isEqualTo(shown)
+
+        vm.onDelete()
+        graph.session.delete(shown)
+        advanceUntilIdle()
+
+        assertThat(vm.state.value.conversationId).isNull()
+        assertThat(vm.state.value.turns).isEmpty()
+        assertThat(vm.state.value.confirmDelete).isFalse()
+        assertThat(saved.get<Long>("chat_conversation")).isNull()
+    }
+
+    /** Q16: restored with a conversation deleted while the chat was not alive, it comes back empty. */
+    @Test
+    fun restoredWithADeletedConversation_theChatIsEmpty_butAnUnreadableOneIsKept() = runTest(dispatcher) {
+        val restored = graph.chatViewModel(saved().apply { set("chat_conversation", 42L); set("chat_resolved", true) })
+        advanceUntilIdle()
+        assertThat(restored.state.value.conversationId).isNull()
+
+        graph.chats.storage = ChatStorageState.UNAVAILABLE
+        val unreadable = graph.chatViewModel(saved().apply { set("chat_conversation", 42L); set("chat_resolved", true) })
+        advanceUntilIdle()
+        assertThat(unreadable.state.value.conversationId).isEqualTo(42L)
+    }
+
+    /** FR-014: the conversation opened from Historial is the one a recreated chat comes back to. */
+    @Test
+    fun theConversationOpenedFromHistory_survivesARecreation() = runTest(dispatcher) {
+        val document = graph.addDocument("Manual de procesos.pdf")
+        val older = answered(document, at = 5_000)
+        answered(document, at = 6_000)
+        val saved = saved()
+        graph.chatViewModel(saved).apply {
+            advanceUntilIdle()
+            onOpenConversation(older)
+            advanceUntilIdle()
+        }
+
+        val recreated = graph.chatViewModel(saved)
+        advanceUntilIdle()
+
+        assertThat(recreated.state.value.conversationId).isEqualTo(older)
     }
 }

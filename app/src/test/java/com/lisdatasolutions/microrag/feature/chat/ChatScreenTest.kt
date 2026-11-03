@@ -7,43 +7,45 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.semantics.SemanticsActions
-import androidx.compose.ui.test.assertCountEquals
-import androidx.compose.ui.test.junit4.StateRestorationTester
-import androidx.compose.ui.test.performSemanticsAction
-import androidx.compose.ui.text.TextLayoutResult
-import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.dp
-import com.google.common.truth.Truth.assertWithMessage
-import org.robolectric.annotation.GraphicsMode
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.SemanticsNodeInteraction
+import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsFocused
-import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasParent
 import androidx.compose.ui.test.hasScrollToIndexAction
 import androidx.compose.ui.test.hasText
-import androidx.compose.ui.test.getUnclippedBoundsInRoot
+import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Truth.assertWithMessage
 import com.lisdatasolutions.microrag.R
 import com.lisdatasolutions.microrag.core.designsystem.model.AnswerContent
 import com.lisdatasolutions.microrag.core.designsystem.model.AnswerState
@@ -53,6 +55,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
 
 /** F11 T026: PNG 04 and the main path (contracts/chat-ui.md §1 and §3). */
 /**
@@ -618,5 +621,47 @@ class ChatScreenTest {
         assertThat(list.height).isAtLeast(with(compose.density) { 48.dp.toPx() })
         compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasContentDescription("Tú: ¿Qué indica el protocolo sobre la validación final?"))
         compose.onNodeWithContentDescription("Tú: ¿Qué indica el protocolo sobre la validación final?").assertIsDisplayed()
+    }
+
+    // --- F13 (research R7, R8) ------------------------------------------------------------------------
+
+    /** Q12: the chip of a deleted document is no link: it reads its number and opens nothing. */
+    @Test
+    fun aDeletedDocumentsChip_isNoLink() {
+        val protocolGone = ChatPreviewData.protocol.copy(citation = ChatPreviewData.protocol.citation.copy(available = false))
+        show(
+            ChatPreviewData.png.copy(
+                turns = listOf(
+                    ChatPreviewData.completedTurn.copy(
+                        sources = listOf(ChatPreviewData.manual, protocolGone),
+                        chipTargets = listOf(ChatPreviewData.manual.target, null),
+                    ),
+                ),
+            ),
+        )
+
+        chip("Verificar la documentación").assertExists()
+        chip("Confirmar las aprobaciones").assertDoesNotExist()
+        chip("Registrar la validación final").assertDoesNotExist()
+        compose.onNodeWithText("Confirmar las aprobaciones", substring = true, useUnmergedTree = true).assertExists()
+        row("Fuente 2: Protocolo interno.pdf, Fuente ya no disponible").assertIsDisplayed()
+    }
+
+    /** R8: a conversation opened from Historial starts at its latest answer, wherever the previous one was. */
+    @Test
+    fun anotherConversation_startsAtItsLatestAnswer() {
+        fun turns(prefix: String) = (1..6).map { i -> ChatPreviewData.completedTurn.copy(id = i.toLong() + if (prefix == "B") 100 else 0, question = "Pregunta $prefix$i") }
+        var state by mutableStateOf(ChatPreviewData.png.copy(conversationId = 1, turns = turns("A")))
+        compose.setContent { LisdataTheme { ChatScreen(state, actions) } }
+        compose.waitForIdle()
+        compose.onNode(hasScrollToIndexAction()).performScrollToIndex(0)
+        compose.onNodeWithContentDescription("Tú: Pregunta A1").assertIsDisplayed()
+
+        state = ChatPreviewData.png.copy(conversationId = 2, turns = turns("B"))
+        compose.waitForIdle()
+
+        compose.onNodeWithContentDescription("Tú: Pregunta B1").assertIsNotDisplayed()
+        compose.onNodeWithText("Copiar respuesta", useUnmergedTree = true).assertExists()
+        compose.onAllNodesWithContentDescription("Tú: Pregunta B6").onFirst().assertIsDisplayed()
     }
 }

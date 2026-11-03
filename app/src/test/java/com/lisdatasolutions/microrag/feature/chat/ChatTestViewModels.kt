@@ -3,10 +3,13 @@ package com.lisdatasolutions.microrag.feature.chat
 import androidx.lifecycle.SavedStateHandle
 import com.lisdatasolutions.microrag.domain.chat.AskQuestionUseCase
 import com.lisdatasolutions.microrag.domain.chat.CancelAnswerUseCase
+import com.lisdatasolutions.microrag.domain.chat.ConversationExistsUseCase
 import com.lisdatasolutions.microrag.domain.chat.DeleteConversationUseCase
 import com.lisdatasolutions.microrag.domain.chat.LastConversationUseCase
-import com.lisdatasolutions.microrag.domain.chat.ObserveHistoryClearedUseCase
+import com.lisdatasolutions.microrag.domain.chat.ObserveConversationDeletionsUseCase
 import com.lisdatasolutions.microrag.domain.chat.ObserveConversationUseCase
+import com.lisdatasolutions.microrag.domain.chat.ObserveHistoryClearedUseCase
+import com.lisdatasolutions.microrag.domain.chat.OpenConversationUseCase
 import com.lisdatasolutions.microrag.domain.chat.ResolveSourcesUseCase
 import com.lisdatasolutions.microrag.domain.chat.RetryAnswerUseCase
 import com.lisdatasolutions.microrag.domain.chat.StartNewConversationUseCase
@@ -27,5 +30,8 @@ internal fun ChatTestGraph.chatViewModel(savedState: SavedStateHandle, sdkInt: I
     warmUp = WarmUpAnswerEngineUseCase(engine, availability),
     resolveSources = ResolveSourcesUseCase(index),
     historyCleared = ObserveHistoryClearedUseCase(session),
+    openConversation = OpenConversationUseCase(session),
+    conversationDeletions = ObserveConversationDeletionsUseCase(session),
+    conversationExists = ConversationExistsUseCase(chats),
     sdkInt = sdkInt,
 )

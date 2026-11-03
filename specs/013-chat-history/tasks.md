@@ -212,7 +212,7 @@ Historias de la spec:
 
 ### Pruebas
 
-- [ ] T020 [P] [US2] Ampliar `…/test/…/feature/chat/ChatViewModelTest.kt` (Q11, Q12):
+- [X] T020 [P] [US2] Ampliar `…/test/…/feature/chat/ChatViewModelTest.kt` (Q11, Q12):
   - `onOpenConversation(id)`:
     - llama a `OpenConversationUseCase`;
     - muestra esa conversación y la guarda en el `SavedStateHandle`;
@@ -225,25 +225,26 @@ Historias de la spec:
   - Q16: con una conversación guardada en el `SavedStateHandle` que ya no existe, el chat se restaura vacío; si no se puede leer, la conserva;
   - FR-014: la conversación abierta sigue tras recrear el ViewModel con su `SavedStateHandle`;
   - SC-002: todos los estados de turno se restauran igual.
-- [ ] T021 [P] [US2] Ampliar `…/test/…/feature/chat/ChatScreenTest.kt`:
+- [X] T021 [P] [US2] Ampliar `…/test/…/feature/chat/ChatScreenTest.kt`:
   - las fichas de `unavailableCitations` no tienen enlace ni acción y se dibujan con el estilo inerte;
   - al abrir otra conversación, la lista va a su última respuesta aunque en la anterior se hubiera subido (R8).
-- [ ] T022 [P] [US2] Ampliar `NavigationTest` (research R4, U8):
+- [X] T022 [P] [US2] Ampliar `NavigationTest` (research R4, U8):
   - tocar una fila vuelve al chat con esa conversación;
   - `CHAT_REQUEST` se atiende una vez, también si se recrea la actividad con Historial abierto antes de elegir;
   - un doble toque en una fila abre una sola vez;
   - FR-014: la conversación sigue al cambiar de pestaña y volver al chat;
-  - FR-003: Atrás desde el chat, tras abrir una conversación desde Historial, lleva a Inicio. También en `…/androidTest/…/SystemBackTest.kt`.
+  - FR-003: Atrás desde el chat, tras abrir una conversación desde Historial, lleva a Inicio, con `Espresso.pressBack()`. No en `SystemBackTest`, por la misma razón que en T018;
+  - `NavigationRestorationTest`: la petición sobrevive a una recreación con Historial abierto y se atiende una sola vez.
 
 ### Implementación
 
-- [ ] T023 [US2] Chat:
+- [X] T023 [US2] Chat:
   - `onOpenConversation` y `chipTargets: List<SourceTarget?>` en `…/microrag/feature/chat/ChatViewModel.kt` y `ChatUiState.kt`;
   - `unavailableCitations` en `LisdataAnswerCard` y las fichas inertes en `AnswerText` (`…/microrag/core/designsystem/component/Chat.kt`), con su entrada en el catálogo;
   - `ChatScreen` pasa las fichas y guarda `seen` y `follow` por conversación.
 
   T020 y T021 pasan.
-- [ ] T024 [US2] Petición de Historial:
+- [X] T024 [US2] Petición de Historial:
   - `CHAT_REQUEST` en `MicroRagNavHost.kt`;
   - `request` y `onRequestHandled` en `ChatRoute`;
   - el evento `Open(id)` en `HistoryViewModel` y `HistoryRoute`.

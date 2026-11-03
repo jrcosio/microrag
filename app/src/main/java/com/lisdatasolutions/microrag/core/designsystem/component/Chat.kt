@@ -87,6 +87,7 @@ fun LisdataChatBubble(
  * The body comes formatted ([AnswerContent]): paragraphs, bullets with the brand dot, bold runs and
  * citation chips. A chip is a link inside the text that calls [onCitation] with its number; its 48 dp
  * path is the source row below the card (F11 research R3). [notes] go under the body (C2, C6, C16).
+ * [unavailableCitations] are the chips of deleted documents: grey, with no link (F13 research R7).
  */
 @Composable
 fun LisdataAnswerCard(
@@ -101,6 +102,7 @@ fun LisdataAnswerCard(
     /** False while retrying cannot start (another answer runs, or the chat is not ready); the button stays visible. */
     retryEnabled: Boolean = true,
     onCitation: (Int) -> Unit = {},
+    unavailableCitations: Set<Int> = emptySet(),
     notes: List<String> = emptyList(),
     failureText: String? = null,
     copiedLabel: String? = null,
@@ -128,7 +130,7 @@ fun LisdataAnswerCard(
                 Text(text = statusText, style = LisdataTheme.typography.material.bodyMedium, color = colors.textSecondary)
             }
         }
-        if (!content.isEmpty) AnswerBody(content, onCitation, Modifier.padding(top = spacing.space3))
+        if (!content.isEmpty) AnswerBody(content, onCitation, unavailableCitations, Modifier.padding(top = spacing.space3))
         notes.forEach { note ->
             Text(
                 text = note,
@@ -196,14 +198,14 @@ fun LisdataAnswerCard(
 }
 
 @Composable
-private fun AnswerBody(content: AnswerContent, onCitation: (Int) -> Unit, modifier: Modifier) {
+private fun AnswerBody(content: AnswerContent, onCitation: (Int) -> Unit, unavailable: Set<Int>, modifier: Modifier) {
     val spacing = LisdataTheme.spacing
     val style = LisdataTheme.typography.material.bodyLarge
     val lineHeight = with(LocalDensity.current) { style.lineHeight.toDp() }
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(spacing.space2)) {
         content.blocks.forEach { block ->
             when (block) {
-                is AnswerBlock.Paragraph -> AnswerText(block.spans, onCitation)
+                is AnswerBlock.Paragraph -> AnswerText(block.spans, onCitation, unavailable)
                 is AnswerBlock.Bullet -> Row(horizontalArrangement = Arrangement.spacedBy(spacing.space3)) {
                     val marker = block.marker
                     if (marker == null) {
@@ -213,30 +215,40 @@ private fun AnswerBody(content: AnswerContent, onCitation: (Int) -> Unit, modifi
                     } else {
                         Text(text = marker, style = style, color = LisdataTheme.colors.brandBlue)
                     }
-                    AnswerText(block.spans, onCitation, Modifier.weight(1f))
+                    AnswerText(block.spans, onCitation, unavailable, Modifier.weight(1f))
                 }
             }
         }
     }
 }
 
-/** A run of text with bold parts and citation chips: links drawn on a rounded `surfaceInfo` background. */
+/**
+ * A run of text with bold parts and citation chips: links drawn on a rounded `surfaceInfo` background. The
+ * [unavailable] ones are plain text on `neutralTile`, the grey of an inert source row (F13 research R7).
+ */
 @Composable
-private fun AnswerText(spans: List<AnswerSpan>, onCitation: (Int) -> Unit, modifier: Modifier = Modifier) {
+private fun AnswerText(spans: List<AnswerSpan>, onCitation: (Int) -> Unit, unavailable: Set<Int>, modifier: Modifier = Modifier) {
     val colors = LisdataTheme.colors
     val chipStyle = LisdataTheme.typography.material.labelMedium.toSpanStyle().copy(color = colors.blue800, fontWeight = FontWeight.SemiBold)
+    val inertStyle = chipStyle.copy(color = colors.textSecondaryOnContainer)
     val chips = mutableListOf<IntRange>()
+    val inertChips = mutableListOf<IntRange>()
     val text = buildAnnotatedString {
         spans.forEach { span ->
             when (span) {
                 is AnswerSpan.Text -> if (span.bold) withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) { append(span.text) } else append(span.text)
                 is AnswerSpan.Citation -> {
                     val start = length
-                    withLink(LinkAnnotation.Clickable("cite-${span.number}", TextLinkStyles(chipStyle)) { onCitation(span.number) }) {
-                        // Thin spaces pad the number inside its chip.
-                        append("\u2009${span.number}\u2009")
+                    if (span.number in unavailable) {
+                        withStyle(inertStyle) { append("\u2009${span.number}\u2009") }
+                        inertChips += start until length
+                    } else {
+                        withLink(LinkAnnotation.Clickable("cite-${span.number}", TextLinkStyles(chipStyle)) { onCitation(span.number) }) {
+                            // Thin spaces pad the number inside its chip.
+                            append("\u2009${span.number}\u2009")
+                        }
+                        chips += start until length
                     }
-                    chips += start until length
                 }
             }
         }
@@ -252,6 +264,10 @@ private fun AnswerText(spans: List<AnswerSpan>, onCitation: (Int) -> Unit, modif
             chips.forEach { range ->
                 val bounds = result.getPathForRange(range.first, range.last + 1).getBounds()
                 drawRoundRect(color = colors.surfaceInfo, topLeft = bounds.topLeft, size = bounds.size, cornerRadius = CornerRadius(bounds.height / 2))
+            }
+            inertChips.forEach { range ->
+                val bounds = result.getPathForRange(range.first, range.last + 1).getBounds()
+                drawRoundRect(color = colors.neutralTile, topLeft = bounds.topLeft, size = bounds.size, cornerRadius = CornerRadius(bounds.height / 2))
             }
         },
     )

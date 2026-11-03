@@ -18,12 +18,15 @@ import com.lisdatasolutions.microrag.domain.chat.ChatAvailability
 import com.lisdatasolutions.microrag.domain.chat.ChatLimits
 import com.lisdatasolutions.microrag.domain.chat.ChatTurn
 import com.lisdatasolutions.microrag.domain.chat.CitedSource
+import com.lisdatasolutions.microrag.domain.chat.ConversationExistsUseCase
 import com.lisdatasolutions.microrag.domain.chat.ConversationView
 import com.lisdatasolutions.microrag.domain.chat.DeleteConversationUseCase
 import com.lisdatasolutions.microrag.domain.chat.LastConversationUseCase
 import com.lisdatasolutions.microrag.domain.chat.ObserveChatAvailabilityUseCase
+import com.lisdatasolutions.microrag.domain.chat.ObserveConversationDeletionsUseCase
 import com.lisdatasolutions.microrag.domain.chat.ObserveConversationUseCase
 import com.lisdatasolutions.microrag.domain.chat.ObserveHistoryClearedUseCase
+import com.lisdatasolutions.microrag.domain.chat.OpenConversationUseCase
 import com.lisdatasolutions.microrag.domain.chat.PromptBlockRef
 import com.lisdatasolutions.microrag.domain.chat.ResolveSourcesUseCase
 import com.lisdatasolutions.microrag.domain.chat.RetryAnswerUseCase
@@ -70,6 +73,9 @@ class ChatViewModel(
     private val warmUp: WarmUpAnswerEngineUseCase,
     private val resolveSources: ResolveSourcesUseCase,
     private val historyCleared: ObserveHistoryClearedUseCase,
+    private val openConversation: OpenConversationUseCase,
+    private val conversationDeletions: ObserveConversationDeletionsUseCase,
+    private val conversationExists: ConversationExistsUseCase,
     /** The confirmation of a copy is the system's from Android 13 (research R14). */
     private val sdkInt: Int = Build.VERSION.SDK_INT,
 ) : ViewModel() {
@@ -105,8 +111,12 @@ class ChatViewModel(
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
+    /** Saved sources with the time of their turn, and the blocks of the answer in progress (F13 Q12, Q15). */
     private val sources: StateFlow<Map<CitedSource, SourceAvailability>> = view
-        .map { v -> v?.turns.orEmpty().flatMap { turn -> turn.sources.map { CitedSource(it, turn.createdAt) } } }
+        .map { v ->
+            v?.turns.orEmpty().flatMap { turn -> turn.sources.map { CitedSource(it, turn.createdAt) } } +
+                v?.active?.blocks.orEmpty().map { it.cited() }
+        }
         .flatMapLatest { resolveSources(it) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
 
@@ -141,6 +151,18 @@ class ChatViewModel(
                 savedState[CONFIRM_DELETE] = false
                 setConversation(null)
             }
+        }
+        // F13 Q8: this conversation deleted elsewhere (Historial) leaves the chat empty.
+        viewModelScope.launch {
+            conversationDeletions().collect { id ->
+                if (id != conversationId.value) return@collect
+                savedState[CONFIRM_DELETE] = false
+                setConversation(null)
+            }
+        }
+        // F13 Q16: restored after a process death, the conversation may have been deleted meanwhile.
+        if (resolved.value) {
+            savedConversation?.let { id -> viewModelScope.launch { if (!conversationExists(id)) setConversation(null) } }
         }
         // Gemma loads whenever the chat is ready on screen: back from hidden, and when a batch ends or the
         // models get ready while it shows (found on the phone, T069). Never while hidden: it was released.
@@ -218,6 +240,16 @@ class ChatViewModel(
         viewModelScope.launch { retryAnswer(turnId) }
     }
 
+    /**
+     * F13 Q11: Historial's request. An answer of another conversation stops, as with «Nuevo chat», and the
+     * draft stays; resolved here, without navigating (research R4).
+     */
+    fun onOpenConversation(id: Long) {
+        savedState[CONFIRM_DELETE] = false
+        setConversation(id)
+        viewModelScope.launch { openConversation(id) }
+    }
+
     /** «Nuevo chat» of «⋯»: resolved here, without navigating to the same destination (research R13). */
     fun onNewChat() {
         startNewConversation()
@@ -285,7 +317,7 @@ class ChatViewModel(
         }
         // C16: an answer that could not be saved has no turn; it shows from memory.
         val unsaved = view.active?.takeIf { a -> a.turnId == ActiveAnswer.UNSAVED || saved.none { it.id == a.turnId } }
-        return saved + listOfNotNull(unsaved?.let { unsavedTurn(it) })
+        return saved + listOfNotNull(unsaved?.let { unsavedTurn(it, available) })
     }
 
     private fun turnUi(turn: ChatTurn, active: ActiveAnswer?, available: Map<CitedSource, SourceAvailability>, canRetry: Boolean): TurnUi {
@@ -305,16 +337,21 @@ class ChatViewModel(
             failureText = failureText(turn.state, turn.failure),
             notes = notes(turn.state, turn.refusal, content, sources, turn.partialCoverage, active?.saveFailed == true),
             sources = sources.map { sourceRow(it, available[CitedSource(it, turn.createdAt)] ?: SourceAvailability.AVAILABLE) },
-            chipTargets = if (streaming) chipTargets(turn.answer, blocks) else sources.map { SourceTarget(it.documentId, it.chunkId) },
+            chipTargets = if (streaming) {
+                chipTargets(turn.answer, blocks, available)
+            } else {
+                // F13 Q12: a deleted document's chip opens nothing, as its row.
+                sources.map { source -> SourceTarget(source.documentId, source.chunkId).takeIf { available[CitedSource(source, turn.createdAt)] != SourceAvailability.DOCUMENT_GONE } }
+            },
             retryable = retryable,
             canRetry = canRetry && retryable,
         )
     }
 
-    private fun unsavedTurn(active: ActiveAnswer): TurnUi {
+    private fun unsavedTurn(active: ActiveAnswer, available: Map<CitedSource, SourceAvailability>): TurnUi {
         val streaming = active.state == TurnState.RETRIEVING || active.state == TurnState.GENERATING
         val content = if (active.refusal) AnswerContent.Empty else AnswerFormatter.format(active.text, active.blocks.size)
-        val targets = chipTargets(active.text, active.blocks)
+        val targets = chipTargets(active.text, active.blocks, available)
         return TurnUi(
             id = ActiveAnswer.UNSAVED,
             question = active.question,
@@ -332,11 +369,24 @@ class ChatViewModel(
         )
     }
 
-    /** Chip `k` opens the k-th block in first-citation order (D-053), as the saved sources will be. */
-    private fun chipTargets(text: String, blocks: List<PromptBlockRef>): List<SourceTarget> {
+    /**
+     * Chip `k` opens the k-th block in first-citation order (D-053), as the saved sources will be; null
+     * when that block's document was deleted meanwhile (F13 Q12).
+     */
+    private fun chipTargets(text: String, blocks: List<PromptBlockRef>, available: Map<CitedSource, SourceAvailability>): List<SourceTarget?> {
         val byNumber = blocks.associateBy { it.promptNumber }
-        return AnswerReading.citedOrder(text, blocks.size).mapNotNull { byNumber[it] }.map { SourceTarget(it.documentId, it.chunkId) }
+        return AnswerReading.citedOrder(text, blocks.size).mapNotNull { byNumber[it] }
+            .map { block -> SourceTarget(block.documentId, block.chunkId).takeIf { available[block.cited()] != SourceAvailability.DOCUMENT_GONE } }
     }
+
+    /** A prompt block comes from the index of the moment, so any document it names was there before (F13 Q15). */
+    private fun PromptBlockRef.cited() = CitedSource(
+        AnswerSource(
+            position = 0, promptNumber = promptNumber, documentId = documentId, chunkId = chunkId, firstOrdinal = firstOrdinal,
+            lastOrdinal = lastOrdinal, documentName = documentName, page = page,
+        ),
+        citedAt = Long.MAX_VALUE,
+    )
 
     private fun sourceRow(source: AnswerSource, availability: SourceAvailability): SourceRow = SourceRow(
         position = source.position,
