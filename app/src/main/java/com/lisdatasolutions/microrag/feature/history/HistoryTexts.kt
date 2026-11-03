@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import com.lisdatasolutions.microrag.R
 import com.lisdatasolutions.microrag.domain.chat.ConversationSummary
 import java.time.LocalDate
@@ -79,8 +80,8 @@ class HistoryTexts(private val resources: Resources, locale: Locale, is24Hour: B
 /** The texts for this composition's language and 12/24 h setting, in [zone]. */
 @Composable
 fun rememberHistoryTexts(zone: ZoneId): HistoryTexts {
-    val context = LocalContext.current
+    val resources = LocalResources.current
     val configuration = LocalConfiguration.current
-    val is24Hour = DateFormat.is24HourFormat(context)
-    return remember(configuration, zone, is24Hour) { HistoryTexts(context.resources, configuration.locales[0], is24Hour, zone) }
+    val is24Hour = DateFormat.is24HourFormat(LocalContext.current)
+    return remember(resources, configuration, zone, is24Hour) { HistoryTexts(resources, configuration.locales[0], is24Hour, zone) }
 }
