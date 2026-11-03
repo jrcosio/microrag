@@ -154,13 +154,13 @@ Historias de la spec:
 
 ### Pruebas
 
-- [ ] T012 [P] [US1] `…/test/…/feature/history/HistoryGroupingTest.kt` (research R3, data-model §5):
+- [X] T012 [P] [US1] `…/test/…/feature/history/HistoryGroupingTest.kt` (research R3, data-model §5):
   - límites de «Hoy», «Ayer», «Últimos 7 días» (2 a 6 días) y del mes;
   - medianoche exacta;
   - fecha futura en «Hoy»;
   - zonas `Europe/Madrid` con cambio de hora, `UTC` y `Pacific/Kiritimati`;
   - cada grupo aparece una vez y en orden, y los vacíos no salen.
-- [ ] T013 [P] [US1] `…/test/…/feature/history/HistoryTextsTest.kt` (Robolectric; `history-ui.md` §2):
+- [X] T013 [P] [US1] `…/test/…/feature/history/HistoryTextsTest.kt` (Robolectric; `history-ui.md` §2):
   - `meta` y fecha de TalkBack de cada grupo, en español y en inglés, y en 12 y 24 h;
   - cabecera del mes («octubre de 2026», "October 2026");
   - plural de «pregunta»;
@@ -182,7 +182,7 @@ Historias de la spec:
 
 ### Implementación
 
-- [ ] T016 [US1] `…/microrag/feature/history/HistoryGrouping.kt` y `HistoryTexts.kt`. T012, T013 y T002 pasan.
+- [X] T016 [US1] `…/microrag/feature/history/HistoryGrouping.kt` y `HistoryTexts.kt`. T012, T013 y T002 pasan.
 - [ ] T017 [US1] `HistoryUiState.kt`, `HistoryViewModel.kt` (lista), `HistoryScreen.kt`, `HistoryRoute.kt` y `HistoryPreviewData.kt` en `…/microrag/feature/history/`, con su registro en `…/microrag/feature/di/FeatureModule.kt` y `AppModulesTest`. T014 y T015 pasan.
 - [ ] T018 [P] [US1] Navegación, pruebas primero (el regreso con una conversación elegida va en T022):
   - **`NavigationTest`:**
