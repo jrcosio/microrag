@@ -1486,7 +1486,7 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
   - ocultar las fichas inertes a TalkBack;
   - que «Reintentar» vuelva a abrir el fichero, o dejarlo sin efecto;
   - una columna nueva en `rag.db` para no reutilizar ids.
-- **Origen:** usuario (revisión del analyze de F13) y analyze de F13.
+- **Origen:** usuario (revisión del analyze de F13) y analyze de F13. El usuario aprobó el plan, las tareas y el analyze el 2026-11-03.
 - **Afecta:**
   - F13: spec (H5, H7, FR-007, FR-011, FR-019, FR-020, US5, SC-006), wireframe, research, contratos y tareas;
   - F11: la sesión del chat (Q14) y la resolución de fuentes (Q15).
