@@ -47,7 +47,7 @@ Al cerrar cada feature se entrega:
 | F10 | Recuperación híbrida | Técnica | F05, F07 | ✅ cerrada |
 | F11 | Chat con fuentes | Producto | F08, F10 | ✅ cerrada |
 | F12 | Ajustes e Idiomas | Producto | F03, F11 | ✅ cerrada |
-| F13 | Historial de chats | Producto (UI propuesta) | F11, F12 | 🟨 implementada; pendiente de la revisión de cierre |
+| F13 | Historial de chats | Producto (UI propuesta) | F11, F12 | ✅ cerrada |
 | F14 | Rendimiento en dispositivo y decisión INT8 | Técnica | F10, F11 | ⬜ |
 | F15 | Pulido y release | Producto | F01–F14 | ⬜ |
 
@@ -613,7 +613,7 @@ También se introduce `EngineCoordinator`, que garantiza que nunca haya dos engi
 ## F13 — Historial de chats
 
 - **Tipo:** Producto, **sin mockup**. Requiere una propuesta de UI aprobada (D-007, G13).
-- **Estado:** 🟨 en curso en la rama `013-chat-history`. Specify, clarify y wireframe aprobados el 2026-11-02, con las propuestas de UI H1–H11 (`specs/013-chat-history/wireframe.md`). Decisión D-063 (orden por última actividad con grupos por fecha, papelera en cada fila, abrir otra conversación detiene la respuesta en curso, nada se borra solo). Plan hecho el 2026-11-02, con la decisión D-064 (lista sin cambio de esquema, petición devuelta al chat, borrado bajo el cerrojo de la sesión y fichas de documentos borrados sin enlace). Tareas y analyze aprobados el 2026-11-03, con la decisión D-065 (correcciones de H5 y H7, y dos arreglos de F11). Implementada el 2026-11-03, con la fase del teléfono ese mismo día (instrumentadas 775/775 en el A063, medida de 1.000 conversaciones con la primera fila en 655 ms, y recorrido acordado). Pendiente de la revisión de cierre. Informe en `specs/013-chat-history/report.md`. Spec en `specs/013-chat-history/spec.md`.
+- **Estado:** ✅ cerrada: implementada en la rama `013-chat-history` y aprobada por el usuario el 2026-11-03. Specify, clarify y wireframe aprobados el 2026-11-02, con las propuestas de UI H1–H11 (`specs/013-chat-history/wireframe.md`). Decisión D-063 (orden por última actividad con grupos por fecha, papelera en cada fila, abrir otra conversación detiene la respuesta en curso, nada se borra solo). Plan hecho el 2026-11-02, con la decisión D-064 (lista sin cambio de esquema, petición devuelta al chat, borrado bajo el cerrojo de la sesión y fichas de documentos borrados sin enlace). Tareas y analyze aprobados el 2026-11-03, con la decisión D-065 (correcciones de H5 y H7, y dos arreglos de F11). Implementada el 2026-11-03, con la fase del teléfono ese mismo día (instrumentadas 775/775 en el A063, medida de 1.000 conversaciones con la primera fila en 655 ms, y recorrido acordado). Informe de cierre en `specs/013-chat-history/report.md`. Spec en `specs/013-chat-history/spec.md`.
 
 **Objetivo.** Lista de conversaciones previas: abrir, continuar y borrar conversaciones locales.
 

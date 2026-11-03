@@ -1401,7 +1401,7 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
   - respuesta en curso: dejarla terminar con el campo de pregunta en espera; o preguntar antes de detenerla;
   - almacenamiento: un límite con borrado automático; o un aviso a partir de un tamaño.
 - **Propuestas de UI:** el usuario aprobó en la revisión del clarify (2026-11-02) la spec, el wireframe (`specs/013-chat-history/wireframe.md`) y las propuestas H1–H11, antes de `/speckit-plan` (criterio 1 de F13).
-- **Origen:** usuario (clarify de F13).
+- **Origen:** usuario (clarify de F13). En la revisión de cierre (2026-11-03), aprobó el cierre de F13 con las diferencias frente al wireframe del informe (§6).
 - **Afecta:**
   - F13;
   - F11:

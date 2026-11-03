@@ -1,6 +1,6 @@
 # Informe de cierre — F13 Historial de chats
 
-> **Estado:** implementada; pendiente de la revisión de cierre del usuario.
+> **Estado:** aprobada por el usuario el 2026-11-03.
 
 **Rama:** `013-chat-history`, creada desde `a78c488`.
 **Fecha:** 2026-11-02 y 2026-11-03.
@@ -172,7 +172,7 @@ Los 17 textos nuevos de `strings_history.xml`, sin correcciones.
 
 ## 9. Pendiente
 
-- **Nada de F13 queda abierto,** salvo la revisión de cierre del usuario.
+- **Nada de F13 queda abierto.** El usuario aprobó el cierre el 2026-11-03, y la rama se integra en `main` y se sube con esa aprobación.
 
 **Visto durante las pruebas, fuera de F13** (no se ha tocado):
 - **Lint:** SQLite-Vector 1.2.0 está disponible (aviso nuevo de este cierre). Hay que verificarla y decidirlo aparte, como LiteRT-LM 0.19.0.
