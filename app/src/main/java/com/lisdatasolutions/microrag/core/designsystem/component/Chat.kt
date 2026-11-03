@@ -223,6 +223,12 @@ private fun AnswerBody(content: AnswerContent, onCitation: (Int) -> Unit, unavai
 }
 
 /**
+ * Pads the number inside its chip: a narrow space that never breaks, so a chip is never split across two
+ * lines, which would draw its background over both (found in F13).
+ */
+private const val CHIP_PAD = '\u202F'
+
+/**
  * A run of text with bold parts and citation chips: links drawn on a rounded `surfaceInfo` background. The
  * [unavailable] ones are plain text on `neutralTile`, the grey of an inert source row (F13 research R7).
  */
@@ -240,12 +246,11 @@ private fun AnswerText(spans: List<AnswerSpan>, onCitation: (Int) -> Unit, unava
                 is AnswerSpan.Citation -> {
                     val start = length
                     if (span.number in unavailable) {
-                        withStyle(inertStyle) { append("\u2009${span.number}\u2009") }
+                        withStyle(inertStyle) { append("$CHIP_PAD${span.number}$CHIP_PAD") }
                         inertChips += start until length
                     } else {
                         withLink(LinkAnnotation.Clickable("cite-${span.number}", TextLinkStyles(chipStyle)) { onCitation(span.number) }) {
-                            // Thin spaces pad the number inside its chip.
-                            append("\u2009${span.number}\u2009")
+                            append("$CHIP_PAD${span.number}$CHIP_PAD")
                         }
                         chips += start until length
                     }
