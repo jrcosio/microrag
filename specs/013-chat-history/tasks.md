@@ -374,16 +374,16 @@ Historias de la spec:
 
 ## Phase 11: Última fase — teléfono de referencia y cierre
 
-- [ ] T043 Batería instrumentada completa en el A063, con los APK finales y la pantalla despierta.
-- [ ] T044 `HistoryBenchmarkTest` de forma individual en el A063. Solo se lee su línea `history_bench`. SC-001: la primera fila dibujada por debajo de 1 s.
-- [ ] T045 Recorrido **acordado con el usuario antes de empezar** (quickstart §3):
+- [X] T043 Batería instrumentada completa en el A063, con los APK finales y la pantalla despierta. Resultado: OK (775 pruebas) en 22,4 min.
+- [X] T044 `HistoryBenchmarkTest` de forma individual en el A063. Solo se lee su línea `history_bench`. SC-001: la primera fila dibujada por debajo de 1 s. Resultado: 7.740 KB, primera tanda p50 2,1 ms y p95 14,4 ms, lista entera 15 ms, primera fila 655 ms.
+- [X] T045 Recorrido **acordado con el usuario antes de empezar** (quickstart §3):
   - conversaciones nuevas sobre documentos de prueba, en una carpeta propia;
   - abrir, continuar, borrar y «＋»;
   - sin capturar ni volcar Historial mientras liste la conversación del usuario;
   - borrar la conversación de prueba de F12 desde Historial, solo con su permiso;
   - red (0 bytes para el uid de la app) y registros solo con ids y cifras;
   - limpieza y teléfono restaurado.
-- [ ] T046 Cerrar `report.md` y poner F13 en `docs/roadmap/FEATURES.md` como «implementada; pendiente de la revisión de cierre». **Parada para la revisión de cierre.**
+- [X] T046 Cerrar `report.md` y poner F13 en `docs/roadmap/FEATURES.md` como «implementada; pendiente de la revisión de cierre». **Parada para la revisión de cierre.**
 
 ---
 

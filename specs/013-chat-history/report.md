@@ -1,6 +1,6 @@
 # Informe de cierre — F13 Historial de chats
 
-> **Estado:** borrador. Falta la última fase, en el teléfono de referencia (T043–T046).
+> **Estado:** implementada; pendiente de la revisión de cierre del usuario.
 
 **Rama:** `013-chat-history`, creada desde `a78c488`.
 **Fecha:** 2026-11-02 y 2026-11-03.
@@ -58,7 +58,7 @@
 | Escritorio (Python) | 181 pruebas OK, y el golden de respuestas al día |
 | `Pixel_10` (API 37), instrumentadas | 775 pruebas: 768 pasan, 7 omitidas por sus propias condiciones (`assume`), 0 fallos |
 | `MicroRAG_API33` (API 33), instrumentadas | 775 pruebas: 752 pasan, 19 omitidas por sus propias condiciones, 4 fallos previos (Atrás desde la raíz) |
-| Teléfono A063 | (pendiente, T043) |
+| Teléfono A063, instrumentadas | OK (775 pruebas), en 22,4 min, con la pantalla despierta |
 
 **Los 4 fallos de API 33 no son de F13.** Son los mismos de F12: `SystemBackTest` y tres casos de `OnboardingNavigationTest` esperan que Atrás desde la raíz cierre la actividad (`DESTROYED`), y en API 33 queda en `CREATED`. En `Pixel_10` pasan.
 
@@ -86,9 +86,9 @@
 | Dispositivo | Tamaño | Primera tanda p50 / p95 | Lista entera | Primera fila dibujada |
 |---|---:|---:|---:|---:|
 | `Pixel_10` (API 37) | 7,6 MB (7.740 KB) | 0,5 / 3,4 ms | 2 ms | 239 ms |
-| A063 | (pendiente, T044) | | | |
+| A063 (API 35) | 7,6 MB (7.740 KB) | 2,1 / 14,4 ms | 15 ms | 655 ms |
 
-La estimación previa de D-063 era de 5–10 MB.
+La estimación previa de D-063 era de 5–10 MB. **SC-001 se cumple en el teléfono:** la primera fila se dibuja en 655 ms, por debajo de 1 s. El fichero de la medida se borró al terminar.
 
 ### Recorrido en `Pixel_10` (T041)
 
@@ -117,6 +117,35 @@ El emulador quedó con letra 1.0, giro automático, modo claro y la app sin idio
 
 Al terminar se desinstaló la app de los dos emuladores, lo que borró su historial de prueba, y se cerraron.
 
+### Teléfono A063 (T045)
+
+Recorrido acordado con el usuario el 2026-11-03: completo, borrando también la conversación de prueba de F12, con cambios temporales de letra, giro y modo. Dos documentos públicos de prueba («Wikibooks Git.txt» y «Wikibooks Basic Book Design.txt») en una carpeta propia, y preguntas marcadas «Prueba F13». **El Historial no se capturó ni se volcó** mientras listaba la conversación del usuario: solo se leyeron las etiquetas de la app y las filas de prueba, y las demás se contaron.
+
+| Paso | Resultado |
+|---|---|
+| Importar e indexar los dos documentos | 70 y 49 fragmentos en GPU. Recibieron los ids 3 y 4, los de los documentos de prueba de F12 ya borrados: el caso real de Q15 |
+| Dos conversaciones nuevas («Nuevo chat», comprobado vacío) | Respondidas, con 1 cita cada una |
+| «⋯» → Historial | «HOY» con las dos, «Abierta» en la del chat; 2 filas ajenas ocultas (la de F12 y la del usuario) |
+| Abrir la de Git desde Historial y preguntar | La respuesta lleva su turno anterior (`follow_up=true`, 4 bloques); la conversación sube con «2 preguntas» |
+| Papelera → «Cancelar», y después «Borrar» | Nada se borra; luego desaparece, con «Conversación borrada» y `chat delete outcome=ok` |
+| «＋» | El chat queda vacío |
+| Borrar «Wikibooks Git.txt» y volver a abrir su conversación | Sus dos fuentes, «Fuente ya no disponible»; la ficha «1» en gris |
+| Modo claro, letra al 200 % y horizontal | El Historial completo, con su fila de prueba y la papelera |
+| Conversación de prueba de F12 | Su título no coincidía al pie de la letra (el teclado cambia mayúsculas al escribir); se identificó por parecido (0,99) sin leer ningún título y se borró desde Historial |
+| Red | 0 bytes de la app (uid 10628), antes y después |
+| Registro de la app | Solo `history page`, `chat delete`, `library delete` y `rag document`, con cifras; ninguna mención de los documentos ni de las preguntas |
+
+**Limpieza y estado final:**
+- se borraron las conversaciones de prueba (las de hoy y la de F12), los dos documentos en la app, y su carpeta y sus entradas de medios;
+- en el historial queda solo la conversación del usuario, que no se abrió ni se leyó;
+- el teléfono quedó como estaba al empezar: letra 1.0, giro fijo en vertical, modo oscuro y la app en español (`[es]`).
+
+Al empezar, el giro automático estaba desactivado y la app tenía `[es]`; al cerrar F12 se dejaron giro automático y `[]`, así que se respetó el estado que había.
+
+**Dos cosas que no salieron como estaban previstas:**
+- **El primer intento de volver a vertical no se aplicó:** el teléfono siguió en horizontal hasta repetir `user-rotation lock 0`. Se comprobó después con `dumpsys window` (`ROTATION_0`).
+- **La conversación de F12 no coincidía con su título exacto.** No se adivinó: se comparó por parecido sin mostrar títulos, y solo una fila superó el umbral.
+
 ## 5. Revisión del inglés (T037)
 
 Los 17 textos nuevos de `strings_history.xml`, sin correcciones.
@@ -143,7 +172,10 @@ Los 17 textos nuevos de `strings_history.xml`, sin correcciones.
 
 ## 9. Pendiente
 
-- La última fase en el teléfono de referencia (T043–T046), con el recorrido acordado antes con el usuario.
+- **Nada de F13 queda abierto,** salvo la revisión de cierre del usuario.
 
 **Visto durante las pruebas, fuera de F13** (no se ha tocado):
 - **Lint:** SQLite-Vector 1.2.0 está disponible (aviso nuevo de este cierre). Hay que verificarla y decidirlo aparte, como LiteRT-LM 0.19.0.
+- **Atrás desde la raíz en API 33:** los 4 fallos previos (§2).
+- **Teléfono, una vez:** al volver del Índice tras indexar, el volcado solo mostró la barra inferior, sin el contenido de la pantalla; al tocar la pestaña Chat todo volvió a la normalidad. No se capturó, porque podía ser Inicio o la Biblioteca con el documento del usuario.
+- **Teclado del teléfono:** cambia mayúsculas al escribir con `input text` («git» → «Git», «last» → «Last»). Afecta a los recorridos automáticos, no a la app.
