@@ -367,6 +367,11 @@ val catalogEntries: List<CatalogEntry> = listOf(
                 SampleData.answer, AnswerState.Completed, onCopy = {}, copiedLabel = "Respuesta copiada",
                 notes = listOf("Algunos documentos aún no están indexados: esta respuesta solo usa los que ya están listos."),
             )
+            // F13 research R7: the chips of a deleted document, grey and with no link.
+            LisdataAnswerCard(
+                SampleData.answer, AnswerState.Completed, onCopy = {}, sourcesCountText = "2 fuentes", onSources = {},
+                unavailableCitations = setOf(2),
+            )
         }
     },
     entry("Chat", "composer", "LisdataChatComposer") {
