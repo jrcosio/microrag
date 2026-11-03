@@ -134,19 +134,23 @@ class LayeringTest {
         assertWithMessage("feature/chat files importing the data layer, SQLite, WorkManager, LiteRT or File").that(leaks).isEmpty()
     }
 
-    /** F12 U1: Ajustes and Idiomas reach models, history and the app language through use cases only (settings-ui.md §6). */
+    /**
+     * F12 U1: Ajustes and Idiomas reach models, history and the app language through use cases only (settings-ui.md §6).
+     * F16 U9: Tema reaches the theme the same way, never the system's UiModeManager.
+     */
     @Test
     fun theSettingsScreensUseNoBackendApi() {
         val featureDir = File("src/main/java/com/lisdatasolutions/microrag/feature/settings")
         val forbidden = listOf(
             "import com.lisdatasolutions.microrag.data.", "import androidx.sqlite", "import androidx.work",
             "import com.google.ai.edge.litertlm", "import java.io.File", "import android.app.LocaleManager",
+            "import android.app.UiModeManager",
         )
         val files = sources.filter { it.canonicalPath.startsWith(featureDir.canonicalPath + File.separator) }
         val leaks = files.filter { file -> forbidden.any { file.readText().contains(it) } }.map { it.path }
 
         assertWithMessage("feature/settings files exist").that(files).isNotEmpty()
-        assertWithMessage("feature/settings files importing the data layer, SQLite, WorkManager, LiteRT, File or LocaleManager")
+        assertWithMessage("feature/settings files importing the data layer, SQLite, WorkManager, LiteRT, File, LocaleManager or UiModeManager")
             .that(leaks).isEmpty()
     }
 

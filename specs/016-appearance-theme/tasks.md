@@ -48,20 +48,20 @@ description: "Lista de tareas de F16 — Apariencia: tema e icono de Ajustes"
 
 ## Phase 1: Setup
 
-- [ ] T001 [P] Textos de `theme-ui.md` §4 en `app/src/main/res/values/strings_settings.xml` y `app/src/main/res/values-en/strings_settings.xml`, bajo un comentario «F16 Apariencia (D-067)». `StringsParityTest` pasa.
-- [ ] T002 [P] Prueba nueva en `…/test/…/core/designsystem/DesignSystemConformanceTest.kt` (SC-007, research R7):
+- [X] T001 [P] Textos de `theme-ui.md` §4 en `app/src/main/res/values/strings_settings.xml` y `app/src/main/res/values-en/strings_settings.xml`, bajo un comentario «F16 Apariencia (D-067)». `StringsParityTest` pasa.
+- [X] T002 [P] Prueba nueva en `…/test/…/core/designsystem/DesignSystemConformanceTest.kt` (SC-007, research R7):
   - `settingsIcon_isTheLucideGear`: `res/drawable/ic_settings.xml` declara `icon 'settings'`;
   - ningún `ic_*.xml` declara `icon 'sun'`;
   - existe `ic_sun_moon.xml` con `icon 'sun-moon'`.
 
   Falla hasta T003.
-- [ ] T003 Iconos (research R7, quickstart §1):
+- [X] T003 Iconos (research R7, quickstart §1):
   - en `tools/icons/icons.txt`, `ic_settings = settings` con el comentario «Gear for Settings (D-067; the mockups use a sun, G19)» y `ic_sun_moon = sun-moon`;
   - regenerar `app/src/main/res/drawable/` con el comando de quickstart §1. `git status` debe mostrar solo `ic_settings.xml` (modificado) y `ic_sun_moon.xml` (nuevo); si cambia cualquier otro, **se para y se revisa**;
   - `val SunMoon = R.drawable.ic_sun_moon` en `…/microrag/core/designsystem/icon/LisdataIcons.kt`, también en `all`.
 
   T002 pasa.
-- [ ] T004 [P] Regla de capas en `…/test/…/architecture/LayeringTest.kt` (`theSettingsScreensUseNoBackendApi`, U9): añadir `"import android.app.UiModeManager"` a la lista prohibida y al mensaje.
+- [X] T004 [P] Regla de capas en `…/test/…/architecture/LayeringTest.kt` (`theSettingsScreensUseNoBackendApi`, U9): añadir `"import android.app.UiModeManager"` a la lista prohibida y al mensaje.
 
 ---
 
