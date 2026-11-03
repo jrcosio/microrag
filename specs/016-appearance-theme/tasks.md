@@ -187,7 +187,7 @@ description: "Lista de tareas de F16 — Apariencia: tema e icono de Ajustes"
 **Independent Test:** quickstart §3, pasos 4–6 y 9.
 
 - [X] T023 [US2] Reconciliación al arrancar en `…/microrag/MicroRagApplication.kt` (theme-api P5): después de `startKoin`, lanzar en `get<ApplicationScope>().scope` una corrutina que resuelva y ejecute `ReconcileThemeUseCase` dentro de ella, de modo que nada toca disco en el hilo principal (L9). StrictMode en depuración no registra violaciones nuevas en el arranque (logcat filtrado a la app). La recreación rara tras el primer fotograma, si hay discrepancia, va al informe.
-- [ ] T024 [US2] Verificación en `Pixel_10` (quickstart §3, pasos 4–6 y 9):
+- [X] T024 [US2] Verificación en `Pixel_10` (quickstart §3, pasos 4–6 y 9):
   - 10 arranques en frío grabados por combinación (Claro y Oscuro con el emulador en el modo contrario), revisados fotograma a fotograma (SC-002);
   - el tiempo hasta ver el tema nuevo tras «Guardar preferencias» (SC-001) y tras `cmd uimode` (SC-004), medido con las marcas de tiempo de `screenrecord` (M6);
   - reinicio del emulador (SC-003);
@@ -204,12 +204,12 @@ description: "Lista de tareas de F16 — Apariencia: tema e icono de Ajustes"
 
 **Independent Test:** T002 en verde, y capturas de la barra inferior y de Inicio en claro y en oscuro.
 
-- [ ] T025 [P] [US3] Documentación del icono:
+- [X] T025 [P] [US3] Documentación del icono:
   - `docs/roadmap/INVENTARIO.md` §2.6: la fila de `ic_settings` pasa a `settings` con «Engranaje por decisión del usuario (D-067); el PNG usa un sol (G19)», y se añade la fila de `ic_sun_moon` («Ajustes: fila Tema»);
   - la ficha P03: «`ic_settings` (engranaje)»;
   - G19: «✅ Implementado en F16 (`ic_settings` = Lucide `settings`, D-067)», y G45: «✅ Implementado en F16» (L1);
   - `specs/001-foundations-design-system/quickstart.md`: el comando de regenerar iconos pasa `"$TMP/package/icons"`.
-- [ ] T026 [US3] Comprobación visual en `Pixel_10`: la barra inferior (pestaña Ajustes seleccionada y sin seleccionar) y la cabecera de Inicio, con datos de prueba, en claro y en oscuro. El catálogo de depuración muestra el engranaje y `SunMoon`. `CatalogAccessibilityTest` sigue pasando.
+- [X] T026 [US3] Comprobación visual en `Pixel_10`: la barra inferior (pestaña Ajustes seleccionada y sin seleccionar) y la cabecera de Inicio, con datos de prueba, en claro y en oscuro. El catálogo de depuración muestra el engranaje y `SunMoon`. `CatalogAccessibilityTest` sigue pasando.
 
 ---
 

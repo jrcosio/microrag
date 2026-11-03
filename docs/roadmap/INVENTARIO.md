@@ -196,7 +196,7 @@ Es un **catálogo de estilo**: no trae SVG exportados ni licencia, y le faltan l
 | `ic_home` | `house` | Barra inferior: Inicio |
 | `ic_chat` | `message-square-text` | Barra inferior: Chat |
 | `ic_folder` | `folder` | Barra inferior: Biblioteca; 03 Documentos |
-| `ic_settings` | `sun` | Barra inferior: Ajustes; 03 cabecera. ⚠️ El PNG usa un sol, no un engranaje (G19) |
+| `ic_settings` | `settings` | Barra inferior: Ajustes; 03 cabecera. Engranaje por decisión del usuario (D-067); el PNG usa un sol (G19) |
 | `ic_chevron_left` | `chevron-left` | Atrás en todas las barras superiores |
 | `ic_chevron_right` | `chevron-right` | Filas navegables y CTA con flecha |
 | `ic_arrow_right` | `arrow-right` | 03 «Nuevo chat →» |
@@ -217,6 +217,7 @@ Es un **catálogo de estilo**: no trae SVG exportados ni licencia, y le faltan l
 | `ic_check_circle` | `circle-check` | Estado «Listo» (no maquetado) |
 | `ic_warning` | `triangle-alert` | Estados de error y aviso (no maquetado) |
 | `ic_close` | `x` | Borrar la búsqueda (añadido en la implementación de F01) |
+| `ic_sun_moon` | `sun-moon` | 09 Preferencias: fila «Tema» (F16, D-067) |
 
 **Logo.** Se usa `logoLISDATA.png` (oficial, raster) para el wordmark. Los PNG muestran «lisdata ›» en una sola tinta, lo que es una aproximación. CLAUDE.md prohíbe redibujar el logo: hace falta el SVG oficial (ver G20).
 
@@ -307,7 +308,7 @@ Abreviaturas de componentes: ver §4. «No maquetado» significa que el estado l
 - **Barra inferior:** sí (Inicio).
 - **Propósito:** acceso inmediato al chat y a la gestión documental.
 - **Contenido (PNG):**
-  - cabecera con el logo a la izquierda y `ic_settings` (sol) a la derecha;
+  - cabecera con el logo a la izquierda y `ic_settings` (engranaje desde F16, D-067; el PNG muestra un sol) a la derecha;
   - chip de éxito «● IA local disponible»;
   - H1 «¿Qué quieres explorar hoy?»;
   - `LisdataHeroCard` con eyebrow «PREGUNTA A TU BIBLIOTECA», título «Una respuesta. Todas tus fuentes.», botón degradado «Nuevo chat →», órbitas decorativas y `ic_sparkle`;
@@ -766,7 +767,7 @@ La columna **Estado** indica si está resuelto y por quién, o si sigue pendient
 | G16 | Filtros de la biblioteca | PNG: Todos / Indexados / Pendientes | MD: «ampliar con Errores si es necesario» | UI → PNG | Sin filtro Errores. «Pendientes» incluye todo lo no indexado, también los errores (con su chip) | ✅ Resuelto en F08: sin filtro «Errores» |
 | G17 | Acciones del detalle | PNG: «Reindexar» y «Eliminar», y «⋯» sin contenido | MD: también «Quitar del índice» | — | «⋯» → «Quitar del índice» (borra chunks y vectores y conserva el original, que queda reindexable) | ✅ Resuelto en F08: estado propio «Fuera del índice» (D-043), reindexable |
 | G18 | Componentes frente a M3 | PNG: switch de ≈42×24 dp, chips de 27 dp | M3: switch de 52×32 dp; chips de 32 dp con área táctil de 48 | Constitución (M3 tematizado, 48 dp) | M3 tematizado con los tokens; sin réplicas a medida. Diferencia de tamaño aceptada | ✅ Usuario (D-018) |
-| G19 | Icono de Ajustes | PNG: sol | Convención y kit: engranaje | UI → PNG | Sol (`ic_settings` = Lucide `sun`) con la etiqueta «Ajustes» | ✅ Implementado en F01 (`ic_settings` = Lucide `sun`). 🔄 D-067: el usuario pide el engranaje (Lucide `settings`), excepción a la precedencia del PNG; se implementa en F16 |
+| G19 | Icono de Ajustes | PNG: sol | Convención y kit: engranaje | UI → PNG | Sol (`ic_settings` = Lucide `sun`) con la etiqueta «Ajustes» | ✅ Implementado en F01 (`ic_settings` = Lucide `sun`). ✅ Implementado en F16 (`ic_settings` = Lucide `settings`, D-067): engranaje por decisión del usuario, excepción a la precedencia del PNG |
 | G20 | Logo | PNG: «lisdata ›» en una tinta (aproximación) | Asset oficial `logoLISDATA.png` (degradado, raster); CLAUDE.md: no reconstruir | Doc (marca) | Usar el PNG oficial escalado y pedir el SVG oficial para la versión final | 🟡 F01 usa el PNG oficial; pendiente del SVG |
 | G21 | Recursos en Indexación | MD: «Solo mientras carga», espacio usado y estado térmico | PNG: no existen | UI → PNG | MVP sin la sección. La pausa térmica (informe) se comunica en el hero como causa de la pausa. «Solo mientras carga» queda en el backlog | ✅ D-039: sin la sección en F07; la pausa térmica se explica como causa de la pausa; «Solo mientras carga» en el backlog |
 | G22 | Persistencia de los importados | MD: «copiar o persistir permisos URI» | Informe: `documents.uri`, `content_hash UNIQUE` | Arquitectura → informe | **Copiar** a `noBackupFilesDir/documents/` (sin dependencia de un URI revocable). El duplicado (mismo SHA-256) se marca como «Ya está en tu biblioteca» | ✅ F06: copia en `documents/<sha256>.<ext>`, duplicado detectado antes de renombrar (D-038) |
@@ -792,6 +793,6 @@ La columna **Estado** indica si está resuelto y por quién, o si sigue pendient
 | G42 | Contraste de las CTA con degradado | PNG: texto blanco sobre `#02AEE2 → #0072DD` | WCAG: 3:1 para texto grande en negrita (las etiquetas son de 17 sp Bold) | Constitución | Mantener el degradado y comprobar el contraste del tramo central bajo la etiqueta. Si no llega a 3:1, desplazar la parada cian (p. ej. empezar en `#0096D6`) | ✅ Usuario (D-015) |
 | G43 | Icono del lanzador | Ningún asset de icono de app (solo el logotipo horizontal) | CLAUDE.md: no reconstruir la marca a mano | Doc (marca) | Mantener el icono del scaffold hasta recibir el icono oficial (adaptativo, primer plano y fondo) | ✅ Resuelto: icono adaptativo aportado por el usuario (Image Asset Studio, `ic_launcher-playstore.png`) |
 | G44 | Presupuesto de TTFT | Constitución IV: primer token ≤ 3 s con 6 bloques | F02: 4,53 s con 1.986 tokens en el Nothing Phone (1) | Medición frente a constitución | Opciones en DECISIONS («Pendientes»): reducir el contexto, enmendar el presupuesto con la cifra medida o evaluar palancas en F14 | ✅ D-026: presupuesto ≤ 5 s de extremo a extremo con ≈ 2.000 tokens (constitución v1.1.0); F05 fija los bloques y F14 evalúa palancas |
-| G45 | Selector de tema | Usuario (D-066): Sistema, Claro y Oscuro en Ajustes | PNG 09: no existe; D-016: sigue al sistema, sin selector | Usuario | Fila «Tema» en Preferencias con el valor actual, que abre una pantalla como Idiomas (`LisdataRadioRow` y guardar). Se aplica también a la pantalla de arranque y a las barras del sistema | ✅ D-067: propuestas A1–A9 aprobadas (fila entre «Idiomas» e «Índice y rendimiento» con `sun-moon`, pantalla sin hero, se aplica al guardar); se implementa en F16 |
+| G45 | Selector de tema | Usuario (D-066): Sistema, Claro y Oscuro en Ajustes | PNG 09: no existe; D-016: sigue al sistema, sin selector | Usuario | Fila «Tema» en Preferencias con el valor actual, que abre una pantalla como Idiomas (`LisdataRadioRow` y guardar). Se aplica también a la pantalla de arranque y a las barras del sistema | ✅ D-067: propuestas A1–A9 aprobadas (fila entre «Idiomas» e «Índice y rendimiento» con `sun-moon`, pantalla sin hero, se aplica al guardar). ✅ Implementado en F16 |
 | G46 | Carpetas y ámbito del chat | Usuario (D-066): carpetas de un nivel y ámbito por conversación | PNG 04, 05, 06 y 07: no existen | Usuario | Biblioteca por carpetas con su recuento, carpeta de destino en Ingesta, «Mover a carpeta» en el detalle, y en el chat una ficha de ámbito encima del compositor con un selector de carpetas y documentos | ❓ Propuesta en el clarify de F17 |
 | G47 | UI del modo visual | Usuario (D-066): Texto, Visual o Ambos por documento, y citas a página | PNG 04, 05, 07 y 09: no existen | Usuario | Selector de modo en Ingesta, modo visible en Biblioteca y en el detalle, modo por defecto en Ajustes, visor de página en el detalle, y miniaturas en «Fuentes consultadas» | ❓ Propuesta en el clarify de F19 (indexación) y de F20 (chat) |

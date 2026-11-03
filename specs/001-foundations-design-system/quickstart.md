@@ -83,5 +83,5 @@ Se toma la mediana de 5 ejecuciones y se anota en el cierre de F01 junto con el 
 
 ```bash
 TMP=$(mktemp -d) && (cd "$TMP" && npm pack lucide-static@1.61.0 --ignore-scripts && tar -xzf lucide-static-1.61.0.tgz)
-python3 -I tools/icons/lucide_to_vector.py "$TMP/package/icon-nodes.json" tools/icons/icons.txt app/src/main/res/drawable
+python3 -I tools/icons/lucide_to_vector.py "$TMP/package/icons" tools/icons/icons.txt app/src/main/res/drawable
 ```
