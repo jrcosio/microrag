@@ -107,7 +107,15 @@ fun MicroRagAppShell(
         navController.currentBackStackEntryFlow.first()
         initialRouteHandled = true
         val tab = TopLevelDestination.entries.firstOrNull { it.routeClass.isInstance(initialRoute) && it.route == initialRoute }
-        if (tab != null) navController.navigateToTopLevel(tab) else navController.navigate(initialRoute)
+        when {
+            tab != null -> navController.navigateToTopLevel(tab)
+            // F13 research R4: Historial always sits over the chat, which receives what it opens.
+            initialRoute is History -> {
+                navController.navigateToTopLevel(TopLevelDestination.CHAT)
+                navController.navigate(initialRoute)
+            }
+            else -> navController.navigate(initialRoute)
+        }
     }
 }
 

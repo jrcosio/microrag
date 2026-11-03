@@ -1,5 +1,9 @@
 package com.lisdatasolutions.microrag.core.navigation
 
+import com.lisdatasolutions.microrag.domain.chat.ObserveAnswerInProgressUseCase
+import com.lisdatasolutions.microrag.domain.chat.DeleteConversationUseCase
+import com.lisdatasolutions.microrag.domain.chat.ObserveConversationsUseCase
+import com.lisdatasolutions.microrag.feature.history.HistoryViewModel
 import android.app.Application
 import android.content.Context
 import androidx.compose.ui.platform.LocalContext
@@ -24,6 +28,7 @@ import androidx.navigation.compose.ComposeNavigator
 import androidx.navigation.testing.TestNavHostController
 import androidx.navigation.toRoute
 import androidx.test.core.app.ApplicationProvider
+import androidx.test.espresso.Espresso
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import com.lisdatasolutions.microrag.MainActivity
@@ -218,9 +223,18 @@ internal fun settingsViewModels(
     }
 }
 
-/** The chat (F11) takes its ViewModel from Koin too; [graph] holds its fakes. */
+/** The chat (F11) and Historial (F13) take their ViewModels from Koin too; [graph] holds their fakes. */
 internal fun chatViewModels(graph: ChatTestGraph = ChatTestGraph()) = module {
     viewModel { graph.chatViewModel(get()) }
+    viewModel {
+        HistoryViewModel(
+            savedState = get(),
+            observeConversations = ObserveConversationsUseCase(graph.chats),
+            deleteConversation = DeleteConversationUseCase(graph.session),
+            observeAnswerInProgress = ObserveAnswerInProgressUseCase(graph.session),
+            backgroundDispatcher = Dispatchers.Unconfined,
+        )
+    }
 }
 
 internal fun navigationLibrary() = FakeLibraryRepository().apply {
@@ -797,6 +811,90 @@ class NavigationTest {
 
         assertThat(nav.currentDestination?.hasRoute(Setup::class)).isTrue()
     }
+    // --- F13 (research R4; contracts/history-ui.md §5, U8) ------------------------------------------
+
+    private suspend fun savedConversation(question: String, at: Long): Long {
+        val id = chat.chats.createConversation(at)
+        val turn = chat.chats.insertTurn(id, question, partialCoverage = false, now = at)
+        chat.chats.updateTurn(turn.id, TurnUpdate(state = TurnState.COMPLETED, answer = "Sí."))
+        return id
+    }
+
+    private fun openHistory() {
+        compose.onNodeWithContentDescription(context.getString(R.string.action_more_options)).performClick()
+        compose.onNodeWithText(context.getString(R.string.history_title)).performClick()
+        compose.waitForIdle()
+    }
+
+    @Test
+    fun theChatMenu_opensHistory_withoutTheBottomBar_andBackReturnsToTheSameChat() {
+        val id = runBlocking {
+            chat.addDocument("Manual.pdf")
+            savedConversation("¿La primera?", at = 5_000)
+        }
+        launchShell()
+        tab(TopLevelDestination.CHAT).performClick()
+        compose.waitForIdle()
+
+        openHistory()
+
+        assertThat(nav.currentBackStackEntry!!.toRoute<History>()).isEqualTo(History(openConversationId = id))
+        tab(TopLevelDestination.CHAT).assertDoesNotExist()
+        compose.onNodeWithContentDescription(context.getString(R.string.history_delete_label, "¿La primera?")).assertIsDisplayed()
+
+        compose.onNodeWithContentDescription(context.getString(R.string.action_back)).performClick()
+        compose.waitForIdle()
+        assertThat(nav.currentDestination?.hasRoute(Chat::class)).isTrue()
+        compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasContentDescription("¿La primera?", substring = true))
+    }
+
+    /**
+     * The system Back key from Historial. Here and not in SystemBackTest, which runs on the reference phone
+     * against the real conversations: Historial would list the user's own (research R12).
+     */
+    @Test
+    fun systemBack_fromHistory_returnsToTheChat() {
+        launchShell()
+        tab(TopLevelDestination.CHAT).performClick()
+        compose.waitForIdle()
+        openHistory()
+
+        Espresso.pressBack()
+        compose.waitForIdle()
+
+        assertThat(nav.currentDestination?.hasRoute(Chat::class)).isTrue()
+        assertThat(routesInBackStack().none { it.hasRoute(History::class) }).isTrue()
+    }
+
+    @Test
+    fun anEmptyChat_alsoOffersHistory() {
+        launchShell()
+        tab(TopLevelDestination.CHAT).performClick()
+        compose.waitForIdle()
+
+        openHistory()
+
+        assertThat(nav.currentBackStackEntry!!.toRoute<History>()).isEqualTo(History(openConversationId = null))
+        compose.onNodeWithText(context.getString(R.string.history_empty_title)).assertIsDisplayed()
+    }
+
+    @Test
+    fun aDoubleTapOnHistory_opensASingleHistory() {
+        launchShell()
+        tab(TopLevelDestination.CHAT).performClick()
+        compose.waitForIdle()
+        compose.onNodeWithContentDescription(context.getString(R.string.action_more_options)).performClick()
+
+        compose.onNodeWithText(context.getString(R.string.history_title)).performTouchInput {
+            click()
+            advanceEventTime(100)
+            click()
+        }
+        compose.waitForIdle()
+
+        assertThat(routesInBackStack().count { it.hasRoute(History::class) }).isEqualTo(1)
+    }
+
 }
 
 /** N7: destination and tab survive recreation by rotation and by light/dark theme change. */
@@ -863,4 +961,5 @@ class NavigationRestorationTest {
         compose.activityRule.scenario.recreate()
         assertOnLibrary()
     }
+
 }

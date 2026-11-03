@@ -3,6 +3,7 @@ package com.lisdatasolutions.microrag.debug
 import android.content.Intent
 import com.lisdatasolutions.microrag.core.navigation.Chat
 import com.lisdatasolutions.microrag.core.navigation.Document
+import com.lisdatasolutions.microrag.core.navigation.History
 import com.lisdatasolutions.microrag.core.navigation.Home
 import com.lisdatasolutions.microrag.core.navigation.Index
 import com.lisdatasolutions.microrag.core.navigation.Ingest
@@ -36,6 +37,7 @@ object DebugRouting {
             "index" -> Index
             "settings" -> Settings
             "languages" -> Languages
+            "history" -> History(openConversationId = id)
             else -> null
         }
     }

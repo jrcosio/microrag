@@ -11,6 +11,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.Lifecycle
 import com.lisdatasolutions.microrag.feature.chat.ChatRoute
 import com.lisdatasolutions.microrag.feature.document.DocumentRoute
+import com.lisdatasolutions.microrag.feature.history.HistoryRoute
 import com.lisdatasolutions.microrag.feature.home.HomeRoute
 import com.lisdatasolutions.microrag.feature.indexing.IndexRoute
 import com.lisdatasolutions.microrag.feature.ingest.IngestRoute
@@ -23,6 +24,9 @@ import com.lisdatasolutions.microrag.feature.settings.SettingsRoute
 
 /** Key of the Library entry's SavedStateHandle where the detail leaves a [LibraryMessage] (F08 B8). */
 private const val LIBRARY_MESSAGE = "library_message"
+
+/** Key of the chat entry's SavedStateHandle where Historial leaves what to show (F13 research R4). */
+internal const val CHAT_REQUEST = "chat_request"
 
 /**
  * Navigation graph with every logical destination. Each feature replaces its placeholder without
@@ -75,6 +79,21 @@ fun MicroRagNavHost(
                 onCompleteSetup = { resumed { navController.navigate(Setup) { launchSingleTop = true } } },
                 onImport = { resumed { navController.navigate(Ingest) { launchSingleTop = true } } },
                 onOpenIndex = { resumed { navController.navigate(Index) { launchSingleTop = true } } },
+                onOpenHistory = { id -> resumed { navController.navigate(History(openConversationId = id)) { launchSingleTop = true } } },
+            )
+        }
+        composable<History> { entry ->
+            // Research R4: what to show goes back to the chat underneath, which reads it once.
+            val leave: (ChatRequest) -> Unit = { request ->
+                if (entry.lifecycle.currentState == Lifecycle.State.RESUMED) {
+                    navController.previousBackStackEntry?.savedStateHandle?.set(CHAT_REQUEST, request.key)
+                    navController.popBackStack()
+                }
+            }
+            HistoryRoute(
+                onBack = back,
+                onOpenConversation = { leave(ChatRequest.Open(it)) },
+                onNewChat = { leave(ChatRequest.New) },
             )
         }
         composable<Ingest> { IngestRoute(onBack = back, onStartIndexing = { navController.navigate(Index) }) }

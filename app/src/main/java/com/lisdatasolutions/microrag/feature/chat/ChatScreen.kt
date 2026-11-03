@@ -78,6 +78,8 @@ data class ChatActions(
     val onCopy: (Long, String) -> Unit = { _, _ -> },
     val onOpenSource: (SourceTarget) -> Unit = {},
     val onNewChat: () -> Unit = {},
+    /** F13 H1: «Historial» of «⋯». */
+    val onOpenHistory: () -> Unit = {},
     val onDelete: () -> Unit = {},
     val onConfirmDelete: () -> Unit = {},
     val onDismissDelete: () -> Unit = {},
@@ -98,6 +100,8 @@ fun ChatRoute(
     onCompleteSetup: () -> Unit,
     onImport: () -> Unit,
     onOpenIndex: () -> Unit,
+    /** F13 H1: Historial, with the conversation this chat shows for «Abierta». */
+    onOpenHistory: (Long?) -> Unit = {},
     viewModel: ChatViewModel = koinViewModel(),
     listState: LazyListState = rememberLazyListState(),
 ) {
@@ -128,6 +132,7 @@ fun ChatRoute(
             onCopy = viewModel::onCopy,
             onOpenSource = viewModel::onOpenSource,
             onNewChat = viewModel::onNewChat,
+            onOpenHistory = { onOpenHistory(state.conversationId) },
             onDelete = viewModel::onDelete,
             onConfirmDelete = viewModel::onConfirmDelete,
             onDismissDelete = viewModel::onDismissDelete,
@@ -187,6 +192,8 @@ private fun ChatColumn(
             actions = {
                 val items = buildList {
                     add(stringResource(R.string.chat_new) to actions.onNewChat)
+                    // F13 H1 (G13): always there, also on an empty chat.
+                    add(stringResource(R.string.history_title) to actions.onOpenHistory)
                     if (state.conversationId != null) add(stringResource(R.string.chat_delete) to actions.onDelete)
                 }
                 LisdataOverflowMenu(items)

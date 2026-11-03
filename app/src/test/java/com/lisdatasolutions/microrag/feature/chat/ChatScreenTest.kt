@@ -34,6 +34,7 @@ import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasParent
 import androidx.compose.ui.test.hasScrollToIndexAction
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -82,6 +83,7 @@ class ChatScreenTest {
         },
         onOpenSource = { opened += it },
         onNewChat = { calls += "new" },
+        onOpenHistory = { calls += "history" },
         onCompleteSetup = { calls += "setup" },
         onImport = { calls += "import" },
         onOpenIndex = { calls += "index" },
@@ -141,13 +143,25 @@ class ChatScreenTest {
     }
 
     @Test
-    fun aNewConversation_offersOnlyANewChat() {
+    fun aNewConversation_offersANewChat_andTheHistory() {
         show(ChatPreviewData.empty)
 
         compose.onNodeWithContentDescription("Más opciones").performClick()
 
         compose.onNodeWithText("Nuevo chat").assertIsDisplayed()
         absent("Borrar conversación")
+        compose.onNodeWithText("Historial").performClick()
+        assertThat(calls).containsExactly("history")
+    }
+
+    /** F13 H1 (G13): «Nuevo chat», «Historial» and «Borrar conversación», in that order. */
+    @Test
+    fun theMoreMenu_listsHistoryBetweenNewChatAndDelete() {
+        show(ChatPreviewData.png)
+        compose.onNodeWithContentDescription("Más opciones").performClick()
+
+        val tops = listOf("Nuevo chat", "Historial", "Borrar conversación").map { compose.onNodeWithText(it).getUnclippedBoundsInRoot().top }
+        assertThat(tops).isInStrictOrder()
     }
 
     @Test

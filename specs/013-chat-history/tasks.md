@@ -165,14 +165,14 @@ Historias de la spec:
   - cabecera del mes («octubre de 2026», "October 2026");
   - plural de «pregunta»;
   - frase de la fila con y sin «Abierta», con el texto exacto del wireframe: sin punto tras un título que acaba en «?», «!», «.» o «…».
-- [ ] T014 [P] [US1] `…/test/…/feature/history/HistoryViewModelTest.kt` (lista):
+- [X] T014 [P] [US1] `…/test/…/feature/history/HistoryViewModelTest.kt` (lista):
   - `Loading` → `Sections`, `Empty` o `Error`;
   - «Reintentar» vuelve a leer;
   - `onLoadMore` suma 50 solo con `hasMore` y la tanda completa; el límite sobrevive en el `SavedStateHandle`;
   - `onStart()` recalcula los grupos con el instante del `Clock` y la zona de `ZoneId.systemDefault()`: un cambio de la zona por defecto entre dos `onStart()` mueve las filas de grupo;
   - `openConversationId` de la ruta llega al estado;
   - los registros solo llevan cifras (Q13).
-- [ ] T015 [P] [US1] `…/test/…/feature/history/HistoryScreenTest.kt` (Robolectric):
+- [X] T015 [P] [US1] `…/test/…/feature/history/HistoryScreenTest.kt` (Robolectric):
   - los cuatro estados de `history-ui.md` §1; el de error, sin botones (D-065);
   - cabeceras como encabezados (U2);
   - frase y acción de cada fila (U3);
@@ -183,16 +183,16 @@ Historias de la spec:
 ### Implementación
 
 - [X] T016 [US1] `…/microrag/feature/history/HistoryGrouping.kt` y `HistoryTexts.kt`. T012, T013 y T002 pasan.
-- [ ] T017 [US1] `HistoryUiState.kt`, `HistoryViewModel.kt` (lista), `HistoryScreen.kt`, `HistoryRoute.kt` y `HistoryPreviewData.kt` en `…/microrag/feature/history/`, con su registro en `…/microrag/feature/di/FeatureModule.kt` y `AppModulesTest`. T014 y T015 pasan.
-- [ ] T018 [P] [US1] Navegación, pruebas primero (el regreso con una conversación elegida va en T022):
+- [X] T017 [US1] `HistoryUiState.kt`, `HistoryViewModel.kt` (lista), `HistoryScreen.kt`, `HistoryRoute.kt` y `HistoryPreviewData.kt` en `…/microrag/feature/history/`, con su registro en `…/microrag/feature/di/FeatureModule.kt` y `AppModulesTest`. T014 y T015 pasan.
+- [X] T018 [P] [US1] Navegación, pruebas primero (el regreso con una conversación elegida va en T022):
   - **`NavigationTest`:**
     - «⋯» del chat ofrece «Historial», también con el chat vacío;
     - abre `History(openConversationId)` sin barra inferior;
     - Atrás vuelve al chat sin cambiar su conversación;
     - un doble toque abre un solo Historial;
   - **`ChatScreenTest`:** el orden «Nuevo chat», «Historial», «Borrar conversación»;
-  - **`…/androidTest/…/SystemBackTest.kt`:** Atrás desde Historial.
-- [ ] T019 [US1] Navegación:
+  - **Atrás del sistema desde Historial:** en `NavigationTest`, con `Espresso.pressBack()`. No en `SystemBackTest`, que corre en el teléfono de referencia sobre las conversaciones reales: Historial listaría las del usuario (research R12).
+- [X] T019 [US1] Navegación:
   - `History` en `…/microrag/core/navigation/Destinations.kt`;
   - `composable<History>` en `MicroRagNavHost.kt`;
   - «Historial» y `onOpenHistory` (solo en `RESUMED`) en `…/microrag/feature/chat/ChatScreen.kt`;
