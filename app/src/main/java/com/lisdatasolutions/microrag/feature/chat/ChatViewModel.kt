@@ -268,7 +268,11 @@ class ChatViewModel(
         savedState[CONFIRM_DELETE] = false
         val id = savedConversation ?: return
         viewModelScope.launch {
-            if (!deleteConversation(id)) return@launch
+            // F13 R6: a refused deletion keeps the conversation, and says so.
+            if (!deleteConversation(id)) {
+                announcement.value = ChatAnnouncement.DELETE_FAILED
+                return@launch
+            }
             setConversation(null)
             announcement.value = ChatAnnouncement.DELETED
         }

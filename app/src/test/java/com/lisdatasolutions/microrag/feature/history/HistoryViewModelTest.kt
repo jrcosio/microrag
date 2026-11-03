@@ -4,10 +4,12 @@ import android.app.Application
 import androidx.lifecycle.SavedStateHandle
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
+import com.lisdatasolutions.microrag.domain.chat.ActiveAnswer
 import com.lisdatasolutions.microrag.domain.chat.ChatStorageState
 import com.lisdatasolutions.microrag.domain.chat.DeleteConversationUseCase
 import com.lisdatasolutions.microrag.domain.chat.ObserveAnswerInProgressUseCase
 import com.lisdatasolutions.microrag.domain.chat.ObserveConversationsUseCase
+import com.lisdatasolutions.microrag.domain.chat.TurnState
 import com.lisdatasolutions.microrag.testing.FakeChatSession
 import com.lisdatasolutions.microrag.testing.InMemoryChatRepository
 import java.time.Clock
@@ -16,6 +18,8 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -58,9 +62,10 @@ class HistoryViewModelTest {
         backgroundDispatcher = dispatcher,
     )
 
+    /** A saved conversation with one question; the fake session leaves no answer in progress. */
     private suspend fun conversation(question: String, at: String): Long {
         repository.now = at(at).toEpochMilli()
-        return session.ask(null, question)
+        return session.ask(null, question).also { session.active.value = null }
     }
 
     private fun HistoryViewModel.sections() = (state.value.content as HistoryScreenContent.Sections)
@@ -146,6 +151,87 @@ class HistoryViewModelTest {
         val vm = viewModel(SavedStateHandle(mapOf("openConversationId" to 7L)))
         advanceUntilIdle()
         assertThat(vm.state.value.openConversationId).isEqualTo(7L)
+    }
+
+    // --- US3: deleting (research R6, H6) ---------------------------------------------------------------
+
+    @Test
+    fun theBin_asksToConfirm_andThePendingIdSurvivesARecreation() = runTest(dispatcher) {
+        val id = conversation("¿Uno?", "2026-11-03T10:00")
+        val saved = SavedStateHandle(mapOf("openConversationId" to null))
+        val vm = viewModel(saved)
+        advanceUntilIdle()
+
+        vm.onDelete(id)
+        advanceUntilIdle()
+        assertThat(vm.state.value.confirmDeleteId).isEqualTo(id)
+        assertThat(vm.state.value.confirmDeleteAnswering).isFalse()
+
+        val recreated = viewModel(saved)
+        advanceUntilIdle()
+        assertThat(recreated.state.value.confirmDeleteId).isEqualTo(id)
+
+        recreated.onDismissDelete()
+        advanceUntilIdle()
+        assertThat(recreated.state.value.confirmDeleteId).isNull()
+        assertThat(repository.conversationExists(id)).isTrue()
+    }
+
+    @Test
+    fun theDialog_saysTheAnswerWillStop_onlyForTheConversationBeingAnswered() = runTest(dispatcher) {
+        val answered = conversation("¿Uno?", "2026-11-03T10:00")
+        val other = conversation("¿Dos?", "2026-11-03T11:00")
+        val vm = viewModel()
+        advanceUntilIdle()
+        session.active.value = ActiveAnswer(answered, 1, "¿Uno?", TurnState.GENERATING)
+
+        vm.onDelete(other)
+        advanceUntilIdle()
+        assertThat(vm.state.value.confirmDeleteAnswering).isFalse()
+        vm.onDelete(answered)
+        advanceUntilIdle()
+        assertThat(vm.state.value.confirmDeleteAnswering).isTrue()
+    }
+
+    @Test
+    fun confirming_deletes_andSaysSo_orSaysItFailed_keepingTheRow() = runTest(dispatcher) {
+        val kept = conversation("¿Uno?", "2026-11-03T10:00")
+        val deleted = conversation("¿Dos?", "2026-11-03T11:00")
+        val vm = viewModel()
+        val events = mutableListOf<HistoryEvent>()
+        val collecting = launch { vm.eventFlow.toList(events) }
+        advanceUntilIdle()
+
+        vm.onDelete(deleted)
+        vm.onConfirmDelete()
+        advanceUntilIdle()
+        assertThat(vm.state.value.confirmDeleteId).isNull()
+        assertThat(vm.sections().sections.flatMap { it.entries }.map { it.id }).containsExactly(kept)
+
+        repository.failWrites = true
+        vm.onDelete(kept)
+        vm.onConfirmDelete()
+        advanceUntilIdle()
+        repository.failWrites = false
+
+        collecting.cancel()
+        assertThat(events).containsExactly(HistoryEvent.Deleted, HistoryEvent.DeleteFailed).inOrder()
+        assertThat(vm.sections().sections.flatMap { it.entries }.map { it.id }).containsExactly(kept)
+    }
+
+    @Test
+    fun aConversationGoneWhileItsDialogIsOpen_closesTheDialog() = runTest(dispatcher) {
+        val id = conversation("¿Uno?", "2026-11-03T10:00")
+        val vm = viewModel()
+        advanceUntilIdle()
+        vm.onDelete(id)
+        advanceUntilIdle()
+
+        repository.deleteConversation(id)
+        advanceUntilIdle()
+
+        assertThat(vm.state.value.confirmDeleteId).isNull()
+        assertThat(vm.state.value.content).isEqualTo(HistoryScreenContent.Empty)
     }
 
     private class MutableClock(var now: Instant) : Clock() {

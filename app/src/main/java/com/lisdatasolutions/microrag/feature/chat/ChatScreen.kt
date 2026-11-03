@@ -478,6 +478,7 @@ private fun Announcement(announcement: ChatAnnouncement?) {
         ChatAnnouncement.INTERRUPTED -> stringResource(R.string.chat_announce_interrupted)
         ChatAnnouncement.FAILED -> stringResource(R.string.chat_announce_failed)
         ChatAnnouncement.DELETED -> stringResource(R.string.chat_announce_deleted)
+        ChatAnnouncement.DELETE_FAILED -> stringResource(R.string.history_delete_failed)
         ChatAnnouncement.COPIED -> stringResource(R.string.chat_copied)
     }
     Box(

@@ -263,17 +263,17 @@ Historias de la spec:
 
 ### Pruebas
 
-- [ ] T025 [P] [US3] Ampliar `HistoryViewModelTest` (borrado, research R6):
+- [X] T025 [P] [US3] Ampliar `HistoryViewModelTest` (borrado, research R6):
   - la papelera guarda el id pendiente en el `SavedStateHandle`, que sobrevive a la recreación;
   - `confirmDeleteAnswering` es verdadero solo si esa conversación se está respondiendo;
   - «Cancelar» lo limpia;
   - al confirmar, el evento es `Deleted`, o `DeleteFailed` con la fila intacta;
   - si la conversación pendiente desaparece, el diálogo se cierra.
-- [ ] T026 [P] [US3] Ampliar `HistoryScreenTest`:
+- [X] T026 [P] [US3] Ampliar `HistoryScreenTest`:
   - el diálogo con los textos de C15, con y sin «La respuesta en curso se detendrá.», y el foco en «Cancelar»;
   - los avisos «Conversación borrada» y «No se pudo borrar la conversación.», uno cada vez;
   - un doble toque en la papelera abre un solo diálogo.
-- [ ] T027 [P] [US3] Ampliar `ChatViewModelTest` (Q8, R6):
+- [X] T027 [P] [US3] Ampliar `ChatViewModelTest` (Q8, R6):
   - `deletions` con el id del chat: chat vacío y diálogo cerrado;
   - con otro id: nada;
   - `onConfirmDelete` fallido: la conversación sigue y se anuncia `DELETE_FAILED`;
@@ -281,9 +281,9 @@ Historias de la spec:
 
 ### Implementación
 
-- [ ] T028 [US3] Borrado en Historial: `HistoryViewModel`, el diálogo (`LisdataConfirmationDialog`) y el `SnackbarHost` en `HistoryScreen`. T025 y T026 pasan.
-- [ ] T029 [US3] Chat: la suscripción a `deletions` en `init` de `ChatViewModel`. T027 pasa en su primera parte.
-- [ ] T030 [US3] Chat: el fallo de borrado, con `ChatAnnouncement.DELETE_FAILED` y el texto `history_delete_failed` en la región en vivo de `ChatScreen`. T027 pasa entera.
+- [X] T028 [US3] Borrado en Historial: `HistoryViewModel`, el diálogo (`LisdataConfirmationDialog`) y el `SnackbarHost` en `HistoryScreen`. T025 y T026 pasan.
+- [X] T029 [US3] Chat: la suscripción a `deletions` en `init` de `ChatViewModel`. T027 pasa en su primera parte.
+- [X] T030 [US3] Chat: el fallo de borrado, con `ChatAnnouncement.DELETE_FAILED` y el texto `history_delete_failed` en la región en vivo de `ChatScreen`. T027 pasa entera.
 
 **Checkpoint**: las tres historias P1 completas. Se valida en la JVM y en el emulador.
 

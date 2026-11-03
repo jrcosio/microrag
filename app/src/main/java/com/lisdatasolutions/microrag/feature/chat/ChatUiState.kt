@@ -58,4 +58,5 @@ data class SourceRow(val position: Int, val target: SourceTarget, val citation: 
 /** What a source opens: the document detail on its first fragment (D-043). */
 data class SourceTarget(val documentId: Long, val chunkId: Long)
 
-enum class ChatAnnouncement { SEARCHING, GENERATING, COMPLETED, CANCELLED, INTERRUPTED, FAILED, DELETED, COPIED }
+/** F13 R6: [DELETE_FAILED], a deletion `chat.db` refused; the conversation stays. */
+enum class ChatAnnouncement { SEARCHING, GENERATING, COMPLETED, CANCELLED, INTERRUPTED, FAILED, DELETED, DELETE_FAILED, COPIED }

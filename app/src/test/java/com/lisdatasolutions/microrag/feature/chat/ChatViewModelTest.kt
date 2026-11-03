@@ -767,4 +767,42 @@ class ChatViewModelTest {
 
         assertThat(recreated.state.value.conversationId).isEqualTo(older)
     }
+
+    // --- F13 US3 (research R6, SC-005) ---------------------------------------------------------------
+
+    @Test
+    fun aFailedDeletion_keepsTheConversation_andSaysSo() = runTest(dispatcher) {
+        val document = graph.addDocument("Manual de procesos.pdf")
+        val id = answered(document, at = 5_000)
+        val vm = graph.chatViewModel(saved(conversationId = id))
+        advanceUntilIdle()
+        graph.chats.failWrites = true
+
+        vm.onDelete()
+        vm.onConfirmDelete()
+        advanceUntilIdle()
+
+        assertThat(vm.state.value.conversationId).isEqualTo(id)
+        assertThat(vm.state.value.turns).hasSize(1)
+        assertThat(vm.state.value.announcement).isEqualTo(ChatAnnouncement.DELETE_FAILED)
+    }
+
+    @Test
+    fun afterItsConversationIsDeletedFromHistory_theNextQuestionStartsANewOne() = runTest(dispatcher) {
+        val document = graph.addDocument("Manual de procesos.pdf")
+        val id = answered(document, at = 5_000)
+        val vm = graph.chatViewModel(saved(conversationId = id))
+        advanceUntilIdle()
+
+        graph.session.delete(id)
+        advanceUntilIdle()
+        vm.onQuestionChange("¿Otra?")
+        vm.onSend()
+        advanceUntilIdle()
+
+        val asked = graph.chats.turns.values.single()
+        assertThat(asked.question).isEqualTo("¿Otra?")
+        assertThat(asked.conversationId).isNotEqualTo(id)
+        assertThat(vm.state.value.conversationId).isEqualTo(asked.conversationId)
+    }
 }

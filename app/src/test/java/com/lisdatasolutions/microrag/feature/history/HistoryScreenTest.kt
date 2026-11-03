@@ -2,6 +2,9 @@ package com.lisdatasolutions.microrag.feature.history
 
 import android.app.Application
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
@@ -9,6 +12,8 @@ import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsFocused
+import androidx.compose.ui.test.click
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasScrollToIndexAction
@@ -19,11 +24,20 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.SavedStateHandle
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
+import com.lisdatasolutions.microrag.domain.chat.DeleteConversationUseCase
+import com.lisdatasolutions.microrag.domain.chat.ObserveAnswerInProgressUseCase
+import com.lisdatasolutions.microrag.domain.chat.ObserveConversationsUseCase
+import com.lisdatasolutions.microrag.testing.FakeChatSession
+import com.lisdatasolutions.microrag.testing.InMemoryChatRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -139,5 +153,76 @@ class HistoryScreenTest {
         compose.waitForIdle()
 
         assertThat(calls).contains("more")
+    }
+
+    // --- US3: deleting (H6, U5, U8) --------------------------------------------------------------------
+
+    /** Legacy graphics, as the chat's dialog test: focus in a dialog window is not followed in native mode. */
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.LEGACY)
+    fun theDialog_hasTheChatTexts_andTheLineAboutTheAnswer_onlyWhenItStops() {
+        var state by mutableStateOf(HistoryPreviewData.content.copy(confirmDeleteId = 2))
+        compose.setContent { LisdataTheme { HistoryScreen(state, actions) } }
+
+        compose.onNodeWithText("¿Borrar esta conversación?").assertIsDisplayed()
+        compose.onNodeWithText("Se eliminarán sus preguntas y respuestas de este teléfono.").assertIsDisplayed()
+        compose.onNodeWithText("La respuesta en curso se detendrá.", substring = true).assertDoesNotExist()
+        compose.onNodeWithText("Cancelar").assertIsFocused()
+
+        state = HistoryPreviewData.confirming
+        compose.waitForIdle()
+        compose.onNodeWithText("La respuesta en curso se detendrá.", substring = true).assertIsDisplayed()
+
+        compose.onNodeWithText("Borrar").performClick()
+        compose.onNodeWithText("Cancelar").performClick()
+        assertThat(calls).containsExactly("confirm", "dismiss").inOrder()
+    }
+
+    /** Through the route and its ViewModel, as the app: the snackbars, once each, and one dialog per double tap. */
+    @Test
+    fun deletingThroughTheRoute_saysHowItWent() {
+        val repository = InMemoryChatRepository()
+        val session = FakeChatSession(repository)
+        val ids = runBlocking {
+            listOf("¿Cuál es el plazo de devolución?", "¿Horario?").map { question ->
+                repository.now = 5_000
+                session.ask(null, question).also { session.active.value = null }
+            }
+        }
+        val vm = HistoryViewModel(
+            savedState = SavedStateHandle(mapOf("openConversationId" to null)),
+            observeConversations = ObserveConversationsUseCase(repository),
+            deleteConversation = DeleteConversationUseCase(session),
+            observeAnswerInProgress = ObserveAnswerInProgressUseCase(session),
+            backgroundDispatcher = Dispatchers.Unconfined,
+        )
+        compose.setContent { LisdataTheme { HistoryRoute(onBack = {}, onOpenConversation = {}, onNewChat = {}, viewModel = vm) } }
+
+        compose.onNodeWithContentDescription("Borrar conversación: ¿Horario?").performTouchInput {
+            click()
+            advanceEventTime(100)
+            click()
+        }
+        compose.onAllNodesWithText("¿Borrar esta conversación?").assertCountEquals(1)
+        compose.onNodeWithText("Borrar").performClick()
+        compose.waitForIdle()
+        compose.onNodeWithText("Conversación borrada").assertIsDisplayed()
+        assertThat(runBlocking { repository.conversationExists(ids[1]) }).isFalse()
+
+        // The first snackbar goes away before the second one comes.
+        compose.mainClock.advanceTimeBy(SNACKBAR_MS)
+        compose.onNodeWithText("Conversación borrada").assertDoesNotExist()
+
+        repository.failWrites = true
+        compose.onNodeWithContentDescription("Borrar conversación: ¿Cuál es el plazo de devolución?").performClick()
+        compose.onNodeWithText("Borrar").performClick()
+        compose.waitForIdle()
+        compose.onNodeWithText("No se pudo borrar la conversación.").assertIsDisplayed()
+        compose.onNodeWithContentDescription("Borrar conversación: ¿Cuál es el plazo de devolución?").assertIsDisplayed()
+    }
+
+    private companion object {
+        /** Longer than a short snackbar (4 s). */
+        const val SNACKBAR_MS = 5_000L
     }
 }
