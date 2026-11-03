@@ -341,13 +341,13 @@ Historias de la spec:
 
 **Independent Test**: la prueba escribe su línea `history_bench`, borra su fichero y no toca el `chat.db` de la app.
 
-- [ ] T038 [US7] `…/androidTest/…/data/chat/HistoryBenchmarkTest.kt` (research R9):
+- [X] T038 [US7] `…/androidTest/…/data/chat/HistoryBenchmarkTest.kt` (research R9):
   - 1.000 conversaciones de 5 preguntas, en `cacheDir/history-benchmark/chat.db`;
   - tamaño, primera tanda (p50 y p95 de 20 lecturas), tiempo hasta ver la primera fila dibujada (`HistoryScreen` con el `HistoryViewModel` real, en una regla de Compose) y recorrido completo;
   - una línea de log solo con cifras;
   - el fichero se borra en `@After`.
 
-  Se ejecuta en `Pixel_10` y las cifras van al borrador del informe.
+  Se ejecuta en `Pixel_10` y las cifras van al borrador del informe. Resultado en `Pixel_10`: `db_kb=7740`, primera tanda p50 0,5 ms y p95 3,4 ms, lista entera 2 ms y primera fila dibujada 239 ms.
 
 ---
 
