@@ -149,4 +149,20 @@ class LayeringTest {
         assertWithMessage("feature/settings files importing the data layer, SQLite, WorkManager, LiteRT, File or LocaleManager")
             .that(leaks).isEmpty()
     }
+
+    /** F13 U1: Historial reaches the saved conversations and the chat session through use cases only (history-ui.md §6). */
+    @Test
+    fun theHistoryScreenUsesNoBackendApi() {
+        val featureDir = File("src/main/java/com/lisdatasolutions/microrag/feature/history")
+        val forbidden = listOf(
+            "import com.lisdatasolutions.microrag.data.", "import androidx.sqlite", "import androidx.work",
+            "import com.google.ai.edge.litertlm", "import java.io.File", "import android.app.LocaleManager",
+        )
+        val files = sources.filter { it.canonicalPath.startsWith(featureDir.canonicalPath + File.separator) }
+        val leaks = files.filter { file -> forbidden.any { file.readText().contains(it) } }.map { it.path }
+
+        assertWithMessage("feature/history files exist").that(files).isNotEmpty()
+        assertWithMessage("feature/history files importing the data layer, SQLite, WorkManager, LiteRT, File or LocaleManager")
+            .that(leaks).isEmpty()
+    }
 }

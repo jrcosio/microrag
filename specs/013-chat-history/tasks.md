@@ -58,8 +58,8 @@ Historias de la spec:
 
 **Purpose**: los textos y la regla de capas que necesitan todas las historias.
 
-- [ ] T001 [P] Textos `app/src/main/res/values/strings_history.xml` y `app/src/main/res/values-en/strings_history.xml`, con todas las claves de `history-ui.md` §4. `StringsParityTest` pasa con ellos.
-- [ ] T002 [P] Regla nueva en `…/test/…/architecture/LayeringTest.kt` (U1): `feature/history` no importa `data.`, `androidx.sqlite`, `androidx.work`, LiteRT, `java.io.File` ni `android.app.LocaleManager`. Falla hasta que existe `feature/history`, y pasa con T016.
+- [X] T001 [P] Textos `app/src/main/res/values/strings_history.xml` y `app/src/main/res/values-en/strings_history.xml`, con todas las claves de `history-ui.md` §4. `StringsParityTest` pasa con ellos.
+- [X] T002 [P] Regla nueva en `…/test/…/architecture/LayeringTest.kt` (U1): `feature/history` no importa `data.`, `androidx.sqlite`, `androidx.work`, LiteRT, `java.io.File` ni `android.app.LocaleManager`. Falla hasta que existe `feature/history`, y pasa con T016.
 
 ---
 
