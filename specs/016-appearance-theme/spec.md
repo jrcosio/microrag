@@ -46,6 +46,13 @@
 - **Idiomas** (F12) es el patrón: eyebrow, titular, una lista de opciones de radio en tarjeta, «Guardar preferencias» (con «Guardando…»), aviso «Preferencias guardadas» al volver a Ajustes, aviso en la propia pantalla si no se pudo guardar y tarjeta si no se pudo leer.
 - **Componentes disponibles:** fila de ajustes con icono, título, subtítulo y chevron; fila de radio; grupo de tarjeta; cabecera de sección; tarjeta de aviso; botón con degradado; barra superior con Atrás; aviso inferior.
 
+## Clarifications
+
+### Session 2026-11-03
+
+- Q: En la pantalla Tema, ¿el tema elegido se aplica al tocar «Guardar preferencias» o al marcar la opción? → A: Al guardar, como Idiomas. Marcar una opción no cambia nada; «Guardar preferencias» aplica el tema, vuelve a Ajustes y anuncia «Preferencias guardadas»; Atrás sin guardar no cambia nada (FR-006, FR-007, A3).
+- Q: ¿Se aprueban la spec, el wireframe y las propuestas A1–A9? → A: Sí (revisión del clarify, 2026-11-03). Queda en D-067.
+
 ## User Scenarios & Testing *(mandatory)*
 
 **Actores:**
@@ -268,7 +275,7 @@ La fila «Tema» y la pantalla Tema siguen el wireframe aprobado por el usuario,
       - «Claro»;
       - «Oscuro»;
     - el botón «Guardar preferencias» al final, como en Idiomas.
-  - **A3 — Guardar:** como en Idiomas. Marcar una opción no cambia nada hasta guardar. Al guardar, el botón dice «Guardando…», la app pasa al tema elegido, se vuelve a Ajustes y aparece el aviso inferior «Preferencias guardadas». No se previsualiza el tema al marcar la opción: así el comportamiento es el mismo que en Idiomas y Atrás nunca deja un tema a medias.
+  - **A3 — Guardar** (confirmado en el clarify): como en Idiomas. Marcar una opción no cambia nada hasta guardar. Al guardar, el botón dice «Guardando…», la app pasa al tema elegido, se vuelve a Ajustes y aparece el aviso inferior «Preferencias guardadas». No se previsualiza el tema al marcar la opción: así el comportamiento es el mismo que en Idiomas y Atrás nunca deja un tema a medias.
   - **A4 — Fallo al guardar:** la pantalla sigue abierta con la opción elegida y un aviso inferior «No se pudieron guardar las preferencias. Se mantienen las anteriores.» (el de Idiomas).
   - **A5 — Fallo al leer:** tarjeta de aviso sobre el botón, «No se pudieron leer tus preferencias. Se usan las de por defecto.» (la de Idiomas), con «Sistema» marcada.
   - **A6 — Engranaje:** el Lucide `settings` en la barra inferior y en la cabecera de Inicio, con el mismo tamaño y trazo que los demás iconos. La etiqueta «Ajustes» no cambia.

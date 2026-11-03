@@ -1,6 +1,6 @@
 # Wireframe: Apariencia: tema e icono de Ajustes (F16)
 
-**Estado:** propuesta, pendiente de la aprobación del usuario antes de `/speckit-plan` (criterio 1 de F16, constitución VII).
+**Estado:** aprobado por el usuario el 2026-11-03, antes de `/speckit-plan` (criterio 1 de F16, constitución VII; D-067).
 **Fecha:** 2026-11-03
 **Spec:** [spec.md](spec.md) (FR-001 a FR-021; propuestas A1–A9 en «Assumptions»).
 
