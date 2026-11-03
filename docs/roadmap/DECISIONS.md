@@ -194,7 +194,7 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G47).
 - **Fecha:** 2026-10-25
 - **Decisión:**
   - Tema oscuro derivado de los tokens navy de la marca (`INVENTARIO.md` §2.2).
-  - Sigue el ajuste del sistema, sin selector propio.
+  - Sigue el ajuste del sistema, sin selector propio. *Sustituida en parte por D-067: desde F16 el usuario elige Sistema, Claro u Oscuro.*
   - Se valida con las previews oscuras de cada componente.
 - **Motivo:** no hay mockups oscuros. El design system pide derivar roles y el checklist QA exige comprobar el modo oscuro (G07).
 - **Origen:** usuario (clarify de F01).
@@ -1552,9 +1552,45 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G47).
 
 ---
 
+## D-067 — Tema e icono de Ajustes (clarify de F16)
+
+- **Fecha:** 2026-11-03
+- **Decisión:**
+  1. **Tema de la app:**
+     - tres valores: «Sistema» (por defecto, también al actualizar), «Claro» y «Oscuro»;
+     - una fila «Tema» en Preferencias de Ajustes, entre «Idiomas» e «Índice y rendimiento», con el icono Lucide `sun-moon` y el tema guardado como subtítulo;
+     - abre una pantalla Tema como Idiomas, sin tarjeta hero, con las tres opciones de radio («Sistema» con «Sigue el modo oscuro del teléfono»).
+  2. **Cuándo se aplica:** al tocar «Guardar preferencias», como en Idiomas.
+     - Marcar una opción no cambia nada.
+     - Guardar aplica el tema, vuelve a Ajustes y anuncia «Preferencias guardadas».
+     - Atrás sin guardar no cambia nada.
+  3. **Alcance:** toda la app, la pantalla de arranque y las barras del sistema, con los tokens de siempre (la paleta oscura derivada de D-016 no cambia).
+  4. **Fallos:** si no se puede guardar, se mantiene el tema anterior y se avisa; si no se puede leer, se usa «Sistema» y la pantalla Tema lo dice. Son los textos de Idiomas.
+  5. **Icono de Ajustes:** el Lucide `settings` (engranaje) en la barra inferior, la cabecera de Inicio y el catálogo, en lugar del sol del PNG. La etiqueta «Ajustes» no cambia.
+- **Motivo:**
+  - **El tema:** lo pide el usuario (D-066); hoy la app sigue siempre al teléfono.
+  - **Guardar como Idiomas:** el mismo patrón en las dos pantallas de preferencias; la app se recrea una sola vez y Atrás nunca deja un tema a medias.
+  - **El engranaje:** es la convención de los teléfonos, y el sol se confundiría con el tema.
+- **Alternativas descartadas:**
+  - aplicar el tema al marcar la opción, sin botón;
+  - una hoja inferior en Ajustes (D-066);
+  - una tarjeta hero en la pantalla Tema;
+  - los iconos `palette` o `contrast` para la fila.
+- **Propuestas de UI:** el wireframe y las propuestas A1–A9 (`specs/016-appearance-theme/wireframe.md` y la spec) quedan aprobados por el usuario el 2026-11-03, antes de `/speckit-plan` (criterio 1 de F16).
+- **Origen:** usuario (clarify y revisión del wireframe de F16).
+- **Afecta:**
+  - F16;
+  - D-016: sustituida en parte, solo en «sigue el ajuste del sistema, sin selector propio»;
+  - G19 (sol de Ajustes) y FR-006 de F01: el icono pasa a ser el engranaje, como excepción del usuario a la precedencia del PNG (D-004);
+  - G45: resuelto con esta propuesta;
+  - F12: la sección Preferencias de Ajustes tiene una fila más;
+  - F15: la revisión del modo oscuro cubre los tres valores.
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.
 
-- **Huecos G del inventario:** quedan abiertos G45 (selector de tema, F16), G46 (carpetas y ámbito del chat, F17) y G47 (UI del modo visual, F19–F20), añadidos con D-066. Su UI se propone y se aprueba en el clarify de su feature. Los anteriores se resolvieron en sus features; el estado de cada uno está en `INVENTARIO.md` §6.
+- **Huecos G del inventario:** quedan abiertos G46 (carpetas y ámbito del chat, F17) y G47 (UI del modo visual, F19–F20), añadidos con D-066. G45 (selector de tema) se resolvió en D-067. Su UI se propone y se aprueba en el clarify de su feature. Los anteriores se resolvieron en sus features; el estado de cada uno está en `INVENTARIO.md` §6.
 - **Documentos en otro idioma** — Cerrado en D-062 (medida entre idiomas de F12). Las mejoras de la búsqueda entre idiomas están en la ficha de F14.
