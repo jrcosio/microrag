@@ -11,6 +11,7 @@ import com.lisdatasolutions.microrag.core.navigation.Languages
 import com.lisdatasolutions.microrag.core.navigation.Library
 import com.lisdatasolutions.microrag.core.navigation.Settings
 import com.lisdatasolutions.microrag.core.navigation.Setup
+import com.lisdatasolutions.microrag.core.navigation.Theme
 import com.lisdatasolutions.microrag.core.navigation.Welcome
 
 /** Debug-only: maps the route menu extras to a typed route (FR-024). */
@@ -37,6 +38,7 @@ object DebugRouting {
             "index" -> Index
             "settings" -> Settings
             "languages" -> Languages
+            "theme" -> Theme
             "history" -> History(openConversationId = id)
             else -> null
         }
