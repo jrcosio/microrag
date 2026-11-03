@@ -1588,6 +1588,43 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G47).
 
 ---
 
+## D-068 — Cómo se aplica y se guarda el tema (plan de F16)
+
+- **Fecha:** 2026-11-03
+- **Decisión:**
+  1. **Quién aplica el tema:** el modo oscuro por app del sistema, `UiModeManager.setApplicationNightMode`:
+     - «Sistema» → `MODE_NIGHT_AUTO`, que no impone nada;
+     - «Claro» → `NO`;
+     - «Oscuro» → `YES`.
+
+     `LisdataTheme`, `MainActivity` y los temas XML no cambian. La pantalla de arranque, las barras y Compose leen la configuración de la app.
+  2. **Qué se muestra:** una copia propia del valor en `noBackupFilesDir/datastore/appearance.preferences_pb`, solo para la fila y la opción marcada. Nunca se lee en el hilo principal.
+  3. **Orden al guardar:**
+     - primero la copia y después el sistema;
+     - si la copia falla, no se aplica nada;
+     - si el sistema lo rechaza, se restaura la copia anterior.
+  4. **Reconciliación al arrancar,** en segundo plano: se aplica la copia solo si la configuración de la app no la refleja.
+  5. **«Preferencias guardadas»:** solo lo anuncia TalkBack, como en Idiomas (S9 de F12), cuando la app ya se ve en el tema nuevo. **Corrige A3** y §3 del wireframe, que decían «aparece el aviso inferior»: en Idiomas no hay aviso visible.
+  6. **Iconos:** `ic_settings` se regenera desde Lucide `settings` y entra `ic_sun_moon`, con el conversor de `tools/icons` y `lucide-static` 1.61.0. Se corrige el comando de regeneración de `specs/001-…/quickstart.md`.
+  7. **Proceso:** el usuario pidió el 2026-11-03 hacer el ciclo SDD de F16 de forma automática, salvo que haga falta preguntarle. La parada tras analyze se hace solo si el analyze deja algo que decidir.
+- **Motivo:**
+  - Solo el modo por app del sistema llega a la pantalla de arranque, que el sistema dibuja antes que la app (FR-010). Además persiste tras reiniciar y se borra con los datos de la app.
+  - El sistema no deja leer ese valor (`javap` de las plataformas 33 y 37.1), y sin la copia «Sistema» y «Oscuro» serían indistinguibles con el teléfono en oscuro (constitución V).
+  - Escribir primero la intención y reconciliar al arrancar cierra la ventana de un proceso muerto entre los dos pasos.
+- **Alternativas descartadas:**
+  - AppCompat (D-059), que no persiste ni llega a la pantalla de arranque;
+  - un DataStore leído antes del primer fotograma con `LisdataTheme(darkTheme)` y `SystemBarStyle` a mano, con destello en el arranque y lectura de disco en el hilo principal;
+  - aplicar el tema en cada arranque;
+  - un aviso visible solo para el tema.
+- **Origen:** plan de F16 (`specs/016-appearance-theme/plan.md` y `research.md`), y el usuario (ciclo automático).
+- **Afecta:**
+  - F16: spec (A3), wireframe (§3), contratos y tareas;
+  - F12: `SettingsNotices` y el anuncio del shell esperan también al modo nocturno;
+  - F01: el comando de regenerar iconos;
+  - F15: el riesgo residual de Android 12, sin dispositivo de prueba.
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.

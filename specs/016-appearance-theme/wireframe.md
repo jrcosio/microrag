@@ -101,7 +101,7 @@ El selector de tema no tiene PNG. La fila nueva de Ajustes y la pantalla Tema se
 
 - **Sin tarjeta hero.** Idiomas la tiene porque está en su PNG; aquí no aporta información.
 - **Marcar no cambia nada** hasta guardar. No hay previsualización (A3).
-- **Al guardar:** la app pasa al tema elegido, la pantalla se cierra y Ajustes muestra el aviso inferior «Preferencias guardadas». Guardar lo mismo que ya había cierra sin cambiar nada.
+- **Al guardar:** la app pasa al tema elegido, la pantalla se cierra y TalkBack anuncia «Preferencias guardadas», como en Idiomas, sin aviso visible (corregido en el plan, D-068). Guardar lo mismo que ya había cierra sin cambiar nada.
 
 **Navegación:**
 
