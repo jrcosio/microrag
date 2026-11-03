@@ -20,7 +20,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,6 +42,7 @@ import com.lisdatasolutions.microrag.core.designsystem.component.LisdataSearchFi
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataSectionHeader
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataSkeletonRow
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataTopBar
+import com.lisdatasolutions.microrag.core.designsystem.component.LoadMoreNearTheEnd
 import com.lisdatasolutions.microrag.core.designsystem.icon.LisdataIcon
 import com.lisdatasolutions.microrag.core.designsystem.icon.LisdataIcons
 import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
@@ -160,7 +160,9 @@ fun LibraryScreen(
         // B8: «Este documento ya no existe», and A7: «Documento eliminado».
         SnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter).padding(spacing.space3))
     }
-    LoadMoreNearTheEnd(listState, state.content, actions.onLoadMore)
+    (state.content as? LibraryContent.Documents)?.let { documents ->
+        LoadMoreNearTheEnd(listState, loaded = documents.documents.size, hasMore = documents.hasMore, onLoadMore = actions.onLoadMore)
+    }
 }
 
 @Composable
@@ -275,23 +277,4 @@ private fun DocumentRow(document: LibraryDocument, actions: LibraryActions) {
     )
 }
 
-/** Research R2: the next block is asked for when the end of the loaded rows comes into view. */
-@Composable
-private fun LoadMoreNearTheEnd(listState: LazyListState, content: LibraryContent, onLoadMore: () -> Unit) {
-    val documents = content as? LibraryContent.Documents ?: return
-    val nearTheEnd by remember(listState) {
-        derivedStateOf {
-            val layout = listState.layoutInfo
-            val last = layout.visibleItemsInfo.lastOrNull()?.index ?: return@derivedStateOf false
-            last >= layout.totalItemsCount - LOAD_MORE_DISTANCE
-        }
-    }
-    LaunchedEffect(nearTheEnd, documents.documents.size, documents.hasMore) {
-        if (nearTheEnd && documents.hasMore) onLoadMore()
-    }
-}
-
 private const val SKELETON_ROWS = 4
-
-/** Rows from the end at which the next block is asked for: it arrives before the user gets there. */
-private const val LOAD_MORE_DISTANCE = 10
