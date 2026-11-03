@@ -39,7 +39,8 @@ object HistoryLimits {
 
 | Miembro | Nuevo o cambiado | Contrato |
 |---|---|---|
-| `conversations(limit: Int): Flow<ConversationPage>` | nuevo | Lee la página al suscribirse y cada vez que sube `listChanges`, con `distinctUntilChanged()`. Si `chat.db` no está disponible, el flujo falla con `ChatStorageException` (C17) |
+| `conversations(limit: Int): Flow<ConversationPage>` | nuevo | Lee la página y el total en el mismo bloque, al suscribirse y cada vez que sube `listChanges`, con `distinctUntilChanged()`. Si `chat.db` no está disponible o la lectura falla, el flujo falla con `ChatStorageException` (C17) |
+| `lastConversationId()` | cambiado | Solo entre las conversaciones con preguntas (`EXISTS`, analyze AN-15) |
 | `listChanges` (privado de `SqliteChatRepository`) | nuevo | Sube tras `insertTurn`, `deleteConversation` y `deleteAll` confirmados. No sube con `createConversation`, `updateTurn`, `replaceSources`, `resetForRetry` ni `markInterrupted` (research R2) |
 
 `InMemoryChatRepository` (fake de pruebas) implementa lo mismo.
@@ -48,9 +49,11 @@ object HistoryLimits {
 
 | Miembro | Nuevo o cambiado | Contrato |
 |---|---|---|
-| `openConversation(conversationId: Long)` | nuevo | Si la respuesta en curso es de otra conversación, la detiene como «Nuevo chat» (`CANCELLED`). Con la misma, no hace nada (FR-013, research R5) |
+| `suspend openConversation(conversationId: Long)` | nuevo | Bajo el cerrojo. Si la respuesta en curso es de otra conversación, la detiene como «Nuevo chat» (`CANCELLED`) y espera a que termine. Con la misma, no hace nada (FR-013, research R5) |
 | `delete(conversationId: Long)` | cambiado | Bajo el cerrojo: para y espera solo si la respuesta en curso es de esa conversación, borra y emite el id en `deletions`. Lanza `ChatStorageException` si el borrado falla, sin emitir |
-| `deletions: SharedFlow<Long>` | nuevo | Un id por conversación borrada con `delete`, sin repetir el último valor. `deleteAll` sigue avisando por `historyCleared` (F12) |
+| `deletions: SharedFlow<Long>` | nuevo | Un id por conversación borrada con `delete`, emitido fuera del cerrojo, con búfer de 8 y sin repetir el último valor. `deleteAll` sigue avisando por `historyCleared` (F12) |
+| `ask`, `retry` | cambiado | Bajo el cerrojo, esperan a un trabajo que se está parando antes de empezar otro (analyze AN-04) |
+| `finish()` (privado) | cambiado | Solo limpia `current` si sigue siendo su propia respuesta (analyze AN-04) |
 
 ## 4. Casos de uso (`domain/chat`)
 
@@ -61,8 +64,13 @@ object HistoryLimits {
 | `ObserveConversationDeletionsUseCase()` | nuevo | `session.deletions` |
 | `ObserveAnswerInProgressUseCase()` | nuevo | `Flow<Long?>`: la conversación de la respuesta en curso mientras está en `RETRIEVING` o `GENERATING`; si no, `null` |
 | `DeleteConversationUseCase(id)` | cambiado | Devuelve `Boolean` y no lanza: `false` si `chat.db` lo rechaza (research R6) |
+| `ConversationExistsUseCase(id)` | nuevo | `repository.conversationExists(id)`; `true` si no se puede leer, para no vaciar el chat por un fallo (analyze AN-03) |
+| `ResolveSourcesUseCase` | cambiado | Recibe `List<CitedSource>` (la fuente y la hora de su turno). Un documento creado después del turno es `DOCUMENT_GONE` (analyze AN-01, research R7) |
 
 ```kotlin
+/** A cited block and the time its answer was given; a document created later is another one (research R7). */
+data class CitedSource(val source: AnswerSource, val citedAt: Long)
+
 sealed interface HistoryContent {
     data object Loading : HistoryContent
     /** C17: the saved conversations cannot be read; nothing is deleted. */
@@ -123,16 +131,17 @@ sealed interface HistoryEvent {
 - `history_limit`: el límite de la tanda, de 50 en 50;
 - `history_confirm_delete`: el id pendiente.
 
-**Hoy y zona:** `HistoryViewModel` recibe un `Clock`, y `onStart()` vuelve a leer la fecha y la zona (research R3).
+**Hoy y zona:** `HistoryViewModel` recibe un `Clock` solo para el instante. `onStart()` vuelve a leer el instante y `ZoneId.systemDefault()`, y esa zona sirve para los grupos y para los textos (research R3).
 
 ## 7. Chat (cambios sobre F11 y F12)
 
-- **`TurnUi.chipTargets: List<SourceTarget?>`:** `null` si su fuente es `DOCUMENT_GONE` (research R7).
-- **`ChatAnnouncement.DELETE_FAILED`:** «No se pudo borrar la conversación.» (research R6).
+- **`TurnUi.chipTargets: List<SourceTarget?>`:** `null` si su fuente es `DOCUMENT_GONE`, también en las fichas de una respuesta en curso o sin guardar (research R7).
+- **`ChatAnnouncement.DELETE_FAILED`:** «No se pudo borrar la conversación.», con el texto `history_delete_failed` (research R6).
 - **`ChatViewModel`:**
   - `onOpenConversation(id)`;
   - suscripción a `deletions` en `init`;
   - `onConfirmDelete()` con el resultado `Boolean`;
+  - al restaurar una conversación guardada, `ConversationExistsUseCase` (research R5);
   - claves nuevas: ninguna.
 - **Navegación:**
   - `History(openConversationId: Long? = null)`;

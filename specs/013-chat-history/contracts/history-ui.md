@@ -1,6 +1,6 @@
 # Contrato: pantalla Historial y cambios en el chat (F13)
 
-Wireframe aprobado: [wireframe.md](../wireframe.md). Las propuestas H1–H11 están en la spec, y la corrección de H7 en research R7. Solo tokens y componentes `Lisdata*` (constitución VII).
+Wireframe aprobado: [wireframe.md](../wireframe.md). Las propuestas H1–H11 están en la spec. En el analyze cambiaron H5 (sin «Reintentar») y la lectura de TalkBack de las fichas inertes de H7 (research R7, D-065). Solo tokens y componentes `Lisdata*` (constitución VII).
 
 ## 1. Historial (`feature/history`)
 
@@ -19,7 +19,7 @@ Sin barra inferior: no es raíz de pestaña (N6).
 |---|---|
 | `Loading` | 4 `LisdataSkeletonRow`, leídas como «Cargando» |
 | `Empty` | `LisdataEmptyState(icono Chat, «Aún no hay conversaciones», «Las conversaciones que tengas en el chat aparecerán aquí.», acción «Nuevo chat»)`, `compact` en horizontal |
-| `Error` | `LisdataErrorState(«No se pueden abrir tus conversaciones guardadas.», onRetry = «Reintentar»)`. No se ofrece abrir ni borrar |
+| `Error` | `LisdataErrorState(«No se pueden abrir tus conversaciones guardadas.», onRetry = null)`, sin botones (D-065). No se ofrece abrir ni borrar |
 | `Sections` | La lista. Al acercarse al final con `hasMore`, `onLoadMore` |
 
 ## 2. Fila de conversación (`LisdataConversationRow`, nueva en `Rows.kt`)
@@ -45,7 +45,8 @@ fun LisdataConversationRow(
 - **Chip** (`LisdataStatusChip(chipText, StatusKind.Info)`): al lado del `meta` si cabe sin partir palabras, y si no, debajo. Es la regla `TextsWithChip` de F12.
 - **Papelera:** `IconButton` de 48 dp con `LisdataIcon(Trash, contentDescription = deleteLabel, tint = textSecondary)`. Sin chevron.
 - **Semántica:**
-  - la parte de la tarjeta, `clearAndSetSemantics { contentDescription = accessibilityText }`, con la acción `onClickLabel`;
+  - la tarjeta lleva la acción `onClickLabel`;
+  - `clearAndSetSemantics { contentDescription = accessibilityText }` va solo sobre la columna de textos, no sobre la fila entera, para no tapar la papelera;
   - la papelera, un nodo aparte.
 - **Vistas previas y catálogo de depuración:** título corto y largo, con y sin chip, claro y oscuro, y letra al 200 %.
 
@@ -58,7 +59,7 @@ fun LisdataConversationRow(
 | Últimos 7 días | «lunes · 2 preguntas» | «lunes, 18:05» |
 | Mes | «12 oct. · 5 preguntas» | «12 de octubre de 2026» |
 
-- **Frase de la fila:** «título. fecha. N preguntas.», más « Abierta.» si es la del chat.
+- **Frase de la fila:** «título. fecha. N preguntas.», más « Abierta.» si es la del chat. No se añade un punto tras un título que ya acaba en «?», «!», «.» o «…»: «¿Cuál es el plazo de devolución? Hoy, 10:42. 3 preguntas.».
 - **Acción:** «Abrir conversación».
 - **Papelera:** «Borrar conversación: título».
 
@@ -83,8 +84,8 @@ fun LisdataConversationRow(
 | `history_questions` (plural) | %1$d pregunta / %1$d preguntas | %1$d question / %1$d questions |
 | `history_meta` | %1$s · %2$s | %1$s · %2$s |
 | `history_open_chip` | Abierta | Open |
-| `history_row_sentence` | %1$s. %2$s. %3$s. | %1$s. %2$s. %3$s. |
-| `history_row_sentence_open` | %1$s. %2$s. %3$s. Abierta. | %1$s. %2$s. %3$s. Open. |
+| `history_row_sentence` | %1$s %2$s. %3$s. | %1$s %2$s. %3$s. |
+| `history_row_sentence_open` | %1$s %2$s. %3$s. Abierta. | %1$s %2$s. %3$s. Open. |
 | `history_today_at` | Hoy, %1$s | Today, %1$s |
 | `history_yesterday_at` | Ayer, %1$s | Yesterday, %1$s |
 | `history_weekday_at` | %1$s, %2$s | %1$s, %2$s |
@@ -99,7 +100,11 @@ fun LisdataConversationRow(
 - `chat_delete_title`, `chat_delete_body`, `chat_delete_confirm` y `chat_announce_deleted`;
 - `settings_clear_body_answering`;
 - `chat_storage_unavailable`;
-- `action_retry`, `action_cancel`, `action_back` y `state_loading`.
+- `action_cancel`, `action_back` y `state_loading`.
+
+**Plantillas:** en `history_row_sentence*`, `%1$s` es el título ya terminado en signo: el código le añade «.» solo si no acaba en «?», «!», «.» o «…».
+
+**Chat:** el anuncio `DELETE_FAILED` usa `history_delete_failed`.
 
 **Menú del chat:** «Historial» usa `history_title`.
 
@@ -138,11 +143,12 @@ Ruta de depuración: `--es com.lisdatasolutions.microrag.debug.EXTRA_ROUTE histo
   - Robolectric para U2–U6 y U8.
 
 **Fichas de documentos borrados (research R7):**
-- se dibujan con el número en `textSecondary` sobre `neutralTile`, sin enlace;
+- se dibujan con el número en `textSecondaryOnContainer` sobre `neutralTile`, el par del chip «En cola» que ya comprueba `ContrastTest`, sin enlace;
 - TalkBack lee su número sin acción;
 - la frase «Fuente N: documento, Fuente ya no disponible» está en su fila de fuentes.
 
 ## 7. Diferencias con el wireframe (para el informe de cierre)
 
-- **H7, TalkBack de las fichas inertes:** se lee su número, sin acción, en lugar de «Fuente N: Fuente ya no disponible» (research R7). Se aprueba en la parada del analyze.
+- **H7, TalkBack de las fichas inertes:** se lee su número, sin acción, en lugar de «Fuente N: Fuente ya no disponible» (research R7). Aprobado en el analyze (D-065).
+- **H5, error:** sin «Reintentar» (D-065).
 - Las demás que salgan en la implementación se anotan aquí.

@@ -1458,6 +1458,41 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G44).
 
 ---
 
+## D-065 — Ajustes del analyze de F13
+
+- **Fecha:** 2026-11-03
+- **Decisión** (respuestas del usuario):
+  1. **Fichas `[n]` de documentos borrados y TalkBack** (corrección de H7): TalkBack lee su número, sin acción. La frase «Fuente N: documento, Fuente ya no disponible» la dice su fila de «Fuentes consultadas». Por lo demás, la ficha sigue como se aprobó: en gris y sin abrir nada.
+  2. **Error de Historial sin «Reintentar»** (corrección de H5). Con las conversaciones guardadas ilegibles, Historial muestra solo «No se pueden abrir tus conversaciones guardadas.», como el chat. La app no vuelve a abrir el fichero hasta reiniciarse, así que el botón no podría arreglar nada.
+- **Decisión** (ajustes técnicos del analyze, sin cambio de comportamiento aprobado):
+  1. **Una respuesta parada termina antes de empezar otra** (arreglo de F11):
+     - preguntar o reintentar justo después de «Nuevo chat», de detener o de abrir otra conversación espera a que la anterior acabe de guardarse;
+     - la respuesta nueva ya no se ve «interrumpida» mientras se genera.
+  2. **Identificadores reutilizados** (arreglo de F11):
+     - SQLite puede dar el id de un documento borrado al siguiente que se importa;
+     - un documento creado después de una respuesta nunca cuenta como su fuente, así que la cita vieja sigue diciendo «Fuente ya no disponible» y no abre otro documento.
+  3. **Conversación borrada con la app cerrada por el sistema:** si el chat se restaura con una conversación que ya no existe, vuelve a un chat vacío.
+  4. **Otros:**
+     - zona horaria leída al volver a la pantalla;
+     - la ruta de depuración de Historial abre antes el chat;
+     - la página y el total se leen juntos;
+     - la pestaña Chat nunca abre una conversación sin preguntas;
+     - la frase de TalkBack de cada fila no pone un punto tras «?»;
+     - la medida de SC-001 cuenta hasta la primera fila dibujada;
+     - un escenario de US5 que no se podía alcanzar se reformula;
+     - las fichas inertes usan un par de colores ya comprobado.
+- **Motivo:** el análisis independiente encontró 29 hallazgos: ninguno crítico, 2 altos (el id reutilizado y el escenario de US5), 7 medios y 20 bajos.
+- **Alternativas descartadas:**
+  - ocultar las fichas inertes a TalkBack;
+  - que «Reintentar» vuelva a abrir el fichero, o dejarlo sin efecto;
+  - una columna nueva en `rag.db` para no reutilizar ids.
+- **Origen:** usuario (revisión del analyze de F13) y analyze de F13.
+- **Afecta:**
+  - F13: spec (H5, H7, FR-007, FR-011, FR-019, FR-020, US5, SC-006), wireframe, research, contratos y tareas;
+  - F11: la sesión del chat (Q14) y la resolución de fuentes (Q15).
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.

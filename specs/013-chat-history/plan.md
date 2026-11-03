@@ -25,6 +25,10 @@ F13 añade la pantalla Historial: la lista de las conversaciones guardadas por F
   - «Historial» en «⋯»;
   - las fichas `[n]` de documentos borrados se ven en gris y dejan de abrir nada (R7);
   - una conversación abierta empieza en su última respuesta (R8).
+- **Arreglos de F11 que salieron en el analyze** (D-065):
+  - una respuesta parada termina antes de empezar otra (Q14);
+  - un documento importado después de una respuesta nunca cuenta como su fuente, aunque reciba el id del borrado (Q15);
+  - un borrado fallido ya no cierra la app.
 - **Medida:** el tamaño de 1.000 conversaciones y el tiempo de apertura, con un fichero de prueba aparte (R9).
 - **Pruebas en el teléfono, en la última fase** (petición del usuario), sin capturar Historial mientras liste la conversación del usuario (R12).
 
@@ -75,8 +79,8 @@ F13 añade la pantalla Historial: la lista de las conversaciones guardadas por F
 - 1 pantalla, 1 diálogo y 1 componente nuevo (`LisdataConversationRow`);
 - 1 utilidad movida (`LoadMoreNearTheEnd`);
 - 1 consulta y 1 contador en `chat.db`;
-- 2 miembros nuevos y 1 cambiado en la sesión;
-- 4 casos de uso nuevos y 1 cambiado;
+- 2 miembros nuevos y 3 cambiados en la sesión;
+- 5 casos de uso nuevos y 2 cambiados;
 - unos 17 textos nuevos en español e inglés;
 - 1 prueba de medida.
 
@@ -92,11 +96,11 @@ F13 añade la pantalla Historial: la lista de las conversaciones guardadas por F
 | IV. Rendimiento | Una consulta indexada por tanda, en el hilo de la base de datos. No se vuelve a leer durante las respuestas (R2). Sin motores nuevos; abrir o borrar detienen la respuesta sin tocar la GPU | ✅ |
 | V. Veracidad del estado | Borrar pide confirmación y dice si detiene una respuesta. Un borrado fallido lo dice y no quita nada (R6). Las fuentes de documentos borrados nunca abren nada (R7) | ✅ |
 | VI. Calidad y pruebas | ViewModels con fakes. Agrupación pura con `Clock`. Consulta probada en el emulador. ATF. Medida reproducible (R9, R11) | ✅ |
-| VII. UI fiel y accesible | Wireframe y H1–H11 aprobados. Componentes `Lisdata*` y tokens. U1–U10. Textos en español e inglés con paridad. La corrección de H7 (R7) se aprueba en la parada del analyze. Diferencias en el informe de cierre | ✅ |
-| VIII. Proceso | Documentación en español y código en inglés. D-063 (clarify) y D-064 (plan). Parada tras analyze. Pruebas en el teléfono al final | ✅ |
+| VII. UI fiel y accesible | Wireframe y H1–H11 aprobados, con las correcciones de H5 y H7 aprobadas en el analyze (D-065). Componentes `Lisdata*` y tokens. U1–U10. Textos en español e inglés con paridad. Diferencias en el informe de cierre | ✅ |
+| VIII. Proceso | Documentación en español y código en inglés. D-063 (clarify), D-064 (plan) y D-065 (analyze). Parada tras analyze. Pruebas en el teléfono al final | ✅ |
 
 **Re-check post-diseño:** sin violaciones.
-- La única desviación de lo aprobado es la frase de TalkBack de las fichas inertes (R7). Va como corrección para aprobar, no como excepción.
+- Las dos desviaciones de lo aprobado (H5 sin «Reintentar» y la lectura de TalkBack de las fichas inertes de H7) las aprobó el usuario en el analyze (D-065).
 
 ## Project Structure
 
@@ -124,7 +128,7 @@ app/src/main/java/com/lisdatasolutions/microrag/
 ├── domain/chat/
 │   ├── ChatModels.kt                           # ConversationSummary, ConversationPage, HistoryLimits, HistoryContent
 │   ├── ChatRepository.kt, ChatSession.kt       # conversations(limit); openConversation, deletions
-│   └── ChatUseCases.kt                         # 4 nuevos; DeleteConversationUseCase con Boolean
+│   └── ChatUseCases.kt                         # 5 nuevos; DeleteConversationUseCase con Boolean; ResolveSourcesUseCase (Q15)
 ├── data/chat/
 │   ├── SqliteChatRepository.kt                 # consulta de R1, listChanges
 │   └── DefaultChatSession.kt                   # openConversation, delete bajo el cerrojo, deletions
@@ -138,7 +142,7 @@ app/src/main/java/com/lisdatasolutions/microrag/
 │   ├── Chat.kt                                 # unavailableCitations
 │   └── Lists.kt                                # LoadMoreNearTheEnd (desde LibraryScreen)
 ├── feature/library/LibraryScreen.kt            # usa Lists.kt
-├── core/navigation/{Destinations, MicroRagNavHost}.kt         # History, CHAT_REQUEST
+├── core/navigation/{Destinations, MicroRagNavHost, MicroRagAppShell}.kt   # History, CHAT_REQUEST, ruta de depuración
 ├── domain/di/DomainModule.kt, feature/di/FeatureModule.kt
 app/src/main/res/values{,-en}/strings_history.xml
 app/src/debug/java/com/lisdatasolutions/microrag/debug/
@@ -147,10 +151,13 @@ app/src/debug/java/com/lisdatasolutions/microrag/debug/
 
 app/src/test/java/com/lisdatasolutions/microrag/
 ├── feature/history/{HistoryGroupingTest, HistoryTextsTest, HistoryViewModelTest, HistoryScreenTest}.kt
+├── domain/chat/{HistoryUseCasesTest, ResolveSourcesUseCaseTest (ampliada)}.kt
+├── core/designsystem/component/ConversationRowTest.kt
 ├── testing/ChatFakes.kt                        # conversations, openConversation, deletions
 └── (ampliadas) DefaultChatSessionTest, ChatViewModelTest, ChatScreenTest, NavigationTest, LayeringTest, AppModulesTest
 app/src/androidTest/java/com/lisdatasolutions/microrag/
 ├── data/chat/{SqliteChatRepositoryTest (ampliada), HistoryBenchmarkTest}.kt
+├── data/rag/RagIndexWriteTest.kt               # ampliada: id reutilizado (Q15)
 ├── feature/history/HistoryScreenAccessibilityTest.kt
 └── SystemBackTest.kt                           # Atrás desde Historial
 ```
@@ -229,8 +236,9 @@ Las pruebas en el teléfono van al final, como en F10–F12 (petición del usuar
 3. **Fechas y zonas.** Las pruebas de agrupación usan zonas fijas (Europa/Madrid con cambio de hora, UTC y una con +14 h) y la medianoche exacta.
 4. **SC-001 en el teléfono.** La consulta es indexada. Si la primera tanda pasara de 1 s, se mide sin la subconsulta del recuento y se decide con las cifras.
 5. **Privacidad en el teléfono** (R12). Historial lista el título de la conversación del usuario: sin capturas ni volcados de texto allí, y el recorrido se acuerda antes.
-6. **Las fichas inertes y TalkBack** (R7). La frase aprobada en H7 no se puede dar dentro del texto. La corrección se presenta en la parada del analyze.
+6. **Las fichas inertes y TalkBack** (R7). La frase aprobada en H7 no se puede dar dentro del texto. La corrección la aprobó el usuario en el analyze (D-065).
 7. **Mover `LoadMoreNearTheEnd`.** Las pruebas de la Biblioteca (tandas) deben seguir pasando sin cambios.
+8. **Arreglos de F11** (Q14, Q15). Cambian la sesión y la resolución de fuentes que ya usa el chat: las pruebas de F11 deben seguir pasando sin cambios, además de las nuevas.
 
 ## Complexity Tracking
 

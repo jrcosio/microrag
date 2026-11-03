@@ -2,7 +2,7 @@
 
 **Estado:** aprobado por el usuario el 2026-11-02, antes de `/speckit-plan` (criterio 1 de F13, constitución VII).
 **Fecha:** 2026-11-02
-**Spec:** [spec.md](spec.md) (FR-001 a FR-026; propuestas H1–H11 en «Assumptions»).
+**Spec:** [spec.md](spec.md) (FR-001 a FR-026; propuestas H1–H11 en «Assumptions»). En el analyze cambiaron H5 (sin «Reintentar») y la lectura de TalkBack de las fichas inertes de H7 (D-065).
 
 F13 no tiene PNG. Esta pantalla se compone solo con piezas del design system `Lisdata*` y sus tokens. La única pieza nueva es la fila de conversación (H3), hecha con `LisdataCard` como las demás filas de tarjeta. Los textos van entre «» en español; la versión inglesa se traduce igual. Los dibujos son de un teléfono en vertical de unos 390 dp de ancho, sin escala.
 
@@ -130,13 +130,14 @@ Cargando                                 Error
 │ │ ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓             │ │  │   No se pueden abrir tus            │ ← LisdataErrorState
 │ │ ▓▓▓▓▓▓▓▓                        │ │  │   conversaciones guardadas.         │   (texto de C17)
 │ └─────────────────────────────────┘ │  │                                     │
-│   × 4 (LisdataSkeletonRow)          │  │          [ Reintentar ]             │
+│   × 4 (LisdataSkeletonRow)          │  │                                     │
 │                                     │  │                                     │
 └─────────────────────────────────────┘  └─────────────────────────────────────┘
 ```
 
 - Mientras carga, 4 filas esqueleto (`LisdataSkeletonRow`), que TalkBack lee como «Cargando».
-- Si no se pueden leer las conversaciones, `LisdataErrorState` con el texto de C17 y «Reintentar», que vuelve a leer. No se borra nada, y la lista no ofrece abrir ni borrar.
+- Si no se pueden leer las conversaciones, `LisdataErrorState` con el texto de C17, sin botones. No se borra nada, y la lista no ofrece abrir ni borrar.
+- **Cambiado en el analyze (2026-11-03):** se quitó «Reintentar», que no podía arreglar un fichero ilegible (D-065).
 
 ## 5. Borrar (H6)
 
