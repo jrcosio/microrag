@@ -50,4 +50,15 @@
     <string name="languages_saved">Preferences saved</string>
     <string name="languages_save_failed">Your preferences could not be saved. The previous ones are kept.</string>
     <string name="languages_read_failed">Your preferences could not be read. The defaults are in use.</string>
+
+    <!-- F16 Appearance (D-067). -->
+    <string name="settings_theme">Theme</string>
+    <string name="theme_title">Theme</string>
+    <string name="theme_eyebrow">Appearance</string>
+    <string name="theme_headline">Choose how the app looks</string>
+    <string name="theme_section">App theme</string>
+    <string name="theme_system">System</string>
+    <string name="theme_system_subtitle">Follows your phone\'s dark mode</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
 </resources>

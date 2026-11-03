@@ -56,4 +56,15 @@
     <!-- Each language is named in itself, whatever the app language (S11). -->
     <string name="language_name_es" translatable="false">Español</string>
     <string name="language_name_en" translatable="false">English</string>
+
+    <!-- F16 Apariencia (D-067, propuestas A1–A9, contracts/theme-ui.md §4). -->
+    <string name="settings_theme">Tema</string>
+    <string name="theme_title">Tema</string>
+    <string name="theme_eyebrow">Apariencia</string>
+    <string name="theme_headline">Elige cómo se ve la app</string>
+    <string name="theme_section">Tema de la aplicación</string>
+    <string name="theme_system">Sistema</string>
+    <string name="theme_system_subtitle">Sigue el modo oscuro del teléfono</string>
+    <string name="theme_light">Claro</string>
+    <string name="theme_dark">Oscuro</string>
 </resources>
