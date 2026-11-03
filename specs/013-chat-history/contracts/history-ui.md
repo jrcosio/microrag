@@ -42,7 +42,7 @@ fun LisdataConversationRow(
 - **`LisdataCard(onClick = onOpen, onClickLabel)`**, con una fila:
   - una columna: el título (`titleMedium`, `textPrimary`, `maxLines = 2`, `Ellipsis`), y debajo el `meta` (`bodyMedium`, `textSecondary`) con el chip;
   - la papelera, arriba a la derecha.
-- **Chip** (`LisdataStatusChip(chipText, StatusKind.Info)`): al lado del `meta` si cabe sin partir palabras, y si no, debajo. Es la regla `TextsWithChip` de F12.
+- **Chip** (`LisdataStatusChip(chipText, StatusKind.Info)`): al lado del `meta` si cabe sin partir palabras, y si no, debajo. Se coloca con un `FlowRow`, que da la misma regla que `TextsWithChip` de F12 para un texto de una línea.
 - **Papelera:** `IconButton` de 48 dp con `LisdataIcon(Trash, contentDescription = deleteLabel, tint = textSecondary)`. Sin chevron.
 - **Semántica:**
   - la tarjeta lleva la acción `onClickLabel`;
@@ -151,4 +151,5 @@ Ruta de depuración: `--es com.lisdatasolutions.microrag.debug.EXTRA_ROUTE histo
 
 - **H7, TalkBack de las fichas inertes:** se lee su número, sin acción, en lugar de «Fuente N: Fuente ya no disponible» (research R7). Aprobado en el analyze (D-065).
 - **H5, error:** sin «Reintentar» (D-065).
+- **Hora de las filas:** con el formato del sistema para el idioma, sin cero delante en español («8:15»); el wireframe dibujaba «08:15».
 - Las demás que salgan en la implementación se anotan aquí.
