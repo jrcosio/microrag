@@ -38,6 +38,9 @@ object HistoryPreviewData {
 
     /** H6 while the conversation is being answered. */
     val confirming = content.copy(confirmDeleteId = 1, confirmDeleteAnswering = true)
+
+    /** Every state, for the accessibility checks (U10). */
+    val all = listOf("content" to content, "empty" to empty, "loading" to loading, "error" to error, "confirm" to confirming)
 }
 
 @LisdataPreviews

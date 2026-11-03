@@ -327,11 +327,11 @@ Historias de la spec:
 
 **Independent Test**: ATF pasa en todas las combinaciones, y las capturas del emulador coinciden con el wireframe.
 
-- [ ] T035 [P] [US6] `…/androidTest/…/feature/history/HistoryScreenAccessibilityTest.kt` (ATF, `enableAccessibilityChecks`):
+- [X] T035 [P] [US6] `…/androidTest/…/feature/history/HistoryScreenAccessibilityTest.kt` (ATF, `enableAccessibilityChecks`):
   - Historial con contenido, vacío y error, y el diálogo;
   - en claro y en oscuro, con la letra al 100 % y al 200 %, y en vertical y en horizontal.
-- [ ] T036 [US6] Ajustar la pantalla hasta que T035 pase en el emulador. Si ATF marca algo que contradice el wireframe o una propuesta aprobada, **se para y se consulta**.
-- [ ] T037 [P] [US6] `StringsParityTest` y la revisión del inglés de `strings_history.xml` y de los textos tocados del chat. Las correcciones van al informe de cierre.
+- [X] T036 [US6] Ajustar la pantalla hasta que T035 pase en el emulador. Si ATF marca algo que contradice el wireframe o una propuesta aprobada, **se para y se consulta**. Resultado: las 30 combinaciones pasaron a la primera en `Pixel_10`, sin cambios en la pantalla.
+- [X] T037 [P] [US6] `StringsParityTest` y la revisión del inglés de `strings_history.xml` y de los textos tocados del chat. Las correcciones van al informe de cierre. Resultado: paridad completa y 17 textos en inglés revisados, sin correcciones.
 
 ---
 
