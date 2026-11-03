@@ -353,13 +353,15 @@ Historias de la spec:
 
 ## Phase 10: Polish sin teléfono
 
-- [ ] T039 Pasar toda la batería:
+- [X] T039 Pasar toda la batería:
   - `./gradlew :app:testDebugUnitTest :app:lintDebug`, solo con el aviso previo de LiteRT-LM 0.19.0;
   - `offline/.venv/bin/python -I -m unittest discover -s offline/tests`;
   - `offline/.venv/bin/python -I offline/gen_answer_golden.py --check`.
-- [ ] T040 Batería instrumentada completa en `Pixel_10` y en `MicroRAG_API33`, con los emuladores sin ventana, que se cierran al terminar. En API 33 siguen las 4 fallos previos de Atrás desde la raíz.
-- [ ] T041 Recorrido en el emulador (quickstart §2, pasos 1–7), con conversaciones y documentos de prueba. Capturas frente al wireframe en español e inglés, en claro y en oscuro, al 200 % y en horizontal.
-- [ ] T042 Borrador de `specs/013-chat-history/report.md`:
+
+  Resultado: JVM 988/988; lint sin errores, con los avisos de LiteRT-LM 0.19.0 y SQLite-Vector 1.2.0; Python 181 OK; golden al día.
+- [X] T040 Batería instrumentada completa en `Pixel_10` y en `MicroRAG_API33`, con los emuladores sin ventana, que se cierran al terminar. En API 33 siguen las 4 fallos previos de Atrás desde la raíz. Resultado: `Pixel_10` 775 pruebas, 0 fallos y 7 omitidas; API 33 775 pruebas, los 4 fallos previos y 19 omitidas.
+- [X] T041 Recorrido en el emulador (quickstart §2, pasos 1–7), con conversaciones y documentos de prueba. Capturas frente al wireframe en español e inglés, en claro y en oscuro, al 200 % y en horizontal.
+- [X] T042 Borrador de `specs/013-chat-history/report.md`:
   - resumen;
   - resultados de build, lint y pruebas;
   - cifras de T038;
