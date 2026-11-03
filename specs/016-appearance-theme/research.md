@@ -55,7 +55,7 @@ Cada punto sigue el formato **Decisión / Motivo / Alternativas**. Lo verificado
 - **Decisión al arrancar:** `ReconcileThemeUseCase` corre una vez en el `ApplicationScope`, fuera del hilo principal, después de Koin. Resuelve sus dependencias dentro de la corrutina (analyze, L9). Lee la copia y aplica:
   - la copia, si se leyó;
   - `SYSTEM`, si la lectura falló. Es lo que dice FR-016 («la app usa “Sistema”») y lo que marca la pantalla (analyze, H2).
-- **Variante A, preferida:** aplicar siempre. Solo vale si reaplicar el mismo valor no cambia la configuración ni recrea la actividad. Lo comprueba T009 en la puerta T015.
+- **Variante A, preferida y elegida:** aplicar siempre. Solo vale si reaplicar el mismo valor no cambia la configuración ni recrea la actividad. **Resultado de la puerta T015** (2026-11-03): `PlatformAppThemeControllerTest` pasó 3 de 3 en `MicroRAG_API32`, `MicroRAG_API33` y `Pixel_10`. AUTO sigue al modo del emulador en los dos sentidos, y reaplicar `DARK` deja la misma instancia de la actividad. Por eso se usa la variante A, y `isShowing` no se escribe.
 - **Variante B, si reaplicar recrea:** aplicar solo si la configuración de la app no refleja la copia.
   - Con `LIGHT` o `DARK`, se compara con el modo nocturno de la configuración de la app. Al arrancar el proceso vale el contexto de la `Application`, aunque su configuración quede fija desde ese momento (analyze, M1).
   - Con `SYSTEM`, se compara con el modo del teléfono que da `UiModeManager.getNightMode()` (`YES` o `NO`). Con `AUTO` o `CUSTOM` no se sabe y no se aplica nada (R12).
