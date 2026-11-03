@@ -1625,6 +1625,46 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G47).
 
 ---
 
+## D-069 — Ajustes del analyze de F16
+
+- **Fecha:** 2026-11-03
+- **Decisión** (respuestas del usuario):
+  1. **«Preferencias guardadas»:** al guardar el tema, solo lo anuncia TalkBack, como en Idiomas. Confirma la corrección de A3 de D-068.
+  2. **Android 12:** se crea el emulador `MicroRAG_API32` (API 32), donde se verifica el modo por app y se graban los arranques en frío. Sustituye el riesgo residual de D-068.
+  3. **Parada del analyze:** hecha. El plan, las tareas y el analyze quedan aprobados con sus correcciones, y la implementación sigue en automático hasta la fase del teléfono, que se consulta antes.
+- **Decisión** (ajustes técnicos del analyze, sin cambio de comportamiento aprobado):
+  1. **El modo del teléfono no se lee de `Resources.getSystem()`** (H1): esa configuración ya incluye el modo por app (`ResourcesManager`, SDK 36.1). Si hace falta, se usa `UiModeManager.getNightMode()`.
+  2. **El anuncio** espera un margen de 1 s en la composición, en lugar de comparar el modo nocturno. Si la actividad se recrea, sale en la nueva.
+  3. **Reconciliación:**
+     - aplica la copia, o «Sistema» si la lectura falló, como pide FR-016 (H2);
+     - **variante A:** aplicar siempre, si reaplicar el mismo valor no recrea;
+     - **variante B:** aplicar solo cuando no coincide;
+     - la prueba instrumentada de la puerta T015 decide entre las dos.
+  4. **Fichero corrupto:** el almacén lo sustituye por uno vacío y marca la lectura fallida, de modo que el siguiente guardado funciona (M2).
+  5. **Otros:**
+     - el criterio del icono pasa a «ningún icono del Lucide `sun`», para no chocar con `sun-moon`;
+     - se miden los tiempos de SC-001 y SC-004;
+     - `SaveFailure` se comparte con Idiomas;
+     - las pruebas instrumentadas esperan cada cambio con un plazo máximo y dejan siempre «Sistema»;
+     - el arranque en el teléfono no se graba;
+     - G19 y G45 se cierran en F16;
+     - se corrigen referencias desfasadas.
+- **Motivo:** la revisión independiente encontró 19 hallazgos:
+  - 1 crítico: la parada obligatoria tras el analyze;
+  - 2 altos (H1 y H2);
+  - 7 medios y 9 bajos.
+- **Alternativas descartadas:**
+  - un aviso visible al guardar el tema;
+  - aceptar Android 12 sin verificar;
+  - comparar con `Resources.getSystem()`;
+  - `MODE_NIGHT_CUSTOM` como alternativa a `AUTO`, porque también acaba en «sin imponer».
+- **Origen:** usuario (revisión del analyze de F16) y analyze de F16.
+- **Afecta:**
+  - F16: spec (FR-001, FR-016, SC-007), wireframe, research (R1, R2, R3, R4, R6, R9, R12), data-model, contratos, quickstart y tareas;
+  - F12: `SaveFailure` de `LanguagesScreen.kt` pasa a ser compartido.
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.

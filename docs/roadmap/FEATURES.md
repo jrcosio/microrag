@@ -50,7 +50,7 @@ Al cerrar cada feature se entrega:
 | F13 | Historial de chats | Producto (UI propuesta) | F11, F12 | ✅ cerrada |
 | F14 | Rendimiento en dispositivo y decisión INT8 | Técnica | F10, F11, F17, F20 | ⬜ |
 | F15 | Pulido y release | Producto | F01–F20 | ⬜ |
-| F16 | Apariencia: tema e icono de Ajustes | Producto (UI propuesta) | F12 | 🟨 en curso (plan hecho) |
+| F16 | Apariencia: tema e icono de Ajustes | Producto (UI propuesta) | F12 | 🟨 en curso (implement) |
 | F17 | Carpetas y ámbito del chat | Producto (UI propuesta) | F08, F11, F13 | ⬜ |
 | F18 | Viabilidad del RAG visual (fase 0 visual) | Técnica | F05, F10, F11 | ⬜ |
 | F19 | Indexación visual | Producto (UI propuesta) | F17, F18 | ⬜ |
@@ -763,7 +763,7 @@ Opciones a evaluar: normalizar la búsqueda por palabras según el idioma del do
 ## F16 — Apariencia: tema e icono de Ajustes
 
 - **Tipo:** Producto. El selector de tema no tiene mockup (G45): su UI se propone y se aprueba antes del plan (constitución VII).
-- **Estado:** 🟨 en curso en la rama `016-appearance-theme`. Specify, clarify y wireframe aprobados el 2026-11-03, con las propuestas A1–A9 (`specs/016-appearance-theme/wireframe.md`) y la decisión D-067: el tema se aplica al guardar, como en Idiomas; la fila «Tema» va entre «Idiomas» e «Índice y rendimiento» con el icono `sun-moon`; y el engranaje es el Lucide `settings`. Plan hecho el 2026-11-03, con la decisión D-068: aplica el modo oscuro por app del sistema, la app guarda una copia para mostrar el valor y reconcilia al arrancar, y «Preferencias guardadas» solo lo anuncia TalkBack, lo que corrige A3. Spec en `specs/016-appearance-theme/spec.md`.
+- **Estado:** 🟨 en curso en la rama `016-appearance-theme`. Specify, clarify y wireframe aprobados el 2026-11-03, con las propuestas A1–A9 (`specs/016-appearance-theme/wireframe.md`) y la decisión D-067: el tema se aplica al guardar, como en Idiomas; la fila «Tema» va entre «Idiomas» e «Índice y rendimiento» con el icono `sun-moon`; y el engranaje es el Lucide `settings`. Plan hecho el 2026-11-03, con la decisión D-068: aplica el modo oscuro por app del sistema, la app guarda una copia para mostrar el valor y reconcilia al arrancar, y «Preferencias guardadas» solo lo anuncia TalkBack, lo que corrige A3. Tareas y analyze aprobados el 2026-11-03, con la decisión D-069 (A3 confirmado, emulador de API 32, reconciliación que aplica «Sistema» si la lectura falla, anuncio tras un margen y el modo del teléfono nunca leído de `Resources.getSystem()`). Spec en `specs/016-appearance-theme/spec.md`.
 
 **Objetivo.**
 - **Icono de Ajustes:**
