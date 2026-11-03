@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- F13 Chat history (wireframe H1–H11, contracts/history-ui.md §4). -->
+<resources>
+    <string name="history_title">History</string>
+    <string name="history_today">Today</string>
+    <string name="history_yesterday">Yesterday</string>
+    <string name="history_last_7_days">Last 7 days</string>
+    <plurals name="history_questions">
+        <item quantity="one">%1$d question</item>
+        <item quantity="other">%1$d questions</item>
+    </plurals>
+    <string name="history_meta">%1$s · %2$s</string>
+    <string name="history_open_chip">Open</string>
+    <string name="history_row_sentence">%1$s %2$s. %3$s.</string>
+    <string name="history_row_sentence_open">%1$s %2$s. %3$s. Open.</string>
+    <string name="history_today_at">Today, %1$s</string>
+    <string name="history_yesterday_at">Yesterday, %1$s</string>
+    <string name="history_weekday_at">%1$s, %2$s</string>
+    <string name="history_open_action">Open conversation</string>
+    <string name="history_delete_label">Delete conversation: %1$s</string>
+    <string name="history_empty_title">No conversations yet</string>
+    <string name="history_empty_body">Your chat conversations will appear here.</string>
+    <string name="history_delete_failed">Couldn\'t delete the conversation.</string>
+</resources>
