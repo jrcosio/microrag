@@ -274,12 +274,14 @@ description: "Lista de tareas de F16 — Apariencia: tema e icono de Ajustes"
 
 ## Phase 9: Polish sin teléfono
 
-- [ ] T035 Pasar toda la batería JVM:
+- [X] T035 Pasar toda la batería JVM:
   - `./gradlew :app:testDebugUnitTest :app:lintDebug`, con solo los avisos previos de LiteRT-LM 0.19.0 y SQLite-Vector 1.2.0;
   - `offline/.venv/bin/python -I -m unittest discover -s offline/tests`, que no cambia.
-- [ ] T036 Batería instrumentada completa en `Pixel_10` y en `MicroRAG_API33`. En API 33 siguen los 4 fallos previos de Atrás desde la raíz. Cada prueba que toca el modo por app lo deja en «Sistema».
-- [ ] T037 Recorrido en el emulador (quickstart §3, pasos 1–9), con capturas frente al wireframe en español e inglés, en claro y en oscuro, al 200 % y en horizontal. Con cada tema se abren al menos un diálogo de confirmación, una hoja inferior (la ficha de modelo), un menú «⋯» y un snackbar (FR-009).
-- [ ] T038 Borrador de `specs/016-appearance-theme/report.md`:
+
+  **Resultado:** JVM 1.024 de 1.024; lint sin errores, con los 2 avisos previos; Python 181 OK.
+- [X] T036 Batería instrumentada completa en `Pixel_10` y en `MicroRAG_API33`. En API 33 siguen los 4 fallos previos de Atrás desde la raíz. Cada prueba que toca el modo por app lo deja en «Sistema». **Resultado:** `Pixel_10` OK con 815 pruebas en 19,7 min; API 33 con 815 pruebas y solo los 4 fallos previos, en 20,6 min. Los dos emuladores acaban en modo claro.
+- [X] T037 Recorrido en el emulador (quickstart §3, pasos 1–9), con capturas frente al wireframe en español e inglés, en claro y en oscuro, al 200 % y en horizontal. Con cada tema se abren al menos un diálogo de confirmación, una hoja inferior (la ficha de modelo), un menú «⋯» y un snackbar (FR-009).
+- [X] T038 Borrador de `specs/016-appearance-theme/report.md`:
   - resumen;
   - resultados de build, lint y pruebas;
   - cifras de T024;
