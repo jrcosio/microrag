@@ -22,6 +22,13 @@ data object Home
 @Serializable
 data class Chat(val conversationId: Long? = null, val newConversation: Boolean = false)
 
+/**
+ * F13 Historial, over the chat that opened it (research R4). [openConversationId] is the conversation that
+ * chat shows, marked «Abierta»; the chat does not change while Historial is on top of it.
+ */
+@Serializable
+data class History(val openConversationId: Long? = null)
+
 @Serializable
 data object Ingest
 
