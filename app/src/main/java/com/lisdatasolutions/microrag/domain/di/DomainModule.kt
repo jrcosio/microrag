@@ -32,6 +32,8 @@ import com.lisdatasolutions.microrag.domain.onboarding.PrepareModelsUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.PrepareStorageUseCase
 import com.lisdatasolutions.microrag.domain.settings.ObserveLanguageSettingsUseCase
 import com.lisdatasolutions.microrag.domain.settings.ObserveModelOverviewUseCase
+import com.lisdatasolutions.microrag.domain.settings.ObserveThemeSettingsUseCase
+import com.lisdatasolutions.microrag.domain.settings.ReconcileThemeUseCase
 import com.lisdatasolutions.microrag.domain.settings.SaveLanguageSettingsUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.ReconcileDownloadsUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.ResolveStartDestinationUseCase
@@ -59,6 +61,7 @@ import com.lisdatasolutions.microrag.domain.chat.RetryAnswerUseCase
 import com.lisdatasolutions.microrag.domain.chat.StartNewConversationUseCase
 import com.lisdatasolutions.microrag.domain.chat.WarmUpAnswerEngineUseCase
 import com.lisdatasolutions.microrag.domain.retrieval.RetrieveContextUseCase
+import com.lisdatasolutions.microrag.domain.settings.SaveThemeSettingsUseCase
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
@@ -85,6 +88,9 @@ val domainModule = module {
     factoryOf(::ObserveModelOverviewUseCase)
     factoryOf(::ObserveLanguageSettingsUseCase)
     factoryOf(::SaveLanguageSettingsUseCase)
+    factoryOf(::ObserveThemeSettingsUseCase)
+    factoryOf(::SaveThemeSettingsUseCase)
+    factoryOf(::ReconcileThemeUseCase)
 
     // Document import (F06).
     factoryOf(::ObserveImportQueueUseCase)

@@ -11,6 +11,10 @@ import com.lisdatasolutions.microrag.domain.onboarding.LocalModelWorkTracker
 import com.lisdatasolutions.microrag.domain.onboarding.ObserveModelSetupUseCase
 import com.lisdatasolutions.microrag.domain.settings.AppLanguage
 import com.lisdatasolutions.microrag.domain.settings.AppLanguageController
+import com.lisdatasolutions.microrag.domain.settings.AppThemeController
+import com.lisdatasolutions.microrag.domain.settings.AppThemeStore
+import com.lisdatasolutions.microrag.domain.settings.ThemePreference
+import com.lisdatasolutions.microrag.domain.settings.ThemeSettings
 import java.io.File
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.update
@@ -38,6 +42,42 @@ class FakeAppLanguageController(
         if (failApply) return false
         this.language = language
         return true
+    }
+}
+
+/**
+ * [AppThemeStore] with every outcome programmable (F16 T005): an unreadable copy with [failRead] and a
+ * failed write with [failWrite]. [written] records every write, also the failed ones.
+ */
+class FakeAppThemeStore(var preference: ThemePreference = ThemePreference.SYSTEM) : AppThemeStore {
+    var failRead = false
+    var failWrite = false
+    val written = mutableListOf<ThemePreference>()
+
+    /** While set and not completed, write() waits: what Tema shows while it saves. */
+    var gate: CompletableDeferred<Unit>? = null
+
+    override suspend fun read(): ThemeSettings =
+        if (failRead) ThemeSettings(ThemePreference.SYSTEM, readFailed = true) else ThemeSettings(preference)
+
+    override suspend fun write(preference: ThemePreference): Boolean {
+        written += preference
+        gate?.await()
+        if (failWrite) return false
+        this.preference = preference
+        failRead = false
+        return true
+    }
+}
+
+/** [AppThemeController] that records what was applied (F16 T005); [failApply] makes the system refuse it. */
+class FakeAppThemeController : AppThemeController {
+    var failApply = false
+    val applied = mutableListOf<ThemePreference>()
+
+    override fun apply(preference: ThemePreference): Boolean {
+        applied += preference
+        return !failApply
     }
 }
 

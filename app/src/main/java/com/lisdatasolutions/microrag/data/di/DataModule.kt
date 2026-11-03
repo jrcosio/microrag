@@ -47,6 +47,7 @@ import com.lisdatasolutions.microrag.data.rag.RagSchema
 import com.lisdatasolutions.microrag.data.retrieval.EngineQueryEmbedder
 import com.lisdatasolutions.microrag.data.retrieval.HybridRetriever
 import com.lisdatasolutions.microrag.data.retrieval.QueryEmbedder
+import com.lisdatasolutions.microrag.data.settings.DataStoreAppThemeStore
 import com.lisdatasolutions.microrag.domain.chat.AnswerEngine
 import com.lisdatasolutions.microrag.domain.chat.ChatRepository
 import com.lisdatasolutions.microrag.domain.chat.ChatSession
@@ -63,6 +64,7 @@ import com.lisdatasolutions.microrag.domain.onboarding.OnboardingStore
 import com.lisdatasolutions.microrag.domain.rag.RagIndex
 import com.lisdatasolutions.microrag.domain.rag.RagIndexConfig
 import com.lisdatasolutions.microrag.domain.retrieval.ContextRetriever
+import com.lisdatasolutions.microrag.domain.settings.AppThemeStore
 import com.lisdatasolutions.microrag.rag.ingest.DocumentExtractor
 import com.lisdatasolutions.microrag.rag.ingest.PdfOpener
 import com.lisdatasolutions.microrag.rag.runtime.MemoryTrimListener
@@ -85,6 +87,8 @@ val dataModule = module {
     single<OnboardingStore> {
         DataStoreOnboardingStore(DataStoreOnboardingStore.create(androidContext().noBackupFilesDir, get<ApplicationScope>().scope))
     }
+    // F16: the copy of the app theme (research R2).
+    single<AppThemeStore> { DataStoreAppThemeStore.create(androidContext().noBackupFilesDir, get<ApplicationScope>().scope, get()) }
     single<DeviceResources> { AndroidDeviceResources(androidContext(), get(), androidContext().noBackupFilesDir) }
     single<ModelFileSource> { ContentResolverModelFileSource(androidContext().contentResolver) }
 
