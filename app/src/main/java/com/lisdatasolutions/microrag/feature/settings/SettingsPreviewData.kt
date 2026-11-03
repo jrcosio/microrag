@@ -11,6 +11,8 @@ import com.lisdatasolutions.microrag.domain.rag.RagParameters
 import com.lisdatasolutions.microrag.domain.settings.AppLanguage
 import com.lisdatasolutions.microrag.domain.settings.LanguageSettings
 import com.lisdatasolutions.microrag.domain.settings.ModelOverview
+import com.lisdatasolutions.microrag.domain.settings.ThemePreference
+import com.lisdatasolutions.microrag.domain.settings.ThemeSettings
 
 /** Labelled sample states for previews and UI tests only (constitution V): never shown in the app. */
 object SettingsPreviewData {
@@ -57,6 +59,36 @@ object SettingsPreviewData {
         "sheet" to sheet,
         "confirmClear" to confirmClear,
         "cleared" to cleared,
+    )
+}
+
+/** Labelled sample states of Tema for previews and UI tests only (constitution V; F16 wireframe §3–§4). */
+object ThemePreviewData {
+
+    /** «Sistema», saved and marked. */
+    val system = ThemeUiState(saved = ThemeSettings(ThemePreference.SYSTEM), selected = ThemePreference.SYSTEM)
+
+    val opening = ThemeUiState()
+
+    /** «Oscuro» marked, not saved yet. */
+    val dark = system.copy(selected = ThemePreference.DARK)
+
+    /** A3: saving. */
+    val saving = dark.copy(saving = true)
+
+    /** A5: the stored copy could not be read. */
+    val readFailed = ThemeUiState(saved = ThemeSettings(ThemePreference.SYSTEM, readFailed = true), selected = ThemePreference.SYSTEM)
+
+    /** A4: the save failed. */
+    val saveFailed = dark.copy(saveFailed = true)
+
+    val all: List<Pair<String, ThemeUiState>> = listOf(
+        "system" to system,
+        "opening" to opening,
+        "dark" to dark,
+        "saving" to saving,
+        "readFailed" to readFailed,
+        "saveFailed" to saveFailed,
     )
 }
 
@@ -121,3 +153,15 @@ private fun LanguagesSavingPreview() = LisdataTheme { LanguagesScreen(LanguagesP
 @LisdataPreviews
 @Composable
 private fun LanguagesReadFailedPreview() = LisdataTheme { LanguagesScreen(LanguagesPreviewData.readFailed, LanguagesActions()) }
+
+@LisdataPreviews
+@Composable
+private fun ThemeSystemPreview() = LisdataTheme { ThemeScreen(ThemePreviewData.system, ThemeActions()) }
+
+@LisdataPreviews
+@Composable
+private fun ThemeSavingPreview() = LisdataTheme { ThemeScreen(ThemePreviewData.saving, ThemeActions()) }
+
+@LisdataPreviews
+@Composable
+private fun ThemeReadFailedPreview() = LisdataTheme { ThemeScreen(ThemePreviewData.readFailed, ThemeActions()) }
