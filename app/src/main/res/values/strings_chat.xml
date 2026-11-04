@@ -48,4 +48,31 @@
     <string name="chat_announce_interrupted">La respuesta se interrumpió</string>
     <string name="chat_announce_failed">No se pudo generar la respuesta</string>
     <string name="chat_announce_deleted">Conversación borrada</string>
+
+    <!-- F17 Ámbito del chat (D-070, D-072, propuestas K7–K10). -->
+    <string name="chat_scope_label">Buscar en: %1$s</string>
+    <string name="chat_scope_whole">Toda la biblioteca</string>
+    <string name="chat_scope_two">%1$s y %2$s</string>
+    <plurals name="chat_scope_plus_documents">
+        <item quantity="one">%1$s + %2$d documento</item>
+        <item quantity="other">%1$s + %2$d documentos</item>
+    </plurals>
+    <plurals name="chat_scope_documents">
+        <item quantity="one">%d documento</item>
+        <item quantity="other">%d documentos</item>
+    </plurals>
+    <string name="chat_scope_change">Cambiar ámbito</string>
+    <string name="chat_scope_sheet_title">Buscar en</string>
+    <string name="chat_scope_folders">Carpetas</string>
+    <string name="chat_scope_apply">Aplicar</string>
+    <string name="chat_scope_not_included">No incluido en RAG</string>
+    <string name="chat_scope_pending">Pendiente de indexar</string>
+    <string name="chat_scope_some">algunos documentos</string>
+    <string name="chat_scope_show_documents">Mostrar documentos</string>
+    <string name="chat_scope_expanded">desplegada</string>
+    <string name="chat_scope_collapsed">plegada</string>
+    <string name="chat_scope_empty_title">En este ámbito no hay documentos listos para buscar</string>
+    <string name="chat_scope_folder_gone">Una carpeta del ámbito ya no existe</string>
+    <string name="chat_scope_document_gone">Un documento del ámbito ya no existe</string>
+    <string name="chat_scope_whole_again">El ámbito vuelve a ser toda la biblioteca</string>
 </resources>

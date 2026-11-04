@@ -88,4 +88,7 @@
     <string name="ingest_announce_ready">%1$s ready to process</string>
     <string name="ingest_announce_error">%1$s: %2$s</string>
 
+    <!-- F17 K6: destination folder (D-070, D-072). -->
+    <string name="ingest_destination">Destination folder</string>
+    <string name="ingest_destination_missing">The destination folder no longer exists. It was imported into General.</string>
 </resources>

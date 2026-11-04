@@ -131,4 +131,54 @@
     <string name="document_announce_reindexing">Reindexing</string>
     <string name="document_announce_excluded">Excluded from answers</string>
     <string name="document_announce_included">Included in answers</string>
+
+    <!-- F17 Folders (D-070, D-072). -->
+    <string name="library_folders_header">Folders</string>
+    <string name="library_folder_general">General</string>
+    <string name="library_folder_new">New folder</string>
+    <plurals name="library_folder_documents">
+        <item quantity="one">%d document</item>
+        <item quantity="other">%d documents</item>
+    </plurals>
+    <string name="library_folder_open">Open folder</string>
+    <string name="library_folder_search">Search in %1$s…</string>
+    <string name="library_folder_empty_title">This folder is empty</string>
+    <string name="library_folder_import">Import to %1$s</string>
+    <string name="folder_rename">Rename folder</string>
+    <string name="folder_delete">Delete folder</string>
+    <string name="folder_dialog_name">Name</string>
+    <string name="folder_dialog_create">Create</string>
+    <string name="folder_dialog_save">Save</string>
+    <string name="folder_error_empty">Type a name</string>
+    <string name="folder_error_duplicate">There is already a folder with that name</string>
+    <string name="folder_error_reserved">That name is reserved</string>
+    <string name="folder_error_too_long">40 characters at most</string>
+    <string name="folder_delete_title">Delete the folder “%1$s”?</string>
+    <plurals name="folder_delete_move">
+        <item quantity="one">Move its document to General</item>
+        <item quantity="other">Move its %d documents to General</item>
+    </plurals>
+    <plurals name="folder_delete_documents">
+        <item quantity="one">Also delete its document</item>
+        <item quantity="other">Also delete its %d documents</item>
+    </plurals>
+    <string name="folder_delete_confirm">Delete</string>
+    <plurals name="folder_delete_documents_title">
+        <item quantity="one">Delete %d document?</item>
+        <item quantity="other">Delete %d documents?</item>
+    </plurals>
+    <string name="folder_delete_documents_body">They will be removed from this phone, with their text and index. This cannot be undone.</string>
+    <string name="folder_delete_documents_confirm">Delete documents</string>
+    <string name="folder_deleting">Deleting…</string>
+    <string name="folder_deleted">Folder deleted</string>
+    <string name="folder_delete_partial">Some documents could not be deleted</string>
+    <string name="folder_save_failed">The folder could not be saved</string>
+    <string name="folder_sheet_move_title">Move to folder</string>
+    <string name="folder_sheet_move">Move</string>
+    <string name="folder_sheet_choose">Choose</string>
+    <string name="folder_sheet_new">New folder…</string>
+    <string name="document_folder_label">Folder</string>
+    <string name="document_move">Move to folder</string>
+    <string name="document_moved">Moved to “%1$s”</string>
+    <string name="document_move_failed">The document could not be moved</string>
 </resources>

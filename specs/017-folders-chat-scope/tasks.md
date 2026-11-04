@@ -49,13 +49,13 @@ description: "Lista de tareas de F17 — Carpetas y ámbito del chat"
 
 ## Phase 1: Setup
 
-- [ ] T001 [P] Textos de `folders-scope-ui.md` §4 y K14 en español y en inglés:
+- [X] T001 [P] Textos de `folders-scope-ui.md` §4 y K14 en español y en inglés:
   - en `app/src/main/res/values{,-en}/strings_library.xml`: carpetas, diálogos y avisos;
   - en `…/strings_chat.xml`: ficha, selector, K9 y K10;
   - en `…/strings_ingest.xml`: destino.
 
   Incluye los plurales «%d documentos» y «+ %d documentos». `StringsParityTest` pasa.
-- [ ] T002 [P] **Movida a T030** (analyze, L5): la regla de `feature/folders` va con su paquete, y `feature/chat/scope` ya la cubre la regla de `feature/chat`.
+- [X] T002 [P] **Movida a T030** (analyze, L5): la regla de `feature/folders` va con su paquete, y `feature/chat/scope` ya la cubre la regla de `feature/chat`.
 
 ---
 

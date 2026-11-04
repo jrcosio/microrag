@@ -93,4 +93,7 @@
     <string name="ingest_announce_ready">%1$s listo para procesar</string>
     <string name="ingest_announce_error">%1$s: %2$s</string>
 
+    <!-- F17 K6: destination folder (D-070, D-072). -->
+    <string name="ingest_destination">Carpeta de destino</string>
+    <string name="ingest_destination_missing">La carpeta de destino ya no existe. Se importó en «General».</string>
 </resources>
