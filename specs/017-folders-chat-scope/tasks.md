@@ -65,11 +65,11 @@ description: "Lista de tareas de F17 — Carpetas y ámbito del chat"
 
 ### Pruebas (antes, y deben fallar)
 
-- [ ] T003 [P] Esquema de `rag.db` v4:
+- [X] T003 [P] Esquema de `rag.db` v4:
   - `…/test/…/data/rag/RagSchemaTest.kt`: el número de sentencias y su orden; `everyMigration_endsWhereSchemaSqlIs`, que ahora admite `CREATE TABLE IF NOT EXISTS folders`; versión 4;
   - `offline/tests/test_appconfig.py`: `schema_version == 4`.
-- [ ] T004 [P] `…/androidTest/…/data/rag/RagIndexMigrationTest.kt`, con un recurso nuevo `app/src/androidTest/assets/schema/schema_v3.sql` (M7): un índice v3 con documentos, fragmentos e inclusiones variadas migra a v4 con todo intacto y `folder_id` a `NULL` (SC-001). Un fallo de migración deja el fichero v3 intacto.
-- [ ] T005 [P] `chat.db` v2 en `…/androidTest/…/data/chat/SqliteChatRepositoryTest.kt` (o en la JVM si `SqliteChatRepository` corre con Robolectric):
+- [X] T004 [P] `…/androidTest/…/data/rag/RagIndexMigrationTest.kt`, con un recurso nuevo `app/src/androidTest/assets/schema/schema_v3.sql` (M7): un índice v3 con documentos, fragmentos e inclusiones variadas migra a v4 con todo intacto y `folder_id` a `NULL` (SC-001). Un fallo de migración deja el fichero v3 intacto.
+- [X] T005 [P] `chat.db` v2 en `…/androidTest/…/data/chat/SqliteChatRepositoryTest.kt` (o en la JVM si `SqliteChatRepository` corre con Robolectric):
   - un fichero v1 con conversaciones migra a v2 sin perder nada, y sin filas de ámbito;
   - el ámbito se escribe, se lee y se borra en cascada con su conversación;
   - «Borrar historial» vacía también `conversation_scope` y `last_scope`;
@@ -87,14 +87,14 @@ description: "Lista de tareas de F17 — Carpetas y ámbito del chat"
 
 ### Implementación
 
-- [ ] T007 Esquema y migración de `rag.db`:
+- [X] T007 Esquema y migración de `rag.db`:
   - `app/src/main/assets/schema.sql` (v4: `folders`, `documents.folder_id` y el índice);
   - `…/microrag/data/rag/RagSchema.kt` (`RagMigration(from = 3, …)`);
   - `…/microrag/domain/rag/RagIndexConfig.kt` (`SCHEMA_VERSION = 4`).
 
   T003 y T004 pasan; el harness de Python sigue pasando.
-- [ ] T008 Esquema y migración de `chat.db`: `app/src/main/assets/chat_schema.sql` (v2), `…/microrag/data/chat/ChatSchema.kt` (`VERSION = 2` y el primer paso) y `SqliteChatRepository`, con la lectura y escritura del ámbito, de `last_scope` y del borrado. T005 pasa.
-- [ ] T009 Tipos del dominio (data-model §3):
+- [X] T008 Esquema y migración de `chat.db`: `app/src/main/assets/chat_schema.sql` (v2), `…/microrag/data/chat/ChatSchema.kt` (`VERSION = 2` y el primer paso) y `SqliteChatRepository`, con la lectura y escritura del ámbito, de `last_scope` y del borrado. T005 pasa.
+- [X] T009 Tipos del dominio (data-model §3):
   - `…/microrag/domain/library/FolderModels.kt`;
   - `…/microrag/domain/chat/ChatScope.kt`;
   - `SearchScope` y el `RetrievalRequest` ampliado en `…/microrag/domain/retrieval/RetrievalModels.kt`.

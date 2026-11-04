@@ -1,5 +1,6 @@
--- F11 chat.db, schema version 1 (specs/011-chat-sources/data-model.md §3). Every statement is IF NOT EXISTS,
--- so it runs on each open; later versions add a ChatMigration and keep this file as the latest schema.
+-- chat.db, schema version 2: F11 (specs/011-chat-sources/data-model.md §3) and the scope of F17 (research R7).
+-- Every statement is IF NOT EXISTS, so it runs on each open; each version adds a ChatMigration and keeps this
+-- file as the latest schema.
 
 CREATE TABLE IF NOT EXISTS chat_meta (
   key   TEXT PRIMARY KEY,
@@ -42,4 +43,22 @@ CREATE TABLE IF NOT EXISTS sources (
   document_name  TEXT NOT NULL,
   page           INTEGER,
   PRIMARY KEY (turn_id, position)
+);
+
+-- F17: the documents each conversation asks; no rows is the whole library. No foreign keys to rag.db either:
+-- folders and documents are kept with their created_at_ms, so a reused id never matches (D-065).
+CREATE TABLE IF NOT EXISTS conversation_scope (
+  conversation_id    INTEGER NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+  kind               TEXT NOT NULL CHECK (kind IN ('folder','general','document')),
+  ref_id             INTEGER NOT NULL,
+  ref_created_at_ms  INTEGER,
+  PRIMARY KEY (conversation_id, kind, ref_id)
+);
+
+-- F17 (FR-020b): the scope «Nuevo chat» starts with; no rows is the whole library.
+CREATE TABLE IF NOT EXISTS last_scope (
+  kind               TEXT NOT NULL CHECK (kind IN ('folder','general','document')),
+  ref_id             INTEGER NOT NULL,
+  ref_created_at_ms  INTEGER,
+  PRIMARY KEY (kind, ref_id)
 );

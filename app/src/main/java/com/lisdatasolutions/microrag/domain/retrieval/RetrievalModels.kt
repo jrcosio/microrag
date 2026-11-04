@@ -9,7 +9,18 @@ data class RetrievalRequest(
     val question: String,
     /** Given by the caller (F11); the retriever keeps no conversation (FR-009). */
     val previousQuestion: String? = null,
+    /** F17: the documents the question may use; [SearchScope.All] searches as F10 did. */
+    val scope: SearchScope = SearchScope.All,
 )
+
+/** Which documents a search may return (F17 research R3); excluded and pending ones stay out anyway. */
+sealed interface SearchScope {
+    /** The whole library, with the F10 SQL as it is (SC-003). */
+    data object All : SearchScope
+
+    /** Folders by id, «General» as the documents with no folder, and loose documents, as they are at the question (FR-016). */
+    data class Only(val folderIds: Set<Long>, val general: Boolean, val documentIds: Set<Long>) : SearchScope
+}
 
 data class RetrievalResult(
     /** What the lexical search received: the question, or the previous one and the question for a follow-up. */

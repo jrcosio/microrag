@@ -5,11 +5,14 @@ import com.lisdatasolutions.microrag.data.rag.RagConnection
 import com.lisdatasolutions.microrag.data.rag.RagOpenException
 import com.lisdatasolutions.microrag.domain.chat.AnswerSource
 import com.lisdatasolutions.microrag.domain.chat.ChatRepository
+import com.lisdatasolutions.microrag.domain.chat.ChatScope
 import com.lisdatasolutions.microrag.domain.chat.ChatStorageException
 import com.lisdatasolutions.microrag.domain.chat.ChatStorageState
 import com.lisdatasolutions.microrag.domain.chat.ChatTurn
 import com.lisdatasolutions.microrag.domain.chat.ConversationPage
 import com.lisdatasolutions.microrag.domain.chat.ConversationSummary
+import com.lisdatasolutions.microrag.domain.chat.DocumentRef
+import com.lisdatasolutions.microrag.domain.chat.FolderRef
 import com.lisdatasolutions.microrag.domain.chat.HistoryLimits
 import com.lisdatasolutions.microrag.domain.chat.TurnFailure
 import com.lisdatasolutions.microrag.domain.chat.TurnState
@@ -30,13 +33,15 @@ import kotlinx.coroutines.withContext
  * The saved conversations in their own file, `noBackupFilesDir/chat/chat.db` (F11 research R9). One
  * connection on the database dispatcher, the same single thread as the index, so the app never writes
  * twice at once. A file it cannot read, or one of a newer schema, is left exactly as it was and the
- * storage reports [ChatStorageState.UNAVAILABLE] (contract A15, C17).
+ * storage reports [ChatStorageState.UNAVAILABLE] (contract A15, C17). [migrations] is
+ * [ChatMigrations.all] but in the tests of a failing step.
  */
 class SqliteChatRepository(
     private val dbFile: File,
     private val schema: () -> List<String>,
     private val dispatcher: CoroutineDispatcher,
     private val logger: AppLogger,
+    private val migrations: List<ChatMigration> = ChatMigrations.all,
 ) : ChatRepository {
 
     private val state = MutableStateFlow<ChatStorageState?>(null)
@@ -96,9 +101,11 @@ class SqliteChatRepository(
         return page
     }
 
-    override suspend fun createConversation(now: Long): Long = write { db ->
-        db.exec("INSERT INTO conversations(created_at, updated_at) VALUES (?, ?)", now, now)
-        lastRowId(db)
+    override suspend fun createConversation(now: Long, scope: ChatScope): Long = write { db ->
+        db.transaction {
+            db.exec("INSERT INTO conversations(created_at, updated_at) VALUES (?, ?)", now, now)
+            lastRowId(db).also { id -> scopeRows(scope).forEach { db.exec(INSERT_CONVERSATION_SCOPE, id, it.kind, it.refId, it.createdAtMs) } }
+        }
     }
 
     override suspend fun insertTurn(conversationId: Long, question: String, partialCoverage: Boolean, now: Long): ChatTurn =
@@ -175,7 +182,34 @@ class SqliteChatRepository(
     }
 
     override suspend fun deleteAll() = write(listChanged = true) { db ->
-        db.exec("DELETE FROM conversations")
+        db.transaction {
+            db.exec("DELETE FROM conversations")
+            db.exec("DELETE FROM last_scope")
+        }
+    }
+
+    override suspend fun conversationScope(id: Long): ChatScope = read { db ->
+        readScope(db, "SELECT kind, ref_id, ref_created_at_ms FROM conversation_scope WHERE conversation_id = ?", id)
+    } ?: ChatScope.WholeLibrary
+
+    override suspend fun setConversationScope(id: Long, scope: ChatScope) = write { db ->
+        db.transaction {
+            db.exec("DELETE FROM conversation_scope WHERE conversation_id = ?", id)
+            scopeRows(scope).forEach { db.exec(INSERT_CONVERSATION_SCOPE, id, it.kind, it.refId, it.createdAtMs) }
+        }
+    }
+
+    override suspend fun lastScope(): ChatScope = read { db ->
+        readScope(db, "SELECT kind, ref_id, ref_created_at_ms FROM last_scope")
+    } ?: ChatScope.WholeLibrary
+
+    override suspend fun setLastScope(scope: ChatScope) = write { db ->
+        db.transaction {
+            db.exec("DELETE FROM last_scope")
+            scopeRows(scope).forEach {
+                db.exec("INSERT INTO last_scope(kind, ref_id, ref_created_at_ms) VALUES (?, ?, ?)", it.kind, it.refId, it.createdAtMs)
+            }
+        }
     }
 
     override suspend fun conversationCount(): Int = read { db ->
@@ -282,7 +316,7 @@ class SqliteChatRepository(
         } else {
             null
         }
-        val steps = ChatMigrations.all.filter { version != null && it.from >= version }.sortedBy { it.from }
+        val steps = migrations.filter { version != null && it.from >= version }.sortedBy { it.from }
         // A newer file is never reachable: there is no step down, and an empty range would match no steps.
         val reachable = version != null && version <= ChatSchema.VERSION &&
             (version == ChatSchema.VERSION || steps.map { it.from } == (version until ChatSchema.VERSION).toList())
@@ -300,9 +334,39 @@ class SqliteChatRepository(
 
     private fun lastRowId(db: RagConnection): Long = checkNotNull(db.queryOne("SELECT last_insert_rowid()") { it.getLong(0) })
 
+    /** One row of `conversation_scope` or `last_scope` (research R7): «General» has ref_id 0 and no time. */
+    private class ScopeRow(val kind: String, val refId: Long, val createdAtMs: Long?)
+
+    private fun readScope(db: RagConnection, sql: String, vararg args: Any?): ChatScope =
+        scopeOf(db.query(sql, *args) { ScopeRow(it.getText(0), it.getLong(1), if (it.isNull(2)) null else it.getLong(2)) })
+
+    private fun scopeRows(scope: ChatScope): List<ScopeRow> = when (scope) {
+        ChatScope.WholeLibrary -> emptyList()
+        is ChatScope.Some -> buildList {
+            scope.folders.forEach { add(ScopeRow(KIND_FOLDER, it.id, it.createdAtMs)) }
+            if (scope.general) add(ScopeRow(KIND_GENERAL, 0, null))
+            scope.documents.forEach { add(ScopeRow(KIND_DOCUMENT, it.id, it.createdAtMs)) }
+        }
+    }
+
+    private fun scopeOf(rows: List<ScopeRow>): ChatScope {
+        if (rows.isEmpty()) return ChatScope.WholeLibrary
+        return ChatScope.Some(
+            folders = rows.filter { it.kind == KIND_FOLDER }.map { FolderRef(it.refId, it.createdAtMs ?: 0) }.toSet(),
+            general = rows.any { it.kind == KIND_GENERAL },
+            documents = rows.filter { it.kind == KIND_DOCUMENT }.map { DocumentRef(it.refId, it.createdAtMs ?: 0) }.toSet(),
+        )
+    }
+
     private companion object {
         const val TAG = "MicroRAG"
         const val META_TABLE = "chat_meta"
+
+        const val KIND_FOLDER = "folder"
+        const val KIND_GENERAL = "general"
+        const val KIND_DOCUMENT = "document"
+        const val INSERT_CONVERSATION_SCOPE =
+            "INSERT INTO conversation_scope(conversation_id, kind, ref_id, ref_created_at_ms) VALUES (?, ?, ?, ?)"
 
         /** Only conversations with at least one question are listed or opened as the last one (F13 Q1). */
         const val HAS_QUESTIONS = "EXISTS (SELECT 1 FROM turns t WHERE t.conversation_id = c.id)"

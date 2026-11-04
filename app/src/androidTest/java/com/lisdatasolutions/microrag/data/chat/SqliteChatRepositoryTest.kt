@@ -4,9 +4,13 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.google.common.truth.Truth.assertThat
 import com.lisdatasolutions.microrag.data.rag.RagConnection
+import com.lisdatasolutions.microrag.data.rag.RagSchema
 import com.lisdatasolutions.microrag.domain.chat.AnswerSource
+import com.lisdatasolutions.microrag.domain.chat.ChatScope
 import com.lisdatasolutions.microrag.domain.chat.ChatStorageException
 import com.lisdatasolutions.microrag.domain.chat.ChatStorageState
+import com.lisdatasolutions.microrag.domain.chat.DocumentRef
+import com.lisdatasolutions.microrag.domain.chat.FolderRef
 import com.lisdatasolutions.microrag.domain.chat.TurnFailure
 import com.lisdatasolutions.microrag.domain.chat.TurnState
 import com.lisdatasolutions.microrag.domain.chat.TurnUpdate
@@ -36,7 +40,19 @@ class SqliteChatRepositoryTest {
 
     private val logger = CapturingLogger()
 
-    private fun repository() = SqliteChatRepository(dbFile, { ChatSchema.load(context.assets) }, Dispatchers.IO, logger)
+    private fun repository(migrations: List<ChatMigration> = ChatMigrations.all) =
+        SqliteChatRepository(dbFile, { ChatSchema.load(context.assets) }, Dispatchers.IO, logger, migrations)
+
+    /** The released v1 schema (F11), a test asset: v1 files are built with it, never with the app's schema (F17 M7). */
+    private val v1Schema: List<String> = RagSchema.split(
+        InstrumentationRegistry.getInstrumentation().context.assets.open("schema/chat_schema_v1.sql").bufferedReader().use { it.readText() },
+    )
+
+    private val scope = ChatScope.Some(
+        folders = setOf(FolderRef(id = 3, createdAtMs = 30), FolderRef(id = 4, createdAtMs = 40)),
+        general = true,
+        documents = setOf(DocumentRef(id = 7, createdAtMs = 70)),
+    )
 
     @After
     fun tearDown() {
@@ -53,8 +69,9 @@ class SqliteChatRepositoryTest {
         assertThat(repository().open()).isEqualTo(ChatStorageState.OK)
 
         RagConnection.open(dbFile, extensionPath = null).use { db ->
-            assertThat(db.tableNames()).containsAtLeast("chat_meta", "conversations", "turns", "sources")
-            assertThat(db.queryOne("SELECT value FROM chat_meta WHERE key = 'schema_version'") { it.getText(0) }).isEqualTo("1")
+            assertThat(db.tableNames())
+                .containsAtLeast("chat_meta", "conversations", "turns", "sources", "conversation_scope", "last_scope")
+            assertThat(db.queryOne("SELECT value FROM chat_meta WHERE key = 'schema_version'") { it.getText(0) }).isEqualTo("2")
         }
     }
 
@@ -333,5 +350,167 @@ class SqliteChatRepositoryTest {
 
         val line = logger.lines.single { it.startsWith("history page ") }
         assertThat(line).matches("history page rows=1 total=1 ms=\\d+")
+    }
+
+    // F17 T005 (research R7, data-model §2): the scope of each conversation and the last one used.
+
+    /** A v1 file as F11–F16 left it: one conversation with a turn and a source. Returns the conversation id. */
+    private fun versionOneFile(): Long {
+        folder.mkdirs()
+        RagConnection.open(dbFile, extensionPath = null).use { db ->
+            db.enableWal()
+            db.transaction {
+                v1Schema.forEach { db.exec(it) }
+                db.exec("INSERT INTO chat_meta(key, value) VALUES ('schema_version', '1')")
+                db.exec("INSERT INTO conversations(id, created_at, updated_at) VALUES (5, 10, 20)")
+                db.exec(
+                    "INSERT INTO turns(id, conversation_id, ordinal, question, answer, state, created_at, finished_at) " +
+                        "VALUES (8, 5, 0, '¿Plazo?', '30 días [1].', 'completed', 15, 20)",
+                )
+                db.exec(
+                    "INSERT INTO sources(turn_id, position, prompt_number, document_id, chunk_id, first_ordinal, last_ordinal, " +
+                        "document_name, page) VALUES (8, 1, 1, 7, 101, 3, 4, 'Manual.pdf', 12)",
+                )
+            }
+        }
+        return 5
+    }
+
+    @Test
+    fun versionOne_isMigratedWithEveryConversationOnTheWholeLibrary() = runBlocking<Unit> {
+        val id = versionOneFile()
+        val repo = repository()
+
+        assertThat(repo.open()).isEqualTo(ChatStorageState.OK)
+
+        val turn = repo.conversation(id).first().single()
+        assertThat(turn.answer).isEqualTo("30 días [1].")
+        assertThat(turn.sources).containsExactly(source(1).copy(promptNumber = 1, chunkId = 101))
+        assertThat(repo.conversations(limit = 50).first().entries.single().lastActivityAt).isEqualTo(20)
+        assertThat(repo.conversationScope(id)).isEqualTo(ChatScope.WholeLibrary)
+        assertThat(repo.lastScope()).isEqualTo(ChatScope.WholeLibrary)
+        RagConnection.open(dbFile, extensionPath = null).use { db ->
+            assertThat(db.queryOne("SELECT value FROM chat_meta WHERE key = 'schema_version'") { it.getText(0) }).isEqualTo("2")
+            assertThat(db.tableNames()).containsAtLeast("conversation_scope", "last_scope")
+        }
+    }
+
+    @Test
+    fun failingMigration_leavesTheVersionOneFileUntouched() = runBlocking<Unit> {
+        versionOneFile()
+        val before = dbFile.readBytes()
+        val repo = repository(migrations = listOf(ChatMigration(from = 1, statements = listOf("NOT SQL"))))
+
+        assertThat(repo.open()).isEqualTo(ChatStorageState.UNAVAILABLE)
+
+        assertThat(dbFile.readBytes()).isEqualTo(before)
+        RagConnection.open(dbFile, extensionPath = null).use { db ->
+            assertThat(db.tableNames()).doesNotContain("conversation_scope")
+        }
+    }
+
+    @Test
+    fun theScopeIsSavedWithItsConversationAndRead() = runBlocking<Unit> {
+        val repo = repository()
+        val scoped = repo.createConversation(now = 1, scope = scope)
+        val whole = repo.createConversation(now = 2)
+
+        assertThat(repo.conversationScope(scoped)).isEqualTo(scope)
+        assertThat(repo.conversationScope(whole)).isEqualTo(ChatScope.WholeLibrary)
+        assertThat(repo.conversationScope(999)).isEqualTo(ChatScope.WholeLibrary)
+
+        val loose = ChatScope.Some(folders = emptySet(), general = false, documents = setOf(DocumentRef(9, 90)))
+        repo.setConversationScope(whole, loose)
+        repo.setConversationScope(scoped, ChatScope.WholeLibrary)
+
+        assertThat(repo.conversationScope(whole)).isEqualTo(loose)
+        assertThat(repo.conversationScope(scoped)).isEqualTo(ChatScope.WholeLibrary)
+    }
+
+    /** «General» is one row with ref_id 0; folders and documents keep when they were created (D-065, L9). */
+    @Test
+    fun theRowsKeepGeneralAndTheCreationTimes() = runBlocking<Unit> {
+        val repo = repository()
+        val id = repo.createConversation(now = 1, scope = scope)
+        repo.setLastScope(scope)
+
+        RagConnection.open(dbFile, extensionPath = null).use { db ->
+            for (table in listOf("conversation_scope", "last_scope")) {
+                val rows = db.query("SELECT kind, ref_id, ref_created_at_ms FROM $table ORDER BY kind, ref_id") {
+                    Triple(it.getText(0), it.getLong(1), if (it.isNull(2)) null else it.getLong(2))
+                }
+                assertThat(rows).containsExactly(
+                    Triple("document", 7L, 70L), Triple("folder", 3L, 30L), Triple("folder", 4L, 40L), Triple("general", 0L, null),
+                ).inOrder()
+            }
+            assertThat(db.queryOne("SELECT count(*) FROM conversation_scope WHERE conversation_id = ?", id) { it.getLong(0) })
+                .isEqualTo(4)
+        }
+    }
+
+    /** L4: applying a scope does not move the conversation in Historial. */
+    @Test
+    fun settingTheScopeKeepsTheHistoryOrder() = runBlocking<Unit> {
+        val repo = repository()
+        val older = repo.createConversation(now = 1)
+        val newer = repo.createConversation(now = 2)
+        repo.insertTurn(older, "¿Uno?", partialCoverage = false, now = 3)
+        repo.insertTurn(newer, "¿Dos?", partialCoverage = false, now = 4)
+
+        repo.setConversationScope(older, scope)
+
+        assertThat(repo.conversations(limit = 50).first().entries.map { it.id }).containsExactly(newer, older).inOrder()
+        assertThat(repo.lastConversationId()).isEqualTo(newer)
+    }
+
+    @Test
+    fun theLastScopeIsReplacedAsAWhole() = runBlocking<Unit> {
+        val repo = repository()
+        assertThat(repo.lastScope()).isEqualTo(ChatScope.WholeLibrary)
+
+        repo.setLastScope(scope)
+        assertThat(repo.lastScope()).isEqualTo(scope)
+
+        val general = ChatScope.Some(folders = emptySet(), general = true, documents = emptySet())
+        repo.setLastScope(general)
+        assertThat(repo.lastScope()).isEqualTo(general)
+
+        repo.setLastScope(ChatScope.WholeLibrary)
+        assertThat(repo.lastScope()).isEqualTo(ChatScope.WholeLibrary)
+    }
+
+    @Test
+    fun deletingAConversationTakesItsScope_andDeleteAllTheLastOneToo() = runBlocking<Unit> {
+        val repo = repository()
+        val deleted = repo.createConversation(now = 1, scope = scope)
+        val kept = repo.createConversation(now = 2, scope = scope)
+        repo.setLastScope(scope)
+        fun rows(table: String) = RagConnection.open(dbFile, extensionPath = null).use { db ->
+            db.queryOne("SELECT count(*) FROM $table") { it.getLong(0) }
+        }
+
+        repo.deleteConversation(deleted)
+
+        assertThat(repo.conversationScope(kept)).isEqualTo(scope)
+        assertThat(rows("conversation_scope")).isEqualTo(4)
+        assertThat(repo.lastScope()).isEqualTo(scope)
+
+        repo.deleteAll()
+
+        assertThat(rows("conversation_scope")).isEqualTo(0)
+        assertThat(rows("last_scope")).isEqualTo(0)
+        assertThat(repo.lastScope()).isEqualTo(ChatScope.WholeLibrary)
+    }
+
+    @Test
+    fun scopeWritesFailAsStorageWhenTheFileIsUnavailable() = runBlocking<Unit> {
+        folder.mkdirs()
+        dbFile.writeBytes(ByteArray(4096) { 0x5A })
+        val repo = repository()
+
+        assertThat(repo.open()).isEqualTo(ChatStorageState.UNAVAILABLE)
+        assertThat(repo.lastScope()).isEqualTo(ChatScope.WholeLibrary)
+        assertThrows(ChatStorageException::class.java) { runBlocking { repo.setLastScope(scope) } }
+        assertThrows(ChatStorageException::class.java) { runBlocking { repo.createConversation(now = 1, scope = scope) } }
     }
 }

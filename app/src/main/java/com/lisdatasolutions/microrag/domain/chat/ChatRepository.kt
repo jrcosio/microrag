@@ -27,7 +27,8 @@ interface ChatRepository {
      */
     fun conversations(limit: Int): Flow<ConversationPage>
 
-    suspend fun createConversation(now: Long): Long
+    /** F17 (contract S2): the conversation and its [scope] in one transaction. */
+    suspend fun createConversation(now: Long, scope: ChatScope = ChatScope.WholeLibrary): Long
 
     suspend fun insertTurn(conversationId: Long, question: String, partialCoverage: Boolean, now: Long): ChatTurn
 
@@ -43,8 +44,19 @@ interface ChatRepository {
 
     suspend fun deleteConversation(id: Long)
 
-    /** Every conversation, with its turns and sources (F12 «Borrar historial»). */
+    /** Every conversation, with its turns, sources and scopes, and the last scope too (F12 «Borrar historial», F17 FR-020c). */
     suspend fun deleteAll()
+
+    /** F17 (research R7): the saved scope as it was saved; [ChatScope.WholeLibrary] without rows or without the file. */
+    suspend fun conversationScope(id: Long): ChatScope
+
+    /** Replaces the scope of [id]; its `updated_at` stays, so Historial keeps its order (S4). */
+    suspend fun setConversationScope(id: Long, scope: ChatScope)
+
+    /** The scope «Nuevo chat» starts with (FR-020b); [ChatScope.WholeLibrary] the first time or without the file. */
+    suspend fun lastScope(): ChatScope
+
+    suspend fun setLastScope(scope: ChatScope)
 
     /** Conversations with at least one turn (F12 S6); throws [ChatStorageException] when the file is unavailable. */
     suspend fun conversationCount(): Int

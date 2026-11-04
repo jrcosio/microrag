@@ -3,6 +3,7 @@ package com.lisdatasolutions.microrag.testing
 import com.lisdatasolutions.microrag.domain.chat.ActiveAnswer
 import com.lisdatasolutions.microrag.domain.chat.AnswerEngine
 import com.lisdatasolutions.microrag.domain.chat.AnswerEvent
+import com.lisdatasolutions.microrag.domain.chat.ChatScope
 import com.lisdatasolutions.microrag.domain.chat.AnswerSource
 import com.lisdatasolutions.microrag.domain.chat.ChatRepository
 import com.lisdatasolutions.microrag.domain.chat.ChatSession
@@ -86,8 +87,15 @@ class InMemoryChatRepository : ChatRepository {
         )
     }
 
-    override suspend fun createConversation(now: Long): Long = write("create") {
-        nextConversation++.also { conversations[it] = now }
+    /** F17: the scopes as `chat.db` keeps them; a conversation without an entry is on the whole library. */
+    val scopes = mutableMapOf<Long, ChatScope>()
+    var lastScope: ChatScope = ChatScope.WholeLibrary
+
+    override suspend fun createConversation(now: Long, scope: ChatScope): Long = write("create") {
+        nextConversation++.also {
+            conversations[it] = now
+            if (scope != ChatScope.WholeLibrary) scopes[it] = scope
+        }
     }
 
     override suspend fun insertTurn(conversationId: Long, question: String, partialCoverage: Boolean, now: Long): ChatTurn =
@@ -136,6 +144,7 @@ class InMemoryChatRepository : ChatRepository {
 
     override suspend fun deleteConversation(id: Long) = write("delete") {
         conversations.remove(id)
+        scopes.remove(id)
         turns.values.removeAll { it.conversationId == id }
         Unit
     }
@@ -143,7 +152,22 @@ class InMemoryChatRepository : ChatRepository {
     override suspend fun deleteAll() = write("deleteAll") {
         conversations.clear()
         turns.clear()
+        scopes.clear()
+        lastScope = ChatScope.WholeLibrary
     }
+
+    override suspend fun conversationScope(id: Long): ChatScope =
+        if (storage != ChatStorageState.OK) ChatScope.WholeLibrary else scopes[id] ?: ChatScope.WholeLibrary
+
+    override suspend fun setConversationScope(id: Long, scope: ChatScope) = write("scope") {
+        if (id !in conversations) throw ChatStorageException("fake: no conversation $id")
+        if (scope == ChatScope.WholeLibrary) scopes.remove(id) else scopes[id] = scope
+        Unit
+    }
+
+    override suspend fun lastScope(): ChatScope = if (storage != ChatStorageState.OK) ChatScope.WholeLibrary else lastScope
+
+    override suspend fun setLastScope(scope: ChatScope) = write("lastScope") { lastScope = scope }
 
     override suspend fun conversationCount(): Int = read { turns.values.map { it.conversationId }.distinct().size }
 
