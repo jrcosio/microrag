@@ -1,7 +1,8 @@
--- MicroRAG index schema, version 3 (rag_meta.schema_version).
+-- MicroRAG index schema, version 4 (rag_meta.schema_version).
 -- Shared by the app and the offline Python tools. It is the RAG report schema (§Esquema SQLite)
--- plus the document columns and states of INVENTARIO G27 (F04, D-030), skipped_pages (F06, D-038)
--- and the Library columns name_norm and replaces_id with their indexes (F08, research R1).
+-- plus the document columns and states of INVENTARIO G27 (F04, D-030), skipped_pages (F06, D-038),
+-- the Library columns name_norm and replaces_id with their indexes (F08, research R1) and the
+-- folders with documents.folder_id (F17, research R1: a document with no folder is in «General»).
 -- Always the latest version, with IF NOT EXISTS; older files are upgraded by RagMigrations.
 
 PRAGMA foreign_keys = ON;
@@ -9,6 +10,14 @@ PRAGMA foreign_keys = ON;
 CREATE TABLE IF NOT EXISTS rag_meta (
     key   TEXT PRIMARY KEY,
     value TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS folders (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    name            TEXT NOT NULL,
+    name_norm       TEXT NOT NULL UNIQUE,
+    created_at_ms   INTEGER NOT NULL,
+    updated_at_ms   INTEGER NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS documents (
@@ -30,12 +39,15 @@ CREATE TABLE IF NOT EXISTS documents (
     created_at_ms   INTEGER NOT NULL,
     updated_at_ms   INTEGER NOT NULL,
     name_norm       TEXT,
-    replaces_id     INTEGER REFERENCES documents(id) ON DELETE CASCADE
+    replaces_id     INTEGER REFERENCES documents(id) ON DELETE CASCADE,
+    folder_id       INTEGER REFERENCES folders(id) ON DELETE SET NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_documents_created ON documents(created_at_ms, id);
 
 CREATE INDEX IF NOT EXISTS idx_documents_replaces ON documents(replaces_id);
+
+CREATE INDEX IF NOT EXISTS idx_documents_folder ON documents(folder_id, created_at_ms, id);
 
 CREATE TABLE IF NOT EXISTS chunks (
     id              INTEGER PRIMARY KEY,

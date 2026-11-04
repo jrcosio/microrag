@@ -44,8 +44,8 @@ data class RagIndexConfig(
     )
 
     companion object {
-        /** 2 since F06: `documents.skipped_pages` (D-038); 3 since F08: `name_norm` and `replaces_id` (research R1). */
-        const val SCHEMA_VERSION = 3
+        /** 2 since F06: `documents.skipped_pages` (D-038); 3 since F08: `name_norm` and `replaces_id`; 4 since F17: `folders` and `folder_id` (research R1 of each). */
+        const val SCHEMA_VERSION = 4
 
         fun current(): RagIndexConfig = RagIndexConfig(
             schemaVersion = SCHEMA_VERSION,

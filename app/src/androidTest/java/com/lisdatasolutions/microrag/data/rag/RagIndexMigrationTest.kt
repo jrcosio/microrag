@@ -17,8 +17,9 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * The real migrations on indexes with data: 1 → 2 (documents.skipped_pages, F06 T007, D-038) and
- * 2 → 3 (name_norm, replaces_id and the Library indexes, F08 T002, research R1).
+ * The real migrations on indexes with data: 1 → 2 (documents.skipped_pages, F06 T007, D-038),
+ * 2 → 3 (name_norm, replaces_id and the Library indexes, F08 T002, research R1) and 3 → 4 (folders and
+ * documents.folder_id, F17 T004, research R1).
  */
 @RunWith(AndroidJUnit4::class)
 class RagIndexMigrationTest {
@@ -28,6 +29,11 @@ class RagIndexMigrationTest {
         InstrumentationRegistry.getInstrumentation().context.assets.open("schema/schema_v2.sql").bufferedReader().use { it.readText() },
     )
 
+    /** The released v3 schema (F08), a test asset as the v2 one (F17 T004, analyze M7). */
+    private val v3Schema: List<String> = RagSchema.split(
+        InstrumentationRegistry.getInstrumentation().context.assets.open("schema/schema_v3.sql").bufferedReader().use { it.readText() },
+    )
+
     /** One document per state, with names that fold differently; chunks for the done and embedding ones. */
     private val names = listOf(
         "Guía de instalación.pdf", "CATÁLOGO 2024.pdf", "Ñandú.txt", "Manual de motores.pdf", "Informe anual.md",
@@ -35,11 +41,23 @@ class RagIndexMigrationTest {
     )
 
     /** Builds a version 2 file with raw SQL, as F06 left it. Returns the id of each state's document. */
-    private fun versionTwoIndex(temp: TempRagIndex): Map<DocumentStatus, Long> = temp.withRaw { db ->
+    private fun versionTwoIndex(temp: TempRagIndex): Map<DocumentStatus, Long> = oldIndex(temp, v2Schema, version = 2)
+
+    /** Builds a version 3 file with raw SQL, as F08 left it, with folded names and one excluded document. */
+    private fun versionThreeIndex(temp: TempRagIndex): Map<DocumentStatus, Long> {
+        val ids = oldIndex(temp, v3Schema, version = 3)
+        temp.withRaw { db ->
+            db.exec("UPDATE documents SET name_norm = lower(display_name)")
+            db.exec("UPDATE documents SET included = 0 WHERE id = ?", ids.getValue(DocumentStatus.ERROR))
+        }
+        return ids
+    }
+
+    private fun oldIndex(temp: TempRagIndex, schema: List<String>, version: Int): Map<DocumentStatus, Long> = temp.withRaw { db ->
         db.enableWal()
         db.transaction {
-            v2Schema.forEach { db.exec(it) }
-            RagIndexConfig.current().copy(schemaVersion = 2).toMeta().forEach { (key, value) ->
+            schema.forEach { db.exec(it) }
+            RagIndexConfig.current().copy(schemaVersion = version).toMeta().forEach { (key, value) ->
                 db.exec("INSERT INTO rag_meta(key, value) VALUES (?, ?)", key, value)
             }
             DocumentStatus.entries.zip(names).associate { (status, name) ->
@@ -122,7 +140,7 @@ class RagIndexMigrationTest {
             assertThat(temp.index.open()).isEqualTo(IndexCompatibility.Compatible)
 
             assertThat(temp.index.meta()[RagMetaKeys.SCHEMA_VERSION]).isEqualTo(RagIndexConfig.SCHEMA_VERSION.toString())
-            assertThat(RagIndexConfig.SCHEMA_VERSION).isEqualTo(3)
+            assertThat(RagIndexConfig.SCHEMA_VERSION).isEqualTo(4)
             assertThat(columns(temp)).containsAtLeast("skipped_pages", "name_norm", "replaces_id")
             assertThat(indexes(temp)).containsAtLeast("idx_documents_created", "idx_documents_replaces")
             assertThat(nameNorms(temp)).isEqualTo(names.associateWith { DocumentNames.fold(it) })
@@ -132,6 +150,44 @@ class RagIndexMigrationTest {
             temp.index.close()
             assertThat(temp.index.open()).isEqualTo(IndexCompatibility.Compatible)
             assertThat(nameNorms(temp)).isEqualTo(names.associateWith { DocumentNames.fold(it) })
+        }
+    }
+
+    /** F17 SC-001: every document ends in «General» (no folder) with its state and inclusion kept. */
+    @Test
+    fun versionThree_isMigratedWithEveryDocumentInGeneral() = runBlocking<Unit> {
+        TempRagIndex().use { temp ->
+            val ids = versionThreeIndex(temp)
+            assertThat(columns(temp)).doesNotContain("folder_id")
+
+            assertThat(temp.index.open()).isEqualTo(IndexCompatibility.Compatible)
+
+            assertThat(temp.index.meta()[RagMetaKeys.SCHEMA_VERSION]).isEqualTo("4")
+            assertThat(columns(temp)).contains("folder_id")
+            assertThat(indexes(temp)).contains("idx_documents_folder")
+            assertThat(temp.withRaw { db -> db.queryOne("SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name = 'folders'") { it.getLong(0) } })
+                .isEqualTo(1L)
+            assertThat(temp.withRaw { db -> db.queryOne("SELECT count(*) FROM documents WHERE folder_id IS NOT NULL") { it.getLong(0) } })
+                .isEqualTo(0L)
+            assertThat(temp.index.document(ids.getValue(DocumentStatus.ERROR))!!.included).isFalse()
+            assertDataKept(temp, ids)
+        }
+    }
+
+    @Test
+    fun failingMigration_leavesTheVersionThreeFileUntouched() = runBlocking<Unit> {
+        val migrations = RagMigrations.all.filter { it.from < 3 } + RagMigration(from = 3, statements = listOf("NOT SQL"))
+        TempRagIndex(migrations = migrations).use { temp ->
+            versionThreeIndex(temp)
+            val before = temp.fileDigest()
+
+            assertThat(temp.index.open()).isEqualTo(
+                IndexCompatibility.Incompatible(RagMetaKeys.SCHEMA_VERSION, RagIndexConfig.SCHEMA_VERSION.toString(), "3"),
+            )
+            temp.index.close()
+
+            assertThat(temp.fileDigest()).isEqualTo(before)
+            assertThat(columns(temp)).doesNotContain("folder_id")
         }
     }
 

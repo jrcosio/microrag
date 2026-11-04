@@ -12,13 +12,16 @@ class RagSchemaTest {
     private val sql = File("src/main/assets/schema.sql").readText()
 
     @Test
-    fun split_givesTheElevenStatementsInOrderWithWholeTriggers() {
+    fun split_givesTheThirteenStatementsInOrderWithWholeTriggers() {
         val statements = RagSchema.split(sql)
 
         assertThat(statements.map { it.substringBefore(" IF NOT EXISTS").substringBefore(" =") }).containsExactly(
             "PRAGMA foreign_keys",
             "CREATE TABLE",
+            // F17 (research R1): folders, before the documents that point at them.
             "CREATE TABLE",
+            "CREATE TABLE",
+            "CREATE INDEX",
             "CREATE INDEX",
             "CREATE INDEX",
             "CREATE TABLE",
@@ -49,7 +52,7 @@ class RagSchemaTest {
 
         assertThat(from).isInStrictOrder()
         assertThat(from.all { it in 0 until RagIndexConfig.SCHEMA_VERSION }).isTrue()
-        // Every released version has its step up to the current one (F06: 1 -> 2, D-038; F08: 2 -> 3, R1).
+        // Every released version has its step up to the current one (F06: 1 -> 2, D-038; F08: 2 -> 3, R1; F17: 3 -> 4, R1).
         assertThat(from).containsExactlyElementsIn(1 until RagIndexConfig.SCHEMA_VERSION).inOrder()
     }
 
@@ -66,6 +69,18 @@ class RagSchemaTest {
     }
 
     @Test
+    fun migrationFromThree_addsTheFoldersTableColumnAndIndex() {
+        val statements = RagMigrations.all.single { it.from == 3 }.statements
+        val schema = RagSchema.split(sql)
+
+        assertThat(statements).hasSize(3)
+        assertThat(statements[0]).isEqualTo(schema.single { it.startsWith("CREATE TABLE IF NOT EXISTS folders") })
+        assertThat(statements[1]).isEqualTo("ALTER TABLE documents ADD COLUMN folder_id INTEGER REFERENCES folders(id) ON DELETE SET NULL")
+        assertThat(statements[2]).isEqualTo("CREATE INDEX IF NOT EXISTS idx_documents_folder ON documents(folder_id, created_at_ms, id)")
+        assertThat(RagIndexConfig.SCHEMA_VERSION).isEqualTo(4)
+    }
+
+    @Test
     fun everyMigration_endsWhereSchemaSqlIs() {
         val schema = RagSchema.split(sql)
         val documents = schema.single { it.startsWith("CREATE TABLE IF NOT EXISTS documents") }.replace(Regex("\\s+"), " ")
@@ -75,6 +90,8 @@ class RagSchemaTest {
             when {
                 column != null -> assertThat(documents).contains(column)
                 statement.startsWith("CREATE INDEX") -> assertThat(schema).contains(statement)
+                // F17: a whole new table, exactly as schema.sql creates it.
+                statement.startsWith("CREATE TABLE IF NOT EXISTS ") -> assertThat(schema).contains(statement)
                 else -> error("Unexpected migration statement: $statement")
             }
         }

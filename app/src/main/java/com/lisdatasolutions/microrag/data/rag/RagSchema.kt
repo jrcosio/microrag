@@ -47,5 +47,20 @@ object RagMigrations {
                 "CREATE INDEX IF NOT EXISTS idx_documents_replaces ON documents(replaces_id)",
             ),
         ),
+        // F17 (research R1): one-level folders; every document stays with no folder, «General».
+        RagMigration(
+            from = 3,
+            statements = listOf(
+                "CREATE TABLE IF NOT EXISTS folders (\n" +
+                    "    id              INTEGER PRIMARY KEY AUTOINCREMENT,\n" +
+                    "    name            TEXT NOT NULL,\n" +
+                    "    name_norm       TEXT NOT NULL UNIQUE,\n" +
+                    "    created_at_ms   INTEGER NOT NULL,\n" +
+                    "    updated_at_ms   INTEGER NOT NULL\n" +
+                    ")",
+                "ALTER TABLE documents ADD COLUMN folder_id INTEGER REFERENCES folders(id) ON DELETE SET NULL",
+                "CREATE INDEX IF NOT EXISTS idx_documents_folder ON documents(folder_id, created_at_ms, id)",
+            ),
+        ),
     )
 }
