@@ -295,13 +295,14 @@ description: "Lista de tareas de F16 — Apariencia: tema e icono de Ajustes"
 
 ## Phase 10: Última fase — teléfono de referencia y cierre
 
-- [ ] T039 Batería instrumentada completa en el A063, con los APK finales y la pantalla despierta. El modo por app no se puede leer (R2), así que al terminar se fuerza siempre «Sistema» desde la app. El `cmd uimode night` del teléfono se anota antes y se restaura después, incluidos `auto` y `custom` (L6).
+- [X] T039 Batería instrumentada completa en el A063, con los APK finales y la pantalla despierta. El modo por app no se puede leer (R2), así que al terminar se fuerza siempre «Sistema» desde la app. El `cmd uimode night` del teléfono se anota antes y se restaura después, incluidos `auto` y `custom` (L6).
 
-  **Avance (2026-11-04), sin terminar:**
-  - **Primera tanda:** el cliente `adb` se cortó en `ShellInsetsTest` (salida 255), pero la instrumentación siguió en el teléfono. El `TestRunner` cerró con «815 tests, 3 failed», y el log ya no guardaba cuáles fueron.
-  - **Segunda tanda,** con la salida en `/data/local/tmp`: 236 pruebas sin fallos cuando el usuario pidió parar.
-  - Hay que repetirla entera, con la salida en el teléfono, e identificar esos 3 fallos.
-- [ ] T040 Recorrido **acordado con el usuario antes de empezar** (quickstart §4):
+  **Resultado:** las 815 pasan con los APK finales.
+  - **Tandas 1 y 2:** en la primera, el cliente `adb` se cortó y los 3 fallos no quedaron registrados. La segunda se paró a petición del usuario. Desde entonces, la salida se escribe en `/data/local/tmp` con `nohup am instrument -r`.
+  - **Fallo real, de F16:** `SettingsScreenAccessibilityTest[cleared-*]`. Con la fila «Tema», una fila de Ajustes queda bajo el aviso «Historial borrado», y Compose informa a ATF solo de la parte no tapada (36 dp). Se corrige en la prueba: solo se ignoran los objetivos táctiles cortados por el borde del aviso (`c2aec2f`). Después pasa 36 de 36.
+  - **Tanda 3:** 797 pasan. Los 18 fallos son las primeras pruebas de `CatalogAccessibilityTest`, con «No compose hierarchies», porque el teléfono mostraba la pantalla de bloqueo al empezar. Con `wm dismiss-keyguard` y la pantalla sin bloqueo, la clase pasa 82 de 82.
+  - **`ShellInsetsTest`:** falló una vez en la tanda 2 y pasa sola y en la tanda 3.
+- [X] T040 Recorrido **acordado con el usuario antes de empezar** (quickstart §4):
   - el engranaje;
   - la fila y la pantalla Tema con los tres temas y los dos modos del teléfono;
   - el reinicio;
@@ -309,7 +310,17 @@ description: "Lista de tareas de F16 — Apariencia: tema e icono de Ajustes"
   - una respuesta y una indexación durante el cambio, sobre documentos de prueba en una carpeta propia. Se cuentan documentos y fragmentos indexados antes y después (SC-005);
   - red a 0 bytes para el uid de la app;
   - limpieza y teléfono restaurado.
-- [ ] T041 Cerrar `report.md` y poner F16 en `docs/roadmap/FEATURES.md` como «implementada; pendiente de la revisión de cierre». **Parada para la revisión de cierre.**
+
+  **Resultado:**
+  - **Tiempos:** guardar → visible en 614–712 ms (SC-001); «Sistema» sigue al teléfono en 735–760 ms (SC-004), y «Claro» y «Oscuro» lo ignoran.
+  - **Arranque en frío:** 10 de 10 sin muestras del otro tema (SC-002).
+  - **Reinicio:** con «Oscuro» y el teléfono en claro, arranca en oscuro, 2 de 2 (SC-003). El usuario desbloqueó el teléfono.
+  - **Indexación** (SC-005): `boe-lopdgdd.md`, 238 fragmentos; el tema se guardó con el 26 % y la tanda terminó sin volver a empezar. Antes había 1 documento y 6 fragmentos; con los de prueba, 3 y 321; al terminar, otra vez 1 y 6.
+  - **Chat** (SC-005): una respuesta con el teléfono pasado a claro a los 6 s terminó con su cita, y el borrador del compositor se conservó al cambiar el tema.
+  - **Red:** el uid 10628 no aparece en `dumpsys netstats`.
+  - **Limpieza:** conversación y documentos de prueba borrados, ficheros de `Download/MicroRAG-F16-prueba/` eliminados (y fuera del índice multimedia), y ajustes restaurados.
+
+- [X] T041 Cerrar `report.md` y poner F16 en `docs/roadmap/FEATURES.md` como «implementada; pendiente de la revisión de cierre». **Parada para la revisión de cierre.**
 
 ---
 

@@ -1,9 +1,9 @@
 # Informe de cierre — F16 Apariencia: tema e icono de Ajustes
 
-> **Estado:** borrador; falta la fase del teléfono (T039–T041).
+> **Estado:** implementada; pendiente de la revisión de cierre del usuario.
 
 **Rama:** `016-appearance-theme`, creada desde `e9c8006`.
-**Fecha:** 2026-11-03.
+**Fecha:** 2026-11-03 y 2026-11-04.
 **Dispositivos:**
 - emuladores `MicroRAG_API32` (API 32, creado en esta feature; D-069), `MicroRAG_API33` (API 33) y `Pixel_10` (API 37);
 - teléfono de referencia Nothing Phone (1) A063, Android 15 (API 35), en la última fase.
@@ -53,7 +53,13 @@
 | `Pixel_10` (API 37), instrumentadas | OK, 815 pruebas (40 más que en F13), en 19,7 min |
 | `MicroRAG_API33` (API 33), instrumentadas | 815 pruebas, en 20,6 min: los 4 fallos previos de Atrás desde la raíz y ninguno más |
 | `MicroRAG_API32` (API 32) | `PlatformAppThemeControllerTest` 3 de 3 (puerta T015) |
-| Teléfono A063, instrumentadas | *Sin terminar (T039).* Primera tanda: 815 pruebas con 3 fallos sin identificar (el cliente `adb` se cortó, y el log no los guardó). Segunda tanda parada a petición del usuario en 236 pruebas, sin fallos |
+| Teléfono A063, instrumentadas | 815 pasan con los APK finales (tanda 3 y repetición del catálogo, detalle abajo) |
+
+**Batería en el teléfono (T039):**
+- **Tandas 1 y 2:** en la primera, el cliente `adb` se cortó y los 3 fallos no quedaron registrados. La segunda se paró a petición del usuario. Desde entonces, la salida va a `/data/local/tmp` con `nohup am instrument -r`.
+- **Fallo real, de F16:** `SettingsScreenAccessibilityTest[cleared-*]`, en claro y en oscuro. Con la fila «Tema», una fila de Ajustes queda bajo el aviso «Historial borrado», y Compose informa a ATF solo de su parte no tapada (36 dp). La app no cambia. La prueba ignora solo los objetivos táctiles cortados por el borde del aviso (`c2aec2f`), y después pasa 36 de 36.
+- **Tanda 3:** 797 pasan. Los 18 fallos son las primeras de `CatalogAccessibilityTest`, con «No compose hierarchies», porque el teléfono mostraba la pantalla de bloqueo al empezar. Sin bloqueo (`wm dismiss-keyguard`), la clase pasa 82 de 82.
+- **`ShellInsetsTest`:** falló una vez en la tanda 2 y pasa sola y en la tanda 3.
 
 **Los 4 fallos de API 33 no son de F16.** Son los mismos de F12 y F13: `SystemBackTest` y tres casos de `OnboardingNavigationTest` esperan que Atrás desde la raíz cierre la actividad (`DESTROYED`), y en API 33 queda en `CREATED`. En `Pixel_10` pasan.
 
@@ -67,16 +73,16 @@
 
 | Criterio | Resultado |
 |---|---|
-| SC-001: el tema se ve en menos de 1 s tras guardar | ✅ 153–249 ms en `Pixel_10`, 209–236 ms en API 32 y 182–225 ms en API 33 |
-| SC-002: sin destello del otro tema en el arranque en frío | ✅ 0 fotogramas del otro tema en 40 arranques grabados (20 en `Pixel_10`, 10 en API 32 y 10 en API 33). En el teléfono, *pendiente (T040)* |
-| SC-003: el tema sigue tras reiniciar | ✅ `Pixel_10` reiniciado con «Claro» y el modo del emulador en oscuro. En el teléfono, *pendiente* |
-| SC-004: «Sistema» sigue al teléfono en menos de 1 s, y «Claro» u «Oscuro» no | ✅ 297–352 ms en `Pixel_10`, 378 ms en API 32 y 375–529 ms en API 33; con «Claro», el cambio del emulador no cambia la app |
-| SC-005: una respuesta y una indexación siguen durante el cambio | *Pendiente (T040, teléfono)* |
+| SC-001: el tema se ve en menos de 1 s tras guardar | ✅ 153–249 ms en `Pixel_10`, 209–236 ms en API 32, 182–225 ms en API 33 y 614–712 ms en el teléfono |
+| SC-002: sin destello del otro tema en el arranque en frío | ✅ 0 fotogramas del otro tema en 40 arranques grabados (20 en `Pixel_10`, 10 en API 32 y 10 en API 33). En el teléfono, 10 de 10 sin muestras del otro tema (muestreo de un píxel) |
+| SC-003: el tema sigue tras reiniciar | ✅ `Pixel_10` reiniciado con «Claro» y el emulador en oscuro. Teléfono reiniciado con «Oscuro» y en claro: arranca en oscuro (2 de 2) |
+| SC-004: «Sistema» sigue al teléfono en menos de 1 s, y «Claro» u «Oscuro» no | ✅ 297–352 ms en `Pixel_10`, 378 ms en API 32, 375–529 ms en API 33 y 735–760 ms en el teléfono. «Claro» y «Oscuro» no cambian con el modo del dispositivo |
+| SC-005: una respuesta y una indexación siguen durante el cambio | ✅ En el teléfono: una indexación de 238 fragmentos con el tema cambiado al 26 % terminó sin volver a empezar; una respuesta con el tema cambiado a mitad terminó con su cita. Los recuentos cuadran (1/6 → 3/321 → 1/6) |
 | SC-006: un fallo de guardado mantiene el tema | ✅ `ThemeUseCasesTest` y `ThemeViewModelTest` |
 | SC-007: ningún icono del Lucide `sun` | ✅ `DesignSystemConformanceTest` |
 | SC-008: ATF en claro y en oscuro, al 200 % y en horizontal | ✅ `ThemeScreenAccessibilityTest` y `SettingsScreenAccessibilityTest` en `Pixel_10` |
 | SC-009: paridad ES/EN | ✅ `StringsParityTest` |
-| SC-010: las capturas coinciden con el wireframe | ✅ en el emulador (§4). En el teléfono, *pendiente* |
+| SC-010: las capturas coinciden con el wireframe | ✅ en el emulador (§4) y en el teléfono (Ajustes y Tema, en oscuro) |
 
 ## 4. Cifras medidas
 
@@ -105,6 +111,30 @@
 - **Hoja abierta:** con «Sistema» y la ficha de modelo abierta, `cmd uimode night yes` y después `no` la dejan abierta.
 - **Estado final del emulador:** tema de la app en «Sistema», modo claro, letra, giro e idioma de la app como estaban.
 
+### Teléfono A063 (T040)
+
+Recorrido aprobado por el usuario el 2026-11-04. No se abrió, capturó ni volcó su conversación ni su documento. Las capturas fueron solo de Ajustes, de Tema y de la conversación de prueba.
+
+| Medida | Resultado |
+|---|---|
+| Guardar → tema visible (SC-001) | 614, 631 y 712 ms |
+| «Sistema» → modo del teléfono (SC-004) | 735–760 ms (4). «Claro» y «Oscuro» no cambian con el modo del teléfono |
+| Arranque en frío (SC-002), un píxel del fondo muestreado en el teléfono, sin guardar imágenes | 10 de 10 sin el otro tema («Claro» con el teléfono en oscuro y «Oscuro» con él en claro) |
+| Reinicio (SC-003) | Con «Oscuro» y el teléfono en claro, arranca en oscuro (2 de 2). El usuario desbloqueó tras el reinicio |
+| Indexación durante el cambio (SC-005) | `boe-lopdgdd.md` (BOE, 238 fragmentos): tema guardado con el 26 % (64 de 238), después el 53 %, el 80 % y fin, sin volver a empezar |
+| Respuesta durante el cambio (SC-005) | Chat nuevo con la ruta de depuración. La respuesta, con el teléfono pasado a claro a los 6 s, terminó con su cita, sin interrupción |
+| Borrador del compositor | Se conserva al cambiar el tema |
+| Recuentos de la biblioteca | 1 documento y 6 fragmentos → 3 y 321 con los de prueba → 1 y 6 tras borrarlos |
+| Red | El uid 10628 no aparece en `dumpsys netstats` |
+
+**Documentos de prueba:** `wb-ajedrez.txt` (77 fragmentos) y `boe-lopdgdd.md` (238), del corpus público del escritorio (`offline/corpus/SOURCES.md`). Se copiaron a `Download/MicroRAG-F16-prueba/` y se importaron con el selector del sistema, buscando por nombre. Al terminar se borraron, junto con su conversación, los ficheros y su entrada del índice multimedia.
+
+**Estado final del teléfono:**
+- letra al 1,0, giro bloqueado (`user_rotation=3`, pantalla en `ROTATION_0`), modo oscuro y pantalla apagada a los 30 min, como al empezar;
+- la app en `[es]` y con el tema en «Sistema».
+
+El idioma por app apareció vacío al terminar, y se volvió a poner `[es]`. La única prueba que lo toca (`PlatformAppLanguageControllerTest`) restaura el valor anterior, así que la causa no está identificada.
+
 ## 5. Revisión del inglés (T034)
 
 Los 9 textos nuevos, revisados y sin correcciones: «Theme», «Appearance», «Choose how the app looks», «App theme», «System», «Follows your phone's dark mode», «Light» y «Dark».
@@ -124,15 +154,16 @@ Los 9 textos nuevos, revisados y sin correcciones: «Theme», «Appearance», «
 
 ## 8. Fallos encontrados y corregidos
 
-- Ninguno en la app. Tres ajustes en pruebas propias durante la implementación: un texto de la barra superior fuera del desplazable, «Ajustes» repetido (titular y pestaña) y un `setContent` doble.
+- **En el teléfono, `SettingsScreenAccessibilityTest[cleared-*]`** (T039): la fila «Tema» deja una fila de Ajustes bajo el aviso inferior, y ATF veía su parte no tapada, de 36 dp. Es un artefacto de la prueba, no de la app. La prueba ignora solo los objetivos cortados por el borde del aviso (`c2aec2f`).
+- **Tres ajustes en pruebas propias durante la implementación:** un texto de la barra superior fuera del desplazable, «Ajustes» repetido (titular y pestaña) y un `setContent` doble.
 
 ## 9. Pendiente
 
-- **Fase del teléfono (T039–T041),** parada el 2026-11-04 a petición del usuario:
-  - repetir la batería con la salida en `/data/local/tmp` e identificar los 3 fallos de la primera tanda;
-  - el recorrido acordado (todo lo propuesto, aprobado el 2026-11-04): arranques con el muestreo de un píxel, reinicio, respuesta e indexación con el documento de prueba `wb-ajedrez.txt` en `Download/MicroRAG-F16-prueba/`, y red.
-
-  El teléfono quedó con sus ajustes (modo oscuro, letra 1,0, giro vertical fijo y app en español), la app en «Sistema» y sin el documento de prueba.
+- **Revisión de cierre del usuario.**
+- **Para las próximas fases del teléfono:**
+  - quitar la pantalla de bloqueo (`wm dismiss-keyguard`) y comprobarlo antes de lanzar la batería;
+  - escribir la salida en el teléfono, porque el cliente `adb` puede cortarse;
+  - comprobar el idioma por app al terminar.
 
 **Visto durante las pruebas, fuera de F16** (no se ha tocado):
 - En Bienvenida, con el tema claro, los iconos de la barra de estado salen oscuros sobre su degradado oscuro. Pasaba igual antes de F16 con el teléfono en claro. Queda para F15.
