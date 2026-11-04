@@ -1,6 +1,6 @@
 # Informe de cierre — F16 Apariencia: tema e icono de Ajustes
 
-> **Estado:** implementada; pendiente de la revisión de cierre del usuario.
+> **Estado:** aprobada por el usuario el 2026-11-04.
 
 **Rama:** `016-appearance-theme`, creada desde `e9c8006`.
 **Fecha:** 2026-11-03 y 2026-11-04.
@@ -159,7 +159,6 @@ Los 9 textos nuevos, revisados y sin correcciones: «Theme», «Appearance», «
 
 ## 9. Pendiente
 
-- **Revisión de cierre del usuario.**
 - **Para las próximas fases del teléfono:**
   - quitar la pantalla de bloqueo (`wm dismiss-keyguard`) y comprobarlo antes de lanzar la batería;
   - escribir la salida en el teléfono, porque el cliente `adb` puede cortarse;
