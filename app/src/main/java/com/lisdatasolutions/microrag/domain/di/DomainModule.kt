@@ -12,12 +12,16 @@ import com.lisdatasolutions.microrag.domain.ingest.RemoveQueueItemUseCase
 import com.lisdatasolutions.microrag.domain.ingest.RetryQueueItemUseCase
 import com.lisdatasolutions.microrag.domain.ingest.StartIndexingUseCase
 import com.lisdatasolutions.microrag.domain.library.DeleteDocumentUseCase
+import com.lisdatasolutions.microrag.domain.library.CreateFolderUseCase
+import com.lisdatasolutions.microrag.domain.library.DeleteFolderUseCase
 import com.lisdatasolutions.microrag.domain.library.DiscardReindexUseCase
 import com.lisdatasolutions.microrag.domain.library.LoadPreviewUseCase
 import com.lisdatasolutions.microrag.domain.library.ObserveDocumentUseCase
+import com.lisdatasolutions.microrag.domain.library.ObserveFoldersUseCase
 import com.lisdatasolutions.microrag.domain.library.ObserveLibraryUseCase
 import com.lisdatasolutions.microrag.domain.library.ObserveLibrarySummaryUseCase
 import com.lisdatasolutions.microrag.domain.library.ReindexDocumentUseCase
+import com.lisdatasolutions.microrag.domain.library.RenameFolderUseCase
 import com.lisdatasolutions.microrag.domain.library.RemoveFromIndexUseCase
 import com.lisdatasolutions.microrag.domain.library.SetIncludedUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.BuildDownloadConfirmationUseCase
@@ -117,6 +121,11 @@ val domainModule = module {
     factoryOf(::RemoveFromIndexUseCase)
     factoryOf(::ReindexDocumentUseCase)
     factoryOf(::DiscardReindexUseCase)
+    // F17 folders (contracts/folders-scope-api.md §2).
+    factoryOf(::ObserveFoldersUseCase)
+    factoryOf(::CreateFolderUseCase)
+    factoryOf(::RenameFolderUseCase)
+    factoryOf(::DeleteFolderUseCase)
 
     // Retrieval (F10).
     factoryOf(::RetrieveContextUseCase)

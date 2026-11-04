@@ -11,12 +11,12 @@ import com.lisdatasolutions.microrag.domain.chat.ChatStorageState
 import com.lisdatasolutions.microrag.domain.chat.ChatTurn
 import com.lisdatasolutions.microrag.domain.chat.ConversationPage
 import com.lisdatasolutions.microrag.domain.chat.ConversationSummary
-import com.lisdatasolutions.microrag.domain.chat.DocumentRef
-import com.lisdatasolutions.microrag.domain.chat.FolderRef
 import com.lisdatasolutions.microrag.domain.chat.HistoryLimits
 import com.lisdatasolutions.microrag.domain.chat.TurnFailure
 import com.lisdatasolutions.microrag.domain.chat.TurnState
 import com.lisdatasolutions.microrag.domain.chat.TurnUpdate
+import com.lisdatasolutions.microrag.domain.rag.DocumentRef
+import com.lisdatasolutions.microrag.domain.rag.FolderRef
 import java.io.File
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher

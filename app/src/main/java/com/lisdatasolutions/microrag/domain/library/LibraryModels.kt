@@ -3,12 +3,18 @@ package com.lisdatasolutions.microrag.domain.library
 import com.lisdatasolutions.microrag.domain.indexing.PauseReason
 import com.lisdatasolutions.microrag.domain.ingest.DocumentFormat
 import com.lisdatasolutions.microrag.domain.ingest.IngestError
+import com.lisdatasolutions.microrag.domain.rag.LibraryFolderFilter
 
 /** The Library filter chips (G16): no «Errores»; «Pendientes» is everything not indexed, each with its chip. */
 enum class LibraryFilter { ALL, INDEXED, PENDING }
 
-/** What the Library asks for; the ViewModel keeps it in its SavedStateHandle (F08 research R9). */
-data class LibraryQuery(val text: String = "", val filter: LibraryFilter = LibraryFilter.ALL, val limit: Int = PAGE) {
+/** What the Library asks for; the ViewModel keeps it in its SavedStateHandle (F08 research R9), the folder by route (F17). */
+data class LibraryQuery(
+    val text: String = "",
+    val filter: LibraryFilter = LibraryFilter.ALL,
+    val limit: Int = PAGE,
+    val folder: LibraryFolderFilter = LibraryFolderFilter.All,
+) {
     companion object {
         /** Rows loaded per block (research R2). */
         const val PAGE = 50
@@ -27,6 +33,9 @@ data class LibraryDocument(
     val format: DocumentFormat?,
     val state: LibraryDocumentState,
     val included: Boolean,
+    /** F17: null is «General»; the root's search shows the name in the data line. */
+    val folderId: Long? = null,
+    val folderName: String? = null,
 ) {
     /** Inclusion only means something for indexed documents (FR-008). */
     val canChangeInclusion: Boolean get() = state is LibraryDocumentState.Indexed
@@ -63,6 +72,9 @@ data class DocumentDetail(
     val copyMissing: Boolean,
     /** Null without a reindex shadow. */
     val reindex: ReindexState?,
+    /** F17: null is «General» (L6). */
+    val folderId: Long? = null,
+    val folderName: String? = null,
 ) {
     val canChangeInclusion: Boolean get() = state == DocumentDetailState.Indexed
 }

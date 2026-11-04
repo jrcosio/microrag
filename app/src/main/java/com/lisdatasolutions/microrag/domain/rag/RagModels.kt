@@ -53,6 +53,9 @@ data class StoredDocument(
     val skippedPages: Int? = null,
     /** Only on a reindex shadow: the document whose chunks it replaces when it closes (F08 research R5). */
     val replacesId: Long? = null,
+    /** F17: null is «General»; a shadow never has one. */
+    val folderId: Long? = null,
+    val folderName: String? = null,
 )
 
 /** A Library row (F08 research R2): a document and the status of its reindex shadow, if it has one. */
@@ -125,3 +128,28 @@ sealed interface SearchScope {
     /** Folders by id, «General» as the documents with no folder, and loose documents, as they are at the question (FR-016). */
     data class Only(val folderIds: Set<Long>, val general: Boolean, val documentIds: Set<Long>) : SearchScope
 }
+
+// F17 folders (data-model §3): one level, one folder per document; a document with no folder is in «General».
+
+/** [documentCount] leaves out the reindex shadows, as every Library count (F08). */
+data class Folder(val id: Long, val name: String, val createdAtMs: Long, val documentCount: Int)
+
+/** The Library root: the folders by folded name, and how many documents are in «General». */
+data class FolderList(val folders: List<Folder>, val unfiledCount: Int)
+
+/** Which documents a Library list shows (research R5). */
+sealed interface LibraryFolderFilter {
+    /** Every folder: the search of the root. */
+    data object All : LibraryFolderFilter
+
+    /** «General»: the documents with no folder. */
+    data object Unfiled : LibraryFolderFilter
+
+    data class Folder(val id: Long) : LibraryFolderFilter
+}
+
+/** A document as other files keep it: with when it was created, so a reused id never matches (D-065). */
+data class DocumentRef(val id: Long, val createdAtMs: Long)
+
+/** A folder as a scope keeps it; its ids are never reused, but `rag.db` could be made again (analyze L9). */
+data class FolderRef(val id: Long, val createdAtMs: Long)

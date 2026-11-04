@@ -4,13 +4,17 @@ import com.lisdatasolutions.microrag.domain.rag.ChatLibraryState
 import com.lisdatasolutions.microrag.domain.rag.ChunkInput
 import com.lisdatasolutions.microrag.domain.rag.ChunkView
 import com.lisdatasolutions.microrag.domain.rag.DocumentNames
+import com.lisdatasolutions.microrag.domain.rag.DocumentRef
 import com.lisdatasolutions.microrag.domain.rag.DocumentStatus
 import com.lisdatasolutions.microrag.domain.rag.DuplicateDocumentException
+import com.lisdatasolutions.microrag.domain.rag.Folder
+import com.lisdatasolutions.microrag.domain.rag.FolderList
 import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
 import com.lisdatasolutions.microrag.domain.rag.IndexCounts
 import com.lisdatasolutions.microrag.domain.rag.IndexStorageFullException
 import com.lisdatasolutions.microrag.domain.rag.IndexUnavailableException
 import com.lisdatasolutions.microrag.domain.rag.LibraryEntry
+import com.lisdatasolutions.microrag.domain.rag.LibraryFolderFilter
 import com.lisdatasolutions.microrag.domain.rag.LibrarySummary
 import com.lisdatasolutions.microrag.domain.rag.NewDocument
 import com.lisdatasolutions.microrag.domain.rag.RagIndex
@@ -111,24 +115,93 @@ class FakeRagIndex(initial: IndexCompatibility = IndexCompatibility.Compatible) 
         id
     }
 
-    override suspend fun document(id: Long): StoredDocument? = available { docs[id] }
+    override suspend fun document(id: Long): StoredDocument? = available { docs[id]?.let(::withFolderName) }
 
     override suspend fun documents(statuses: Set<DocumentStatus>): List<StoredDocument> = available {
         docs.values.filter { it.status in statuses }.sortedWith(compareBy({ it.createdAtMs }, { it.id }))
     }
 
-    private fun library(text: String, statuses: Set<DocumentStatus>): List<StoredDocument> {
+    private fun library(text: String, statuses: Set<DocumentStatus>, folder: LibraryFolderFilter): List<StoredDocument> {
         val folded = DocumentNames.fold(text.trim())
         return docs.values
             .filter { it.replacesId == null && it.status in statuses && DocumentNames.fold(it.displayName).contains(folded) }
+            .filter {
+                when (folder) {
+                    LibraryFolderFilter.All -> true
+                    LibraryFolderFilter.Unfiled -> it.folderId == null
+                    is LibraryFolderFilter.Folder -> it.folderId == folder.id
+                }
+            }
             .sortedWith(compareByDescending<StoredDocument> { it.createdAtMs }.thenByDescending { it.id })
+            .map(::withFolderName)
     }
 
-    override suspend fun libraryPage(text: String, statuses: Set<DocumentStatus>, limit: Int): List<LibraryEntry> = available {
-        library(text, statuses).take(limit.coerceAtLeast(0)).map { LibraryEntry(it, shadow(it.id)?.status) }
+    override suspend fun libraryPage(text: String, statuses: Set<DocumentStatus>, limit: Int, folder: LibraryFolderFilter): List<LibraryEntry> =
+        available { library(text, statuses, folder).take(limit.coerceAtLeast(0)).map { LibraryEntry(it, shadow(it.id)?.status) } }
+
+    override suspend fun libraryCount(text: String, statuses: Set<DocumentStatus>, folder: LibraryFolderFilter): Int =
+        available { library(text, statuses, folder).size }
+
+    /** F17: folders by id, as `rag.db` keeps them. */
+    data class FakeFolder(val name: String, val norm: String, val createdAtMs: Long)
+
+    val folderRows = linkedMapOf<Long, FakeFolder>()
+    private var nextFolderId = 1L
+
+    /** Makes every folder write fail, as an index failing under it would. */
+    var failFolderWrites = false
+
+    /** Puts [documentId] in [folderId] (null: «General»), as a move does. */
+    fun file(documentId: Long, folderId: Long?) {
+        docs.computeIfPresent(documentId) { _, d -> d.copy(folderId = folderId) }
+        changes.value += 1
     }
 
-    override suspend fun libraryCount(text: String, statuses: Set<DocumentStatus>): Int = available { library(text, statuses).size }
+    private fun withFolderName(document: StoredDocument): StoredDocument =
+        document.copy(folderName = document.folderId?.let { folderRows[it]?.name })
+
+    override suspend fun folders(): FolderList = available {
+        FolderList(
+            folders = folderRows.entries.sortedWith(compareBy({ it.value.norm }, { it.key })).map { (id, f) ->
+                Folder(id, f.name, f.createdAtMs, docs.values.count { it.replacesId == null && it.folderId == id })
+            },
+            unfiledCount = docs.values.count { it.replacesId == null && it.folderId == null },
+        )
+    }
+
+    override suspend fun createFolder(name: String, norm: String): Long? = available {
+        if (failFolderWrites) throw IllegalStateException("fake folder write failed")
+        if (folderRows.values.any { it.norm == norm }) return@available null
+        nextFolderId++.also {
+            folderRows[it] = FakeFolder(name, norm, now++)
+            changes.value += 1
+        }
+    }
+
+    override suspend fun renameFolder(id: Long, name: String, norm: String): Boolean? = available {
+        if (failFolderWrites) throw IllegalStateException("fake folder write failed")
+        val folder = folderRows[id] ?: return@available false
+        if (folderRows.any { (other, f) -> other != id && f.norm == norm }) return@available null
+        folderRows[id] = folder.copy(name = name, norm = norm)
+        changes.value += 1
+        true
+    }
+
+    override suspend fun deleteFolder(id: Long, moveDocuments: Boolean): Boolean = available {
+        if (failFolderWrites) throw IllegalStateException("fake folder write failed")
+        if (id !in folderRows) return@available false
+        val inside = docs.values.filter { it.folderId == id }
+        if (!moveDocuments && inside.isNotEmpty()) return@available false
+        inside.forEach { docs[it.id] = it.copy(folderId = null) }
+        folderRows.remove(id)
+        changes.value += 1
+        true
+    }
+
+    override suspend fun folderDocumentRefs(folderId: Long?): List<DocumentRef> = available {
+        library("", DocumentStatus.entries.toSet(), folderId?.let { LibraryFolderFilter.Folder(it) } ?: LibraryFolderFilter.Unfiled)
+            .map { DocumentRef(it.id, it.createdAtMs) }
+    }
 
     override suspend fun documentIdByHash(contentHash: String): Long? = available {
         docs.values.firstOrNull { it.contentHash == contentHash }?.id

@@ -30,17 +30,40 @@ interface RagIndex {
      * [statuses] and a name holding [text] without case or accents (blank: any name), newest first, at
      * most [limit]. Each entry carries its shadow's status. Never reads the chunks (rule L1).
      */
-    suspend fun libraryPage(text: String, statuses: Set<DocumentStatus>, limit: Int): List<LibraryEntry>
+    suspend fun libraryPage(
+        text: String,
+        statuses: Set<DocumentStatus>,
+        limit: Int,
+        folder: LibraryFolderFilter = LibraryFolderFilter.All,
+    ): List<LibraryEntry>
 
     /** How many documents [libraryPage] would list without a limit. */
-    suspend fun libraryCount(text: String, statuses: Set<DocumentStatus>): Int
+    suspend fun libraryCount(text: String, statuses: Set<DocumentStatus>, folder: LibraryFolderFilter = LibraryFolderFilter.All): Int
+
+    /** F17 (contract F1): the folders by folded name with their documents, and the documents in «General»; one aggregate query. */
+    suspend fun folders(): FolderList
+
+    /** F2: the new folder's id, or null when another folder has [norm]. */
+    suspend fun createFolder(name: String, norm: String): Long?
+
+    /** F2: null when another folder has [norm]; false when [id] does not exist. */
+    suspend fun renameFolder(id: Long, name: String, norm: String): Boolean?
+
+    /**
+     * F3: with [moveDocuments], its documents go to «General» and the folder goes, in one transaction;
+     * without, the folder goes only if no document is left in it. Returns whether it went.
+     */
+    suspend fun deleteFolder(id: Long, moveDocuments: Boolean): Boolean
+
+    /** F3: every document of a folder, or of «General» with null, newest first; shadows left out. */
+    suspend fun folderDocumentRefs(folderId: Long?): List<DocumentRef>
 
     /** Id of the document with this content hash, if any (F06 duplicate check). */
     suspend fun documentIdByHash(contentHash: String): Long?
 
     /**
      * Increases after every committed write that changes documents or their chunks: add, status,
-     * inclusion, delete and chunk insertion. Readers reload what they show when it changes.
+     * inclusion, delete and chunk insertion, and the folders (F17). Readers reload what they show when it changes.
      */
     val documentChanges: StateFlow<Long>
 

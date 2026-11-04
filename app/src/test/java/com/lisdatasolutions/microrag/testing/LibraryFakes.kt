@@ -1,5 +1,6 @@
 package com.lisdatasolutions.microrag.testing
 
+import com.lisdatasolutions.microrag.domain.ingest.DocumentFormat
 import com.lisdatasolutions.microrag.domain.library.DetailResult
 import com.lisdatasolutions.microrag.domain.library.DocumentPreview
 import com.lisdatasolutions.microrag.domain.library.LibraryDocument
@@ -9,7 +10,13 @@ import com.lisdatasolutions.microrag.domain.library.LibraryPage
 import com.lisdatasolutions.microrag.domain.library.LibraryQuery
 import com.lisdatasolutions.microrag.domain.library.LibraryRepository
 import com.lisdatasolutions.microrag.domain.library.LibraryResult
+import com.lisdatasolutions.microrag.domain.library.FolderResult
+import com.lisdatasolutions.microrag.domain.library.FoldersResult
 import com.lisdatasolutions.microrag.domain.rag.DocumentNames
+import com.lisdatasolutions.microrag.domain.rag.DocumentRef
+import com.lisdatasolutions.microrag.domain.rag.Folder
+import com.lisdatasolutions.microrag.domain.rag.FolderList
+import com.lisdatasolutions.microrag.domain.rag.LibraryFolderFilter
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,11 +28,80 @@ import kotlinx.coroutines.flow.map
 import com.lisdatasolutions.microrag.domain.library.SummaryResult
 import com.lisdatasolutions.microrag.domain.rag.LibrarySummary
 
+/** An indexed PDF row, for tests that only care about ids, names and folders (F17). */
+fun libraryDocument(id: Long, name: String, folderId: Long? = null, folderName: String? = null) = LibraryDocument(
+    id, name, DocumentFormat.PDF, LibraryDocumentState.Indexed(3, null), included = true, folderId = folderId, folderName = folderName,
+)
+
 /**
  * A [LibraryRepository] for ViewModel tests: pages come from [documents] (newest first) filtered as the
  * index does; details are set per document. Every call is recorded.
  */
 class FakeLibraryRepository : LibraryRepository {
+    /** F17: the folders as the index keeps them; the counts come from [documents]. */
+    val folderRows = MutableStateFlow<List<Folder>>(emptyList())
+    var foldersUnavailable = false
+
+    /** The next folder writes return these, when set; otherwise they act on [folderRows]. */
+    var nextFolderResult: FolderResult? = null
+    var failDeleteFolder = false
+
+    /** Documents [delete] leaves in place, as a delete that fails would (M4). */
+    var undeletable: Set<Long> = emptySet()
+
+    /** When set, folder writes wait for it: holds «Eliminando…» and the double tap tests. */
+    var folderGate: CompletableDeferred<Unit>? = null
+
+    override fun folders(): Flow<FoldersResult> = flow {
+        if (foldersUnavailable) {
+            emit(FoldersResult.Unavailable)
+            return@flow
+        }
+        emitAll(
+            combine(folderRows, documents) { folders, docs ->
+                FoldersResult.Loaded(
+                    FolderList(
+                        folders.sortedBy { DocumentNames.fold(it.name) }.map { f -> f.copy(documentCount = docs.count { it.folderId == f.id }) },
+                        docs.count { it.folderId == null },
+                    ),
+                )
+            },
+        )
+    }
+
+    override suspend fun createFolder(name: String, norm: String): FolderResult {
+        calls += "createFolder $name"
+        folderGate?.await()
+        nextFolderResult?.let { return it }
+        if (folderRows.value.any { DocumentNames.fold(it.name) == norm }) return FolderResult.Duplicate
+        val id = (folderRows.value.maxOfOrNull { it.id } ?: 0) + 1
+        folderRows.value = folderRows.value + Folder(id, name, createdAtMs = id * 10, documentCount = 0)
+        return FolderResult.Done(id)
+    }
+
+    override suspend fun renameFolder(id: Long, name: String, norm: String): FolderResult {
+        calls += "renameFolder $id $name"
+        folderGate?.await()
+        nextFolderResult?.let { return it }
+        if (folderRows.value.any { it.id != id && DocumentNames.fold(it.name) == norm }) return FolderResult.Duplicate
+        folderRows.value = folderRows.value.map { if (it.id == id) it.copy(name = name) else it }
+        return FolderResult.Done(id)
+    }
+
+    override suspend fun deleteFolder(id: Long, moveDocuments: Boolean): Boolean {
+        calls += "deleteFolder $id $moveDocuments"
+        folderGate?.await()
+        if (failDeleteFolder) return false
+        val inside = documents.value.filter { it.folderId == id }
+        if (!moveDocuments && inside.isNotEmpty()) return false
+        documents.value = documents.value.map { if (it.folderId == id) it.copy(folderId = null, folderName = null) else it }
+        folderRows.value = folderRows.value.filterNot { it.id == id }
+        return true
+    }
+
+    override suspend fun folderDocumentRefs(folderId: Long?): List<DocumentRef>? =
+        if (foldersUnavailable) null else documents.value.filter { it.folderId == folderId }.map { DocumentRef(it.id, it.id * 10) }
+
     val documents = MutableStateFlow<List<LibraryDocument>>(emptyList())
 
     /** False keeps the page loading; [pageError] makes the next observation fail. */
@@ -86,7 +162,12 @@ class FakeLibraryRepository : LibraryRepository {
             LibraryFilter.INDEXED -> indexed
             LibraryFilter.PENDING -> !indexed
         }
-        return filtered && DocumentNames.fold(displayName).contains(DocumentNames.fold(query.text.trim()))
+        val inFolder = when (val folder = query.folder) {
+            LibraryFolderFilter.All -> true
+            LibraryFolderFilter.Unfiled -> folderId == null
+            is LibraryFolderFilter.Folder -> folderId == folder.id
+        }
+        return filtered && inFolder && DocumentNames.fold(displayName).contains(DocumentNames.fold(query.text.trim()))
     }
 
     override fun detail(documentId: Long): Flow<DetailResult> =
@@ -109,6 +190,7 @@ class FakeLibraryRepository : LibraryRepository {
     override suspend fun delete(documentId: Long) {
         calls += "delete $documentId"
         deleteGate?.await()
+        if (documentId in undeletable) return
         documents.value = documents.value.filterNot { it.id == documentId }
         details[documentId]?.value = DetailResult.NotFound
     }

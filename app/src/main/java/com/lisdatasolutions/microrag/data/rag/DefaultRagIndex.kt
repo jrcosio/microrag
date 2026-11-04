@@ -7,9 +7,12 @@ import com.lisdatasolutions.microrag.domain.rag.ChunkInput
 import com.lisdatasolutions.microrag.domain.rag.ChunkView
 import com.lisdatasolutions.microrag.domain.rag.CompatibilityDecision
 import com.lisdatasolutions.microrag.domain.rag.DocumentNames
+import com.lisdatasolutions.microrag.domain.rag.DocumentRef
 import com.lisdatasolutions.microrag.domain.rag.DocumentTitle
 import com.lisdatasolutions.microrag.domain.rag.DocumentStatus
 import com.lisdatasolutions.microrag.domain.rag.DuplicateDocumentException
+import com.lisdatasolutions.microrag.domain.rag.Folder
+import com.lisdatasolutions.microrag.domain.rag.FolderList
 import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
 import com.lisdatasolutions.microrag.domain.rag.IndexCompatibilityChecker
 import com.lisdatasolutions.microrag.domain.rag.IndexCounts
@@ -17,6 +20,7 @@ import com.lisdatasolutions.microrag.domain.rag.LibrarySummary
 import com.lisdatasolutions.microrag.domain.rag.IndexStorageFullException
 import com.lisdatasolutions.microrag.domain.rag.IndexUnavailableException
 import com.lisdatasolutions.microrag.domain.rag.LibraryEntry
+import com.lisdatasolutions.microrag.domain.rag.LibraryFolderFilter
 import com.lisdatasolutions.microrag.domain.rag.NewDocument
 import com.lisdatasolutions.microrag.domain.rag.RagIndex
 import com.lisdatasolutions.microrag.domain.rag.RagIndexConfig
@@ -106,9 +110,14 @@ class DefaultRagIndex(
         }
     }
 
-    override suspend fun libraryPage(text: String, statuses: Set<DocumentStatus>, limit: Int): List<LibraryEntry> {
+    override suspend fun libraryPage(
+        text: String,
+        statuses: Set<DocumentStatus>,
+        limit: Int,
+        folder: LibraryFolderFilter,
+    ): List<LibraryEntry> {
         if (statuses.isEmpty() || limit <= 0) return emptyList()
-        val (where, args) = libraryFilter(text, statuses)
+        val (where, args) = libraryFilter(text, statuses, folder)
         return withIndex { db ->
             db.query(
                 "SELECT $DOCUMENT_COLUMNS, (SELECT s.status FROM documents s WHERE s.replaces_id = documents.id LIMIT 1) " +
@@ -118,10 +127,64 @@ class DefaultRagIndex(
         }
     }
 
-    override suspend fun libraryCount(text: String, statuses: Set<DocumentStatus>): Int {
+    override suspend fun libraryCount(text: String, statuses: Set<DocumentStatus>, folder: LibraryFolderFilter): Int {
         if (statuses.isEmpty()) return 0
-        val (where, args) = libraryFilter(text, statuses)
+        val (where, args) = libraryFilter(text, statuses, folder)
         return withIndex { db -> count(db, "SELECT count(*) FROM documents WHERE $where", *args) }
+    }
+
+    override suspend fun folders(): FolderList = withIndex { db ->
+        val folders = db.query(
+            "SELECT f.id, f.name, f.created_at_ms, count(d.id) FROM folders f " +
+                "LEFT JOIN documents d ON d.folder_id = f.id AND d.replaces_id IS NULL " +
+                "GROUP BY f.id ORDER BY f.name_norm, f.id",
+        ) { Folder(id = it.getLong(0), name = it.getText(1), createdAtMs = it.getLong(2), documentCount = it.getLong(3).toInt()) }
+        val unfiled = count(db, "SELECT count(*) FROM documents WHERE folder_id IS NULL AND replaces_id IS NULL")
+        FolderList(folders, unfiled)
+    }
+
+    // F17 (contract F2): the index runs on one thread, so looking for the folded name before writing is
+    // enough; UNIQUE(name_norm) still guards the file.
+    override suspend fun createFolder(name: String, norm: String): Long? = withIndex { db ->
+        if (db.queryOne("SELECT 1 FROM folders WHERE name_norm = ?", norm) { true } == true) return@withIndex null
+        val now = clock()
+        db.exec("INSERT INTO folders(name, name_norm, created_at_ms, updated_at_ms) VALUES (?, ?, ?, ?)", name, norm, now, now)
+        val id = checkNotNull(db.queryOne("SELECT last_insert_rowid()") { it.getLong(0) })
+        logger.i(TAG) { "rag folder add id=$id" }
+        notifyChanged()
+        id
+    }
+
+    override suspend fun renameFolder(id: Long, name: String, norm: String): Boolean? = withIndex { db ->
+        if (db.queryOne("SELECT 1 FROM folders WHERE id = ?", id) { true } != true) return@withIndex false
+        if (db.queryOne("SELECT 1 FROM folders WHERE name_norm = ? AND id <> ?", norm, id) { true } == true) return@withIndex null
+        db.exec("UPDATE folders SET name = ?, name_norm = ?, updated_at_ms = ? WHERE id = ?", name, norm, clock(), id)
+        logger.i(TAG) { "rag folder rename id=$id" }
+        notifyChanged()
+        true
+    }
+
+    override suspend fun deleteFolder(id: Long, moveDocuments: Boolean): Boolean = withIndex { db ->
+        val deleted = db.transaction {
+            if (moveDocuments) {
+                db.exec("UPDATE documents SET folder_id = NULL, updated_at_ms = ? WHERE folder_id = ?", clock(), id)
+            } else if (count(db, "SELECT count(*) FROM documents WHERE folder_id = ?", id) > 0) {
+                return@transaction false
+            }
+            db.exec("DELETE FROM folders WHERE id = ?", id)
+            db.changes() > 0
+        }
+        logger.i(TAG) { "rag folder delete id=$id moved=$moveDocuments deleted=$deleted" }
+        if (deleted) notifyChanged()
+        deleted
+    }
+
+    override suspend fun folderDocumentRefs(folderId: Long?): List<DocumentRef> = withIndex { db ->
+        val folder = if (folderId == null) "folder_id IS NULL" else "folder_id = ?"
+        db.query(
+            "SELECT id, created_at_ms FROM documents WHERE $folder AND replaces_id IS NULL ORDER BY created_at_ms DESC, id DESC",
+            *listOfNotNull(folderId).toTypedArray(),
+        ) { DocumentRef(it.getLong(0), it.getLong(1)) }
     }
 
     override suspend fun documentIdByHash(contentHash: String): Long? = withIndex { db ->
@@ -374,10 +437,18 @@ class DefaultRagIndex(
         db.exec("UPDATE rag_meta SET value = '1' WHERE key = ?", RagMetaKeys.QUANT_DIRTY)
     }
 
-    /** WHERE clause and arguments shared by [libraryPage] and [libraryCount]: no shadows, [statuses], the name. */
-    private fun libraryFilter(text: String, statuses: Set<DocumentStatus>): Pair<String, Array<Any?>> {
+    /** WHERE clause and arguments shared by [libraryPage] and [libraryCount]: no shadows, [statuses], the folder, the name. */
+    private fun libraryFilter(text: String, statuses: Set<DocumentStatus>, folder: LibraryFolderFilter): Pair<String, Array<Any?>> {
         val clauses = mutableListOf("replaces_id IS NULL", "status IN (${statuses.joinToString(",") { "?" }})")
         val args = statuses.map<DocumentStatus, Any?> { it.sqlValue }.toMutableList()
+        when (folder) {
+            LibraryFolderFilter.All -> Unit
+            LibraryFolderFilter.Unfiled -> clauses += "folder_id IS NULL"
+            is LibraryFolderFilter.Folder -> {
+                clauses += "folder_id = ?"
+                args += folder.id
+            }
+        }
         if (text.isNotBlank()) {
             clauses += "name_norm LIKE ? ESCAPE '\\'"
             args += DocumentNames.likePattern(text)
@@ -530,6 +601,8 @@ class DefaultRagIndex(
         updatedAtMs = s.getLong(13),
         skippedPages = s.longOrNull(14)?.toInt(),
         replacesId = s.longOrNull(15),
+        folderId = s.longOrNull(16),
+        folderName = s.textOrNull(17),
     )
 
     private fun readMeta(db: RagConnection): Map<String, String> =
@@ -654,11 +727,12 @@ class DefaultRagIndex(
         private const val SHADOW_HASH_SUFFIX = "#reindex"
 
         /** [libraryPage] reads the shadow's status after the [DOCUMENT_COLUMNS]. */
-        private const val SHADOW_STATUS_COLUMN = 16
+        private const val SHADOW_STATUS_COLUMN = 18
         private const val LOAD_BLOCK = 500
         private const val UNIT_NORM_TOLERANCE = 1e-3
         private const val DOCUMENT_COLUMNS = "id, display_name, content_hash, mime_type, uri, status, chunk_count, error, " +
-            "included, size_bytes, page_count, local_path, created_at_ms, updated_at_ms, skipped_pages, replaces_id"
+            "included, size_bytes, page_count, local_path, created_at_ms, updated_at_ms, skipped_pages, replaces_id, " +
+            "folder_id, (SELECT f.name FROM folders f WHERE f.id = documents.folder_id)"
     }
 }
 

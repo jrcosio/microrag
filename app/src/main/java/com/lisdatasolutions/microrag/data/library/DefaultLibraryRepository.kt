@@ -13,6 +13,8 @@ import com.lisdatasolutions.microrag.domain.library.DetailResult
 import com.lisdatasolutions.microrag.domain.library.DocumentDetail
 import com.lisdatasolutions.microrag.domain.library.DocumentDetailState
 import com.lisdatasolutions.microrag.domain.library.DocumentPreview
+import com.lisdatasolutions.microrag.domain.library.FolderResult
+import com.lisdatasolutions.microrag.domain.library.FoldersResult
 import com.lisdatasolutions.microrag.domain.library.LibraryDocument
 import com.lisdatasolutions.microrag.domain.library.LibraryDocumentState
 import com.lisdatasolutions.microrag.domain.library.LibraryFilter
@@ -23,6 +25,7 @@ import com.lisdatasolutions.microrag.domain.library.LibraryResult
 import com.lisdatasolutions.microrag.domain.library.ReindexRow
 import com.lisdatasolutions.microrag.domain.library.ReindexState
 import com.lisdatasolutions.microrag.domain.library.SummaryResult
+import com.lisdatasolutions.microrag.domain.rag.DocumentRef
 import com.lisdatasolutions.microrag.domain.rag.DocumentStatus
 import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
 import com.lisdatasolutions.microrag.domain.rag.IndexUnavailableException
@@ -40,6 +43,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.withContext
+import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * The Library and the document detail (F08 contracts/library-api.md) on the index, the indexing run
@@ -72,8 +76,8 @@ class DefaultLibraryRepository(
     /** Rule L1: two queries on `documents`, never on `chunks`. */
     private suspend fun load(query: LibraryQuery): LibraryResult {
         val statuses = query.filter.statuses()
-        val entries = index.libraryPage(query.text, statuses, query.limit)
-        val total = index.libraryCount(query.text, statuses)
+        val entries = index.libraryPage(query.text, statuses, query.limit, query.folder)
+        val total = index.libraryCount(query.text, statuses, query.folder)
         return LibraryResult.Loaded(LibraryPage(entries.map { it.toLibraryDocument() }, total))
     }
 
@@ -143,6 +147,8 @@ class DefaultLibraryRepository(
                 canReindex = reindexable && !copyMissing,
                 copyMissing = copyMissing,
                 reindex = reindex,
+                folderId = document.folderId,
+                folderName = document.folderName,
             ),
         )
     }
@@ -246,6 +252,55 @@ class DefaultLibraryRepository(
         logger.i(TAG) { "library reindex discarded id=$documentId shadow=${shadow.id}" }
     }
 
+    /** F17 rule F1: one aggregate query per index change, as the summary. */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun folders(): Flow<FoldersResult> = flow {
+        if (index.open() != IndexCompatibility.Compatible) {
+            emit(FoldersResult.Unavailable)
+            return@flow
+        }
+        emitAll(index.documentChanges.mapLatest { FoldersResult.Loaded(index.folders()) })
+    }.catch { error ->
+        if (error is IndexUnavailableException) emit(FoldersResult.Unavailable) else throw error
+    }.distinctUntilChanged().flowOn(io)
+
+    override suspend fun createFolder(name: String, norm: String): FolderResult = folderWrite("create") {
+        index.createFolder(name, norm)?.let { FolderResult.Done(it) } ?: FolderResult.Duplicate
+    }
+
+    override suspend fun renameFolder(id: Long, name: String, norm: String): FolderResult = folderWrite("rename") {
+        when (index.renameFolder(id, name, norm)) {
+            true -> FolderResult.Done(id)
+            null -> FolderResult.Duplicate
+            false -> FolderResult.Failed
+        }
+    }
+
+    override suspend fun deleteFolder(id: Long, moveDocuments: Boolean): Boolean = try {
+        index.deleteFolder(id, moveDocuments)
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        logger.w(TAG, e) { "library folder delete failed: ${e.javaClass.simpleName}" }
+        false
+    }
+
+    override suspend fun folderDocumentRefs(folderId: Long?): List<DocumentRef>? = try {
+        index.folderDocumentRefs(folderId)
+    } catch (e: IndexUnavailableException) {
+        null
+    }
+
+    /** A folder write that fails, the index unavailable or SQLite, is [FolderResult.Failed]; the log has no name (FR-025). */
+    private suspend fun folderWrite(action: String, block: suspend () -> FolderResult): FolderResult = try {
+        block()
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        logger.w(TAG, e) { "library folder $action failed: ${e.javaClass.simpleName}" }
+        FolderResult.Failed
+    }
+
     /** Rule L12: with the index unavailable, writing actions do nothing; the screens already say why. */
     private suspend fun writing(action: suspend () -> Unit) {
         try {
@@ -282,6 +337,8 @@ class DefaultLibraryRepository(
             DocumentStatus.OUT_OF_INDEX -> LibraryDocumentState.OutOfIndex
         },
         included = document.included,
+        folderId = document.folderId,
+        folderName = document.folderName,
     )
 
     private fun String?.toIngestError(): IngestError = IngestError.fromCode(this) ?: IngestError.EXTRACTION_FAILED

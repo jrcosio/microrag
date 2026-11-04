@@ -9,11 +9,11 @@ import com.lisdatasolutions.microrag.domain.chat.AnswerSource
 import com.lisdatasolutions.microrag.domain.chat.ChatScope
 import com.lisdatasolutions.microrag.domain.chat.ChatStorageException
 import com.lisdatasolutions.microrag.domain.chat.ChatStorageState
-import com.lisdatasolutions.microrag.domain.chat.DocumentRef
-import com.lisdatasolutions.microrag.domain.chat.FolderRef
 import com.lisdatasolutions.microrag.domain.chat.TurnFailure
 import com.lisdatasolutions.microrag.domain.chat.TurnState
 import com.lisdatasolutions.microrag.domain.chat.TurnUpdate
+import com.lisdatasolutions.microrag.domain.rag.DocumentRef
+import com.lisdatasolutions.microrag.domain.rag.FolderRef
 import com.lisdatasolutions.microrag.testing.CapturingLogger
 import java.io.File
 import kotlinx.coroutines.Dispatchers

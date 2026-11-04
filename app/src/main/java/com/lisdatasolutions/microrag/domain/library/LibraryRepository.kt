@@ -1,6 +1,8 @@
 package com.lisdatasolutions.microrag.domain.library
 
 import kotlinx.coroutines.flow.Flow
+import com.lisdatasolutions.microrag.domain.rag.DocumentRef
+import com.lisdatasolutions.microrag.domain.rag.FolderList
 import com.lisdatasolutions.microrag.domain.rag.LibrarySummary
 
 /** The Library and the document detail (F08 contracts/library-api.md). */
@@ -31,6 +33,27 @@ interface LibraryRepository {
 
     /** Drops a failed reindex shadow, keeping the original as it is (rule L8). */
     suspend fun discardReindex(documentId: Long)
+
+    /** F17 (contract F1): the folders and «General», computed again when the index changes. */
+    fun folders(): Flow<FoldersResult>
+
+    /** F2, with a name already checked by FolderNames: [FolderResult.Done], [FolderResult.Duplicate] or [FolderResult.Failed]. */
+    suspend fun createFolder(name: String, norm: String): FolderResult
+
+    suspend fun renameFolder(id: Long, name: String, norm: String): FolderResult
+
+    /** F3: whether the folder went; without [moveDocuments], only if it has no documents left. False when it fails. */
+    suspend fun deleteFolder(id: Long, moveDocuments: Boolean): Boolean
+
+    /** Every document of a folder, or of «General» with null; null when the index is unavailable. */
+    suspend fun folderDocumentRefs(folderId: Long?): List<DocumentRef>?
+}
+
+sealed interface FoldersResult {
+    data class Loaded(val folders: FolderList) : FoldersResult
+
+    /** The index is incompatible or unreadable, as [LibraryResult.Unavailable]. */
+    data object Unavailable : FoldersResult
 }
 
 sealed interface LibraryResult {

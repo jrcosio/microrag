@@ -1,11 +1,10 @@
 package com.lisdatasolutions.microrag.domain.chat
 
+import com.lisdatasolutions.microrag.domain.rag.DocumentRef
+import com.lisdatasolutions.microrag.domain.rag.FolderRef
+
 // F17 (data-model §3, research R7–R8): what a conversation asks. A scope keeps each folder and document
 // with when it was created, so a reused id never matches something else (D-065).
-
-data class DocumentRef(val id: Long, val createdAtMs: Long)
-
-data class FolderRef(val id: Long, val createdAtMs: Long)
 
 sealed interface ChatScope {
     /** Old conversations, and «Nuevo chat» the first time (FR-020b). */
