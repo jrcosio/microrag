@@ -1665,9 +1665,53 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G47).
 
 ---
 
+## D-070 — Carpetas y ámbito del chat (clarify de F17)
+
+- **Fecha:** 2026-11-04
+- **Decisión:**
+  1. **Biblioteca:** una lista de carpetas con su recuento, en orden alfabético, y «Sin carpeta» al final si tiene documentos.
+     - Al entrar en una carpeta, la lista de hoy: búsqueda, filtros, «Incluir en RAG» y estados.
+     - Desde fuera, la búsqueda encuentra documentos de todas las carpetas.
+     - Crear y renombrar, con nombres únicos sin distinguir mayúsculas ni tildes, de 1 a 40 caracteres; «Sin carpeta» está reservado.
+  2. **Eliminar una carpeta:** se elige en el diálogo.
+     - «Mover sus documentos a «Sin carpeta»», la opción por defecto;
+     - o «Eliminar también sus documentos», con un segundo aviso y la limpieza de F08 de cada documento.
+  3. **Mover e importar:** «Mover a carpeta» en el «⋯» del detalle, y «Carpeta de destino» en la Ingesta, que por defecto es la carpeta desde la que se abrió. Mover no reindexa.
+  4. **Ámbito del chat:**
+     - una ficha «Buscar en: …» encima del compositor;
+     - un selector con «Toda la biblioteca», carpetas enteras y documentos sueltos;
+     - los documentos con «Incluir en RAG» desactivado se ven en gris y no se pueden marcar;
+     - se guarda con cada conversación, y «Nuevo chat» empieza con el **último ámbito usado** (la primera vez, «Toda la biblioteca»);
+     - lo que deja de existir sale del ámbito con un aviso;
+     - un ámbito sin documentos listos no deja preguntar y ofrece cambiarlo.
+  5. **Recuperación:** solo filtra por el ámbito, y con «Toda la biblioteca» da exactamente lo de hoy.
+- **Motivo:**
+  - la lista de carpetas es la metáfora que pidió el usuario;
+  - elegir al eliminar deja hacer las dos cosas sin borrar nada por defecto;
+  - el último ámbito usado es lo más cómodo para quien trabaja sobre una carpeta, y la ficha siempre lo muestra;
+  - ver los excluidos explica por qué no se buscan.
+- **Alternativas descartadas:**
+  - fichas de filtro sobre la lista actual;
+  - mover siempre a «Sin carpeta», o borrar siempre los documentos;
+  - «Nuevo chat» siempre con «Toda la biblioteca»;
+  - ocultar los excluidos en el selector.
+- **Propuestas de UI:** el wireframe y las propuestas K1–K14 (`specs/017-folders-chat-scope/wireframe.md` y la spec), con K4 y K11 cambiadas en el clarify, quedan aprobados por el usuario el 2026-11-04, antes de `/speckit-plan` (criterio 1 de F17).
+- **Proceso:** como en F16, el usuario pidió el 2026-11-04 seguir el ciclo SDD en automático salvo que haga falta preguntarle.
+- **Origen:** usuario (clarify y revisión del wireframe de F17).
+- **Afecta:**
+  - F17;
+  - G46: resuelto;
+  - F08: la Biblioteca y el detalle;
+  - F06: la Ingesta;
+  - F10: la petición de búsqueda;
+  - F11 y F13: el chat, sus estados y las conversaciones guardadas;
+  - F14: la búsqueda acotada se mide de nuevo.
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.
 
-- **Huecos G del inventario:** quedan abiertos G46 (carpetas y ámbito del chat, F17) y G47 (UI del modo visual, F19–F20), añadidos con D-066. G45 (selector de tema) se resolvió en D-067. Su UI se propone y se aprueba en el clarify de su feature. Los anteriores se resolvieron en sus features; el estado de cada uno está en `INVENTARIO.md` §6.
+- **Huecos G del inventario:** queda abierto G47 (UI del modo visual, F19–F20), añadido con D-066. G45 (selector de tema) se resolvió en D-067 y G46 (carpetas y ámbito) en D-070. Su UI se propone y se aprueba en el clarify de su feature. Los anteriores se resolvieron en sus features; el estado de cada uno está en `INVENTARIO.md` §6.
 - **Documentos en otro idioma** — Cerrado en D-062 (medida entre idiomas de F12). Las mejoras de la búsqueda entre idiomas están en la ficha de F14.
