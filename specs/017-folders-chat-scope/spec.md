@@ -221,7 +221,7 @@ Quien desarrolla mide la búsqueda con un ámbito pequeño sobre una biblioteca 
 - **Eliminar un documento:** desaparece de su carpeta y de todos los ámbitos.
 - **Biblioteca vacía:** la Biblioteca muestra el estado vacío de hoy, y «Nueva carpeta» sigue disponible.
 - **Ámbito con documentos de una carpeta borrada y vuelta a crear con el mismo nombre:** es otra carpeta; la del ámbito ya no existe (US5).
-- **Eliminar una carpeta con sus documentos mientras una respuesta los usa:** la respuesta en curso se detiene primero, como al eliminar un documento citado. Sus fuentes quedan como «Fuente ya no disponible».
+- **Eliminar una carpeta con sus documentos mientras una respuesta los usa:** la respuesta sigue, como al eliminar un documento (F08). Sus fuentes de esos documentos quedan como «Fuente ya no disponible» (corregido en el plan, D-071).
 - **El último ámbito usado apunta a algo borrado:** al abrir «Nuevo chat», se ajusta (FR-021) y, si no queda nada, es «Toda la biblioteca».
 - **Cambio de idioma de la app:** «Toda la biblioteca», «Sin carpeta» y los recuentos cambian de idioma, pero los nombres de carpeta no.
 - **Doble toque en «Crear», «Aplicar» o «Mover»:** se hace una sola vez.

@@ -1709,6 +1709,48 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G47).
 
 ---
 
+## D-071 — Cómo se guardan las carpetas y cómo se busca con un ámbito (plan de F17)
+
+- **Fecha:** 2026-11-04
+- **Decisión:**
+  1. **`rag.db` v4:**
+     - tabla `folders`, con `AUTOINCREMENT` para que un id no se reutilice y con el nombre plegado único;
+     - `documents.folder_id`, con `ON DELETE SET NULL`, y un índice `(folder_id, created_at_ms, id)`;
+     - migración 3 → 4 en una transacción, con todos los documentos en «Sin carpeta».
+  2. **`chat.db` v2:** `conversation_scope` y `last_scope`, una fila por carpeta o documento, con el `created_at_ms` del documento como guarda de D-065. Sin filas es «Toda la biblioteca».
+  3. **Búsqueda:**
+     - con «Toda la biblioteca», el SQL de hoy, sin cambios;
+     - con un ámbito, el modo en streaming de `vector_full_scan` (sin `k`) y FTS, con `JOIN`/`WHERE` y `ORDER BY … LIMIT k`;
+     - la carga de candidatos y los vecinos aplican el mismo filtro;
+     - una prueba instrumentada verifica el modo en streaming de 1.1.2 antes de construir encima.
+  4. **Eliminar una carpeta borrando sus documentos:** usa `LibraryRepository.delete` documento a documento (F08), y la carpeta solo se borra cuando queda vacía.
+  5. **Corrección de la spec:** al eliminar documentos, una respuesta en curso no se detiene. Sigue, y sus fuentes de esos documentos quedan como «Fuente ya no disponible», como hoy al eliminar un documento.
+  6. **Pantallas y design system:**
+     - la raíz de la Biblioteca con las carpetas, y la lista de F08 con un filtro de carpeta, en una ruta nueva `LibraryFolder`;
+     - la hoja de carpetas común en `feature/folders`, y el selector del ámbito con su propio ViewModel;
+     - cuatro piezas nuevas del design system: campo de texto, casilla de tres estados, fila desplegable y ficha del ámbito.
+- **Motivo:**
+  - el modo en streaming da un resultado exacto con un ámbito pequeño sin pedir casi todos los fragmentos como candidatos, y con «Toda la biblioteca» nada cambia;
+  - los ids que no se reutilizan y la guarda por fecha evitan que un ámbito guardado apunte a otra carpeta u otro documento;
+  - reutilizar la lista y el borrado de F08 conserva sus estados y su limpieza.
+- **Alternativas descartadas:**
+  - top-(k + m) también con ámbito;
+  - una tabla de vectores por carpeta;
+  - filtrar después de un top-k fijo;
+  - el ámbito como JSON en `conversations`;
+  - el último ámbito en DataStore.
+- **Origen:** plan de F17 (`specs/017-folders-chat-scope/plan.md` y `research.md`).
+- **Afecta:**
+  - F17;
+  - F04 y F10: esquema, migración, búsqueda y petición de búsqueda;
+  - F08: Biblioteca y detalle;
+  - F06: Ingesta;
+  - F11 y F13: `chat.db`, la sesión y los estados del chat;
+  - F14: la búsqueda acotada se mide de nuevo y entra en la decisión de INT8;
+  - el harness de escritorio: versión 4.
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.

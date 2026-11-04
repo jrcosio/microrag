@@ -51,7 +51,7 @@ Al cerrar cada feature se entrega:
 | F14 | Rendimiento en dispositivo y decisión INT8 | Técnica | F10, F11, F17, F20 | ⬜ |
 | F15 | Pulido y release | Producto | F01–F20 | ⬜ |
 | F16 | Apariencia: tema e icono de Ajustes | Producto (UI propuesta) | F12 | ✅ cerrada |
-| F17 | Carpetas y ámbito del chat | Producto (UI propuesta) | F08, F11, F13 | 🟨 en curso (specify, clarify y wireframe aprobados) |
+| F17 | Carpetas y ámbito del chat | Producto (UI propuesta) | F08, F11, F13 | 🟨 en curso (plan hecho) |
 | F18 | Viabilidad del RAG visual (fase 0 visual) | Técnica | F05, F10, F11 | ⬜ |
 | F19 | Indexación visual | Producto (UI propuesta) | F17, F18 | ⬜ |
 | F20 | Chat con páginas | Producto (UI propuesta) | F19 | ⬜ |
@@ -803,7 +803,7 @@ Opciones a evaluar: normalizar la búsqueda por palabras según el idioma del do
 ## F17 — Carpetas y ámbito del chat
 
 - **Tipo:** Producto, **sin mockup**. Requiere una propuesta de UI aprobada (G46, constitución VII).
-- **Estado:** 🟨 en curso en la rama `017-folders-chat-scope`. Specify, clarify y wireframe aprobados el 2026-11-04, con las propuestas K1–K14 (`specs/017-folders-chat-scope/wireframe.md`) y la decisión D-070: lista de carpetas; eliminar eligiendo entre mover los documentos a «Sin carpeta» o borrarlos; «Nuevo chat» con el último ámbito usado; excluidos en gris en el selector. Spec en `specs/017-folders-chat-scope/spec.md`.
+- **Estado:** 🟨 en curso en la rama `017-folders-chat-scope`. Specify, clarify y wireframe aprobados el 2026-11-04, con las propuestas K1–K14 (`specs/017-folders-chat-scope/wireframe.md`) y la decisión D-070: lista de carpetas; eliminar eligiendo entre mover los documentos a «Sin carpeta» o borrarlos; «Nuevo chat» con el último ámbito usado; excluidos en gris en el selector. Plan hecho el 2026-11-04, con la decisión D-071: `rag.db` v4 y `chat.db` v2; la búsqueda acotada usa el modo en streaming de SQLite-Vector, y con «Toda la biblioteca» no cambia nada. Spec en `specs/017-folders-chat-scope/spec.md`.
 
 **Objetivo.**
 - **Carpetas de un solo nivel:** crear, renombrar y eliminar. Cada documento está en una carpeta o en «Sin carpeta», donde quedan los documentos actuales.
