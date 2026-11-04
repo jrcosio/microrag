@@ -7,16 +7,21 @@ import com.google.common.truth.Truth.assertThat
 import com.lisdatasolutions.microrag.R
 import com.lisdatasolutions.microrag.core.designsystem.model.AnswerState
 import com.lisdatasolutions.microrag.domain.chat.ActiveAnswer
-import com.lisdatasolutions.microrag.domain.chat.ChatAvailability
-import com.lisdatasolutions.microrag.domain.chat.ChatStorageState
 import com.lisdatasolutions.microrag.domain.chat.AnswerSource
+import com.lisdatasolutions.microrag.domain.chat.ChatAvailability
+import com.lisdatasolutions.microrag.domain.chat.ChatScope
+import com.lisdatasolutions.microrag.domain.chat.ChatStorageState
 import com.lisdatasolutions.microrag.domain.chat.PromptBlockRef
+import com.lisdatasolutions.microrag.domain.chat.ResolvedScope
 import com.lisdatasolutions.microrag.domain.chat.TurnFailure
 import com.lisdatasolutions.microrag.domain.chat.TurnState
 import com.lisdatasolutions.microrag.domain.chat.TurnUpdate
 import com.lisdatasolutions.microrag.domain.indexing.IndexingState
 import com.lisdatasolutions.microrag.domain.indexing.RunProgress
+import com.lisdatasolutions.microrag.domain.rag.Folder
+import com.lisdatasolutions.microrag.domain.rag.FolderRef
 import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
+import com.lisdatasolutions.microrag.feature.chat.scope.ScopeSummary
 import com.lisdatasolutions.microrag.testing.ChatTestGraph
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -804,5 +809,133 @@ class ChatViewModelTest {
         assertThat(asked.question).isEqualTo("¿Otra?")
         assertThat(asked.conversationId).isNotEqualTo(id)
         assertThat(vm.state.value.conversationId).isEqualTo(asked.conversationId)
+    }
+
+    // F17 T036, T041 and T044 (K7–K10, contract S1–S4, FR-019–FR-022).
+
+    private val legal = ChatScope.Some(setOf(FolderRef(1, 10)), general = false, documents = emptySet())
+
+    private fun withLegal() {
+        graph.library.folderRows.value = listOf(Folder(1, "Legal", createdAtMs = 10, documentCount = 0), Folder(2, "Motores", 20, 0))
+    }
+
+    @Test
+    fun aNewChatStartsOnTheWholeLibrary_thenOnTheLastScope() = runTest(dispatcher) {
+        withLegal()
+        val first = graph.chatViewModel(saved(newConversation = true))
+        advanceUntilIdle()
+        assertThat(first.state.value.scope).isEqualTo(ScopeSummary(whole = true))
+
+        graph.chats.setLastScope(legal)
+        first.onNewChat()
+        advanceUntilIdle()
+
+        assertThat(first.state.value.scope).isEqualTo(ScopeSummary(whole = false, folderNames = listOf("Legal")))
+    }
+
+    @Test
+    fun applyingAScopeToAChatWithoutQuestions_keepsIt_andTheQuestionUsesIt() = runTest(dispatcher) {
+        withLegal()
+        graph.addDocument("Manual de procesos.pdf")
+        val saved = saved(newConversation = true)
+        val vm = graph.chatViewModel(saved)
+        advanceUntilIdle()
+
+        vm.onChangeScope()
+        advanceUntilIdle()
+        assertThat(vm.state.value.selectingScope).isTrue()
+        vm.onApplyScope(legal)
+        advanceUntilIdle()
+
+        assertThat(vm.state.value.selectingScope).isFalse()
+        assertThat(vm.state.value.scope).isEqualTo(ScopeSummary(whole = false, folderNames = listOf("Legal")))
+        assertThat(graph.chats.lastScope).isEqualTo(legal)
+        // Rotated or restored, the chat keeps the scope it was given.
+        val restored = graph.chatViewModel(saved)
+        advanceUntilIdle()
+        assertThat(restored.state.value.scope).isEqualTo(ScopeSummary(whole = false, folderNames = listOf("Legal")))
+    }
+
+    @Test
+    fun applyingItToASavedConversationReachesTheSession() = runTest(dispatcher) {
+        withLegal()
+        val id = answered(documentId = 7)
+        val vm = graph.chatViewModel(saved(conversationId = id))
+        advanceUntilIdle()
+
+        vm.onApplyScope(legal)
+        advanceUntilIdle()
+
+        assertThat(graph.session.calls).contains("scope:$id")
+        assertThat(graph.chats.conversationScope(id)).isEqualTo(legal)
+    }
+
+    /** FR-020: from Historial, the conversation comes back with its scope; old ones on the whole library. */
+    @Test
+    fun aConversationOpenedFromHistoryHasItsScope() = runTest(dispatcher) {
+        withLegal()
+        val old = answered(documentId = 7)
+        val scoped = answered(documentId = 7, at = 5)
+        graph.chats.setConversationScope(scoped, legal)
+        val vm = graph.chatViewModel(saved(conversationId = old))
+        advanceUntilIdle()
+        assertThat(vm.state.value.scope).isEqualTo(ScopeSummary(whole = true))
+
+        vm.onOpenConversation(scoped)
+        advanceUntilIdle()
+
+        assertThat(vm.state.value.scope).isEqualTo(ScopeSummary(whole = false, folderNames = listOf("Legal")))
+    }
+
+    /** K10 and M8: what fell out is said once. */
+    @Test
+    fun aScopeThatChangedSaysWhat_once() = runTest(dispatcher) {
+        val id = answered(documentId = 7)
+        graph.chats.setConversationScope(id, legal)
+        graph.session.resolve = { scope ->
+            if (scope == legal) ResolvedScope(ChatScope.WholeLibrary, droppedFolders = 1, fellBackToWholeLibrary = true) else ResolvedScope(scope)
+        }
+        val vm = graph.chatViewModel(saved(conversationId = id))
+        advanceUntilIdle()
+
+        assertThat(vm.state.value.scopeNotice).isEqualTo(ScopeNotice.WHOLE_AGAIN)
+        assertThat(vm.state.value.scope).isEqualTo(ScopeSummary(whole = true))
+        vm.onScopeNoticeShown()
+        advanceUntilIdle()
+        assertThat(vm.state.value.scopeNotice).isNull()
+    }
+
+    /** K9: documents ready in the library, none in the scope. */
+    @Test
+    fun aScopeWithNothingReadyIsNothingInScope() = runTest(dispatcher) {
+        withLegal()
+        graph.addDocument("Manual de procesos.pdf")
+        val vm = graph.chatViewModel(saved(newConversation = true))
+        advanceUntilIdle()
+        assertThat(vm.state.value.availability).isInstanceOf(ChatAvailability.Ready::class.java)
+
+        vm.onApplyScope(legal)
+        advanceUntilIdle()
+
+        assertThat(vm.state.value.availability).isEqualTo(ChatAvailability.NothingInScope)
+        assertThat(vm.state.value.ready).isFalse()
+    }
+
+    /** The question goes with the scope shown. */
+    @Test
+    fun sendingAsksWithinTheScope() = runTest(dispatcher) {
+        withLegal()
+        val id = graph.addDocument("Manual de procesos.pdf")
+        graph.index.file(id, 1)
+        val vm = graph.chatViewModel(saved(newConversation = true))
+        advanceUntilIdle()
+        vm.onApplyScope(legal)
+        vm.onQuestionChange("¿Plazo?")
+        advanceUntilIdle()
+
+        vm.onSend()
+        advanceUntilIdle()
+
+        assertThat(graph.session.askedScopes).containsExactly(legal)
     }
 }

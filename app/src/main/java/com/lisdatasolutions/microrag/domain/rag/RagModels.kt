@@ -133,11 +133,14 @@ sealed interface SearchScope {
 
 // F17 folders (data-model §3): one level, one folder per document; a document with no folder is in «General».
 
-/** [documentCount] leaves out the reindex shadows, as every Library count (F08). */
-data class Folder(val id: Long, val name: String, val createdAtMs: Long, val documentCount: Int)
+/**
+ * [documentCount] leaves out the reindex shadows, as every Library count (F08); [includedCount] counts the
+ * ones included in answers, so the scope selector knows a folder it cannot check (K8).
+ */
+data class Folder(val id: Long, val name: String, val createdAtMs: Long, val documentCount: Int, val includedCount: Int = documentCount)
 
 /** The Library root: the folders by folded name, and how many documents are in «General». */
-data class FolderList(val folders: List<Folder>, val unfiledCount: Int)
+data class FolderList(val folders: List<Folder>, val unfiledCount: Int, val unfiledIncludedCount: Int = unfiledCount)
 
 /** Which documents a Library list shows (research R5). */
 sealed interface LibraryFolderFilter {

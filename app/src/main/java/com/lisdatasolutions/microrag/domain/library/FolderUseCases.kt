@@ -2,6 +2,7 @@ package com.lisdatasolutions.microrag.domain.library
 
 import com.lisdatasolutions.microrag.core.di.ApplicationScope
 import com.lisdatasolutions.microrag.core.logging.AppLogger
+import com.lisdatasolutions.microrag.domain.rag.DocumentRef
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 
@@ -23,6 +24,11 @@ class RenameFolderUseCase(private val repository: LibraryRepository) {
         is FolderNameCheck.Valid -> repository.renameFolder(id, check.name, check.norm)
         else -> FolderResult.Invalid(check)
     }
+}
+
+/** Every document of a folder, or of «General» with null; null when the index is unavailable (M4, M6). */
+class FolderDocumentRefsUseCase(private val repository: LibraryRepository) {
+    suspend operator fun invoke(folderId: Long?): List<DocumentRef>? = repository.folderDocumentRefs(folderId)
 }
 
 /** F4 (K5): only the folder changes; the state, the inclusion and the chunks stay. */

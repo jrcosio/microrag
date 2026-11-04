@@ -345,6 +345,8 @@ class ChatTestGraph {
     val engine = FakeAnswerEngine()
     val indexing = FakeIndexingRepository()
     val index = FakeRagIndex()
+    /** F17: the folders the chat's chip names. */
+    val library = FakeLibraryRepository()
     val availability = ObserveChatAvailabilityUseCase(chats, ObserveLocalAiUseCase(models), engine, ObserveIndexingUseCase(indexing), index)
 
     suspend fun addDocument(name: String, status: DocumentStatus = DocumentStatus.DONE): Long {

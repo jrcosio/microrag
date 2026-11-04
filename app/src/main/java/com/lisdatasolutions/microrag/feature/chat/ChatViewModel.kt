@@ -12,16 +12,20 @@ import com.lisdatasolutions.microrag.core.designsystem.model.CitationUi
 import com.lisdatasolutions.microrag.core.navigation.Chat
 import com.lisdatasolutions.microrag.domain.chat.ActiveAnswer
 import com.lisdatasolutions.microrag.domain.chat.AnswerSource
+import com.lisdatasolutions.microrag.domain.chat.ApplyScopeUseCase
 import com.lisdatasolutions.microrag.domain.chat.AskQuestionUseCase
 import com.lisdatasolutions.microrag.domain.chat.CancelAnswerUseCase
 import com.lisdatasolutions.microrag.domain.chat.ChatAvailability
 import com.lisdatasolutions.microrag.domain.chat.ChatLimits
+import com.lisdatasolutions.microrag.domain.chat.ChatScope
 import com.lisdatasolutions.microrag.domain.chat.ChatTurn
 import com.lisdatasolutions.microrag.domain.chat.CitedSource
 import com.lisdatasolutions.microrag.domain.chat.ConversationExistsUseCase
+import com.lisdatasolutions.microrag.domain.chat.ConversationScopeUseCase
 import com.lisdatasolutions.microrag.domain.chat.ConversationView
 import com.lisdatasolutions.microrag.domain.chat.DeleteConversationUseCase
 import com.lisdatasolutions.microrag.domain.chat.LastConversationUseCase
+import com.lisdatasolutions.microrag.domain.chat.LastScopeUseCase
 import com.lisdatasolutions.microrag.domain.chat.ObserveChatAvailabilityUseCase
 import com.lisdatasolutions.microrag.domain.chat.ObserveConversationDeletionsUseCase
 import com.lisdatasolutions.microrag.domain.chat.ObserveConversationUseCase
@@ -29,12 +33,19 @@ import com.lisdatasolutions.microrag.domain.chat.ObserveHistoryClearedUseCase
 import com.lisdatasolutions.microrag.domain.chat.OpenConversationUseCase
 import com.lisdatasolutions.microrag.domain.chat.PromptBlockRef
 import com.lisdatasolutions.microrag.domain.chat.ResolveSourcesUseCase
+import com.lisdatasolutions.microrag.domain.chat.ResolvedScope
 import com.lisdatasolutions.microrag.domain.chat.RetryAnswerUseCase
 import com.lisdatasolutions.microrag.domain.chat.SourceAvailability
 import com.lisdatasolutions.microrag.domain.chat.StartNewConversationUseCase
 import com.lisdatasolutions.microrag.domain.chat.TurnFailure
 import com.lisdatasolutions.microrag.domain.chat.TurnState
 import com.lisdatasolutions.microrag.domain.chat.WarmUpAnswerEngineUseCase
+import com.lisdatasolutions.microrag.domain.chat.toSearchScope
+import com.lisdatasolutions.microrag.domain.library.FoldersResult
+import com.lisdatasolutions.microrag.domain.library.ObserveFoldersUseCase
+import com.lisdatasolutions.microrag.domain.rag.FolderList
+import com.lisdatasolutions.microrag.feature.chat.scope.ScopeSelection
+import com.lisdatasolutions.microrag.feature.chat.scope.ScopeSummary
 import com.lisdatasolutions.microrag.rag.answer.AnswerReading
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -47,6 +58,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -76,6 +88,11 @@ class ChatViewModel(
     private val openConversation: OpenConversationUseCase,
     private val conversationDeletions: ObserveConversationDeletionsUseCase,
     private val conversationExists: ConversationExistsUseCase,
+    /** F17: the folders' names for the chip, and the scope of each conversation (contract S1–S4). */
+    observeFolders: ObserveFoldersUseCase,
+    private val conversationScope: ConversationScopeUseCase,
+    private val lastScope: LastScopeUseCase,
+    private val applyScope: ApplyScopeUseCase,
     /** The confirmation of a copy is the system's from Android 13 (research R14). */
     private val sdkInt: Int = Build.VERSION.SDK_INT,
 ) : ViewModel() {
@@ -95,7 +112,24 @@ class ChatViewModel(
     private val events = Channel<ChatEvent>(Channel.BUFFERED)
     val eventFlow: Flow<ChatEvent> = events.receiveAsFlow()
 
-    private val availability: StateFlow<ChatAvailability?> = observeAvailability(availabilityRetries)
+    /** F17: the scope of this entry's conversation, or of a chat without questions; null until known. */
+    private val scope = MutableStateFlow<ChatScope?>(null)
+    private val selectingScope = savedState.getStateFlow(SCOPE_SHEET, false)
+    private val scopeNotice = MutableStateFlow<ScopeNotice?>(null)
+    private var scopeJob: Job? = null
+
+    /** The availability within the scope (contract S2b); nothing is promised before the scope is known. */
+    private val availability: StateFlow<ChatAvailability?> = scope.filterNotNull()
+        .map { it.toSearchScope() }
+        .distinctUntilChanged()
+        .flatMapLatest { observeAvailability(availabilityRetries, it) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    private val folders: StateFlow<FolderList?> = observeFolders()
+        .map { (it as? FoldersResult.Loaded)?.folders }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    private val summary: StateFlow<ScopeSummary?> = combine(scope, folders) { scope, folders -> scope?.summary(folders) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     /** Between ON_START and ON_STOP of the screen. */
@@ -123,7 +157,8 @@ class ChatViewModel(
     val state: StateFlow<ChatUiState> = combine(
         combine(view, availability, sources, ::Triple),
         combine(question, confirmDelete, copied, announcement) { q, confirm, copy, said -> Local(q, confirm, copy, said) },
-    ) { (view, availability, sources), local ->
+        combine(summary, selectingScope, scopeNotice, ::Triple),
+    ) { (view, availability, sources), local, (summary, selecting, notice) ->
         val turns = view?.let { turnsOf(it, availability, sources) }.orEmpty()
         ChatUiState(
             conversationId = savedConversation,
@@ -134,6 +169,9 @@ class ChatViewModel(
             confirmDelete = local.confirmDelete,
             copiedTurnId = local.copied,
             announcement = local.announcement,
+            scope = summary,
+            selectingScope = selecting,
+            scopeNotice = notice,
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, ChatUiState())
 
@@ -163,6 +201,7 @@ class ChatViewModel(
         // F13 Q16: restored after a process death, the conversation may have been deleted meanwhile.
         if (resolved.value) {
             savedConversation?.let { id -> viewModelScope.launch { if (!conversationExists(id)) setConversation(null) } }
+            loadScope(conversationId.value)
         }
         // Gemma loads whenever the chat is ready on screen: back from hidden, and when a batch ends or the
         // models get ready while it shows (found on the phone, T069). Never while hidden: it was released.
@@ -188,10 +227,62 @@ class ChatViewModel(
     }
 
     private fun setConversation(id: Long?) {
+        val changed = id != conversationId.value || scope.value == null
         conversationId.value = id
         savedState[CONVERSATION] = id
         resolved.value = true
         savedState[RESOLVED] = true
+        if (changed) loadScope(id)
+    }
+
+    /**
+     * F17 S1: a saved conversation's scope as it means now, with its notice (K10); a chat without questions
+     * keeps its own in the SavedStateHandle, and starts with the last one used (FR-020b).
+     */
+    private fun loadScope(id: Long?) {
+        scopeJob?.cancel()
+        scopeJob = viewModelScope.launch {
+            val saved = id?.takeIf { it != ActiveAnswer.UNSAVED }
+            val pending = ScopeSelection.decode(savedState[PENDING_SCOPE])?.toScope()
+            val resolved = when {
+                saved != null -> conversationScope(saved)
+                pending != null -> ResolvedScope(pending)
+                else -> lastScope()
+            }
+            scope.value = resolved.scope
+            scopeNotice.value = when {
+                resolved.fellBackToWholeLibrary -> ScopeNotice.WHOLE_AGAIN
+                resolved.droppedFolders > 0 -> ScopeNotice.FOLDER_GONE
+                resolved.droppedDocuments > 0 -> ScopeNotice.DOCUMENT_GONE
+                else -> null
+            }
+        }
+    }
+
+    /** The scope the selector starts from. */
+    fun currentScope(): ChatScope = scope.value ?: ChatScope.WholeLibrary
+
+    /** K7 and K9: the chip and «Cambiar ámbito» open the selector. */
+    fun onChangeScope() {
+        savedState[SCOPE_SHEET] = true
+    }
+
+    fun onDismissScope() {
+        savedState[SCOPE_SHEET] = false
+    }
+
+    /** S3: for the next question; a chat without questions keeps it until its first one, and as the last scope. */
+    fun onApplyScope(applied: ChatScope) {
+        savedState[SCOPE_SHEET] = false
+        scope.value = applied
+        scopeNotice.value = null
+        val saved = savedConversation
+        if (saved == null) savedState[PENDING_SCOPE] = ScopeSelection.of(applied).encode()
+        viewModelScope.launch { applyScope(saved, applied) }
+    }
+
+    fun onScopeNoticeShown() {
+        scopeNotice.value = null
     }
 
     /** One announcement per change of the answer in progress, never its text (FR-039). */
@@ -228,7 +319,8 @@ class ChatViewModel(
         val text = question.value
         if (!state.value.copy(question = text).canSend) return
         viewModelScope.launch {
-            val id = ask(conversationId.value, text) ?: return@launch
+            val id = ask(conversationId.value, text, scope.value ?: ChatScope.WholeLibrary) ?: return@launch
+            savedState[PENDING_SCOPE] = null
             setConversation(id)
             savedState[QUESTION] = ""
         }
@@ -253,6 +345,9 @@ class ChatViewModel(
     /** «Nuevo chat» of «⋯»: resolved here, without navigating to the same destination (research R13). */
     fun onNewChat() {
         startNewConversation()
+        // FR-020b: the new chat starts with the last scope used.
+        savedState[PENDING_SCOPE] = null
+        scope.value = null
         setConversation(null)
     }
 
@@ -439,8 +534,21 @@ class ChatViewModel(
         const val RESOLVED = "chat_resolved"
         const val QUESTION = "chat_question"
         const val CONFIRM_DELETE = "chat_confirm_delete"
+        const val PENDING_SCOPE = "chat_pending_scope"
+        const val SCOPE_SHEET = "chat_scope_sheet"
         const val COPIED_MS = 2_000L
     }
+}
+
+/** FR-014: the folders by name, «General» last, and the loose documents; a folder not loaded yet is left out. */
+private fun ChatScope.summary(folders: FolderList?): ScopeSummary = when (this) {
+    ChatScope.WholeLibrary -> ScopeSummary(whole = true)
+    is ChatScope.Some -> ScopeSummary(
+        whole = false,
+        folderNames = this.folders.mapNotNull { ref -> folders?.folders?.firstOrNull { it.id == ref.id }?.name } +
+            if (general) listOf<String?>(null) else emptyList(),
+        looseDocuments = documents.size,
+    )
 }
 
 /** One-off events: the screen opens a source or writes the clipboard. */

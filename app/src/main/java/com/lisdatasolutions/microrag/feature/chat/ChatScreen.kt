@@ -20,11 +20,14 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -44,7 +47,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lisdatasolutions.microrag.R
-import com.lisdatasolutions.microrag.core.navigation.ChatRequest
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataAnswerCard
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataChatBubble
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataChatComposer
@@ -56,6 +58,7 @@ import com.lisdatasolutions.microrag.core.designsystem.component.LisdataInfoCard
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataModelMissingBlock
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataOutlinedButton
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataOverflowMenu
+import com.lisdatasolutions.microrag.core.designsystem.component.LisdataScopeChip
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataSectionHeader
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataSourceCitation
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataTopBar
@@ -65,7 +68,12 @@ import com.lisdatasolutions.microrag.core.designsystem.model.AnswerContent
 import com.lisdatasolutions.microrag.core.designsystem.model.AnswerSpan
 import com.lisdatasolutions.microrag.core.designsystem.model.AnswerState
 import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
+import com.lisdatasolutions.microrag.core.navigation.ChatRequest
 import com.lisdatasolutions.microrag.domain.chat.ChatAvailability
+import com.lisdatasolutions.microrag.feature.chat.scope.ScopeSelectorViewModel
+import com.lisdatasolutions.microrag.feature.chat.scope.ScopeSheet
+import com.lisdatasolutions.microrag.feature.chat.scope.sheetActions
+import com.lisdatasolutions.microrag.feature.chat.scope.text
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -109,9 +117,19 @@ fun ChatRoute(
     request: ChatRequest? = null,
     onRequestHandled: () -> Unit = {},
     viewModel: ChatViewModel = koinViewModel(),
+    selector: ScopeSelectorViewModel = koinViewModel(),
     listState: LazyListState = rememberLazyListState(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val selection by selector.state.collectAsStateWithLifecycle()
+    val snackbar = remember { SnackbarHostState() }
+    // K10: what fell out of the scope, once.
+    val notice = state.scopeNotice?.let { stringResource(it.text()) }
+    LaunchedEffect(state.scopeNotice) {
+        if (notice == null) return@LaunchedEffect
+        viewModel.onScopeNoticeShown()
+        snackbar.showSnackbar(notice)
+    }
     val clipboard = LocalClipboard.current
     val clipLabel = stringResource(R.string.chat_clip_label)
     LaunchedEffect(viewModel) {
@@ -154,9 +172,29 @@ fun ChatRoute(
             onImport = onImport,
             onOpenIndex = onOpenIndex,
             onRetryAvailability = viewModel::onRetryAvailability,
+            onChangeScope = {
+                selector.start(viewModel.currentScope())
+                viewModel.onChangeScope()
+            },
         ),
         listState = listState,
+        snackbarHostState = snackbar,
     )
+    if (state.selectingScope) {
+        ScopeSheet(
+            state = selection,
+            actions = selector.sheetActions(
+                onApply = { selector.result()?.let(viewModel::onApplyScope) },
+                onDismiss = viewModel::onDismissScope,
+            ),
+        )
+    }
+}
+
+private fun ScopeNotice.text(): Int = when (this) {
+    ScopeNotice.WHOLE_AGAIN -> R.string.chat_scope_whole_again
+    ScopeNotice.FOLDER_GONE -> R.string.chat_scope_folder_gone
+    ScopeNotice.DOCUMENT_GONE -> R.string.chat_scope_document_gone
 }
 
 /** PNG 04 (contracts/chat-ui.md §1): top bar, messages, notice, composer above the keyboard. */
@@ -166,6 +204,7 @@ fun ChatScreen(
     actions: ChatActions,
     modifier: Modifier = Modifier,
     listState: LazyListState = rememberLazyListState(),
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     val colors = LisdataTheme.colors
     val spacing = LisdataTheme.spacing
@@ -175,6 +214,11 @@ fun ChatScreen(
         // T064: a phone in landscape leaves little height between the bars; the availability then takes less.
         val compact = maxHeight < COMPACT_HEIGHT
         ChatColumn(state, actions, listState, compact, follow) { follow = it }
+        // F17 K10: above the composer, so it never covers what is typed.
+        SnackbarHost(
+            snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter).imePadding().padding(bottom = COMPOSER_CLEARANCE).padding(spacing.space3),
+        )
     }
     if (state.confirmDelete) {
         LisdataConfirmationDialog(
@@ -225,6 +269,17 @@ private fun ChatColumn(
         }
         if (notice != null && !compact) {
             Notice(notice, actions, Modifier.padding(horizontal = spacing.screenPaddingHorizontal, vertical = spacing.space2))
+        }
+        // F17 K7: the scope, above the composer.
+        state.scope?.let { scope ->
+            val text = scope.text()
+            LisdataScopeChip(
+                text = stringResource(R.string.chat_scope_label, text),
+                description = stringResource(R.string.chat_scope_label, text),
+                onClickLabel = stringResource(R.string.chat_scope_change),
+                onClick = actions.onChangeScope,
+                modifier = Modifier.padding(start = spacing.screenPaddingHorizontal, end = spacing.screenPaddingHorizontal, top = spacing.space2),
+            )
         }
         LisdataChatComposer(
             value = state.question,
@@ -507,6 +562,9 @@ private const val ITEMS_PER_TURN = 3
 
 /** Below this height (a phone in landscape) the availability is drawn compact. */
 private val COMPACT_HEIGHT = 480.dp
+
+/** The composer's height and margins, which the snackbar keeps clear of (F17 K10). */
+private val COMPOSER_CLEARANCE = 88.dp
 
 /** Characters of a formatted answer, to notice it growing. */
 private fun AnswerContent.length(): Int = blocks.sumOf { block ->

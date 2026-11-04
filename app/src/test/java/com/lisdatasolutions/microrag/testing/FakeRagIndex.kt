@@ -163,9 +163,11 @@ class FakeRagIndex(initial: IndexCompatibility = IndexCompatibility.Compatible) 
     override suspend fun folders(): FolderList = available {
         FolderList(
             folders = folderRows.entries.sortedWith(compareBy({ it.value.norm }, { it.key })).map { (id, f) ->
-                Folder(id, f.name, f.createdAtMs, docs.values.count { it.replacesId == null && it.folderId == id })
+                val inside = docs.values.filter { it.replacesId == null && it.folderId == id }
+                Folder(id, f.name, f.createdAtMs, inside.size, inside.count { it.included })
             },
             unfiledCount = docs.values.count { it.replacesId == null && it.folderId == null },
+            unfiledIncludedCount = docs.values.count { it.replacesId == null && it.folderId == null && it.included },
         )
     }
 

@@ -5,6 +5,7 @@ import com.lisdatasolutions.microrag.core.designsystem.model.AnswerContent
 import com.lisdatasolutions.microrag.core.designsystem.model.AnswerState
 import com.lisdatasolutions.microrag.core.designsystem.model.CitationUi
 import com.lisdatasolutions.microrag.domain.chat.ChatAvailability
+import com.lisdatasolutions.microrag.feature.chat.scope.ScopeSummary
 
 /** What the chat shows (F11 data-model §5, contracts/chat-ui.md). */
 data class ChatUiState(
@@ -21,6 +22,12 @@ data class ChatUiState(
     val copiedTurnId: Long? = null,
     /** The last change TalkBack announces (FR-039). */
     val announcement: ChatAnnouncement? = null,
+    /** F17 K7: what the chip says; null until the scope of the conversation is known. */
+    val scope: ScopeSummary? = null,
+    /** K8: the «Buscar en» sheet is open. */
+    val selectingScope: Boolean = false,
+    /** K10: what fell out of the scope when it was opened, said once. */
+    val scopeNotice: ScopeNotice? = null,
 ) {
     val ready: Boolean get() = availability is ChatAvailability.Ready
     val canSend: Boolean get() = ready && !answering && question.isNotBlank()
@@ -57,6 +64,9 @@ data class SourceRow(val position: Int, val target: SourceTarget, val citation: 
 
 /** What a source opens: the document detail on its first fragment (D-043). */
 data class SourceTarget(val documentId: Long, val chunkId: Long)
+
+/** K10, in this order of precedence. */
+enum class ScopeNotice { WHOLE_AGAIN, FOLDER_GONE, DOCUMENT_GONE }
 
 /** F13 R6: [DELETE_FAILED], a deletion `chat.db` refused; the conversation stays. */
 enum class ChatAnnouncement { SEARCHING, GENERATING, COMPLETED, CANCELLED, INTERRUPTED, FAILED, DELETED, DELETE_FAILED, COPIED }

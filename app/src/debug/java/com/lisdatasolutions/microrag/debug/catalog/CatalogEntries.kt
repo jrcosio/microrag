@@ -24,15 +24,18 @@ import com.lisdatasolutions.microrag.core.designsystem.component.LisdataCard
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataCardGroup
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataChatBubble
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataChatComposer
+import com.lisdatasolutions.microrag.core.designsystem.component.LisdataCheckRow
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataConfirmationDialog
+import com.lisdatasolutions.microrag.core.designsystem.component.LisdataConversationRow
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataCountChip
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataDarkButton
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataDivider
-import com.lisdatasolutions.microrag.core.designsystem.component.LisdataFactRow
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataDocumentRow
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataEmptyState
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataErrorState
+import com.lisdatasolutions.microrag.core.designsystem.component.LisdataExpandableRow
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataEyebrow
+import com.lisdatasolutions.microrag.core.designsystem.component.LisdataFactRow
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataFilePickerCard
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataFilterChip
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataGradientButton
@@ -45,10 +48,10 @@ import com.lisdatasolutions.microrag.core.designsystem.component.LisdataModelSta
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataOutlinedButton
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataProgressCard
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataProgressRing
-import com.lisdatasolutions.microrag.core.designsystem.component.LisdataConversationRow
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataQueueRow
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataQuickActionTile
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataRadioRow
+import com.lisdatasolutions.microrag.core.designsystem.component.LisdataScopeChip
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataSearchField
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataSectionHeader
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataSettingsRow
@@ -386,6 +389,24 @@ val catalogEntries: List<CatalogEntry> = listOf(
     entry("Entradas", "search", "LisdataSearchField") {
         var query by remember { mutableStateOf("") }
         LisdataSearchField(query, { query = it }, placeholder = "Buscar documentos…")
+    },
+    // F17 K7, K8
+    entry("Ámbito", "scopeChip", "LisdataScopeChip") {
+        LisdataScopeChip("Buscar en: Legal + 2 documentos", "Buscar en: Legal + 2 documentos", "Cambiar ámbito", onClick = {})
+    },
+    entry("Ámbito", "checkRow", "LisdataCheckRow") {
+        var state by remember { mutableStateOf(androidx.compose.ui.state.ToggleableState.Off) }
+        Column {
+            LisdataCheckRow("Manual.pdf", state, { state = if (state == androidx.compose.ui.state.ToggleableState.On) androidx.compose.ui.state.ToggleableState.Off else androidx.compose.ui.state.ToggleableState.On })
+            LisdataCheckRow("Notas.txt", androidx.compose.ui.state.ToggleableState.Off, {}, subtitle = "No incluido en RAG", enabled = false)
+        }
+    },
+    entry("Ámbito", "expandableRow", "LisdataExpandableRow") {
+        var open by remember { mutableStateOf(false) }
+        LisdataExpandableRow(
+            "Motores", androidx.compose.ui.state.ToggleableState.Indeterminate, {}, expanded = open, onExpand = { open = !open },
+            expandLabel = "Mostrar documentos", expandedText = "desplegada", collapsedText = "plegada", subtitle = "5 documentos",
+        )
     },
     entry("Entradas", "textField", "LisdataTextField") {
         var name by remember { mutableStateOf("") }

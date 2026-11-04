@@ -61,6 +61,7 @@ import com.lisdatasolutions.microrag.domain.library.DetailResult
 import com.lisdatasolutions.microrag.domain.library.DiscardReindexUseCase
 import com.lisdatasolutions.microrag.domain.library.DocumentDetail
 import com.lisdatasolutions.microrag.domain.library.DocumentDetailState
+import com.lisdatasolutions.microrag.domain.library.FolderDocumentRefsUseCase
 import com.lisdatasolutions.microrag.domain.library.LibraryDocument
 import com.lisdatasolutions.microrag.domain.library.LibraryDocumentState
 import com.lisdatasolutions.microrag.domain.library.LoadPreviewUseCase
@@ -101,6 +102,7 @@ import com.lisdatasolutions.microrag.domain.settings.SaveLanguageSettingsUseCase
 import com.lisdatasolutions.microrag.domain.settings.SaveThemeSettingsUseCase
 import com.lisdatasolutions.microrag.domain.settings.SettingsNotices
 import com.lisdatasolutions.microrag.feature.chat.chatViewModel
+import com.lisdatasolutions.microrag.feature.chat.scope.ScopeSelectorViewModel
 import com.lisdatasolutions.microrag.feature.document.DocumentViewModel
 import com.lisdatasolutions.microrag.feature.folders.FoldersViewModel
 import com.lisdatasolutions.microrag.feature.history.HistoryViewModel
@@ -251,6 +253,13 @@ internal fun settingsViewModels(
 /** The chat (F11) and Historial (F13) take their ViewModels from Koin too; [graph] holds their fakes. */
 internal fun chatViewModels(graph: ChatTestGraph = ChatTestGraph()) = module {
     viewModel { graph.chatViewModel(get()) }
+    // F17 K8: the «Buscar en» sheet of the chat.
+    viewModel {
+        ScopeSelectorViewModel(
+            get(), ObserveFoldersUseCase(graph.library), ObserveLibraryUseCase(graph.library), FolderDocumentRefsUseCase(graph.library),
+            Dispatchers.Unconfined,
+        )
+    }
     viewModel {
         HistoryViewModel(
             savedState = get(),

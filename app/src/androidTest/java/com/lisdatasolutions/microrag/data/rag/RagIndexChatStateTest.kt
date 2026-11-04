@@ -5,17 +5,14 @@ import com.google.common.truth.Truth.assertThat
 import com.lisdatasolutions.microrag.domain.rag.ChatLibraryState
 import com.lisdatasolutions.microrag.domain.rag.DocumentStatus
 import com.lisdatasolutions.microrag.domain.rag.NewDocument
+import com.lisdatasolutions.microrag.domain.rag.SearchScope
 import com.lisdatasolutions.microrag.testing.TempRagIndex
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * F11 T012 (research R11): the library as the chat sees it, in one query. Shadows never count; the
- * searchable documents are done and included; a pending, parsed, embedding or paused included document
- * is still to come, while an error or one out of the index is not.
- */
+/** F17 T043 (contract F8, research R8): the chat's library counts within a scope, in one query. */
 @RunWith(AndroidJUnit4::class)
 class RagIndexChatStateTest {
 
@@ -25,31 +22,31 @@ class RagIndexChatStateTest {
     @After
     fun tearDown() = temp.close()
 
-    private suspend fun doc(name: String, status: DocumentStatus, included: Boolean = true): Long {
-        val id = index.addDocument(NewDocument(displayName = name, contentHash = name, mimeType = "text/plain"))
+    private suspend fun doc(name: String, folderId: Long?, status: DocumentStatus, included: Boolean = true): Long {
+        val id = index.addDocument(NewDocument(displayName = name, contentHash = name, folderId = folderId))
         index.updateStatus(id, status)
         if (!included) index.setIncluded(id, false)
         return id
     }
 
     @Test
-    fun anEmptyIndexHasNothing() = runBlocking<Unit> {
-        assertThat(index.chatLibraryState()).isEqualTo(ChatLibraryState(documents = 0, searchable = 0, pendingIncluded = 0))
-    }
+    fun theCountsAreThoseOfTheScope_butTheLibraryIsWhole() = runBlocking<Unit> {
+        index.open()
+        val legal = checkNotNull(index.createFolder("Legal", "legal"))
+        val motors = checkNotNull(index.createFolder("Motores", "motores"))
+        doc("Contrato.txt", legal, DocumentStatus.DONE)
+        doc("Anexo.txt", legal, DocumentStatus.PENDING)
+        doc("Excluido.txt", legal, DocumentStatus.DONE, included = false)
+        val bomb = doc("Bomba.txt", motors, DocumentStatus.EMBEDDING)
+        doc("Manual.txt", null, DocumentStatus.DONE)
 
-    @Test
-    fun countsEachStateAsTheChatNeedsIt() = runBlocking<Unit> {
-        doc("Pendiente.txt", DocumentStatus.PENDING)
-        doc("Analizado.txt", DocumentStatus.PARSED)
-        doc("Embebiendo.txt", DocumentStatus.EMBEDDING)
-        doc("En pausa.txt", DocumentStatus.PAUSED)
-        doc("Pendiente excluido.txt", DocumentStatus.PENDING, included = false)
-        val done = doc("Hecho.txt", DocumentStatus.DONE)
-        doc("Excluido.txt", DocumentStatus.DONE, included = false)
-        doc("Con error.txt", DocumentStatus.ERROR)
-        doc("Fuera.txt", DocumentStatus.OUT_OF_INDEX)
-        index.addReindexShadow(done)
-
-        assertThat(index.chatLibraryState()).isEqualTo(ChatLibraryState(documents = 9, searchable = 1, pendingIncluded = 4))
+        assertThat(index.chatLibraryState()).isEqualTo(ChatLibraryState(documents = 5, searchable = 2, pendingIncluded = 2))
+        assertThat(index.chatLibraryState(SearchScope.Only(setOf(legal), general = false, documentIds = emptySet())))
+            .isEqualTo(ChatLibraryState(documents = 5, searchable = 1, pendingIncluded = 1))
+        // K9: nothing ready in Motores, although the library has documents ready.
+        assertThat(index.chatLibraryState(SearchScope.Only(setOf(motors), general = false, documentIds = emptySet())))
+            .isEqualTo(ChatLibraryState(documents = 5, searchable = 0, pendingIncluded = 1))
+        assertThat(index.chatLibraryState(SearchScope.Only(emptySet(), general = true, documentIds = setOf(bomb))))
+            .isEqualTo(ChatLibraryState(documents = 5, searchable = 1, pendingIncluded = 1))
     }
 }

@@ -135,12 +135,19 @@ class DefaultRagIndex(
 
     override suspend fun folders(): FolderList = withIndex { db ->
         val folders = db.query(
-            "SELECT f.id, f.name, f.created_at_ms, count(d.id) FROM folders f " +
+            "SELECT f.id, f.name, f.created_at_ms, count(d.id), COALESCE(SUM(d.included), 0) FROM folders f " +
                 "LEFT JOIN documents d ON d.folder_id = f.id AND d.replaces_id IS NULL " +
                 "GROUP BY f.id ORDER BY f.name_norm, f.id",
-        ) { Folder(id = it.getLong(0), name = it.getText(1), createdAtMs = it.getLong(2), documentCount = it.getLong(3).toInt()) }
-        val unfiled = count(db, "SELECT count(*) FROM documents WHERE folder_id IS NULL AND replaces_id IS NULL")
-        FolderList(folders, unfiled)
+        ) {
+            Folder(
+                id = it.getLong(0), name = it.getText(1), createdAtMs = it.getLong(2),
+                documentCount = it.getLong(3).toInt(), includedCount = it.getLong(4).toInt(),
+            )
+        }
+        val unfiled = db.queryOne(
+            "SELECT count(*), COALESCE(SUM(included), 0) FROM documents WHERE folder_id IS NULL AND replaces_id IS NULL",
+        ) { it.getLong(0).toInt() to it.getLong(1).toInt() } ?: (0 to 0)
+        FolderList(folders, unfiled.first, unfiled.second)
     }
 
     // F17 (contract F2): the index runs on one thread, so looking for the folded name before writing is

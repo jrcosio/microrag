@@ -168,4 +168,40 @@ class ObserveChatAvailabilityUseCaseTest {
         runCurrent()
         return seen
     }
+
+    // F17 T044 (research R8, analyze M5): within a scope.
+
+    private val legal = com.lisdatasolutions.microrag.domain.rag.SearchScope.Only(setOf(1L), general = false, documentIds = emptySet())
+
+    private suspend fun inScope(): ChatAvailability = observe(scope = legal).first()
+
+    @Test
+    fun aScopeWithNothingReadyIsNothingInScope_andWithItReady() = runTest {
+        doc("Manual.txt", DocumentStatus.DONE)
+        val folder = checkNotNull(index.createFolder("Legal", "legal"))
+        val pending = doc("Contrato.txt", DocumentStatus.PENDING)
+        index.file(pending, folder)
+        assertThat(inScope()).isEqualTo(ChatAvailability.NothingInScope)
+        // Without a scope, the same library is ready.
+        assertThat(current()).isEqualTo(ChatAvailability.Ready(cpuMode = false, partialCoverage = true))
+
+        val done = doc("Garantía.txt", DocumentStatus.DONE)
+        index.file(done, folder)
+
+        // The partial coverage is the scope's: its pending contract.
+        assertThat(inScope()).isEqualTo(ChatAvailability.Ready(cpuMode = false, partialCoverage = true))
+    }
+
+    /** M5: the global states come first, whatever the scope. */
+    @Test
+    fun theGlobalStatesComeBeforeTheScope() = runTest {
+        assertThat(inScope()).isEqualTo(ChatAvailability.EmptyLibrary)
+
+        doc("Manual.txt", DocumentStatus.DONE)
+        indexing.state.value = running()
+        assertThat(inScope()).isEqualTo(ChatAvailability.WaitingForIndexing)
+
+        indexing.state.value = IndexingState.Idle(emptyList())
+        assertThat(inScope()).isEqualTo(ChatAvailability.NothingInScope)
+    }
 }

@@ -348,6 +348,7 @@ class DefaultLibraryRepository(
         included = document.included,
         folderId = document.folderId,
         folderName = document.folderName,
+        createdAtMs = document.createdAtMs,
     )
 
     private fun String?.toIngestError(): IngestError = IngestError.fromCode(this) ?: IngestError.EXTRACTION_FAILED

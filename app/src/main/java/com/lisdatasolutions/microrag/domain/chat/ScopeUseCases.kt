@@ -35,3 +35,23 @@ fun ChatScope.toSearchScope(): SearchScope = when (this) {
         documentIds = documents.mapTo(LinkedHashSet()) { it.id },
     )
 }
+
+/** S1: the scope of a conversation as it means now, for its chip and its notices (K10). */
+class ConversationScopeUseCase(private val session: ChatSession) {
+    suspend operator fun invoke(conversationId: Long): ResolvedScope = session.scopeOf(conversationId)
+}
+
+/** FR-020b: what «Nuevo chat» starts with. */
+class LastScopeUseCase(private val session: ChatSession) {
+    suspend operator fun invoke(): ResolvedScope = session.lastScope()
+}
+
+/** S3: the selector's «Aplicar»; false when `chat.db` refused it. A chat without questions only keeps it as the last one. */
+class ApplyScopeUseCase(private val session: ChatSession) {
+    suspend operator fun invoke(conversationId: Long?, scope: ChatScope): Boolean = try {
+        if (conversationId == null) session.setLastScope(scope) else session.setScope(conversationId, scope)
+        true
+    } catch (e: ChatStorageException) {
+        false
+    }
+}

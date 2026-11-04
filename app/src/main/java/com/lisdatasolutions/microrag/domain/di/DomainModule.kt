@@ -1,13 +1,16 @@
 package com.lisdatasolutions.microrag.domain.di
 
+import com.lisdatasolutions.microrag.domain.chat.ApplyScopeUseCase
 import com.lisdatasolutions.microrag.domain.chat.AskQuestionUseCase
 import com.lisdatasolutions.microrag.domain.chat.CancelAnswerUseCase
 import com.lisdatasolutions.microrag.domain.chat.ClearChatHistoryUseCase
 import com.lisdatasolutions.microrag.domain.chat.ConversationExistsUseCase
+import com.lisdatasolutions.microrag.domain.chat.ConversationScopeUseCase
 import com.lisdatasolutions.microrag.domain.chat.CountConversationsUseCase
 import com.lisdatasolutions.microrag.domain.chat.DeleteConversationUseCase
 import com.lisdatasolutions.microrag.domain.chat.IsAnswerInProgressUseCase
 import com.lisdatasolutions.microrag.domain.chat.LastConversationUseCase
+import com.lisdatasolutions.microrag.domain.chat.LastScopeUseCase
 import com.lisdatasolutions.microrag.domain.chat.ObserveAnswerInProgressUseCase
 import com.lisdatasolutions.microrag.domain.chat.ObserveChatAvailabilityUseCase
 import com.lisdatasolutions.microrag.domain.chat.ObserveConversationDeletionsUseCase
@@ -35,6 +38,7 @@ import com.lisdatasolutions.microrag.domain.library.CreateFolderUseCase
 import com.lisdatasolutions.microrag.domain.library.DeleteDocumentUseCase
 import com.lisdatasolutions.microrag.domain.library.DeleteFolderUseCase
 import com.lisdatasolutions.microrag.domain.library.DiscardReindexUseCase
+import com.lisdatasolutions.microrag.domain.library.FolderDocumentRefsUseCase
 import com.lisdatasolutions.microrag.domain.library.LoadPreviewUseCase
 import com.lisdatasolutions.microrag.domain.library.MoveDocumentUseCase
 import com.lisdatasolutions.microrag.domain.library.ObserveDocumentUseCase
@@ -136,6 +140,10 @@ val domainModule = module {
     // Chat (F11).
     factoryOf(::ObserveChatAvailabilityUseCase)
     factoryOf(::ResolveScopeUseCase)
+    factoryOf(::ConversationScopeUseCase)
+    factoryOf(::LastScopeUseCase)
+    factoryOf(::ApplyScopeUseCase)
+    factoryOf(::FolderDocumentRefsUseCase)
     factoryOf(::ObserveConversationUseCase)
     factoryOf(::AskQuestionUseCase)
     factoryOf(::CancelAnswerUseCase)

@@ -36,6 +36,8 @@ data class LibraryDocument(
     /** F17: null is «General»; the root's search shows the name in the data line. */
     val folderId: Long? = null,
     val folderName: String? = null,
+    /** F17: with [id], what a chat scope keeps of it (D-065). */
+    val createdAtMs: Long = 0,
 ) {
     /** Inclusion only means something for indexed documents (FR-008). */
     val canChangeInclusion: Boolean get() = state is LibraryDocumentState.Indexed

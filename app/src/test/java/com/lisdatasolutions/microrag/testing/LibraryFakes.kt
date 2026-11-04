@@ -29,8 +29,9 @@ import com.lisdatasolutions.microrag.domain.library.SummaryResult
 import com.lisdatasolutions.microrag.domain.rag.LibrarySummary
 
 /** An indexed PDF row, for tests that only care about ids, names and folders (F17). */
-fun libraryDocument(id: Long, name: String, folderId: Long? = null, folderName: String? = null) = LibraryDocument(
-    id, name, DocumentFormat.PDF, LibraryDocumentState.Indexed(3, null), included = true, folderId = folderId, folderName = folderName,
+fun libraryDocument(id: Long, name: String, folderId: Long? = null, folderName: String? = null, included: Boolean = true) = LibraryDocument(
+    id, name, DocumentFormat.PDF, LibraryDocumentState.Indexed(3, null), included = included, folderId = folderId, folderName = folderName,
+    createdAtMs = id * 10,
 )
 
 /**
@@ -61,8 +62,12 @@ class FakeLibraryRepository : LibraryRepository {
             combine(folderRows, documents) { folders, docs ->
                 FoldersResult.Loaded(
                     FolderList(
-                        folders.sortedBy { DocumentNames.fold(it.name) }.map { f -> f.copy(documentCount = docs.count { it.folderId == f.id }) },
+                        folders.sortedBy { DocumentNames.fold(it.name) }.map { f ->
+                            val inside = docs.filter { it.folderId == f.id }
+                            f.copy(documentCount = inside.size, includedCount = inside.count { it.included })
+                        },
                         docs.count { it.folderId == null },
+                        docs.count { it.folderId == null && it.included },
                     ),
                 )
             },
@@ -113,7 +118,7 @@ class FakeLibraryRepository : LibraryRepository {
     }
 
     override suspend fun folderDocumentRefs(folderId: Long?): List<DocumentRef>? =
-        if (foldersUnavailable) null else documents.value.filter { it.folderId == folderId }.map { DocumentRef(it.id, it.id * 10) }
+        if (foldersUnavailable) null else documents.value.filter { it.folderId == folderId }.map { DocumentRef(it.id, it.createdAtMs) }
 
     val documents = MutableStateFlow<List<LibraryDocument>>(emptyList())
 

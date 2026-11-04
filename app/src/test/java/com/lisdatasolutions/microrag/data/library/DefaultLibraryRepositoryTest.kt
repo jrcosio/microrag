@@ -116,7 +116,8 @@ class DefaultLibraryRepositoryTest {
 
         assertThat(result.page.total).isEqualTo(10)
         assertThat(result.page.hasMore).isFalse()
-        assertThat(result.page.documents).containsExactly(
+        // F17: each row carries its creation time, for the chat scope; this test is about the rest.
+        assertThat(result.page.documents.map { it.copy(createdAtMs = 0) }).containsExactly(
             LibraryDocument(unknown, "Hoja.xlsx", null, LibraryDocumentState.Failed(IngestError.UNSUPPORTED_FORMAT), true),
             LibraryDocument(reindexFailed, "Falló.pdf", DocumentFormat.PDF, LibraryDocumentState.Indexed(5, ReindexRow.FAILED), true),
             LibraryDocument(reindexing, "Reindexando.pdf", DocumentFormat.PDF, LibraryDocumentState.Indexed(4, ReindexRow.RUNNING), true),
@@ -691,5 +692,14 @@ class DefaultLibraryRepositoryTest {
         repository().summary().first()
 
         assertThat(index.chunkReads).isEqualTo(reads)
+    }
+
+    @Test
+    fun page_givesEachRowItsCreationTime() = runTest {
+        val done = doc("Manual.pdf", chunks = 3)
+
+        val row = (page() as LibraryResult.Loaded).page.documents.single()
+
+        assertThat(row.createdAtMs).isEqualTo(index.docs.getValue(done).createdAtMs)
     }
 }

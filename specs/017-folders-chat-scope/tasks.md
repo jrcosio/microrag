@@ -211,7 +211,7 @@ description: "Lista de tareas de F17 — Carpetas y ámbito del chat"
   - `setScope` se aplica a la pregunta siguiente (FR-019);
   - `retry(turnId)` recupera con el ámbito de su conversación (H3);
   - la puerta de `ask`/`retry` y la `partial_coverage` del turno se calculan dentro del ámbito.
-- [ ] T034 [P] [US3] `…/test/…/feature/chat/scope/ScopeSelectorViewModelTest.kt`:
+- [X] T034 [P] [US3] `…/test/…/feature/chat/scope/ScopeSelectorViewModelTest.kt`:
   - carpetas no vacías con sus recuentos;
   - desplegar por tandas;
   - marcar una carpeta, «General», documentos sueltos, y el estado intermedio;
@@ -221,17 +221,17 @@ description: "Lista de tareas de F17 — Carpetas y ámbito del chat"
   - los excluidos no se pueden marcar;
   - «Aplicar» sin nada marcado no se puede;
   - la selección sobrevive en el `SavedStateHandle`.
-- [ ] T035 [P] [US3] `…/test/…/feature/chat/scope/ScopeSheetTest.kt` y `…/test/…/feature/chat/ChatScreenTest.kt` (ampliado), con Robolectric (wireframe §6):
+- [X] T035 [P] [US3] `…/test/…/feature/chat/scope/ScopeSheetTest.kt` y `…/test/…/feature/chat/ChatScreenTest.kt` (ampliado), con Robolectric (wireframe §6):
   - la ficha con cada resumen de FR-014 y su semántica;
   - la hoja con radio, casillas de tres estados, desplegables, notas y botones.
-- [ ] T036 [P] [US3] `…/test/…/feature/chat/ChatViewModelTest.kt`: la ficha refleja el ámbito; aplicarlo desde el selector llega a la sesión; un chat sin preguntas lo guarda en el `SavedStateHandle`.
+- [X] T036 [P] [US3] `…/test/…/feature/chat/ChatViewModelTest.kt`: la ficha refleja el ámbito; aplicarlo desde el selector llega a la sesión; un chat sin preguntas lo guarda en el `SavedStateHandle`.
 
 ### Implementación
 
-- [ ] T037 [US3] `LisdataCheckRow`, `LisdataExpandableRow` y `LisdataScopeChip` en `…/microrag/core/designsystem/component/` (R9), con vistas previas y entradas en el catálogo.
+- [X] T037 [US3] `LisdataCheckRow`, `LisdataExpandableRow` y `LisdataScopeChip` en `…/microrag/core/designsystem/component/` (R9), con vistas previas y entradas en el catálogo.
 - [X] T038 [US3] `ScopeUseCases.kt` en `…/microrag/domain/chat/`; `RetrieveContextUseCase` con el ámbito; `HybridRetriever` pasa el ámbito. T031 y T032 pasan.
 - [X] T039 [US3] `ChatSession`/`DefaultChatSession`: `ask(…, scope)`, `setScope` y `scopeOf`. T033 pasa.
-- [ ] T040 [US3] `…/microrag/feature/chat/scope/ScopeSelectorViewModel.kt` y `ScopeSheet.kt`; la ficha y la hoja en `ChatScreen`; el ámbito en `ChatViewModel` y `ChatUiState`; inyección. T034–T036 pasan.
+- [X] T040 [US3] `…/microrag/feature/chat/scope/ScopeSelectorViewModel.kt` y `ScopeSheet.kt`; la ficha y la hoja en `ChatScreen`; el ámbito en `ChatViewModel` y `ChatUiState`; inyección. T034–T036 pasan.
 
 ---
 
@@ -241,10 +241,10 @@ description: "Lista de tareas de F17 — Carpetas y ámbito del chat"
 
 **Independent Test:** quickstart §3, paso 7.
 
-- [ ] T041 [P] [US4] Pruebas:
+- [X] T041 [P] [US4] Pruebas:
   - `ChatViewModelTest`: abrir desde Historial restaura el ámbito; girar y restaurar el proceso lo conservan; «Nuevo chat» (desde el chat, desde Historial y desde Inicio) usa el último ámbito, y la primera vez «Toda la biblioteca»; las conversaciones antiguas tienen «Toda la biblioteca»;
   - `DefaultChatSessionTest`: `last_scope` se actualiza al aplicar y al preguntar; `setScope` no cambia el orden de Historial; «Borrar historial» vacía `last_scope` (FR-020c).
-- [ ] T042 [US4] Implementación en `DefaultChatSession`, `ChatViewModel` y los casos de uso del último ámbito. T041 pasa.
+- [X] T042 [US4] Implementación en `DefaultChatSession`, `ChatViewModel` y los casos de uso del último ámbito. T041 pasa.
 
 ---
 
@@ -256,8 +256,8 @@ description: "Lista de tareas de F17 — Carpetas y ámbito del chat"
 
 ### Pruebas
 
-- [ ] T043 [P] [US5] `ScopeUseCasesTest`: `ResolvedScope` con lo que cae y la vuelta a «Toda la biblioteca». `…/androidTest/…/data/rag/RagIndexChatStateTest.kt`: `chatLibraryState(scope)` y la cobertura parcial dentro del ámbito.
-- [ ] T044 [P] [US5] `ChatViewModelTest` y `ChatScreenTest`:
+- [X] T043 [P] [US5] `ScopeUseCasesTest`: `ResolvedScope` con lo que cae y la vuelta a «Toda la biblioteca». `…/androidTest/…/data/rag/RagIndexChatStateTest.kt`: `chatLibraryState(scope)` y la cobertura parcial dentro del ámbito.
+- [X] T044 [P] [US5] `ChatViewModelTest` y `ChatScreenTest`:
   - `ChatAvailability.NothingInScope`, con «Cambiar ámbito» y el compositor desactivado;
   - los avisos de K10 una vez;
   - la cobertura parcial del ámbito;
@@ -266,7 +266,7 @@ description: "Lista de tareas de F17 — Carpetas y ámbito del chat"
 
 ### Implementación
 
-- [ ] T045 [US5] `chatLibraryState(scope)` en el índice; `ObserveChatAvailabilityUseCase` con el ámbito; el estado K9 y los avisos K10 en el chat. T043 y T044 pasan.
+- [X] T045 [US5] `chatLibraryState(scope)` en el índice; `ObserveChatAvailabilityUseCase` con el ámbito; el estado K9 y los avisos K10 en el chat. T043 y T044 pasan.
 
 ---
 

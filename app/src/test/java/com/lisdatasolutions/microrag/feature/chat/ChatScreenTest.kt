@@ -51,6 +51,7 @@ import com.lisdatasolutions.microrag.core.designsystem.model.AnswerContent
 import com.lisdatasolutions.microrag.core.designsystem.model.AnswerState
 import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
 import com.lisdatasolutions.microrag.domain.chat.ChatAvailability
+import com.lisdatasolutions.microrag.feature.chat.scope.ScopeSummary
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -663,5 +664,47 @@ class ChatScreenTest {
         compose.onNodeWithContentDescription("Tú: Pregunta B1").assertIsNotDisplayed()
         compose.onNodeWithText("Copiar respuesta", useUnmergedTree = true).assertExists()
         compose.onAllNodesWithContentDescription("Tú: Pregunta B6").onFirst().assertIsDisplayed()
+    }
+
+    // F17 T035 and T044 (K7, K9; FR-014).
+
+    @Test
+    fun theChipSummarisesTheScope() {
+        val shown = androidx.compose.runtime.mutableStateOf(ChatUiState(availability = ChatAvailability.Ready(false, false)))
+        val changes = mutableListOf<String>()
+        compose.setContent { LisdataTheme { ChatScreen(shown.value, actions.copy(onChangeScope = { changes += "scope" })) } }
+        val cases = listOf(
+            ScopeSummary(whole = true) to "Buscar en: Toda la biblioteca",
+            ScopeSummary(whole = false, folderNames = listOf("Legal")) to "Buscar en: Legal",
+            ScopeSummary(whole = false, folderNames = listOf("Legal", "Motores")) to "Buscar en: Legal y Motores",
+            ScopeSummary(whole = false, folderNames = listOf("Legal", null)) to "Buscar en: Legal y General",
+            ScopeSummary(whole = false, folderNames = listOf("Legal"), looseDocuments = 2) to "Buscar en: Legal + 2 documentos",
+            ScopeSummary(whole = false, looseDocuments = 3) to "Buscar en: 3 documentos",
+            ScopeSummary(whole = false, looseDocuments = 1) to "Buscar en: 1 documento",
+        )
+        cases.forEach { (summary, text) ->
+            shown.value = shown.value.copy(scope = summary)
+            compose.onNodeWithText(text, useUnmergedTree = true).assertExists()
+        }
+        // U2: one button, «Buscar en: …», whose action is «Cambiar ámbito».
+        compose.onNode(androidx.compose.ui.test.hasContentDescription("Buscar en: 1 documento")).performClick()
+        assertThat(changes).containsExactly("scope")
+    }
+
+    @Test
+    fun aScopeWithNothingReady_offersToChangeIt() {
+        val changes = mutableListOf<String>()
+        compose.setContent {
+            LisdataTheme {
+                ChatScreen(
+                    ChatUiState(availability = ChatAvailability.NothingInScope, scope = ScopeSummary(whole = false, folderNames = listOf("Legal"))),
+                    actions.copy(onChangeScope = { changes += "scope" }),
+                )
+            }
+        }
+
+        compose.onNodeWithText("En este ámbito no hay documentos listos para buscar").assertExists()
+        compose.onNodeWithText("Cambiar ámbito").performClick()
+        assertThat(changes).containsExactly("scope")
     }
 }
