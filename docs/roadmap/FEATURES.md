@@ -51,7 +51,7 @@ Al cerrar cada feature se entrega:
 | F14 | Rendimiento en dispositivo y decisión INT8 | Técnica | F10, F11, F17, F20 | ⬜ |
 | F15 | Pulido y release | Producto | F01–F20 | ⬜ |
 | F16 | Apariencia: tema e icono de Ajustes | Producto (UI propuesta) | F12 | ✅ cerrada |
-| F17 | Carpetas y ámbito del chat | Producto (UI propuesta) | F08, F11, F13 | 🟨 en curso (plan hecho) |
+| F17 | Carpetas y ámbito del chat | Producto (UI propuesta) | F08, F11, F13 | 🟨 en curso (implement) |
 | F18 | Viabilidad del RAG visual (fase 0 visual) | Técnica | F05, F10, F11 | ⬜ |
 | F19 | Indexación visual | Producto (UI propuesta) | F17, F18 | ⬜ |
 | F20 | Chat con páginas | Producto (UI propuesta) | F19 | ⬜ |
@@ -803,10 +803,10 @@ Opciones a evaluar: normalizar la búsqueda por palabras según el idioma del do
 ## F17 — Carpetas y ámbito del chat
 
 - **Tipo:** Producto, **sin mockup**. Requiere una propuesta de UI aprobada (G46, constitución VII).
-- **Estado:** 🟨 en curso en la rama `017-folders-chat-scope`. Specify, clarify y wireframe aprobados el 2026-11-04, con las propuestas K1–K14 (`specs/017-folders-chat-scope/wireframe.md`) y la decisión D-070: lista de carpetas; eliminar eligiendo entre mover los documentos a «Sin carpeta» o borrarlos; «Nuevo chat» con el último ámbito usado; excluidos en gris en el selector. Plan hecho el 2026-11-04, con la decisión D-071: `rag.db` v4 y `chat.db` v2; la búsqueda acotada usa el modo en streaming de SQLite-Vector, y con «Toda la biblioteca» no cambia nada. Spec en `specs/017-folders-chat-scope/spec.md`.
+- **Estado:** 🟨 en curso en la rama `017-folders-chat-scope`. Specify, clarify y wireframe aprobados el 2026-11-04, con las propuestas K1–K14 (`specs/017-folders-chat-scope/wireframe.md`) y la decisión D-070: lista de carpetas; eliminar eligiendo entre mover los documentos a «General» o borrarlos; «Nuevo chat» con el último ámbito usado; excluidos en gris en el selector. Plan hecho el 2026-11-04, con la decisión D-071: `rag.db` v4 y `chat.db` v2; la búsqueda acotada usa el modo en streaming de SQLite-Vector, y con «Toda la biblioteca» no cambia nada. Tareas y analyze aprobados el 2026-11-04, con la decisión D-072: el grupo sin carpeta se llama «General» y se comporta como una carpeta en el ámbito; desmarcar un documento en una carpeta entera la convierte en sueltos; la búsqueda acotada va en una CTE `MATERIALIZED` y se mide frente a top-(*k* + *m*). Spec en `specs/017-folders-chat-scope/spec.md`.
 
 **Objetivo.**
-- **Carpetas de un solo nivel:** crear, renombrar y eliminar. Cada documento está en una carpeta o en «Sin carpeta», donde quedan los documentos actuales.
+- **Carpetas de un solo nivel:** crear, renombrar y eliminar. Cada documento está en una carpeta o en «General» (el grupo sin carpeta, D-072), donde quedan los documentos actuales.
 - **Biblioteca:**
   - carpetas con su recuento;
   - dentro de cada una, la lista actual con búsqueda y filtros;
@@ -821,7 +821,7 @@ Opciones a evaluar: normalizar la búsqueda por palabras según el idioma del do
 - **Recuperación:**
   - `RetrievalRequest` lleva el ámbito;
   - se aplica en la búsqueda vectorial, en la FTS y en la carga de candidatos y vecinos, además del filtro `status = 'done' AND included = 1` (G28);
-  - la sobre-recuperación top-(*k* + *m*) cuenta también los fragmentos fuera del ámbito.
+  - la búsqueda acotada es exacta, sin perder documentos del ámbito por los de fuera (D-071, D-072).
 - **Datos:**
   - `rag.db` v4: tabla `folders`, con ids que no se reutilizan y nombre único normalizado, y `documents.folder_id`;
   - `chat.db` v2: el ámbito de la conversación, con la guarda de ids reutilizados de D-065.

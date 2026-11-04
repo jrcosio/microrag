@@ -1751,6 +1751,53 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G47).
 
 ---
 
+## D-072 — Ajustes del analyze de F17
+
+- **Fecha:** 2026-11-04
+- **Decisión** (respuestas del usuario):
+  1. **«General»:**
+     - el grupo de los documentos sin carpeta se llama «General» («Sin carpeta» en D-066 y D-070), porque al usuario le parece un nombre con más estilo;
+     - es un nombre reservado;
+     - en el ámbito del chat se marca entero y se comporta como una carpeta: incluye también lo que llegue después sin carpeta.
+  2. **Desmarcar un documento de una carpeta marcada entera:** la carpeta se convierte en documentos sueltos, con los demás de ese momento marcados. Lo que llegue después ya no entra.
+  3. **Parada del analyze:** hecha. El plan, las tareas y el analyze quedan aprobados con sus correcciones. La implementación sigue en automático hasta la fase del teléfono, que se consulta antes. El botón de la hoja de carpetas en la Ingesta dice «Elegir».
+- **Decisión** (ajustes técnicos del analyze):
+  1. **Búsqueda acotada:**
+     - el modo en streaming va dentro de una CTE `MATERIALIZED`, como exige F07, y la puerta comprueba con `EXPLAIN QUERY PLAN` que el escaneo se hace una vez;
+     - no contradice D-040, que lo descartó para la búsqueda de toda la biblioteca, donde ordenaba todo el índice; con «Toda la biblioteca» no se usa;
+     - se mide frente a top-(*k* + *m*) con el ámbito contado en m, y se queda la variante más rápida, porque las dos son exactas.
+  2. **Chat:**
+     - `retry` usa el ámbito de su conversación, y la puerta de la sesión y la cobertura parcial se calculan dentro del ámbito;
+     - precedencia de la disponibilidad: primero los estados globales, en este orden: almacenamiento, modelos, índice, biblioteca vacía y espera a la indexación; después, nada listo en la biblioteca o en el ámbito;
+     - el ámbito ajustado se reescribe, para que el aviso salga una vez;
+     - «Borrar historial» borra también el último ámbito, y cambiar el ámbito no mueve la conversación en Historial.
+  3. **Datos:**
+     - `chat.db` guarda también la fecha de creación de las carpetas del ámbito;
+     - el destino de una importación se guarda en el intento al elegir los archivos; si la carpeta se borra entretanto, va a «General» con aviso;
+     - el borrado de una carpeta con sus documentos corre en el ámbito de la app y recuenta lo que queda;
+     - las consultas con `folders` usan alias.
+  4. **Otros:**
+     - con la biblioteca vacía se ven las carpetas;
+     - «ñ» y «n» cuentan como el mismo carácter en los nombres;
+     - los diálogos de carpeta van con la hoja en `feature/folders`;
+     - la medida de la Biblioteca va en `LibraryBenchmarkTest`, y la de la búsqueda (que necesita modelos) en el teléfono;
+     - un recurso `schema_v3.sql` para la prueba de migración, y referencias corregidas.
+- **Motivo:** la revisión independiente encontró 21 hallazgos:
+  - 1 crítico: la parada tras el analyze;
+  - 3 altos: el streaming sin `MATERIALIZED` frente a D-040, «Sin carpeta» en el ámbito y el reintento sin ámbito;
+  - 8 medios y 9 bajos.
+- **Alternativas descartadas:**
+  - «Sin carpeta» solo con sus documentos actuales;
+  - la carpeta menos los desmarcados;
+  - el streaming sin CTE;
+  - top-(*k* + *m*) sin medirlo frente al streaming.
+- **Origen:** usuario (revisión del analyze de F17) y analyze de F17.
+- **Afecta:**
+  - F17: spec (FR-001, FR-015, FR-016, FR-016b, FR-020c y casos límite), wireframe, research (R3, R7, R8, R15), data-model, contratos y tareas;
+  - D-066 y D-070, en el nombre del grupo sin carpeta.
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.
