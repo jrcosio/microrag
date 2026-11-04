@@ -109,4 +109,12 @@ class ScopeSheetTest {
 
         compose.onNodeWithText("Toda la biblioteca").assertIsSelected()
     }
+
+    @Test
+    fun withoutFoldersThereIsNoFoldersHeader() {
+        show(state.copy(folders = emptyList(), whole = true))
+
+        compose.onNodeWithText("Toda la biblioteca").assertExists()
+        compose.onNodeWithText("CARPETAS", useUnmergedTree = true).assertDoesNotExist()
+    }
 }

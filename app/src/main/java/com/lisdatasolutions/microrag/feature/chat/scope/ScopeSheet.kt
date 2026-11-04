@@ -70,8 +70,11 @@ fun ScopeSheetContent(state: ScopeSelectorUiState, actions: ScopeSheetActions, m
         LisdataCardGroup {
             LisdataRadioRow(title = stringResource(R.string.chat_scope_whole), selected = state.whole, onSelect = actions.onWholeLibrary)
         }
-        LisdataSectionHeader(text = stringResource(R.string.chat_scope_folders), modifier = Modifier.semantics { heading() })
         val folders = state.folders
+        // Empty folders are not offered (wireframe §6): with none left, no header either.
+        if (folders == null || folders.isNotEmpty()) {
+            LisdataSectionHeader(text = stringResource(R.string.chat_scope_folders), modifier = Modifier.semantics { heading() })
+        }
         if (folders == null) {
             LisdataSkeletonRow()
         } else if (folders.isNotEmpty()) {

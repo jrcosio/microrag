@@ -272,9 +272,9 @@ description: "Lista de tareas de F17 — Carpetas y ámbito del chat"
 
 ## Phase 8: User Story 6 - Pantallas aprobadas, accesibles y traducidas (Priority: P2)
 
-- [ ] T046 [P] [US6] Pruebas ATF en `…/androidTest/…/feature/`, parametrizadas como las de Tema: la raíz de la Biblioteca, la carpeta, los diálogos K3 y K4, la hoja de carpetas, la Ingesta con destino, el detalle, la ficha y el selector del ámbito, y el estado K9. En claro y en oscuro, al 200 % y en horizontal (SC-008). Incluye las piezas nuevas en `CatalogAccessibilityTest`.
-- [ ] T047 [US6] Ajustar hasta que T046 pase. Si ATF contradice el wireframe o una propuesta aprobada, **se para y se consulta**. `LayeringTest` completo (T002).
-- [ ] T048 [P] [US6] `StringsParityTest` y la revisión del inglés de los textos nuevos. Las correcciones van al informe.
+- [X] T046 [P] [US6] Pruebas ATF en `…/androidTest/…/feature/`, parametrizadas como las de Tema: la raíz de la Biblioteca, la carpeta, los diálogos K3 y K4, la hoja de carpetas, la Ingesta con destino, el detalle, la ficha y el selector del ámbito, y el estado K9. En claro y en oscuro, al 200 % y en horizontal (SC-008). Incluye las piezas nuevas en `CatalogAccessibilityTest`.
+- [X] T047 [US6] Ajustar hasta que T046 pase. Si ATF contradice el wireframe o una propuesta aprobada, **se para y se consulta**. `LayeringTest` completo (T002).
+- [X] T048 [P] [US6] `StringsParityTest` y la revisión del inglés de los textos nuevos. Las correcciones van al informe.
 
 ---
 
@@ -286,18 +286,18 @@ description: "Lista de tareas de F17 — Carpetas y ámbito del chat"
   - el p50 y el p95 de la búsqueda completa.
 
   Es `@RequiresModels`, así que se lanza aparte, con `-e class`, donde esté el modelo de embeddings: en el teléfono, en la última fase (T055). En el emulador solo se comprueba que compila. Se queda la variante más rápida (D-072).
-- [ ] T050 [P] [US7] `LibraryBenchmarkTest` (la de F08), ampliada (L7): 1.000 documentos en 20 carpetas; el tiempo hasta la lista de carpetas (SC-007) y las tandas por carpeta.
+- [X] T050 [P] [US7] `LibraryBenchmarkTest` (la de F08), ampliada (L7): 1.000 documentos en 20 carpetas; el tiempo hasta la lista de carpetas (SC-007) y las tandas por carpeta.
 
 ---
 
 ## Phase 10: Polish sin teléfono
 
-- [ ] T051 Toda la batería JVM, lint y Python:
+- [X] T051 Toda la batería JVM, lint y Python:
   - `./gradlew :app:testDebugUnitTest :app:lintDebug`, solo con los avisos previos;
   - `offline/.venv/bin/python -I -m unittest discover -s offline/tests`.
-- [ ] T052 Batería instrumentada completa en `Pixel_10` y en `MicroRAG_API33`, siempre con `-s`. En API 33 siguen los 4 fallos previos de Atrás desde la raíz.
-- [ ] T053 Recorrido en el emulador (quickstart §3, pasos 1–9), con documentos de prueba y capturas frente al wireframe en español e inglés, en claro y en oscuro, al 200 % y en horizontal.
-- [ ] T054 Borrador de `specs/017-folders-chat-scope/report.md`:
+- [X] T052 Batería instrumentada completa en `Pixel_10` y en `MicroRAG_API33`, siempre con `-s`. En API 33 siguen los 4 fallos previos de Atrás desde la raíz.
+- [X] T053 Recorrido en el emulador (quickstart §3, pasos 1–9), con documentos de prueba y capturas frente al wireframe en español e inglés, en claro y en oscuro, al 200 % y en horizontal.
+- [X] T054 Borrador de `specs/017-folders-chat-scope/report.md`:
   - resumen;
   - build, lint y pruebas;
   - las cifras de T049 y T050;
