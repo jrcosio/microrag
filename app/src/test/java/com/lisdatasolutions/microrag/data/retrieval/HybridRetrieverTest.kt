@@ -364,4 +364,28 @@ class HybridRetrieverTest {
         const val CHUNKS = 20
         const val QUESTION = "¿Cada cuánto se revisan las bombas hidráulicas del sistema principal?"
     }
+
+    // F17 T032 (research R3): the scope reaches both searches and the selection.
+
+    @Test
+    fun theScopeReachesEverySearchAndLoad() = runTest {
+        val ids = documents("Bombas", "Aceite")
+        program(ids.take(20), ids.take(20))
+        val scope = com.lisdatasolutions.microrag.domain.rag.SearchScope.Only(setOf(1L), general = false, documentIds = setOf(2L))
+
+        retriever.retrieve(RetrievalRequest(QUESTION, scope = scope))
+
+        assertThat(index.scopes).isNotEmpty()
+        assertThat(index.scopes.toSet()).containsExactly(scope)
+    }
+
+    @Test
+    fun withoutAScopeItIsTheWholeLibrary() = runTest {
+        val ids = documents("Bombas")
+        program(ids, ids)
+
+        retriever.retrieve(RetrievalRequest(QUESTION))
+
+        assertThat(index.scopes.toSet()).containsExactly(com.lisdatasolutions.microrag.domain.rag.SearchScope.All)
+    }
 }

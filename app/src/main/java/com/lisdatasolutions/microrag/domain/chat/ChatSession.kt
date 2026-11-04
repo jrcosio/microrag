@@ -7,14 +7,33 @@ import kotlinx.coroutines.flow.StateFlow
 interface ChatSession {
     val active: StateFlow<ActiveAnswer?>
 
-    /** Starts an answer; the conversation id (new when [conversationId] is null), or null when nothing started. */
-    suspend fun ask(conversationId: Long?, question: String): Long?
+    /**
+     * Starts an answer; the conversation id (new when [conversationId] is null), or null when nothing started.
+     * F17 (contract S2): it answers within [scope] as resolved now, which the conversation keeps and which is
+     * the last scope from then on; the answer keeps that scope even if it changes meanwhile (FR-019).
+     */
+    suspend fun ask(conversationId: Long?, question: String, scope: ChatScope = ChatScope.WholeLibrary): Long?
 
     /** Stops the answer in progress; it stays CANCELLED with its text (A9). */
     fun cancel()
 
-    /** False when [turnId] is not FAILED or INTERRUPTED, another answer runs, or the chat is not Ready (A10). */
+    /**
+     * False when [turnId] is not FAILED or INTERRUPTED, another answer runs, or the chat is not Ready (A10).
+     * F17 (analyze H3): it answers within its conversation's scope, as resolved now.
+     */
     suspend fun retry(turnId: Long): Boolean
+
+    /** F17 S3: the selector applied [scope] to [conversationId], for its next question; it is the last scope too. */
+    suspend fun setScope(conversationId: Long, scope: ChatScope)
+
+    /** F17 S1: the scope of [conversationId] as it means now, with what fell out of it; rewritten once if it changed (M8). */
+    suspend fun scopeOf(conversationId: Long): ResolvedScope
+
+    /** F17 FR-020b: the scope «Nuevo chat» starts with, as it means now. */
+    suspend fun lastScope(): ResolvedScope
+
+    /** F17 S3: the scope of a chat without questions yet, which only becomes the last one. */
+    suspend fun setLastScope(scope: ChatScope)
 
     /** Cancels any answer in progress, as a new conversation starts (research R6). */
     fun startNewConversation()

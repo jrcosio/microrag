@@ -340,7 +340,7 @@ class FakeRagIndex(initial: IndexCompatibility = IndexCompatibility.Compatible) 
         scopes += scope
         chunkReads++
         val wanted = ids.toSet()
-        chunkIds.filterKeys { !searchableOnly || searchable(it) }
+        chunkIds.filterKeys { (!searchableOnly || searchable(it)) && docs[it]?.let { d -> inScope(d, scope) } == true }
             .flatMap { (documentId, byOrdinal) -> byOrdinal.mapNotNull { (ordinal, id) -> if (id in wanted) view(documentId, ordinal) else null } }
             .associateBy { it.id }
     }
@@ -349,7 +349,7 @@ class FakeRagIndex(initial: IndexCompatibility = IndexCompatibility.Compatible) 
         calls += if (searchableOnly) "neighbor:searchable" else "neighbor"
         scopes += scope
         chunkReads++
-        if (searchableOnly && !searchable(documentId)) null else view(documentId, ordinal)
+        if ((searchableOnly && !searchable(documentId)) || docs[documentId]?.let { inScope(it, scope) } != true) null else view(documentId, ordinal)
     }
 
     private fun searchable(documentId: Long): Boolean = docs[documentId]?.let { it.status == DocumentStatus.DONE && it.included } == true
@@ -373,14 +373,21 @@ class FakeRagIndex(initial: IndexCompatibility = IndexCompatibility.Compatible) 
         LibrarySummary(library.size, library.filter { it.status == DocumentStatus.DONE }.sumOf { it.chunkCount ?: 0 })
     }
 
-    override suspend fun chatLibraryState(): ChatLibraryState = available {
+    override suspend fun chatLibraryState(scope: SearchScope): ChatLibraryState = available {
         val library = docs.values.filter { it.replacesId == null }
+        val inScope = library.filter { inScope(it, scope) }
         val pending = setOf(DocumentStatus.PENDING, DocumentStatus.PARSED, DocumentStatus.EMBEDDING, DocumentStatus.PAUSED)
         ChatLibraryState(
             documents = library.size,
-            searchable = library.count { it.status == DocumentStatus.DONE && it.included },
-            pendingIncluded = library.count { it.status in pending && it.included },
+            searchable = inScope.count { it.status == DocumentStatus.DONE && it.included },
+            pendingIncluded = inScope.count { it.status in pending && it.included },
         )
+    }
+
+    /** F17: the rule of DefaultRagIndex.scopeCondition. */
+    fun inScope(document: StoredDocument, scope: SearchScope): Boolean = when (scope) {
+        SearchScope.All -> true
+        is SearchScope.Only -> document.folderId in scope.folderIds || (scope.general && document.folderId == null) || document.id in scope.documentIds
     }
 
     override suspend fun close() = Unit

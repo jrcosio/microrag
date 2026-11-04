@@ -6,6 +6,7 @@ import com.lisdatasolutions.microrag.domain.rag.IndexUnavailableException
 import com.lisdatasolutions.microrag.domain.rag.RagIndex
 import com.lisdatasolutions.microrag.domain.rag.RagParameters
 import com.lisdatasolutions.microrag.domain.rag.ScoredChunk
+import com.lisdatasolutions.microrag.domain.rag.SearchScope
 import com.lisdatasolutions.microrag.domain.retrieval.CandidateScore
 import com.lisdatasolutions.microrag.domain.retrieval.ContextRetriever
 import com.lisdatasolutions.microrag.domain.retrieval.RetrievalOutcome
@@ -64,7 +65,7 @@ class HybridRetriever(
         if (!modelReady()) return unsearched(started, searchText, RetrievalOutcome.ModelsNotReady, followUp, coldEngine)
 
         val search = try {
-            search(question, request.previousQuestion.takeIf { followUp }, searchText)
+            search(question, request.previousQuestion.takeIf { followUp }, searchText, request.scope)
         } catch (e: CancellationException) {
             throw e
         } catch (e: EmbeddingFailure) {
@@ -101,9 +102,12 @@ class HybridRetriever(
         false
     }
 
-    /** The lexical search overlaps the embedding (rule Q7); only the embedded text may be cut (rule Q8). */
-    private suspend fun search(question: String, previous: String?, searchText: String): Search = coroutineScope {
-        val text = async { timed { index.textSearch(searchText, RagParameters.CANDIDATES) } }
+    /**
+     * The lexical search overlaps the embedding (rule Q7); only the embedded text may be cut (rule Q8).
+     * F17: both searches and the selection keep to [scope].
+     */
+    private suspend fun search(question: String, previous: String?, searchText: String, scope: SearchScope): Search = coroutineScope {
+        val text = async { timed { index.textSearch(searchText, RagParameters.CANDIDATES, scope) } }
         val embedding = timed {
             try {
                 embedder.embed(question, previous)
@@ -113,10 +117,10 @@ class HybridRetriever(
                 throw EmbeddingFailure(e)
             }
         }
-        val vector = timed { index.vectorSearch(embedding.value.vector, RagParameters.CANDIDATES) }
+        val vector = timed { index.vectorSearch(embedding.value.vector, RagParameters.CANDIDATES, scope) }
         val lexical = text.await()
         val fused = ReciprocalRankFusion.fuse(listOf(vector.value.map { it.id }, lexical.value), RagParameters.RRF_K)
-        val selection = timed { select(fused.take(RagParameters.FUSED_LIMIT), vector.value) }
+        val selection = timed { select(fused.take(RagParameters.FUSED_LIMIT), vector.value, scope) }
         Search(
             embedding = embedding.value, vectorHits = vector.value.size, textHits = lexical.value.size, fused = fused.size,
             outcome = selection.value, embeddingMs = embedding.ms, vectorMs = vector.ms, textMs = lexical.ms, selectionMs = selection.ms,
@@ -124,10 +128,10 @@ class HybridRetriever(
     }
 
     /** The first FUSED_LIMIT candidates, loaded only if still searchable, and the selector (FR-015). */
-    private suspend fun select(fused: List<FusedCandidate>, vector: List<ScoredChunk>): RetrievalOutcome {
-        val views = index.loadChunks(fused.map { it.id }, searchableOnly = true)
+    private suspend fun select(fused: List<FusedCandidate>, vector: List<ScoredChunk>, scope: SearchScope): RetrievalOutcome {
+        val views = index.loadChunks(fused.map { it.id }, searchableOnly = true, scope = scope)
         val blocks = selector.select(fused.mapNotNull { views[it.id] }) { document, ordinal ->
-            index.neighbor(document, ordinal, searchableOnly = true)
+            index.neighbor(document, ordinal, searchableOnly = true, scope = scope)
         }
         if (blocks.isEmpty()) return RetrievalOutcome.NoResults
         val selected = blocks.flatMapTo(HashSet()) { it.chunkIds }

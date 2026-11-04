@@ -5,12 +5,17 @@ import com.google.common.truth.Truth.assertWithMessage
 import com.lisdatasolutions.microrag.domain.chat.ActiveAnswer
 import com.lisdatasolutions.microrag.domain.chat.AnswerSource
 import com.lisdatasolutions.microrag.domain.chat.ChatAvailability
+import com.lisdatasolutions.microrag.domain.chat.ChatScope
 import com.lisdatasolutions.microrag.domain.chat.ChatStorageException
 import com.lisdatasolutions.microrag.domain.chat.ChatStorageState
+import com.lisdatasolutions.microrag.domain.chat.ResolvedScope
 import com.lisdatasolutions.microrag.domain.chat.TurnFailure
 import com.lisdatasolutions.microrag.domain.chat.TurnState
 import com.lisdatasolutions.microrag.domain.chat.TurnUpdate
+import com.lisdatasolutions.microrag.domain.rag.DocumentRef
+import com.lisdatasolutions.microrag.domain.rag.FolderRef
 import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
+import com.lisdatasolutions.microrag.domain.rag.SearchScope
 import com.lisdatasolutions.microrag.domain.retrieval.CandidateScore
 import com.lisdatasolutions.microrag.domain.retrieval.ContextBlock
 import com.lisdatasolutions.microrag.domain.retrieval.RetrievalOutcome
@@ -26,6 +31,7 @@ import java.security.MessageDigest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
@@ -44,9 +50,19 @@ class DefaultChatSessionTest {
     private val availability = MutableStateFlow<ChatAvailability>(ChatAvailability.Ready(cpuMode = false, partialCoverage = false))
     private val logger = RecordingLogger()
 
-    private fun TestScope.session() = DefaultChatSession(
+    /** F17: the scopes the availability was asked for, in order. */
+    private val availabilityScopes = mutableListOf<SearchScope>()
+
+    private fun TestScope.session(
+        availabilityOf: (SearchScope) -> ChatAvailability? = { null },
+        resolve: (ChatScope) -> ResolvedScope = { ResolvedScope(it) },
+    ) = DefaultChatSession(
         repository = repository, retrieve = RetrieveContextUseCase(retriever), engine = engine,
-        availability = { availability }, scope = this, logger = logger, now = { testScheduler.currentTime },
+        availability = { scope ->
+            availabilityScopes += scope
+            availabilityOf(scope)?.let { MutableStateFlow(it) } ?: availability
+        },
+        scope = this, logger = logger, now = { testScheduler.currentTime }, resolveScope = { resolve(it) },
     )
 
     private fun block(n: Int, documentId: Long = n.toLong(), chunks: List<Long> = listOf(100L + n), text: String = "Texto del bloque $n.") =
@@ -849,5 +865,143 @@ class DefaultChatSessionTest {
         )
         assertThat(engine.prompts.last()).isEqualTo(expected)
         assertThat(lastTurn().conversationId).isEqualTo(older)
+    }
+
+    // --- F17 T033 and T041: the scope of the question (contract S1–S4, FR-019) ---------------------
+
+    private val legal = ChatScope.Some(setOf(FolderRef(3, 30)), general = false, documents = setOf(DocumentRef(7, 70)))
+    private val legalSearch = SearchScope.Only(setOf(3), general = false, documentIds = setOf(7))
+
+    @Test
+    fun aQuestionIsAnsweredWithinItsScope_whichTheConversationAndTheLastScopeKeep() = runTest {
+        retriever.outcome = blocks(block(1))
+        engine.tokens = listOf("Respuesta [1].")
+        val session = session()
+
+        val id = checkNotNull(session.ask(null, "¿Plazo?", legal))
+        advanceUntilIdle()
+
+        assertThat(retriever.requests.single().scope).isEqualTo(legalSearch)
+        assertThat(availabilityScopes).containsExactly(legalSearch)
+        assertThat(repository.conversationScope(id)).isEqualTo(legal)
+        assertThat(repository.lastScope()).isEqualTo(legal)
+    }
+
+    /** FR-019: an answer keeps the scope it started with; a scope set meanwhile is for the next question. */
+    @Test
+    fun anAnswerInProgressKeepsItsScope_andSetScopeIsForTheNextQuestion() = runTest {
+        retriever.outcome = blocks(block(1))
+        engine.tokens = listOf("Uno ", "dos [1].")
+        engine.delayPerTokenMs = 500
+        val session = session()
+        val id = checkNotNull(session.ask(null, "¿Uno?", legal))
+        runCurrent()
+
+        session.setScope(id, ChatScope.WholeLibrary)
+        advanceUntilIdle()
+        session.ask(id, "¿Dos?", repository.conversationScope(id))
+        advanceUntilIdle()
+
+        assertThat(retriever.requests.map { it.scope }).containsExactly(legalSearch, SearchScope.All).inOrder()
+        assertThat(repository.lastScope()).isEqualTo(ChatScope.WholeLibrary)
+    }
+
+    /** L4: applying a scope does not touch the history order. */
+    @Test
+    fun setScopeSavesItWithoutMovingTheConversation() = runTest {
+        retriever.outcome = blocks(block(1))
+        engine.tokens = listOf("Uno [1].")
+        val session = session()
+        val id = checkNotNull(session.ask(null, "¿Uno?"))
+        advanceUntilIdle()
+        val writes = repository.writes.size
+
+        session.setScope(id, legal)
+
+        assertThat(repository.conversationScope(id)).isEqualTo(legal)
+        assertThat(repository.writes.drop(writes)).containsExactly("scope", "lastScope").inOrder()
+    }
+
+    /** H3: a retry answers within its conversation's scope, as it means now. */
+    @Test
+    fun aRetryAnswersWithinItsConversationsScope() = runTest {
+        retriever.outcome = RetrievalOutcome.IndexUnavailable(com.lisdatasolutions.microrag.domain.rag.IndexCompatibility.Closed)
+        val session = session()
+        val id = checkNotNull(session.ask(null, "¿Uno?", legal))
+        advanceUntilIdle()
+        assertThat(lastTurn().state).isEqualTo(TurnState.FAILED)
+
+        retriever.outcome = blocks(block(1))
+        engine.tokens = listOf("Uno [1].")
+        assertThat(session.retry(lastTurn().id)).isTrue()
+        advanceUntilIdle()
+
+        assertThat(retriever.requests.map { it.scope }).containsExactly(legalSearch, legalSearch)
+        assertThat(repository.conversationScope(id)).isEqualTo(legal)
+    }
+
+    /** S2b: the gate and the partial coverage are those of the scope. */
+    @Test
+    fun theGateAndThePartialCoverageAreTheScopes() = runTest {
+        val session = session(availabilityOf = { scope ->
+            if (scope == legalSearch) ChatAvailability.Ready(cpuMode = false, partialCoverage = true) else ChatAvailability.NothingReady
+        })
+
+        assertThat(session.ask(null, "¿Uno?")).isNull()
+        val id = checkNotNull(session.ask(null, "¿Dos?", legal))
+        advanceUntilIdle()
+
+        assertThat(repository.conversation(id).first().single().partialCoverage).isTrue()
+    }
+
+    @Test
+    fun nothingInTheScopeStartsNothing() = runTest {
+        val session = session(availabilityOf = { ChatAvailability.NothingInScope })
+
+        assertThat(session.ask(null, "¿Uno?", legal)).isNull()
+        assertThat(retriever.requests).isEmpty()
+    }
+
+    /** M8: what fell out is written back once, also as the last scope, so its notice comes once. */
+    @Test
+    fun anAdjustedScopeIsWrittenBack() = runTest {
+        retriever.outcome = blocks(block(1))
+        engine.tokens = listOf("Uno [1].")
+        val kept = ChatScope.Some(setOf(FolderRef(3, 30)), general = false, documents = emptySet())
+        val session = session(resolve = { scope ->
+            if (scope == legal) ResolvedScope(kept, droppedDocuments = 1) else ResolvedScope(scope)
+        })
+        val id = checkNotNull(repository.createConversation(now = 1, scope = legal))
+        repository.setLastScope(legal)
+
+        val first = session.scopeOf(id)
+        val second = session.scopeOf(id)
+
+        assertThat(first).isEqualTo(ResolvedScope(kept, droppedDocuments = 1))
+        assertThat(second).isEqualTo(ResolvedScope(kept))
+        assertThat(repository.conversationScope(id)).isEqualTo(kept)
+        assertThat(repository.lastScope()).isEqualTo(kept)
+    }
+
+    /** FR-020b: «Nuevo chat» starts with the last scope; the first time, the whole library. */
+    @Test
+    fun theLastScopeIsTheWholeLibraryUntilAQuestionOrTheSelectorSetsOne() = runTest {
+        val session = session()
+        assertThat(session.lastScope()).isEqualTo(ResolvedScope(ChatScope.WholeLibrary))
+
+        session.setLastScope(legal)
+
+        assertThat(session.lastScope()).isEqualTo(ResolvedScope(legal))
+    }
+
+    /** S5: the log says counts only. */
+    @Test
+    fun theScopeLogsOnlyCounts() = runTest {
+        val session = session()
+        val id = checkNotNull(repository.createConversation(now = 1))
+
+        session.setScope(id, legal)
+
+        assertThat(logger.lines.filter { "scope" in it }).containsExactly("chat scope set folders=1 general=false documents=1")
     }
 }

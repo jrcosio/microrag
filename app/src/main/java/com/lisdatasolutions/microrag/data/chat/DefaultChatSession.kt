@@ -8,14 +8,18 @@ import com.lisdatasolutions.microrag.domain.chat.AnswerSource
 import com.lisdatasolutions.microrag.domain.chat.ChatAvailability
 import com.lisdatasolutions.microrag.domain.chat.ChatLimits
 import com.lisdatasolutions.microrag.domain.chat.ChatRepository
+import com.lisdatasolutions.microrag.domain.chat.ChatScope
 import com.lisdatasolutions.microrag.domain.chat.ChatSession
 import com.lisdatasolutions.microrag.domain.chat.ChatStorageException
 import com.lisdatasolutions.microrag.domain.chat.ChatTurn
 import com.lisdatasolutions.microrag.domain.chat.PromptBlockRef
+import com.lisdatasolutions.microrag.domain.chat.ResolvedScope
 import com.lisdatasolutions.microrag.domain.chat.TurnFailure
 import com.lisdatasolutions.microrag.domain.chat.TurnState
 import com.lisdatasolutions.microrag.domain.chat.TurnUpdate
+import com.lisdatasolutions.microrag.domain.chat.toSearchScope
 import com.lisdatasolutions.microrag.domain.rag.RagParameters
+import com.lisdatasolutions.microrag.domain.rag.SearchScope
 import com.lisdatasolutions.microrag.domain.retrieval.ContextBlock
 import com.lisdatasolutions.microrag.domain.retrieval.RetrievalOutcome
 import com.lisdatasolutions.microrag.domain.retrieval.RetrieveContextUseCase
@@ -50,11 +54,14 @@ class DefaultChatSession(
     private val repository: ChatRepository,
     private val retrieve: RetrieveContextUseCase,
     private val engine: AnswerEngine,
-    private val availability: () -> Flow<ChatAvailability>,
+    /** F17: whether the chat can answer within a scope (contract S2b). */
+    private val availability: (SearchScope) -> Flow<ChatAvailability>,
     private val scope: CoroutineScope,
     private val logger: AppLogger,
     /** Wall time in milliseconds, for the timestamps and the checkpoints. */
     private val now: () -> Long = System::currentTimeMillis,
+    /** F17 S1: a saved scope as it means now; the scope as it is without an index to check it against. */
+    private val resolveScope: suspend (ChatScope) -> ResolvedScope = { ResolvedScope(it) },
 ) : ChatSession, MemoryTrimListener {
 
     private val current = MutableStateFlow<ActiveAnswer?>(null)
@@ -82,21 +89,28 @@ class DefaultChatSession(
         }
     }
 
-    override suspend fun ask(conversationId: Long?, question: String): Long? = lock.withLock {
+    override suspend fun ask(conversationId: Long?, question: String, scope: ChatScope): Long? = lock.withLock {
         if (question.isBlank() || question.length > ChatLimits.MAX_QUESTION_CHARS) return@withLock null
         if (job?.isActive == true) return@withLock null
         awaitStopped()
-        val ready = availability().first() as? ChatAvailability.Ready ?: return@withLock null
+        val resolved = resolveScope(scope).scope
+        val search = resolved.toSearchScope()
+        val ready = availability(search).first() as? ChatAvailability.Ready ?: return@withLock null
         startup.join()
         // A conversation that could not be saved (C16) is tried again with the next question, and so is one
         // deleted meanwhile (F12 P10); an unreadable file keeps the id, as the write will fail anyway.
         val saved = conversationId?.takeIf { it != ActiveAnswer.UNSAVED && saveOrNull { repository.conversationExists(it) } != false }
-        val conversation = saved ?: saveOrNull { repository.createConversation(now()) } ?: ActiveAnswer.UNSAVED
+        // F17 S2: a new conversation is saved with its scope; an existing one keeps the scope it is asked with.
+        val conversation = saved ?: saveOrNull { repository.createConversation(now(), resolved) } ?: ActiveAnswer.UNSAVED
+        if (saved != null && saveOrNull { repository.conversationScope(saved) } != resolved) {
+            saveOrNull { repository.setConversationScope(saved, resolved) }
+        }
+        saveOrNull { repository.setLastScope(resolved) }
         val turns = if (conversation == ActiveAnswer.UNSAVED) emptyList() else saveOrNull { repository.conversation(conversation).first() }.orEmpty()
         val turn = if (conversation == ActiveAnswer.UNSAVED) null else saveOrNull {
             repository.insertTurn(conversation, question, ready.partialCoverage, now())
         }
-        start(conversation, turn?.id ?: ActiveAnswer.UNSAVED, question, previousTurn(turns), ready.partialCoverage)
+        start(conversation, turn?.id ?: ActiveAnswer.UNSAVED, question, previousTurn(turns), ready.partialCoverage, search)
         conversation
     }
 
@@ -107,13 +121,53 @@ class DefaultChatSession(
     override suspend fun retry(turnId: Long): Boolean = lock.withLock {
         if (job?.isActive == true) return@withLock false
         awaitStopped()
-        if (availability().first() !is ChatAvailability.Ready) return@withLock false
         val target = saveOrNull { repository.turn(turnId) } ?: return@withLock false
         if (target.state != TurnState.FAILED && target.state != TurnState.INTERRUPTED) return@withLock false
+        // H3: within its conversation's scope, as it means now.
+        val search = resolve(target.conversationId).scope.toSearchScope()
+        if (availability(search).first() !is ChatAvailability.Ready) return@withLock false
         val before = saveOrNull { repository.conversation(target.conversationId).first() }.orEmpty().filter { it.ordinal < target.ordinal }
         if (saveOrNull { repository.resetForRetry(turnId) } == null) return@withLock false
-        start(target.conversationId, target.id, target.question, previousTurn(before), target.partialCoverage)
+        start(target.conversationId, target.id, target.question, previousTurn(before), target.partialCoverage, search)
         true
+    }
+
+    /** Throws ChatStorageException: the selector says the scope could not be saved. */
+    override suspend fun setScope(conversationId: Long, scope: ChatScope) {
+        repository.setConversationScope(conversationId, scope)
+        repository.setLastScope(scope)
+        logger.i(TAG) { "chat scope set ${scope.counts()}" }
+    }
+
+    override suspend fun scopeOf(conversationId: Long): ResolvedScope = resolve(conversationId)
+
+    override suspend fun lastScope(): ResolvedScope {
+        val saved = saveOrNull { repository.lastScope() } ?: ChatScope.WholeLibrary
+        val resolved = resolveScope(saved)
+        if (resolved.changed) saveOrNull { repository.setLastScope(resolved.scope) }
+        return resolved
+    }
+
+    override suspend fun setLastScope(scope: ChatScope) {
+        repository.setLastScope(scope)
+    }
+
+    /** M8: what fell out of a saved scope is written back once, so its notice is said once. */
+    private suspend fun resolve(conversationId: Long): ResolvedScope {
+        val saved = saveOrNull { repository.conversationScope(conversationId) } ?: ChatScope.WholeLibrary
+        val resolved = resolveScope(saved)
+        if (resolved.changed) {
+            saveOrNull { repository.setConversationScope(conversationId, resolved.scope) }
+            if (saveOrNull { repository.lastScope() } == saved) saveOrNull { repository.setLastScope(resolved.scope) }
+            logger.i(TAG) { "chat scope adjusted folders=-${resolved.droppedFolders} documents=-${resolved.droppedDocuments}" }
+        }
+        return resolved
+    }
+
+    /** S5: counts only, never ids of what the user named. */
+    private fun ChatScope.counts(): String = when (this) {
+        ChatScope.WholeLibrary -> "whole=true"
+        is ChatScope.Some -> "folders=${folders.size} general=$general documents=${documents.size}"
     }
 
     override fun startNewConversation() {
@@ -182,22 +236,30 @@ class DefaultChatSession(
     /** A4 (C12 as the desktop): the last turn before the asked one counts only when completed, refusal included. */
     private fun previousTurn(turns: List<ChatTurn>): ChatTurn? = turns.lastOrNull()?.takeIf { it.state == TurnState.COMPLETED }
 
-    private fun start(conversationId: Long, turnId: Long, question: String, previous: ChatTurn?, partialCoverage: Boolean) {
+    private fun start(
+        conversationId: Long,
+        turnId: Long,
+        question: String,
+        previous: ChatTurn?,
+        partialCoverage: Boolean,
+        search: SearchScope,
+    ) {
         stopAs = TurnState.CANCELLED
         current.value = ActiveAnswer(
             conversationId = conversationId, turnId = turnId, question = question, state = TurnState.RETRIEVING,
             saveFailed = turnId == ActiveAnswer.UNSAVED, partialCoverage = partialCoverage,
         )
-        job = scope.launch { answer(turnId, question, previous) }
+        job = scope.launch { answer(turnId, question, previous, search) }
     }
 
-    private suspend fun answer(turnId: Long, question: String, previous: ChatTurn?) {
+    /** FR-019: [search] was fixed when the question started; a scope changed meanwhile is for the next one. */
+    private suspend fun answer(turnId: Long, question: String, previous: ChatTurn?, search: SearchScope) {
         val started = now()
         val log = AnswerLog(followUp = previous != null)
         val text = StringBuilder()
         var refs = emptyList<PromptBlockRef>()
         try {
-            val retrieval = retrieve(question, previous?.question)
+            val retrieval = retrieve(question, previous?.question, search)
             log.retrievalMs = now() - started
             val blocks = when (val outcome = retrieval.outcome) {
                 is RetrievalOutcome.Blocks -> outcome

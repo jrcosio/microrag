@@ -88,6 +88,8 @@ data class ChatActions(
     val onImport: () -> Unit = {},
     val onOpenIndex: () -> Unit = {},
     val onRetryAvailability: () -> Unit = {},
+    /** F17 K7–K9: the scope chip and «Cambiar ámbito» open the selector. */
+    val onChangeScope: () -> Unit = {},
 )
 
 /**
@@ -418,6 +420,14 @@ private fun EmptyChat(availability: ChatAvailability?, actions: ChatActions, com
                 action = { LisdataOutlinedButton(text = stringResource(R.string.chat_view_indexing), onClick = actions.onOpenIndex) },
                 compact = compact,
             )
+            // F17 K9: the library has documents ready, but not this scope.
+            ChatAvailability.NothingInScope -> LisdataEmptyState(
+                icon = LisdataIcons.Folder,
+                title = stringResource(R.string.chat_scope_empty_title),
+                body = null,
+                action = { LisdataOutlinedButton(text = stringResource(R.string.chat_scope_change), onClick = actions.onChangeScope) },
+                compact = compact,
+            )
         }
     }
 }
@@ -447,6 +457,10 @@ private fun Notice(availability: ChatAvailability, actions: ChatActions, modifie
         ChatAvailability.NothingReady -> InfoNotice(
             LisdataIcons.Layers, stringResource(R.string.chat_nothing_ready), modifier,
             actionText = stringResource(R.string.chat_view_indexing), onAction = actions.onOpenIndex,
+        )
+        ChatAvailability.NothingInScope -> InfoNotice(
+            LisdataIcons.Folder, stringResource(R.string.chat_scope_empty_title), modifier,
+            actionText = stringResource(R.string.chat_scope_change), onAction = actions.onChangeScope,
         )
     }
 }

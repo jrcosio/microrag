@@ -433,14 +433,16 @@ class DefaultRagIndex(
         ) { LibrarySummary(documents = it.getLong(0).toInt(), indexedChunks = it.getLong(1).toInt()) } ?: LibrarySummary(0, 0)
     }
 
-    override suspend fun chatLibraryState(): ChatLibraryState = withIndex { db ->
+    override suspend fun chatLibraryState(scope: SearchScope): ChatLibraryState = withIndex { db ->
         val pending = listOf(DocumentStatus.PENDING, DocumentStatus.PARSED, DocumentStatus.EMBEDDING, DocumentStatus.PAUSED)
+        val (condition, scopeArgs) = (scope as? SearchScope.Only)?.let(::scopeCondition)?.let { (sql, args) -> " AND $sql" to args }
+            ?: ("" to emptyArray())
         db.queryOne(
             "SELECT count(*), " +
-                "COALESCE(SUM(CASE WHEN status = ? AND included = 1 THEN 1 ELSE 0 END), 0), " +
-                "COALESCE(SUM(CASE WHEN status IN (${pending.joinToString { "?" }}) AND included = 1 THEN 1 ELSE 0 END), 0) " +
-                "FROM documents WHERE replaces_id IS NULL",
-            DocumentStatus.DONE.sqlValue, *pending.map { it.sqlValue }.toTypedArray(),
+                "COALESCE(SUM(CASE WHEN d.status = ? AND d.included = 1$condition THEN 1 ELSE 0 END), 0), " +
+                "COALESCE(SUM(CASE WHEN d.status IN (${pending.joinToString { "?" }}) AND d.included = 1$condition THEN 1 ELSE 0 END), 0) " +
+                "FROM documents d WHERE d.replaces_id IS NULL",
+            DocumentStatus.DONE.sqlValue, *scopeArgs, *pending.map { it.sqlValue }.toTypedArray(), *scopeArgs,
         ) { ChatLibraryState(it.getLong(0).toInt(), it.getLong(1).toInt(), it.getLong(2).toInt()) } ?: ChatLibraryState(0, 0, 0)
     }
 

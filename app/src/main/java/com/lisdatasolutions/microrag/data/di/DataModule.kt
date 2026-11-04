@@ -4,15 +4,15 @@ import androidx.work.WorkManager
 import com.lisdatasolutions.microrag.BuildConfig
 import com.lisdatasolutions.microrag.core.di.ApplicationScope
 import com.lisdatasolutions.microrag.core.dispatchers.AppDispatchers
+import com.lisdatasolutions.microrag.data.chat.ChatSchema
+import com.lisdatasolutions.microrag.data.chat.DefaultChatSession
+import com.lisdatasolutions.microrag.data.chat.EngineAnswerEngine
+import com.lisdatasolutions.microrag.data.chat.SqliteChatRepository
 import com.lisdatasolutions.microrag.data.device.ActivityManagerProcessState
 import com.lisdatasolutions.microrag.data.device.AndroidDeviceResources
 import com.lisdatasolutions.microrag.data.device.PowerManagerThermalStatusSource
 import com.lisdatasolutions.microrag.data.device.ProcessState
 import com.lisdatasolutions.microrag.data.device.ThermalStatusSource
-import com.lisdatasolutions.microrag.data.chat.ChatSchema
-import com.lisdatasolutions.microrag.data.chat.DefaultChatSession
-import com.lisdatasolutions.microrag.data.chat.EngineAnswerEngine
-import com.lisdatasolutions.microrag.data.chat.SqliteChatRepository
 import com.lisdatasolutions.microrag.data.download.DefaultModelDownloadController
 import com.lisdatasolutions.microrag.data.download.DownloadNotifications
 import com.lisdatasolutions.microrag.data.download.FileDownloader
@@ -52,6 +52,7 @@ import com.lisdatasolutions.microrag.domain.chat.AnswerEngine
 import com.lisdatasolutions.microrag.domain.chat.ChatRepository
 import com.lisdatasolutions.microrag.domain.chat.ChatSession
 import com.lisdatasolutions.microrag.domain.chat.ObserveChatAvailabilityUseCase
+import com.lisdatasolutions.microrag.domain.chat.ResolveScopeUseCase
 import com.lisdatasolutions.microrag.domain.indexing.IndexingRepository
 import com.lisdatasolutions.microrag.domain.ingest.ImportQueueRepository
 import com.lisdatasolutions.microrag.domain.library.LibraryRepository
@@ -118,13 +119,15 @@ val dataModule = module {
     single<AnswerEngine> { EngineAnswerEngine(get(), get(), get()) }
     single {
         val observeAvailability = get<ObserveChatAvailabilityUseCase>()
+        val resolveScope = get<ResolveScopeUseCase>()
         DefaultChatSession(
             repository = get(),
             retrieve = get(),
             engine = get(),
-            availability = { observeAvailability() },
+            availability = { scope -> observeAvailability(scope = scope) },
             scope = get<ApplicationScope>().scope,
             logger = get(),
+            resolveScope = { resolveScope(it) },
         )
     } binds arrayOf(ChatSession::class, MemoryTrimListener::class)
 

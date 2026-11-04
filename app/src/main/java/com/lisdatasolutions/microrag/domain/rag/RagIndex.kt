@@ -156,8 +156,11 @@ interface RagIndex {
     /** All documents without shadows, and the stored chunks of the done ones, in one query on `documents` (F09 R2). */
     suspend fun librarySummary(): LibrarySummary
 
-    /** Documents without shadows, the searchable ones and the included ones still to index, in one query (F11 R11). */
-    suspend fun chatLibraryState(): ChatLibraryState
+    /**
+     * Documents without shadows, the searchable ones and the included ones still to index, in one query (F11
+     * R11). F17 (contract F8): the last two count only in [scope]; the first is always the whole library.
+     */
+    suspend fun chatLibraryState(scope: SearchScope = SearchScope.All): ChatLibraryState
 
     /** Closes the connection and goes back to [IndexCompatibility.Closed]; the next operation reopens it. */
     suspend fun close()

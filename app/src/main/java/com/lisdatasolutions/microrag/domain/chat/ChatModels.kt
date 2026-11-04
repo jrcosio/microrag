@@ -159,6 +159,9 @@ sealed interface ChatAvailability {
     /** C4: documents, but none indexed and included. */
     data object NothingReady : ChatAvailability
 
+    /** F17 K9: documents ready in the library, but none in the conversation's scope. */
+    data object NothingInScope : ChatAvailability
+
     /** [cpuMode]: Gemma prepared on CPU only (C9); [partialCoverage]: included documents not indexed yet (C6). */
     data class Ready(val cpuMode: Boolean, val partialCoverage: Boolean) : ChatAvailability
 }

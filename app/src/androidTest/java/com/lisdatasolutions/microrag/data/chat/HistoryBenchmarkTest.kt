@@ -12,11 +12,13 @@ import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
 import com.lisdatasolutions.microrag.data.rag.RagConnection
 import com.lisdatasolutions.microrag.domain.chat.ActiveAnswer
 import com.lisdatasolutions.microrag.domain.chat.AnswerSource
+import com.lisdatasolutions.microrag.domain.chat.ChatScope
 import com.lisdatasolutions.microrag.domain.chat.ChatSession
 import com.lisdatasolutions.microrag.domain.chat.DeleteConversationUseCase
 import com.lisdatasolutions.microrag.domain.chat.HistoryLimits
 import com.lisdatasolutions.microrag.domain.chat.ObserveAnswerInProgressUseCase
 import com.lisdatasolutions.microrag.domain.chat.ObserveConversationsUseCase
+import com.lisdatasolutions.microrag.domain.chat.ResolvedScope
 import com.lisdatasolutions.microrag.domain.chat.TurnState
 import com.lisdatasolutions.microrag.domain.chat.TurnUpdate
 import com.lisdatasolutions.microrag.feature.history.HistoryRoute
@@ -126,9 +128,13 @@ class HistoryBenchmarkTest {
     /** Nothing answers here: Historial only needs to know there is no answer in progress. */
     private object IdleSession : ChatSession {
         override val active = MutableStateFlow<ActiveAnswer?>(null)
-        override suspend fun ask(conversationId: Long?, question: String): Long? = null
+        override suspend fun ask(conversationId: Long?, question: String, scope: ChatScope): Long? = null
         override fun cancel() = Unit
         override suspend fun retry(turnId: Long): Boolean = false
+        override suspend fun setScope(conversationId: Long, scope: ChatScope) = Unit
+        override suspend fun scopeOf(conversationId: Long) = ResolvedScope(ChatScope.WholeLibrary)
+        override suspend fun lastScope() = ResolvedScope(ChatScope.WholeLibrary)
+        override suspend fun setLastScope(scope: ChatScope) = Unit
         override fun startNewConversation() = Unit
         override suspend fun openConversation(conversationId: Long) = Unit
         override suspend fun delete(conversationId: Long) = Unit

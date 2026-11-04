@@ -200,12 +200,12 @@ description: "Lista de tareas de F17 — Carpetas y ámbito del chat"
 
 ### Pruebas
 
-- [ ] T031 [P] [US3] `…/test/…/domain/chat/ScopeUseCasesTest.kt`:
+- [X] T031 [P] [US3] `…/test/…/domain/chat/ScopeUseCasesTest.kt`:
   - `ResolveScopeUseCase`: lo que existe, la guarda de D-065 para documentos y las carpetas por id;
   - la conversión a `SearchScope`;
   - FR-016: una carpeta incluye lo que contiene en cada pregunta.
-- [ ] T032 [P] [US3] `…/test/…/data/retrieval/HybridRetrieverTest.kt` y `…/androidTest/…/data/retrieval/HybridRetrieverVisibilityTest.kt`, ampliadas: el ámbito llega a las dos búsquedas y a la selección, y «Toda la biblioteca» da lo mismo que antes.
-- [ ] T033 [P] [US3] `…/test/…/data/chat/DefaultChatSessionTest.kt`:
+- [X] T032 [P] [US3] `…/test/…/data/retrieval/HybridRetrieverTest.kt` y `…/androidTest/…/data/retrieval/HybridRetrieverVisibilityTest.kt`, ampliadas: el ámbito llega a las dos búsquedas y a la selección, y «Toda la biblioteca» da lo mismo que antes.
+- [X] T033 [P] [US3] `…/test/…/data/chat/DefaultChatSessionTest.kt`:
   - `ask(…, scope)` recupera con el ámbito de ese momento;
   - una respuesta en curso no cambia de ámbito;
   - `setScope` se aplica a la pregunta siguiente (FR-019);
@@ -229,8 +229,8 @@ description: "Lista de tareas de F17 — Carpetas y ámbito del chat"
 ### Implementación
 
 - [ ] T037 [US3] `LisdataCheckRow`, `LisdataExpandableRow` y `LisdataScopeChip` en `…/microrag/core/designsystem/component/` (R9), con vistas previas y entradas en el catálogo.
-- [ ] T038 [US3] `ScopeUseCases.kt` en `…/microrag/domain/chat/`; `RetrieveContextUseCase` con el ámbito; `HybridRetriever` pasa el ámbito. T031 y T032 pasan.
-- [ ] T039 [US3] `ChatSession`/`DefaultChatSession`: `ask(…, scope)`, `setScope` y `scopeOf`. T033 pasa.
+- [X] T038 [US3] `ScopeUseCases.kt` en `…/microrag/domain/chat/`; `RetrieveContextUseCase` con el ámbito; `HybridRetriever` pasa el ámbito. T031 y T032 pasan.
+- [X] T039 [US3] `ChatSession`/`DefaultChatSession`: `ask(…, scope)`, `setScope` y `scopeOf`. T033 pasa.
 - [ ] T040 [US3] `…/microrag/feature/chat/scope/ScopeSelectorViewModel.kt` y `ScopeSheet.kt`; la ficha y la hoja en `ChatScreen`; el ámbito en `ChatViewModel` y `ChatUiState`; inyección. T034–T036 pasan.
 
 ---

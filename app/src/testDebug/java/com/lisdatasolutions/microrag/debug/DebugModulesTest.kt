@@ -2,9 +2,10 @@ package com.lisdatasolutions.microrag.debug
 
 import android.app.Application
 import android.content.Context
-import com.lisdatasolutions.microrag.core.di.appModules
 import androidx.datastore.core.DataStore
 import androidx.lifecycle.SavedStateHandle
+import com.lisdatasolutions.microrag.core.di.appModules
+import com.lisdatasolutions.microrag.domain.rag.LibraryFolderFilter
 import java.io.File
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -23,8 +24,10 @@ class DebugModulesTest {
             extraTypes = listOf(
                 Context::class, Application::class, CoroutineDispatcher::class, CoroutineScope::class,
                 File::class, DataStore::class, Function0::class, String::class,
-                // Given by koinViewModel to each screen's ViewModel (F08 research R9).
-                SavedStateHandle::class,
+                // Given by koinViewModel to each screen's ViewModel (F08 research R9), and its folder (F17 R5).
+                SavedStateHandle::class, LibraryFolderFilter::class,
+                // F17: the chat session's availability and scope resolution, built in its definition.
+                Function1::class, Function2::class,
             ),
         )
     }

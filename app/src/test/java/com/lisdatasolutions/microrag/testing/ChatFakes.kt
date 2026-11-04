@@ -3,9 +3,9 @@ package com.lisdatasolutions.microrag.testing
 import com.lisdatasolutions.microrag.domain.chat.ActiveAnswer
 import com.lisdatasolutions.microrag.domain.chat.AnswerEngine
 import com.lisdatasolutions.microrag.domain.chat.AnswerEvent
-import com.lisdatasolutions.microrag.domain.chat.ChatScope
 import com.lisdatasolutions.microrag.domain.chat.AnswerSource
 import com.lisdatasolutions.microrag.domain.chat.ChatRepository
+import com.lisdatasolutions.microrag.domain.chat.ChatScope
 import com.lisdatasolutions.microrag.domain.chat.ChatSession
 import com.lisdatasolutions.microrag.domain.chat.ChatStorageException
 import com.lisdatasolutions.microrag.domain.chat.ChatStorageState
@@ -14,6 +14,7 @@ import com.lisdatasolutions.microrag.domain.chat.ConversationPage
 import com.lisdatasolutions.microrag.domain.chat.ConversationSummary
 import com.lisdatasolutions.microrag.domain.chat.HistoryLimits
 import com.lisdatasolutions.microrag.domain.chat.ObserveChatAvailabilityUseCase
+import com.lisdatasolutions.microrag.domain.chat.ResolvedScope
 import com.lisdatasolutions.microrag.domain.chat.TurnState
 import com.lisdatasolutions.microrag.domain.chat.TurnUpdate
 import com.lisdatasolutions.microrag.domain.indexing.IndexingRepository
@@ -264,12 +265,36 @@ class FakeChatSession(private val repository: InMemoryChatRepository) : ChatSess
     override val active = MutableStateFlow<ActiveAnswer?>(null)
     val calls = mutableListOf<String>()
 
-    override suspend fun ask(conversationId: Long?, question: String): Long {
+    /** F17: the scope of every question, in order. */
+    val askedScopes = mutableListOf<ChatScope>()
+
+    /** What [scopeOf] and [lastScope] answer for what is saved, as ResolveScopeUseCase would (identity by default). */
+    var resolve: (ChatScope) -> ResolvedScope = { ResolvedScope(it) }
+
+    override suspend fun ask(conversationId: Long?, question: String, scope: ChatScope): Long {
         calls += "ask"
-        val id = conversationId ?: repository.createConversation(repository.now)
+        askedScopes += scope
+        val id = conversationId ?: repository.createConversation(repository.now, scope)
+        if (conversationId != null) repository.setConversationScope(id, scope)
+        repository.setLastScope(scope)
         val turn = repository.insertTurn(id, question, partialCoverage = false, now = repository.now)
         active.value = ActiveAnswer(id, turn.id, question, TurnState.RETRIEVING)
         return id
+    }
+
+    override suspend fun setScope(conversationId: Long, scope: ChatScope) {
+        calls += "scope:$conversationId"
+        repository.setConversationScope(conversationId, scope)
+        repository.setLastScope(scope)
+    }
+
+    override suspend fun scopeOf(conversationId: Long): ResolvedScope = resolve(repository.conversationScope(conversationId))
+
+    override suspend fun lastScope(): ResolvedScope = resolve(repository.lastScope())
+
+    override suspend fun setLastScope(scope: ChatScope) {
+        calls += "lastScope"
+        repository.setLastScope(scope)
     }
 
     override fun cancel() {

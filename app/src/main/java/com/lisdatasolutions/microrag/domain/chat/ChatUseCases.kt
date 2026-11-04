@@ -9,6 +9,7 @@ import com.lisdatasolutions.microrag.domain.rag.ChatLibraryState
 import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
 import com.lisdatasolutions.microrag.domain.rag.IndexUnavailableException
 import com.lisdatasolutions.microrag.domain.rag.RagIndex
+import com.lisdatasolutions.microrag.domain.rag.SearchScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
@@ -38,34 +39,49 @@ class ObserveChatAvailabilityUseCase(
     private val observeIndexing: ObserveIndexingUseCase,
     private val index: RagIndex,
 ) {
-    operator fun invoke(retries: Flow<Int> = flowOf(0)): Flow<ChatAvailability> = flow {
+    /** F17 (contract F8): [scope] is what the chat asks; the global states come first (F17 research R8, M5). */
+    operator fun invoke(retries: Flow<Int> = flowOf(0), scope: SearchScope = SearchScope.All): Flow<ChatAvailability> = flow {
         if (chats.open() != ChatStorageState.OK) {
             emit(ChatAvailability.StorageUnavailable)
             return@flow
         }
         val indexing = observeIndexing().filter { it != IndexingState.Loading }
-        emitAll(combine(observeLocalAi(), engine.preparedBackend(), indexing, library(retries), ::decide))
+        emitAll(
+            combine(observeLocalAi(), engine.preparedBackend(), indexing, library(retries, scope)) { ai, backend, run, library ->
+                decide(ai, backend, run, library, scoped = scope is SearchScope.Only)
+            },
+        )
     }.distinctUntilChanged()
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private fun library(retries: Flow<Int>): Flow<ChatLibraryState?> = retries.flatMapLatest {
+    private fun library(retries: Flow<Int>, scope: SearchScope): Flow<ChatLibraryState?> = retries.flatMapLatest {
         flow {
             if (index.open() != IndexCompatibility.Compatible) {
                 emit(null)
                 return@flow
             }
-            emitAll(index.documentChanges.mapLatest { index.chatLibraryState() })
+            emitAll(index.documentChanges.mapLatest { index.chatLibraryState(scope) })
         }.catch { error -> if (error is IndexUnavailableException) emit(null) else throw error }
     }
 
-    /** Precedence of research R11; a null [library] is an index that cannot be read. */
-    private fun decide(ai: LocalAiStatus, backend: ComputeBackend?, indexing: IndexingState, library: ChatLibraryState?): ChatAvailability =
+    /**
+     * Precedence of research R11, and F17 R8 for a scope: an empty library and a running batch are said for the
+     * whole library first; then nothing ready, in the library or in the scope. A null [library] is an index that
+     * cannot be read.
+     */
+    private fun decide(
+        ai: LocalAiStatus,
+        backend: ComputeBackend?,
+        indexing: IndexingState,
+        library: ChatLibraryState?,
+        scoped: Boolean,
+    ): ChatAvailability =
         when {
             ai != LocalAiStatus.READY || backend == null -> ChatAvailability.ModelsNotReady
             library == null -> ChatAvailability.IndexUnavailable
             library.documents == 0 -> ChatAvailability.EmptyLibrary
             indexing is IndexingState.Active && indexing.pause == null -> ChatAvailability.WaitingForIndexing
-            library.searchable == 0 -> ChatAvailability.NothingReady
+            library.searchable == 0 -> if (scoped) ChatAvailability.NothingInScope else ChatAvailability.NothingReady
             else -> ChatAvailability.Ready(cpuMode = backend == ComputeBackend.CPU, partialCoverage = library.pendingIncluded > 0)
         }
 }
@@ -91,7 +107,8 @@ class ObserveConversationUseCase(private val repository: ChatRepository, private
 }
 
 class AskQuestionUseCase(private val session: ChatSession) {
-    suspend operator fun invoke(conversationId: Long?, question: String): Long? = session.ask(conversationId, question)
+    suspend operator fun invoke(conversationId: Long?, question: String, scope: ChatScope = ChatScope.WholeLibrary): Long? =
+        session.ask(conversationId, question, scope)
 }
 
 class CancelAnswerUseCase(private val session: ChatSession) {
