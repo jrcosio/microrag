@@ -1,9 +1,11 @@
 package com.lisdatasolutions.microrag.feature.ingest
 
+import androidx.lifecycle.SavedStateHandle
 import com.google.common.truth.Truth.assertThat
 import com.lisdatasolutions.microrag.domain.ingest.DocumentFormat
 import com.lisdatasolutions.microrag.domain.ingest.ImportDocumentsUseCase
 import com.lisdatasolutions.microrag.domain.ingest.ImportQueue
+import com.lisdatasolutions.microrag.domain.ingest.IngestError
 import com.lisdatasolutions.microrag.domain.ingest.ObserveImportQueueUseCase
 import com.lisdatasolutions.microrag.domain.ingest.QueueItem
 import com.lisdatasolutions.microrag.domain.ingest.QueueItemState
@@ -11,8 +13,9 @@ import com.lisdatasolutions.microrag.domain.ingest.QueueKey
 import com.lisdatasolutions.microrag.domain.ingest.RemoveQueueItemUseCase
 import com.lisdatasolutions.microrag.domain.ingest.RetryQueueItemUseCase
 import com.lisdatasolutions.microrag.domain.ingest.StartIndexingUseCase
-import com.lisdatasolutions.microrag.domain.ingest.IngestError
+import com.lisdatasolutions.microrag.domain.library.ObserveFoldersUseCase
 import com.lisdatasolutions.microrag.testing.FakeImportQueueRepository
+import com.lisdatasolutions.microrag.testing.FakeLibraryRepository
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -35,6 +38,8 @@ class IngestViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
     private val repository = FakeImportQueueRepository()
+    private val library = FakeLibraryRepository()
+    private var saved = SavedStateHandle()
 
     @Before
     fun setUp() = Dispatchers.setMain(dispatcher)
@@ -48,6 +53,8 @@ class IngestViewModelTest {
         StartIndexingUseCase(repository),
         RetryQueueItemUseCase(repository),
         RemoveQueueItemUseCase(repository),
+        ObserveFoldersUseCase(library),
+        saved,
         backgroundDispatcher = dispatcher,
     )
 
@@ -200,5 +207,90 @@ class IngestViewModelTest {
         advanceUntilIdle()
         assertThat(repository.removed).containsExactly(QueueKey.Attempt("a1"), QueueKey.Document(7)).inOrder()
         assertThat(vm.state.value.removalItem).isNull()
+    }
+
+    // F17 T025 (K6, M3): the destination folder.
+
+    private fun withFolders() {
+        library.folderRows.value = listOf(
+            com.lisdatasolutions.microrag.domain.rag.Folder(1, "Legal", 10, 0),
+            com.lisdatasolutions.microrag.domain.rag.Folder(2, "Motores", 20, 0),
+        )
+    }
+
+    @Test
+    fun theDestinationStartsAsTheRoutes_andGoesWithEachPick() = runTest(dispatcher) {
+        withFolders()
+        saved = SavedStateHandle(mapOf("folderId" to 1L))
+        val vm = viewModel()
+        advanceUntilIdle()
+        assertThat(vm.state.value.destination).isEqualTo(1)
+        assertThat(vm.state.value.destinationName).isEqualTo("Legal")
+
+        vm.onFilesPicked(listOf("content://a"))
+        vm.onChooseDestination()
+        advanceUntilIdle()
+        assertThat(vm.state.value.choosing).isEqualTo(DestinationChoice(selected = 1))
+        vm.onDestinationSelect(null)
+        advanceUntilIdle()
+        vm.onConfirmDestination()
+        advanceUntilIdle()
+        vm.onFilesPicked(listOf("content://b"))
+
+        assertThat(vm.state.value.choosing).isNull()
+        assertThat(vm.state.value.destination).isNull()
+        assertThat(repository.destinations).containsExactly(1L, null).inOrder()
+    }
+
+    @Test
+    fun withoutARouteFolderItIsGeneral_andTheChoiceSurvivesRecreation() = runTest(dispatcher) {
+        withFolders()
+        val vm = viewModel()
+        advanceUntilIdle()
+        assertThat(vm.state.value.destination).isNull()
+
+        vm.onChooseDestination()
+        vm.onDestinationSelect(2)
+        advanceUntilIdle()
+        val restored = viewModel()
+        advanceUntilIdle()
+
+        assertThat(restored.state.value.choosing).isEqualTo(DestinationChoice(selected = 2))
+        restored.onConfirmDestination()
+        advanceUntilIdle()
+        assertThat(restored.state.value.destination).isEqualTo(2)
+    }
+
+    @Test
+    fun aFolderCreatedFromTheSheetIsTheDestinationAtOnce() = runTest(dispatcher) {
+        withFolders()
+        val vm = viewModel()
+        advanceUntilIdle()
+        vm.onChooseDestination()
+        advanceUntilIdle()
+
+        library.folderRows.value += com.lisdatasolutions.microrag.domain.rag.Folder(3, "Contratos", 30, 0)
+        vm.onFolderCreated(3)
+        advanceUntilIdle()
+
+        assertThat(vm.state.value.destination).isEqualTo(3)
+        assertThat(vm.state.value.choosing).isNull()
+    }
+
+    /** M3: a destination that is deleted goes back to «General», and the screen says so. */
+    @Test
+    fun aDeletedDestinationIsGeneralAgain() = runTest(dispatcher) {
+        withFolders()
+        saved = SavedStateHandle(mapOf("folderId" to 1L))
+        val vm = viewModel()
+        advanceUntilIdle()
+
+        library.folderRows.value = library.folderRows.value.filterNot { it.id == 1L }
+        advanceUntilIdle()
+
+        assertThat(vm.state.value.destination).isNull()
+        assertThat(vm.state.value.destinationMissing).isTrue()
+        vm.onFilesPicked(listOf("content://a"))
+        assertThat(repository.destinations).containsExactly(null)
     }
 }

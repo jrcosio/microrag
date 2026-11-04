@@ -99,6 +99,19 @@ class FakeLibraryRepository : LibraryRepository {
         return true
     }
 
+    var failMove = false
+
+    override suspend fun moveDocument(documentId: Long, folderId: Long?): Boolean {
+        calls += "move $documentId $folderId"
+        if (failMove || (folderId != null && folderRows.value.none { it.id == folderId })) return false
+        val name = folderRows.value.firstOrNull { it.id == folderId }?.name
+        documents.value = documents.value.map { if (it.id == documentId) it.copy(folderId = folderId, folderName = name) else it }
+        details[documentId]?.let { flow ->
+            (flow.value as? DetailResult.Loaded)?.let { flow.value = DetailResult.Loaded(it.detail.copy(folderId = folderId, folderName = name)) }
+        }
+        return true
+    }
+
     override suspend fun folderDocumentRefs(folderId: Long?): List<DocumentRef>? =
         if (foldersUnavailable) null else documents.value.filter { it.folderId == folderId }.map { DocumentRef(it.id, it.id * 10) }
 

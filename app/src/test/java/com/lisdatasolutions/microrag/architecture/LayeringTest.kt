@@ -169,4 +169,20 @@ class LayeringTest {
         assertWithMessage("feature/history files importing the data layer, SQLite, WorkManager, LiteRT, File or LocaleManager")
             .that(leaks).isEmpty()
     }
+
+    /** F17 U6 (T030): the folder sheets and dialogs reach the folders through use cases only (contract UI §5). */
+    @Test
+    fun theFolderScreensUseNoBackendApi() {
+        val featureDir = File("src/main/java/com/lisdatasolutions/microrag/feature/folders")
+        val forbidden = listOf(
+            "import com.lisdatasolutions.microrag.data.", "import androidx.sqlite", "import androidx.work",
+            "import com.google.ai.edge.litertlm", "import java.io.File", "import android.app.",
+        )
+        val files = sources.filter { it.canonicalPath.startsWith(featureDir.canonicalPath + File.separator) }
+        val leaks = files.filter { file -> forbidden.any { file.readText().contains(it) } }.map { it.path }
+
+        assertWithMessage("feature/folders files exist").that(files).isNotEmpty()
+        assertWithMessage("feature/folders files importing the data layer, SQLite, WorkManager, LiteRT, File or a system manager")
+            .that(leaks).isEmpty()
+    }
 }

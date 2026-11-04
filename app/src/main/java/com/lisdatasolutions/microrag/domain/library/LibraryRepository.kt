@@ -47,6 +47,9 @@ interface LibraryRepository {
 
     /** Every document of a folder, or of «General» with null; null when the index is unavailable. */
     suspend fun folderDocumentRefs(folderId: Long?): List<DocumentRef>?
+
+    /** F4 (K5): whether it moved; false when the folder is gone or the index fails. */
+    suspend fun moveDocument(documentId: Long, folderId: Long?): Boolean
 }
 
 sealed interface FoldersResult {

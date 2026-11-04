@@ -50,9 +50,14 @@ class DocumentImporter(
         return if (hasExtension) EXTENSIONS[extension] else MIME_TYPES[mimeType?.lowercase()]
     }
 
-    suspend fun import(uri: String, info: SourceInfo, onProgress: (copied: Long, total: Long?) -> Unit = { _, _ -> }): ImportResult {
+    suspend fun import(
+        uri: String,
+        info: SourceInfo,
+        folderId: Long? = null,
+        onProgress: (copied: Long, total: Long?) -> Unit = { _, _ -> },
+    ): ImportResult {
         val result = try {
-            importChecked(uri, info, onProgress)
+            importChecked(uri, info, folderId, onProgress)
         } catch (e: Rejection) {
             ImportResult.Rejected(e.error)
         } catch (e: IndexUnavailableException) {
@@ -71,7 +76,7 @@ class DocumentImporter(
         return result
     }
 
-    private suspend fun importChecked(uri: String, info: SourceInfo, onProgress: (Long, Long?) -> Unit): ImportResult {
+    private suspend fun importChecked(uri: String, info: SourceInfo, folderId: Long?, onProgress: (Long, Long?) -> Unit): ImportResult {
         val format = detectFormat(info.displayName, info.mimeType) ?: reject(IngestError.UNSUPPORTED_FORMAT)
         if (index.open() != IndexCompatibility.Compatible) reject(IngestError.INDEX_UNAVAILABLE)
         info.sizeBytes?.let { size ->
@@ -99,6 +104,7 @@ class DocumentImporter(
                             sizeBytes = size,
                             pageCount = pages,
                             localPath = final.absolutePath,
+                            folderId = folderId,
                         ),
                     ),
                 )

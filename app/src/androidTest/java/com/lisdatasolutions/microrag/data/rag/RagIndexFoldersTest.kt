@@ -179,4 +179,56 @@ class RagIndexFoldersTest {
             assertThat(it).doesNotContain("Contratos")
         }
     }
+
+    // F17 T023 (contract F4, F6).
+
+    @Test
+    fun movingOnlyChangesTheFolder() = runBlocking<Unit> {
+        val legal = create("Legal")
+        val motors = create("Motores")
+        val contract = doc("Contrato.txt", legal)
+        index.setIncluded(contract, false)
+        val before = checkNotNull(index.document(contract))
+        val text = index.libraryCount("", every)
+
+        assertThat(index.moveDocument(contract, motors)).isTrue()
+
+        val after = checkNotNull(index.document(contract))
+        assertThat(after.folderId).isEqualTo(motors)
+        assertThat(after.folderName).isEqualTo("Motores")
+        assertThat(after.status).isEqualTo(before.status)
+        assertThat(after.included).isFalse()
+        assertThat(after.chunkCount).isEqualTo(before.chunkCount)
+        assertThat(index.counts().chunks).isEqualTo(3)
+        assertThat(index.libraryCount("", every)).isEqualTo(text)
+        assertThat(index.folders().folders.associate { it.name to it.documentCount }).containsExactly("Legal", 0, "Motores", 1)
+
+        assertThat(index.moveDocument(contract, null)).isTrue()
+        assertThat(index.document(contract)!!.folderId).isNull()
+    }
+
+    @Test
+    fun movingToAFolderThatIsGone_orAShadow_doesNothing() = runBlocking<Unit> {
+        val legal = create("Legal")
+        val contract = doc("Contrato.txt", legal)
+        val shadow = index.addReindexShadow(contract)
+
+        assertThat(index.moveDocument(contract, 999)).isFalse()
+        assertThat(index.moveDocument(shadow, legal)).isFalse()
+        assertThat(index.moveDocument(12_345, legal)).isFalse()
+        assertThat(index.document(contract)!!.folderId).isEqualTo(legal)
+    }
+
+    @Test
+    fun aNewDocumentIsRegisteredInItsFolder_orInGeneralIfTheFolderIsGone() = runBlocking<Unit> {
+        val legal = create("Legal")
+        val gone = create("Antigua")
+        index.deleteFolder(gone, moveDocuments = true)
+
+        val filed = index.addDocument(NewDocument(displayName = "a.txt", contentHash = "a", folderId = legal))
+        val orphan = index.addDocument(NewDocument(displayName = "b.txt", contentHash = "b", folderId = gone))
+
+        assertThat(index.document(filed)!!.folderId).isEqualTo(legal)
+        assertThat(index.document(orphan)!!.folderId).isNull()
+    }
 }

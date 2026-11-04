@@ -74,12 +74,22 @@ class DefaultImportQueueRepository(
         val state: QueueItemState,
         /** [RagIndex.documentChanges] once registered: hidden as soon as the documents reload past it. */
         val registeredAt: Long? = null,
+        /** F17 (M3): the destination chosen with the files; a retry keeps it. */
+        val folderId: Long? = null,
     )
 
-    private data class Pending(val attemptId: String, val uri: String, val info: SourceInfo)
+    private data class Pending(val attemptId: String, val uri: String, val info: SourceInfo, val folderId: Long?)
 
-    /** [stored] counts chunks of documents being embedded, for «Indexando · N de M» (F07 index-ui §Ingesta). */
-    private data class Loaded(val documents: List<StoredDocument>, val version: Long, val stored: Map<Long, Int> = emptyMap())
+    /**
+     * [stored] counts chunks of documents being embedded, for «Indexando · N de M» (F07 index-ui §Ingesta);
+     * [folders] names the attempts' destinations (F17).
+     */
+    private data class Loaded(
+        val documents: List<StoredDocument>,
+        val version: Long,
+        val stored: Map<Long, Int> = emptyMap(),
+        val folders: Map<Long, String> = emptyMap(),
+    )
 
     private val attempts = MutableStateFlow<List<Attempt>>(emptyList())
     private val pending = Channel<Pending>(Channel.UNLIMITED)
@@ -96,7 +106,12 @@ class DefaultImportQueueRepository(
                 // F08 rule L2: reindex shadows belong to the Library's documents, not to the queue.
                 val documents = index.documents(QUEUE_STATUSES).filter { it.replacesId == null }
                 val embedding = documents.filter { it.status == DocumentStatus.EMBEDDING || it.status == DocumentStatus.PARSED }
-                Loaded(documents, version, if (embedding.isEmpty()) emptyMap() else index.storedChunkCounts(embedding.map { it.id }))
+                Loaded(
+                    documents,
+                    version,
+                    if (embedding.isEmpty()) emptyMap() else index.storedChunkCounts(embedding.map { it.id }),
+                    index.folders().folders.associate { it.id to it.name },
+                )
             }
         } else {
             flowOf(Loaded(emptyList(), Long.MIN_VALUE))
@@ -108,7 +123,7 @@ class DefaultImportQueueRepository(
         )
     }
 
-    override fun import(uris: List<String>) {
+    override fun import(uris: List<String>, folderId: Long?) {
         if (uris.isEmpty()) return
         scope.launch(io) {
             for (uri in uris) {
@@ -124,9 +139,10 @@ class DefaultImportQueueRepository(
                     } else {
                         QueueItemState.Importing(0, info.sizeBytes)
                     },
+                    folderId = folderId,
                 )
                 attempts.update { list -> list.filterNot { it.registeredAt != null } + attempt }
-                if (info != null) submit(Pending(attempt.id, uri, info))
+                if (info != null) submit(Pending(attempt.id, uri, info, folderId))
             }
         }
     }
@@ -143,7 +159,7 @@ class DefaultImportQueueRepository(
                     return
                 }
                 updateAttempt(attempt.id) { it.copy(state = QueueItemState.Importing(0, info.sizeBytes), sizeBytes = info.sizeBytes) }
-                submit(Pending(attempt.id, attempt.uri, info))
+                submit(Pending(attempt.id, attempt.uri, info, attempt.folderId))
             }
             is QueueKey.Document -> indexing.retry(key.id)
         }
@@ -184,7 +200,7 @@ class DefaultImportQueueRepository(
 
     private suspend fun runImport(job: Pending) {
         var lastUpdate = 0L
-        val result = importer.import(job.uri, job.info) { copied, total ->
+        val result = importer.import(job.uri, job.info, job.folderId) { copied, total ->
             val now = clock()
             if (now - lastUpdate >= PROGRESS_INTERVAL_MS || (total != null && copied >= total)) {
                 lastUpdate = now
@@ -216,6 +232,7 @@ class DefaultImportQueueRepository(
                     sizeBytes = attempt.sizeBytes,
                     format = attempt.format,
                     state = if (attempt.registeredAt != null) QueueItemState.Ready else attempt.state,
+                    folderName = attempt.folderId?.let { loaded.folders[it] },
                 )
             }
         val documentItems = loaded.documents.map { document ->
@@ -225,6 +242,7 @@ class DefaultImportQueueRepository(
                 sizeBytes = document.sizeBytes,
                 format = DocumentFormat.fromMime(document.mimeType),
                 state = stateOf(document, active, progress, run, loaded.stored[document.id]),
+                folderName = document.folderName,
             )
         }
         val items = attemptItems + documentItems

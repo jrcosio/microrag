@@ -245,4 +245,20 @@ class DocumentImporterTest {
         assertThat(logger.lines.joinToString()).doesNotContain("Nóminas")
         assertThat(logger.lines.any { "damaged" in it }).isTrue()
     }
+
+    /** F17 T026 (F6): the document is registered in its destination; a duplicate keeps the folder it had. */
+    @Test
+    fun theDocumentIsRegisteredInItsFolder_andADuplicateKeepsItsOwn() = runTest {
+        val legal = checkNotNull(index.createFolder("Legal", "legal"))
+        val motors = checkNotNull(index.createFolder("Motores", "motores"))
+        source.add("content://1", "a.txt", "uno".toByteArray(), "text/plain")
+        source.add("content://2", "copia.txt", "uno".toByteArray(), "text/plain")
+
+        val id = (importer.import("content://1", source.describe("content://1"), legal) as ImportResult.Imported).documentId
+        val again = importer.import("content://2", source.describe("content://2"), motors)
+
+        assertThat(index.docs.getValue(id).folderId).isEqualTo(legal)
+        assertThat(again).isEqualTo(ImportResult.Rejected(IngestError.DUPLICATE))
+        assertThat(index.docs.getValue(id).folderId).isEqualTo(legal)
+    }
 }

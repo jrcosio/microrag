@@ -1,5 +1,6 @@
 package com.lisdatasolutions.microrag.feature.ingest
 
+import androidx.lifecycle.SavedStateHandle
 import com.google.common.truth.Truth.assertThat
 import com.lisdatasolutions.microrag.data.indexing.DefaultIndexingRepository
 import com.lisdatasolutions.microrag.data.indexing.FakeThermalStatusSource
@@ -9,7 +10,6 @@ import com.lisdatasolutions.microrag.data.ingest.DocumentFileStore
 import com.lisdatasolutions.microrag.data.ingest.DocumentFiles
 import com.lisdatasolutions.microrag.data.ingest.DocumentImporter
 import com.lisdatasolutions.microrag.data.library.DefaultLibraryRepository
-import com.lisdatasolutions.microrag.domain.library.DeleteDocumentUseCase
 import com.lisdatasolutions.microrag.domain.ingest.ImportDocumentsUseCase
 import com.lisdatasolutions.microrag.domain.ingest.IngestError
 import com.lisdatasolutions.microrag.domain.ingest.ObserveImportQueueUseCase
@@ -17,8 +17,11 @@ import com.lisdatasolutions.microrag.domain.ingest.QueueItemState
 import com.lisdatasolutions.microrag.domain.ingest.RemoveQueueItemUseCase
 import com.lisdatasolutions.microrag.domain.ingest.RetryQueueItemUseCase
 import com.lisdatasolutions.microrag.domain.ingest.StartIndexingUseCase
+import com.lisdatasolutions.microrag.domain.library.DeleteDocumentUseCase
+import com.lisdatasolutions.microrag.domain.library.ObserveFoldersUseCase
 import com.lisdatasolutions.microrag.testing.FakeDocumentSource
 import com.lisdatasolutions.microrag.testing.FakeIngestScheduler
+import com.lisdatasolutions.microrag.testing.FakeLibraryRepository
 import com.lisdatasolutions.microrag.testing.FakePdfOpener
 import com.lisdatasolutions.microrag.testing.FakeRagIndex
 import com.lisdatasolutions.microrag.testing.RecordingLogger
@@ -75,7 +78,8 @@ class IngestRecreationTest {
         ) { 0L }
         fun viewModel() = IngestViewModel(
             ObserveImportQueueUseCase(repository), ImportDocumentsUseCase(repository), StartIndexingUseCase(repository),
-            RetryQueueItemUseCase(repository), RemoveQueueItemUseCase(repository), backgroundDispatcher = dispatcher,
+            RetryQueueItemUseCase(repository), RemoveQueueItemUseCase(repository),
+            ObserveFoldersUseCase(FakeLibraryRepository()), SavedStateHandle(), backgroundDispatcher = dispatcher,
         )
 
         val before = viewModel()

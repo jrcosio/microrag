@@ -82,11 +82,11 @@ class DefaultRagIndex(
         db.exec(
             """
             INSERT INTO documents(source, uri, display_name, mime_type, content_hash, size_bytes, page_count,
-                local_path, created_at_ms, updated_at_ms, name_norm)
-            VALUES ('user', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                local_path, created_at_ms, updated_at_ms, name_norm, folder_id)
+            VALUES ('user', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, (SELECT f.id FROM folders f WHERE f.id = ?))
             """.trimIndent(),
             document.uri, document.displayName, document.mimeType, document.contentHash, document.sizeBytes,
-            document.pageCount, document.localPath, now, now, DocumentNames.fold(document.displayName),
+            document.pageCount, document.localPath, now, now, DocumentNames.fold(document.displayName), document.folderId,
         )
         val id = checkNotNull(db.queryOne("SELECT last_insert_rowid()") { it.getLong(0) })
         logger.i(TAG) { "rag document add id=$id" }
@@ -177,6 +177,18 @@ class DefaultRagIndex(
         logger.i(TAG) { "rag folder delete id=$id moved=$moveDocuments deleted=$deleted" }
         if (deleted) notifyChanged()
         deleted
+    }
+
+    override suspend fun moveDocument(documentId: Long, folderId: Long?): Boolean = withIndex { db ->
+        if (folderId != null && db.queryOne("SELECT 1 FROM folders WHERE id = ?", folderId) { true } != true) return@withIndex false
+        db.exec(
+            "UPDATE documents SET folder_id = ?, updated_at_ms = ? WHERE id = ? AND replaces_id IS NULL",
+            folderId, clock(), documentId,
+        )
+        val moved = db.changes() > 0
+        logger.i(TAG) { "rag document move id=$documentId folder=${folderId ?: 0} moved=$moved" }
+        if (moved) notifyChanged()
+        moved
     }
 
     override suspend fun folderDocumentRefs(folderId: Long?): List<DocumentRef> = withIndex { db ->

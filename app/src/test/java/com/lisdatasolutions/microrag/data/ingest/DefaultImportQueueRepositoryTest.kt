@@ -443,4 +443,57 @@ class DefaultImportQueueRepositoryTest {
         assertThat(values.last().readyCount).isEqualTo(0)
         assertThat(values.last().canStart).isTrue()
     }
+
+    // F17 T026 (contract F6, M3): the destination folder of each import.
+
+    @Test
+    fun theDestinationIsKeptWithEachAttempt_andReachesTheDocument() = runTest {
+        val legal = checkNotNull(index.createFolder("Legal", "legal"))
+        source.add("content://1", "a.txt", "uno".toByteArray(), "text/plain")
+        source.add("content://2", "b.txt", "dos".toByteArray(), "text/plain")
+        val repository = repository()
+        val values = collect(repository)
+
+        repository.import(listOf("content://1"), folderId = legal)
+        repository.import(listOf("content://2"))
+        advanceUntilIdle()
+
+        assertThat(index.docs.values.associate { it.displayName to it.folderId }).containsExactly("a.txt", legal, "b.txt", null)
+        assertThat(values.last().items.associate { it.displayName to it.folderName }).containsExactly("a.txt", "Legal", "b.txt", null)
+        // The attempt row says its folder too, while it imports.
+        assertThat(
+            values.flatMap { it.items }.filter { it.key is QueueKey.Attempt && it.displayName == "a.txt" }.map { it.folderName }.toSet(),
+        ).containsExactly("Legal")
+    }
+
+    @Test
+    fun aRetryKeepsTheDestination() = runTest {
+        val legal = checkNotNull(index.createFolder("Legal", "legal"))
+        source.files["content://1"] = FakeFile(SourceInfo("a.txt", 5, "text/plain"), "texto".toByteArray(), readError = java.io.IOException("I/O"))
+        val repository = repository()
+        val values = collect(repository)
+        repository.import(listOf("content://1"), folderId = legal)
+        advanceUntilIdle()
+
+        source.add("content://1", "a.txt", "texto".toByteArray(), "text/plain")
+        repository.retry(values.last().items.single().key)
+        advanceUntilIdle()
+
+        assertThat(index.docs.values.single().folderId).isEqualTo(legal)
+    }
+
+    /** M3: a destination deleted before the document registers sends it to «General». */
+    @Test
+    fun aDestinationDeletedMeanwhileIsGeneral() = runTest {
+        val legal = checkNotNull(index.createFolder("Legal", "legal"))
+        index.deleteFolder(legal, moveDocuments = true)
+        source.add("content://1", "a.txt", "uno".toByteArray(), "text/plain")
+        val repository = repository()
+        collect(repository)
+
+        repository.import(listOf("content://1"), folderId = legal)
+        advanceUntilIdle()
+
+        assertThat(index.docs.values.single().folderId).isNull()
+    }
 }

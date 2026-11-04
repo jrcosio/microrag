@@ -32,6 +32,7 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lisdatasolutions.microrag.R
+import com.lisdatasolutions.microrag.core.designsystem.component.LisdataCardGroup
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataCountChip
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataEmptyState
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataEyebrow
@@ -39,6 +40,7 @@ import com.lisdatasolutions.microrag.core.designsystem.component.LisdataFilePick
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataGradientButton
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataQueueRow
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataSectionHeader
+import com.lisdatasolutions.microrag.core.designsystem.component.LisdataSettingsRow
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataTopBar
 import com.lisdatasolutions.microrag.core.designsystem.icon.LisdataIcons
 import com.lisdatasolutions.microrag.core.designsystem.model.StatusKind
@@ -46,6 +48,11 @@ import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
 import com.lisdatasolutions.microrag.domain.ingest.QueueItem
 import com.lisdatasolutions.microrag.domain.ingest.QueueItemState
 import com.lisdatasolutions.microrag.domain.ingest.QueueKey
+import com.lisdatasolutions.microrag.feature.folders.FolderChoiceActions
+import com.lisdatasolutions.microrag.feature.folders.FolderChoiceSheet
+import com.lisdatasolutions.microrag.feature.folders.FolderDialogs
+import com.lisdatasolutions.microrag.feature.folders.FoldersViewModel
+import com.lisdatasolutions.microrag.feature.folders.dialogActions
 import org.koin.androidx.compose.koinViewModel
 
 /** What the stateless screen can ask for. */
@@ -59,11 +66,25 @@ data class IngestActions(
     val onRemove: (QueueKey) -> Unit = {},
     val onConfirmRemoval: () -> Unit = {},
     val onDismissRemoval: () -> Unit = {},
+    /** F17 K6: the destination row and its sheet; null is «General». */
+    val onChooseDestination: () -> Unit = {},
+    val onDestinationSelect: (Long?) -> Unit = {},
+    val onConfirmDestination: () -> Unit = {},
+    val onDismissDestination: () -> Unit = {},
+    val onNewFolder: () -> Unit = {},
 )
 
 @Composable
-fun IngestRoute(onBack: () -> Unit, onStartIndexing: () -> Unit, viewModel: IngestViewModel = koinViewModel()) {
+fun IngestRoute(
+    onBack: () -> Unit,
+    onStartIndexing: () -> Unit,
+    viewModel: IngestViewModel = koinViewModel(),
+    foldersViewModel: FoldersViewModel = koinViewModel(),
+) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val folders by foldersViewModel.state.collectAsStateWithLifecycle()
+    // K6: a folder made with «Nueva carpeta…» is the destination at once.
+    LaunchedEffect(foldersViewModel) { foldersViewModel.createdFolders.collect(viewModel::onFolderCreated) }
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris: List<Uri> ->
         viewModel.onFilesPicked(uris.map(Uri::toString))
     }
@@ -86,8 +107,14 @@ fun IngestRoute(onBack: () -> Unit, onStartIndexing: () -> Unit, viewModel: Inge
             onRemove = viewModel::onRemove,
             onConfirmRemoval = viewModel::onConfirmRemoval,
             onDismissRemoval = viewModel::onDismissRemoval,
+            onChooseDestination = viewModel::onChooseDestination,
+            onDestinationSelect = viewModel::onDestinationSelect,
+            onConfirmDestination = viewModel::onConfirmDestination,
+            onDismissDestination = viewModel::onDismissDestination,
+            onNewFolder = foldersViewModel::onNewFolder,
         ),
     )
+    FolderDialogs(folders.dialog, folders.busy, foldersViewModel.dialogActions())
 }
 
 /** P05 (PNG 05 with G14/G15 and the approved proposals P1–P5, contracts/ingest-ui.md). */
@@ -114,6 +141,7 @@ fun IngestScreen(state: IngestUiState, actions: IngestActions, modifier: Modifie
             )
             Text(stringResource(R.string.ingest_intro), style = typography.bodyLarge, color = colors.textSecondary)
             Spacer(Modifier.height(spacing.space2))
+            Destination(state, actions)
             LisdataFilePickerCard(
                 title = stringResource(R.string.ingest_picker_title),
                 subtitle = stringResource(R.string.ingest_picker_subtitle),
@@ -158,6 +186,42 @@ fun IngestScreen(state: IngestUiState, actions: IngestActions, modifier: Modifie
     }
     state.removalItem?.let { item ->
         RemovalConfirmation(item = item, onConfirm = actions.onConfirmRemoval, onDismiss = actions.onDismissRemoval)
+    }
+    val folders = state.folders
+    if (state.choosing != null && folders != null) {
+        FolderChoiceSheet(
+            folders = folders,
+            selected = state.choosing.selected,
+            title = stringResource(R.string.ingest_destination),
+            actionText = stringResource(R.string.folder_sheet_choose),
+            actions = FolderChoiceActions(
+                onSelect = actions.onDestinationSelect,
+                onConfirm = actions.onConfirmDestination,
+                onNewFolder = actions.onNewFolder,
+                onDismiss = actions.onDismissDestination,
+            ),
+        )
+    }
+}
+
+/** K6: where the documents picked now go; a deleted destination says it once, politely (M3). */
+@Composable
+private fun Destination(state: IngestUiState, actions: IngestActions) {
+    LisdataCardGroup {
+        LisdataSettingsRow(
+            icon = LisdataIcons.Folder,
+            title = stringResource(R.string.ingest_destination),
+            subtitle = state.destinationName ?: stringResource(R.string.library_folder_general),
+            onClick = actions.onChooseDestination.takeIf { state.pickEnabled && state.folders != null },
+        )
+    }
+    if (state.destinationMissing) {
+        Text(
+            stringResource(R.string.ingest_destination_missing),
+            style = LisdataTheme.typography.material.bodyMedium,
+            color = LisdataTheme.colors.textSecondary,
+            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+        )
     }
 }
 

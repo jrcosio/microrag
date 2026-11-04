@@ -213,7 +213,11 @@ class DocumentScreenTest {
         exists("Este documento aún no está indexado.")
         exists("Se indexará al pulsar Iniciar indexación en la Ingesta.")
         absent("Reindexar documento")
-        compose.onNodeWithContentDescription("Más opciones").assertDoesNotExist()
+        // F17 K5: the «⋯» only moves it, as it is not indexed.
+        compose.onNodeWithContentDescription("Más opciones").performClick()
+        compose.onNodeWithText("Quitar del índice").assertDoesNotExist()
+        // Choosing it closes the menu.
+        compose.onNodeWithText("Mover a carpeta").performClick()
     }
 
     @Test
@@ -275,7 +279,11 @@ class DocumentScreenTest {
         exists("Fuera del índice")
         compose.onNode(isToggleable()).assertIsNotEnabled()
         exists("Se podrá incluir cuando esté indexado")
-        compose.onNodeWithContentDescription("Más opciones").assertDoesNotExist()
+        // F17 K5: the «⋯» only moves it, as it is not indexed.
+        compose.onNodeWithContentDescription("Más opciones").performClick()
+        compose.onNodeWithText("Quitar del índice").assertDoesNotExist()
+        // Choosing it closes the menu.
+        compose.onNodeWithText("Mover a carpeta").performClick()
         scrollTo("Eliminar")
         exists("Quitaste este documento del índice.")
         exists("Su archivo sigue guardado en la app.")
@@ -415,5 +423,32 @@ class DocumentScreenTest {
         compose.waitForIdle()
 
         assertThat(citedShown()).isFalse()
+    }
+
+    // F17 T024 (K5, wireframe §4).
+
+    @Test
+    fun theFolderIsShown_GeneralWithoutOne() {
+        val legal = DocumentPreviewData.png.let { it.copy(content = DocumentContent.Loaded((it.content as DocumentContent.Loaded).detail.copy(folderName = "Legal"))) }
+        val shown = androidx.compose.runtime.mutableStateOf(DocumentPreviewData.png)
+        compose.setContent { LisdataTheme { DocumentScreen(shown.value, actions) } }
+
+        scrollTo("Carpeta")
+        exists("General")
+        shown.value = legal
+        scrollTo("Carpeta")
+        exists("Legal")
+    }
+
+    @Test
+    fun theMenuMovesAnIndexedDocumentToo() {
+        val moving = mutableListOf<String>()
+        compose.setContent { LisdataTheme { DocumentScreen(DocumentPreviewData.png, actions.copy(onMoveToFolder = { moving += "move" })) } }
+
+        compose.onNodeWithContentDescription("Más opciones").performClick()
+        compose.onNodeWithText("Quitar del índice").assertExists()
+        compose.onNodeWithText("Mover a carpeta").performClick()
+
+        assertThat(moving).containsExactly("move")
     }
 }

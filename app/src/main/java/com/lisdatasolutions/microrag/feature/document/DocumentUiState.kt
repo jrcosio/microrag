@@ -2,6 +2,7 @@ package com.lisdatasolutions.microrag.feature.document
 
 import com.lisdatasolutions.microrag.domain.library.DocumentDetail
 import com.lisdatasolutions.microrag.domain.library.DocumentPreview
+import com.lisdatasolutions.microrag.domain.rag.FolderList
 
 /** P07 state (F08 contracts/library-ui.md): the document, its preview and what the user is doing with it. */
 data class DocumentUiState(
@@ -16,7 +17,21 @@ data class DocumentUiState(
     val busy: Boolean = false,
     /** A7: the last change, read politely by TalkBack. */
     val announcement: DocumentAnnouncement? = null,
+    /** F17 K5: the folders for «Mover a carpeta»; null while they load. */
+    val folders: FolderList? = null,
+    /** The open «Mover a carpeta» sheet and the folder chosen in it (null: «General»). */
+    val move: MoveSheet? = null,
+    val moveMessage: MoveMessage? = null,
 )
+
+data class MoveSheet(val selected: Long?)
+
+/** The notice after a move: «Movido a «Legal»», or that it could not be moved. */
+sealed interface MoveMessage {
+    /** [folderName] null is «General». */
+    data class Moved(val folderName: String?) : MoveMessage
+    data object Failed : MoveMessage
+}
 
 /** A7. */
 enum class DocumentAnnouncement { REMOVED_FROM_INDEX, REINDEXING, EXCLUDED, INCLUDED }

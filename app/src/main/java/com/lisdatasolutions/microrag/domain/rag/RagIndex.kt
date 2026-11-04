@@ -58,6 +58,12 @@ interface RagIndex {
     /** F3: every document of a folder, or of «General» with null, newest first; shadows left out. */
     suspend fun folderDocumentRefs(folderId: Long?): List<DocumentRef>
 
+    /**
+     * F4: puts [documentId] in [folderId] (null: «General»), and nothing else changes: its state, inclusion
+     * and chunks stay. False when the document or the folder does not exist, or it is a reindex shadow.
+     */
+    suspend fun moveDocument(documentId: Long, folderId: Long?): Boolean
+
     /** Id of the document with this content hash, if any (F06 duplicate check). */
     suspend fun documentIdByHash(contentHash: String): Long?
 

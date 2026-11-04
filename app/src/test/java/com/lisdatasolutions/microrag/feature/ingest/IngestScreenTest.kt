@@ -145,4 +145,42 @@ class IngestScreenTest {
         compose.onNodeWithText("Indexación incompleta", useUnmergedTree = true).assertExists()
         startButton().assertIsEnabled()
     }
+
+    // F17 T025 (K6, wireframe §5).
+
+    @Test
+    fun theDestinationRowSaysTheFolder_andOpensTheSheet() {
+        val legal = com.lisdatasolutions.microrag.domain.rag.Folder(1, "Legal", 10, 0)
+        val folders = com.lisdatasolutions.microrag.domain.rag.FolderList(listOf(legal), unfiledCount = 0)
+        val opened = mutableListOf<String>()
+        compose.setContent {
+            LisdataTheme {
+                IngestScreen(
+                    IngestPreviewData.png.copy(folders = folders, destination = 1),
+                    IngestActions(onChooseDestination = { opened += "destination" }),
+                )
+            }
+        }
+
+        compose.onNodeWithText("Carpeta de destino", useUnmergedTree = true).assertExists()
+        compose.onNodeWithText("Legal", useUnmergedTree = true).performClick()
+        assertThat(opened).containsExactly("destination")
+    }
+
+    @Test
+    fun withoutAFolderTheDestinationIsGeneral_andEveryRowSaysItsFolder() {
+        show(IngestPreviewData.png.copy(folders = com.lisdatasolutions.microrag.domain.rag.FolderList(emptyList(), 0)))
+
+        compose.onAllNodesWithText("General", substring = true, useUnmergedTree = true).fetchSemanticsNodes().let {
+            // The destination row and the three queue rows.
+            assertThat(it.size).isEqualTo(4)
+        }
+    }
+
+    @Test
+    fun aDeletedDestinationSaysSo() {
+        show(IngestPreviewData.png.copy(destinationMissing = true))
+
+        compose.onNodeWithText("La carpeta de destino ya no existe. Se importó en «General».").assertExists()
+    }
 }

@@ -33,7 +33,7 @@ object DebugRouting {
             "home" -> Home
             "chat" -> Chat(conversationId = id)
             "new-chat" -> Chat(newConversation = true)
-            "ingest" -> Ingest
+            "ingest" -> Ingest(folderId = id)
             "library" -> Library
             // F17: the folder with this id, or «General» without one.
             "library-folder" -> LibraryFolder(folderId = id)

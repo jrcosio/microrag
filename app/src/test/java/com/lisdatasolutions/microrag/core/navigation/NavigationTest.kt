@@ -64,6 +64,7 @@ import com.lisdatasolutions.microrag.domain.library.DocumentDetailState
 import com.lisdatasolutions.microrag.domain.library.LibraryDocument
 import com.lisdatasolutions.microrag.domain.library.LibraryDocumentState
 import com.lisdatasolutions.microrag.domain.library.LoadPreviewUseCase
+import com.lisdatasolutions.microrag.domain.library.MoveDocumentUseCase
 import com.lisdatasolutions.microrag.domain.library.ObserveDocumentUseCase
 import com.lisdatasolutions.microrag.domain.library.ObserveFoldersUseCase
 import com.lisdatasolutions.microrag.domain.library.ObserveLibrarySummaryUseCase
@@ -165,7 +166,7 @@ internal fun libraryViewModels(library: FakeLibraryRepository = navigationLibrar
         DocumentViewModel(
             get(), ObserveDocumentUseCase(library), LoadPreviewUseCase(library), SetIncludedUseCase(library),
             DeleteDocumentUseCase(library), RemoveFromIndexUseCase(library), ReindexDocumentUseCase(library),
-            DiscardReindexUseCase(library), RetryIndexingUseCase(indexing),
+            DiscardReindexUseCase(library), RetryIndexingUseCase(indexing), ObserveFoldersUseCase(library), MoveDocumentUseCase(library),
         )
     }
 }
@@ -309,6 +310,8 @@ class NavigationTest {
                                 StartIndexingUseCase(repository),
                                 RetryQueueItemUseCase(repository),
                                 RemoveQueueItemUseCase(repository),
+                                ObserveFoldersUseCase(library),
+                                get(),
                             )
                         }
                         viewModel {
@@ -425,7 +428,7 @@ class NavigationTest {
     fun n6_bottomBarOnlyOnTabRoots() {
         launchShell()
         // Welcome and Setup need the Koin graph since F03: OnboardingNavigationTest (androidTest) covers them.
-        val secondary = listOf(Ingest, Document(documentId = 1), Index, Languages, Theme, LibraryFolder(), LibraryFolder(folderId = 1))
+        val secondary = listOf(Ingest(), Document(documentId = 1), Index, Languages, Theme, LibraryFolder(), LibraryFolder(folderId = 1))
         secondary.forEach { route ->
             compose.runOnUiThread { nav.navigate(route) }
             compose.waitForIdle()

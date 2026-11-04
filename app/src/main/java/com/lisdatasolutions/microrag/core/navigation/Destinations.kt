@@ -29,8 +29,9 @@ data class Chat(val conversationId: Long? = null, val newConversation: Boolean =
 @Serializable
 data class History(val openConversationId: Long? = null)
 
+/** F17 K6: [folderId] is the destination the screen starts with, from a folder's «＋»; null is «General». */
 @Serializable
-data object Ingest
+data class Ingest(val folderId: Long? = null)
 
 @Serializable
 data object Library

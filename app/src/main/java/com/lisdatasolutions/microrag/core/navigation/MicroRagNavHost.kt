@@ -57,7 +57,7 @@ fun MicroRagNavHost(
             }
             HomeRoute(
                 onNewChat = open { navController.openNewChat() },
-                onImport = open { navController.navigate(Ingest) { launchSingleTop = true } },
+                onImport = open { navController.navigate(Ingest()) { launchSingleTop = true } },
                 onLibrary = open { navController.navigateToTopLevel(TopLevelDestination.LIBRARY) },
                 onIndex = open { navController.navigate(Index) { launchSingleTop = true } },
                 onLanguages = open { navController.navigate(Languages) { launchSingleTop = true } },
@@ -82,7 +82,7 @@ fun MicroRagNavHost(
                 // R13: from a resumed chat only, so a double tap opens a single detail.
                 onOpenSource = { documentId, chunkId -> resumed { navController.navigate(Document(documentId, chunkId)) } },
                 onCompleteSetup = { resumed { navController.navigate(Setup) { launchSingleTop = true } } },
-                onImport = { resumed { navController.navigate(Ingest) { launchSingleTop = true } } },
+                onImport = { resumed { navController.navigate(Ingest()) { launchSingleTop = true } } },
                 onOpenIndex = { resumed { navController.navigate(Index) { launchSingleTop = true } } },
                 onOpenHistory = { id -> resumed { navController.navigate(History(openConversationId = id)) { launchSingleTop = true } } },
                 request = ChatRequest.parse(request),
@@ -110,7 +110,7 @@ fun MicroRagNavHost(
             // G08: the Library is a tab root over Home, so Back returns to Home.
             LibraryRoute(
                 onBack = back,
-                onImport = { navController.navigate(Ingest) },
+                onImport = { navController.navigate(Ingest()) },
                 onOpenDocument = { navController.navigate(Document(documentId = it)) },
                 message = message?.let(LibraryMessage::valueOf),
                 onMessageShown = { entry.savedStateHandle[LIBRARY_MESSAGE] = null },
@@ -125,7 +125,8 @@ fun MicroRagNavHost(
             val message by entry.savedStateHandle.getStateFlow<String?>(LIBRARY_MESSAGE, null).collectAsStateWithLifecycle()
             LibraryRoute(
                 onBack = back,
-                onImport = { navController.navigate(Ingest) },
+                // K2: «＋» imports into this folder.
+                onImport = { navController.navigate(Ingest(folderId = route.folderId)) },
                 onOpenDocument = { navController.navigate(Document(documentId = it)) },
                 message = message?.let(LibraryMessage::valueOf),
                 onMessageShown = { entry.savedStateHandle[LIBRARY_MESSAGE] = null },

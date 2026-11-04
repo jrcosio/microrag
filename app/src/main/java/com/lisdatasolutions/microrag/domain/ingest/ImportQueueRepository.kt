@@ -7,8 +7,11 @@ interface ImportQueueRepository {
     /** The queue as the user sees it; the first collection in a process cleans orphan files. */
     val queue: Flow<ImportQueue>
 
-    /** Starts importing [uris] (strings from the system picker) one by one, in the application scope. */
-    fun import(uris: List<String>)
+    /**
+     * Starts importing [uris] (strings from the system picker) one by one, in the application scope, into
+     * [folderId] (null: «General»), fixed for each attempt as it is chosen (F17 contract F6, M3).
+     */
+    fun import(uris: List<String>, folderId: Long? = null)
 
     /** Retries a failed attempt from its URI, or puts a failed document back in the processing queue. */
     suspend fun retry(key: QueueKey)

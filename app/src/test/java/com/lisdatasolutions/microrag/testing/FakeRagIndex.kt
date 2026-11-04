@@ -109,7 +109,7 @@ class FakeRagIndex(initial: IndexCompatibility = IndexCompatibility.Compatible) 
             id = id, displayName = document.displayName, contentHash = document.contentHash, mimeType = document.mimeType,
             uri = document.uri, status = DocumentStatus.PENDING, chunkCount = null, error = null, included = true,
             sizeBytes = document.sizeBytes, pageCount = document.pageCount, localPath = document.localPath,
-            createdAtMs = now++, updatedAtMs = now,
+            createdAtMs = now++, updatedAtMs = now, folderId = document.folderId?.takeIf { it in folderRows },
         )
         changes.value += 1
         id
@@ -118,7 +118,7 @@ class FakeRagIndex(initial: IndexCompatibility = IndexCompatibility.Compatible) 
     override suspend fun document(id: Long): StoredDocument? = available { docs[id]?.let(::withFolderName) }
 
     override suspend fun documents(statuses: Set<DocumentStatus>): List<StoredDocument> = available {
-        docs.values.filter { it.status in statuses }.sortedWith(compareBy({ it.createdAtMs }, { it.id }))
+        docs.values.filter { it.status in statuses }.sortedWith(compareBy({ it.createdAtMs }, { it.id })).map(::withFolderName)
     }
 
     private fun library(text: String, statuses: Set<DocumentStatus>, folder: LibraryFolderFilter): List<StoredDocument> {
@@ -194,6 +194,14 @@ class FakeRagIndex(initial: IndexCompatibility = IndexCompatibility.Compatible) 
         if (!moveDocuments && inside.isNotEmpty()) return@available false
         inside.forEach { docs[it.id] = it.copy(folderId = null) }
         folderRows.remove(id)
+        changes.value += 1
+        true
+    }
+
+    override suspend fun moveDocument(documentId: Long, folderId: Long?): Boolean = available {
+        val document = docs[documentId]?.takeIf { it.replacesId == null } ?: return@available false
+        if (folderId != null && folderId !in folderRows) return@available false
+        docs[documentId] = document.copy(folderId = folderId)
         changes.value += 1
         true
     }

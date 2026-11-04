@@ -9,6 +9,9 @@ import com.lisdatasolutions.microrag.domain.indexing.RetryIndexingUseCase
 import com.lisdatasolutions.microrag.domain.library.DeleteDocumentUseCase
 import com.lisdatasolutions.microrag.domain.library.DetailResult
 import com.lisdatasolutions.microrag.domain.library.DiscardReindexUseCase
+import com.lisdatasolutions.microrag.domain.library.FoldersResult
+import com.lisdatasolutions.microrag.domain.library.MoveDocumentUseCase
+import com.lisdatasolutions.microrag.domain.library.ObserveFoldersUseCase
 import com.lisdatasolutions.microrag.domain.library.DocumentDetail
 import com.lisdatasolutions.microrag.domain.library.DocumentDetailState
 import com.lisdatasolutions.microrag.domain.library.LoadPreviewUseCase
@@ -52,6 +55,8 @@ class DocumentViewModel(
     private val reindexDocument: ReindexDocumentUseCase,
     private val discardReindex: DiscardReindexUseCase,
     private val retryIndexing: RetryIndexingUseCase,
+    observeFolders: ObserveFoldersUseCase,
+    private val moveDocument: MoveDocumentUseCase,
     backgroundDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : ViewModel() {
 
@@ -64,6 +69,8 @@ class DocumentViewModel(
         val deleting: Boolean = false,
         val busy: Boolean = false,
         val announcement: DocumentAnnouncement? = null,
+        val move: MoveSheet? = null,
+        val moveMessage: MoveMessage? = null,
     )
 
     private val local = MutableStateFlow(Local())
@@ -98,7 +105,17 @@ class DocumentViewModel(
         .flowOn(backgroundDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, PreviewContent.Loading)
 
-    val state: StateFlow<DocumentUiState> = combine(detail, preview, local) { detail, preview, local ->
+    /** F17 K5: the folders the sheet offers, and their names after a move. */
+    private val folders = observeFolders()
+        .map { (it as? FoldersResult.Loaded)?.folders }
+        .catch { error ->
+            if (error is CancellationException) throw error
+            emit(null)
+        }
+        .flowOn(backgroundDispatcher)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val state: StateFlow<DocumentUiState> = combine(detail, preview, local, folders) { detail, preview, local, folders ->
         val loaded = (detail as? DetailResult.Loaded)?.detail
         DocumentUiState(
             content = when (detail) {
@@ -112,6 +129,9 @@ class DocumentViewModel(
             deleting = local.deleting,
             busy = local.busy,
             announcement = local.announcement,
+            folders = folders,
+            move = local.move.takeIf { loaded != null && folders != null },
+            moveMessage = local.moveMessage,
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, DocumentUiState())
 
@@ -189,6 +209,50 @@ class DocumentViewModel(
 
     /** D6: drops the failed shadow; the indexed version stays. */
     fun onDiscardReindex() = act(null) { discardReindex(documentId) }
+
+    /** F17 K5: the sheet starts on the folder the document is in. */
+    fun onMoveToFolder() {
+        val shown = (state.value.content as? DocumentContent.Loaded)?.detail ?: return
+        if (local.value.deleting) return
+        local.value = local.value.copy(move = MoveSheet(selected = shown.folderId))
+    }
+
+    /** Also the folder just created with «Nueva carpeta…». */
+    fun onMoveSelect(folderId: Long?) {
+        if (local.value.move == null) return
+        local.value = local.value.copy(move = MoveSheet(selected = folderId))
+    }
+
+    /** Wireframe §4: «Nueva carpeta…» moves the document into the folder it creates. */
+    fun onFolderCreated(folderId: Long) {
+        if (local.value.move == null) return
+        onMoveSelect(folderId)
+        onConfirmMove()
+    }
+
+    fun onDismissMove() {
+        local.value = local.value.copy(move = null)
+    }
+
+    /** Only the folder changes (F4); the same folder closes the sheet without writing. */
+    fun onConfirmMove() {
+        val sheet = local.value.move ?: return
+        val shown = (state.value.content as? DocumentContent.Loaded)?.detail ?: return
+        local.value = local.value.copy(move = null)
+        if (sheet.selected == shown.folderId) return
+        act(null) {
+            val moved = moveDocument(documentId, sheet.selected)
+            // A folder just created may not be in the list yet: the detail, read again after the move, has its name.
+            val name = sheet.selected?.let { id ->
+                folders.value?.folders?.firstOrNull { it.id == id }?.name ?: (state.value.content as? DocumentContent.Loaded)?.detail?.folderName
+            }
+            local.value = local.value.copy(moveMessage = if (moved) MoveMessage.Moved(name) else MoveMessage.Failed)
+        }
+    }
+
+    fun onMoveMessageShown() {
+        local.value = local.value.copy(moveMessage = null)
+    }
 
     private fun openDialog(dialog: DocumentDialog) {
         if (state.value.content !is DocumentContent.Loaded || local.value.deleting) return

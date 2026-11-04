@@ -1,8 +1,6 @@
 package com.lisdatasolutions.microrag.feature.document
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.relocation.BringIntoViewRequester
-import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,9 +13,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -50,12 +52,13 @@ import com.lisdatasolutions.microrag.core.designsystem.component.LisdataCard
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataConfirmationDialog
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataCountChip
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataEmptyState
+import com.lisdatasolutions.microrag.core.designsystem.component.LisdataFactRow
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataGradientButton
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataHeroCard
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataIconTile
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataInfoCard
-import com.lisdatasolutions.microrag.core.designsystem.component.LisdataOverflowMenu
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataOutlinedButton
+import com.lisdatasolutions.microrag.core.designsystem.component.LisdataOverflowMenu
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataProgressCard
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataProgressRing
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataSectionHeader
@@ -74,12 +77,17 @@ import com.lisdatasolutions.microrag.domain.library.DocumentDetail
 import com.lisdatasolutions.microrag.domain.library.DocumentDetailState
 import com.lisdatasolutions.microrag.domain.library.DocumentPreview
 import com.lisdatasolutions.microrag.domain.library.ReindexState
+import com.lisdatasolutions.microrag.feature.folders.FolderChoiceActions
+import com.lisdatasolutions.microrag.feature.folders.FolderChoiceSheet
+import com.lisdatasolutions.microrag.feature.folders.FolderDialogs
+import com.lisdatasolutions.microrag.feature.folders.FoldersViewModel
+import com.lisdatasolutions.microrag.feature.folders.dialogActions
 import com.lisdatasolutions.microrag.feature.ingest.chipText
 import com.lisdatasolutions.microrag.feature.ingest.detailText
 import com.lisdatasolutions.microrag.feature.ingest.sizeText
 import com.lisdatasolutions.microrag.feature.library.grouped
-import org.koin.androidx.compose.koinViewModel
 import kotlin.math.max
+import org.koin.androidx.compose.koinViewModel
 
 /** What the stateless screen can ask for. */
 data class DocumentActions(
@@ -95,6 +103,12 @@ data class DocumentActions(
     val onRemoveFromIndex: () -> Unit = {},
     val onConfirmDialog: () -> Unit = {},
     val onDismissDialog: () -> Unit = {},
+    /** F17 K5: «Mover a carpeta» and its sheet. */
+    val onMoveToFolder: () -> Unit = {},
+    val onMoveSelect: (Long?) -> Unit = {},
+    val onConfirmMove: () -> Unit = {},
+    val onDismissMove: () -> Unit = {},
+    val onNewFolder: () -> Unit = {},
 )
 
 @Composable
@@ -104,8 +118,12 @@ fun DocumentRoute(
     onDeleted: () -> Unit,
     onOpenIndex: () -> Unit,
     viewModel: DocumentViewModel = koinViewModel(),
+    foldersViewModel: FoldersViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val folders by foldersViewModel.state.collectAsStateWithLifecycle()
+    // K5: a folder made with «Nueva carpeta…» takes the document at once.
+    LaunchedEffect(foldersViewModel) { foldersViewModel.createdFolders.collect(viewModel::onFolderCreated) }
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             when (event) {
@@ -127,24 +145,44 @@ fun DocumentRoute(
             onRemoveFromIndex = viewModel::onRemoveFromIndex,
             onConfirmDialog = viewModel::onConfirmDialog,
             onDismissDialog = viewModel::onDismissDialog,
+            onMoveToFolder = viewModel::onMoveToFolder,
+            onMoveSelect = viewModel::onMoveSelect,
+            onConfirmMove = viewModel::onConfirmMove,
+            onDismissMove = viewModel::onDismissMove,
+            onNewFolder = foldersViewModel::onNewFolder,
         ),
+        onMoveMessageShown = viewModel::onMoveMessageShown,
     )
+    FolderDialogs(folders.dialog, folders.busy, foldersViewModel.dialogActions())
 }
 
 /** P07 (PNG 07 with the approved proposals D1–D11, contracts/library-ui.md). */
 @Composable
-fun DocumentScreen(state: DocumentUiState, actions: DocumentActions, modifier: Modifier = Modifier) {
+fun DocumentScreen(
+    state: DocumentUiState,
+    actions: DocumentActions,
+    modifier: Modifier = Modifier,
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
+    onMoveMessageShown: () -> Unit = {},
+) {
     val colors = LisdataTheme.colors
     val spacing = LisdataTheme.spacing
     val detail = (state.content as? DocumentContent.Loaded)?.detail
-    Column(modifier = modifier.fillMaxSize().background(colors.background)) {
+    Box(modifier = modifier.fillMaxSize().background(colors.background)) {
+    Column(modifier = Modifier.fillMaxSize()) {
         LisdataTopBar(
             title = stringResource(R.string.document_title),
             onBack = actions.onBack,
             actions = {
-                // The «⋯» menu only has «Quitar del índice», for indexed documents.
-                if (detail?.state == DocumentDetailState.Indexed && !state.deleting) {
-                    LisdataOverflowMenu(listOf(stringResource(R.string.document_remove_from_index) to actions.onRemoveFromIndex))
+                // «Quitar del índice», for indexed documents, and «Mover a carpeta» (F17 K5).
+                if (detail != null && !state.deleting) {
+                    val items = buildList {
+                        if (detail.state == DocumentDetailState.Indexed) {
+                            add(stringResource(R.string.document_remove_from_index) to actions.onRemoveFromIndex)
+                        }
+                        add(stringResource(R.string.document_move) to actions.onMoveToFolder)
+                    }
+                    LisdataOverflowMenu(items)
                 }
             },
         )
@@ -190,12 +228,45 @@ fun DocumentScreen(state: DocumentUiState, actions: DocumentActions, modifier: M
                 )
                 Preview(state.content.detail, state.preview, actions)
                 Actions(state, state.content.detail, actions)
+                // K5: the folder, or «General»; under the actions, so PNG 07 keeps them in sight.
+                LisdataFactRow(
+                    label = stringResource(R.string.document_folder_label),
+                    value = state.content.detail.folderName ?: stringResource(R.string.library_folder_general),
+                    modifier = Modifier.fillMaxWidth().padding(top = spacing.space2),
+                )
                 Spacer(Modifier.height(spacing.space4))
             }
         }
     }
+        SnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter).padding(spacing.space3))
+    }
     Announcement(state)
     if (detail != null) Dialog(state.dialog, detail, actions)
+    val folders = state.folders
+    if (state.move != null && folders != null) {
+        FolderChoiceSheet(
+            folders = folders,
+            selected = state.move.selected,
+            title = stringResource(R.string.folder_sheet_move_title),
+            actionText = stringResource(R.string.folder_sheet_move),
+            actions = FolderChoiceActions(
+                onSelect = actions.onMoveSelect,
+                onConfirm = actions.onConfirmMove,
+                onNewFolder = actions.onNewFolder,
+                onDismiss = actions.onDismissMove,
+            ),
+        )
+    }
+    val moved = when (val message = state.moveMessage) {
+        null -> null
+        is MoveMessage.Moved -> stringResource(R.string.document_moved, message.folderName ?: stringResource(R.string.library_folder_general))
+        MoveMessage.Failed -> stringResource(R.string.document_move_failed)
+    }
+    LaunchedEffect(state.moveMessage) {
+        if (moved == null) return@LaunchedEffect
+        onMoveMessageShown()
+        snackbarHostState.showSnackbar(moved)
+    }
 }
 
 /** What the switch does now: PNG 07 only shows the included case (constitution V). */

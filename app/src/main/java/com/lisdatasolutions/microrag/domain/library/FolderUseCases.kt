@@ -25,6 +25,11 @@ class RenameFolderUseCase(private val repository: LibraryRepository) {
     }
 }
 
+/** F4 (K5): only the folder changes; the state, the inclusion and the chunks stay. */
+class MoveDocumentUseCase(private val repository: LibraryRepository) {
+    suspend operator fun invoke(documentId: Long, folderId: Long?): Boolean = repository.moveDocument(documentId, folderId)
+}
+
 /**
  * F3 (research R4). Moving takes one transaction. Deleting takes each document by the only delete path
  * (rule L4), then the folder only if it is empty; what is left is what failed (M4). It runs in the

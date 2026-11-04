@@ -15,6 +15,8 @@ import com.lisdatasolutions.microrag.domain.library.DocumentDetail
 import com.lisdatasolutions.microrag.domain.library.DocumentDetailState
 import com.lisdatasolutions.microrag.domain.library.DocumentPreview
 import com.lisdatasolutions.microrag.domain.library.LoadPreviewUseCase
+import com.lisdatasolutions.microrag.domain.library.MoveDocumentUseCase
+import com.lisdatasolutions.microrag.domain.library.ObserveFoldersUseCase
 import com.lisdatasolutions.microrag.domain.library.ObserveDocumentUseCase
 import com.lisdatasolutions.microrag.domain.library.ReindexDocumentUseCase
 import com.lisdatasolutions.microrag.domain.library.ReindexState
@@ -76,6 +78,8 @@ class DocumentViewModelTest {
         ReindexDocumentUseCase(repository),
         DiscardReindexUseCase(repository),
         RetryIndexingUseCase(indexing),
+        ObserveFoldersUseCase(repository),
+        MoveDocumentUseCase(repository),
         dispatcher,
     )
 
@@ -281,5 +285,95 @@ class DocumentViewModelTest {
         assertThat(repository.calls).containsExactly("include 7 false")
         assertThat(vm.state.value.included).isFalse()
         assertThat(vm.state.value.announcement).isEqualTo(DocumentAnnouncement.EXCLUDED)
+    }
+
+    // F17 T024 (K5, wireframe §4): «Mover a carpeta».
+
+    private fun withFolders() {
+        repository.folderRows.value = listOf(
+            com.lisdatasolutions.microrag.domain.rag.Folder(1, "Legal", 10, 0),
+            com.lisdatasolutions.microrag.domain.rag.Folder(2, "Motores", 20, 0),
+        )
+        repository.documents.value = listOf(com.lisdatasolutions.microrag.testing.libraryDocument(7, "Manual de procesos.pdf", folderId = 1))
+        show(DetailResult.Loaded(detail().copy(folderId = 1, folderName = "Legal")))
+    }
+
+    @Test
+    fun theSheetStartsOnTheCurrentFolder_andMovingSaysWhere() = runTest(dispatcher) {
+        withFolders()
+        val vm = viewModel()
+        advanceUntilIdle()
+
+        vm.onMoveToFolder()
+        advanceUntilIdle()
+        assertThat(vm.state.value.move).isEqualTo(MoveSheet(selected = 1))
+
+        vm.onMoveSelect(2)
+        advanceUntilIdle()
+        vm.onConfirmMove()
+        advanceUntilIdle()
+
+        assertThat(repository.calls).containsExactly("move 7 2")
+        assertThat(vm.state.value.move).isNull()
+        assertThat(vm.state.value.moveMessage).isEqualTo(MoveMessage.Moved("Motores"))
+        vm.onMoveMessageShown()
+        advanceUntilIdle()
+        assertThat(vm.state.value.moveMessage).isNull()
+    }
+
+    @Test
+    fun movingToGeneral_andToTheSameFolder() = runTest(dispatcher) {
+        withFolders()
+        val vm = viewModel()
+        advanceUntilIdle()
+
+        vm.onMoveToFolder()
+        advanceUntilIdle()
+        vm.onConfirmMove()
+        advanceUntilIdle()
+        // The same folder: nothing to write.
+        assertThat(repository.calls).isEmpty()
+
+        vm.onMoveToFolder()
+        vm.onMoveSelect(null)
+        advanceUntilIdle()
+        vm.onConfirmMove()
+        advanceUntilIdle()
+        assertThat(repository.calls).containsExactly("move 7 null")
+        assertThat(vm.state.value.moveMessage).isEqualTo(MoveMessage.Moved(null))
+    }
+
+    @Test
+    fun aFailedMoveSaysSo() = runTest(dispatcher) {
+        withFolders()
+        repository.failMove = true
+        val vm = viewModel()
+        advanceUntilIdle()
+
+        vm.onMoveToFolder()
+        vm.onMoveSelect(2)
+        advanceUntilIdle()
+        vm.onConfirmMove()
+        advanceUntilIdle()
+
+        assertThat(vm.state.value.moveMessage).isEqualTo(MoveMessage.Failed)
+    }
+
+    /** Wireframe §4: «Nueva carpeta…» moves the document into the folder it creates. */
+    @Test
+    fun aFolderCreatedFromTheSheetTakesTheDocument() = runTest(dispatcher) {
+        withFolders()
+        val vm = viewModel()
+        advanceUntilIdle()
+        vm.onMoveToFolder()
+        advanceUntilIdle()
+
+        repository.folderRows.value += com.lisdatasolutions.microrag.domain.rag.Folder(3, "Contratos", 30, 0)
+        advanceUntilIdle()
+        vm.onFolderCreated(3)
+        advanceUntilIdle()
+
+        assertThat(repository.calls).containsExactly("move 7 3")
+        assertThat(vm.state.value.moveMessage).isEqualTo(MoveMessage.Moved("Contratos"))
     }
 }

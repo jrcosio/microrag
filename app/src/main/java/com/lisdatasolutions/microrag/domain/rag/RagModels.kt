@@ -32,6 +32,8 @@ data class NewDocument(
     val sizeBytes: Long? = null,
     val pageCount: Int? = null,
     val localPath: String? = null,
+    /** F17 (contract F6): null is «General»; a folder deleted meanwhile is «General» too (M3). */
+    val folderId: Long? = null,
 )
 
 data class StoredDocument(

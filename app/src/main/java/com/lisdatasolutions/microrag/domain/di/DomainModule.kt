@@ -17,6 +17,7 @@ import com.lisdatasolutions.microrag.domain.library.DeleteFolderUseCase
 import com.lisdatasolutions.microrag.domain.library.DiscardReindexUseCase
 import com.lisdatasolutions.microrag.domain.library.LoadPreviewUseCase
 import com.lisdatasolutions.microrag.domain.library.ObserveDocumentUseCase
+import com.lisdatasolutions.microrag.domain.library.MoveDocumentUseCase
 import com.lisdatasolutions.microrag.domain.library.ObserveFoldersUseCase
 import com.lisdatasolutions.microrag.domain.library.ObserveLibraryUseCase
 import com.lisdatasolutions.microrag.domain.library.ObserveLibrarySummaryUseCase
@@ -126,6 +127,7 @@ val domainModule = module {
     factoryOf(::CreateFolderUseCase)
     factoryOf(::RenameFolderUseCase)
     factoryOf(::DeleteFolderUseCase)
+    factoryOf(::MoveDocumentUseCase)
 
     // Retrieval (F10).
     factoryOf(::RetrieveContextUseCase)

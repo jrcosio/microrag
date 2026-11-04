@@ -140,8 +140,12 @@ class FakeImportQueueRepository : com.lisdatasolutions.microrag.domain.ingest.Im
     var startResult = 1
     var startGate: kotlinx.coroutines.CompletableDeferred<Unit>? = null
 
-    override fun import(uris: List<String>) {
+    /** F17: the destination of each import call, in order (null: «General»). */
+    val destinations = mutableListOf<Long?>()
+
+    override fun import(uris: List<String>, folderId: Long?) {
         imported += uris
+        destinations += folderId
     }
 
     override suspend fun retry(key: com.lisdatasolutions.microrag.domain.ingest.QueueKey) {

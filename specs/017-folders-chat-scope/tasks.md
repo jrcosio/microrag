@@ -173,22 +173,22 @@ description: "Lista de tareas de F17 — Carpetas y ámbito del chat"
 
 ### Pruebas
 
-- [ ] T023 [P] [US2] `RagIndexFoldersTest`, ampliado con F4 y F6: mover no cambia el estado, la inclusión ni los fragmentos; un documento nuevo se registra en su carpeta; un duplicado no cambia de carpeta.
-- [ ] T024 [P] [US2] `…/test/…/feature/document/DocumentViewModelTest.kt` y `DocumentScreenTest.kt`: el dato «Carpeta», «Mover a carpeta» en el «⋯», la hoja, «Nueva carpeta…» y el aviso «Movido a …».
-- [ ] T025 [P] [US2] `…/test/…/feature/ingest/IngestViewModelTest.kt` y `IngestScreenTest.kt`:
+- [X] T023 [P] [US2] `RagIndexFoldersTest`, ampliado con F4 y F6: mover no cambia el estado, la inclusión ni los fragmentos; un documento nuevo se registra en su carpeta; un duplicado no cambia de carpeta.
+- [X] T024 [P] [US2] `…/test/…/feature/document/DocumentViewModelTest.kt` y `DocumentScreenTest.kt`: el dato «Carpeta», «Mover a carpeta» en el «⋯», la hoja, «Nueva carpeta…» y el aviso «Movido a …».
+- [X] T025 [P] [US2] `…/test/…/feature/ingest/IngestViewModelTest.kt` y `IngestScreenTest.kt`:
   - la fila de destino, con el valor por defecto según la ruta;
   - la hoja;
   - los documentos elegidos con el destino vigente;
   - la carpeta en la línea de datos de la cola, que sale del intento (`Attempt.folderId`, M3);
   - el botón «Elegir» de la hoja.
-- [ ] T026 [P] [US2] `…/test/…/data/ingest/DocumentImporterTest.kt` y `DefaultImportQueueRepositoryTest.kt`: el destino se guarda en el intento al elegir, llega a `NewDocument.folderId` y sobrevive a un reintento. Si la carpeta se borró entretanto, el documento va a «General» con aviso (M3).
+- [X] T026 [P] [US2] `…/test/…/data/ingest/DocumentImporterTest.kt` y `DefaultImportQueueRepositoryTest.kt`: el destino se guarda en el intento al elegir, llega a `NewDocument.folderId` y sobrevive a un reintento. Si la carpeta se borró entretanto, el documento va a «General» con aviso (M3).
 
 ### Implementación
 
-- [ ] T027 [US2] F4 y F6 en el índice; `MoveDocumentUseCase`; el destino en `ImportDocumentsUseCase`, `DefaultImportQueueRepository` y `DocumentImporter`. T023 y T026 pasan.
-- [ ] T028 [US2] `…/microrag/feature/folders/FolderChoiceSheet.kt`, con vistas previas.
-- [ ] T029 [US2] Detalle (`DocumentScreen`, `DocumentViewModel`) e Ingesta (`IngestScreen`, `IngestViewModel`, `Ingest(folderId)` y el «＋» de la carpeta). T024 y T025 pasan.
-- [ ] T030 [US2] Inyección y la regla de `LayeringTest` para `feature/folders` (U6): sin `data.`, `androidx.sqlite`, `androidx.work`, LiteRT, `java.io.File` ni `android.app.*Manager`.
+- [X] T027 [US2] F4 y F6 en el índice; `MoveDocumentUseCase`; el destino en `ImportDocumentsUseCase`, `DefaultImportQueueRepository` y `DocumentImporter`. T023 y T026 pasan.
+- [X] T028 [US2] `…/microrag/feature/folders/FolderChoiceSheet.kt`, con vistas previas.
+- [X] T029 [US2] Detalle (`DocumentScreen`, `DocumentViewModel`) e Ingesta (`IngestScreen`, `IngestViewModel`, `Ingest(folderId)` y el «＋» de la carpeta). T024 y T025 pasan.
+- [X] T030 [US2] Inyección y la regla de `LayeringTest` para `feature/folders` (U6): sin `data.`, `androidx.sqlite`, `androidx.work`, LiteRT, `java.io.File` ni `android.app.*Manager`.
 
 ---
 

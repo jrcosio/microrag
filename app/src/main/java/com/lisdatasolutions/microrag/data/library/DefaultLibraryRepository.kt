@@ -285,6 +285,15 @@ class DefaultLibraryRepository(
         false
     }
 
+    override suspend fun moveDocument(documentId: Long, folderId: Long?): Boolean = try {
+        index.moveDocument(documentId, folderId)
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        logger.w(TAG, e) { "library move failed: ${e.javaClass.simpleName}" }
+        false
+    }
+
     override suspend fun folderDocumentRefs(folderId: Long?): List<DocumentRef>? = try {
         index.folderDocumentRefs(folderId)
     } catch (e: IndexUnavailableException) {

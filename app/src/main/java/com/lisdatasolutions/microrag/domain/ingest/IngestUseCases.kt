@@ -9,8 +9,8 @@ class ObserveImportQueueUseCase(private val repository: ImportQueueRepository) {
 
 /** Files picked with the system picker; the import runs in the application scope. */
 class ImportDocumentsUseCase(private val repository: ImportQueueRepository) {
-    operator fun invoke(uris: List<String>) {
-        if (uris.isNotEmpty()) repository.import(uris)
+    operator fun invoke(uris: List<String>, folderId: Long? = null) {
+        if (uris.isNotEmpty()) repository.import(uris, folderId)
     }
 }
 

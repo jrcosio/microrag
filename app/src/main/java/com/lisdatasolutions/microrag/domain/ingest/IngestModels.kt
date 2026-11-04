@@ -90,6 +90,8 @@ data class QueueItem(
     val sizeBytes: Long?,
     val format: DocumentFormat?,
     val state: QueueItemState,
+    /** F17: the folder it goes to, from its attempt or its document; null is «General». */
+    val folderName: String? = null,
 ) {
     val canRetry: Boolean
         get() = when (state) {

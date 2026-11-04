@@ -18,12 +18,21 @@ import com.lisdatasolutions.microrag.domain.ingest.QueueItemState
 @Composable
 fun sizeText(bytes: Long?): String? = bytes?.let { Formatter.formatShortFileSize(LocalContext.current, it) }
 
-/** «2,4 MB · Listo para procesar»; an error row shows only the size, its reason goes to the chip. */
+/**
+ * «2,4 MB · Listo para procesar · Legal»: every row says its folder, «General» too (F17 K6); an error row
+ * shows only the size and the folder, its reason goes to the chip.
+ */
 @Composable
 fun QueueItem.metaText(): String {
     val size = sizeText(sizeBytes)
-    val state = state.stateText() ?: return size.orEmpty()
-    return if (size == null) state else stringResource(R.string.ingest_meta, size, state)
+    val state = state.stateText()
+    val base = when {
+        state == null -> size.orEmpty()
+        size == null -> state
+        else -> stringResource(R.string.ingest_meta, size, state)
+    }
+    val folder = folderName ?: stringResource(R.string.library_folder_general)
+    return if (base.isEmpty()) folder else stringResource(R.string.ingest_meta, base, folder)
 }
 
 /** State as the row and the sheet show it; null for errors, whose text is [IngestError.chipText]. */
