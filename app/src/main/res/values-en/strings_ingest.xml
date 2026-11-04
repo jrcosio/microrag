@@ -90,5 +90,5 @@
 
     <!-- F17 K6: destination folder (D-070, D-072). -->
     <string name="ingest_destination">Destination folder</string>
-    <string name="ingest_destination_missing">The destination folder no longer exists. It was imported into General.</string>
+    <string name="ingest_destination_missing">The destination folder no longer exists. Imports go to General.</string>
 </resources>

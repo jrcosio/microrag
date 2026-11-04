@@ -7,6 +7,7 @@ import com.google.common.truth.Truth.assertThat
 import com.lisdatasolutions.microrag.debug.feasibility.Percentiles
 import com.lisdatasolutions.microrag.domain.library.LibraryQuery
 import com.lisdatasolutions.microrag.domain.rag.DocumentStatus
+import com.lisdatasolutions.microrag.domain.rag.LibraryFolderFilter
 import com.lisdatasolutions.microrag.domain.rag.NewDocument
 import com.lisdatasolutions.microrag.domain.rag.RagIndex
 import com.lisdatasolutions.microrag.testing.TempRagIndex
@@ -61,6 +62,40 @@ class LibraryBenchmarkTest {
         }
     }
 
+    /** F17 T050 (SC-007, L7): the folder list of 1,000 documents in 20 folders, and each folder's first block. */
+    @Test
+    fun folderListWith1000DocumentsIn20Folders() = runBlocking<Unit> {
+        TempRagIndex().use { temp ->
+            val index = temp.index
+            index.open()
+            val folders = (0 until FOLDERS).map { f -> checkNotNull(index.createFolder("Carpeta $f", "carpeta $f")) }
+            (0 until DOCUMENTS).forEach { d ->
+                temp.now += 1
+                val id = index.addDocument(
+                    NewDocument(displayName = name(d), contentHash = "bench-$d", mimeType = "application/pdf", folderId = folders.getOrNull(d % (FOLDERS + 1))),
+                )
+                index.updateStatus(id, STATUSES[d % STATUSES.size], chunkCount = if (STATUSES[d % STATUSES.size] == DocumentStatus.DONE) 1_000 else null)
+            }
+
+            val list = measure(RUNS) { index.folders() }
+            val pages = folders.flatMap { folder ->
+                measure(BLOCK_RUNS) {
+                    index.libraryPage("", all, LibraryQuery.PAGE, LibraryFolderFilter.Folder(folder))
+                    index.libraryCount("", all, LibraryFolderFilter.Folder(folder))
+                }
+            }
+            val folderList = index.folders()
+            assertThat(folderList.folders).hasSize(FOLDERS)
+            assertThat(folderList.folders.sumOf { it.documentCount } + folderList.unfiledCount).isEqualTo(DOCUMENTS)
+            Log.i(TAG, "library benchmark device=${Build.MODEL} api=${Build.VERSION.SDK_INT} documents=$DOCUMENTS folders=$FOLDERS")
+            Log.i(TAG, "library benchmark folder list ${summary(list)}")
+            Log.i(TAG, "library benchmark folder first page+count ${summary(pages)}")
+            // SC-007: the folders within 1 s; a folder's first block as the Library's (SC-001 of F08).
+            assertThat(Percentiles.of(list, 95)).isLessThan(1_000.0)
+            assertThat(Percentiles.of(pages, 95)).isLessThan(1_000.0)
+        }
+    }
+
     private class Result(val first: List<Double>, val blocks: List<Double>)
 
     private suspend fun measureAll(index: RagIndex, label: String): Result {
@@ -104,6 +139,7 @@ class LibraryBenchmarkTest {
     private companion object {
         const val TAG = "MicroRAG"
         const val DOCUMENTS = 1_000
+        const val FOLDERS = 20
         const val CHUNKED_DOCUMENTS = 50
         const val CHUNKS_PER_DOCUMENT = 1_000
         const val BATCH = 64

@@ -10,6 +10,8 @@ import com.lisdatasolutions.microrag.domain.ingest.IngestError
 import com.lisdatasolutions.microrag.domain.ingest.QueueItem
 import com.lisdatasolutions.microrag.domain.ingest.QueueItemState
 import com.lisdatasolutions.microrag.domain.ingest.QueueKey
+import com.lisdatasolutions.microrag.domain.rag.Folder
+import com.lisdatasolutions.microrag.domain.rag.FolderList
 
 /** Labelled sample states for previews and UI tests only (constitution V): never shown in the app. */
 object IngestPreviewData {
@@ -56,6 +58,17 @@ object IngestPreviewData {
 
     val empty = IngestUiState(loading = false, queue = queue(emptyList()))
     val png = IngestUiState(loading = false, queue = queue(pngRows))
+
+    /** F17 K6: imported from «Legal»: its destination row, and the rows that go there. */
+    val destination = IngestUiState(
+        loading = false,
+        queue = queue(pngRows.map { it.copy(folderName = "Legal") }),
+        folders = FolderList(listOf(Folder(1, "Legal", createdAtMs = 1, documentCount = 4)), unfiledCount = 2),
+        destination = 1,
+    )
+
+    /** F17 M3: the destination was deleted. */
+    val destinationMissing = png.copy(destinationMissing = true)
     val working = IngestUiState(loading = false, queue = queue(workingRows))
     val errors = IngestUiState(loading = false, queue = queue(errorRows + pngRows.take(1)))
     val sheet = errors.copy(selected = QueueKey.Attempt("a1"))
@@ -67,6 +80,8 @@ object IngestPreviewData {
     val all: List<Pair<String, IngestUiState>> = listOf(
         "empty" to empty,
         "png" to png,
+        "destination" to destination,
+        "destinationMissing" to destinationMissing,
         "working" to working,
         "errors" to errors,
         "sheet" to sheet,

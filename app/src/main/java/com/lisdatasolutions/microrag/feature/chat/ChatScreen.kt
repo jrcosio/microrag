@@ -72,6 +72,7 @@ import com.lisdatasolutions.microrag.core.navigation.ChatRequest
 import com.lisdatasolutions.microrag.domain.chat.ChatAvailability
 import com.lisdatasolutions.microrag.feature.chat.scope.ScopeSelectorViewModel
 import com.lisdatasolutions.microrag.feature.chat.scope.ScopeSheet
+import com.lisdatasolutions.microrag.feature.chat.scope.ScopeSummary
 import com.lisdatasolutions.microrag.feature.chat.scope.sheetActions
 import com.lisdatasolutions.microrag.feature.chat.scope.text
 import kotlinx.coroutines.launch
@@ -263,24 +264,26 @@ private fun ChatColumn(
                 EmptyChat(availability, actions, compact)
             } else {
                 // Short of height, the notice is the list's last item, so it does not cover the conversation.
-                val footer: (@Composable () -> Unit)? = notice?.takeIf { compact }?.let { { Notice(it, actions, Modifier) } }
+                // F17 K7: and so is the scope chip, which has no room of its own between the bars there.
+                val footer: (@Composable () -> Unit)? = if (compact && (notice != null || state.scope != null)) {
+                    {
+                        Column(verticalArrangement = Arrangement.spacedBy(spacing.space2)) {
+                            notice?.let { Notice(it, actions, Modifier) }
+                            state.scope?.let { ScopeChip(it, actions, Modifier) }
+                        }
+                    }
+                } else {
+                    null
+                }
                 Messages(state, actions, listState, follow, setFollow, footer)
             }
         }
         if (notice != null && !compact) {
             Notice(notice, actions, Modifier.padding(horizontal = spacing.screenPaddingHorizontal, vertical = spacing.space2))
         }
-        // F17 K7: the scope, above the composer.
-        state.scope?.let { scope ->
-            val text = scope.text()
-            LisdataScopeChip(
-                text = stringResource(R.string.chat_scope_label, text),
-                description = stringResource(R.string.chat_scope_label, text),
-                onClickLabel = stringResource(R.string.chat_scope_change),
-                onClick = actions.onChangeScope,
-                modifier = Modifier.padding(start = spacing.screenPaddingHorizontal, end = spacing.screenPaddingHorizontal, top = spacing.space2),
-            )
-        }
+        // F17 K7: the scope, above the composer; with little height and a conversation, at the end of the list.
+        val chipAbove = state.scope != null && !(compact && state.turns.isNotEmpty())
+        if (chipAbove) state.scope?.let { ScopeChip(it, actions, Modifier.padding(horizontal = spacing.screenPaddingHorizontal)) }
         LisdataChatComposer(
             value = state.question,
             onValueChange = actions.onQuestionChange,
@@ -292,10 +295,29 @@ private fun ChatColumn(
             generating = state.answering,
             onStop = actions.onStop,
             enabled = state.ready,
-            modifier = Modifier.padding(horizontal = spacing.screenPaddingHorizontal, vertical = spacing.space3),
+            // F17 K7: under the chip, the composer gives up its top margin, so the conversation keeps its room.
+            modifier = Modifier.padding(
+                start = spacing.screenPaddingHorizontal,
+                end = spacing.screenPaddingHorizontal,
+                top = if (chipAbove) 0.dp else spacing.space3,
+                bottom = spacing.space3,
+            ),
         )
         Announcement(state.announcement)
     }
+}
+
+/** K7 and U2: «Buscar en: Legal», one button whose action is «Cambiar ámbito». */
+@Composable
+private fun ScopeChip(scope: ScopeSummary, actions: ChatActions, modifier: Modifier) {
+    val text = stringResource(R.string.chat_scope_label, scope.text())
+    LisdataScopeChip(
+        text = text,
+        description = text,
+        onClickLabel = stringResource(R.string.chat_scope_change),
+        onClick = actions.onChangeScope,
+        modifier = modifier,
+    )
 }
 
 @Composable

@@ -97,6 +97,17 @@ class ChatScreenTest {
         onDismissDelete = { calls += "dismiss" },
     )
 
+    /** The list shows its end: the latest answer and its sources. */
+    private fun assertAtTheEnd() {
+        val range = compose.onNode(hasScrollToIndexAction()).fetchSemanticsNode().config[SemanticsProperties.VerticalScrollAxisRange]
+        assertThat(range.value()).isWithin(1f).of(range.maxValue())
+    }
+
+    /** The question of PNG 04's sample, above the fold since F17 put the scope chip above the composer. */
+    private fun scrollToQuestion(description: String = "Tú: ¿Qué indica el protocolo sobre la validación final?") {
+        compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasContentDescription(description))
+    }
+
     private fun show(state: ChatUiState) {
         compose.setContent { LisdataTheme { ChatScreen(state, actions) } }
     }
@@ -118,6 +129,8 @@ class ChatScreenTest {
     @Test
     fun png_matchesPng04() {
         show(ChatPreviewData.png)
+        // F17 K7: the scope chip above the composer leaves the question just above the fold.
+        scrollToQuestion()
 
         listOf(
             "Chat con documentos", "Gemma 4 · Procesamiento local", "¿Qué indica el protocolo sobre la validación final?",
@@ -447,6 +460,7 @@ class ChatScreenTest {
     fun withTurns_eachAvailabilityIsANotice_andTheConversationStays() {
         eachAvailability(ChatPreviewData.png) { availability ->
             if (availability != ChatAvailability.StorageUnavailable) {
+                scrollToQuestion()
                 compose.onNodeWithContentDescription("Tú: ¿Qué indica el protocolo sobre la validación final?").assertExists()
             }
         }
@@ -556,8 +570,8 @@ class ChatScreenTest {
         val turns = List(4) { i -> ChatPreviewData.completedTurn.copy(id = i + 1L, question = "Pregunta ${i + 1}") }
         val restoration = StateRestorationTester(compose)
         restoration.setContent { LisdataTheme { ChatScreen(ChatPreviewData.png.copy(turns = turns), actions) } }
-        // Opened at the latest answer; the user goes back up to the second question.
-        compose.onNodeWithContentDescription("Tú: Pregunta 4").assertIsDisplayed()
+        // Opened at the latest answer (its question above the scope chip's fold); the user goes back up.
+        assertAtTheEnd()
         compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasContentDescription("Tú: Pregunta 2"))
 
         restoration.emulateSavedInstanceStateRestore()
@@ -579,6 +593,7 @@ class ChatScreenTest {
     @Config(qualifiers = "en-w390dp-h844dp")
     fun inEnglish_theScreenSpeaksEnglish() {
         show(ChatPreviewData.png)
+        scrollToQuestion("You: ¿Qué indica el protocolo sobre la validación final?")
 
         listOf("Chat with documents", "Gemma 4 · On-device processing", "Copy answer", "2 sources", "SOURCES CONSULTED", "Ask your documents…")
             .forEach { exists(it) }
@@ -663,7 +678,8 @@ class ChatScreenTest {
 
         compose.onNodeWithContentDescription("Tú: Pregunta B1").assertIsNotDisplayed()
         compose.onNodeWithText("Copiar respuesta", useUnmergedTree = true).assertExists()
-        compose.onAllNodesWithContentDescription("Tú: Pregunta B6").onFirst().assertIsDisplayed()
+        // At B's latest answer: since F17's scope chip, its question is above the fold.
+        assertAtTheEnd()
     }
 
     // F17 T035 and T044 (K7, K9; FR-014).

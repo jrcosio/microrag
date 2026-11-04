@@ -143,7 +143,7 @@
     <string name="library_folder_open">Open folder</string>
     <string name="library_folder_search">Search in %1$s…</string>
     <string name="library_folder_empty_title">This folder is empty</string>
-    <string name="library_folder_import">Import to %1$s</string>
+    <string name="library_folder_import">Import into %1$s</string>
     <string name="folder_rename">Rename folder</string>
     <string name="folder_delete">Delete folder</string>
     <string name="folder_dialog_name">Name</string>
@@ -152,7 +152,7 @@
     <string name="folder_error_empty">Type a name</string>
     <string name="folder_error_duplicate">There is already a folder with that name</string>
     <string name="folder_error_reserved">That name is reserved</string>
-    <string name="folder_error_too_long">40 characters at most</string>
+    <string name="folder_error_too_long">Up to 40 characters</string>
     <string name="folder_delete_title">Delete the folder “%1$s”?</string>
     <plurals name="folder_delete_move">
         <item quantity="one">Move its document to General</item>

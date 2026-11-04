@@ -10,6 +10,7 @@ import com.lisdatasolutions.microrag.core.designsystem.model.CitationUi
 import com.lisdatasolutions.microrag.core.designsystem.preview.LisdataPreviews
 import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
 import com.lisdatasolutions.microrag.domain.chat.ChatAvailability
+import com.lisdatasolutions.microrag.feature.chat.scope.ScopeSummary
 
 /** Labelled sample states for previews and UI tests only (constitution V): never shown in the app. */
 object ChatPreviewData {
@@ -47,8 +48,14 @@ object ChatPreviewData {
     private val streamingTurn = completedTurn.copy(id = 2, question = "¿Y quién firma el cierre?", sources = emptyList())
 
     /** PNG 04. */
-    val png = ChatUiState(conversationId = 1, availability = ready, turns = listOf(completedTurn))
-    val empty = ChatUiState(availability = ready)
+    val png = ChatUiState(conversationId = 1, availability = ready, turns = listOf(completedTurn), scope = ScopeSummary(whole = true))
+    val empty = ChatUiState(availability = ready, scope = ScopeSummary(whole = true))
+
+    /** F17 K7: a scope too long for the chip, cut with «…». */
+    val scoped = png.copy(scope = ScopeSummary(whole = false, folderNames = listOf("Contratos de arrendamiento", "Manuales de mantenimiento"), looseDocuments = 12))
+
+    /** F17 K9. */
+    val nothingInScope = ChatUiState(availability = ChatAvailability.NothingInScope, scope = ScopeSummary(whole = false, folderNames = listOf("Legal")))
     val searching = png.copy(
         turns = listOf(completedTurn, streamingTurn.copy(state = AnswerState.Streaming, status = TurnStatus.SEARCHING, content = AnswerContent.Empty)),
         answering = true,
@@ -132,6 +139,8 @@ object ChatPreviewData {
     val all: List<Pair<String, ChatUiState>> = listOf(
         "png" to png,
         "empty" to empty,
+        "scoped" to scoped,
+        "nothingInScope" to nothingInScope,
         "searching" to searching,
         "generating" to generating,
         "refusal" to refusal,
@@ -202,3 +211,11 @@ private fun ChatStorageUnavailablePreview() = LisdataTheme { ChatScreen(ChatPrev
 @LisdataPreviews
 @Composable
 private fun ChatDeleteDialogPreview() = LisdataTheme { ChatScreen(ChatPreviewData.deleteDialog, ChatActions()) }
+
+@LisdataPreviews
+@Composable
+private fun ChatScopedPreview() = LisdataTheme { ChatScreen(ChatPreviewData.scoped, ChatActions()) }
+
+@LisdataPreviews
+@Composable
+private fun ChatNothingInScopePreview() = LisdataTheme { ChatScreen(ChatPreviewData.nothingInScope, ChatActions()) }

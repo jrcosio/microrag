@@ -7,15 +7,20 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import com.lisdatasolutions.microrag.core.dispatchers.AppDispatchers
+import com.lisdatasolutions.microrag.data.rag.DefaultRagIndex
+import com.lisdatasolutions.microrag.data.rag.toLeBlob
 import com.lisdatasolutions.microrag.debug.feasibility.Percentiles
 import com.lisdatasolutions.microrag.debug.feasibility.RequiresModels
 import com.lisdatasolutions.microrag.domain.rag.DocumentStatus
 import com.lisdatasolutions.microrag.domain.rag.NewDocument
+import com.lisdatasolutions.microrag.domain.rag.RagParameters
+import com.lisdatasolutions.microrag.domain.rag.SearchScope
 import com.lisdatasolutions.microrag.domain.retrieval.RetrievalOutcome
 import com.lisdatasolutions.microrag.domain.retrieval.RetrievalRequest
 import com.lisdatasolutions.microrag.domain.retrieval.RetrievalResult
 import com.lisdatasolutions.microrag.rag.retrieval.FollowUpRule
 import com.lisdatasolutions.microrag.rag.retrieval.RetrievalGoldenFiles
+import com.lisdatasolutions.microrag.rag.runtime.EmbeddingMath
 import com.lisdatasolutions.microrag.rag.runtime.EngineCoordinator
 import com.lisdatasolutions.microrag.rag.runtime.litert.LiteRtEngineFactory
 import com.lisdatasolutions.microrag.testing.InstalledEmbeddingModel
@@ -58,8 +63,10 @@ class RetrievalBenchmarkTest {
         // The questions' own words are in the vocabulary, so the lexical search finds and ranks chunks.
         val vocabulary = (WORDS + questions.flatMap { q -> q.question.lowercase().split(Regex("[^\\p{L}\\p{N}]+")) })
             .filter { it.length >= 4 }.distinct()
+        val documentIds = mutableListOf<Long>()
         repeat(DOCUMENTS) { d ->
             val doc = temp.index.addDocument(NewDocument(displayName = "Documento $d.txt", contentHash = "retrieval-bench-$d"))
+            documentIds += doc
             (0 until CHUNKS_PER_DOCUMENT).chunked(BATCH).forEach { ordinals ->
                 temp.index.insertChunks(doc, ordinals.map { o -> chunk(o, content = sentence(random, vocabulary), vector = unitVector(d * 1_000 + o)) })
             }
@@ -85,6 +92,19 @@ class RetrievalBenchmarkTest {
             }
             Log.i(TAG, "retrieval-benchmark embedding alone n=${alone.size} p50=%.1f p95=%.1f".format(Locale.ROOT, Percentiles.of(alone, 50), Percentiles.of(alone, 95)))
 
+            // F17 T049 (R11, SC-004): a folder of about 1,000 chunks and 5 loose documents, against the whole library.
+            val folder = checkNotNull(temp.index.createFolder("Carpeta", "carpeta"))
+            (0 until FOLDER_DOCUMENTS).forEach { temp.index.moveDocument(documentIds[it], folder) }
+            val folderScope = SearchScope.Only(setOf(folder), general = false, documentIds = emptySet())
+            val looseScope = SearchScope.Only(emptySet(), general = false, documentIds = documentIds.takeLast(LOOSE_DOCUMENTS).toSet())
+            val inFolder = rounds(retriever, folderScope)
+            log("scope=folder(${FOLDER_DOCUMENTS * CHUNKS_PER_DOCUMENT})", null, inFolder)
+            val loose = rounds(retriever, looseScope)
+            log("scope=loose($LOOSE_DOCUMENTS)", null, loose)
+            (inFolder + loose).forEach { assertThat(it.outcome).isInstanceOf(RetrievalOutcome.Blocks::class.java) }
+            compareVectorVariants(folderScope, "folder")
+            compareVectorVariants(looseScope, "loose")
+
             // F07 research R7: a 2,000-page PDF half indexed leaves 4,300 chunks stored and not searchable.
             val halfIndexed = temp.index.addDocument(NewDocument(displayName = "A medias.pdf", contentHash = "retrieval-bench-hidden"))
             temp.index.updateStatus(halfIndexed, DocumentStatus.EMBEDDING, chunkCount = HIDDEN_CHUNKS)
@@ -107,10 +127,47 @@ class RetrievalBenchmarkTest {
         }
     }
 
-    private fun request(index: Int) = questions[index % questions.size].let { RetrievalRequest(it.question, it.previous) }
+    private fun request(index: Int, scope: SearchScope = SearchScope.All) =
+        questions[index % questions.size].let { RetrievalRequest(it.question, it.previous, scope) }
 
-    private suspend fun rounds(retriever: HybridRetriever): List<RetrievalResult> =
-        (0 until ROUNDS * questions.size).map { retriever.retrieve(request(it)) }
+    private suspend fun rounds(retriever: HybridRetriever, scope: SearchScope = SearchScope.All): List<RetrievalResult> =
+        (0 until ROUNDS * questions.size).map { retriever.retrieve(request(it, scope)) }
+
+    /**
+     * R3 and D-072: the vector search of a scope with the streaming scan (what the app does) against top-(k + m) with
+     * what is outside the scope counted in m. Both are exact; the faster one on the phone stays.
+     */
+    private fun compareVectorVariants(scope: SearchScope.Only, label: String) = temp.withRaw { db ->
+        db.initVector(EmbeddingMath.DIMENSIONS)
+        val (condition, args) = DefaultRagIndex.scopeCondition(scope)
+        val inScope = db.queryOne(
+            "SELECT count(*) FROM chunks c JOIN documents d ON d.id = c.document_id WHERE d.status = 'done' AND d.included = 1 AND $condition",
+            *args,
+        ) { it.getLong(0).toInt() } ?: 0
+        val total = db.queryOne("SELECT count(*) FROM chunks") { it.getLong(0).toInt() } ?: 0
+        val k = RagParameters.CANDIDATES
+        val topKPlusM = "WITH v AS MATERIALIZED (SELECT rowid, distance FROM vector_full_scan('chunks', 'embedding', ?, ?)) " +
+            "SELECT v.rowid FROM v JOIN chunks c ON c.id = v.rowid JOIN documents d ON d.id = c.document_id " +
+            "WHERE d.status = 'done' AND d.included = 1 AND $condition ORDER BY v.distance LIMIT ?"
+        fun time(run: (FloatArray) -> List<Long>): Pair<List<Double>, List<List<Long>>> {
+            val found = mutableListOf<List<Long>>()
+            val ms = (0 until VECTOR_RUNS).map { i ->
+                val query = unitVector(QUERY_SEED + i)
+                val started = System.nanoTime()
+                found += run(query)
+                (System.nanoTime() - started) / 1e6
+            }
+            return ms to found
+        }
+        val (streaming, a) = time { q -> db.query(DefaultRagIndex.scopedVectorSearchSql(condition), q.toLeBlob(), *args, k) { it.getLong(0) } }
+        val (plusM, b) = time { q -> db.query(topKPlusM, q.toLeBlob(), k + (total - inScope), *args, k) { it.getLong(0) } }
+        assertWithMessage("both variants are exact").that(b).isEqualTo(a)
+        Log.i(
+            TAG,
+            "retrieval-benchmark vector scope=$label in_scope=$inScope total=$total streaming_p50=%.1f streaming_p95=%.1f topkm_p50=%.1f topkm_p95=%.1f"
+                .format(Locale.ROOT, Percentiles.of(streaming, 50), Percentiles.of(streaming, 95), Percentiles.of(plusM, 50), Percentiles.of(plusM, 95)),
+        )
+    }
 
     private fun log(label: String, cold: RetrievalResult?, results: List<RetrievalResult>) {
         val steps = listOf<Pair<String, (RetrievalResult) -> Double>>(
@@ -137,6 +194,10 @@ class RetrievalBenchmarkTest {
         const val HIDDEN_CHUNKS = 4_300
         const val HIDDEN_SEED = 500_000
         const val SC_003_EMBEDDING_MS = 150.0
+        const val FOLDER_DOCUMENTS = 10
+        const val LOOSE_DOCUMENTS = 5
+        const val VECTOR_RUNS = 50
+        const val QUERY_SEED = 900_000
 
         val WORDS = """
             motor bomba válvula filtro presión caudal temperatura sensor tubería junta aceite revisión
