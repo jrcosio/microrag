@@ -2,7 +2,7 @@
 
 Manda el wireframe aprobado ([wireframe.md](../wireframe.md), K1–K14, D-070). Rutas:
 - `Library`: pestaña, raíz con carpetas;
-- `LibraryFolder(folderId: Long?)`: nueva, sin barra inferior; `null` es «Sin carpeta»;
+- `LibraryFolder(folderId: Long?)`: nueva, sin barra inferior; `null` es «General»;
 - `Ingest(folderId: Long? = null)`: gana su destino;
 - `Document`, `Chat` e `History`: las de siempre.
 
@@ -10,28 +10,28 @@ Manda el wireframe aprobado ([wireframe.md](../wireframe.md), K1–K14, D-070). 
 
 | Zona | Componente | Contenido |
 |---|---|---|
-| Raíz, sin búsqueda | `LisdataSectionHeader` + `LisdataCardGroup` con `LisdataSettingsRow(icon = Folder, title = nombre, subtitle = «N documentos», Chevron)` | Las carpetas por `name_norm`; «Sin carpeta» al final si tiene documentos; «Nueva carpeta» (`icon = Plus`, sin chevron) |
+| Raíz, sin búsqueda | `LisdataSectionHeader` + `LisdataCardGroup` con `LisdataSettingsRow(icon = Folder, title = nombre, subtitle = «N documentos», Chevron)` | Las carpetas por `name_norm`; «General» al final si tiene documentos; «Nueva carpeta» (`icon = Plus`, sin chevron). Con la biblioteca vacía, el estado vacío de F08 y debajo las carpetas que existan, aunque estén vacías (D-072) |
 | Raíz, con búsqueda | La lista de F08 con `LibraryFolderFilter.All` | `LisdataDocumentRow` con la carpeta en la línea de datos |
-| Carpeta | `LibraryScreen` de F08 con su filtro | Barra «‹ nombre», «＋» (importar con `Ingest(folderId)`) y «⋯» (`LisdataOverflowMenu`: «Renombrar carpeta» y «Eliminar carpeta», no en «Sin carpeta»). Placeholder «Buscar en Legal…». Vacío: «Esta carpeta está vacía» con «Importar a Legal» |
+| Carpeta | `LibraryScreen` de F08 con su filtro | Barra «‹ nombre», «＋» (importar con `Ingest(folderId)`) y «⋯» (`LisdataOverflowMenu`: «Renombrar carpeta» y «Eliminar carpeta», no en «General»). Placeholder «Buscar en Legal…». Vacío: «Esta carpeta está vacía» con «Importar a Legal» |
 | Diálogos | `LisdataConfirmationDialog` con `LisdataTextField` (K3), y con `LisdataRadioRow` y un segundo `LisdataConfirmationDialog` (K4) | Textos de la spec |
 
 ## 2. Detalle e Ingesta (K5, K6)
 
 - **Detalle:**
-  - fila de dato «Carpeta», con el nombre o «Sin carpeta»;
+  - fila de dato «Carpeta», con el nombre o «General»;
   - «⋯» con «Quitar del índice» (si procede) y «Mover a carpeta»;
   - hoja `FolderChoiceSheet`;
   - aviso «Movido a «nombre»».
 - **Ingesta:**
-  - `LisdataSettingsRow(icon = Folder, title = «Carpeta de destino», subtitle = nombre o «Sin carpeta»)` sobre `LisdataFilePickerCard`;
+  - `LisdataSettingsRow(icon = Folder, title = «Carpeta de destino», subtitle = nombre o «General»)` sobre `LisdataFilePickerCard`;
   - abre `FolderChoiceSheet`;
   - la línea de datos de la cola añade «· nombre».
 
-`FolderChoiceSheet` (`feature/folders`) es un `LisdataBottomSheet` con:
+`FolderChoiceSheet` y `FolderDialogs` (los diálogos K3 y K4) van en `feature/folders`, porque los usan la Biblioteca, el detalle y la Ingesta (D-072). `FolderChoiceSheet` es un `LisdataBottomSheet` con:
 - título;
-- `LisdataRadioRow` por carpeta y «Sin carpeta»;
+- `LisdataRadioRow` por carpeta y «General»;
 - «Nueva carpeta…», que abre K3;
-- «Cancelar» y la acción («Mover» o «Elegir»).
+- «Cancelar» y la acción: «Mover» en el detalle y «Elegir» («Choose») en la Ingesta, aprobado en el analyze.
 
 ## 3. Chat (K7–K10)
 

@@ -35,6 +35,6 @@
 - **Contrato, no implementación:** la spec pide que la búsqueda acotada sea exacta y rápida (FR-017, FR-018, FR-026, SC-002 a SC-004), sin decir cómo. Las migraciones se piden por su resultado (FR-027, SC-001).
 - **Sin marcas pendientes.** Los puntos abiertos tienen un valor propuesto, y el clarify los confirma o los cambia:
   - la Biblioteca como lista de carpetas frente a fichas de filtro (K1);
-  - qué pasa con los documentos al eliminar una carpeta (K4: pasan a «Sin carpeta»);
+  - qué pasa con los documentos al eliminar una carpeta (K4: pasan a «General»);
   - el ámbito de «Nuevo chat» (K11: toda la biblioteca);
   - los documentos excluidos en el selector (K8: visibles y sin poder marcarse).

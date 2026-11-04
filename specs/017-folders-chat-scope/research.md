@@ -23,7 +23,7 @@ Cada punto sigue el formato **Decisión / Motivo / Alternativas**. Lo verificado
   ```
 
   - `name_norm = DocumentNames.fold(name.trim())`, el mismo plegado de mayúsculas y tildes que la búsqueda por nombre de F08. La unicidad la garantiza la base (`UNIQUE`), y el dominio traduce la violación a «Ya hay una carpeta con ese nombre».
-  - La migración 3 → 4 tiene tres sentencias: `CREATE TABLE folders`, `ALTER TABLE documents ADD COLUMN folder_id …` y el índice. Todos los documentos quedan con `folder_id = NULL`, es decir, en «Sin carpeta» (FR-002).
+  - La migración 3 → 4 tiene tres sentencias: `CREATE TABLE folders`, `ALTER TABLE documents ADD COLUMN folder_id …` y el índice. Todos los documentos quedan con `folder_id = NULL`, es decir, en «General» (FR-002).
   - Pasan a la versión 4: `RagIndexConfig.SCHEMA_VERSION = 4` y `schema.sql`.
 - **Verificado en el código:**
   - `RagMigrations.all` y `DefaultRagIndex.migrate` aplican cada paso en una transacción y dejan el fichero intacto si alguno falla;
@@ -52,9 +52,11 @@ Cada punto sigue el formato **Decisión / Motivo / Alternativas**. Lo verificado
   - **Con un ámbito,** se usa el modo en streaming de `vector_full_scan`, que es el mismo escaneo sin `k`:
 
     ```sql
-    SELECT v.rowid, v.distance FROM vector_full_scan('chunks', 'embedding', ?) v
+    WITH v AS MATERIALIZED (SELECT rowid, distance FROM vector_full_scan('chunks', 'embedding', ?))
+    SELECT v.rowid, v.distance FROM v
       JOIN chunks c ON c.id = v.rowid JOIN documents d ON d.id = c.document_id
-     WHERE d.status = 'done' AND d.included = 1 AND (d.folder_id IN (…) OR d.id IN (…))
+     WHERE d.status = 'done' AND d.included = 1
+       AND (d.folder_id IN (…) OR (? = 1 AND d.folder_id IS NULL) OR d.id IN (…))
      ORDER BY v.distance LIMIT ?
     ```
 
@@ -63,7 +65,15 @@ Cada punto sigue el formato **Decisión / Motivo / Alternativas**. Lo verificado
 - **Verificado:**
   - `vector.so` 1.1.2 contiene el módulo `vector_full_scan_stream` (`strings`);
   - la API publicada de SQLite-Vector dice: «When [k is] omitted, the module operates in streaming mode … rows are returned progressively as they are scanned, enabling standard SQL clauses such as `WHERE` and `LIMIT`», con un ejemplo de `JOIN` + `WHERE` + `LIMIT`.
-- **Se verifica antes de construir encima** (puerta T009, constitución II): una prueba instrumentada sobre un índice temporal comprueba que el modo existe en 1.1.2 y que el top-k filtrado coincide con el calculado a mano (todas las distancias, filtrar y ordenar). Si no coincide, se para y se consulta.
+- **La CTE `MATERIALIZED`** es obligatoria, como en F07 (research R7 de F07, `RagIndexVisibilityTest`). Sin ella, SQLite puede poner el escaneo vectorial como bucle interno del `JOIN` y repetirlo (analyze, H1).
+- **Por qué no contradice D-040:** F07 descartó el streaming con `ORDER BY` para la búsqueda de toda la biblioteca, porque ordenaba todo el índice en cada consulta. Con un ámbito, el `WHERE` deja pasar al ordenador solo las filas del ámbito, y `ORDER BY … LIMIT k` es un top-k acotado. Con «Toda la biblioteca» no se usa (analyze, D-072).
+- **Se verifica antes de construir encima** (puerta T011, constitución II). La prueba T006, sobre un índice temporal, comprueba:
+  - que el modo existe en 1.1.2, tanto con `vector_full_scan` sin `k` como con el módulo `vector_full_scan_stream`, y se usa el que funcione;
+  - que el top-k filtrado coincide con el calculado a mano (todas las distancias, filtrar y ordenar);
+  - con `EXPLAIN QUERY PLAN`, que el escaneo vectorial se hace una sola vez, en la consulta por significado y en la de palabras.
+
+  Si no coincide, se para y se consulta.
+- **Comparación medida** (T049): el modo en streaming frente a top-(k + m) con el ámbito contado en m. Se queda el más rápido en el teléfono; los dos son exactos.
 - **Motivo:**
   - **Exactitud** (FR-018): el `WHERE` actúa sobre todas las filas, sin depender de cuántos candidatos se piden;
   - **Coste:** la búsqueda exacta ya calcula todas las distancias, y solo añade el `JOIN` y el filtro de N filas. Se mide (US7, R11);
@@ -76,7 +86,7 @@ Cada punto sigue el formato **Decisión / Motivo / Alternativas**. Lo verificado
 ## R4 — Eliminar una carpeta
 
 - **Decisión** (D-070):
-  - **«Mover a Sin carpeta»:** en una transacción, `UPDATE documents SET folder_id = NULL WHERE folder_id = ?` y `DELETE FROM folders WHERE id = ?`;
+  - **«Mover a General»:** en una transacción, `UPDATE documents SET folder_id = NULL WHERE folder_id = ?` y `DELETE FROM folders WHERE id = ?`;
   - **«Eliminar también los documentos»:** `LibraryRepository.delete(documentId)` documento a documento, por el mismo camino de F08 (copia, fragmentos, vectores, FTS por trigger, la tanda de indexación y su copia temporal). Después se borra la carpeta, solo si ya no le quedan documentos. Si alguno falla, la carpeta se queda con los que no se pudieron borrar y se avisa (FR-005).
 - **Verificado:**
   - `DefaultLibraryRepository.delete` quita el documento de la tanda (`runStore.edit { it.without(…) }`), borra su copia temporal en cascada y deja la copia privada para la limpieza de huérfanos si no puede borrarla;
@@ -87,7 +97,7 @@ Cada punto sigue el formato **Decisión / Motivo / Alternativas**. Lo verificado
 
 - **Decisión:**
   - **Raíz** (pestaña `Library`): titular, búsqueda y carpetas (K1). Sin texto en la búsqueda se ven las carpetas; con texto, los documentos de todas, con la carpeta en su línea de datos.
-  - **Carpeta** (ruta nueva `LibraryFolder(folderId: Long?)`, con `null` para «Sin carpeta»): la lista de hoy, acotada a esa carpeta (K2).
+  - **Carpeta** (ruta nueva `LibraryFolder(folderId: Long?)`, con `null` para «General»): la lista de hoy, acotada a esa carpeta (K2).
   - **El mismo `LibraryViewModel`** sirve para las dos listas, con un `LibraryFolderFilter` (`All`, `Unfiled` o `Folder(id)`) que viene de la ruta. La raíz usa `All` para los resultados de la búsqueda.
   - **`FoldersViewModel`** lleva la lista de carpetas y las acciones de crear, renombrar y eliminar.
 - **Consultas:**
@@ -104,7 +114,7 @@ Cada punto sigue el formato **Decisión / Motivo / Alternativas**. Lo verificado
   - **Importar:** `ImportDocumentsUseCase(uris, folderId)` → `DocumentImporter` → `NewDocument.folderId`. La ruta pasa a `Ingest(folderId: Long? = null)`, y la carpeta de destino la guarda el `SavedStateHandle` del `IngestViewModel`.
   - **Cola:** cada fila lee la carpeta de su documento, que ya está registrado.
   - **Duplicados:** se detectan antes de registrar, como hoy, y no cambian de carpeta (FR-012).
-- **Hoja de carpetas** (K5, K6): un composable `FolderChoiceSheet` en un paquete nuevo `feature/folders`, que usan el detalle y la Ingesta. Lleva las carpetas como opciones de radio, «Sin carpeta» y «Nueva carpeta…».
+- **Hoja de carpetas** (K5, K6): un composable `FolderChoiceSheet` en un paquete nuevo `feature/folders`, que usan el detalle y la Ingesta. Lleva las carpetas como opciones de radio, «General» y «Nueva carpeta…».
 
 ## R7 — Ámbito en `chat.db` (esquema v2)
 
@@ -113,13 +123,13 @@ Cada punto sigue el formato **Decisión / Motivo / Alternativas**. Lo verificado
   ```sql
   CREATE TABLE IF NOT EXISTS conversation_scope (
       conversation_id INTEGER NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
-      kind TEXT NOT NULL CHECK (kind IN ('folder', 'document')),
-      ref_id INTEGER NOT NULL,
-      ref_created_at_ms INTEGER,           -- solo documentos: la guarda de D-065
+      kind TEXT NOT NULL CHECK (kind IN ('folder', 'general', 'document')),
+      ref_id INTEGER NOT NULL,             -- 0 para 'general'
+      ref_created_at_ms INTEGER,           -- documentos y carpetas: la guarda de D-065 (L9)
       PRIMARY KEY (conversation_id, kind, ref_id)
   );
   CREATE TABLE IF NOT EXISTS last_scope (
-      kind TEXT NOT NULL CHECK (kind IN ('folder', 'document')),
+      kind TEXT NOT NULL CHECK (kind IN ('folder', 'general', 'document')),
       ref_id INTEGER NOT NULL,
       ref_created_at_ms INTEGER,
       PRIMARY KEY (kind, ref_id)
@@ -128,7 +138,11 @@ Cada punto sigue el formato **Decisión / Motivo / Alternativas**. Lo verificado
 
   - **«Toda la biblioteca»** es no tener filas. Las conversaciones de antes no tienen ninguna, y eso cumple FR-020.
   - **Documentos:** se guarda con su `created_at_ms`. Al resolver el ámbito, un documento con ese id pero creado después no cuenta (D-065, FR-021).
-  - **Carpetas:** como sus ids no se reutilizan (R1), no necesitan guarda.
+  - **Carpetas:** sus ids no se reutilizan (R1), pero también se guarda su `created_at_ms`, por si `rag.db` se regenerara alguna vez (analyze, L9).
+  - **«General» entera** (analyze, H2, respuesta del usuario): fila `kind = 'general'`. Se comporta como una carpeta: incluye también lo que llegue después sin carpeta (FR-016).
+  - **La clave de versión** de `chat.db` es la de siempre, `chat_meta.schema_version`.
+  - **Ámbito ajustado** (analyze, M8): cuando al resolverlo algo deja de existir, el ámbito resuelto se reescribe en `conversation_scope`, y en `last_scope` si era el último. Así el aviso de K10 sale una sola vez.
+  - **«Borrar historial»** vacía también `last_scope`. `setScope` no cambia `updated_at`, así que el orden de Historial no se mueve (analyze, L4).
   - **Versión:** `ChatSchema.VERSION = 2`, y `ChatMigrations` pasa a tener su primer paso.
 - **Motivo:**
   - los ids de `rag.db` no pueden ser claves ajenas en otro fichero, como ya pasa con `sources`;
@@ -142,7 +156,10 @@ Cada punto sigue el formato **Decisión / Motivo / Alternativas**. Lo verificado
 - **Decisión:**
   - `ChatSession.ask(conversationId, question, scope)`: al crear la conversación guarda su ámbito; si existía y el ámbito cambió, lo actualiza. En los dos casos guarda `last_scope`. El ámbito con el que empieza la respuesta es el que usa su recuperación (FR-019).
   - `ChatSession.setScope(conversationId, scope)` para aplicarlo con el selector, y `scopeOf(conversationId)`.
-  - `RetrievalRequest(question, previousQuestion, scope: ResolvedScope)`.
+  - `RetrievalRequest(question, previousQuestion, scope: SearchScope)`, para que `domain/retrieval` no dependa de `domain/chat` (analyze, M1).
+  - **`retry(turnId)`** recupera con el ámbito resuelto de su conversación (analyze, H3).
+  - **La puerta de `ask`/`retry`** usa la disponibilidad dentro del ámbito, y el turno guarda la `partial_coverage` del ámbito.
+  - **Precedencia de la disponibilidad** (analyze, M5): primero los estados globales, en este orden: `StorageUnavailable`, `ModelsNotReady`, `IndexUnavailable`, `EmptyLibrary` (la biblioteca entera vacía) y `WaitingForIndexing` (protege el motor). Después, con «Toda la biblioteca», `NothingReady`, y con un ámbito, `NothingInScope`. Si nada de eso aplica, `Ready(partialCoverage)`, calculado dentro del ámbito.
   - `ResolveScopeUseCase` traduce el ámbito guardado a lo que existe ahora, con la guarda de D-065, y devuelve también lo que cayó para el aviso de K10.
 - **ViewModel del chat:**
   - un chat sin preguntas guarda el ámbito en su `SavedStateHandle`, y empieza con el último usado (FR-020b);
@@ -212,3 +229,26 @@ Cada punto sigue el formato **Decisión / Motivo / Alternativas**. Lo verificado
   - SQLite-Vector se queda en 1.1.2 (el modo en streaming ya está en esta versión, R3);
   - DataStore, Compose BOM, Navigation, Koin, LiteRT-LM y Robolectric, sin cambios;
   - `TriStateCheckbox` está en Material 3 del BOM actual.
+
+## R15 — Correcciones del analyze (D-072)
+
+- **Selector (M6, respuesta del usuario):** desmarcar un documento de una carpeta marcada entera convierte esa carpeta en documentos sueltos. Quedan marcados como sueltos los demás documentos que tenga en ese momento, y la casilla pasa a «algunos». Lo que llegue después ya no entra.
+  - Para hacerlo, el índice da `folderDocumentRefs(folderId?)`, con todos los `(id, created_at_ms)` de una carpeta, aunque no estén desplegados.
+  - Las carpetas cuyos documentos están todos excluidos salen en gris y no se pueden marcar.
+- **Destino al importar (M3):** se guarda en el intento de importación (`Attempt.folderId`) al elegir los archivos, y es el que se usa al registrar el documento al terminar la copia. Si esa carpeta se ha borrado entretanto, el documento va a «General» y un aviso lo dice. La fila de la cola muestra la carpeta del intento.
+- **Eliminar con documentos (M4):**
+  - el borrado corre en el `ApplicationScope`, para que no se corte si el usuario sale de la pantalla;
+  - `deleteFolder(id, moveDocuments = false)` devuelve si borró la carpeta;
+  - al terminar se recuentan los que quedan con `folderDocumentRefs`, y esos son los que fallaron;
+  - un caso instrumentado comprueba que no quedan copias, fragmentos, FTS ni vectores.
+- **Biblioteca vacía (L2):** además del estado vacío, se ven las carpetas existentes, aunque estén vacías, para poder abrirlas, renombrarlas o borrarlas.
+- **Nombres (L3):** «General» está reservado. `DocumentNames.fold` convierte «ñ» en «n», así que «Año» y «Ano» chocan como el mismo nombre. Se acepta, y queda en la spec.
+- **Consultas (L6):** las consultas con `LEFT JOIN folders` usan alias, porque `id`, `name_norm`, `created_at_ms` y `updated_at_ms` existen en las dos tablas. `StoredDocument` y `DocumentDetail` ganan `folderId` y `folderName`.
+- **Medidas (L7):**
+  - SC-007 se mide en `LibraryBenchmarkTest`, que ya existe;
+  - `RetrievalBenchmarkTest` es `@RequiresModels`, así que se lanza aparte, con su clase explícita, donde esté el modelo de embeddings: el teléfono, en la última fase;
+  - la puerta y la exactitud no necesitan modelos (T006 usa vectores sintéticos).
+- **Capas (L5, L8):**
+  - la regla de `LayeringTest` para `feature/folders` va con su paquete (fase 4); `feature/chat/scope` ya la cubre la regla de `feature/chat`;
+  - `FolderDialogs` va en `feature/folders` con la hoja, porque los usan la Biblioteca, el detalle y la Ingesta;
+  - el botón de la hoja en la Ingesta es «Elegir» («Choose»), aprobado en la parada del analyze.

@@ -58,7 +58,7 @@ Con el teléfono conectado no se usa nunca `connectedDebugAndroidTest`: siempre 
   - ATF de las pantallas nuevas;
   - la batería de F01–F16.
 - **recorrido con documentos de prueba:**
-  1. Biblioteca con «Sin carpeta» tras actualizar.
+  1. Biblioteca con «General» tras actualizar.
   2. Crear «Legal» y «Motores», validar nombres, renombrar y ordenar.
   3. Mover documentos, e importar a una carpeta desde dentro y desde la Ingesta.
   4. Eliminar una carpeta moviendo sus documentos, y otra borrándolos.
@@ -81,7 +81,7 @@ Con el teléfono conectado no se usa nunca `connectedDebugAndroidTest`: siempre 
 
 **Durante la fase:**
 - batería completa y medidas;
-- recorrido acordado con el usuario, con carpetas y documentos de prueba. Su documento queda en «Sin carpeta» y su conversación con «Toda la biblioteca», sin abrirlos.
+- recorrido acordado con el usuario, con carpetas y documentos de prueba. Su documento queda en «General» y su conversación con «Toda la biblioteca», sin abrirlos.
 
 **Al terminar:**
 - borrar lo de prueba;

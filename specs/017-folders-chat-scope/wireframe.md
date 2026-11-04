@@ -29,7 +29,7 @@ Los textos van entre «» en español; la versión inglesa está en la spec (K14
 │ │ ▢ Motores                     › │ │
 │ │   5 documentos                  │ │
 │ ├─────────────────────────────────┤ │
-│ │ ▢ Sin carpeta                 › │ │ ← solo si tiene documentos; siempre la última
+│ │ ▢ General                 › │ │ ← solo si tiene documentos; siempre la última
 │ │   3 documentos                  │ │
 │ ├─────────────────────────────────┤ │
 │ │ ＋ Nueva carpeta                 │ │ ← abre el diálogo K3
@@ -47,7 +47,7 @@ Los textos van entre «» en español; la versión inglesa está en la spec (K14
 ```
 ┌─────────────────────────────────────┐
 │ ‹  Legal                    ＋  ⋯   │ ← ＋ importa a «Legal»; ⋯: Renombrar carpeta,
-├─────────────────────────────────────┤      Eliminar carpeta (no en «Sin carpeta»)
+├─────────────────────────────────────┤      Eliminar carpeta (no en «General»)
 │ ┌─────────────────────────────────┐ │
 │ │ 🔍 Buscar en Legal…             │ │ ← busca solo en la carpeta
 │ └─────────────────────────────────┘ │
@@ -70,7 +70,7 @@ Los textos van entre «» en español; la versión inglesa está en la spec (K14
 ┌───────────────────────────────┐        ┌────────────────────────────────────┐
 │ Nueva carpeta                 │        │ ¿Eliminar la carpeta «Legal»?      │
 │ ┌───────────────────────────┐ │        │ ◉ Mover sus 12 documentos a        │
-│ │ Legal                     │ │ ← campo│   «Sin carpeta»                    │ ← por defecto
+│ │ Legal                     │ │ ← campo│   «General»                    │ ← por defecto
 │ └───────────────────────────┘ │  nuevo │ ○ Eliminar también sus 12          │
 │ Ya hay una carpeta con ese    │ ← aviso│   documentos                       │
 │ nombre                        │        │          [Cancelar]  [Eliminar]    │
@@ -101,7 +101,7 @@ Detalle del documento                         Hoja «Mover a carpeta»
 │ ‹  Detalle                      ⋯   │      │ Mover a carpeta                     │
 │ …                                   │      │ ○ Legal                             │
 │ Carpeta            Legal            │ ←    │ ◉ Motores     ← la actual, marcada  │
-│ …                                   │ dato │ ○ Sin carpeta                       │
+│ …                                   │ dato │ ○ General                       │
 └─────────────────────────────────────┘ nuevo│ ＋ Nueva carpeta…                    │
   ⋯ → «Quitar del índice», «Mover a carpeta»  │        [Cancelar]  [Mover]          │
                                              └─────────────────────────────────────┘
@@ -120,7 +120,7 @@ Detalle del documento                         Hoja «Mover a carpeta»
 │ …titular de hoy…                    │
 │ ┌─────────────────────────────────┐ │
 │ │ ▢ Carpeta de destino          › │ │ ← fila nueva (LisdataSettingsRow): abre la hoja de K5
-│ │   Sin carpeta                   │ │   por defecto, la carpeta desde la que se abrió
+│ │   General                   │ │   por defecto, la carpeta desde la que se abrió
 │ └─────────────────────────────────┘ │
 │ ┌─────────────────────────────────┐ │
 │ │  Selecciona archivos            │ │ ← LisdataFilePickerCard (sin cambios)
@@ -166,7 +166,7 @@ Hoja «Buscar en» (K8)
 │    ☐ Revisión_2024.pdf              │
 │    ☐ Ficha técnica.pdf  Pendiente   │ ← pendiente de indexar: se puede marcar
 │    ☐ Notas.txt  No incluido en RAG  │ ← excluido: en gris, sin poder marcarse
-│ ☐ Sin carpeta (3)               ⌄   │
+│ ☐ General (3)               ⌄   │
 │        [Cancelar]  [Aplicar]        │ ← Aplicar desactivado si no hay nada marcado
 └─────────────────────────────────────┘
 ```

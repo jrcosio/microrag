@@ -9,12 +9,12 @@
 F17 añade carpetas de un nivel a la Biblioteca y un ámbito por conversación al chat (D-066, D-070).
 
 - **Datos:**
-  - `rag.db` v4: tabla `folders` con ids que no se reutilizan, y `documents.folder_id`. Los documentos actuales quedan en «Sin carpeta» (R1);
+  - `rag.db` v4: tabla `folders` con ids que no se reutilizan, y `documents.folder_id`. Los documentos actuales quedan en «General» (R1);
   - `chat.db` v2: `conversation_scope` y `last_scope`, con la guarda de ids reutilizados de D-065 (R7).
 - **Biblioteca:**
   - la raíz muestra las carpetas con sus recuentos y busca en todas;
   - cada carpeta reutiliza la lista de F08 con un filtro de carpeta (R5);
-  - crear, renombrar y eliminar, con la opción de mover los documentos a «Sin carpeta» o borrarlos por el camino de F08 (R4).
+  - crear, renombrar y eliminar, con la opción de mover los documentos a «General» o borrarlos por el camino de F08 (R4).
 - **Mover e importar:** «Mover a carpeta» en el detalle y destino en la Ingesta, con una hoja común (R6).
 - **Chat:**
   - ficha «Buscar en: …» y selector de carpetas y documentos sueltos, con los excluidos en gris (R8);
@@ -22,7 +22,7 @@ F17 añade carpetas de un nivel a la Biblioteca y un ámbito por conversación a
   - lo que deja de existir sale del ámbito con aviso.
 - **Recuperación:**
   - con «Toda la biblioteca», exactamente lo de hoy;
-  - con un ámbito, el **modo en streaming** de `vector_full_scan` y una consulta FTS con `JOIN`/`WHERE` y `ORDER BY … LIMIT k`, que es exacto sin inflar los candidatos (R3). Se verifica antes de construir encima (puerta T009) y se mide (R11).
+  - con un ámbito, el **modo en streaming** de `vector_full_scan` y una consulta FTS con `JOIN`/`WHERE` y `ORDER BY … LIMIT k`, que es exacto sin inflar los candidatos (R3). Va en una CTE `MATERIALIZED`, se verifica antes de construir encima (puerta T011, con `EXPLAIN QUERY PLAN`) y se mide frente a top-(k + m) (R3, R11, D-072).
 - **Design system:** `LisdataTextField`, `LisdataCheckRow` (tres estados), `LisdataExpandableRow` y `LisdataScopeChip` (R9).
 - **Pruebas en el teléfono, en la última fase.**
 
@@ -81,9 +81,9 @@ F17 añade carpetas de un nivel a la Biblioteca y un ámbito por conversación a
 | V. Veracidad del estado | Eliminar una carpeta pide confirmación, con un segundo aviso si borra documentos, y usa la limpieza de F08. Mover no toca el índice. Lo que deja de existir sale del ámbito con aviso. Los excluidos se ven, pero no se buscan | ✅ |
 | VI. Calidad y pruebas | Migraciones instrumentadas en las dos bases, la puerta de R3, visibilidad, ViewModels con fakes y ATF | ✅ |
 | VII. UI fiel y accesible | Wireframe K1–K14 aprobado (D-070). Componentes `Lisdata*` y tokens, con cuatro piezas nuevas con vistas previas y catálogo. U1–U6. Textos ES/EN con paridad | ✅ |
-| VIII. Proceso | D-070 (clarify) y D-071 (plan). Ciclo automático pedido por el usuario. La parada tras analyze se hace si el analyze deja decisiones. Teléfono al final, con el recorrido acordado antes | ✅ |
+| VIII. Proceso | D-070 (clarify), D-071 (plan) y D-072 (analyze). Ciclo automático pedido por el usuario. La parada tras analyze se hizo (D-072), porque había decisiones: «General» y desmarcar en una carpeta entera. Teléfono al final, con el recorrido acordado antes | ✅ |
 
-**Re-check post-diseño:** sin violaciones. El modo en streaming es el mismo escaneo exacto de F04, y la puerta T009 lo comprueba antes de depender de él.
+**Re-check post-diseño:** sin violaciones. El modo en streaming es el mismo escaneo exacto de F04, en una CTE `MATERIALIZED` como exige F07, y la puerta T011 lo comprueba antes de depender de él. No contradice D-040, que lo descartó para toda la biblioteca, donde no se usa (D-072).
 
 ## Project Structure
 

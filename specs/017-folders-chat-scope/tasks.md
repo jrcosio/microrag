@@ -55,7 +55,7 @@ description: "Lista de tareas de F17 — Carpetas y ámbito del chat"
   - en `…/strings_ingest.xml`: destino.
 
   Incluye los plurales «%d documentos» y «+ %d documentos». `StringsParityTest` pasa.
-- [ ] T002 [P] Reglas de capas en `…/test/…/architecture/LayeringTest.kt` (U6): `feature/folders` y `feature/chat/scope` no importan `data.`, `androidx.sqlite`, `androidx.work`, LiteRT, `java.io.File` ni `android.app.*Manager`. Fallan hasta que existen los paquetes, y pasan con T030 y T047.
+- [ ] T002 [P] **Movida a T030** (analyze, L5): la regla de `feature/folders` va con su paquete, y `feature/chat/scope` ya la cubre la regla de `feature/chat`.
 
 ---
 
@@ -68,15 +68,20 @@ description: "Lista de tareas de F17 — Carpetas y ámbito del chat"
 - [ ] T003 [P] Esquema de `rag.db` v4:
   - `…/test/…/data/rag/RagSchemaTest.kt`: el número de sentencias y su orden; `everyMigration_endsWhereSchemaSqlIs`, que ahora admite `CREATE TABLE IF NOT EXISTS folders`; versión 4;
   - `offline/tests/test_appconfig.py`: `schema_version == 4`.
-- [ ] T004 [P] `…/androidTest/…/data/rag/RagIndexMigrationTest.kt`: un índice v3 con documentos, fragmentos e inclusiones variadas migra a v4 con todo intacto y `folder_id` a `NULL` (SC-001). Un fallo de migración deja el fichero v3 intacto.
+- [ ] T004 [P] `…/androidTest/…/data/rag/RagIndexMigrationTest.kt`, con un recurso nuevo `app/src/androidTest/assets/schema/schema_v3.sql` (M7): un índice v3 con documentos, fragmentos e inclusiones variadas migra a v4 con todo intacto y `folder_id` a `NULL` (SC-001). Un fallo de migración deja el fichero v3 intacto.
 - [ ] T005 [P] `chat.db` v2 en `…/androidTest/…/data/chat/SqliteChatRepositoryTest.kt` (o en la JVM si `SqliteChatRepository` corre con Robolectric):
   - un fichero v1 con conversaciones migra a v2 sin perder nada, y sin filas de ámbito;
   - el ámbito se escribe, se lee y se borra en cascada con su conversación;
-  - «Borrar historial» vacía también `conversation_scope` y `last_scope`.
+  - «Borrar historial» vacía también `conversation_scope` y `last_scope`;
+  - las filas `general` y la guarda `ref_created_at_ms` de carpetas y documentos;
+  - una migración 1 → 2 que falla deja el fichero v1 intacto (M7).
 - [ ] T006 [P] **Puerta de R3:** `…/androidTest/…/data/rag/ScopedSearchTest.kt`, sobre `TempRagIndex` con unos 300 fragmentos sintéticos en 3 carpetas y documentos sueltos, algunos excluidos y uno pendiente.
   - `vector_full_scan('chunks', 'embedding', ?)` sin `k` funciona en 1.1.2.
   - Con `SearchScope.Only`, el top-k por significado y por palabras coincide exactamente con el calculado a mano: todas las distancias o `bm25`, filtrar y ordenar.
   - Con `SearchScope.All`, los resultados son idénticos byte a byte a los del SQL de F10 (SC-003).
+  - Las dos formas del modo en streaming (`vector_full_scan` sin `k` y el módulo `vector_full_scan_stream`): se usa la que funcione.
+  - Dentro de la CTE `MATERIALIZED`, `EXPLAIN QUERY PLAN` muestra un solo escaneo vectorial, y en FTS una sola búsqueda (H1).
+  - `general` filtra `folder_id IS NULL`.
   - Ningún resultado está fuera del ámbito, excluido o sin indexar (SC-002).
   - `loadChunks` y `neighbor` respetan el ámbito.
 
@@ -94,7 +99,7 @@ description: "Lista de tareas de F17 — Carpetas y ámbito del chat"
   - `…/microrag/domain/chat/ChatScope.kt`;
   - `SearchScope` y el `RetrievalRequest` ampliado en `…/microrag/domain/retrieval/RetrievalModels.kt`.
 - [ ] T010 Búsqueda acotada en `…/microrag/data/rag/DefaultRagIndex.kt` y `…/microrag/domain/rag/RagIndex.kt` (F7): `vectorSearch`, `textSearch`, `loadChunks` y `neighbor` con `scope`. El SQL de `SearchScope.All` no cambia. `FakeRagIndex` acepta el parámetro.
-- [ ] T011 **Puerta:** T006 en `Pixel_10` y en `MicroRAG_API33`. Si el modo en streaming no existe o el resultado no coincide, **se para y se consulta**. La alternativa a evaluar es top-(k + m) también con ámbito.
+- [ ] T011 **Puerta:** T006 en `Pixel_10` y en `MicroRAG_API33`, con `-s` y `am instrument`. Si el modo en streaming no existe, no coincide o repite el escaneo, **se para y se consulta**. La alternativa a evaluar es top-(k + m) con el ámbito contado en m.
 
 **Checkpoint:** esquemas v4 y v2 migrados y probados, y búsqueda acotada exacta verificada en los dos emuladores.
 
@@ -108,18 +113,23 @@ description: "Lista de tareas de F17 — Carpetas y ámbito del chat"
 
 ### Pruebas
 
-- [ ] T012 [P] [US1] `…/test/…/domain/library/FolderNamesTest.kt`: plegado, recorte, vacío, 40 caracteres y los reservados «Sin carpeta» y «No folder» en cualquier forma.
+- [ ] T012 [P] [US1] `…/test/…/domain/library/FolderNamesTest.kt`: plegado, recorte, vacío, 40 caracteres y el reservado «General» en cualquier forma.
 - [ ] T013 [P] [US1] `…/androidTest/…/data/rag/RagIndexFoldersTest.kt` (F1–F3, F5):
   - crear, con un duplicado plegado que da `null`;
   - renombrar, también solo cambiando mayúsculas;
   - recuentos agregados, sin contar las copias temporales;
-  - página por carpeta y por «Sin carpeta»;
+  - página por carpeta y por «General»;
   - `folderName` en los resultados;
   - eliminar moviendo los documentos (siguen todos, con `folder_id` a `NULL`);
+  - eliminar borrando los documentos, por `LibraryRepository.delete`: no quedan copias, fragmentos, FTS ni vectores, y `deleteFolder` devuelve si la borró (M4);
+  - `folderDocumentRefs` de una carpeta y de «General»;
   - el id de una carpeta borrada no se reutiliza.
 - [ ] T014 [P] [US1] `…/test/…/domain/library/FolderUseCasesTest.kt`, con fakes:
   - `CreateFolderUseCase` y `RenameFolderUseCase` con resultados `Done`, `Duplicate`, `Invalid` y `Failed`;
-  - `DeleteFolderUseCase` con `MOVE_TO_UNFILED` y con `DELETE_DOCUMENTS`: cada documento por `LibraryRepository.delete`, y la carpeta se borra solo si queda vacía; con un fallo a medias, devuelve los que fallaron (FR-005, SC-006);
+  - `DeleteFolderUseCase` con `MOVE_TO_UNFILED` y con `DELETE_DOCUMENTS`:
+    - cada documento por `LibraryRepository.delete`, en el `ApplicationScope`;
+    - la carpeta se borra solo si queda vacía;
+    - los que fallaron salen del recuento final con `folderDocumentRefs` (FR-005, SC-006, M4);
   - `RecordingLogger` sin nombres (FR-025).
 - [ ] T015 [P] [US1] `…/test/…/feature/library/FoldersViewModelTest.kt` y `…/test/…/feature/library/LibraryViewModelTest.kt` (ampliado):
   - las carpetas;
@@ -129,7 +139,8 @@ description: "Lista de tareas de F17 — Carpetas y ámbito del chat"
   - el filtro de carpeta por la ruta;
   - la búsqueda de la raíz en todas las carpetas.
 - [ ] T016 [P] [US1] `…/test/…/feature/library/LibraryScreenTest.kt` (ampliado) y `…/test/…/feature/library/FolderDialogsTest.kt` (Robolectric, wireframe §1–§3):
-  - la raíz con las carpetas, «Sin carpeta» al final y «Nueva carpeta»;
+  - la raíz con las carpetas, «General» al final y «Nueva carpeta»;
+  - con la biblioteca vacía, el estado vacío y debajo las carpetas que existan (L2);
   - con búsqueda, los documentos con su carpeta;
   - la carpeta por dentro, con «⋯»;
   - crear y renombrar, con sus avisos;
@@ -142,7 +153,7 @@ description: "Lista de tareas de F17 — Carpetas y ámbito del chat"
 - [ ] T019 [US1] Índice F1–F3 y F5 en `DefaultRagIndex.kt`/`RagIndex.kt`, y `DefaultLibraryRepository`/`LibraryRepository` (página por carpeta y operaciones de carpeta). T013 pasa.
 - [ ] T020 [US1] `FolderNames.kt` y `FolderUseCases.kt` en `…/microrag/domain/library/`, con su inyección en `DomainModule`. T012 y T014 pasan.
 - [ ] T021 [US1] Pantallas (contrato UI §1):
-  - `FoldersViewModel`, `FoldersSection` y `FolderDialogs` en `…/microrag/feature/library/`;
+  - `FoldersViewModel` y `FoldersSection` en `…/microrag/feature/library/`, y `FolderDialogs` en `…/microrag/feature/folders/` (L8);
   - el filtro de carpeta en `LibraryViewModel` y `LibraryScreen`;
   - vistas previas;
   - inyección en `FeatureModule`.
@@ -168,15 +179,16 @@ description: "Lista de tareas de F17 — Carpetas y ámbito del chat"
   - la fila de destino, con el valor por defecto según la ruta;
   - la hoja;
   - los documentos elegidos con el destino vigente;
-  - la carpeta en la línea de datos de la cola.
-- [ ] T026 [P] [US2] `…/test/…/data/ingest/DocumentImporterTest.kt` y `DefaultImportQueueRepositoryTest.kt`: el destino llega a `NewDocument.folderId`.
+  - la carpeta en la línea de datos de la cola, que sale del intento (`Attempt.folderId`, M3);
+  - el botón «Elegir» de la hoja.
+- [ ] T026 [P] [US2] `…/test/…/data/ingest/DocumentImporterTest.kt` y `DefaultImportQueueRepositoryTest.kt`: el destino se guarda en el intento al elegir, llega a `NewDocument.folderId` y sobrevive a un reintento. Si la carpeta se borró entretanto, el documento va a «General» con aviso (M3).
 
 ### Implementación
 
 - [ ] T027 [US2] F4 y F6 en el índice; `MoveDocumentUseCase`; el destino en `ImportDocumentsUseCase`, `DefaultImportQueueRepository` y `DocumentImporter`. T023 y T026 pasan.
 - [ ] T028 [US2] `…/microrag/feature/folders/FolderChoiceSheet.kt`, con vistas previas.
 - [ ] T029 [US2] Detalle (`DocumentScreen`, `DocumentViewModel`) e Ingesta (`IngestScreen`, `IngestViewModel`, `Ingest(folderId)` y el «＋» de la carpeta). T024 y T025 pasan.
-- [ ] T030 [US2] Inyección y `LayeringTest`. T002 pasa en su parte de `feature/folders`.
+- [ ] T030 [US2] Inyección y la regla de `LayeringTest` para `feature/folders` (U6): sin `data.`, `androidx.sqlite`, `androidx.work`, LiteRT, `java.io.File` ni `android.app.*Manager`.
 
 ---
 
@@ -196,11 +208,15 @@ description: "Lista de tareas de F17 — Carpetas y ámbito del chat"
 - [ ] T033 [P] [US3] `…/test/…/data/chat/DefaultChatSessionTest.kt`:
   - `ask(…, scope)` recupera con el ámbito de ese momento;
   - una respuesta en curso no cambia de ámbito;
-  - `setScope` se aplica a la pregunta siguiente (FR-019).
+  - `setScope` se aplica a la pregunta siguiente (FR-019);
+  - `retry(turnId)` recupera con el ámbito de su conversación (H3);
+  - la puerta de `ask`/`retry` y la `partial_coverage` del turno se calculan dentro del ámbito.
 - [ ] T034 [P] [US3] `…/test/…/feature/chat/scope/ScopeSelectorViewModelTest.kt`:
   - carpetas no vacías con sus recuentos;
   - desplegar por tandas;
-  - marcar una carpeta, documentos sueltos, y el estado intermedio;
+  - marcar una carpeta, «General», documentos sueltos, y el estado intermedio;
+  - desmarcar un documento de una carpeta marcada entera la convierte en sueltos, con `folderDocumentRefs` (M6);
+  - una carpeta con todos sus documentos excluidos no se puede marcar;
   - «Toda la biblioteca» excluyente;
   - los excluidos no se pueden marcar;
   - «Aplicar» sin nada marcado no se puede;
@@ -227,7 +243,7 @@ description: "Lista de tareas de F17 — Carpetas y ámbito del chat"
 
 - [ ] T041 [P] [US4] Pruebas:
   - `ChatViewModelTest`: abrir desde Historial restaura el ámbito; girar y restaurar el proceso lo conservan; «Nuevo chat» (desde el chat, desde Historial y desde Inicio) usa el último ámbito, y la primera vez «Toda la biblioteca»; las conversaciones antiguas tienen «Toda la biblioteca»;
-  - `DefaultChatSessionTest`: `last_scope` se actualiza al aplicar y al preguntar.
+  - `DefaultChatSessionTest`: `last_scope` se actualiza al aplicar y al preguntar; `setScope` no cambia el orden de Historial; «Borrar historial» vacía `last_scope` (FR-020c).
 - [ ] T042 [US4] Implementación en `DefaultChatSession`, `ChatViewModel` y los casos de uso del último ámbito. T041 pasa.
 
 ---
@@ -244,7 +260,9 @@ description: "Lista de tareas de F17 — Carpetas y ámbito del chat"
 - [ ] T044 [P] [US5] `ChatViewModelTest` y `ChatScreenTest`:
   - `ChatAvailability.NothingInScope`, con «Cambiar ámbito» y el compositor desactivado;
   - los avisos de K10 una vez;
-  - la cobertura parcial del ámbito.
+  - la cobertura parcial del ámbito;
+  - el ámbito ajustado se reescribe, así que el aviso no sale una segunda vez (M8);
+  - `…/test/…/domain/chat/ObserveChatAvailabilityUseCaseTest.kt`: la precedencia de R8 (M5).
 
 ### Implementación
 
@@ -262,8 +280,13 @@ description: "Lista de tareas de F17 — Carpetas y ámbito del chat"
 
 ## Phase 9: User Story 7 - La búsqueda acotada sigue siendo rápida (Priority: P3)
 
-- [ ] T049 [US7] `…/androidTest/…/data/retrieval/RetrievalBenchmarkTest.kt`, ampliada (R11): «Toda la biblioteca», una carpeta de unos 1.000 fragmentos y 5 documentos sueltos, sobre 10.000 fragmentos sintéticos, con el p50 y el p95 de la búsqueda completa. Se ejecuta en `Pixel_10`, y el teléfono queda para la última fase.
-- [ ] T050 [P] [US7] `…/androidTest/…/data/rag/RagIndexLibraryTest.kt`, ampliada: 1.000 documentos en 20 carpetas; el tiempo hasta la lista de carpetas (SC-007) y las tandas por carpeta.
+- [ ] T049 [P] [US7] `…/androidTest/…/data/retrieval/RetrievalBenchmarkTest.kt`, ampliada (R11), sobre 10.000 fragmentos sintéticos:
+  - «Toda la biblioteca», una carpeta de unos 1.000 fragmentos y 5 documentos sueltos;
+  - el modo en streaming frente a top-(k + m) con el ámbito contado en m;
+  - el p50 y el p95 de la búsqueda completa.
+
+  Es `@RequiresModels`, así que se lanza aparte, con `-e class`, donde esté el modelo de embeddings: en el teléfono, en la última fase (T055). En el emulador solo se comprueba que compila. Se queda la variante más rápida (D-072).
+- [ ] T050 [P] [US7] `LibraryBenchmarkTest` (la de F08), ampliada (L7): 1.000 documentos en 20 carpetas; el tiempo hasta la lista de carpetas (SC-007) y las tandas por carpeta.
 
 ---
 
@@ -287,9 +310,9 @@ description: "Lista de tareas de F17 — Carpetas y ámbito del chat"
 
 ## Phase 11: Última fase — teléfono de referencia y cierre
 
-- [ ] T055 Batería instrumentada completa en el A063, con la salida en el teléfono y sin pantalla de bloqueo. Incluye `RetrievalBenchmarkTest` con ámbitos (SC-004).
+- [ ] T055 Batería instrumentada completa en el A063, con la salida en el teléfono y sin pantalla de bloqueo. Además, `RetrievalBenchmarkTest` con ámbitos, de forma explícita (SC-004, T049).
 - [ ] T056 Recorrido **acordado con el usuario antes de empezar** (quickstart §5):
-  - su documento queda en «Sin carpeta» y su conversación con «Toda la biblioteca», sin abrirlos;
+  - su documento queda en «General» y su conversación con «Toda la biblioteca», sin abrirlos;
   - carpetas, documentos y conversaciones de prueba;
   - mover, importar a una carpeta y eliminar con las dos opciones;
   - el ámbito en el chat y en Historial;
@@ -320,7 +343,7 @@ description: "Lista de tareas de F17 — Carpetas y ámbito del chat"
 - Las pruebas primero, y deben fallar.
 - Datos antes que los casos de uso; los casos de uso antes que los ViewModels; los ViewModels antes que las pantallas.
 - **Paradas de consulta:**
-  - la del analyze, si deja decisiones (D-070);
+  - la del analyze (hecha: «General» y desmarcar en una carpeta entera, D-072);
   - T011, si el modo en streaming no se comporta como en R3;
   - T047, si ATF contradice el wireframe;
   - T056: el recorrido del teléfono se acuerda antes con el usuario;
@@ -328,7 +351,7 @@ description: "Lista de tareas de F17 — Carpetas y ámbito del chat"
 
 ### Parallel Opportunities
 
-- **Fase 1:** T001 y T002.
+- **Fase 1:** T001.
 - **Fase 2:** T003–T006.
 - **US1:** T012–T017.
 - **US2:** T023–T026.
