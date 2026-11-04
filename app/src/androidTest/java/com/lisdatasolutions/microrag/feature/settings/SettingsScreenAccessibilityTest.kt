@@ -17,9 +17,15 @@ import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.tryPerformAccessibilityChecks
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
+import com.google.android.apps.common.testing.accessibility.framework.AccessibilityViewCheckResult
+import com.google.android.apps.common.testing.accessibility.framework.checks.TouchTargetSizeCheck
+import com.google.android.apps.common.testing.accessibility.framework.integrations.espresso.AccessibilityValidator
 import com.google.common.truth.Truth.assertWithMessage
 import com.lisdatasolutions.microrag.R
 import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
+import kotlin.math.abs
+import org.hamcrest.Description
+import org.hamcrest.TypeSafeMatcher
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -53,10 +59,36 @@ class SettingsScreenAccessibilityTest(
 
     @Test
     fun passesChecks_andReadsAsSentences() {
-        compose.enableAccessibilityChecks()
         show()
+        compose.enableAccessibilityChecks(validator())
 
         checkAll()
+    }
+
+    /**
+     * F16 T039: a notice sits over the list, and Compose reports a row under it with only its uncovered part,
+     * so ATF sees a short touch target that is the row cut by the notice for a few seconds, not a small row.
+     * Only those results are suppressed: a touch-target result whose bottom is the notice's top edge.
+     */
+    private fun validator(): AccessibilityValidator {
+        val validator = AccessibilityValidator()
+        if (state.message == null) return validator
+        val dismissible = SemanticsMatcher.keyIsDefined(SemanticsActions.Dismiss)
+        compose.waitUntil(NOTICE_TIMEOUT_MS) { compose.onAllNodes(dismissible).fetchSemanticsNodes().isNotEmpty() }
+        val notice = compose.onAllNodes(dismissible).fetchSemanticsNodes().first()
+        val origin = IntArray(2).also { compose.activity.window.decorView.getLocationOnScreen(it) }
+        val noticeTop = origin[1] + notice.boundsInWindow.top.toInt()
+        return validator.setSuppressingResultMatcher(
+            object : TypeSafeMatcher<AccessibilityViewCheckResult>() {
+                override fun describeTo(description: Description) {
+                    description.appendText("a touch target cut by the notice at y=$noticeTop")
+                }
+
+                override fun matchesSafely(result: AccessibilityViewCheckResult): Boolean =
+                    result.accessibilityHierarchyCheck == TouchTargetSizeCheck::class.java &&
+                        result.element?.boundsInScreen?.bottom?.let { abs(it - noticeTop) <= 2 } == true
+            },
+        )
     }
 
     /** The activity turns before anything is drawn, and is back upright before the next test starts. */
@@ -125,6 +157,7 @@ class SettingsScreenAccessibilityTest(
     private fun px(dp: Int): Float = with(compose.density) { dp.dp.toPx() }
 
     companion object {
+        private const val NOTICE_TIMEOUT_MS = 5_000L
         private const val TURN_TIMEOUT_MS = 5_000L
 
         @JvmStatic
