@@ -75,7 +75,7 @@ description: "Lista de tareas de F17 — Carpetas y ámbito del chat"
   - «Borrar historial» vacía también `conversation_scope` y `last_scope`;
   - las filas `general` y la guarda `ref_created_at_ms` de carpetas y documentos;
   - una migración 1 → 2 que falla deja el fichero v1 intacto (M7).
-- [ ] T006 [P] **Puerta de R3:** `…/androidTest/…/data/rag/ScopedSearchTest.kt`, sobre `TempRagIndex` con unos 300 fragmentos sintéticos en 3 carpetas y documentos sueltos, algunos excluidos y uno pendiente.
+- [X] T006 [P] **Puerta de R3:** `…/androidTest/…/data/rag/ScopedSearchTest.kt`, sobre `TempRagIndex` con unos 300 fragmentos sintéticos en 3 carpetas y documentos sueltos, algunos excluidos y uno pendiente.
   - `vector_full_scan('chunks', 'embedding', ?)` sin `k` funciona en 1.1.2.
   - Con `SearchScope.Only`, el top-k por significado y por palabras coincide exactamente con el calculado a mano: todas las distancias o `bm25`, filtrar y ordenar.
   - Con `SearchScope.All`, los resultados son idénticos byte a byte a los del SQL de F10 (SC-003).
@@ -98,8 +98,8 @@ description: "Lista de tareas de F17 — Carpetas y ámbito del chat"
   - `…/microrag/domain/library/FolderModels.kt`;
   - `…/microrag/domain/chat/ChatScope.kt`;
   - `SearchScope` y el `RetrievalRequest` ampliado en `…/microrag/domain/retrieval/RetrievalModels.kt`.
-- [ ] T010 Búsqueda acotada en `…/microrag/data/rag/DefaultRagIndex.kt` y `…/microrag/domain/rag/RagIndex.kt` (F7): `vectorSearch`, `textSearch`, `loadChunks` y `neighbor` con `scope`. El SQL de `SearchScope.All` no cambia. `FakeRagIndex` acepta el parámetro.
-- [ ] T011 **Puerta:** T006 en `Pixel_10` y en `MicroRAG_API33`, con `-s` y `am instrument`. Si el modo en streaming no existe, no coincide o repite el escaneo, **se para y se consulta**. La alternativa a evaluar es top-(k + m) con el ámbito contado en m.
+- [X] T010 Búsqueda acotada en `…/microrag/data/rag/DefaultRagIndex.kt` y `…/microrag/domain/rag/RagIndex.kt` (F7): `vectorSearch`, `textSearch`, `loadChunks` y `neighbor` con `scope`. El SQL de `SearchScope.All` no cambia. `FakeRagIndex` acepta el parámetro.
+- [X] T011 **Puerta:** T006 en `Pixel_10` y en `MicroRAG_API33`, con `-s` y `am instrument`. Si el modo en streaming no existe, no coincide o repite el escaneo, **se para y se consulta**. La alternativa a evaluar es top-(k + m) con el ámbito contado en m.
 
 **Checkpoint:** esquemas v4 y v2 migrados y probados, y búsqueda acotada exacta verificada en los dos emuladores.
 

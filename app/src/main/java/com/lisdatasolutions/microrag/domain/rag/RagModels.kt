@@ -113,3 +113,15 @@ sealed interface IndexCompatibility {
     /** Not a database, or the vector extension could not be loaded or initialized. */
     data class Unreadable(val reason: String) : IndexCompatibility
 }
+
+/**
+ * Which documents a search may return (F17 research R3); excluded and pending ones stay out anyway. It
+ * lives with the index, so `domain/retrieval` carries it without depending on `domain/chat` (analyze M1).
+ */
+sealed interface SearchScope {
+    /** The whole library, with the F10 SQL as it is (SC-003). */
+    data object All : SearchScope
+
+    /** Folders by id, «General» as the documents with no folder, and loose documents, as they are at the question (FR-016). */
+    data class Only(val folderIds: Set<Long>, val general: Boolean, val documentIds: Set<Long>) : SearchScope
+}

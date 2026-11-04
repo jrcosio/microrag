@@ -102,24 +102,25 @@ interface RagIndex {
 
     /**
      * Exact top-[k] search by cosine distance; [query] has 256 components and unit norm. Only chunks
-     * of documents that are done and included are found (F07 rule N7).
+     * of documents that are done and included are found (F07 rule N7), and only in [scope] (F17).
      */
-    suspend fun vectorSearch(query: FloatArray, k: Int = DEFAULT_K): List<ScoredChunk>
+    suspend fun vectorSearch(query: FloatArray, k: Int = DEFAULT_K, scope: SearchScope = SearchScope.All): List<ScoredChunk>
 
     /**
      * BM25 search (title 3, body 1) of [userQuery] normalized with SpanishText; no terms gives an empty
-     * list. Only chunks of documents that are done and included are found (F07 rule N7).
+     * list. Only chunks of documents that are done and included are found (F07 rule N7), and only in [scope].
      */
-    suspend fun textSearch(userQuery: String, k: Int = DEFAULT_K): List<Long>
+    suspend fun textSearch(userQuery: String, k: Int = DEFAULT_K, scope: SearchScope = SearchScope.All): List<Long>
 
     /**
      * Unknown ids are left out of the map. With [searchableOnly], so are chunks of documents that are not
      * done and included, the rule of the searches (F10 research R7): what retrieval loads after searching.
+     * Chunks of documents outside [scope] are left out too (F17).
      */
-    suspend fun loadChunks(ids: Collection<Long>, searchableOnly: Boolean = false): Map<Long, ChunkView>
+    suspend fun loadChunks(ids: Collection<Long>, searchableOnly: Boolean = false, scope: SearchScope = SearchScope.All): Map<Long, ChunkView>
 
-    /** The chunk at [ordinal] of [documentId], if any; with [searchableOnly], only if [loadChunks] would load it. */
-    suspend fun neighbor(documentId: Long, ordinal: Int, searchableOnly: Boolean = false): ChunkView?
+    /** The chunk at [ordinal] of [documentId], if any; only if [loadChunks] would load it with the same arguments. */
+    suspend fun neighbor(documentId: Long, ordinal: Int, searchableOnly: Boolean = false, scope: SearchScope = SearchScope.All): ChunkView?
 
     suspend fun counts(): IndexCounts
 

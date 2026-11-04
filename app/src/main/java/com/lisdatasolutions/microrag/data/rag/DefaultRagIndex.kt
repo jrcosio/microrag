@@ -22,6 +22,7 @@ import com.lisdatasolutions.microrag.domain.rag.RagIndex
 import com.lisdatasolutions.microrag.domain.rag.RagIndexConfig
 import com.lisdatasolutions.microrag.domain.rag.RagMetaKeys
 import com.lisdatasolutions.microrag.domain.rag.ScoredChunk
+import com.lisdatasolutions.microrag.domain.rag.SearchScope
 import com.lisdatasolutions.microrag.domain.rag.StoredDocument
 import com.lisdatasolutions.microrag.rag.runtime.EmbeddingMath
 import com.lisdatasolutions.microrag.rag.text.SpanishText
@@ -298,34 +299,46 @@ class DefaultRagIndex(
         }
     }
 
-    override suspend fun vectorSearch(query: FloatArray, k: Int): List<ScoredChunk> {
+    override suspend fun vectorSearch(query: FloatArray, k: Int, scope: SearchScope): List<ScoredChunk> {
         requireUnitVector(query)
         require(k > 0) { "k must be positive" }
         return withIndex { db ->
-            db.query(VECTOR_SEARCH_SQL, query.toLeBlob(), k + hiddenChunks(db), k) { ScoredChunk(it.getLong(0), it.getDouble(1)) }
-        }
-    }
-
-    override suspend fun textSearch(userQuery: String, k: Int): List<Long> {
-        require(k > 0) { "k must be positive" }
-        val ftsQuery = SpanishText.ftsQuery(userQuery)
-        return withIndex { db ->
-            if (ftsQuery.isEmpty()) {
-                emptyList()
-            } else {
-                db.query(TEXT_SEARCH_SQL, ftsQuery, k + hiddenChunks(db), k) { it.getLong(0) }
+            when (scope) {
+                SearchScope.All ->
+                    db.query(VECTOR_SEARCH_SQL, query.toLeBlob(), k + hiddenChunks(db), k) { ScoredChunk(it.getLong(0), it.getDouble(1)) }
+                is SearchScope.Only -> {
+                    val (condition, args) = scopeCondition(scope)
+                    db.query(scopedVectorSearchSql(condition), query.toLeBlob(), *args, k) { ScoredChunk(it.getLong(0), it.getDouble(1)) }
+                }
             }
         }
     }
 
-    override suspend fun loadChunks(ids: Collection<Long>, searchableOnly: Boolean): Map<Long, ChunkView> = withIndex { db ->
-        ids.distinct().chunked(LOAD_BLOCK).flatMap { block -> loadBlock(db, block, searchableOnly) }.associateBy { it.id }
+    override suspend fun textSearch(userQuery: String, k: Int, scope: SearchScope): List<Long> {
+        require(k > 0) { "k must be positive" }
+        val ftsQuery = SpanishText.ftsQuery(userQuery)
+        return withIndex { db ->
+            when {
+                ftsQuery.isEmpty() -> emptyList()
+                scope is SearchScope.Only -> {
+                    val (condition, args) = scopeCondition(scope)
+                    db.query(scopedTextSearchSql(condition), ftsQuery, *args, k) { it.getLong(0) }
+                }
+                else -> db.query(TEXT_SEARCH_SQL, ftsQuery, k + hiddenChunks(db), k) { it.getLong(0) }
+            }
+        }
     }
 
-    override suspend fun neighbor(documentId: Long, ordinal: Int, searchableOnly: Boolean): ChunkView? = withIndex { db ->
-        db.queryOne("SELECT id FROM chunks WHERE document_id = ? AND ordinal = ?", documentId, ordinal) { it.getLong(0) }
-            ?.let { loadBlock(db, listOf(it), searchableOnly).singleOrNull() }
-    }
+    override suspend fun loadChunks(ids: Collection<Long>, searchableOnly: Boolean, scope: SearchScope): Map<Long, ChunkView> =
+        withIndex { db ->
+            ids.distinct().chunked(LOAD_BLOCK).flatMap { block -> loadBlock(db, block, searchableOnly, scope) }.associateBy { it.id }
+        }
+
+    override suspend fun neighbor(documentId: Long, ordinal: Int, searchableOnly: Boolean, scope: SearchScope): ChunkView? =
+        withIndex { db ->
+            db.queryOne("SELECT id FROM chunks WHERE document_id = ? AND ordinal = ?", documentId, ordinal) { it.getLong(0) }
+                ?.let { loadBlock(db, listOf(it), searchableOnly, scope).singleOrNull() }
+        }
 
     override suspend fun counts(): IndexCounts = withIndex { db ->
         IndexCounts(
@@ -522,14 +535,15 @@ class DefaultRagIndex(
     private fun readMeta(db: RagConnection): Map<String, String> =
         db.query("SELECT key, value FROM rag_meta") { it.getText(0) to it.getText(1) }.toMap()
 
-    private fun loadBlock(db: RagConnection, ids: List<Long>, searchableOnly: Boolean): List<ChunkView> =
-        db.query(
+    private fun loadBlock(db: RagConnection, ids: List<Long>, searchableOnly: Boolean, scope: SearchScope): List<ChunkView> {
+        val (condition, scopeArgs) = (scope as? SearchScope.Only)?.let(::scopeCondition) ?: (null to emptyArray())
+        return db.query(
             """
             SELECT c.id, c.document_id, c.ordinal, c.heading_path, c.page, c.content, c.token_estimate, d.display_name
             FROM chunks c JOIN documents d ON d.id = c.document_id
-            WHERE c.id IN (${ids.joinToString(",") { "?" }})${if (searchableOnly) " AND $SEARCHABLE" else ""}
+            WHERE c.id IN (${ids.joinToString(",") { "?" }})${if (searchableOnly) " AND $SEARCHABLE" else ""}${condition?.let { " AND $it" } ?: ""}
             """.trimIndent(),
-            *ids.toTypedArray(),
+            *ids.toTypedArray(), *scopeArgs,
         ) { s ->
             ChunkView(
                 id = s.getLong(0),
@@ -542,6 +556,7 @@ class DefaultRagIndex(
                 documentName = s.getText(7),
             )
         }
+    }
 
     /**
      * *m* of research R7: stored chunks that searches must not return, of documents not done or excluded.
@@ -597,6 +612,37 @@ class DefaultRagIndex(
             "SELECT rowid, bm25(chunks_fts, 3.0, 1.0) AS score FROM chunks_fts WHERE chunks_fts MATCH ? ORDER BY score LIMIT ?) " +
             "SELECT f.rowid FROM f JOIN chunks c ON c.id = f.rowid JOIN documents d ON d.id = c.document_id " +
             "WHERE " + SEARCHABLE + " ORDER BY f.score LIMIT ?"
+
+        /**
+         * F17 (research R3): the streaming scan, without k, so the scope filters every row and the top k is
+         * exact. Materialized, so it runs once (analyze H1). Arguments: the query blob, the scope's and k.
+         */
+        fun scopedVectorSearchSql(scopeCondition: String): String = "WITH v AS MATERIALIZED (" +
+            "SELECT rowid, distance FROM vector_full_scan('chunks', 'embedding', ?)) " +
+            "SELECT v.rowid, v.distance FROM v JOIN chunks c ON c.id = v.rowid JOIN documents d ON d.id = c.document_id " +
+            "WHERE " + SEARCHABLE + " AND " + scopeCondition + " ORDER BY v.distance LIMIT ?"
+
+        /** Every match, then the scope and the top k. Arguments: the FTS query, the scope's and k. */
+        fun scopedTextSearchSql(scopeCondition: String): String = "WITH f AS MATERIALIZED (" +
+            "SELECT rowid, bm25(chunks_fts, 3.0, 1.0) AS score FROM chunks_fts WHERE chunks_fts MATCH ?) " +
+            "SELECT f.rowid FROM f JOIN chunks c ON c.id = f.rowid JOIN documents d ON d.id = c.document_id " +
+            "WHERE " + SEARCHABLE + " AND " + scopeCondition + " ORDER BY f.score LIMIT ?"
+
+        /** The documents of [scope] as a condition on `d`, with its arguments; «General» is no folder (research R3). */
+        fun scopeCondition(scope: SearchScope.Only): Pair<String, Array<Any?>> {
+            val parts = mutableListOf<String>()
+            val args = mutableListOf<Any?>()
+            if (scope.folderIds.isNotEmpty()) {
+                parts += "d.folder_id IN (${scope.folderIds.joinToString(",") { "?" }})"
+                args.addAll(scope.folderIds)
+            }
+            if (scope.general) parts += "d.folder_id IS NULL"
+            if (scope.documentIds.isNotEmpty()) {
+                parts += "d.id IN (${scope.documentIds.joinToString(",") { "?" }})"
+                args.addAll(scope.documentIds)
+            }
+            return (if (parts.isEmpty()) "0" else parts.joinToString(" OR ", prefix = "(", postfix = ")")) to args.toTypedArray()
+        }
 
         /** androidx.sqlite reports «Error code: 13, message: database or disk is full». */
         private val SQLITE_FULL = Regex("""Error code: 13\b""")

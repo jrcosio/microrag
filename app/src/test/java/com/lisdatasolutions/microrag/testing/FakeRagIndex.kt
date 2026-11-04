@@ -15,6 +15,7 @@ import com.lisdatasolutions.microrag.domain.rag.LibrarySummary
 import com.lisdatasolutions.microrag.domain.rag.NewDocument
 import com.lisdatasolutions.microrag.domain.rag.RagIndex
 import com.lisdatasolutions.microrag.domain.rag.ScoredChunk
+import com.lisdatasolutions.microrag.domain.rag.SearchScope
 import com.lisdatasolutions.microrag.domain.rag.StoredDocument
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -74,6 +75,9 @@ class FakeRagIndex(initial: IndexCompatibility = IndexCompatibility.Compatible) 
 
     /** open, searches and loads, in order: "open", "vector:<k>", "text:<k>:<query>", "load" or "load:searchable" (with the ids), "neighbor" or "neighbor:searchable" (F10). */
     val calls: MutableList<String> = java.util.Collections.synchronizedList(mutableListOf())
+
+    /** F17: the scope of every search, load and neighbor, in the order of [calls]. */
+    val scopes: MutableList<SearchScope> = java.util.Collections.synchronizedList(mutableListOf())
 
     /** Every updateStatus call, in order: (document, status). */
     val statusUpdates: MutableList<Pair<Long, DocumentStatus>> = java.util.Collections.synchronizedList(mutableListOf())
@@ -236,20 +240,23 @@ class FakeRagIndex(initial: IndexCompatibility = IndexCompatibility.Compatible) 
         inserted
     }
 
-    override suspend fun vectorSearch(query: FloatArray, k: Int): List<ScoredChunk> = available {
+    override suspend fun vectorSearch(query: FloatArray, k: Int, scope: SearchScope): List<ScoredChunk> = available {
         calls += "vector:$k"
+        scopes += scope
         searchError?.let { throw it }
         vectorResults(query).take(k)
     }
 
-    override suspend fun textSearch(userQuery: String, k: Int): List<Long> = available {
+    override suspend fun textSearch(userQuery: String, k: Int, scope: SearchScope): List<Long> = available {
         calls += "text:$k:$userQuery"
+        scopes += scope
         searchError?.let { throw it }
         textResults(userQuery).take(k)
     }
 
-    override suspend fun loadChunks(ids: Collection<Long>, searchableOnly: Boolean): Map<Long, ChunkView> = available {
+    override suspend fun loadChunks(ids: Collection<Long>, searchableOnly: Boolean, scope: SearchScope): Map<Long, ChunkView> = available {
         calls += (if (searchableOnly) "load:searchable" else "load") + ids.joinToString(",", prefix = ":")
+        scopes += scope
         chunkReads++
         val wanted = ids.toSet()
         chunkIds.filterKeys { !searchableOnly || searchable(it) }
@@ -257,8 +264,9 @@ class FakeRagIndex(initial: IndexCompatibility = IndexCompatibility.Compatible) 
             .associateBy { it.id }
     }
 
-    override suspend fun neighbor(documentId: Long, ordinal: Int, searchableOnly: Boolean): ChunkView? = available {
+    override suspend fun neighbor(documentId: Long, ordinal: Int, searchableOnly: Boolean, scope: SearchScope): ChunkView? = available {
         calls += if (searchableOnly) "neighbor:searchable" else "neighbor"
+        scopes += scope
         chunkReads++
         if (searchableOnly && !searchable(documentId)) null else view(documentId, ordinal)
     }
