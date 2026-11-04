@@ -1,6 +1,6 @@
 # Wireframe: Carpetas y ámbito del chat (F17)
 
-**Estado:** propuesta, pendiente de la aprobación del usuario antes de `/speckit-plan` (criterio 1 de F17, constitución VII).
+**Estado:** aprobado por el usuario el 2026-11-04, antes de `/speckit-plan` (criterio 1 de F17, constitución VII; D-070). K4 y K11 cambiaron en el clarify.
 **Fecha:** 2026-11-04
 **Spec:** [spec.md](spec.md) (FR-001 a FR-028; propuestas K1–K14 en «Assumptions»).
 
@@ -67,17 +67,27 @@ Los textos van entre «» en español; la versión inglesa está en la spec (K14
 ## 3. Crear, renombrar y eliminar (K3, K4)
 
 ```
-┌───────────────────────────────┐        ┌───────────────────────────────┐
-│ Nueva carpeta                 │        │ ¿Eliminar la carpeta «Legal»? │
-│ ┌───────────────────────────┐ │        │ Sus 12 documentos pasarán a   │
-│ │ Legal                     │ │ ← campo│ «Sin carpeta». No se borra    │
-│ └───────────────────────────┘ │  nuevo │ ningún documento.             │
-│ Ya hay una carpeta con ese    │ ← aviso│                               │
-│ nombre                        │        │      [Cancelar]  [Eliminar]   │
-│       [Cancelar]  [Crear]     │        └───────────────────────────────┘
-└───────────────────────────────┘          LisdataConfirmationDialog
+┌───────────────────────────────┐        ┌────────────────────────────────────┐
+│ Nueva carpeta                 │        │ ¿Eliminar la carpeta «Legal»?      │
+│ ┌───────────────────────────┐ │        │ ◉ Mover sus 12 documentos a        │
+│ │ Legal                     │ │ ← campo│   «Sin carpeta»                    │ ← por defecto
+│ └───────────────────────────┘ │  nuevo │ ○ Eliminar también sus 12          │
+│ Ya hay una carpeta con ese    │ ← aviso│   documentos                       │
+│ nombre                        │        │          [Cancelar]  [Eliminar]    │
+│       [Cancelar]  [Crear]     │        └────────────────────────────────────┘
+└───────────────────────────────┘          LisdataConfirmationDialog + LisdataRadioRow
   LisdataConfirmationDialog con contenido
+
+Si se eligió borrar los documentos, un segundo aviso (constitución V):
+┌────────────────────────────────────────────┐
+│ ¿Eliminar 12 documentos?                   │
+│ Se eliminarán de este teléfono, con su     │
+│ texto y su índice. No se puede deshacer.   │
+│         [Cancelar]  [Eliminar documentos]  │ ← «Eliminar documentos» en el color de error
+└────────────────────────────────────────────┘
 ```
+
+- **Mientras borra,** el botón dice «Eliminando…». Al terminar, el aviso inferior «Carpeta eliminada». Si falla a medias, «No se pudieron eliminar algunos documentos», y la carpeta queda con ellos.
 
 - **«Renombrar carpeta»:** el mismo diálogo con el nombre actual y «Guardar».
 - **Avisos del campo:** «Escribe un nombre», «Ya hay una carpeta con ese nombre», «Ese nombre está reservado» y «Máximo 40 caracteres». TalkBack los lee.
@@ -163,6 +173,7 @@ Hoja «Buscar en» (K8)
 
 - **Marcar «Toda la biblioteca»** desmarca todo lo demás, y marcar cualquier carpeta o documento desmarca «Toda la biblioteca».
 - **Una carpeta marcada entera** incluye también los documentos que lleguen después a ella (FR-016).
+- **«Nuevo chat»** abre con el último ámbito usado ya en la ficha (K11, cambiado en el clarify). La primera vez, «Toda la biblioteca».
 - **Las carpetas vacías no aparecen** en el selector.
 
 ## 7. Estados y avisos del chat (K9, K10)

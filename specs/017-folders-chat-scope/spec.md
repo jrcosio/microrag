@@ -50,6 +50,16 @@
 
   No hay campo de texto para nombres, casillas con tres estados ni filas desplegables.
 
+## Clarifications
+
+### Session 2026-11-04
+
+- Q: ¿Cómo se organiza la Biblioteca con carpetas? → A: Como una lista de carpetas con su recuento y «Sin carpeta». Al entrar en una, la lista de hoy (búsqueda, filtros, «Incluir en RAG»). Desde fuera, la búsqueda encuentra en todas (K1, K2).
+- Q: Al eliminar una carpeta, ¿qué pasa con sus documentos? → A: Se elige en el diálogo: pasan a «Sin carpeta» (opción por defecto) o se borran también. Si se borran, hay un segundo aviso, y se limpian su archivo, sus fragmentos, sus vectores y sus datos como al eliminar un documento (FR-005, K4).
+- Q: ¿Con qué ámbito empieza «Nuevo chat»? → A: Con el último ámbito usado: el último que el usuario aplicó con el selector o con el que hizo una pregunta, en cualquier conversación. La primera vez, y si lo que contenía ya no existe, «Toda la biblioteca» (FR-020, K11).
+- Q: En el selector del ámbito, ¿qué se hace con los documentos que tienen «Incluir en RAG» desactivado? → A: Se ven en gris con «No incluido en RAG» y no se pueden marcar. La exclusión global sigue mandando (FR-015, K8).
+- Q: ¿Se aprueban la spec, el wireframe y las propuestas K1–K14 con estas respuestas? → A: Sí (revisión del clarify, 2026-11-04). Queda en D-070.
+
 ## User Scenarios & Testing *(mandatory)*
 
 **Actores:**
@@ -73,7 +83,8 @@ En la Biblioteca, el usuario ve sus carpetas con el número de documentos de cad
 2. **Given** la Biblioteca, **When** el usuario toca «Nueva carpeta», escribe «Legal» y la crea, **Then** «Legal» aparece en la lista, con 0 documentos.
 3. **Given** un nombre vacío o igual a otro (sin importar mayúsculas ni tildes), **When** el usuario intenta crear o renombrar, **Then** la app no lo acepta y dice por qué.
 4. **Given** una carpeta, **When** el usuario la renombra, **Then** el nombre nuevo aparece en la Biblioteca, en el detalle de sus documentos y en el ámbito de los chats que la usan.
-5. **Given** una carpeta con documentos, **When** el usuario la elimina y confirma, **Then** la carpeta desaparece y sus documentos pasan a «Sin carpeta», sin borrarse ninguno (K4).
+5. **Given** una carpeta con documentos, **When** el usuario la elimina y elige «Mover a Sin carpeta», **Then** la carpeta desaparece y sus documentos pasan a «Sin carpeta», sin borrarse ninguno (K4).
+5b. **Given** una carpeta con documentos, **When** el usuario la elimina, elige «Eliminar también los documentos» y lo confirma en el segundo aviso, **Then** la carpeta y sus documentos desaparecen, con su archivo, sus fragmentos y sus vectores, y los demás documentos no cambian.
 6. **Given** una carpeta, **When** el usuario entra, **Then** ve solo sus documentos, con la búsqueda, los filtros Todos/Indexados/Pendientes, la carga por tandas y el interruptor «Incluir en RAG», como en la Biblioteca de hoy.
 7. **Given** la Biblioteca, **When** el usuario escribe en la búsqueda sin entrar en ninguna carpeta, **Then** encuentra documentos de todas las carpetas, con el nombre de la carpeta de cada uno.
 
@@ -134,7 +145,8 @@ Cada conversación recuerda su ámbito. Al reabrirla desde Historial, al volver 
 **Acceptance Scenarios**:
 
 1. **Given** una conversación con el ámbito «Legal», **When** el usuario la reabre desde Historial, **Then** la ficha dice «Legal», y sus preguntas siguientes solo usan «Legal».
-2. **Given** «Nuevo chat», **When** se abre, **Then** su ámbito es «Toda la biblioteca» (K11).
+2. **Given** el último ámbito usado es «Legal», **When** el usuario abre «Nuevo chat» (desde el chat o desde Inicio), **Then** su ámbito es «Legal», y la ficha lo muestra (K11).
+2b. **Given** la app recién instalada o actualizada, **When** el usuario abre «Nuevo chat», **Then** su ámbito es «Toda la biblioteca».
 3. **Given** un ámbito elegido en un chat sin preguntas todavía, **When** el usuario hace la primera pregunta, **Then** la conversación se guarda con ese ámbito.
 4. **Given** una conversación de antes de esta versión, **When** se abre, **Then** su ámbito es «Toda la biblioteca».
 5. **Given** la app cerrada por el sistema con un chat abierto, **When** el usuario vuelve, **Then** el chat tiene el mismo ámbito.
@@ -209,6 +221,8 @@ Quien desarrolla mide la búsqueda con un ámbito pequeño sobre una biblioteca 
 - **Eliminar un documento:** desaparece de su carpeta y de todos los ámbitos.
 - **Biblioteca vacía:** la Biblioteca muestra el estado vacío de hoy, y «Nueva carpeta» sigue disponible.
 - **Ámbito con documentos de una carpeta borrada y vuelta a crear con el mismo nombre:** es otra carpeta; la del ámbito ya no existe (US5).
+- **Eliminar una carpeta con sus documentos mientras una respuesta los usa:** la respuesta en curso se detiene primero, como al eliminar un documento citado. Sus fuentes quedan como «Fuente ya no disponible».
+- **El último ámbito usado apunta a algo borrado:** al abrir «Nuevo chat», se ajusta (FR-021) y, si no queda nada, es «Toda la biblioteca».
 - **Cambio de idioma de la app:** «Toda la biblioteca», «Sin carpeta» y los recuentos cambian de idioma, pero los nombres de carpeta no.
 - **Doble toque en «Crear», «Aplicar» o «Mover»:** se hace una sola vez.
 - **Fallo al guardar** (crear, renombrar, eliminar, mover o guardar el ámbito): nada cambia, y un aviso lo dice.
@@ -224,7 +238,11 @@ Quien desarrolla mide la búsqueda con un ámbito pequeño sobre una biblioteca 
 - **FR-002**: Al actualizar desde una versión sin carpetas, todos los documentos existentes MUST quedar en «Sin carpeta», sin perder ningún dato ni cambiar su estado ni su inclusión.
 - **FR-003**: El usuario MUST poder crear una carpeta con un nombre de 1 a 40 caracteres, sin espacios en los extremos, que no coincida con otra ni con «Sin carpeta» sin distinguir mayúsculas ni tildes. Un nombre no válido MUST explicarse sin cerrar el diálogo.
 - **FR-004**: El usuario MUST poder renombrar una carpeta, con las mismas reglas. El nombre nuevo MUST verse en todos los sitios donde aparece.
-- **FR-005**: El usuario MUST poder eliminar una carpeta con confirmación. Sus documentos MUST pasar a «Sin carpeta», y ningún documento MUST borrarse (K4). La carpeta MUST salir de todos los ámbitos.
+- **FR-005**: El usuario MUST poder eliminar una carpeta con confirmación, eligiendo en el diálogo qué pasa con sus documentos (K4):
+  - «Mover a Sin carpeta», la opción marcada por defecto: ningún documento se borra;
+  - «Eliminar también los documentos»: tras un segundo aviso con el número de documentos, cada uno se borra como en F08 (archivo, fragmentos, vectores y datos; constitución V). Si alguno se está indexando, su indexación se detiene antes.
+
+  La carpeta MUST salir de todos los ámbitos. Si el borrado falla a medias, la carpeta MUST quedar con los documentos que no se pudieron borrar, y un aviso lo dice.
 
 **Biblioteca**
 
@@ -248,7 +266,8 @@ Quien desarrolla mide la búsqueda con un ámbito pequeño sobre una biblioteca 
 - **FR-017**: La recuperación MUST usar solo documentos indexados, incluidos y dentro del ámbito, en la búsqueda por significado, en la búsqueda por palabras y en la carga de candidatos y vecinos. Con «Toda la biblioteca» MUST dar exactamente el mismo resultado que sin carpetas. La recuperación (fusión, candidatos, contexto y prompt) MUST NOT cambiar en lo demás (constitución III).
 - **FR-018**: El resultado de una búsqueda acotada MUST ser exacto: ningún documento del ámbito MUST quedarse fuera porque otros, de fuera, ocupen los candidatos.
 - **FR-019**: Cambiar el ámbito MUST aplicarse a las preguntas siguientes de esa conversación. Las respuestas anteriores MUST conservar sus fuentes. Una respuesta en curso MUST terminar con el ámbito con el que empezó.
-- **FR-020**: El ámbito MUST guardarse con la conversación en cuanto tiene su primera pregunta, y MUST restaurarse al abrirla desde Historial, al volver a la pestaña Chat, al girar y tras cerrar la app. «Nuevo chat» MUST empezar con «Toda la biblioteca» (K11). Las conversaciones anteriores a esta versión MUST tener «Toda la biblioteca».
+- **FR-020**: El ámbito MUST guardarse con la conversación en cuanto tiene su primera pregunta, y MUST restaurarse al abrirla desde Historial, al volver a la pestaña Chat, al girar y tras cerrar la app. Las conversaciones anteriores a esta versión MUST tener «Toda la biblioteca».
+- **FR-020b**: «Nuevo chat», desde el chat, desde Historial o desde Inicio, MUST empezar con el último ámbito usado (K11). Es el último que el usuario aplicó con el selector o con el que hizo una pregunta, en cualquier conversación, y se conserva tras cerrar la app. La primera vez es «Toda la biblioteca». Si lo que contenía ya no existe, se ajusta como en FR-021.
 - **FR-021**: Si una carpeta o un documento del ámbito ya no existe, MUST salir del ámbito y la app MUST avisarlo al abrir la conversación. Si no queda nada, el ámbito MUST volver a «Toda la biblioteca», con un aviso. Un documento creado después de guardarse el ámbito MUST NOT contar como el documento borrado que tenía su mismo identificador interno (D-065).
 - **FR-022**: Si el ámbito no tiene documentos indexados e incluidos, el chat MUST decirlo con «Cambiar ámbito» y MUST NOT dejar preguntar. La «cobertura parcial» y los demás estados del chat MUST calcularse dentro del ámbito.
 
@@ -272,6 +291,7 @@ Quien desarrolla mide la búsqueda con un ámbito pequeño sobre una biblioteca 
 - **Carpeta:** un grupo de documentos con un nombre que escribe el usuario, único sin distinguir mayúsculas ni tildes, y su fecha de creación. No contiene otras carpetas. Su identificador no se reutiliza aunque se borre.
 - **Documento** (de F06–F08): gana una carpeta, que puede no tener («Sin carpeta»). Mover no cambia nada más.
 - **Ámbito de una conversación:** «Toda la biblioteca», o carpetas completas más documentos sueltos. Se guarda con la conversación y se ajusta cuando lo que contiene deja de existir.
+- **Último ámbito usado:** el ámbito con el que empieza «Nuevo chat». Se guarda en el teléfono y se ajusta igual que el de una conversación.
 
 ## Success Criteria *(mandatory)*
 
@@ -282,7 +302,7 @@ Quien desarrolla mide la búsqueda con un ámbito pequeño sobre una biblioteca 
 - **SC-003**: Con «Toda la biblioteca», la búsqueda devuelve exactamente los mismos bloques que sin carpetas en el 100 % de las preguntas del conjunto de comprobación.
 - **SC-004**: Con 10.000 fragmentos y un ámbito de unos 1.000, el informe recoge el p50 y el p95 de la búsqueda completa en el teléfono de referencia, frente a «Toda la biblioteca». El objetivo es no superar el p95 de F10 (200 ms); si se supera, queda anotado para F14.
 - **SC-005**: El 100 % de las conversaciones reabiertas desde Historial, tras girar y tras cerrar la app conservan su ámbito.
-- **SC-006**: Eliminar una carpeta no borra ningún documento: el número de documentos y de fragmentos indexados no cambia, en el 100 % de las pruebas.
+- **SC-006**: Eliminar una carpeta con «Mover a Sin carpeta» no borra ningún documento: el número de documentos y de fragmentos indexados no cambia, en el 100 % de las pruebas. Con «Eliminar también los documentos», desaparecen exactamente los de la carpeta, sin dejar archivos, fragmentos ni vectores suyos.
 - **SC-007**: Con 1.000 documentos en 20 carpetas, la Biblioteca muestra sus carpetas en menos de 1 s en el teléfono de referencia.
 - **SC-008**: Las comprobaciones automáticas de accesibilidad pasan en todas las pantallas, diálogos y hojas nuevas o cambiadas, en claro y en oscuro, con la letra al 200 % y en horizontal.
 - **SC-009**: Los textos en español y en inglés tienen las mismas claves (100 % de paridad).
@@ -303,7 +323,11 @@ Quien desarrolla mide la búsqueda con un ámbito pequeño sobre una biblioteca 
     - la lista de la Biblioteca de hoy, solo con sus documentos: búsqueda, filtros, «Incluir en RAG» y estados.
   - **K3 — Crear y renombrar:** un diálogo con un campo de nombre (pieza nueva del design system) y «Crear» o «Guardar».
     - Avisos bajo el campo: «Escribe un nombre», «Ya hay una carpeta con ese nombre», «Ese nombre está reservado» y «Máximo 40 caracteres».
-  - **K4 — Eliminar carpeta:** confirmación «¿Eliminar la carpeta «Legal»?», «Sus 12 documentos pasarán a «Sin carpeta». No se borra ningún documento.», con «Cancelar» (foco por defecto) y «Eliminar».
+  - **K4 — Eliminar carpeta** (cambiado en el clarify): confirmación «¿Eliminar la carpeta «Legal»?», con dos opciones de radio:
+    - «Mover sus 12 documentos a «Sin carpeta»», marcada por defecto;
+    - «Eliminar también sus 12 documentos».
+
+    Después, «Cancelar» (foco por defecto) y «Eliminar». Si se eligió borrar los documentos, un segundo aviso: «Se eliminarán 12 documentos de este teléfono, con su texto y su índice. No se puede deshacer.», con «Cancelar» y «Eliminar documentos». Mientras borra, «Eliminando…»; al terminar, el aviso inferior «Carpeta eliminada».
   - **K5 — Mover a carpeta:**
     - el detalle muestra «Carpeta: Legal» entre sus datos;
     - el «⋯» del detalle gana «Mover a carpeta», que abre una hoja con las carpetas como opciones de radio, «Sin carpeta» y «Nueva carpeta…»;
@@ -323,7 +347,7 @@ Quien desarrolla mide la búsqueda con un ámbito pequeño sobre una biblioteca 
     Las casillas de tres estados y las filas desplegables son piezas nuevas del design system.
   - **K9 — Ámbito sin documentos listos:** el estado vacío del chat «En este ámbito no hay documentos listos para buscar» con el botón «Cambiar ámbito».
   - **K10 — Avisos del ámbito:** al abrir una conversación cuyo ámbito cambió, el aviso inferior «Una carpeta del ámbito ya no existe», «Un documento del ámbito ya no existe» o «El ámbito vuelve a ser toda la biblioteca».
-  - **K11 — «Nuevo chat»:** empieza siempre con «Toda la biblioteca».
+  - **K11 — «Nuevo chat»** (cambiado en el clarify): empieza con el último ámbito usado, que la ficha muestra desde el primer momento. La primera vez, «Toda la biblioteca».
   - **K12 — Historial:** sin cambios; las filas no muestran el ámbito.
   - **K13 — Accesibilidad:** 48 dp; carpetas como frases; casillas con su estado; en horizontal y con la letra al 200 %, la ficha se acorta con «…» y el selector se desplaza.
   - **K14 — Textos nuevos en inglés:**
