@@ -42,6 +42,7 @@ import com.lisdatasolutions.microrag.core.designsystem.component.LisdataOverflow
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataSearchField
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataSectionHeader
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataSkeletonRow
+import com.lisdatasolutions.microrag.core.designsystem.component.LisdataSnackbarOnce
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataTopBar
 import com.lisdatasolutions.microrag.core.designsystem.component.LoadMoreNearTheEnd
 import com.lisdatasolutions.microrag.core.designsystem.icon.LisdataIcon
@@ -109,11 +110,7 @@ fun LibraryRoute(
     val gone = folderId != null && folders.folders?.folders?.none { it.id == folderId } == true && !folders.busy
     LaunchedEffect(gone) { if (gone && folders.deletedFolder == null) onFolderGone(false) }
     val folderText = folders.message?.takeUnless { folderId != null && folders.deletedFolder == folderId }?.let { stringResource(it.text()) }
-    LaunchedEffect(folders.message) {
-        if (folderText == null) return@LaunchedEffect
-        foldersViewModel.onMessageShown()
-        snackbar.showSnackbar(folderText)
-    }
+    LisdataSnackbarOnce(folderText, snackbar, foldersViewModel::onMessageShown)
     // Consumed as soon as it arrives, so a rotation while it shows does not repeat it; the snackbar
     // follows this copy, as consuming the message must not cancel it.
     var showing by remember { mutableStateOf<LibraryMessage?>(null) }
@@ -392,7 +389,7 @@ private fun DocumentRow(document: LibraryDocument, actions: LibraryActions, show
         includeEnabled = document.canChangeInclusion,
         onIncludedChange = { actions.onIncludedChange(document.id, it) },
         onClick = { actions.onOpen(document.id) },
-        accessibilityText = document.accessibilityText(),
+        accessibilityText = document.accessibilityText(folder),
         onClickLabel = stringResource(R.string.library_row_action),
         switchLabel = stringResource(R.string.library_include_switch),
         modifier = Modifier.fillMaxWidth(),

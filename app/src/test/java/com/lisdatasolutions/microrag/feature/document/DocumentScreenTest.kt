@@ -451,4 +451,18 @@ class DocumentScreenTest {
 
         assertThat(moving).containsExactly("move")
     }
+
+    /** Consuming the message must not cancel the notice that shows it (found in the F17 walkthrough, as F08 B8). */
+    @Test
+    fun theMovedNoticeStaysAfterItsMessageIsConsumed() {
+        val shown = androidx.compose.runtime.mutableStateOf(DocumentPreviewData.png.copy(moveMessage = MoveMessage.Moved("Motores")))
+        compose.mainClock.autoAdvance = false
+        compose.setContent {
+            LisdataTheme { DocumentScreen(shown.value, actions, onMoveMessageShown = { shown.value = shown.value.copy(moveMessage = null) }) }
+        }
+        compose.mainClock.advanceTimeBy(500)
+
+        assertThat(shown.value.moveMessage).isNull()
+        compose.onNodeWithText("Movido a «Motores»").assertExists()
+    }
 }

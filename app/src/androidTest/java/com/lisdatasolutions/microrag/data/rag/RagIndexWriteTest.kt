@@ -49,6 +49,8 @@ class RagIndexWriteTest {
         }
         assertThat(objects).containsExactly(
             "table:rag_meta", "table:documents", "index:idx_documents_created", "index:idx_documents_replaces",
+            // F17 (research R1): the folders and the documents' index by folder.
+            "table:folders", "index:idx_documents_folder",
             "table:chunks", "index:idx_chunks_doc", "table:chunks_fts",
             "trigger:chunks_ai", "trigger:chunks_ad", "trigger:chunks_au",
             // Created by SQLite-Vector itself when it is loaded (research R3).

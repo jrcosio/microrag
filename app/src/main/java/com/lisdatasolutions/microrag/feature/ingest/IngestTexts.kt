@@ -150,5 +150,7 @@ fun QueueItem.accessibilityText(): String {
     val percent = (state.progress() as? ProgressValue.Determinate)
         ?.takeIf { state is QueueItemState.Importing }
         ?.let { stringResource(R.string.ingest_progress_percent, it.percent) }
-    return stringResource(R.string.ingest_row_description, displayName, listOfNotNull(detail, percent).joinToString(", "))
+    // F17 K6: and where it goes.
+    val folder = folderName ?: stringResource(R.string.library_folder_general)
+    return stringResource(R.string.ingest_row_description, displayName, listOfNotNull(detail, percent, folder).joinToString(", "))
 }

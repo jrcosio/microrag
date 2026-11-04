@@ -60,6 +60,7 @@ import com.lisdatasolutions.microrag.core.designsystem.component.LisdataOutlined
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataOverflowMenu
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataScopeChip
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataSectionHeader
+import com.lisdatasolutions.microrag.core.designsystem.component.LisdataSnackbarOnce
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataSourceCitation
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataTopBar
 import com.lisdatasolutions.microrag.core.designsystem.icon.LisdataIcons
@@ -126,11 +127,7 @@ fun ChatRoute(
     val snackbar = remember { SnackbarHostState() }
     // K10: what fell out of the scope, once.
     val notice = state.scopeNotice?.let { stringResource(it.text()) }
-    LaunchedEffect(state.scopeNotice) {
-        if (notice == null) return@LaunchedEffect
-        viewModel.onScopeNoticeShown()
-        snackbar.showSnackbar(notice)
-    }
+    LisdataSnackbarOnce(notice, snackbar, viewModel::onScopeNoticeShown)
     val clipboard = LocalClipboard.current
     val clipLabel = stringResource(R.string.chat_clip_label)
     LaunchedEffect(viewModel) {

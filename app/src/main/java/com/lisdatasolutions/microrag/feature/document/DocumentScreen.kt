@@ -63,6 +63,7 @@ import com.lisdatasolutions.microrag.core.designsystem.component.LisdataProgress
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataProgressRing
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataSectionHeader
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataSkeletonRow
+import com.lisdatasolutions.microrag.core.designsystem.component.LisdataSnackbarOnce
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataStatCard
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataStatusChip
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataSwitchRow
@@ -262,11 +263,7 @@ fun DocumentScreen(
         is MoveMessage.Moved -> stringResource(R.string.document_moved, message.folderName ?: stringResource(R.string.library_folder_general))
         MoveMessage.Failed -> stringResource(R.string.document_move_failed)
     }
-    LaunchedEffect(state.moveMessage) {
-        if (moved == null) return@LaunchedEffect
-        onMoveMessageShown()
-        snackbarHostState.showSnackbar(moved)
-    }
+    LisdataSnackbarOnce(moved, snackbarHostState, onMoveMessageShown)
 }
 
 /** What the switch does now: PNG 07 only shows the included case (constitution V). */

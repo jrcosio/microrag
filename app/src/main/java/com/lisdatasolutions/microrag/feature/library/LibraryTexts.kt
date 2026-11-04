@@ -61,9 +61,10 @@ fun LibraryDocument.chip(): Pair<String, StatusKind>? = when (val state = state)
 
 /** A1, B5, B6: «Manual.pdf, PDF · 860 fragmentos, incluido». */
 @Composable
-fun LibraryDocument.accessibilityText(): String {
+fun LibraryDocument.accessibilityText(folder: String? = null): String {
     val state = listOfNotNull(
-        metaText() + (metaAccent()?.let { " · $it" } ?: ""),
+        // F17 K1: the root's search says the folder, as the data line.
+        metaText() + (metaAccent()?.let { " · $it" } ?: "") + (folder?.let { " · $it" } ?: ""),
         chip()?.first,
     ).joinToString(", ")
     val inclusion = when {
