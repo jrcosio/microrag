@@ -296,6 +296,11 @@ description: "Lista de tareas de F16 — Apariencia: tema e icono de Ajustes"
 ## Phase 10: Última fase — teléfono de referencia y cierre
 
 - [ ] T039 Batería instrumentada completa en el A063, con los APK finales y la pantalla despierta. El modo por app no se puede leer (R2), así que al terminar se fuerza siempre «Sistema» desde la app. El `cmd uimode night` del teléfono se anota antes y se restaura después, incluidos `auto` y `custom` (L6).
+
+  **Avance (2026-11-04), sin terminar:**
+  - **Primera tanda:** el cliente `adb` se cortó en `ShellInsetsTest` (salida 255), pero la instrumentación siguió en el teléfono. El `TestRunner` cerró con «815 tests, 3 failed», y el log ya no guardaba cuáles fueron.
+  - **Segunda tanda,** con la salida en `/data/local/tmp`: 236 pruebas sin fallos cuando el usuario pidió parar.
+  - Hay que repetirla entera, con la salida en el teléfono, e identificar esos 3 fallos.
 - [ ] T040 Recorrido **acordado con el usuario antes de empezar** (quickstart §4):
   - el engranaje;
   - la fila y la pantalla Tema con los tres temas y los dos modos del teléfono;

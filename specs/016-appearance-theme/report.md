@@ -53,7 +53,7 @@
 | `Pixel_10` (API 37), instrumentadas | OK, 815 pruebas (40 más que en F13), en 19,7 min |
 | `MicroRAG_API33` (API 33), instrumentadas | 815 pruebas, en 20,6 min: los 4 fallos previos de Atrás desde la raíz y ninguno más |
 | `MicroRAG_API32` (API 32) | `PlatformAppThemeControllerTest` 3 de 3 (puerta T015) |
-| Teléfono A063, instrumentadas | *pendiente (T039)* |
+| Teléfono A063, instrumentadas | *Sin terminar (T039).* Primera tanda: 815 pruebas con 3 fallos sin identificar (el cliente `adb` se cortó, y el log no los guardó). Segunda tanda parada a petición del usuario en 236 pruebas, sin fallos |
 
 **Los 4 fallos de API 33 no son de F16.** Son los mismos de F12 y F13: `SystemBackTest` y tres casos de `OnboardingNavigationTest` esperan que Atrás desde la raíz cierre la actividad (`DESTROYED`), y en API 33 queda en `CREATED`. En `Pixel_10` pasan.
 
@@ -128,7 +128,11 @@ Los 9 textos nuevos, revisados y sin correcciones: «Theme», «Appearance», «
 
 ## 9. Pendiente
 
-- **Fase del teléfono (T039–T041):** batería, recorrido acordado, arranques con el muestreo de un píxel, respuesta e indexación durante el cambio, y red.
+- **Fase del teléfono (T039–T041),** parada el 2026-11-04 a petición del usuario:
+  - repetir la batería con la salida en `/data/local/tmp` e identificar los 3 fallos de la primera tanda;
+  - el recorrido acordado (todo lo propuesto, aprobado el 2026-11-04): arranques con el muestreo de un píxel, reinicio, respuesta e indexación con el documento de prueba `wb-ajedrez.txt` en `Download/MicroRAG-F16-prueba/`, y red.
+
+  El teléfono quedó con sus ajustes (modo oscuro, letra 1,0, giro vertical fijo y app en español), la app en «Sistema» y sin el documento de prueba.
 
 **Visto durante las pruebas, fuera de F16** (no se ha tocado):
 - En Bienvenida, con el tema claro, los iconos de la barra de estado salen oscuros sobre su degradado oscuro. Pasaba igual antes de F16 con el teléfono en claro. Queda para F15.
