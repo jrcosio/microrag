@@ -5,6 +5,7 @@ import com.lisdatasolutions.microrag.feature.document.DocumentViewModel
 import com.lisdatasolutions.microrag.feature.history.HistoryViewModel
 import com.lisdatasolutions.microrag.feature.indexing.IndexViewModel
 import com.lisdatasolutions.microrag.feature.ingest.IngestViewModel
+import com.lisdatasolutions.microrag.feature.folders.FoldersViewModel
 import com.lisdatasolutions.microrag.feature.library.LibraryViewModel
 import com.lisdatasolutions.microrag.feature.onboarding.setup.SetupViewModel
 import com.lisdatasolutions.microrag.feature.onboarding.welcome.WelcomeViewModel
@@ -24,7 +25,9 @@ val featureModule = module {
     }
     viewModel { IngestViewModel(get(), get(), get(), get(), get()) }
     viewModel { IndexViewModel(get(), get(), get(), get()) }
-    viewModel { LibraryViewModel(get(), get(), get()) }
+    // F17 (research R5): the folder comes from the route, as a parameter; none is the root.
+    viewModel { params -> LibraryViewModel(get(), get(), get(), folder = params.getOrNull()) }
+    viewModel { FoldersViewModel(get(), get(), get(), get(), get()) }
     viewModel { HomeViewModel(get(), get(), get(), get(), get()) }
     viewModel { DocumentViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { ChatViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }

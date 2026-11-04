@@ -38,6 +38,7 @@ import com.lisdatasolutions.microrag.core.designsystem.component.LisdataFilterCh
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataGradientButton
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataInfoCard
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataOutlinedButton
+import com.lisdatasolutions.microrag.core.designsystem.component.LisdataOverflowMenu
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataSearchField
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataSectionHeader
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataSkeletonRow
@@ -48,7 +49,16 @@ import com.lisdatasolutions.microrag.core.designsystem.icon.LisdataIcons
 import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
 import com.lisdatasolutions.microrag.domain.library.LibraryDocument
 import com.lisdatasolutions.microrag.domain.library.LibraryFilter
+import com.lisdatasolutions.microrag.domain.rag.LibraryFolderFilter
+import com.lisdatasolutions.microrag.feature.folders.FolderDialogs
+import com.lisdatasolutions.microrag.feature.folders.FolderMessage
+import com.lisdatasolutions.microrag.feature.folders.FoldersUiState
+import com.lisdatasolutions.microrag.feature.folders.FoldersViewModel
+import com.lisdatasolutions.microrag.feature.folders.dialogActions
+import com.lisdatasolutions.microrag.feature.folders.text
 import org.koin.androidx.compose.koinViewModel
+import org.koin.core.parameter.emptyParametersHolder
+import org.koin.core.parameter.parametersOf
 
 /** What the stateless screen can ask for. */
 data class LibraryActions(
@@ -61,8 +71,17 @@ data class LibraryActions(
     val onLoadMore: () -> Unit = {},
     val onRetry: () -> Unit = {},
     val onIncludedChange: (Long, Boolean) -> Unit = { _, _ -> },
+    /** F17: null opens «General». */
+    val onOpenFolder: (Long?) -> Unit = {},
+    val onNewFolder: () -> Unit = {},
+    val onRenameFolder: (Long) -> Unit = {},
+    val onDeleteFolder: (Long) -> Unit = {},
 )
 
+/**
+ * The Library root ([folder] null) or one folder (F17 K1, K2). [onFolderGone] leaves a folder screen
+ * whose folder no longer exists, saying whether it was deleted here.
+ */
 @Composable
 fun LibraryRoute(
     onBack: () -> Unit,
@@ -70,10 +89,31 @@ fun LibraryRoute(
     onOpenDocument: (Long) -> Unit,
     message: LibraryMessage? = null,
     onMessageShown: () -> Unit = {},
-    viewModel: LibraryViewModel = koinViewModel(),
+    folder: LibraryFolderFilter? = null,
+    onOpenFolder: (Long?) -> Unit = {},
+    onFolderGone: (deleted: Boolean) -> Unit = {},
+    viewModel: LibraryViewModel = koinViewModel(parameters = { folder?.let { parametersOf(it) } ?: emptyParametersHolder() }),
+    foldersViewModel: FoldersViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val folders by foldersViewModel.state.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
+    val folderId = (folder as? LibraryFolderFilter.Folder)?.id
+    // K2: deleted from its «⋯», the folder screen goes back and the root says so.
+    LaunchedEffect(folders.deletedFolder) {
+        if (folderId != null && folders.deletedFolder == folderId) {
+            foldersViewModel.onMessageShown()
+            onFolderGone(true)
+        }
+    }
+    val gone = folderId != null && folders.folders?.folders?.none { it.id == folderId } == true && !folders.busy
+    LaunchedEffect(gone) { if (gone && folders.deletedFolder == null) onFolderGone(false) }
+    val folderText = folders.message?.takeUnless { folderId != null && folders.deletedFolder == folderId }?.let { stringResource(it.text()) }
+    LaunchedEffect(folders.message) {
+        if (folderText == null) return@LaunchedEffect
+        foldersViewModel.onMessageShown()
+        snackbar.showSnackbar(folderText)
+    }
     // Consumed as soon as it arrives, so a rotation while it shows does not repeat it; the snackbar
     // follows this copy, as consuming the message must not cancel it.
     var showing by remember { mutableStateOf<LibraryMessage?>(null) }
@@ -86,6 +126,7 @@ fun LibraryRoute(
         null -> null
         LibraryMessage.DOCUMENT_GONE -> stringResource(R.string.library_document_gone)
         LibraryMessage.DOCUMENT_DELETED -> stringResource(R.string.document_announce_deleted)
+        LibraryMessage.FOLDER_DELETED -> stringResource(R.string.folder_deleted)
     }
     LaunchedEffect(showing) {
         if (text == null) return@LaunchedEffect
@@ -95,6 +136,7 @@ fun LibraryRoute(
     LibraryScreen(
         snackbarHostState = snackbar,
         state = state,
+        folders = folders,
         actions = LibraryActions(
             onBack = onBack,
             onImport = onImport,
@@ -105,16 +147,22 @@ fun LibraryRoute(
             onLoadMore = viewModel::onLoadMore,
             onRetry = viewModel::onRetry,
             onIncludedChange = viewModel::onIncludedChange,
+            onOpenFolder = onOpenFolder,
+            onNewFolder = foldersViewModel::onNewFolder,
+            onRenameFolder = foldersViewModel::onRename,
+            onDeleteFolder = foldersViewModel::onDelete,
         ),
     )
+    FolderDialogs(folders.dialog, folders.busy, foldersViewModel.dialogActions())
 }
 
-/** P06 (PNG 06 with the approved proposals B1–B8, contracts/library-ui.md). */
+/** P06 (PNG 06 with the approved proposals B1–B8, contracts/library-ui.md), by folders since F17 (K1, K2). */
 @Composable
 fun LibraryScreen(
     state: LibraryUiState,
     actions: LibraryActions,
     modifier: Modifier = Modifier,
+    folders: FoldersUiState = FoldersUiState(),
     // Saveable: the position survives the detail and rotation (research R9).
     listState: LazyListState = rememberLazyListState(),
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
@@ -122,13 +170,28 @@ fun LibraryScreen(
     val colors = LisdataTheme.colors
     val spacing = LisdataTheme.spacing
     Box(modifier = modifier.fillMaxSize().background(colors.background)) {
+        val folderName = state.folder?.let { folderName(it, folders) }
         Column(modifier = Modifier.fillMaxSize()) {
             LisdataTopBar(
-                title = stringResource(R.string.library_title),
+                title = folderName ?: stringResource(R.string.library_title),
                 onBack = actions.onBack,
                 actions = {
                     IconButton(onClick = actions.onImport) {
-                        LisdataIcon(LisdataIcons.Plus, contentDescription = stringResource(R.string.library_import), tint = colors.textPrimary)
+                        LisdataIcon(
+                            LisdataIcons.Plus,
+                            contentDescription = folderName?.let { stringResource(R.string.library_folder_import, it) }
+                                ?: stringResource(R.string.library_import),
+                            tint = colors.textPrimary,
+                        )
+                    }
+                    // K2: «General» is not a folder that can be renamed or deleted.
+                    (state.folder as? LibraryFolderFilter.Folder)?.let { folder ->
+                        LisdataOverflowMenu(
+                            items = listOf(
+                                stringResource(R.string.folder_rename) to { actions.onRenameFolder(folder.id) },
+                                stringResource(R.string.folder_delete) to { actions.onDeleteFolder(folder.id) },
+                            ),
+                        )
                     }
                 },
             )
@@ -143,18 +206,29 @@ fun LibraryScreen(
                 ),
                 verticalArrangement = Arrangement.spacedBy(spacing.listGap),
             ) {
-                item(key = "headline") { Headline() }
+                if (state.isRoot) item(key = "headline") { Headline() }
                 if (state.showsQuery) {
                     item(key = "search") {
                         LisdataSearchField(
                             query = state.text,
                             onQueryChange = actions.onTextChange,
-                            placeholder = stringResource(R.string.library_search),
+                            placeholder = folderName?.let { stringResource(R.string.library_folder_search, it) }
+                                ?: stringResource(R.string.library_search),
                         )
                     }
-                    item(key = "filters") { Filters(state.filter, actions.onFilterChange) }
+                    // K1: the root only searches; the filters are inside each folder.
+                    if (!state.isRoot) item(key = "filters") { Filters(state.filter, actions.onFilterChange) }
                 }
-                content(state.content, actions)
+                when {
+                    !state.showsFolders -> content(state.content, actions, folderName, state.isRoot)
+                    // The root without a search: the folders, under the empty state when there is nothing (D-072).
+                    state.content == LibraryContent.Empty || state.content is LibraryContent.Documents ||
+                        state.content == LibraryContent.NoResults -> {
+                        if (state.content == LibraryContent.Empty) content(state.content, actions, folderName, state.isRoot)
+                        folders(folders, actions)
+                    }
+                    else -> content(state.content, actions, folderName, state.isRoot)
+                }
             }
         }
         // B8: «Este documento ya no existe», and A7: «Documento eliminado».
@@ -200,17 +274,63 @@ private fun Filters(selected: LibraryFilter, onSelect: (LibraryFilter) -> Unit) 
     }
 }
 
-private fun LazyListScope.content(content: LibraryContent, actions: LibraryActions) {
+/** The root's folders, or the skeleton while they load; an unavailable index already says so above. */
+private fun LazyListScope.folders(folders: FoldersUiState, actions: LibraryActions) {
+    val list = folders.folders
+    when {
+        folders.unavailable -> item(key = "folders unavailable") {
+            LisdataEmptyState(
+                icon = LisdataIcons.Warning,
+                title = stringResource(R.string.library_unavailable_title),
+                body = stringResource(R.string.library_unavailable_body),
+            )
+        }
+        list == null -> items(SKELETON_ROWS, key = { "folder skeleton $it" }) { LisdataSkeletonRow() }
+        else -> item(key = "folders") {
+            FoldersSection(
+                folders = list,
+                onOpen = actions.onOpenFolder,
+                onNewFolder = actions.onNewFolder,
+                modifier = Modifier.padding(top = LisdataTheme.spacing.space2),
+            )
+        }
+    }
+}
+
+/** The top bar's name: the folder's, «General», or null while the folders load. */
+@Composable
+private fun folderName(folder: LibraryFolderFilter, folders: FoldersUiState): String? = when (folder) {
+    LibraryFolderFilter.All -> null
+    LibraryFolderFilter.Unfiled -> stringResource(R.string.library_folder_general)
+    is LibraryFolderFilter.Folder -> folders.folders?.folders?.firstOrNull { it.id == folder.id }?.name
+}
+
+private fun LazyListScope.content(content: LibraryContent, actions: LibraryActions, folderName: String?, root: Boolean) {
     when (content) {
         // B1: four skeleton rows under the filters, read as «Cargando».
         LibraryContent.Loading -> items(SKELETON_ROWS, key = { "skeleton $it" }) { LisdataSkeletonRow() }
         LibraryContent.Empty -> item(key = "empty") {
-            LisdataEmptyState(
-                icon = LisdataIcons.Folder,
-                title = stringResource(R.string.library_empty_title),
-                body = stringResource(R.string.library_empty_body),
-                action = { LisdataGradientButton(text = stringResource(R.string.library_import), onClick = actions.onImport) },
-            )
+            if (root) {
+                LisdataEmptyState(
+                    icon = LisdataIcons.Folder,
+                    title = stringResource(R.string.library_empty_title),
+                    body = stringResource(R.string.library_empty_body),
+                    action = { LisdataGradientButton(text = stringResource(R.string.library_import), onClick = actions.onImport) },
+                )
+            } else {
+                // K2: «Esta carpeta está vacía», with «Importar a Legal».
+                LisdataEmptyState(
+                    icon = LisdataIcons.Folder,
+                    title = stringResource(R.string.library_folder_empty_title),
+                    body = stringResource(R.string.library_empty_body),
+                    action = {
+                        LisdataGradientButton(
+                            text = folderName?.let { stringResource(R.string.library_folder_import, it) } ?: stringResource(R.string.library_import),
+                            onClick = actions.onImport,
+                        )
+                    },
+                )
+            }
         }
         LibraryContent.NoResults -> item(key = "no results") {
             LisdataEmptyState(
@@ -244,7 +364,7 @@ private fun LazyListScope.content(content: LibraryContent, actions: LibraryActio
                     },
                 )
             }
-            items(content.documents, key = { it.id }) { document -> DocumentRow(document, actions) }
+            items(content.documents, key = { it.id }) { document -> DocumentRow(document, actions, showFolder = root) }
             item(key = "info") {
                 LisdataInfoCard(
                     icon = LisdataIcons.Info,
@@ -257,12 +377,14 @@ private fun LazyListScope.content(content: LibraryContent, actions: LibraryActio
     }
 }
 
+/** [showFolder]: the root's search adds the folder to the data line (K1). */
 @Composable
-private fun DocumentRow(document: LibraryDocument, actions: LibraryActions) {
+private fun DocumentRow(document: LibraryDocument, actions: LibraryActions, showFolder: Boolean) {
     val chip = document.chip()
+    val folder = if (showFolder) document.folderName ?: stringResource(R.string.library_folder_general) else null
     LisdataDocumentRow(
         name = document.displayName,
-        meta = document.metaText(),
+        meta = folder?.let { stringResource(R.string.library_meta, document.metaText(), it) } ?: document.metaText(),
         metaAccent = document.metaAccent(),
         statusText = chip?.first,
         status = chip?.second,

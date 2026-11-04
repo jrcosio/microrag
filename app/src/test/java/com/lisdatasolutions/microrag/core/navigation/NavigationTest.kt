@@ -54,7 +54,9 @@ import com.lisdatasolutions.microrag.domain.ingest.ObserveImportQueueUseCase
 import com.lisdatasolutions.microrag.domain.ingest.RemoveQueueItemUseCase
 import com.lisdatasolutions.microrag.domain.ingest.RetryQueueItemUseCase
 import com.lisdatasolutions.microrag.domain.ingest.StartIndexingUseCase
+import com.lisdatasolutions.microrag.domain.library.CreateFolderUseCase
 import com.lisdatasolutions.microrag.domain.library.DeleteDocumentUseCase
+import com.lisdatasolutions.microrag.domain.library.DeleteFolderUseCase
 import com.lisdatasolutions.microrag.domain.library.DetailResult
 import com.lisdatasolutions.microrag.domain.library.DiscardReindexUseCase
 import com.lisdatasolutions.microrag.domain.library.DocumentDetail
@@ -63,10 +65,12 @@ import com.lisdatasolutions.microrag.domain.library.LibraryDocument
 import com.lisdatasolutions.microrag.domain.library.LibraryDocumentState
 import com.lisdatasolutions.microrag.domain.library.LoadPreviewUseCase
 import com.lisdatasolutions.microrag.domain.library.ObserveDocumentUseCase
+import com.lisdatasolutions.microrag.domain.library.ObserveFoldersUseCase
 import com.lisdatasolutions.microrag.domain.library.ObserveLibrarySummaryUseCase
 import com.lisdatasolutions.microrag.domain.library.ObserveLibraryUseCase
 import com.lisdatasolutions.microrag.domain.library.ReindexDocumentUseCase
 import com.lisdatasolutions.microrag.domain.library.RemoveFromIndexUseCase
+import com.lisdatasolutions.microrag.domain.library.RenameFolderUseCase
 import com.lisdatasolutions.microrag.domain.library.SetIncludedUseCase
 import com.lisdatasolutions.microrag.domain.model.ComputeBackend
 import com.lisdatasolutions.microrag.domain.model.ModelCatalog
@@ -88,6 +92,7 @@ import com.lisdatasolutions.microrag.domain.onboarding.ResolveStartDestinationUs
 import com.lisdatasolutions.microrag.domain.onboarding.ResumeModelDownloadUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.RetryModelUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.StartModelDownloadUseCase
+import com.lisdatasolutions.microrag.domain.rag.Folder
 import com.lisdatasolutions.microrag.domain.settings.ObserveLanguageSettingsUseCase
 import com.lisdatasolutions.microrag.domain.settings.ObserveModelOverviewUseCase
 import com.lisdatasolutions.microrag.domain.settings.ObserveThemeSettingsUseCase
@@ -96,6 +101,7 @@ import com.lisdatasolutions.microrag.domain.settings.SaveThemeSettingsUseCase
 import com.lisdatasolutions.microrag.domain.settings.SettingsNotices
 import com.lisdatasolutions.microrag.feature.chat.chatViewModel
 import com.lisdatasolutions.microrag.feature.document.DocumentViewModel
+import com.lisdatasolutions.microrag.feature.folders.FoldersViewModel
 import com.lisdatasolutions.microrag.feature.history.HistoryViewModel
 import com.lisdatasolutions.microrag.feature.home.HomeViewModel
 import com.lisdatasolutions.microrag.feature.indexing.IndexViewModel
@@ -103,8 +109,8 @@ import com.lisdatasolutions.microrag.feature.ingest.IngestViewModel
 import com.lisdatasolutions.microrag.feature.library.LibraryViewModel
 import com.lisdatasolutions.microrag.feature.onboarding.setup.SetupViewModel
 import com.lisdatasolutions.microrag.feature.settings.LanguagesViewModel
-import com.lisdatasolutions.microrag.feature.settings.ThemeViewModel
 import com.lisdatasolutions.microrag.feature.settings.SettingsViewModel
+import com.lisdatasolutions.microrag.feature.settings.ThemeViewModel
 import com.lisdatasolutions.microrag.rag.runtime.CompatibilityResult
 import com.lisdatasolutions.microrag.testing.ChatTestGraph
 import com.lisdatasolutions.microrag.testing.FakeAppLanguageController
@@ -145,7 +151,16 @@ internal fun libraryViewModels(library: FakeLibraryRepository = navigationLibrar
         override suspend fun reconcile() = Unit
         override suspend fun add(documentId: Long) = Unit
     }
-    viewModel { LibraryViewModel(get(), ObserveLibraryUseCase(library), SetIncludedUseCase(library)) }
+    viewModel { params -> LibraryViewModel(get(), ObserveLibraryUseCase(library), SetIncludedUseCase(library), folder = params.getOrNull()) }
+    viewModel {
+        FoldersViewModel(
+            get(),
+            ObserveFoldersUseCase(library),
+            CreateFolderUseCase(library),
+            RenameFolderUseCase(library),
+            DeleteFolderUseCase(library, ApplicationScope(CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)), RecordingLogger()),
+        )
+    }
     viewModel {
         DocumentViewModel(
             get(), ObserveDocumentUseCase(library), LoadPreviewUseCase(library), SetIncludedUseCase(library),
@@ -248,6 +263,8 @@ internal fun chatViewModels(graph: ChatTestGraph = ChatTestGraph()) = module {
 
 internal fun navigationLibrary() = FakeLibraryRepository().apply {
     documents.value = listOf(LibraryDocument(7, "Manual.pdf", DocumentFormat.PDF, LibraryDocumentState.Indexed(3, null), true))
+    // F17: an empty folder, so its screen opens (a folder that does not exist goes back by itself).
+    folderRows.value = listOf(Folder(1, "Legal", createdAtMs = 10, documentCount = 0))
     listOf(1L, 7L).forEach { id ->
         details[id] = MutableStateFlow(
             DetailResult.Loaded(
@@ -408,7 +425,7 @@ class NavigationTest {
     fun n6_bottomBarOnlyOnTabRoots() {
         launchShell()
         // Welcome and Setup need the Koin graph since F03: OnboardingNavigationTest (androidTest) covers them.
-        val secondary = listOf(Ingest, Document(documentId = 1), Index, Languages, Theme)
+        val secondary = listOf(Ingest, Document(documentId = 1), Index, Languages, Theme, LibraryFolder(), LibraryFolder(folderId = 1))
         secondary.forEach { route ->
             compose.runOnUiThread { nav.navigate(route) }
             compose.waitForIdle()
@@ -632,25 +649,46 @@ class NavigationTest {
 
         compose.runOnUiThread { nav.popBackStack() }
         compose.waitForIdle()
+        // F17 K1: the root lists the folders; Manual.pdf is in «General».
+        openGeneral()
+        compose.waitForIdle()
         compose.onNodeWithText("Manual.pdf", useUnmergedTree = true).performClick()
         compose.waitForIdle()
         assertThat(nav.currentBackStackEntry?.let { it.destination.hasRoute(Document::class) }).isTrue()
-        assertThat(nav.previousBackStackEntry?.destination?.hasRoute(Library::class)).isTrue()
+        assertThat(nav.previousBackStackEntry?.destination?.hasRoute(LibraryFolder::class)).isTrue()
     }
 
+    /** F17 K1: «General» is under the folders, below the fold of a small screen. */
+    private fun openGeneral() {
+        val general = context.getString(R.string.library_folder_general)
+        compose.onNode(hasScrollAction()).performScrollToNode(hasText(general))
+        compose.onNodeWithText(general, useUnmergedTree = true).performClick()
+    }
+
+    /** F17 T017: Biblioteca → carpeta → detalle → Atrás → carpeta → Atrás → raíz, with no bottom bar inside a folder. */
     @Test
-    fun theDetail_opensFromARow_andBackReturnsToTheLibrary() {
+    fun theDetail_opensFromAFolderRow_andBackReturnsThroughTheFolder() {
         launchShell()
         tab(TopLevelDestination.LIBRARY).performClick()
+        openGeneral()
+        compose.waitForIdle()
+        assertThat(nav.currentDestination?.hasRoute(LibraryFolder::class)).isTrue()
+        assertThat(nav.currentBackStackEntry?.toRoute<LibraryFolder>()?.folderId).isNull()
+        tab(TopLevelDestination.HOME).assertDoesNotExist()
+
         compose.onNodeWithText("Manual.pdf", useUnmergedTree = true).performClick()
         compose.waitForIdle()
         compose.onNodeWithText(context.getString(R.string.document_title)).assertIsDisplayed()
 
         compose.onNodeWithContentDescription(context.getString(R.string.action_back)).performClick()
         compose.waitForIdle()
+        assertThat(nav.currentDestination?.hasRoute(LibraryFolder::class)).isTrue()
 
+        compose.onNodeWithContentDescription(context.getString(R.string.action_back)).performClick()
+        compose.waitForIdle()
         assertThat(nav.currentDestination?.hasRoute(Library::class)).isTrue()
-        compose.onNodeWithText(context.getString(R.string.library_headline)).assertIsDisplayed()
+        // The root keeps its scroll: still on «General».
+        compose.onNodeWithText(context.getString(R.string.library_folder_general), useUnmergedTree = true).assertIsDisplayed()
     }
 
     @Test

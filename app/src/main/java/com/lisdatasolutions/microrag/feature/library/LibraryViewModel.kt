@@ -8,6 +8,7 @@ import com.lisdatasolutions.microrag.domain.library.LibraryQuery
 import com.lisdatasolutions.microrag.domain.library.LibraryResult
 import com.lisdatasolutions.microrag.domain.library.ObserveLibraryUseCase
 import com.lisdatasolutions.microrag.domain.library.SetIncludedUseCase
+import com.lisdatasolutions.microrag.domain.rag.LibraryFolderFilter
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -30,6 +31,8 @@ import kotlinx.coroutines.launch
 /**
  * P06 Biblioteca (F08). The query (text, filter and how many blocks are loaded) lives in the
  * [SavedStateHandle], so going to the detail and back, rotating or a process death keep it (research R9).
+ * F17 (research R5): [folder] is the folder this entry shows, from its route; null is the root, whose
+ * search looks in every folder.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class LibraryViewModel(
@@ -37,6 +40,7 @@ class LibraryViewModel(
     private val observeLibrary: ObserveLibraryUseCase,
     private val setIncluded: SetIncludedUseCase,
     backgroundDispatcher: CoroutineDispatcher = Dispatchers.Default,
+    private val folder: LibraryFolderFilter? = null,
 ) : ViewModel() {
 
     private val text = savedState.getStateFlow(KEY_TEXT, "")
@@ -55,7 +59,7 @@ class LibraryViewModel(
     private var shownRetry = 0
 
     private val query: Flow<LibraryQuery> = combine(text, filter, limit) { text, filter, limit ->
-        LibraryQuery(text, LibraryFilter.valueOf(filter), limit)
+        LibraryQuery(text, LibraryFilter.valueOf(filter), limit, folder ?: LibraryFolderFilter.All)
     }
 
     private val content: StateFlow<LibraryContent> = combine(query, retries) { query, retry -> query to retry }
@@ -74,8 +78,8 @@ class LibraryViewModel(
         .stateIn(viewModelScope, SharingStarted.Eagerly, LibraryContent.Loading)
 
     val state: StateFlow<LibraryUiState> = combine(text, filter, content, pendingInclusion) { text, filter, content, pending ->
-        LibraryUiState(text, LibraryFilter.valueOf(filter), content.withInclusion(pending))
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, LibraryUiState(text.value, LibraryFilter.valueOf(filter.value)))
+        LibraryUiState(text, LibraryFilter.valueOf(filter), content.withInclusion(pending), folder)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, LibraryUiState(text.value, LibraryFilter.valueOf(filter.value), folder = folder))
 
     init {
         viewModelScope.launch {

@@ -9,6 +9,7 @@ import com.lisdatasolutions.microrag.core.navigation.Index
 import com.lisdatasolutions.microrag.core.navigation.Ingest
 import com.lisdatasolutions.microrag.core.navigation.Languages
 import com.lisdatasolutions.microrag.core.navigation.Library
+import com.lisdatasolutions.microrag.core.navigation.LibraryFolder
 import com.lisdatasolutions.microrag.core.navigation.Settings
 import com.lisdatasolutions.microrag.core.navigation.Setup
 import com.lisdatasolutions.microrag.core.navigation.Theme
@@ -34,6 +35,8 @@ object DebugRouting {
             "new-chat" -> Chat(newConversation = true)
             "ingest" -> Ingest
             "library" -> Library
+            // F17: the folder with this id, or «General» without one.
+            "library-folder" -> LibraryFolder(folderId = id)
             "document" -> Document(documentId = id ?: -1L, chunkId = chunkId)
             "index" -> Index
             "settings" -> Settings

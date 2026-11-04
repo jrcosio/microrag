@@ -35,6 +35,10 @@ data object Ingest
 @Serializable
 data object Library
 
+/** F17 K2: one folder over the Library tab, without the bottom bar; [folderId] null is «General». */
+@Serializable
+data class LibraryFolder(val folderId: Long? = null)
+
 /** `chunkId` is set only when arriving from a citation, to highlight the fragment (F11). */
 @Serializable
 data class Document(val documentId: Long, val chunkId: Long? = null)

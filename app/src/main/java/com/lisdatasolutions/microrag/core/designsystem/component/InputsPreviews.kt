@@ -13,6 +13,8 @@ private fun InputsPreview() = LisdataPreviewSurface {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         LisdataSearchField(query = "", onQueryChange = {}, placeholder = "Buscar documentos…")
         LisdataSearchField(query = "protocolo", onQueryChange = {}, placeholder = "Buscar documentos…")
+        LisdataTextField(value = "Legal", onValueChange = {}, label = "Nombre")
+        LisdataTextField(value = "General", onValueChange = {}, label = "Nombre", error = "Ese nombre está reservado")
         LisdataFilePickerCard(
             title = "Selecciona archivos",
             subtitle = "Todo se procesa en tu móvil",

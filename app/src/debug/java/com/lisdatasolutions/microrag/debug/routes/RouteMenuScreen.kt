@@ -30,6 +30,8 @@ private val routeSamples = listOf(
     RouteSample("chat/7", "chat", 7),
     RouteSample("ingest", "ingest"),
     RouteSample("library", "library"),
+    RouteSample("library-folder (General)", "library-folder"),
+    RouteSample("library-folder/1", "library-folder", 1),
     RouteSample("document/42", "document", 42),
     RouteSample("document/-1 (id inválido, N8)", "document", -1),
     RouteSample("index", "index"),

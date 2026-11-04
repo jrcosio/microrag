@@ -113,8 +113,8 @@ description: "Lista de tareas de F17 — Carpetas y ámbito del chat"
 
 ### Pruebas
 
-- [ ] T012 [P] [US1] `…/test/…/domain/library/FolderNamesTest.kt`: plegado, recorte, vacío, 40 caracteres y el reservado «General» en cualquier forma.
-- [ ] T013 [P] [US1] `…/androidTest/…/data/rag/RagIndexFoldersTest.kt` (F1–F3, F5):
+- [X] T012 [P] [US1] `…/test/…/domain/library/FolderNamesTest.kt`: plegado, recorte, vacío, 40 caracteres y el reservado «General» en cualquier forma.
+- [X] T013 [P] [US1] `…/androidTest/…/data/rag/RagIndexFoldersTest.kt` (F1–F3, F5):
   - crear, con un duplicado plegado que da `null`;
   - renombrar, también solo cambiando mayúsculas;
   - recuentos agregados, sin contar las copias temporales;
@@ -124,42 +124,42 @@ description: "Lista de tareas de F17 — Carpetas y ámbito del chat"
   - eliminar borrando los documentos, por `LibraryRepository.delete`: no quedan copias, fragmentos, FTS ni vectores, y `deleteFolder` devuelve si la borró (M4);
   - `folderDocumentRefs` de una carpeta y de «General»;
   - el id de una carpeta borrada no se reutiliza.
-- [ ] T014 [P] [US1] `…/test/…/domain/library/FolderUseCasesTest.kt`, con fakes:
+- [X] T014 [P] [US1] `…/test/…/domain/library/FolderUseCasesTest.kt`, con fakes:
   - `CreateFolderUseCase` y `RenameFolderUseCase` con resultados `Done`, `Duplicate`, `Invalid` y `Failed`;
   - `DeleteFolderUseCase` con `MOVE_TO_UNFILED` y con `DELETE_DOCUMENTS`:
     - cada documento por `LibraryRepository.delete`, en el `ApplicationScope`;
     - la carpeta se borra solo si queda vacía;
     - los que fallaron salen del recuento final con `folderDocumentRefs` (FR-005, SC-006, M4);
   - `RecordingLogger` sin nombres (FR-025).
-- [ ] T015 [P] [US1] `…/test/…/feature/library/FoldersViewModelTest.kt` y `…/test/…/feature/library/LibraryViewModelTest.kt` (ampliado):
+- [X] T015 [P] [US1] `…/test/…/feature/library/FoldersViewModelTest.kt` y `…/test/…/feature/library/LibraryViewModelTest.kt` (ampliado):
   - las carpetas;
   - los diálogos en el `SavedStateHandle`;
   - un doble toque que no repite nada;
   - los avisos;
   - el filtro de carpeta por la ruta;
   - la búsqueda de la raíz en todas las carpetas.
-- [ ] T016 [P] [US1] `…/test/…/feature/library/LibraryScreenTest.kt` (ampliado) y `…/test/…/feature/library/FolderDialogsTest.kt` (Robolectric, wireframe §1–§3):
+- [X] T016 [P] [US1] `…/test/…/feature/library/LibraryScreenTest.kt` (ampliado) y `…/test/…/feature/library/FolderDialogsTest.kt` (Robolectric, wireframe §1–§3):
   - la raíz con las carpetas, «General» al final y «Nueva carpeta»;
   - con la biblioteca vacía, el estado vacío y debajo las carpetas que existan (L2);
   - con búsqueda, los documentos con su carpeta;
   - la carpeta por dentro, con «⋯»;
   - crear y renombrar, con sus avisos;
   - eliminar con las dos opciones y el segundo aviso.
-- [ ] T017 [P] [US1] `…/test/…/core/navigation/NavigationTest.kt`: Biblioteca → carpeta → detalle → Atrás → carpeta → Atrás → raíz; sin barra inferior en `LibraryFolder`; `settingsViewModels()` y los demás constructores con fakes.
+- [X] T017 [P] [US1] `…/test/…/core/navigation/NavigationTest.kt`: Biblioteca → carpeta → detalle → Atrás → carpeta → Atrás → raíz; sin barra inferior en `LibraryFolder`; `settingsViewModels()` y los demás constructores con fakes.
 
 ### Implementación
 
-- [ ] T018 [US1] `LisdataTextField` en `…/microrag/core/designsystem/component/Inputs.kt` (R9), con vistas previas y entrada en el catálogo de depuración.
-- [ ] T019 [US1] Índice F1–F3 y F5 en `DefaultRagIndex.kt`/`RagIndex.kt`, y `DefaultLibraryRepository`/`LibraryRepository` (página por carpeta y operaciones de carpeta). T013 pasa.
-- [ ] T020 [US1] `FolderNames.kt` y `FolderUseCases.kt` en `…/microrag/domain/library/`, con su inyección en `DomainModule`. T012 y T014 pasan.
-- [ ] T021 [US1] Pantallas (contrato UI §1):
+- [X] T018 [US1] `LisdataTextField` en `…/microrag/core/designsystem/component/Inputs.kt` (R9), con vistas previas y entrada en el catálogo de depuración.
+- [X] T019 [US1] Índice F1–F3 y F5 en `DefaultRagIndex.kt`/`RagIndex.kt`, y `DefaultLibraryRepository`/`LibraryRepository` (página por carpeta y operaciones de carpeta). T013 pasa.
+- [X] T020 [US1] `FolderNames.kt` y `FolderUseCases.kt` en `…/microrag/domain/library/`, con su inyección en `DomainModule`. T012 y T014 pasan.
+- [X] T021 [US1] Pantallas (contrato UI §1):
   - `FoldersViewModel` y `FoldersSection` en `…/microrag/feature/library/`, y `FolderDialogs` en `…/microrag/feature/folders/` (L8);
   - el filtro de carpeta en `LibraryViewModel` y `LibraryScreen`;
   - vistas previas;
   - inyección en `FeatureModule`.
 
   T015 y T016 pasan.
-- [ ] T022 [US1] Navegación: `LibraryFolder(folderId: Long?)` en `Destinations.kt`, su `composable` en `MicroRagNavHost.kt` y la ruta de depuración. T017 pasa.
+- [X] T022 [US1] Navegación: `LibraryFolder(folderId: Long?)` en `Destinations.kt`, su `composable` en `MicroRagNavHost.kt` y la ruta de depuración. T017 pasa.
 
 **Checkpoint:** carpetas completas en la Biblioteca.
 

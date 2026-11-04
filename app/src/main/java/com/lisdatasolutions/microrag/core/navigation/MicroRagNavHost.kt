@@ -7,8 +7,10 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.toRoute
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.Lifecycle
+import com.lisdatasolutions.microrag.domain.rag.LibraryFolderFilter
 import com.lisdatasolutions.microrag.feature.chat.ChatRoute
 import com.lisdatasolutions.microrag.feature.document.DocumentRoute
 import com.lisdatasolutions.microrag.feature.history.HistoryRoute
@@ -112,6 +114,29 @@ fun MicroRagNavHost(
                 onOpenDocument = { navController.navigate(Document(documentId = it)) },
                 message = message?.let(LibraryMessage::valueOf),
                 onMessageShown = { entry.savedStateHandle[LIBRARY_MESSAGE] = null },
+                // F17 K1: from a resumed root only, so a double tap opens a single folder.
+                onOpenFolder = { id ->
+                    if (entry.lifecycle.currentState == Lifecycle.State.RESUMED) navController.navigate(LibraryFolder(id))
+                },
+            )
+        }
+        composable<LibraryFolder> { entry ->
+            val route = entry.toRoute<LibraryFolder>()
+            val message by entry.savedStateHandle.getStateFlow<String?>(LIBRARY_MESSAGE, null).collectAsStateWithLifecycle()
+            LibraryRoute(
+                onBack = back,
+                onImport = { navController.navigate(Ingest) },
+                onOpenDocument = { navController.navigate(Document(documentId = it)) },
+                message = message?.let(LibraryMessage::valueOf),
+                onMessageShown = { entry.savedStateHandle[LIBRARY_MESSAGE] = null },
+                folder = route.folderId?.let { LibraryFolderFilter.Folder(it) } ?: LibraryFolderFilter.Unfiled,
+                // K2: a folder that goes takes its screen with it; the root says «Carpeta eliminada».
+                onFolderGone = { deleted ->
+                    if (entry.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+                        if (deleted) navController.previousBackStackEntry?.savedStateHandle?.set(LIBRARY_MESSAGE, LibraryMessage.FOLDER_DELETED.name)
+                        navController.popBackStack()
+                    }
+                },
             )
         }
         composable<Document> {

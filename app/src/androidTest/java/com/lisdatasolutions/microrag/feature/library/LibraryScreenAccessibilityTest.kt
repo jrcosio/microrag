@@ -3,6 +3,7 @@ package com.lisdatasolutions.microrag.feature.library
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.SemanticsMatcher
@@ -38,7 +39,7 @@ class LibraryScreenAccessibilityTest(
         compose.setContent {
             val density = LocalDensity.current
             CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale)) {
-                LisdataTheme(darkTheme = dark) { LibraryScreen(state, LibraryActions()) }
+                LisdataTheme(darkTheme = dark) { LibraryScreen(state, LibraryActions(), folders = LibraryPreviewData.folders) }
             }
         }
     }
@@ -67,6 +68,11 @@ class LibraryScreenAccessibilityTest(
 
     /** A1: every row shown is one sentence that starts with its name; its switch says what it does. */
     private fun checkRows() {
+        // K1: the root without a search shows its folders, once the documents have loaded.
+        if (state.showsFolders) {
+            if (state.content is LibraryContent.Documents || state.content == LibraryContent.Empty) checkFolderRows()
+            return
+        }
         val documents = (state.content as? LibraryContent.Documents)?.documents ?: return
         val shown = compose.onAllNodes(hasClickAction()).fetchSemanticsNodes().flatMap { node ->
             node.config.getOrNull(SemanticsProperties.ContentDescription).orEmpty()
@@ -77,6 +83,18 @@ class LibraryScreenAccessibilityTest(
         compose.onAllNodes(isToggleable()).fetchSemanticsNodes().forEach { switch ->
             assertWithMessage("$name: switch label").that(switch.config.getOrNull(SemanticsProperties.ContentDescription)).containsExactly(label)
         }
+    }
+
+    /** F17 U2: a folder row is one button, «Legal, 24 documentos», whose action is «Abrir carpeta». */
+    private fun checkFolderRows() {
+        val open = compose.activity.getString(R.string.library_folder_open)
+        val rows = compose.onAllNodes(hasClickAction()).fetchSemanticsNodes().filter { node ->
+            node.config.getOrNull(SemanticsActions.OnClick)?.label == open
+        }
+        assertWithMessage("$name: folder rows").that(rows).isNotEmpty()
+        val first = rows.first().config.getOrNull(SemanticsProperties.Text).orEmpty().map { it.text }
+        val count = compose.activity.resources.getQuantityString(R.plurals.library_folder_documents, 24, 24)
+        assertWithMessage("$name: folder row texts").that(first).containsExactly("Legal", count).inOrder()
     }
 
     /** A4: 48 dp, also the filter chips that draw at about 27 dp. */

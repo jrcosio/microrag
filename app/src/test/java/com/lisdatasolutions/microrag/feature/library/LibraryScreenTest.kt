@@ -20,6 +20,9 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
 import com.lisdatasolutions.microrag.domain.library.LibraryFilter
+import com.lisdatasolutions.microrag.domain.rag.FolderList
+import com.lisdatasolutions.microrag.domain.rag.LibraryFolderFilter
+import com.lisdatasolutions.microrag.feature.folders.FoldersUiState
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -46,10 +49,14 @@ class LibraryScreenTest {
         onLoadMore = { calls += "more" },
         onRetry = { calls += "retry" },
         onIncludedChange = { id, included -> calls += "include $id $included" },
+        onOpenFolder = { calls += "folder $it" },
+        onNewFolder = { calls += "new folder" },
+        onRenameFolder = { calls += "rename $it" },
+        onDeleteFolder = { calls += "delete folder $it" },
     )
 
-    private fun show(state: LibraryUiState) {
-        compose.setContent { LisdataTheme { LibraryScreen(state, actions) } }
+    private fun show(state: LibraryUiState, folders: FoldersUiState = LibraryPreviewData.folders) {
+        compose.setContent { LisdataTheme { LibraryScreen(state, actions, folders = folders) } }
     }
 
     private fun exists(text: String) = compose.onNodeWithText(text, useUnmergedTree = true).assertExists()
@@ -63,15 +70,17 @@ class LibraryScreenTest {
     private fun scrollToRow(name: String) =
         compose.onNode(hasScrollAction()).performScrollToNode(hasContentDescription(name, substring = true))
 
+    /** PNG 06 lives inside a folder since F17 (K2): its name on top, its own search, the filters. */
     @Test
-    fun documents_matchPng06() {
+    fun documents_matchPng06InsideAFolder() {
         show(LibraryPreviewData.png)
 
         listOf(
-            "Biblioteca", "Tus documentos", "Gestiona las fuentes de tu IA local.", "Buscar documentos…",
+            "Legal", "Buscar en Legal…",
             "Todos", "Indexados", "Pendientes", "24 DOCUMENTOS", "Incluir en RAG",
             "Manual de procesos.pdf", "PDF · 860 fragmentos",
         ).forEach(::exists)
+        absent("Tus documentos")
         listOf(
             "Normativa interna.pdf" to "PDF · 520 fragmentos",
             "Informe anual.pdf" to "PDF · 1.120 fragmentos",
@@ -144,7 +153,7 @@ class LibraryScreenTest {
     fun plusAndRows_callTheirActions() {
         show(LibraryPreviewData.png)
 
-        compose.onNodeWithContentDescription("Importar documentos").performClick()
+        compose.onNodeWithContentDescription("Importar a Legal").performClick()
         compose.onNodeWithText("Manual de procesos.pdf", useUnmergedTree = true).performClick()
         compose.onNodeWithText("Indexados").performClick()
 
@@ -219,5 +228,88 @@ class LibraryScreenTest {
 
         compose.onNodeWithText("Documento 40.pdf", useUnmergedTree = true).assertIsDisplayed()
         absent("Tus documentos")
+    }
+
+    // F17 T016 (wireframe §1–§2, contract UI §1): the Library by folders.
+
+    @Test
+    fun theRootListsTheFolders_GeneralLast_andNewFolder() {
+        show(LibraryPreviewData.root)
+
+        listOf("Tus documentos", "Buscar documentos…", "CARPETAS", "Legal", "24 documentos", "Motores", "5 documentos", "Nueva carpeta")
+            .forEach(::exists)
+        absent("Todos")
+        absent("Manual de procesos.pdf")
+        scrollTo("Nueva carpeta")
+        exists("General")
+        exists("3 documentos")
+        // U2: one sentence per folder.
+        compose.onNode(hasText("Legal") and hasText("24 documentos")).assertExists()
+
+        compose.onNodeWithText("Legal", useUnmergedTree = true).performClick()
+        compose.onNodeWithText("General", useUnmergedTree = true).performClick()
+        compose.onNodeWithText("Nueva carpeta", useUnmergedTree = true).performClick()
+        assertThat(calls.filterNot { it == "more" }).containsExactly("folder 1", "folder null", "new folder").inOrder()
+    }
+
+    @Test
+    fun generalIsLeftOutWhenItHasNoDocuments() {
+        show(LibraryPreviewData.root, LibraryPreviewData.folders.copy(folders = LibraryPreviewData.folders.folders!!.copy(unfiledCount = 0)))
+
+        scrollTo("Nueva carpeta")
+        absent("General")
+    }
+
+    /** D-072: with nothing imported, the empty state, and under it the folders that exist. */
+    @Test
+    fun anEmptyLibraryStillShowsItsFolders() {
+        val empty = FoldersUiState(FolderList(listOf(com.lisdatasolutions.microrag.domain.rag.Folder(1, "Legal", 1, 0)), unfiledCount = 0))
+        show(LibraryPreviewData.empty, empty)
+
+        exists("Aún no tienes documentos")
+        exists("Legal")
+        exists("0 documentos")
+        exists("Nueva carpeta")
+        absent("Buscar documentos…")
+    }
+
+    @Test
+    fun theRootSearchNamesTheFolderOfEachRow() {
+        show(LibraryPreviewData.rootSearch)
+
+        exists("PDF · 860 fragmentos · Legal")
+        exists("PDF · 210 fragmentos · General")
+        absent("CARPETAS")
+        absent("Todos")
+    }
+
+    @Test
+    fun aFolderHasItsMenu_butGeneralDoesNot() {
+        show(LibraryPreviewData.png)
+
+        compose.onNodeWithContentDescription("Más opciones").performClick()
+        compose.onNodeWithText("Renombrar carpeta").performClick()
+        compose.onNodeWithContentDescription("Más opciones").performClick()
+        compose.onNodeWithText("Eliminar carpeta").performClick()
+        assertThat(calls.filterNot { it == "more" }).containsExactly("rename 1", "delete folder 1").inOrder()
+    }
+
+    @Test
+    fun generalHasNoMenu() {
+        show(LibraryPreviewData.allStates)
+
+        exists("General")
+        exists("Buscar en General…")
+        compose.onNodeWithContentDescription("Más opciones").assertDoesNotExist()
+    }
+
+    @Test
+    fun anEmptyFolderInvitesToImportIntoIt() {
+        show(LibraryPreviewData.folderEmpty)
+
+        exists("Motores")
+        exists("Esta carpeta está vacía")
+        compose.onNodeWithText("Importar a Motores").performClick()
+        assertThat(calls).containsExactly("import")
     }
 }

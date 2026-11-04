@@ -31,6 +31,8 @@ fun LisdataConfirmationDialog(
     confirmEnabled: Boolean = true,
     /** Replaces [body] when the dialog needs richer content, such as lines, notices or extra actions. */
     content: (@Composable () -> Unit)? = null,
+    /** False when [content] takes the first focus itself, as a name field does (F17 K3). */
+    focusCancel: Boolean = true,
 ) {
     val colors = LisdataTheme.colors
     val cancelFocus = remember { FocusRequester() }
@@ -62,7 +64,7 @@ fun LisdataConfirmationDialog(
             }
         },
     )
-    LaunchedEffect(Unit) { runCatching { cancelFocus.requestFocus() } }
+    LaunchedEffect(Unit) { if (focusCancel) runCatching { cancelFocus.requestFocus() } }
 }
 
 /** Contextual block shown when a required model is missing, with a route to set it up. */

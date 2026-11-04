@@ -2,19 +2,27 @@ package com.lisdatasolutions.microrag.feature.library
 
 import com.lisdatasolutions.microrag.domain.library.LibraryDocument
 import com.lisdatasolutions.microrag.domain.library.LibraryFilter
+import com.lisdatasolutions.microrag.domain.rag.LibraryFolderFilter
 
 /** P06 state (F08 contracts/library-ui.md): the query as typed and what it found. */
 data class LibraryUiState(
     val text: String = "",
     val filter: LibraryFilter = LibraryFilter.ALL,
     val content: LibraryContent = LibraryContent.Loading,
+    /** F17: the folder shown, or null for the root (K1), which lists the folders until something is typed. */
+    val folder: LibraryFolderFilter? = null,
 ) {
     /** B2 shows no search or filters: there is nothing to search yet. */
     val showsQuery: Boolean get() = content != LibraryContent.Empty
+
+    val isRoot: Boolean get() = folder == null
+
+    /** K1: the root shows its folders while the search is empty. */
+    val showsFolders: Boolean get() = isRoot && text.isBlank()
 }
 
-/** What the detail asks the Library to say when it closes itself (B8, A7). */
-enum class LibraryMessage { DOCUMENT_GONE, DOCUMENT_DELETED }
+/** What the detail asks the Library to say when it closes itself (B8, A7), and a folder screen when its folder goes (F17). */
+enum class LibraryMessage { DOCUMENT_GONE, DOCUMENT_DELETED, FOLDER_DELETED }
 
 sealed interface LibraryContent {
     /** B1. */

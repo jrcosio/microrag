@@ -59,6 +59,7 @@ import com.lisdatasolutions.microrag.core.designsystem.component.LisdataStatCard
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataStatusChip
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataStepIndicator
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataSwitchRow
+import com.lisdatasolutions.microrag.core.designsystem.component.LisdataTextField
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataTopBar
 import com.lisdatasolutions.microrag.core.designsystem.component.SettingsTrailing
 import com.lisdatasolutions.microrag.core.designsystem.component.TrailingIconPlacement
@@ -385,6 +386,10 @@ val catalogEntries: List<CatalogEntry> = listOf(
     entry("Entradas", "search", "LisdataSearchField") {
         var query by remember { mutableStateOf("") }
         LisdataSearchField(query, { query = it }, placeholder = "Buscar documentos…")
+    },
+    entry("Entradas", "textField", "LisdataTextField") {
+        var name by remember { mutableStateOf("") }
+        LisdataTextField(name, { name = it }, label = "Nombre", error = if (name.length > 40) "Máximo 40 caracteres" else null)
     },
     entry("Entradas", "filePicker", "LisdataFilePickerCard") {
         LisdataFilePickerCard("Selecciona archivos", "Todo se procesa en tu móvil", "Seleccionar archivos", onPick = {})

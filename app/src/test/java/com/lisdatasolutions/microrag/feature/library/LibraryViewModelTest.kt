@@ -9,6 +9,7 @@ import com.lisdatasolutions.microrag.domain.library.LibraryFilter
 import com.lisdatasolutions.microrag.domain.library.LibraryQuery
 import com.lisdatasolutions.microrag.domain.library.ObserveLibraryUseCase
 import com.lisdatasolutions.microrag.domain.library.SetIncludedUseCase
+import com.lisdatasolutions.microrag.domain.rag.LibraryFolderFilter
 import com.lisdatasolutions.microrag.testing.FakeLibraryRepository
 import java.io.IOException
 import kotlinx.coroutines.CompletableDeferred
@@ -36,8 +37,8 @@ class LibraryViewModelTest {
     @After
     fun tearDown() = Dispatchers.resetMain()
 
-    private fun viewModel(saved: SavedStateHandle = SavedStateHandle()) =
-        LibraryViewModel(saved, ObserveLibraryUseCase(repository), SetIncludedUseCase(repository), dispatcher)
+    private fun viewModel(saved: SavedStateHandle = SavedStateHandle(), folder: LibraryFolderFilter? = null) =
+        LibraryViewModel(saved, ObserveLibraryUseCase(repository), SetIncludedUseCase(repository), dispatcher, folder)
 
     private fun doc(id: Long, name: String, state: LibraryDocumentState = LibraryDocumentState.Indexed(10, null)) =
         LibraryDocument(id, name, DocumentFormat.PDF, state, included = true)
@@ -233,5 +234,40 @@ class LibraryViewModelTest {
         advanceUntilIdle()
 
         assertThat(vm.state.value.content).isEqualTo(LibraryContent.Unavailable)
+    }
+
+    // F17 T015 (research R5): the folder of the route.
+
+    @Test
+    fun aFolderEntryOnlyAsksForItsFolder() = runTest(dispatcher) {
+        repository.documents.value = listOf(
+            doc(1, "Contrato.pdf").copy(folderId = 1, folderName = "Legal"),
+            doc(2, "Bomba.pdf").copy(folderId = 2, folderName = "Motores"),
+            doc(3, "Manual.pdf"),
+        )
+        val legal = viewModel(folder = LibraryFolderFilter.Folder(1))
+        val general = viewModel(folder = LibraryFolderFilter.Unfiled)
+        advanceUntilIdle()
+
+        assertThat(documents(legal).map { it.id }).containsExactly(1L)
+        assertThat(documents(general).map { it.id }).containsExactly(3L)
+        assertThat(legal.state.value.folder).isEqualTo(LibraryFolderFilter.Folder(1))
+        assertThat(legal.state.value.showsFolders).isFalse()
+        assertThat(repository.queries.map { it.folder }).containsAtLeast(LibraryFolderFilter.Folder(1), LibraryFolderFilter.Unfiled)
+    }
+
+    @Test
+    fun theRootSearchLooksInEveryFolder() = runTest(dispatcher) {
+        repository.documents.value = listOf(doc(1, "Manual de motores.pdf").copy(folderId = 2), doc(2, "Manual.pdf"))
+        val vm = viewModel()
+        advanceUntilIdle()
+        assertThat(vm.state.value.showsFolders).isTrue()
+
+        vm.onTextChange("manual")
+        advanceUntilIdle()
+
+        assertThat(vm.state.value.showsFolders).isFalse()
+        assertThat(repository.queries.last().folder).isEqualTo(LibraryFolderFilter.All)
+        assertThat(documents(vm).map { it.id }).containsExactly(1L, 2L)
     }
 }
