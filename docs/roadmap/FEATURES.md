@@ -1,7 +1,7 @@
 # MicroRAG — Roadmap de features
 
 **Fecha:** 2026-10-25
-**Estado:** ✅ aprobado por el usuario el 2026-10-25. Ampliado el 2026-11-03 con F16–F20, que se ejecutan antes de F14 (D-066). F18 dio el «no» al RAG visual el 2026-11-05, y F19–F20 pasaron al backlog (D-077).
+**Estado:** ✅ aprobado por el usuario el 2026-10-25. Ampliado el 2026-11-03 con F16–F20, que se ejecutan antes de F14 (D-066). F18 dio el «no» al RAG visual con su regla (D-077), y el usuario decidió construirlo como modo opcional (D-078).
 **Referencias:** `INVENTARIO.md` (pantallas, tokens, huecos G01–G47), `DECISIONS.md` (D-001…), `.specify/memory/constitution.md` (principios I–VIII).
 
 Cada feature recorre el ciclo SDD de Spec Kit en su rama `NNN-nombre`:
@@ -48,15 +48,15 @@ Al cerrar cada feature se entrega:
 | F11 | Chat con fuentes | Producto | F08, F10 | ✅ cerrada |
 | F12 | Ajustes e Idiomas | Producto | F03, F11 | ✅ cerrada |
 | F13 | Historial de chats | Producto (UI propuesta) | F11, F12 | ✅ cerrada |
-| F14 | Rendimiento en dispositivo y decisión INT8 | Técnica | F10, F11, F17, F18 | ⬜ |
-| F15 | Pulido y release | Producto | F01–F18 | ⬜ |
+| F14 | Rendimiento en dispositivo y decisión INT8 | Técnica | F10, F11, F17, F20 | ⬜ |
+| F15 | Pulido y release | Producto | F01–F20 | ⬜ |
 | F16 | Apariencia: tema e icono de Ajustes | Producto (UI propuesta) | F12 | ✅ cerrada |
 | F17 | Carpetas y ámbito del chat | Producto (UI propuesta) | F08, F11, F13 | ✅ cerrada |
-| F18 | Viabilidad del RAG visual (fase 0 visual) | Técnica | F05, F10, F11 | 🟨 en revisión de cierre: «no» (D-077) |
-| F19 | Indexación visual | Producto (UI propuesta) | F17, F18 | ⏸ backlog (D-077) |
-| F20 | Chat con páginas | Producto (UI propuesta) | F19 | ⏸ backlog (D-077) |
+| F18 | Viabilidad del RAG visual (fase 0 visual) | Técnica | F05, F10, F11 | ✅ cerrada |
+| F19 | Indexación visual (modo opcional) | Producto (UI propuesta) | F17, F18 | ⬜ |
+| F20 | Chat con páginas (modo opcional) | Producto (UI propuesta) | F19 | ⬜ |
 
-**Orden de ejecución (D-066, D-077):** F01–F13 → **F16 → F17 → F18** → F14 → F15. F18 dio el «no», así que F19 y F20 pasan al backlog. F14 y F15 conservan su número porque las decisiones cerradas las citan así. Las ramas nuevas se crean con `--number` (`016-…` a `020-…`), y F14 se lanzará con `--number 14`.
+**Orden de ejecución (D-066, D-078):** F01–F13 → **F16 → F17 → F18 → F19 → F20** → F14 → F15. F19 y F20 construyen el modo «Multimodal» opcional, desactivado por defecto. F14 y F15 conservan su número porque las decisiones cerradas las citan así. Las ramas nuevas se crean con `--number` (`016-…` a `020-…`), y F14 se lanzará con `--number 14`.
 
 ```mermaid
 flowchart LR
@@ -85,8 +85,11 @@ flowchart LR
     F05 --> F18
     F10 --> F18
     F11 --> F18
+    F17 --> F19
+    F18 --> F19
+    F19 --> F20
     F17 --> F14
-    F18 --> F14
+    F20 --> F14
     F16 --> F15
 ```
 
@@ -96,7 +99,7 @@ flowchart LR
 2. **F05 se adelanta.** La dimensión, el tamaño de chunk y la variante de embedding definen el espacio vectorial, y cambiarlos más tarde obliga a reindexar. Se fijan en escritorio antes de indexar en el móvil. Los benchmarks en el dispositivo y la decisión de INT8 quedan en F14.
 3. **F08 va antes que F11.** Una cita del chat abre el detalle del documento.
 4. **F09 es una feature propia.** Inicio agrega el estado de modelos, biblioteca e indexación. Hasta F09, el destino `home` es un marcador del shell, solo en debug.
-5. **F16–F20 van antes que F14 (D-066).** Cambian la ingesta, el esquema, la recuperación y el prompt, así que F14 tiene que medir el sistema final. Lo pequeño va primero. F17 deja hecho el filtro de ámbito que reutiliza el RAG visual. F18 decide si F19 y F20 siguen adelante, igual que F02 hizo con el resto. Dio el «no» (D-077), y F19–F20 pasaron al backlog.
+5. **F16–F20 van antes que F14 (D-066).** Cambian la ingesta, el esquema, la recuperación y el prompt, así que F14 tiene que medir el sistema final. Lo pequeño va primero. F17 deja hecho el filtro de ámbito que reutiliza el RAG visual. F18 decide si F19 y F20 siguen adelante, igual que F02 hizo con el resto. Su regla dio el «no» (D-077), y el usuario decidió construirlas como modo opcional (D-078).
 
 ---
 
@@ -670,8 +673,9 @@ También se introduce `EngineCoordinator`, que garantiza que nunca haya dos engi
 - sesión sostenida de 20–30 minutos;
 - E2B frente a E4B;
 - palancas para bajar el primer token por debajo de 5 s (D-026): decodificación especulativa y plantilla más corta;
-- lo que añaden F16–F18 (D-066, D-077):
+- lo que añaden F16–F20 (D-066, D-077, D-078):
   - búsqueda acotada por ámbito (F17);
+  - el modo multimodal (F19–F20): vectores de página en F32 frente a INT8, primer token con cada detalle de página y consulta con la 440M;
   - **cifras deformadas con fp16** (F18): Gemma en GPU con las activaciones por defecto deforma cifras en contextos llenos de números (2 de 60 respuestas en el teléfono). Hay que medir si FP32 cabe en el presupuesto (D-023: 7,36 s frente a 4,53 s) o buscar otra salida;
   - **estimación de tokens** (F18): en texto lleno de cifras, la estimación de D-034 se queda corta, unas 2,2 veces menos de lo real.
 
@@ -681,7 +685,7 @@ Con esos datos se decide: INT8 sí o no, número de bloques y perfil de modelo.
 
 **Secciones del informe.** Evaluación → Benchmarks en el dispositivo · Motor vectorial (criterio) · Capa de datos (`rebuildInt8`, preload, `quant_dirty`) · Plan del POC, fase 4.
 
-**Dependencias.** F10, F11, F17 y F18 (D-066, D-077).
+**Dependencias.** F10, F11, F17 y F20 (D-066, D-078).
 
 **Dato de partida (F04):** con 10k fragmentos sintéticos, la búsqueda vectorial exacta da un p95 de 23,1 ms en el teléfono de referencia, ya por encima de los 20 ms del criterio 2 (`specs/004-rag-data-core/report.md` §4).
 
@@ -740,7 +744,7 @@ Opciones a evaluar: normalizar la búsqueda por palabras según el idioma del do
 
 **Secciones del informe.** Privacidad y copias de seguridad (test de bloqueo de red) · Distribución de modelos (evaluar Play Asset Delivery).
 
-**Dependencias.** F01–F18 (D-077).
+**Dependencias.** F01–F20.
 
 **Criterios de aceptación.**
 1. Checklist QA completo, con evidencias.
@@ -856,7 +860,7 @@ Opciones a evaluar: normalizar la búsqueda por palabras según el idioma del do
 ## F18 — Viabilidad del RAG visual (fase 0 visual)
 
 - **Tipo:** Técnica. Diagnóstico interno solo en debug, y harness en el escritorio.
-- **Estado:** 🟨 en curso en la rama `018-visual-rag-feasibility`. Specify y clarify aprobados el 2026-11-05, con la decisión D-073: se sigue con F19–F20 si «Ambos» da al menos 15 puntos más de respuestas correctas en las preguntas visuales, no pierde más de 2 en las de texto y el primer token con al menos 1 página queda en un p95 ≤ 8 s en el teléfono. El conjunto de prueba lo revisa el asistente (D-033), y las imágenes sueltas son públicas y fotos simuladas. La sonda de `ModelInfo` mostró que el fichero de Gemma admite como mucho 280 tokens por imagen, no 560. Plan hecho el 2026-11-05, con la decisión D-074: diagnóstico «Viabilidad visual» solo en debug, la 440M frente al golden de la 270M, corpus visual de INE, AEAT, AEMET, BOE y Wikimedia Commons, recuperación por página con RRF de tres listas, y la regla congelada en git antes de evaluar. Tareas y analyze aprobados el 2026-11-05, con la decisión D-075: la pérdida en texto se mide en las 323 respondibles de F05, las cifras que deciden salen de una revisión manual, y el primer token se mide en dos etapas, con 20 preguntas en la que decide. Spec en `specs/018-visual-rag-feasibility/spec.md`. **Resultado (D-077):** la regla da «no», porque ninguna configuración con páginas cumple el primer token en el teléfono: la mejor candidata da 9,8 s de p95 compuesto, y 1 página a 280 tokens, 14,5 s. Las configuraciones que caben no mejoran a «Texto» en las visuales. La 440M cumple el golden y la identidad, pero la 270M se queda (D-025). Con la decisión del usuario, F19–F20 pasan al backlog. Implementación y teléfono hechos; falta la revisión de cierre.
+- **Estado:** ✅ cerrada el 2026-11-05, aprobada por el usuario (rama `018-visual-rag-feasibility`). Specify y clarify aprobados el 2026-11-05, con la decisión D-073: se sigue con F19–F20 si «Ambos» da al menos 15 puntos más de respuestas correctas en las preguntas visuales, no pierde más de 2 en las de texto y el primer token con al menos 1 página queda en un p95 ≤ 8 s en el teléfono. El conjunto de prueba lo revisa el asistente (D-033), y las imágenes sueltas son públicas y fotos simuladas. La sonda de `ModelInfo` mostró que el fichero de Gemma admite como mucho 280 tokens por imagen, no 560. Plan hecho el 2026-11-05, con la decisión D-074: diagnóstico «Viabilidad visual» solo en debug, la 440M frente al golden de la 270M, corpus visual de INE, AEAT, AEMET, BOE y Wikimedia Commons, recuperación por página con RRF de tres listas, y la regla congelada en git antes de evaluar. Tareas y analyze aprobados el 2026-11-05, con la decisión D-075: la pérdida en texto se mide en las 323 respondibles de F05, las cifras que deciden salen de una revisión manual, y el primer token se mide en dos etapas, con 20 preguntas en la que decide. Spec en `specs/018-visual-rag-feasibility/spec.md`. **Resultado (D-077):** la regla da «no», porque ninguna configuración con páginas cumple el primer token en el teléfono: la mejor candidata da 9,8 s de p95 compuesto, y 1 página a 280 tokens, 14,5 s. Las configuraciones que caben no mejoran a «Texto» en las visuales. La 440M cumple el golden y la identidad, pero la 270M se queda (D-025). En la revisión de cierre, el usuario decidió construir F19–F20 como modo opcional, desactivado por defecto, sin regla de sí o no (D-078). Informe en `specs/018-visual-rag-feasibility/report.md`.
 
 **Objetivo.** Demostrar en el teléfono de referencia que el RAG visual es viable y fijar en el escritorio sus parámetros, antes de construirlo. LiteRT-LM 0.18.1 ya trae la API (verificado en el AAR):
 - en los embeddings, `InputData.Image` y `visionTokensPerImage`;
@@ -918,20 +922,24 @@ Con esos datos se fijan:
 ## F19 — Indexación visual
 
 - **Tipo:** Producto, **sin mockup**. Requiere una propuesta de UI aprobada (G47, constitución VII).
-- **Estado:** ⏸ en el backlog desde el 2026-11-05 (D-077): F18 dio el «no». Se retoma si se cumplen las condiciones de D-077.
+- **Estado:** ⬜ Modo opcional «Multimodal», desactivado por defecto (D-078).
 
 **Objetivo.**
-- **Cambio de modelo de embeddings (D-066):**
-  - la 440M entra en el onboarding en lugar de la 270M, con los tamaños de descarga y G31 actualizados;
-  - en una instalación existente se descarga la 440M y el índice actual se valida por la huella del codificador de texto (enmienda de la constitución III, verificada con `embedding_golden`), sin reindexar;
-  - la 270M se borra solo después de esa validación;
-  - durante la transición, el texto sigue buscable.
+- **Modo «Multimodal» en Ajustes (D-078),** desactivado por defecto. Desactivado, la app se comporta exactamente como hoy.
+- **Cambio de modelo de embeddings, al activar el modo (D-078):**
+  - un aviso explica la descarga de 369 MB y que las respuestas con páginas tardan más (unos 10–15 s en el A063);
+  - se descarga y verifica la 440M;
+  - el índice actual se valida por la identidad de los vectores de texto (1,00000 en F18), sin reindexar. Es la enmienda de la constitución III;
+  - la 440M pasa a embeber también el texto, y la 270M se borra solo después de esa validación;
+  - durante la transición, el texto sigue buscable;
+  - qué pasa al desactivarlo se decide en el clarify.
 - **Importación por modo:**
-  - cada PDF se indexa como Texto, Visual o Ambos, con el valor por defecto en Ajustes;
+  - con el modo activo, cada PDF se indexa como Texto, Visual o Ambos, con el valor por defecto en Ajustes. Con el modo apagado, todo va en Texto;
   - las imágenes JPG y PNG se importan siempre en Visual;
   - los PDF escaneados se admiten en Visual (hoy se rechazan por no tener texto).
 - **Ingesta visual:**
-  - cada página se renderiza a una imagen privada en `noBackupFilesDir`;
+  - cada página se renderiza a una imagen privada en `noBackupFilesDir`: 768 px en JPEG de calidad 85, como fijó F18;
+  - se embebe con la 440M a 140 tokens por imagen en CPU (unos 3,2 s por página en el A063), con vectores de 256D;
   - las imágenes se embeben por lotes, con checkpoint por página, progreso real por páginas y pausas térmica y por espacio;
   - el documento solo se publica al terminar, como en F07.
 - **Datos:** `rag.db` v5, con:
@@ -945,17 +953,18 @@ Con esos datos se fijan:
 
 **Pantallas y mockups.**
 - Como base: `05-ingesta.png`, `06-biblioteca.png`, `07-detalle-documento.png`, `08-indexacion.png` y `09-configuracion.png`, con la propuesta G47.
-- `02-preparacion.png`, para la descarga de la 440M.
+- `09-configuracion.png`, para el interruptor del modo y la descarga de la 440M.
 
 **Secciones del informe.** Distribución de modelos · Parsing y chunking (PDF escaneados) · Ingesta en el dispositivo · Esquema SQLite · Motor vectorial · Privacidad y copias de seguridad (borrado).
 
-**Dependencias.** F17 y F18, si F18 da el sí a F19–F20.
+**Dependencias.** F17 y F18 (D-078).
 
 **Criterios de aceptación.**
 1. Wireframe con componentes `Lisdata*` aprobado por el usuario antes de `/speckit-plan`.
-2. Cambio de modelo:
-   - una instalación nueva descarga y verifica la 440M en el onboarding;
-   - una existente cambia de modelo sin reindexar el texto y sin perder la búsqueda en ningún momento (pruebas instrumentadas de la migración).
+2. Cambio de modelo al activar el modo:
+   - se descarga y verifica la 440M;
+   - el índice cambia de modelo sin reindexar el texto y sin perder la búsqueda en ningún momento (pruebas instrumentadas de la migración);
+   - con el modo desactivado, la app y las cifras del harness (F05 y F10) no cambian.
 3. Un PDF de 200 páginas en Visual se importa sin intervención. Si se mata la app a mitad, al relanzar continúa sin duplicar páginas.
 4. Un PDF escaneado y una imagen suelta se indexan en Visual. En Texto, el PDF escaneado sigue explicando que no tiene texto.
 5. Se comprueba el espacio antes y durante la ingesta visual.
@@ -975,17 +984,19 @@ Con esos datos se fijan:
 ## F20 — Chat con páginas
 
 - **Tipo:** Producto, **sin mockup**. Requiere una propuesta de UI aprobada (G47, constitución VII).
-- **Estado:** ⏸ en el backlog desde el 2026-11-05 (D-077), con F19. Si se retoma, la recuperación con tres listas y la regla de duplicados se revisan con lo que midió F18 (D-076, D-077).
+- **Estado:** ⬜ Modo opcional «Multimodal», con F19 (D-078).
 
 **Objetivo.**
-- **Recuperación con tres listas:**
-  - vector de fragmentos, FTS y vector de páginas, fusionadas con RRF;
+- **Recuperación (D-076, D-078):**
+  - el texto, como hoy (D-034);
+  - las páginas, de su propia lista: el vector de la consulta frente a los de página. No se fusionan las tres listas con RRF, porque eso entierra las páginas sin texto;
   - respeta el ámbito de F17 y el filtro de G28;
   - la misma consulta sirve para fragmentos y páginas, porque comparten espacio vectorial.
 - **Selección de contexto mixta:**
-  - bloques de texto e imágenes de página, cada imagen con su coste en tokens;
-  - si entra una página, no entran también sus fragmentos.
-- **Prompt multimodal (plantilla v5):** `Contents` con texto e imágenes numeradas `[n]`, y Gemma con `visionBackend`.
+  - los bloques de texto de D-034 sin tocar, más 1 página con el detalle que elige el usuario;
+  - sin regla de duplicados: en F18, quitar el texto de la página hundía las respuestas sobre texto.
+- **Ajustes → «Detalle de las páginas»:** Rápido, Equilibrado o Detallado, con 1 página a 70, 140 o 280 tokens visuales y la espera aproximada de cada uno. Solo se ve con el modo activo.
+- **Prompt multimodal (plantilla v5-visual de F18):** `Contents` con texto e imágenes numeradas `[n]`, y Gemma con `visionBackend` en CPU y una ventana de 8.192 tokens en este modo.
 - **Citas a página:**
   - cada `[n]` corresponde a un documento y una página reales;
   - la ficha abre el detalle con la imagen de la página;
@@ -1002,15 +1013,15 @@ Con esos datos se fijan:
 **Criterios de aceptación.**
 1. Wireframe con componentes `Lisdata*` aprobado por el usuario antes de `/speckit-plan`.
 2. Ninguna cita sale sin un documento y una página o un fragmento reales. Un `[n]` fuera de rango se descarta (test).
-3. Se mide en el teléfono el primer token de extremo a extremo con páginas, frente a lo que fijó F18.
-4. La calidad sobre el conjunto visual de F18 cumple los umbrales que fijó F18.
-5. Con documentos de solo texto, las cifras del harness y el comportamiento del chat no cambian.
-6. Las imágenes de página tienen descripción para TalkBack: documento y página.
-7. Prompts, respuestas e imágenes no aparecen en los logs de release.
-8. Nunca hay dos engines en GPU, y el codificador de visión se libera con el LLM.
+3. Se mide en el teléfono el primer token de extremo a extremo con cada detalle de página, como cifra informativa (D-078).
+4. Con el modo desactivado, o con documentos de solo texto, las cifras del harness y el comportamiento del chat no cambian.
+5. Las imágenes de página tienen descripción para TalkBack: documento y página.
+6. Prompts, respuestas e imágenes no aparecen en los logs de release.
+7. Nunca hay dos engines en GPU, y el codificador de visión se libera con el LLM.
 
 **Riesgos.**
-- El primer token con imágenes.
+- El primer token con imágenes: 10–15 s en el A063 según el detalle (F18).
+- Las cifras deformadas con las activaciones fp16 de la GPU (D-077), que se miran en F14.
 - Citas inconsistentes del modelo sobre imágenes.
 - La memoria.
 
@@ -1021,7 +1032,7 @@ Con esos datos se fijan:
 | Elemento | Origen | Motivo |
 |---|---|---|
 | Exportar y restaurar biblioteca | Encargo · informe (Privacidad) | Sin mockup; decisión del usuario D-007 |
-| OCR de PDF escaneados (ML Kit) | Encargo · informe (Parsing) | Sin mockup; el MD de ingesta lo deja fuera del MVP; D-007. El RAG visual (F19–F20) habría respondido sobre escaneados, pero pasó al backlog (D-077) |
+| OCR de PDF escaneados (ML Kit) | Encargo · informe (Parsing) | Sin mockup; el MD de ingesta lo deja fuera del MVP; D-007. Con el modo multimodal opcional (F19–F20, D-078), el chat responde sobre escaneados, pero no los hace buscables por palabras |
 | Importación de HTML (Jsoup) | Encargo · informe (Parsing) | Sin mockup; D-007 |
 | DOCX | Informe (Parsing: «convertir offline en el POC») | Apache POI pesa mucho en Android |
 | Protección de biblioteca (biometría/PIN) | `09-settings.md` | No está en el PNG (G23) |
@@ -1033,4 +1044,3 @@ Con esos datos se fijan:
 | Importar modelos por SAF | `02-onboarding.md` | Se decide en el clarify de F03 (G02) |
 | FTS trigram como tercera lista | Informe (Búsqueda léxica) | Solo si la evaluación lo justifica (F05) |
 | Play Asset Delivery y AICore | Informe (Distribución) · ficha de Gemma 4 | Se reevalúan antes de la release de producción |
-| RAG visual: indexación (F19) y chat con páginas (F20) | D-066 · F18 | F18 dio el «no» (D-077): ninguna configuración con páginas cumple el primer token en el A063. Se retoma con visión en GPU o NPU, o con un teléfono más rápido, y con una mezcla que no quite el texto de la página |

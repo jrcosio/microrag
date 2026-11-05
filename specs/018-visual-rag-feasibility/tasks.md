@@ -350,11 +350,11 @@ description: "Lista de tareas de F18 — Viabilidad del RAG visual"
   - el sí o el no a F19–F20.
 
   Si sale el sí, se redacta la propuesta de enmienda de la constitución (FR-029): página citable, 440M, dimensión de página, formatos visuales y el presupuesto de primer token de las respuestas con páginas (IV). Se aplica en F19. *Hecho: D-077, con el «no»; sin enmienda.*
-- [ ] T060 [US6] Cierre:
+- [X] T060 [US6] Cierre:
   - `report.md` cerrado, con las cifras del teléfono y del escritorio;
   - `docs/roadmap/FEATURES.md` con F18 «implementada; pendiente de la revisión de cierre» y F19–F20 con los parámetros decididos, o descartadas (FR-030).
 
-  **Parada para la revisión de cierre.** *`report.md` y FEATURES listos; pendiente de la revisión del usuario.*
+  **Parada para la revisión de cierre.** *Aprobado por el usuario el 2026-11-05, que decidió construir F19–F20 como modo opcional (D-078).*
 
 ---
 

@@ -1,6 +1,6 @@
 # Informe de cierre — F18 Viabilidad del RAG visual (fase 0 visual)
 
-> **Estado:** pendiente de la revisión de cierre del usuario (T060).
+> **Estado:** aprobada por el usuario el 2026-11-05. En la revisión de cierre decidió construir F19–F20 como modo opcional (D-078).
 
 **Rama:** `018-visual-rag-feasibility`, creada desde `6b89467`.
 **Fecha:** 2026-11-05.
@@ -14,7 +14,7 @@
 - escritorio: `pypdfium2==5.14.0` y `pillow==12.3.0`;
 - lint avisa de las dos versiones más nuevas de siempre, LiteRT-LM 0.19.0 y SQLite-Vector 1.2.0.
 
-**Resultado:** la regla congelada da **«no»** a F19–F20, porque ninguna configuración con páginas cumple el primer token en el teléfono. Con la decisión del usuario, F19–F20 pasan al backlog y la 270M se queda (D-077).
+**Resultado:** la regla congelada da **«no»** a F19–F20, porque ninguna configuración con páginas cumple el primer token en el teléfono (D-077). En la revisión de cierre, el usuario decidió construirlas igualmente como **modo «Multimodal» opcional**, desactivado por defecto y sin regla de sí o no (D-078).
 
 ## 1. Qué se ha implementado
 
@@ -108,11 +108,19 @@ Comprobación del juez: coincide con la revisión a mano en 30 de 30 respuestas 
 - **Memoria:** RSS pico de 3,5–3,9 GB con Gemma y la visión.
 - **Conversión de páginas:** 28–67 ms por página en JPEG, también con el PDF de AEMET protegido con contraseña de propietario.
 
-## 5. Decisión (D-077)
+## 5. Decisiones (D-077 y D-078)
 
-- **«No» a F19–F20,** que pasan al backlog con sus condiciones para retomarlas: visión en GPU o NPU, o un teléfono más rápido, y una mezcla que no quite el texto de la página.
-- **La 270M se queda** (D-025).
-- **No hay enmienda de la constitución,** porque FR-029 solo la pide con el «sí».
+- **D-077:**
+  - la regla da «no»;
+  - la 270M sigue siendo el embedder por defecto;
+  - dentro de F18 no hay enmienda de la constitución, porque FR-029 solo la pide con el «sí».
+- **D-078,** del usuario en la revisión de cierre: F19–F20 se construyen como modo «Multimodal» opcional, desactivado por defecto:
+  - la 440M se descarga al activarlo y embebe también el texto;
+  - no hay regla de duplicados;
+  - el usuario elige el detalle: 1 página a 70, 140 o 280 tokens;
+  - no hay ablaciones comparativas.
+
+  La enmienda de la constitución (III, IV y Restricciones) se hace al empezar F19.
 - **Hallazgos para F14:**
   - las cifras deformadas con fp16;
   - la estimación de tokens en texto lleno de cifras.
@@ -149,5 +157,5 @@ Comprobación del juez: coincide con la revisión a mano en 30 de 30 respuestas 
 - **Para F14:**
   - las cifras deformadas con fp16 en el teléfono: 2 de 60 respuestas de la etapa B. Afectan al chat de hoy, y FP32 cuesta casi 3 s de primer token (D-023);
   - la estimación de tokens en texto lleno de cifras.
-- **Backlog:** F19–F20, con las condiciones de D-077.
+- **F19 y F20:** el modo multimodal opcional (D-078), con la enmienda de la constitución al empezar F19.
 - **En el teléfono quedan, como antes de F18:** Gemma y la 270M. La 440M se borró por decisión del usuario.

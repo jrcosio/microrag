@@ -1992,9 +1992,48 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G47).
 
 ---
 
+## D-078 — El RAG visual se construye como modo opcional (cierre de F18)
+
+- **Fecha:** 2026-11-05
+- **Decisión** (del usuario, al revisar el resultado de F18):
+  1. **F19–F20 vuelven al roadmap.** Se implementan como se definieron (D-066), pero como **modo «Multimodal» opcional** en Ajustes, **desactivado por defecto**. Desactivado, la app se comporta exactamente como hoy.
+  2. **Sin regla de sí o no ni ablaciones comparativas.** El usuario conoce los límites que midió F18 y decide activarlo aceptando respuestas más lentas. Las cifras del teléfono se miden e informan, pero no bloquean.
+  3. **La 440M se descarga al activar el modo** (369 MB) y pasa a embeber también el texto. Su identidad con la 270M es de 1,00000, así que no hay que reindexar. La 270M se borra después de validar. Quien no activa el modo no descarga nada.
+  4. **Sin regla de duplicados:** entran los bloques de texto de D-034 más la página como imagen.
+  5. **El usuario elige el detalle** («Rápido / Equilibrado / Detallado»), con 1 página a 70, 140 o 280 tokens. En el A063 son unos 10, 11,5 y 14,5 s de primer token.
+  6. **Parámetros de F18:**
+     - página a 768 px, en JPEG a calidad 85;
+     - la 440M a 140 tokens por imagen, con vectores de página de 256D;
+     - las páginas salen de su propia lista (D-076);
+     - Gemma con la visión en CPU y una ventana de 8.192 tokens en este modo.
+- **Motivo:**
+  - la regla de D-073 dio «no» con cifras medidas (D-077): con páginas, el primer token pasa de 8 s en el A063, y lo que cabe en ese tiempo no mejora a «Texto»;
+  - aun así, el modo aporta donde el texto no llega. En F18, con las imágenes sueltas acertaba hasta un 50–55 %, frente al 36 % de «Texto», y es la única forma de responder sobre escaneados sin texto;
+  - como opción que se activa a sabiendas, el coste solo lo paga quien lo elige;
+  - quitar el texto de la página hundía los controles de texto del 86 % al 43 % (D-077), y por eso sale la regla de duplicados.
+- **Alternativas descartadas:**
+  - dejar F19–F20 en el backlog (D-077);
+  - la 440M para todos desde el onboarding (D-066), que son 230 MB más para quien no usa el modo;
+  - las dos variantes de embeddings a la vez, que embeben cada consulta dos veces;
+  - un detalle fijo.
+- **Origen:** usuario, en la revisión de cierre de F18.
+- **Afecta:**
+  - **D-077:** sustituye su punto 1. Siguen valiendo las cifras, los hallazgos y la falta de enmienda dentro de F18;
+  - **D-025:** con el modo activo, la 440M sustituye a la 270M;
+  - **D-066 y D-076;**
+  - **la constitución:** III (página citable, 440M y 256D para las páginas), IV (primer token propio de las respuestas con páginas, medido y avisado) y Restricciones. Se enmienda al empezar F19, antes de su plan;
+  - **FEATURES:**
+    - F18 cerrada;
+    - F19 y F20 de nuevo en el roadmap, sin el criterio de calidad de F18;
+    - F14, que mide también el camino multimodal;
+    - F15, que vuelve a depender de F01–F20;
+  - **INVENTARIO:** G47 vuelve a estar abierto.
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.
 
-- **Huecos G del inventario:** G47 (UI del modo visual, F19–F20, añadido con D-066) queda aplazado con F19–F20 en el backlog (D-077). G45 (selector de tema) se resolvió en D-067 y G46 (carpetas y ámbito) en D-070. Su UI se propone y se aprueba en el clarify de su feature. Los anteriores se resolvieron en sus features; el estado de cada uno está en `INVENTARIO.md` §6.
+- **Huecos G del inventario:** queda abierto G47 (UI del modo visual, F19–F20, añadido con D-066), que vuelve con D-078. G45 (selector de tema) se resolvió en D-067 y G46 (carpetas y ámbito) en D-070. Su UI se propone y se aprueba en el clarify de su feature. Los anteriores se resolvieron en sus features; el estado de cada uno está en `INVENTARIO.md` §6.
 - **Documentos en otro idioma** — Cerrado en D-062 (medida entre idiomas de F12). Las mejoras de la búsqueda entre idiomas están en la ficha de F14.
