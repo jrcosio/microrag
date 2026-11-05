@@ -10,6 +10,7 @@ import com.lisdatasolutions.microrag.domain.model.ModelCatalog
 import com.lisdatasolutions.microrag.domain.onboarding.ObserveLocalAiUseCase
 import com.lisdatasolutions.microrag.domain.rag.DocumentStatus
 import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
+import com.lisdatasolutions.microrag.domain.rag.IndexMode
 import com.lisdatasolutions.microrag.domain.rag.NewDocument
 import com.lisdatasolutions.microrag.testing.FakeAnswerEngine
 import com.lisdatasolutions.microrag.testing.FakeIndexingRepository
@@ -203,5 +204,17 @@ class ObserveChatAvailabilityUseCaseTest {
 
         indexing.state.value = IndexingState.Idle(emptyList())
         assertThat(inScope()).isEqualTo(ChatAvailability.NothingInScope)
+    }
+
+    /** F19 T050 (research R13, contract P9): a document with only pages is not searchable until F20. */
+    @Test
+    fun documentsWithOnlyPages_leaveNothingReady() = runTest {
+        val plano = index.addDocument(NewDocument(displayName = "Plano.pdf", contentHash = "plano", mimeType = "application/pdf", indexMode = IndexMode.VISUAL))
+        index.updateStatus(plano, DocumentStatus.DONE, null, 0, null)
+        assertThat(current()).isEqualTo(ChatAvailability.NothingReady)
+        assertThat(index.chatLibraryState().visualOnly).isEqualTo(1)
+
+        doc("Hecho.txt", DocumentStatus.DONE)
+        assertThat(current()).isEqualTo(ChatAvailability.Ready(cpuMode = false, partialCoverage = false))
     }
 }

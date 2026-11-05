@@ -386,7 +386,7 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
 
 ## Phase 10: Polish sin teléfono
 
-- [ ] T050 Chat (R13): la disponibilidad del chat (`ObserveChatAvailabilityUseCase`) usa el recuento `visualOnly` de P9 (T014) para no contar como buscables los documentos solo Visual. Lo prueban `ObserveChatAvailabilityUseCaseTest` y `ChatViewModelTest`.
+- [X] T050 Chat (R13): la disponibilidad del chat (`ObserveChatAvailabilityUseCase`) usa el recuento `visualOnly` de P9 (T014) para no contar como buscables los documentos solo Visual. Lo prueban `ObserveChatAvailabilityUseCaseTest` y `ChatViewModelTest`.
 - [ ] T051 Regresión del texto (FR-025, SC-001): `run_eval.py ablations` y `order-review` dan las mismas cifras que en la tarea T034 de F18. `test_appconfig.py` sigue en verde.
 - [ ] T052 Release:
   - `assembleRelease`;
