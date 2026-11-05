@@ -274,7 +274,7 @@ class VisualSuiteTest {
         assertThat(vectors.first().sha256).isEqualTo("sha-images/i1.png")
         assertThat(vectors.last().id).isEqualTo("pdf:pdfs/scan.pdf:1:1024")
         assertThat(vectors.all { it.values.size == 768 }).isTrue()
-        assertThat(f.events).contains("render scan.pdf 1 1024 PNG")
+        assertThat(f.events).contains("render scan.pdf 1 1024 JPEG")
     }
 
     // Conversion (T046) -------------------------------------------------------------------------------------

@@ -359,7 +359,8 @@ class VisualSuite(
                     set.pdfs.flatMap { pdf ->
                         pdf.pages.map { page ->
                             val px = checkNotNull(set.parityPx) { "device set has no parity_px" }
-                            val rendered = rasterizer.renderPage(pdf.file, page, px, ImageFormat.PNG, VisualProtocol.QUALITY)
+                            // JPEG, as the desktop encodes the same page for its vector (research R13).
+                            val rendered = rasterizer.renderPage(pdf.file, page, px, ImageFormat.JPEG, VisualProtocol.QUALITY)
                             Triple("pdf:${pdf.path}:$page:$px", null, rendered.bytes)
                         }
                     }
