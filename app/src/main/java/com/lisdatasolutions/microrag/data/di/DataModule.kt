@@ -160,14 +160,17 @@ val dataModule = module {
     single<IndexingAlarm> { AlarmManagerIndexingAlarm(androidContext()) }
     single<EmbeddingSessions> {
         val models = get<ModelFileRepository>()
+        val requirements = get<ModelRequirements>()
         ChunkEmbeddingSession(
             coordinator = get(),
             factory = get(),
             // A process started for the work has not scanned the models folder yet.
-            modelPath = { models.pathOf(ModelId.EG2_270M) ?: models.refresh().let { models.pathOf(ModelId.EG2_270M) } },
+            modelPath = { id -> models.pathOf(id) ?: models.refresh().let { models.pathOf(id) } },
             runStore = get(),
             appVersion = BuildConfig.VERSION_CODE.toLong(),
             logger = get(),
+            // F19 research R2: the text embedder the index records (the mode's mirror before it opens).
+            textEmbedder = { requirements.current().textEmbedder },
         )
     }
     single {
@@ -224,7 +227,10 @@ val dataModule = module {
     }
 
     // Retrieval (F10): the query engine on the CPU, shared with the ingest's, and the hybrid search.
-    single<QueryEmbedder> { EngineQueryEmbedder(coordinator = get(), factory = get(), models = get()) }
+    single<QueryEmbedder> {
+        val requirements = get<ModelRequirements>()
+        EngineQueryEmbedder(coordinator = get(), factory = get(), models = get(), textEmbedder = { requirements.current().textEmbedder })
+    }
     single<ContextRetriever> { HybridRetriever(index = get(), embedder = get(), logger = get()) }
 
     // The only network access of the app (constitution I, F03 FR-026): pinned Hugging Face files.

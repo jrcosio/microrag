@@ -37,12 +37,14 @@ class EngineQueryEmbedderTest {
 
     private class FakeFactory : EngineFactory {
         val created = mutableListOf<ComputeBackend>()
+        val models = mutableListOf<ModelId>()
         val engines = mutableListOf<FakeTextEmbedder>()
         var loadFails = false
         var failEngineTimes = 0
 
         override fun embedder(file: ModelFile, path: File, backend: ComputeBackend): TextEmbedder {
             created += backend
+            models += file.id
             if (loadFails) return object : TextEmbedder by FakeTextEmbedder(backend) {
                 override suspend fun initialize() = throw IllegalStateException("cannot load")
             }
@@ -60,6 +62,25 @@ class EngineQueryEmbedderTest {
         override fun clearCompiledCache() = Unit
 
         override var benchmarkStatsEnabled: Boolean = false
+    }
+
+    /** F19 T017 (research R2): after the switch, questions are embedded with the 440M's text engine. */
+    @Test
+    fun theTextEmbedderOfTheIndex_answersTheQuestions() = runTest {
+        var active = ModelId.EG2_270M
+        val switched = InMemoryModelFileRepository(verified = setOf(ModelId.EG2_440M)).apply {
+            preparedBackends.value = mapOf(ModelId.EG2_440M to CPU)
+        }
+        val embedder = EngineQueryEmbedder(coordinator, factory, switched, textEmbedder = { active })
+        assertThat(embedder.ready()).isFalse()
+
+        active = ModelId.EG2_440M
+        assertThat(embedder.ready()).isTrue()
+        embedder.embed("¿Cada cuánto se cambia el aceite?", null)
+
+        assertThat(factory.models).containsExactly(ModelId.EG2_440M)
+        assertThat(coordinator.loaded.value).containsExactly(EngineKey(ModelId.EG2_440M, CPU))
+        assertThat(embedder.loaded).isTrue()
     }
 
     @Test

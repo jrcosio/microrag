@@ -33,6 +33,7 @@ class ChunkEmbeddingSessionTest {
 
     private class FakeFactory : EngineFactory {
         val created = mutableListOf<ComputeBackend>()
+        val models = mutableListOf<ModelId>()
         val engines = mutableListOf<FakeTextEmbedder>()
         var gpuLoadFails = false
         var gpuSalt = ""
@@ -40,6 +41,7 @@ class ChunkEmbeddingSessionTest {
 
         override fun embedder(file: ModelFile, path: File, backend: ComputeBackend): TextEmbedder {
             created += backend
+            models += file.id
             if (backend == GPU && gpuLoadFails) return object : TextEmbedder by FakeTextEmbedder(GPU) {
                 override suspend fun initialize() = throw IllegalStateException("GPU delegate unavailable")
             }
@@ -61,6 +63,27 @@ class ChunkEmbeddingSessionTest {
 
     private fun session(isEmulator: Boolean = false, modelPath: File? = File("model.litertlm")) =
         ChunkEmbeddingSession(coordinator, factory, { modelPath }, runStore, appVersion = 7, logger = logger, isEmulator = isEmulator)
+
+    /** F19 T017 (research R2): after the switch, the 440M indexes the text, with its own GPU check. */
+    @Test
+    fun theTextEmbedderOfTheIndex_isTheOneLoaded() = runTest {
+        session().use { }
+        assertThat(runStore.gpuCheck()).isEqualTo("$sha|7|gpu")
+        factory.models.clear()
+
+        val asked = mutableListOf<ModelId>()
+        val switched = ChunkEmbeddingSession(
+            coordinator, factory, { id -> asked += id; File("440m.litertlm") }, runStore, appVersion = 7, logger = logger,
+            textEmbedder = { ModelId.EG2_440M },
+        )
+        assertThat(switched.modelReady()).isTrue()
+        switched.use { }
+
+        assertThat(asked.toSet()).containsExactly(ModelId.EG2_440M)
+        assertThat(factory.models.toSet()).containsExactly(ModelId.EG2_440M)
+        assertThat(runStore.gpuCheck()).isEqualTo("${ModelCatalog.byId(ModelId.EG2_440M).sha256}|7|gpu")
+        assertThat(coordinator.loaded.value).isEmpty()
+    }
 
     @Test
     fun releasesTheLlmBeforeLoading() = runTest {

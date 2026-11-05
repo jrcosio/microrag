@@ -4,6 +4,7 @@ import android.os.Build
 import com.lisdatasolutions.microrag.core.logging.AppLogger
 import com.lisdatasolutions.microrag.domain.model.ComputeBackend
 import com.lisdatasolutions.microrag.domain.model.ModelCatalog
+import com.lisdatasolutions.microrag.domain.model.ModelFile
 import com.lisdatasolutions.microrag.domain.model.ModelId
 import com.lisdatasolutions.microrag.rag.runtime.DocumentEmbedding
 import com.lisdatasolutions.microrag.rag.runtime.EmbeddingEngineException
@@ -39,32 +40,36 @@ interface EmbeddingSessions {
     suspend fun <R> use(block: suspend (ChunkEmbedder) -> R): R
 }
 
-/** The indexing embedder: EmbeddingGemma 2 270M (D-025), on the GPU when this device passed the check (D-040). */
+/**
+ * The indexing embedder: EmbeddingGemma 2 270M (D-025), or the 440M once the multimodal mode switched to it
+ * (F19 research R2), on the GPU when this device passed the check for that model (D-040).
+ */
 class ChunkEmbeddingSession(
     private val coordinator: EngineCoordinator,
     private val factory: EngineFactory,
-    /** The verified model file, or null; may scan the models folder (the worker can start in a fresh process). */
-    private val modelPath: suspend () -> File?,
+    /** The verified file of a model, or null; may scan the models folder (the worker can start in a fresh process). */
+    private val modelPath: suspend (ModelId) -> File?,
     private val runStore: IngestRunStore,
     private val appVersion: Long,
     private val logger: AppLogger,
     private val isEmulator: Boolean = Build.HARDWARE in EMULATOR_HARDWARE,
+    /** F19 research R2: the text embedder the index records, read when a session opens. */
+    private val textEmbedder: suspend () -> ModelId = { ModelId.EG2_270M },
 ) : EmbeddingSessions {
 
-    private val model = ModelCatalog.byId(ModelId.EG2_270M)
-
-    override suspend fun modelReady(): Boolean = modelPath() != null
+    override suspend fun modelReady(): Boolean = modelPath(textEmbedder()) != null
 
     override suspend fun <R> use(block: suspend (ChunkEmbedder) -> R): R {
         // Never the LLM and the ingest at once (constitution IV).
         coordinator.releaseGenerators()
-        val path = modelPath() ?: throw EmbeddingEngineException(IllegalStateException("Embedding model not verified"))
-        var backend = backend(path)
+        val model = ModelCatalog.byId(textEmbedder())
+        val path = modelPath(model.id) ?: throw EmbeddingEngineException(IllegalStateException("Embedding model not verified"))
+        var backend = backend(model, path)
         var reloaded = false
         while (true) {
             val key = EngineKey(model.id, backend)
             try {
-                return coordinator.withHeldEngine(key, { load(path, backend) }) { engine -> block(Embedder(engine, backend)) }
+                return coordinator.withHeldEngine(key, { load(model, path, backend) }) { engine -> block(Embedder(engine, backend)) }
             } catch (e: EmbeddingEngineException) {
                 when {
                     !reloaded -> reloaded = true
@@ -82,7 +87,7 @@ class ChunkEmbeddingSession(
         }
     }
 
-    private suspend fun load(path: File, backend: ComputeBackend): TextEmbedder = try {
+    private suspend fun load(model: ModelFile, path: File, backend: ComputeBackend): TextEmbedder = try {
         factory.embedder(model, path, backend).initializeOrClose { it.initialize() }
     } catch (e: CancellationException) {
         throw e
@@ -91,7 +96,7 @@ class ChunkEmbeddingSession(
     }
 
     /** GPU only if it gave the CPU's vectors on this device, model and app version (research R4). */
-    private suspend fun backend(path: File): ComputeBackend {
+    private suspend fun backend(model: ModelFile, path: File): ComputeBackend {
         if (isEmulator) {
             logger.i(TAG) { "ingest backend cpu: emulator" }
             return ComputeBackend.CPU
@@ -100,16 +105,16 @@ class ChunkEmbeddingSession(
         runStore.gpuCheck()?.takeIf { it.startsWith(stamp) }?.let { check ->
             return if (check.endsWith(GPU_OK)) ComputeBackend.GPU else ComputeBackend.CPU
         }
-        val gpu = gpuGivesTheCpuVectors(path)
+        val gpu = gpuGivesTheCpuVectors(model, path)
         runStore.setGpuCheck(stamp + if (gpu) GPU_OK else CPU_ONLY)
         return if (gpu) ComputeBackend.GPU else ComputeBackend.CPU
     }
 
-    private suspend fun gpuGivesTheCpuVectors(path: File): Boolean {
+    private suspend fun gpuGivesTheCpuVectors(model: ModelFile, path: File): Boolean {
         val cpuKey = EngineKey(model.id, ComputeBackend.CPU)
         return try {
-            val gpu = vectors(EngineKey(model.id, ComputeBackend.GPU), path)
-            val cpu = vectors(cpuKey, path)
+            val gpu = vectors(model, EngineKey(model.id, ComputeBackend.GPU), path)
+            val cpu = vectors(model, cpuKey, path)
             val cosine = gpu.indices.minOf { EmbeddingMath.cosine(gpu[it], cpu[it]) }
             logger.i(TAG) { "ingest gpu check min cosine ${"%.5f".format(cosine)}" }
             cosine >= MIN_COSINE
@@ -123,8 +128,10 @@ class ChunkEmbeddingSession(
         }
     }
 
-    private suspend fun vectors(key: EngineKey, path: File): List<FloatArray> =
-        coordinator.withEngine(key, { load(path, key.backend) }) { engine -> PROBES.map { engine.embedDocumentFitting(it, PROBE_HEADER).vector } }
+    private suspend fun vectors(model: ModelFile, key: EngineKey, path: File): List<FloatArray> =
+        coordinator.withEngine(key, { load(model, path, key.backend) }) { engine ->
+            PROBES.map { engine.embedDocumentFitting(it, PROBE_HEADER).vector }
+        }
 
     private class Embedder(private val engine: TextEmbedder, override val backend: ComputeBackend) : ChunkEmbedder {
         override suspend fun embed(content: String, header: String): DocumentEmbedding = engine.embedDocumentFitting(content, header)

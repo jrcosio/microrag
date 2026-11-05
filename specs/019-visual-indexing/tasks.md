@@ -145,8 +145,8 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
   - el espejo `text_embedder` del almacén (analyze, H3).
 
   T008 pasa. La preparación del primer arranque no cambia: lo comprueban sus pruebas.
-- [ ] T061 [P] `…/test/…/rag/runtime/EngineCoordinatorTest.kt` (analyze, H2): `EngineKey` con tipo. El embedder de imagen y el de texto de la 440M en CPU son engines distintos, y una consulta durante la fase de páginas recibe un embedder de texto. Se implementa en `…/microrag/rag/runtime/{ManagedEngine,EngineCoordinator}.kt`, y se actualizan los usos de `EngineKey`.
-- [ ] T017 Embedder activo (R2):
+- [X] T061 [P] `…/test/…/rag/runtime/EngineCoordinatorTest.kt` (analyze, H2): `EngineKey` con tipo. El embedder de imagen y el de texto de la 440M en CPU son engines distintos, y una consulta durante la fase de páginas recibe un embedder de texto. Se implementa en `…/microrag/rag/runtime/{ManagedEngine,EngineCoordinator}.kt`, y se actualizan los usos de `EngineKey`.
+- [X] T017 Embedder activo (R2):
   - `ChunkEmbeddingSession` y `EngineQueryEmbedder` leen `RagIndex.textEmbedder`, en vez de `EG2_270M`;
   - `DataModule` resuelve la ruta del modelo activo;
   - con la 270M, todo da lo mismo que antes, comprobado con sus pruebas.

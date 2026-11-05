@@ -4,6 +4,7 @@ import com.lisdatasolutions.microrag.core.logging.AppLogger
 import com.lisdatasolutions.microrag.domain.model.ComputeBackend
 import com.lisdatasolutions.microrag.domain.model.ModelCatalog
 import com.lisdatasolutions.microrag.domain.model.ModelFamily
+import com.lisdatasolutions.microrag.domain.model.ModelId
 import java.util.concurrent.atomic.AtomicInteger
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -81,6 +82,11 @@ class EngineCoordinator(private val logger: AppLogger) {
         loadLock.withLock { closeLocked(key) }
     }
 
+    /** Closes every engine of [model], whatever its backend or kind: before its file is deleted (F19 contract D1). */
+    suspend fun release(model: ModelId) {
+        loadLock.withLock { entries.keys.filter { it.model == model }.forEach { closeLocked(it) } }
+    }
+
     suspend fun releaseAll() {
         loadLock.withLock { entries.keys.toList().forEach { closeLocked(it) } }
     }
@@ -148,7 +154,7 @@ class EngineCoordinator(private val logger: AppLogger) {
         entries[key] = entry
         entry.enter()
         publish()
-        logger.i(TAG) { "engine load ${key.model} ${key.backend}" }
+        logger.i(TAG) { "engine load ${key.label()}" }
         return entry
     }
 
@@ -165,13 +171,15 @@ class EngineCoordinator(private val logger: AppLogger) {
         }
         entries.remove(key)
         publish()
-        logger.i(TAG) { "engine release ${key.model} ${key.backend}" }
+        logger.i(TAG) { "engine release ${key.label()}" }
     }
 
     private fun closeEngine(key: EngineKey, entry: Entry) {
         runCatching { entry.engine.close() }
-            .onFailure { logger.w(TAG, it) { "engine close failed ${key.model} ${key.backend}" } }
+            .onFailure { logger.w(TAG, it) { "engine close failed ${key.label()}" } }
     }
+
+    private fun EngineKey.label(): String = if (kind == EngineKind.DEFAULT) "$model $backend" else "$model $backend $kind"
 
     private fun publish() {
         _loaded.value = entries.keys.toSet()

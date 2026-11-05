@@ -76,6 +76,36 @@ class EngineCoordinatorTest {
         assertThat(coordinator.loaded.value).containsExactly(cpuA, cpuB)
     }
 
+    /** F19 T061 (analyze H2): the 440M's image and text engines are two entries, so a query never waits for a page. */
+    @Test
+    fun theImageAndTextEnginesOfOneModel_areDistinct_andAQueryDuringThePagesGetsTheText() = runTest {
+        val image = EngineKey(ModelId.EG2_440M, CPU, EngineKind.IMAGE_EMBEDDER)
+        assertThat(image).isNotEqualTo(cpuB)
+        val pageInProgress = CompletableDeferred<Unit>()
+        val pageDone = CompletableDeferred<Unit>()
+        val pages = launch {
+            coordinator.withHeldEngine(image, factory("image", CPU)) { engine ->
+                pageInProgress.complete(Unit)
+                pageDone.await()
+                assertThat(engine.name).isEqualTo("image")
+            }
+        }
+        pageInProgress.await()
+
+        val used = coordinator.withEngine(cpuB, factory("text", CPU)) { it.name }
+
+        assertThat(used).isEqualTo("text")
+        assertThat(coordinator.loaded.value).containsExactly(image, cpuB)
+        pageDone.complete(Unit)
+        pages.join()
+
+        // Before its file is deleted, every engine of the model goes (contract D1).
+        coordinator.withEngine(cpuA, factory("a", CPU)) { }
+        coordinator.release(ModelId.EG2_440M)
+        assertThat(coordinator.loaded.value).containsExactly(cpuA)
+        assertThat(events).containsAtLeast("close image", "close text")
+    }
+
     @Test
     fun release_waitsForTheBlockInProgress() = runTest {
         val gate = CompletableDeferred<Unit>()

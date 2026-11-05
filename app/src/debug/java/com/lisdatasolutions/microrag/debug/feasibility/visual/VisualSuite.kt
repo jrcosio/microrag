@@ -37,6 +37,7 @@ import com.lisdatasolutions.microrag.rag.runtime.EmbeddingMath
 import com.lisdatasolutions.microrag.rag.runtime.EngineCoordinator
 import com.lisdatasolutions.microrag.rag.runtime.EngineFactory
 import com.lisdatasolutions.microrag.rag.runtime.EngineKey
+import com.lisdatasolutions.microrag.rag.runtime.EngineKind
 import com.lisdatasolutions.microrag.rag.runtime.GenerationConfig
 import com.lisdatasolutions.microrag.rag.runtime.ManagedEngine
 import com.lisdatasolutions.microrag.rag.runtime.initializeOrClose
@@ -320,7 +321,7 @@ class VisualSuite(
         }
         scenario(session, run) {
             if (!coolDown(confirmHot)) return@scenario finish(VisualStatus.CANCELLED, "thermal")
-            val key = EngineKey(ModelId.EG2_440M, backend)
+            val key = EngineKey(ModelId.EG2_440M, backend, EngineKind.IMAGE_EMBEDDER)
             val create = suspend { visionFactory.imageEmbedder(file(ModelId.EG2_440M), path, backend, tokens).initializeOrClose { it.initialize() } }
             val (cold, warm) = initTimes(this, key, create)
             val bytes = withContext(dispatchers.io) { images.map { it.second.readBytes() } }
@@ -353,7 +354,7 @@ class VisualSuite(
         }
         scenario(session, run) {
             if (!coolDown(confirmHot)) return@scenario finish(VisualStatus.CANCELLED, "thermal")
-            val key = EngineKey(ModelId.EG2_440M, ComputeBackend.CPU)
+            val key = EngineKey(ModelId.EG2_440M, ComputeBackend.CPU, EngineKind.IMAGE_EMBEDDER)
             val create = suspend {
                 visionFactory.imageEmbedder(file(ModelId.EG2_440M), path, ComputeBackend.CPU, tokens).initializeOrClose { it.initialize() }
             }
@@ -447,7 +448,7 @@ class VisualSuite(
         if (pdfs.isEmpty()) return skip(session, run, VisualStatus.NOT_AVAILABLE, "device set has no PDF")
         scenario(session, run) {
             if (!coolDown(confirmHot)) return@scenario finish(VisualStatus.CANCELLED, "thermal")
-            val key = EngineKey(ModelId.EG2_440M, ComputeBackend.CPU)
+            val key = EngineKey(ModelId.EG2_440M, ComputeBackend.CPU, EngineKind.IMAGE_EMBEDDER)
             val create = suspend {
                 visionFactory.imageEmbedder(file(ModelId.EG2_440M), path, ComputeBackend.CPU, tokens).initializeOrClose { it.initialize() }
             }
