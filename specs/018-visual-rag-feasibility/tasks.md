@@ -182,7 +182,7 @@ description: "Lista de tareas de F18 — Viabilidad del RAG visual"
   - Ejecutar `visual-review-apply` y `visual-validate`: ≥ 100 aceptadas y ≥ 60 % visuales.
   - Ejecutar `visual-freeze` y hacer **commit** del conjunto y de `visual_rules.json` con su huella, **antes** de T028 y T032.
 - [X] T027 [P] [US5] Pruebas en `offline/tests/test_visual_retrieval.py`: listas por página con la mejor posición, RRF de 2 y 3 listas con k = 60, empates, y Recall@1/3/5/10, MRR y nDCG@10 por página y por tipo.
-- [ ] T028 [US5] Recuperación en `offline/eval/visual_retrieval.py` y el subcomando `visual-retrieve`. Ejecutar las ablaciones de R10 (modo × px × tokens × dimensión), y después `visual-decide --stage retrieval`, que fija la resolución, los tokens y la dimensión antes de las respuestas (hallazgo M9). *Con D-076, la elección usa «Visual» y las páginas de la respuesta salen de su lista.*
+- [X] T028 [US5] Recuperación en `offline/eval/visual_retrieval.py` y el subcomando `visual-retrieve`. Ejecutar las ablaciones de R10 (modo × px × tokens × dimensión), y después `visual-decide --stage retrieval`, que fija la resolución, los tokens y la dimensión antes de las respuestas (hallazgo M9). *Con D-076, la elección usa «Visual» y las páginas de la respuesta salen de su lista.*
 - [X] T029 [P] [US5] Pruebas en `offline/tests/test_visual_prompt.py` y `test_visual_judge.py`:
   - plantilla v5-visual: numeración, etiqueta antes de cada imagen y trozos;
   - mezcla con la regla de duplicados y relleno con los bloques siguientes;
@@ -197,7 +197,7 @@ description: "Lista de tareas de F18 — Viabilidad del RAG visual"
 
   Anotar la duración de cada tanda.
 - [ ] T033 [US5] Comprobación del juez (`visual-manual`): 30 respuestas de cada variante principal («Texto» y la mejor de «Páginas» y de «Mezcla» según el juez), revisadas según D-033, en `offline/reports/visual-manual-judgement.csv`. La revisión decisiva va en T058.
-- [ ] T034 [US5] Regresión del texto (FR-024, SC-010): `run_eval.py ablations` con la configuración de D-034 da las mismas cifras que el informe de F05 y F10.
+- [X] T034 [US5] Regresión del texto (FR-024, SC-010): `run_eval.py ablations` con la configuración de D-034 da las mismas cifras que el informe de F05 y F10. *Hecho: las 17 variantes de recuperación y las 6 de `order-review` dan las mismas cifras; solo cambian los segundos y el campo `answer_language` de F12.*
 - [X] T035 [P] [US5] Pruebas en `offline/tests/test_visual_parity.py`: el manifiesto del conjunto del dispositivo, los cosenos por imagen y el juez de la lectura del teléfono.
 - [ ] T036 [US5] Conjunto del dispositivo en `offline/eval/visual_parity.py` y el subcomando `visual-device-set` (R13, data-model §1.6):
   - 20 imágenes y sus vectores a 70 y 140;
@@ -291,7 +291,7 @@ description: "Lista de tareas de F18 — Viabilidad del RAG visual"
 - [X] T049 [US7] Prueba instrumentada `…/androidTest/debug/feasibility/visual/VisualFeasibilityBenchmarkTest.kt` (`@RequiresModels`, contrato §4):
   - lee `-e blocks`, responde `confirmHot = { false }` y escribe el informe;
   - en logcat, solo una línea de cifras por escenario.
-- [ ] T050 [US7] Verificación de release, como el checklist de F02:
+- [X] T050 [US7] Verificación de release, como el checklist de F02:
   - `assembleRelease`;
   - `apkanalyzer dex packages` sin `feasibility.visual`, `LiteRtVision` ni `DebugPageRasterizer`;
   - el manifiesto de release igual que en F17;
@@ -303,10 +303,10 @@ description: "Lista de tareas de F18 — Viabilidad del RAG visual"
 
 ## Phase 9: Polish sin teléfono
 
-- [ ] T051 Batería JVM, lint y Python:
-  - `./gradlew :app:testDebugUnitTest :app:lintDebug`, solo con los avisos de siempre;
+- [X] T051 Batería JVM, lint y Python:
+  - `./gradlew :app:testDebugUnitTest :app:lintDebug`, solo con los avisos de siempre; *hecho: 1.162 de 1.162 y los 2 avisos de versiones, tras corregir 5 avisos nuevos del diagnóstico (plurales y `createBitmap`);*
   - `offline/.venv/bin/python -I -m unittest discover -s offline/tests`.
-- [ ] T052 Batería instrumentada completa en `Pixel_10` y en `MicroRAG_API33`, siempre con `-s`, sin modelos. En API 33 siguen los 4 fallos previos de Atrás desde la raíz.
+- [X] T052 Batería instrumentada completa en `Pixel_10` y en `MicroRAG_API33`, siempre con `-s`, sin modelos. En API 33 siguen los 4 fallos previos de Atrás desde la raíz. *Hecho: 934 pruebas en cada uno (32 y 33 min). En `Pixel_10`, 933 en verde; en API 33, los 4 de Atrás desde la raíz. En los dos falló además `ModelDownloadSmokeTest`, por tiempo de espera de la descarga real: es `@RequiresNetwork`, que la batería excluye desde F03 y esta vez no se filtró.*
 - [ ] T053 Comprobar el diagnóstico en el emulador:
   - la pantalla «Viabilidad visual» abre, al 200 % y en oscuro;
   - con el conjunto del dispositivo copiado, lo marca como verificado;
