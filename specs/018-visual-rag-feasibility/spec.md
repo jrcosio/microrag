@@ -242,7 +242,7 @@ Mientras se mide, nunca hay dos engines en GPU, la interfaz responde y las prueb
 
 1. **Given** el embedder cargado, **When** se carga Gemma, **Then** el embedder se libera antes.
 2. **Given** una prueba en curso, **When** la app pasa a segundo plano, **Then** se cancela, los engines se liberan y queda registrada como cancelada.
-3. **Given** la build de publicación, **When** se inspecciona, **Then** no contiene el diagnóstico visual, sus textos ni sus páginas de prueba, y sigue sin permisos de red.
+3. **Given** la build de publicación, **When** se inspecciona, **Then** no contiene el diagnóstico visual, sus textos ni sus páginas de prueba. Sus permisos no cambian, y la red sigue usándose solo en el paquete de descarga de modelos (F03).
 
 ### Edge Cases
 
@@ -423,7 +423,7 @@ Mientras se mide, nunca hay dos engines en GPU, la interfaz responde y las prueb
 - **SC-006**: El conjunto de prueba tiene al menos 100 preguntas aceptadas, al menos el 60 % de ellas visuales (tabla, gráfico, escaneado o imagen suelta), todas con sus páginas relevantes y su veredicto.
 - **SC-007**: El informe de evaluación tiene las ablaciones de recuperación y de respuesta por tipo de pregunta, y cada parámetro de FR-028 lleva la cifra que lo justifica.
 - **SC-008**: El sí o el no a F19–F20 queda en DECISIONS, aplicando la regla de FR-025 (+15 puntos en las visuales, −2 como mucho en los controles de texto y un p95 ≤ 8 s con al menos 1 página), fijada antes de evaluar.
-- **SC-009**: En ningún momento hay dos engines en GPU (prueba automática y registros), y la build de publicación no tiene el diagnóstico ni permisos de red.
+- **SC-009**: En ningún momento hay dos engines en GPU (prueba automática y registros). La build de publicación no tiene el diagnóstico, y sus permisos y su uso de la red son los de F17.
 - **SC-010**: Con «Texto» se reproducen las cifras de F05 y F10, y la batería de pruebas de la app pasa igual que al cerrar F17.
 
 ## Assumptions
@@ -436,9 +436,9 @@ Mientras se mide, nunca hay dos engines en GPU, la interfaz responde y las prueb
   - espera térmica de R6.
 - **Resoluciones candidatas:** el plan fija la malla (por ejemplo, 768, 1.024 y 1.536 px en el lado largo) y la calidad de WebP y JPEG.
 - **Corpus visual:**
-  - fuentes públicas en español que permitan la reutilización, como INE, Banco de España, AEAT y BOE (incluidos sus escaneados históricos), y Wikimedia Commons para imágenes;
+  - fuentes públicas en español que permitan la reutilización: INE, AEAT, AEMET y BOE (con la Gazeta histórica), y Wikimedia Commons para las imágenes. El Banco de España queda fuera porque se reserva los derechos (research R8);
   - entre 15 y 25 documentos y al menos 300 páginas, más las fotos simuladas;
-  - la lista exacta la fija el plan, con las licencias comprobadas.
+  - la lista y las licencias están en research R8.
 - **Puntos de la regla de sí o no:** son puntos porcentuales de respuestas correctas, juzgadas como en F05 (juez automático y muestra manual), sobre las mismas preguntas en las dos variantes.
 - **Revisión del conjunto de prueba:** la hace el asistente (D-033, confirmado en el clarify), con las preguntas redactadas por agentes separados.
 - **Juez:** el automático de F05 más una muestra manual, revisada según D-033.

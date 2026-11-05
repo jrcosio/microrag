@@ -1834,6 +1834,47 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G47).
 
 ---
 
+## D-074 — Cómo se mide la viabilidad del RAG visual (plan de F18)
+
+- **Fecha:** 2026-11-05
+- **Decisión:**
+  1. **Runtime:** LiteRT-LM 0.18.1, sin cambiar de versión. Su API de visión está entera en Android y en Python. En Python, el presupuesto visual de Gemma se fija por `ctypes` con `litert_lm_conversation_optional_args_set_visual_token_budget`; en el escritorio da 101, 164 y 304 tokens de prefill con 70, 140 y 280 (research R1).
+  2. **Ficheros:**
+     - el de Gemma de la app admite como mucho **280 tokens por imagen**, y su visión, como la de la 440M, solo corre en CPU;
+     - en lugar de 560 tokens se evalúan páginas partidas en 2 trozos (R2, R11).
+  3. **Teléfono:** un diagnóstico solo de debug, «Viabilidad visual», con nueve bloques y una prueba instrumentada que los lanza (R3–R6, R14).
+     - Los adaptadores de visión y de `PdfRenderer` viven en `src/debug/java`, en los paquetes `rag/runtime/litert` y `data/ingest`.
+     - `LayeringTest` se amplía a esos paquetes de debug y comprueba que ni `main` ni `release` nombran el diagnóstico.
+  4. **La 440M:** golden de la 270M (≥ 0,99) y vectores idénticos a los de la 270M (≥ 0,9999) en el teléfono, en una prueba instrumentada aparte (R5).
+  5. **Escritorio:**
+     - un corpus visual de 18 documentos (unas 314 páginas) y 15 imágenes públicas, más unas 10 fotos simuladas, de INE, AEAT, AEMET, BOE (con la Gazeta, reconstruida como solo imagen) y Wikimedia Commons (R8);
+     - `pypdfium2` 5.14.0 y `pillow` 12.3.0 (R7);
+     - unas 100 preguntas con relevancia por página (R9);
+     - recuperación por página con RRF de tres listas (R10);
+     - respuestas de texto, de páginas y de mezcla, con la regla de duplicados y la plantilla v5-visual, que solo se evalúa (R11).
+  6. **Regla congelada:** `offline/config/visual_rules.json`, con la huella del conjunto de prueba, se hace commit antes de evaluar. Incluye la regla de D-073 y las reglas para elegir cada parámetro (R12).
+  7. **Paridad:** 20 imágenes con los mismos bytes en el teléfono y en el escritorio, con coseno ≥ 0,99, y las páginas rasterizadas en cada lado (R13).
+- **Motivo:**
+  - reutiliza lo que ya funcionó: el diagnóstico y el protocolo de F02, y el harness y el juez de F05;
+  - lo comprobado en el escritorio (API, presupuestos y tiempos) quita los riesgos de diseño antes de construir;
+  - las fuentes elegidas permiten guardar copias en git.
+- **Alternativas descartadas:**
+  - subir LiteRT-LM a 0.19.0 (F14);
+  - adaptadores de visión en `main` sin usar;
+  - regenerar el golden con la 440M;
+  - el Banco de España (todos los derechos reservados) y las fuentes con licencia no comercial;
+  - una regla elegida a la vista de las cifras.
+- **Hallazgos del plan:**
+  - **Permisos de red:** la spec decía que la build de publicación sigue «sin permisos de red», pero desde F03 la app pide `INTERNET` para descargar los modelos. SC-009 y la historia 7 dicen ahora que los permisos y el uso de la red son los de F17;
+  - **Escaneados con OCR:** los escaneados públicos llevan una capa de texto OCR.
+- **Origen:** plan de F18, en el ciclo automático pedido por el usuario (D-073).
+- **Afecta:**
+  - F18: spec (SC-009, historia 7, supuestos del corpus), research, data-model, contratos y quickstart;
+  - `LayeringTest`;
+  - `offline/requirements.txt`.
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.
