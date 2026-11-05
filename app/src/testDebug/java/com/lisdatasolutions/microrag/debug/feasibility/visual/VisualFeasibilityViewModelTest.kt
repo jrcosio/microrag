@@ -84,6 +84,16 @@ class VisualFeasibilityViewModelTest {
         val state = vm.state.value
         assertThat(state.deviceSet.present).isFalse()
         assertThat(VisualBlock.entries.filter(state::canRun)).containsExactly(VisualBlock.GEMMA_INFO, VisualBlock.EMBED_TEXT)
+        assertThat(state.needs(VisualBlock.RASTER)).isEqualTo(BlockNeeds(emptyList(), deviceSet = true))
+        assertThat(state.needs(VisualBlock.EMBED_TEXT)).isEqualTo(BlockNeeds.NONE)
+    }
+
+    @Test
+    fun aBlockWithoutItsModelsSaysWhichOnesItNeeds() {
+        val state = VisualFeasibilityUiState(models = emptyList())
+        assertThat(state.needs(VisualBlock.GEMMA_PAGES)).isEqualTo(BlockNeeds(listOf(ModelId.GEMMA4_E2B), deviceSet = true))
+        assertThat(state.needs(VisualBlock.EMBED_TEXT).models).containsExactly(ModelId.EG2_440M, ModelId.EG2_270M).inOrder()
+        assertThat(state.canRun(VisualBlock.GEMMA_INFO)).isFalse()
     }
 
     @Test

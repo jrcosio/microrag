@@ -93,6 +93,10 @@
     <string name="visual_block_projection" translatable="false">Proyección de 200 páginas</string>
     <string name="visual_block_gemma_pages" translatable="false">Gemma con páginas (etapa A)</string>
     <string name="visual_block_reading" translatable="false">Lectura de páginas</string>
+    <string name="visual_needs" translatable="false">Necesita %1$s</string>
+    <string name="visual_needs_set" translatable="false">el conjunto del dispositivo</string>
+    <string name="visual_needs_or" translatable="false">" o "</string>
+    <string name="visual_needs_and" translatable="false">" y "</string>
     <string name="visual_section_results" translatable="false">Resultados</string>
     <string name="visual_results_empty" translatable="false">Sin resultados en esta sesión.</string>
     <string name="visual_status_completed" translatable="false">Completada</string>

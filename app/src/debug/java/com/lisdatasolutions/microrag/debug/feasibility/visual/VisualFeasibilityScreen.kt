@@ -197,6 +197,7 @@ private fun LazyListScope.testsSection(state: VisualFeasibilityUiState, actions:
                         leadingIcon = LisdataIcons.Play,
                         modifier = Modifier.fillMaxWidth(),
                     )
+                    needsText(state.needs(block))?.let { BodyText(it, secondary = true) }
                 }
             }
             state.runError?.let { BodyText(stringResource(R.string.visual_run_error, it)) }
@@ -369,4 +370,16 @@ private fun VisualFeasibilityRunningPreview() {
 @Composable
 private fun VisualFeasibilityEmptyPreview() {
     LisdataTheme { VisualFeasibilityContent(VisualFeasibilityPreviewData.empty, VisualFeasibilityActions()) }
+}
+
+/** Why a block is disabled: the models it needs (any one of them) and the device set, or null when it can run. */
+@Composable
+private fun needsText(needs: BlockNeeds): String? {
+    val parts = buildList {
+        if (needs.models.isNotEmpty()) {
+            add(needs.models.joinToString(stringResource(R.string.visual_needs_or)) { ModelCatalog.byId(it).displayName })
+        }
+        if (needs.deviceSet) add(stringResource(R.string.visual_needs_set))
+    }
+    return parts.takeIf { it.isNotEmpty() }?.let { stringResource(R.string.visual_needs, it.joinToString(stringResource(R.string.visual_needs_and))) }
 }

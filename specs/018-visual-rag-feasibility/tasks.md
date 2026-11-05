@@ -307,11 +307,11 @@ description: "Lista de tareas de F18 — Viabilidad del RAG visual"
   - `./gradlew :app:testDebugUnitTest :app:lintDebug`, solo con los avisos de siempre; *hecho: 1.162 de 1.162 y los 2 avisos de versiones, tras corregir 5 avisos nuevos del diagnóstico (plurales y `createBitmap`);*
   - `offline/.venv/bin/python -I -m unittest discover -s offline/tests`.
 - [X] T052 Batería instrumentada completa en `Pixel_10` y en `MicroRAG_API33`, siempre con `-s`, sin modelos. En API 33 siguen los 4 fallos previos de Atrás desde la raíz. *Hecho: 934 pruebas en cada uno (32 y 33 min). En `Pixel_10`, 933 en verde; en API 33, los 4 de Atrás desde la raíz. En los dos falló además `ModelDownloadSmokeTest`, por tiempo de espera de la descarga real: es `@RequiresNetwork`, que la batería excluye desde F03 y esta vez no se filtró.*
-- [ ] T053 Comprobar el diagnóstico en el emulador:
+- [X] T053 Comprobar el diagnóstico en el emulador:
   - la pantalla «Viabilidad visual» abre, al 200 % y en oscuro;
   - con el conjunto del dispositivo copiado, lo marca como verificado;
   - los bloques que necesitan modelos quedan desactivados con su motivo;
-  - `RASTER` e `IMAGE_DECODE` corren y escriben el informe.
+  - `RASTER` e `IMAGE_DECODE` corren y escriben el informe. *Hecho en `Pixel_10` al 200 % y en oscuro. Los bloques desactivados no decían por qué; ahora cada uno dice lo que le falta («Necesita Gemma 4 E2B»).*
 - [ ] T054 Borrador de `specs/018-visual-rag-feasibility/report.md`:
   - lo implementado;
   - build, lint y pruebas;
