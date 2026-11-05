@@ -1,0 +1,873 @@
+[
+  {
+    "id": "aeat-recaudacion-2026-09",
+    "title": "Informe mensual de recaudación tributaria, septiembre de 2026",
+    "format": "pdf",
+    "kind": "estadistica",
+    "source_url": "https://sede.agenciatributaria.gob.es/static_files/AEAT/Estudios/Estadisticas/Informes_Estadisticos/Informes_mensuales_recaudacion_tributaria/2026/IMR_26_09_es_es.pdf",
+    "publisher": "Agencia Estatal de Administración Tributaria",
+    "license": "AEAT: RD 1495/2011",
+    "attribution": "Fuente: Agencia Estatal de Administración Tributaria (www.agenciatributaria.es), con la fecha de su última actualización",
+    "source_updated": "según el documento",
+    "retrieved": "2026-11-05",
+    "transformations": "páginas 1–20 del original",
+    "fetch": {
+      "type": "pdf",
+      "url": "https://sede.agenciatributaria.gob.es/static_files/AEAT/Estudios/Estadisticas/Informes_Estadisticos/Informes_mensuales_recaudacion_tributaria/2026/IMR_26_09_es_es.pdf",
+      "pages": [
+        1,
+        20
+      ]
+    },
+    "sha256": "fedb72a9fb60033746210a2836c370762f8ff3b353bc8b93471f2361b14122ec"
+  },
+  {
+    "id": "ine-anuario-2020-demografia",
+    "title": "Anuario Estadístico de España 2020: Demografía",
+    "format": "pdf",
+    "kind": "estadistica",
+    "source_url": "https://www.ine.es/prodyser/pubweb/anuario20/anu20_02demog.pdf",
+    "publisher": "INE",
+    "license": "INE: CC BY 4.0",
+    "attribution": "Fuente: Sitio web del INE: www.ine.es",
+    "source_updated": "2020",
+    "retrieved": "2026-11-05",
+    "transformations": "ninguna",
+    "fetch": {
+      "type": "pdf",
+      "url": "https://www.ine.es/prodyser/pubweb/anuario20/anu20_02demog.pdf"
+    },
+    "sha256": "2a9e2fec2e6c4f94367f7982d6249cd9a422f98cc99fbd8489b0470f09e64e98"
+  },
+  {
+    "id": "boe-modulos-2026",
+    "title": "Orden HAC/1425/2025: módulos del IRPF y del IVA para 2026 (anexos)",
+    "format": "pdf",
+    "kind": "normativa",
+    "source_url": "https://boe.es/boe/dias/2025/12/11/pdfs/BOE-A-2025-25272.pdf",
+    "publisher": "Agencia Estatal Boletín Oficial del Estado",
+    "license": "BOE: reutilización con atribución",
+    "attribution": "Basado en datos de la Agencia Estatal Boletín Oficial del Estado (www.boe.es)",
+    "source_updated": "2025-12-11",
+    "retrieved": "2026-11-05",
+    "transformations": "páginas 15–54 del original",
+    "fetch": {
+      "type": "pdf",
+      "url": "https://boe.es/boe/dias/2025/12/11/pdfs/BOE-A-2025-25272.pdf",
+      "pages": [
+        15,
+        54
+      ]
+    },
+    "sha256": "971c642f3b4b0b413354538f3f040011f79949fae28afc6669391ad5d89a0b16"
+  },
+  {
+    "id": "ine-epa-2026t3",
+    "title": "Encuesta de Población Activa, tercer trimestre de 2026 (nota de prensa)",
+    "format": "pdf",
+    "kind": "estadistica",
+    "source_url": "https://www.ine.es/dyngs/Prensa/EPA3T26.pdf",
+    "publisher": "INE",
+    "license": "INE: CC BY 4.0",
+    "attribution": "Fuente: Sitio web del INE: www.ine.es",
+    "source_updated": "según el documento",
+    "retrieved": "2026-11-05",
+    "transformations": "ninguna",
+    "fetch": {
+      "type": "pdf",
+      "url": "https://www.ine.es/dyngs/Prensa/EPA3T26.pdf"
+    },
+    "sha256": "39f1097bbe372ab1694636855e8552a47384992aaa52824b388f6e5b290c4a8d"
+  },
+  {
+    "id": "ine-ipc-2026-09",
+    "title": "Índice de Precios de Consumo, septiembre de 2026 (nota de prensa)",
+    "format": "pdf",
+    "kind": "estadistica",
+    "source_url": "https://www.ine.es/dyngs/Prensa/IPC0926.pdf",
+    "publisher": "INE",
+    "license": "INE: CC BY 4.0",
+    "attribution": "Fuente: Sitio web del INE: www.ine.es",
+    "source_updated": "según el documento",
+    "retrieved": "2026-11-05",
+    "transformations": "ninguna",
+    "fetch": {
+      "type": "pdf",
+      "url": "https://www.ine.es/dyngs/Prensa/IPC0926.pdf"
+    },
+    "sha256": "77cc52b404f037b024fb37bcf0a766a32222c7e801b1e58f9a06d78b1fcdd808"
+  },
+  {
+    "id": "boe-fiestas-2026",
+    "title": "Fiestas laborales para el año 2026",
+    "format": "pdf",
+    "kind": "normativa",
+    "source_url": "https://www.boe.es/boe/dias/2025/10/28/pdfs/BOE-A-2025-21667.pdf",
+    "publisher": "Agencia Estatal Boletín Oficial del Estado",
+    "license": "BOE: reutilización con atribución",
+    "attribution": "Basado en datos de la Agencia Estatal Boletín Oficial del Estado (www.boe.es)",
+    "source_updated": "2025-10-28",
+    "retrieved": "2026-11-05",
+    "transformations": "ninguna",
+    "fetch": {
+      "type": "pdf",
+      "url": "https://www.boe.es/boe/dias/2025/10/28/pdfs/BOE-A-2025-21667.pdf"
+    },
+    "sha256": "31057b03d927672352b3a5163b30e03d75bddacc3a489626f28f14535ce0facf"
+  },
+  {
+    "id": "ine-coyuntura-hotelera-2026-09",
+    "title": "Coyuntura Turística Hotelera, septiembre de 2026 (nota de prensa)",
+    "format": "pdf",
+    "kind": "estadistica",
+    "source_url": "https://www.ine.es/dyngs/Prensa/CTH0926.pdf",
+    "publisher": "INE",
+    "license": "INE: CC BY 4.0",
+    "attribution": "Fuente: Sitio web del INE: www.ine.es",
+    "source_updated": "según el documento",
+    "retrieved": "2026-11-05",
+    "transformations": "ninguna",
+    "fetch": {
+      "type": "pdf",
+      "url": "https://www.ine.es/dyngs/Prensa/CTH0926.pdf"
+    },
+    "sha256": "b2847e19e102220edeaef230207e8538bea73abcaf9bcaf69c0be086f2bfdccd"
+  },
+  {
+    "id": "ine-frontur-2026-09",
+    "title": "Movimientos Turísticos en Fronteras (FRONTUR), septiembre de 2026 (nota de prensa)",
+    "format": "pdf",
+    "kind": "estadistica",
+    "source_url": "https://www.ine.es/dyngs/Prensa/FRONTUR0926.pdf",
+    "publisher": "INE",
+    "license": "INE: CC BY 4.0",
+    "attribution": "Fuente: Sitio web del INE: www.ine.es",
+    "source_updated": "según el documento",
+    "retrieved": "2026-11-05",
+    "transformations": "ninguna",
+    "fetch": {
+      "type": "pdf",
+      "url": "https://www.ine.es/dyngs/Prensa/FRONTUR0926.pdf"
+    },
+    "sha256": "fd643dad71b9aa3c54b4f901169f76573433d7a54119d0d96f0d47548a224a94"
+  },
+  {
+    "id": "boe-inhabiles-2026",
+    "title": "Calendario de días inhábiles para 2026",
+    "format": "pdf",
+    "kind": "normativa",
+    "source_url": "https://www.boe.es/boe/dias/2025/11/24/pdfs/BOE-A-2025-23702.pdf",
+    "publisher": "Agencia Estatal Boletín Oficial del Estado",
+    "license": "BOE: reutilización con atribución",
+    "attribution": "Basado en datos de la Agencia Estatal Boletín Oficial del Estado (www.boe.es)",
+    "source_updated": "2025-11-24",
+    "retrieved": "2026-11-05",
+    "transformations": "ninguna",
+    "fetch": {
+      "type": "pdf",
+      "url": "https://www.boe.es/boe/dias/2025/11/24/pdfs/BOE-A-2025-23702.pdf"
+    },
+    "sha256": "e4d07cf7bb2eec535ac86986d93db2a895a14e0676f285caf170679ebbf2d242"
+  },
+  {
+    "id": "ine-espana-en-cifras-2026",
+    "title": "España en cifras 2026",
+    "format": "pdf",
+    "kind": "informe",
+    "source_url": "https://www.ine.es/prodyser/espa_cifras/EEC_2026_PUBLICACION_COMPLETA.pdf",
+    "publisher": "INE",
+    "license": "INE: CC BY 4.0",
+    "attribution": "Fuente: Sitio web del INE: www.ine.es",
+    "source_updated": "2026",
+    "retrieved": "2026-11-05",
+    "transformations": "páginas 3–32 del original",
+    "fetch": {
+      "type": "pdf",
+      "url": "https://www.ine.es/prodyser/espa_cifras/EEC_2026_PUBLICACION_COMPLETA.pdf",
+      "pages": [
+        3,
+        32
+      ]
+    },
+    "sha256": "bdbc59b182328feb48667990bb36f204d3bee600b29b4790f65bd094464b0274"
+  },
+  {
+    "id": "aemet-resumen-anual-2025",
+    "title": "Resumen anual climatológico 2025",
+    "format": "pdf",
+    "kind": "informe",
+    "source_url": "https://www.aemet.es/documentos/es/serviciosclimaticos/vigilancia_clima/resumenes_climat/anuales/res_anual_clim_2025.pdf",
+    "publisher": "Agencia Estatal de Meteorología",
+    "license": "AEMET: Ley 37/2007",
+    "attribution": "Información elaborada por la Agencia Estatal de Meteorología (© AEMET)",
+    "source_updated": "según el documento",
+    "retrieved": "2026-11-05",
+    "transformations": "páginas 1–10 del original; el original lleva contraseña de propietario; la copia recortada no",
+    "fetch": {
+      "type": "pdf",
+      "url": "https://www.aemet.es/documentos/es/serviciosclimaticos/vigilancia_clima/resumenes_climat/anuales/res_anual_clim_2025.pdf",
+      "pages": [
+        1,
+        10
+      ]
+    },
+    "sha256": "63eb155fab24bd9a4c2e0079cad0cb6883a850b8330d65ba330798aa090b1e0e"
+  },
+  {
+    "id": "aemet-resumen-2026-07",
+    "title": "Resumen mensual climatológico, julio de 2026",
+    "format": "pdf",
+    "kind": "informe",
+    "source_url": "https://www.aemet.es/documentos/es/serviciosclimaticos/vigilancia_clima/resumenes_climat/mensuales/2026/res_mens_clim_2026_07.pdf",
+    "publisher": "Agencia Estatal de Meteorología",
+    "license": "AEMET: Ley 37/2007",
+    "attribution": "Información elaborada por la Agencia Estatal de Meteorología (© AEMET)",
+    "source_updated": "según el documento",
+    "retrieved": "2026-11-05",
+    "transformations": "páginas 1–10 del original; el original lleva contraseña de propietario; la copia recortada no",
+    "fetch": {
+      "type": "pdf",
+      "url": "https://www.aemet.es/documentos/es/serviciosclimaticos/vigilancia_clima/resumenes_climat/mensuales/2026/res_mens_clim_2026_07.pdf",
+      "pages": [
+        1,
+        10
+      ]
+    },
+    "sha256": "aa2812a4834ad8f34e582adcceb60da76682f23ed7d03d26446b10668a075ecf"
+  },
+  {
+    "id": "ine-ecp-2026t2",
+    "title": "Estadística Continua de Población, segundo trimestre de 2026 (nota de prensa)",
+    "format": "pdf",
+    "kind": "estadistica",
+    "source_url": "https://www.ine.es/dyngs/Prensa/ECP2T26.pdf",
+    "publisher": "INE",
+    "license": "INE: CC BY 4.0",
+    "attribution": "Fuente: Sitio web del INE: www.ine.es",
+    "source_updated": "según el documento",
+    "retrieved": "2026-11-05",
+    "transformations": "ninguna",
+    "fetch": {
+      "type": "pdf",
+      "url": "https://www.ine.es/dyngs/Prensa/ECP2T26.pdf"
+    },
+    "sha256": "fedf5048203614658d23173db5a45c1b124a662c73f5f50928a74604c9905a90"
+  },
+  {
+    "id": "ine-ecv-2025",
+    "title": "Encuesta de Condiciones de Vida 2025 (nota de prensa)",
+    "format": "pdf",
+    "kind": "estadistica",
+    "source_url": "https://www.ine.es/dyngs/Prensa/ECV2025.pdf",
+    "publisher": "INE",
+    "license": "INE: CC BY 4.0",
+    "attribution": "Fuente: Sitio web del INE: www.ine.es",
+    "source_updated": "según el documento",
+    "retrieved": "2026-11-05",
+    "transformations": "ninguna",
+    "fetch": {
+      "type": "pdf",
+      "url": "https://www.ine.es/dyngs/Prensa/ECV2025.pdf"
+    },
+    "sha256": "655ea3b3996bb247c550e1fd23a1ea52f88b743e7e9f0034fb639e45e7b79185"
+  },
+  {
+    "id": "gazeta-1931-12-10",
+    "title": "Gaceta de Madrid, 10 de diciembre de 1931, núm. 344",
+    "format": "pdf",
+    "kind": "escaneado",
+    "source_url": "https://boe.es/gazeta/dias/1931/12/10/pdfs/GMD-1931-344.pdf",
+    "publisher": "Agencia Estatal Boletín Oficial del Estado",
+    "license": "BOE: reutilización con atribución",
+    "attribution": "Basado en datos de la Agencia Estatal Boletín Oficial del Estado (www.boe.es)",
+    "source_updated": "1931-12-10",
+    "retrieved": "2026-11-05",
+    "transformations": "páginas 1–10 rasterizadas a 100 ppp en gris (JPEG, calidad 60) y reunidas en un PDF solo de imagen, sin la capa OCR del original",
+    "fetch": {
+      "type": "scan",
+      "url": "https://boe.es/gazeta/dias/1931/12/10/pdfs/GMD-1931-344.pdf",
+      "pages": [
+        1,
+        10
+      ],
+      "dpi": 100,
+      "quality": 60
+    },
+    "sha256": "dd3312972ebb3aa63512307af7d74b5d28e9b5e84ac0c15ae4db74297ea0eb5f"
+  },
+  {
+    "id": "gazeta-1900-04-01",
+    "title": "Gaceta de Madrid, 1 de abril de 1900 (Ley de Presupuestos)",
+    "format": "pdf",
+    "kind": "escaneado",
+    "source_url": "https://boe.es/gazeta/dias/1900/04/01/pdfs/GMD-1900-91.pdf",
+    "publisher": "Agencia Estatal Boletín Oficial del Estado",
+    "license": "BOE: reutilización con atribución",
+    "attribution": "Basado en datos de la Agencia Estatal Boletín Oficial del Estado (www.boe.es)",
+    "source_updated": "1900-04-01",
+    "retrieved": "2026-11-05",
+    "transformations": "páginas 1–10 rasterizadas a 100 ppp en gris (JPEG, calidad 60) y reunidas en un PDF solo de imagen, sin la capa OCR del original",
+    "fetch": {
+      "type": "scan",
+      "url": "https://boe.es/gazeta/dias/1900/04/01/pdfs/GMD-1900-91.pdf",
+      "pages": [
+        1,
+        10
+      ],
+      "dpi": 100,
+      "quality": 60
+    },
+    "sha256": "d73f2586e7b2f2d92fa410941005d8a30e08d3b41a970f38a71f27593017f160"
+  },
+  {
+    "id": "gazeta-1900-12-07",
+    "title": "Gaceta de Madrid, 7 de diciembre de 1900",
+    "format": "pdf",
+    "kind": "escaneado",
+    "source_url": "https://www.boe.es/gazeta/dias/1900/12/07/pdfs/GMD-1900-341.pdf",
+    "publisher": "Agencia Estatal Boletín Oficial del Estado",
+    "license": "BOE: reutilización con atribución",
+    "attribution": "Basado en datos de la Agencia Estatal Boletín Oficial del Estado (www.boe.es)",
+    "source_updated": "1900-12-07",
+    "retrieved": "2026-11-05",
+    "transformations": "páginas 1–10 rasterizadas a 100 ppp en gris (JPEG, calidad 60) y reunidas en un PDF solo de imagen, sin la capa OCR del original",
+    "fetch": {
+      "type": "scan",
+      "url": "https://www.boe.es/gazeta/dias/1900/12/07/pdfs/GMD-1900-341.pdf",
+      "pages": [
+        1,
+        10
+      ],
+      "dpi": 100,
+      "quality": 60
+    },
+    "sha256": "c722109a52af3ab0cc019c0931da0238275060c0e8ded9f48c1b78e885f811bf"
+  },
+  {
+    "id": "gazeta-1797-03-07",
+    "title": "Gazeta de Madrid, 7 de marzo de 1797",
+    "format": "pdf",
+    "kind": "escaneado",
+    "source_url": "https://boe.es/gazeta/dias/1797/03/07/pdfs/GMD-C-1797-19.pdf",
+    "publisher": "Agencia Estatal Boletín Oficial del Estado",
+    "license": "BOE: reutilización con atribución",
+    "attribution": "Basado en datos de la Agencia Estatal Boletín Oficial del Estado (www.boe.es)",
+    "source_updated": "1797-03-07",
+    "retrieved": "2026-11-05",
+    "transformations": "páginas 1–10 rasterizadas a 100 ppp en gris (JPEG, calidad 60) y reunidas en un PDF solo de imagen, sin la capa OCR del original",
+    "fetch": {
+      "type": "scan",
+      "url": "https://boe.es/gazeta/dias/1797/03/07/pdfs/GMD-C-1797-19.pdf",
+      "pages": [
+        1,
+        10
+      ],
+      "dpi": 100,
+      "quality": 60
+    },
+    "sha256": "5561291ab12fb3f2a70365e0d6a59bb6ea6ef63834e34d70a3205acce1eaa5de"
+  },
+  {
+    "id": "bne-constitucion-1931",
+    "title": "Constitución de la República Española (1931), folleto escaneado",
+    "format": "pdf",
+    "kind": "escaneado",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Constituci%C3%B3n_de_la_Rep%C3%BAblica_Espa%C3%B1ola_-_bdh0000048244.pdf",
+    "publisher": "Biblioteca Nacional de España (Biblioteca Digital Hispánica), vía Wikimedia Commons",
+    "license": "BNE: dominio público",
+    "attribution": "Fondos de la Biblioteca Nacional de España (Biblioteca Digital Hispánica), vía Wikimedia Commons",
+    "source_updated": "1931",
+    "retrieved": "2026-11-05",
+    "transformations": "páginas 11–70 del original, un escaneado sin capa de texto",
+    "fetch": {
+      "type": "pdf",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/7/72/Constituci%C3%B3n_de_la_Rep%C3%BAblica_Espa%C3%B1ola_-_bdh0000048244.pdf",
+      "pages": [
+        11,
+        70
+      ]
+    },
+    "sha256": "a49f5fc66f574d16c593125047b8a4f825e08194be4707fbba1453b4f346a408"
+  },
+  {
+    "id": "ign-temperatura-media",
+    "title": "Temperatura media anual de España en 1981-2010",
+    "format": "jpg",
+    "kind": "imagen",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/1/15/Temperatura_media_anual_de_Espa%C3%B1a_en_1981-2010_mapa_13481_spa.jpg",
+    "publisher": "Wikimedia Commons (Instituto Geográfico Nacional)",
+    "license": "CC BY-SA 4.0",
+    "attribution": "«Temperatura media anual de España en 1981-2010», de Instituto Geográfico Nacional, CC BY-SA 4.0, vía Wikimedia Commons",
+    "source_updated": "versión actual en Commons",
+    "retrieved": "2026-11-05",
+    "transformations": "ninguna",
+    "fetch": {
+      "type": "image",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/1/15/Temperatura_media_anual_de_Espa%C3%B1a_en_1981-2010_mapa_13481_spa.jpg"
+    },
+    "sha256": "64fc9c74ca0df35eee2a3bb290d2f15555657504f0fd64728bf6d2be109344be"
+  },
+  {
+    "id": "ign-precipitacion-media",
+    "title": "Precipitación media anual de España en 1981-2010",
+    "format": "jpg",
+    "kind": "imagen",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/9/98/Precipitaci%C3%B3n_media_anual_de_Espa%C3%B1a_en_1981-2010_mapa_13480_spa.jpg",
+    "publisher": "Wikimedia Commons (Instituto Geográfico Nacional)",
+    "license": "CC BY-SA 4.0",
+    "attribution": "«Precipitación media anual de España en 1981-2010», de Instituto Geográfico Nacional, CC BY-SA 4.0, vía Wikimedia Commons",
+    "source_updated": "versión actual en Commons",
+    "retrieved": "2026-11-05",
+    "transformations": "ninguna",
+    "fetch": {
+      "type": "image",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/9/98/Precipitaci%C3%B3n_media_anual_de_Espa%C3%B1a_en_1981-2010_mapa_13480_spa.jpg"
+    },
+    "sha256": "b29a1b93e5bcd715135ce6af33ec51452c1bf917565ef102965621f692a93503"
+  },
+  {
+    "id": "ign-koppen",
+    "title": "Clasificación climática de España según Köppen, 1981-2010",
+    "format": "jpg",
+    "kind": "imagen",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/9/9b/Clasificaci%C3%B3n_clim%C3%A1tica_de_Espa%C3%B1a_seg%C3%BAn_Koppen_1981-2010_mapa_15815_spa.jpg",
+    "publisher": "Wikimedia Commons (Instituto Geográfico Nacional)",
+    "license": "CC BY-SA 4.0",
+    "attribution": "«Clasificación climática de España según Köppen, 1981-2010», de Instituto Geográfico Nacional, CC BY-SA 4.0, vía Wikimedia Commons",
+    "source_updated": "versión actual en Commons",
+    "retrieved": "2026-11-05",
+    "transformations": "ninguna",
+    "fetch": {
+      "type": "image",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/9/9b/Clasificaci%C3%B3n_clim%C3%A1tica_de_Espa%C3%B1a_seg%C3%BAn_Koppen_1981-2010_mapa_15815_spa.jpg"
+    },
+    "sha256": "a3f57ee68ec70551336bd28550dfd1cb8cee2909241d4749408fdd5b201d3d4a"
+  },
+  {
+    "id": "elecciones-2011-escanos",
+    "title": "Votos y escaños, Elecciones Generales de España 2011, Congreso",
+    "format": "png",
+    "kind": "imagen",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/7/73/Votos_y_esca%C3%B1os-Elecciones_Generales_de_Espa%C3%B1a_2011-Congreso.png",
+    "publisher": "Wikimedia Commons (Ambil)",
+    "license": "CC0 1.0",
+    "attribution": "«Votos y escaños, Elecciones Generales de España 2011, Congreso», de Ambil, CC0 1.0, vía Wikimedia Commons",
+    "source_updated": "versión actual en Commons",
+    "retrieved": "2026-11-05",
+    "transformations": "ninguna",
+    "fetch": {
+      "type": "image",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/7/73/Votos_y_esca%C3%B1os-Elecciones_Generales_de_Espa%C3%B1a_2011-Congreso.png"
+    },
+    "sha256": "59ae09a043c9414404f01b43cc1f03fc18b647eb97a327e8ee712c2c5a8cb115"
+  },
+  {
+    "id": "piramide-1900",
+    "title": "Pirámide de población de España (1900)",
+    "format": "png",
+    "kind": "imagen",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/a/a6/Pir%C3%A1mide_de_poblaci%C3%B3n_de_Espa%C3%B1a_%281900%29.png",
+    "publisher": "Wikimedia Commons (Rodriguillo)",
+    "license": "Dominio público",
+    "attribution": "«Pirámide de población de España (1900)», de Rodriguillo, Dominio público, vía Wikimedia Commons",
+    "source_updated": "versión actual en Commons",
+    "retrieved": "2026-11-05",
+    "transformations": "ninguna",
+    "fetch": {
+      "type": "image",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/a/a6/Pir%C3%A1mide_de_poblaci%C3%B3n_de_Espa%C3%B1a_%281900%29.png"
+    },
+    "sha256": "0d4904557972832c670a802e1674b1c8dc70b51d90cb84e1a0c67235417ab502"
+  },
+  {
+    "id": "piramide-2014",
+    "title": "Pirámide de población de España (2014)",
+    "format": "jpg",
+    "kind": "imagen",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/5/5e/Pir%C3%A1mide_de_poblaci%C3%B3n_de_Espa%C3%B1a_%282014%29.jpg",
+    "publisher": "Wikimedia Commons (Zmzmzm2)",
+    "license": "CC BY-SA 4.0",
+    "attribution": "«Pirámide de población de España (2014)», de Zmzmzm2, CC BY-SA 4.0, vía Wikimedia Commons",
+    "source_updated": "versión actual en Commons",
+    "retrieved": "2026-11-05",
+    "transformations": "ninguna",
+    "fetch": {
+      "type": "image",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/5/5e/Pir%C3%A1mide_de_poblaci%C3%B3n_de_Espa%C3%B1a_%282014%29.jpg"
+    },
+    "sha256": "bc05c79cb3edd48043e12027fb13d086e7b915591f0d030e9a2d6ff0e4ecd08c"
+  },
+  {
+    "id": "climograma-cantabria",
+    "title": "Climograma comparado de Cantabria",
+    "format": "png",
+    "kind": "imagen",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/c/c1/Climograma_comparado_de_Cantabria.png",
+    "publisher": "Wikimedia Commons (Meteoruco)",
+    "license": "CC BY-SA 3.0",
+    "attribution": "«Climograma comparado de Cantabria», de Meteoruco, CC BY-SA 3.0, vía Wikimedia Commons",
+    "source_updated": "versión actual en Commons",
+    "retrieved": "2026-11-05",
+    "transformations": "ninguna",
+    "fetch": {
+      "type": "image",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/c/c1/Climograma_comparado_de_Cantabria.png"
+    },
+    "sha256": "e4f3e84dc9cd13699d7a5770faa49534dd0a0c6b61c4afa12f8b74255b520942"
+  },
+  {
+    "id": "tabla-periodica",
+    "title": "Tabla periódica completa",
+    "format": "png",
+    "kind": "imagen",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/d/d4/Tabla_peri%C3%B3dica_completa.PNG",
+    "publisher": "Wikimedia Commons (Simon 03)",
+    "license": "CC BY-SA 3.0",
+    "attribution": "«Tabla periódica completa», de Simon 03, CC BY-SA 3.0, vía Wikimedia Commons",
+    "source_updated": "versión actual en Commons",
+    "retrieved": "2026-11-05",
+    "transformations": "ninguna",
+    "fetch": {
+      "type": "image",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/d/d4/Tabla_peri%C3%B3dica_completa.PNG"
+    },
+    "sha256": "515fc813fd06e6cd0e7a63cd6c1364ecf108a32d0972e098fd81b74239d25303"
+  },
+  {
+    "id": "horario-autobus",
+    "title": "Horario de autobús",
+    "format": "png",
+    "kind": "imagen",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/e/e7/Horario_autob%C3%BAs.png",
+    "publisher": "Wikimedia Commons (Lusaya03)",
+    "license": "CC BY-SA 4.0",
+    "attribution": "«Horario de autobús», de Lusaya03, CC BY-SA 4.0, vía Wikimedia Commons",
+    "source_updated": "versión actual en Commons",
+    "retrieved": "2026-11-05",
+    "transformations": "ninguna",
+    "fetch": {
+      "type": "image",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/e/e7/Horario_autob%C3%BAs.png"
+    },
+    "sha256": "8c06ebb9d3d90ddce4b0248a38b339fe2e82eed8446d82c9e8b6478ff4a8b86c"
+  },
+  {
+    "id": "panel-lo-morant",
+    "title": "Panel informativo del sendero urbano del parque Lo Morant",
+    "format": "jpg",
+    "kind": "imagen",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/d/df/Panel_informativo_del_sendero_urbano_del_parque_Lo_Morant.jpg",
+    "publisher": "Wikimedia Commons (Varondán)",
+    "license": "CC BY-SA 4.0",
+    "attribution": "«Panel informativo del sendero urbano del parque Lo Morant», de Varondán, CC BY-SA 4.0, vía Wikimedia Commons",
+    "source_updated": "versión actual en Commons",
+    "retrieved": "2026-11-05",
+    "transformations": "recodificado en JPEG con calidad 80",
+    "fetch": {
+      "type": "image",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/d/df/Panel_informativo_del_sendero_urbano_del_parque_Lo_Morant.jpg",
+      "jpeg": 80
+    },
+    "sha256": "d8ebfd8fc2619f8e994449432e3305552fb6740044dbdaeb682ce3335c51706a"
+  },
+  {
+    "id": "billete-tren-1957",
+    "title": "Billete de tren de Valencia a Manuel-Énova, 1957",
+    "format": "png",
+    "kind": "imagen",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/3/31/Billete_de_tren_de_Valencia_a_Manuel-%C3%89nova_1957.png",
+    "publisher": "Wikimedia Commons (B25es)",
+    "license": "CC BY-SA 4.0",
+    "attribution": "«Billete de tren de Valencia a Manuel-Énova, 1957», de B25es, CC BY-SA 4.0, vía Wikimedia Commons",
+    "source_updated": "versión actual en Commons",
+    "retrieved": "2026-11-05",
+    "transformations": "ninguna",
+    "fetch": {
+      "type": "image",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/3/31/Billete_de_tren_de_Valencia_a_Manuel-%C3%89nova_1957.png"
+    },
+    "sha256": "d36386c01b3a20f214c7810c26c5305d523d813bda1c12cb83ac8049bbd97b4a"
+  },
+  {
+    "id": "gaceta-1746",
+    "title": "Gaceta de Madrid, 13-09-1746",
+    "format": "png",
+    "kind": "imagen",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Gaceta_de_Madrid_13-09-1746.png",
+    "publisher": "Wikimedia Commons (autor desconocido)",
+    "license": "Dominio público",
+    "attribution": "«Gaceta de Madrid, 13-09-1746», de autor desconocido, Dominio público, vía Wikimedia Commons",
+    "source_updated": "versión actual en Commons",
+    "retrieved": "2026-11-05",
+    "transformations": "ninguna",
+    "fetch": {
+      "type": "image",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Gaceta_de_Madrid_13-09-1746.png"
+    },
+    "sha256": "d9e04c58b2df04e2c89c6f7ed3fb1ac83bb99ccdd46fd7734848f0372852a9f2"
+  },
+  {
+    "id": "panel-letur",
+    "title": "Panel informativo de la Red de Senderos de Letur",
+    "format": "jpg",
+    "kind": "imagen",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/6/66/Panel_informativo_de_la_Red_de_Senderos_de_Letur.jpg",
+    "publisher": "Wikimedia Commons (Hetemacaba)",
+    "license": "CC0 1.0",
+    "attribution": "«Panel informativo de la Red de Senderos de Letur», de Hetemacaba, CC0 1.0, vía Wikimedia Commons",
+    "source_updated": "versión actual en Commons",
+    "retrieved": "2026-11-05",
+    "transformations": "ninguna",
+    "fetch": {
+      "type": "image",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/6/66/Panel_informativo_de_la_Red_de_Senderos_de_Letur.jpg"
+    },
+    "sha256": "0d2ddff8cfcf062d5187835010ebee6f626414cd76982d8ce2cd3dd74486c543"
+  },
+  {
+    "id": "cartel-precios-mercado",
+    "title": "La oferta de precios en el mercado",
+    "format": "jpg",
+    "kind": "imagen",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/c/c4/La_oferta_de_precios_en_el_mercado.jpg",
+    "publisher": "Wikimedia Commons (Alberto Riva Vasquez)",
+    "license": "CC BY 4.0",
+    "attribution": "«La oferta de precios en el mercado», de Alberto Riva Vasquez, CC BY 4.0, vía Wikimedia Commons",
+    "source_updated": "versión actual en Commons",
+    "retrieved": "2026-11-05",
+    "transformations": "ninguna",
+    "fetch": {
+      "type": "image",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/c/c4/La_oferta_de_precios_en_el_mercado.jpg"
+    },
+    "sha256": "6d3f350bea8461ee13df839ddb737def12e670f6b037ae8c8283b6dc2b73074c"
+  },
+  {
+    "id": "gaceta-1935-p2261",
+    "title": "Gaceta de Madrid, núm. 347, 13-12-1935, página 2261",
+    "format": "jpg",
+    "kind": "imagen",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/a/a0/Gaceta_de_Madrid_347_1935_12_13_p_2261.jpg",
+    "publisher": "Wikimedia Commons (autor desconocido)",
+    "license": "Dominio público",
+    "attribution": "«Gaceta de Madrid, núm. 347, 13-12-1935, página 2261», de autor desconocido, Dominio público, vía Wikimedia Commons",
+    "source_updated": "versión actual en Commons",
+    "retrieved": "2026-11-05",
+    "transformations": "ninguna",
+    "fetch": {
+      "type": "image",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/a/a0/Gaceta_de_Madrid_347_1935_12_13_p_2261.jpg"
+    },
+    "sha256": "52dbaa31f5f5030fe0394c8a6be6272031eb238b484cf2edf78a3c22a425bacc"
+  },
+  {
+    "id": "foto-ine-epa-2026t3-p1",
+    "title": "Foto simulada de «Encuesta de Población Activa, tercer trimestre de 2026 (nota de prensa)», página 1",
+    "format": "jpg",
+    "kind": "imagen",
+    "source_url": "https://www.ine.es/dyngs/Prensa/EPA3T26.pdf",
+    "publisher": "INE",
+    "license": "INE: CC BY 4.0",
+    "attribution": "Fuente: Sitio web del INE: www.ine.es; foto simulada por MicroRAG",
+    "source_updated": "según el documento",
+    "retrieved": "2026-11-05",
+    "transformations": "página 1 de `ine-epa-2026t3` convertida en foto simulada (receta v1, semilla 20261106: giro, perspectiva, sombra, ruido y JPEG)",
+    "fetch": {
+      "type": "photo",
+      "from": "ine-epa-2026t3",
+      "page": 1,
+      "seed": 20261106,
+      "recipe": "v1"
+    },
+    "sha256": "5c9fd37a9b152263d1a24a6d58bbe43263b1fb5a6edc19703288a0e33075f79b"
+  },
+  {
+    "id": "foto-ine-ipc-2026-09-p1",
+    "title": "Foto simulada de «Índice de Precios de Consumo, septiembre de 2026 (nota de prensa)», página 1",
+    "format": "jpg",
+    "kind": "imagen",
+    "source_url": "https://www.ine.es/dyngs/Prensa/IPC0926.pdf",
+    "publisher": "INE",
+    "license": "INE: CC BY 4.0",
+    "attribution": "Fuente: Sitio web del INE: www.ine.es; foto simulada por MicroRAG",
+    "source_updated": "según el documento",
+    "retrieved": "2026-11-05",
+    "transformations": "página 1 de `ine-ipc-2026-09` convertida en foto simulada (receta v1, semilla 20261107: giro, perspectiva, sombra, ruido y JPEG)",
+    "fetch": {
+      "type": "photo",
+      "from": "ine-ipc-2026-09",
+      "page": 1,
+      "seed": 20261107,
+      "recipe": "v1"
+    },
+    "sha256": "52198cfc3d140e8ede8df0a3e7fc95afd050ea3fdc537c759bb819f736f48e14"
+  },
+  {
+    "id": "foto-boe-fiestas-2026-p2",
+    "title": "Foto simulada de «Fiestas laborales para el año 2026», página 2",
+    "format": "jpg",
+    "kind": "imagen",
+    "source_url": "https://www.boe.es/boe/dias/2025/10/28/pdfs/BOE-A-2025-21667.pdf",
+    "publisher": "Agencia Estatal Boletín Oficial del Estado",
+    "license": "BOE: reutilización con atribución",
+    "attribution": "Basado en datos de la Agencia Estatal Boletín Oficial del Estado (www.boe.es); foto simulada por MicroRAG",
+    "source_updated": "2025-10-28",
+    "retrieved": "2026-11-05",
+    "transformations": "página 2 de `boe-fiestas-2026` convertida en foto simulada (receta v1, semilla 20261108: giro, perspectiva, sombra, ruido y JPEG)",
+    "fetch": {
+      "type": "photo",
+      "from": "boe-fiestas-2026",
+      "page": 2,
+      "seed": 20261108,
+      "recipe": "v1"
+    },
+    "sha256": "f0d15deda9e9ac0f6def9fc2b7b81768a1560ea6e8595e917df5405ae195c3c6"
+  },
+  {
+    "id": "foto-ine-coyuntura-hotelera-2026-09-p1",
+    "title": "Foto simulada de «Coyuntura Turística Hotelera, septiembre de 2026 (nota de prensa)», página 1",
+    "format": "jpg",
+    "kind": "imagen",
+    "source_url": "https://www.ine.es/dyngs/Prensa/CTH0926.pdf",
+    "publisher": "INE",
+    "license": "INE: CC BY 4.0",
+    "attribution": "Fuente: Sitio web del INE: www.ine.es; foto simulada por MicroRAG",
+    "source_updated": "según el documento",
+    "retrieved": "2026-11-05",
+    "transformations": "página 1 de `ine-coyuntura-hotelera-2026-09` convertida en foto simulada (receta v1, semilla 20261109: giro, perspectiva, sombra, ruido y JPEG)",
+    "fetch": {
+      "type": "photo",
+      "from": "ine-coyuntura-hotelera-2026-09",
+      "page": 1,
+      "seed": 20261109,
+      "recipe": "v1"
+    },
+    "sha256": "5524352347cb27a34735a97a8f4f11502152cf50fe143a5df303d5fdc347a0dd"
+  },
+  {
+    "id": "foto-ine-frontur-2026-09-p1",
+    "title": "Foto simulada de «Movimientos Turísticos en Fronteras (FRONTUR), septiembre de 2026 (nota de prensa)», página 1",
+    "format": "jpg",
+    "kind": "imagen",
+    "source_url": "https://www.ine.es/dyngs/Prensa/FRONTUR0926.pdf",
+    "publisher": "INE",
+    "license": "INE: CC BY 4.0",
+    "attribution": "Fuente: Sitio web del INE: www.ine.es; foto simulada por MicroRAG",
+    "source_updated": "según el documento",
+    "retrieved": "2026-11-05",
+    "transformations": "página 1 de `ine-frontur-2026-09` convertida en foto simulada (receta v1, semilla 20261110: giro, perspectiva, sombra, ruido y JPEG)",
+    "fetch": {
+      "type": "photo",
+      "from": "ine-frontur-2026-09",
+      "page": 1,
+      "seed": 20261110,
+      "recipe": "v1"
+    },
+    "sha256": "b7849d204fb3887fe91038880d7ff765d3ef378d634eedef716108f9a701a28a"
+  },
+  {
+    "id": "foto-ine-ecp-2026t2-p2",
+    "title": "Foto simulada de «Estadística Continua de Población, segundo trimestre de 2026 (nota de prensa)», página 2",
+    "format": "jpg",
+    "kind": "imagen",
+    "source_url": "https://www.ine.es/dyngs/Prensa/ECP2T26.pdf",
+    "publisher": "INE",
+    "license": "INE: CC BY 4.0",
+    "attribution": "Fuente: Sitio web del INE: www.ine.es; foto simulada por MicroRAG",
+    "source_updated": "según el documento",
+    "retrieved": "2026-11-05",
+    "transformations": "página 2 de `ine-ecp-2026t2` convertida en foto simulada (receta v1, semilla 20261111: giro, perspectiva, sombra, ruido y JPEG)",
+    "fetch": {
+      "type": "photo",
+      "from": "ine-ecp-2026t2",
+      "page": 2,
+      "seed": 20261111,
+      "recipe": "v1"
+    },
+    "sha256": "096dc278376ff4d536d5022b589c120dc96a825c32e1fcaef04a6e56b3540644"
+  },
+  {
+    "id": "foto-ine-ecv-2025-p2",
+    "title": "Foto simulada de «Encuesta de Condiciones de Vida 2025 (nota de prensa)», página 2",
+    "format": "jpg",
+    "kind": "imagen",
+    "source_url": "https://www.ine.es/dyngs/Prensa/ECV2025.pdf",
+    "publisher": "INE",
+    "license": "INE: CC BY 4.0",
+    "attribution": "Fuente: Sitio web del INE: www.ine.es; foto simulada por MicroRAG",
+    "source_updated": "según el documento",
+    "retrieved": "2026-11-05",
+    "transformations": "página 2 de `ine-ecv-2025` convertida en foto simulada (receta v1, semilla 20261112: giro, perspectiva, sombra, ruido y JPEG)",
+    "fetch": {
+      "type": "photo",
+      "from": "ine-ecv-2025",
+      "page": 2,
+      "seed": 20261112,
+      "recipe": "v1"
+    },
+    "sha256": "5025851286517d99975e52d521b24ac071919de3c52f3976c899b37b2b787385"
+  },
+  {
+    "id": "foto-ine-anuario-2020-demografia-p5",
+    "title": "Foto simulada de «Anuario Estadístico de España 2020: Demografía», página 5",
+    "format": "jpg",
+    "kind": "imagen",
+    "source_url": "https://www.ine.es/prodyser/pubweb/anuario20/anu20_02demog.pdf",
+    "publisher": "INE",
+    "license": "INE: CC BY 4.0",
+    "attribution": "Fuente: Sitio web del INE: www.ine.es; foto simulada por MicroRAG",
+    "source_updated": "2020",
+    "retrieved": "2026-11-05",
+    "transformations": "página 5 de `ine-anuario-2020-demografia` convertida en foto simulada (receta v1, semilla 20261113: giro, perspectiva, sombra, ruido y JPEG)",
+    "fetch": {
+      "type": "photo",
+      "from": "ine-anuario-2020-demografia",
+      "page": 5,
+      "seed": 20261113,
+      "recipe": "v1"
+    },
+    "sha256": "54528432b5f5505fe47451530827ca7856e885d1d24357c30bffef699902b632"
+  },
+  {
+    "id": "foto-aeat-recaudacion-2026-09-p4",
+    "title": "Foto simulada de «Informe mensual de recaudación tributaria, septiembre de 2026», página 4",
+    "format": "jpg",
+    "kind": "imagen",
+    "source_url": "https://sede.agenciatributaria.gob.es/static_files/AEAT/Estudios/Estadisticas/Informes_Estadisticos/Informes_mensuales_recaudacion_tributaria/2026/IMR_26_09_es_es.pdf",
+    "publisher": "Agencia Estatal de Administración Tributaria",
+    "license": "AEAT: RD 1495/2011",
+    "attribution": "Fuente: Agencia Estatal de Administración Tributaria (www.agenciatributaria.es), con la fecha de su última actualización; foto simulada por MicroRAG",
+    "source_updated": "según el documento",
+    "retrieved": "2026-11-05",
+    "transformations": "página 4 de `aeat-recaudacion-2026-09` convertida en foto simulada (receta v1, semilla 20261114: giro, perspectiva, sombra, ruido y JPEG)",
+    "fetch": {
+      "type": "photo",
+      "from": "aeat-recaudacion-2026-09",
+      "page": 4,
+      "seed": 20261114,
+      "recipe": "v1"
+    },
+    "sha256": "ad351f62cfb66c154cd36bf4c85d763de6ade6da4690dd04eeb07846b35f5e3d"
+  },
+  {
+    "id": "foto-bne-constitucion-1931-p2",
+    "title": "Foto simulada de «Constitución de la República Española (1931), folleto escaneado», página 2",
+    "format": "jpg",
+    "kind": "imagen",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Constituci%C3%B3n_de_la_Rep%C3%BAblica_Espa%C3%B1ola_-_bdh0000048244.pdf",
+    "publisher": "Biblioteca Nacional de España (Biblioteca Digital Hispánica), vía Wikimedia Commons",
+    "license": "BNE: dominio público",
+    "attribution": "Fondos de la Biblioteca Nacional de España (Biblioteca Digital Hispánica), vía Wikimedia Commons; foto simulada por MicroRAG",
+    "source_updated": "1931",
+    "retrieved": "2026-11-05",
+    "transformations": "página 2 de `bne-constitucion-1931` convertida en foto simulada (receta v1, semilla 20261115: giro, perspectiva, sombra, ruido y JPEG)",
+    "fetch": {
+      "type": "photo",
+      "from": "bne-constitucion-1931",
+      "page": 2,
+      "seed": 20261115,
+      "recipe": "v1"
+    },
+    "sha256": "1713504f66208ee6ae3cbf2828f552c52d9f01c4246622c8e3c02a6e0f1dc0bd"
+  }
+]
