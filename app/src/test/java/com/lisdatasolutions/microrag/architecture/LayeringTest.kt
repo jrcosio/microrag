@@ -10,18 +10,20 @@ class LayeringTest {
     private val sources = listOf(File("src/main/java"), File("src/debug/java"))
         .flatMap { root -> root.walkTopDown().filter { it.extension == "kt" }.toList() }
 
-    /** Files that import [prefix] outside [allowedDir]. */
-    private fun offenders(prefix: String, allowedDir: File): List<String> = sources
+    /** Files that import [prefix] outside [allowedDirs]. */
+    private fun offenders(prefix: String, vararg allowedDirs: File): List<String> = sources
         .filter { it.readText().contains("import $prefix") }
-        .filterNot { it.canonicalPath.startsWith(allowedDir.canonicalPath + File.separator) }
+        .filterNot { file -> allowedDirs.any { file.canonicalPath.startsWith(it.canonicalPath + File.separator) } }
         .map { it.path }
 
+    /** F18 research R3: the visual diagnostic's adapters live in the same package of the debug source set. */
     @Test
     fun onlyLiteRtAdaptersImportTheInferenceSdk() {
-        val allowedDir = File("src/main/java/com/lisdatasolutions/microrag/rag/runtime/litert")
+        val main = File("src/main/java/com/lisdatasolutions/microrag/rag/runtime/litert")
+        val debug = File("src/debug/java/com/lisdatasolutions/microrag/rag/runtime/litert")
 
         assertWithMessage("Files importing LiteRT-LM outside rag/runtime/litert")
-            .that(offenders("com.google.ai.edge.litertlm", allowedDir)).isEmpty()
+            .that(offenders("com.google.ai.edge.litertlm", main, debug)).isEmpty()
     }
 
     @Test
@@ -34,10 +36,11 @@ class LayeringTest {
 
     @Test
     fun onlyTheIngestDataLayerImportsThePlatformPdfApi() {
-        val allowedDir = File("src/main/java/com/lisdatasolutions/microrag/data/ingest")
+        val main = File("src/main/java/com/lisdatasolutions/microrag/data/ingest")
+        val debug = File("src/debug/java/com/lisdatasolutions/microrag/data/ingest")
 
         assertWithMessage("Files importing android.graphics.pdf outside data/ingest")
-            .that(offenders("android.graphics.pdf", allowedDir)).isEmpty()
+            .that(offenders("android.graphics.pdf", main, debug)).isEmpty()
     }
 
     @Test
@@ -102,6 +105,21 @@ class LayeringTest {
         assertWithMessage("main or release files referencing debug.retrieval").that(leaks).isEmpty()
         assertWithMessage("the diagnostic exists in debug")
             .that(File("src/debug/java/com/lisdatasolutions/microrag/debug/retrieval/RetrievalDiagnosticScreen.kt").isFile).isTrue()
+    }
+
+    /** F18 T004 (research R3): the visual diagnostic lives in src/debug only; main and release never name it. */
+    @Test
+    fun nothingOutsideDebugReferencesTheVisualDiagnostic() {
+        val roots = listOf(File("src/main"), File("src/release"))
+        val files = roots.flatMap { root -> root.walkTopDown().filter { it.isFile && it.extension in setOf("kt", "xml") }.toList() }
+        val leaks = files.filter { file ->
+            listOf("debug.feasibility.visual", "LiteRtVisionEngines", "DebugPageRasterizer").any { file.readText().contains(it) }
+        }.map { it.path }
+
+        assertWithMessage("main or release files referencing the visual diagnostic").that(leaks).isEmpty()
+        assertWithMessage("the visual diagnostic exists in debug")
+            .that(File("src/debug/java/com/lisdatasolutions/microrag/debug/feasibility/visual/VisualFeasibilityScreen.kt").isFile)
+            .isTrue()
     }
 
     /** F09 T030: Home reads models, library and run through use cases only (contracts/home-api.md). */
