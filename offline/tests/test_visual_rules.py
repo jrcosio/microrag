@@ -168,6 +168,45 @@ class DecisionTest(unittest.TestCase):
         bad = {"golden_min": 0.995, "identity_min": 0.998}
         self.assertTrue(visual_rules.decide(RULES, self.final, decisive, bad)["needs_user"])
 
+    def test_no_decisive_figures_when_nothing_fits(self):
+        result = visual_rules.decide(RULES, None, None, self.golden)
+        self.assertFalse(result["go"])
+        self.assertTrue(result["needs_user"])
+        self.assertIsNone(result["conditions"]["visual_gain"]["points"])
+
+
+class PhoneInputsTest(unittest.TestCase):
+    report = {"scenarios": [
+        {"kind": "GEMMA_PAGES", "status": "COMPLETED", "params": {"stage": "A", "combination": "mezcla-p1-b280-t0"}, "metrics": {"p95Ms": 6100.0}},
+        {"kind": "GEMMA_PAGES", "status": "FAILED", "params": {"stage": "A", "combination": "mezcla-p3-b280-t1"}, "metrics": {}},
+        {"kind": "GEMMA_PAGES", "status": "COMPLETED", "params": {"stage": "B", "combination": "mezcla-p1-b280-t0"}, "metrics": {"p95Ms": 6400.0}},
+        {"kind": "EMBED_TEXT", "model": "EG2_440M", "status": "COMPLETED", "params": {}, "metrics": {"p95Ms": 130.0}},
+        {"kind": "EMBED_TEXT", "model": "EG2_270M", "status": "COMPLETED", "params": {}, "metrics": {"p95Ms": 125.0}},
+    ]}
+
+    def test_stages_take_only_completed_scenarios(self):
+        self.assertEqual(visual_rules.phone_stage(self.report, "A"), {"mezcla-p1-b280-t0": 6100.0})
+        self.assertEqual(visual_rules.phone_stage(self.report, "B"), {"mezcla-p1-b280-t0": 6400.0})
+        self.assertEqual(visual_rules.phone_queries(self.report), (130.0, 125.0))
+
+    def test_queries_need_both_models(self):
+        with self.assertRaises(SystemExit):
+            visual_rules.phone_queries({"scenarios": self.report["scenarios"][:4]})
+
+    def test_golden_takes_the_lowest_backend(self):
+        data = {"golden": {"CPU": {"min": 0.997, "mean": 0.999}, "GPU": {"min": 0.993, "mean": 0.998}},
+                "identity": {"min": 0.99995, "mean": 0.99999}}
+        golden = visual_rules.golden_from(data)
+        self.assertEqual((golden["golden_min"], golden["identity_min"]), (0.993, 0.99995))
+
+    def test_desktop_rows_are_complete_runs_in_points(self):
+        metrics = {"texto": {"complete": True, "summary": {"visual": {"correct": 0.4}}},
+                   "mezcla-p1-b280-t0": {"complete": True, "summary": {"visual": {"correct": 0.6}}},
+                   "mezcla-p2-b280-t0": {"complete": False, "summary": {"visual": {"correct": 0.7}}}}
+        rows = visual_rules.desktop_answers(metrics)
+        self.assertEqual([(r["variant"], r["answer"], r["visual_correct"]) for r in rows],
+                         [("texto", "texto", 40.0), ("mezcla-p1-b280-t0", "mezcla", 60.0)])
+
 
 if __name__ == "__main__":
     unittest.main()

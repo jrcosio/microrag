@@ -130,17 +130,49 @@ def choose_final(answers, stage_b, queries, rules):
 
 
 def decide(rules, final, decisive, golden):
-    """The go rule on the decisive manual figures; the user decides when no page fits or the 440M fails."""
+    """The go rule on the decisive manual figures; the user decides when no page fits or the 440M fails.
+
+    [decisive] is None when no configuration fits the first token: there is nothing to review then."""
     rule = rules["go_rule"]
     golden_ok = golden["golden_min"] >= rule["golden_min_cosine"] and golden["identity_min"] >= rule["identity_min_cosine"]
-    gain = decisive["visual"]["ambos"] - decisive["visual"]["texto"]
-    loss = decisive["f05"]["texto"] - decisive["f05"]["ambos"]
+    gain = None if decisive is None else decisive["visual"]["ambos"] - decisive["visual"]["texto"]
+    loss = None if decisive is None else decisive["f05"]["texto"] - decisive["f05"]["ambos"]
     conditions = {
-        "visual_gain": {"points": round(gain, 1), "ok": gain >= rule["visual_gain_points"]},
-        "text_loss": {"points": round(loss, 1), "ok": loss <= rule["text_loss_points"]},
+        "visual_gain": {"points": None if gain is None else round(gain, 1), "ok": gain is not None and gain >= rule["visual_gain_points"]},
+        "text_loss": {"points": None if loss is None else round(loss, 1), "ok": loss is not None and loss <= rule["text_loss_points"]},
         "first_token": {"e2e_ms": None if final is None else final["e2e_ms"], "ok": final is not None},
         "embedder": {**golden, "ok": golden_ok},
     }
     needs_user = final is None or not golden_ok
     return {"go": all(item["ok"] for item in conditions.values()), "needs_user": needs_user,
             "variant": None if final is None else final["variant"], "conditions": conditions}
+
+
+# Inputs of the decision (research R12): the phone report, the golden JSON and the desktop runs.
+
+def phone_stage(report, stage):
+    """{combination key: first-token p95 in ms} of the completed GEMMA_PAGES scenarios of [stage] ("A" or "B")."""
+    return {s["params"]["combination"]: s["metrics"]["p95Ms"] for s in report["scenarios"]
+            if s["kind"] == "GEMMA_PAGES" and s["status"] == "COMPLETED" and (s.get("params") or {}).get("stage") == stage}
+
+
+def phone_queries(report):
+    """(440M, 270M) query p95 in ms on the CPU, from the completed EMBED_TEXT scenarios."""
+    p95 = {s["model"]: s["metrics"]["p95Ms"] for s in report["scenarios"] if s["kind"] == "EMBED_TEXT" and s["status"] == "COMPLETED"}
+    missing = [m for m in ("EG2_440M", "EG2_270M") if m not in p95]
+    if missing:
+        raise SystemExit(f"the phone report has no completed EMBED_TEXT for {', '.join(missing)}")
+    return p95["EG2_440M"], p95["EG2_270M"]
+
+
+def golden_from(data):
+    """The 440M's golden (the lowest of its backends) and its identity with the 270M, from variant-golden-*.json."""
+    backends = {name: values["min"] for name, values in data["golden"].items()}
+    return {"golden_min": min(backends.values()), "identity_min": data["identity"]["min"], "golden_by_backend": backends}
+
+
+def desktop_answers(metrics):
+    """Rows for candidates() and choose_final(): each complete run's family and desktop visual correct, in points."""
+    return [{"variant": key, "answer": key.split("-")[0], "visual_correct": 100 * m["summary"]["visual"]["correct"]}
+            for key, m in metrics.items() if m.get("complete") and "visual" in m["summary"]]
+

@@ -177,7 +177,55 @@ def visual_decide(args):
         visual_retrieval.write_json(out, {"stamp": ablations["stamp"], **chosen})
         print(json.dumps(chosen))
         return
-    raise SystemExit("visual-decide: use --stage retrieval (the other steps come with the phone report)")
+    metrics = _answer_runs()
+    answers = visual_rules.desktop_answers(metrics)
+    if args[:2] == ["--stage", "candidates"] and len(args) == 3:
+        report = json.loads(Path(args[2]).read_text())
+        stage_a, queries = visual_rules.phone_stage(report, "A"), visual_rules.phone_queries(report)
+        chosen = visual_rules.candidates(answers, stage_a, queries, rules)
+        visual_retrieval.write_json(visual_index.VISUAL_DIR / "decision-candidates.json",
+                                    {"candidates": chosen, "stage_a_ms": stage_a, "queries_ms": queries})
+        print(json.dumps({"candidates": chosen, "stage_a_e2e_ms": {k: round(visual_rules.e2e_ms(rules, v, *queries), 1)
+                                                                    for k, v in stage_a.items()}}))
+        return
+    options = _pairs(args[1:], {"golden": "", "manual": ""}) if args and not args[0].startswith("--") else None
+    if options is None or not options["golden"]:
+        raise SystemExit("visual-decide: use --stage retrieval, --stage candidates <stage-A report> or "
+                         "<report.json> golden=<variant-golden.json>")
+    from eval import visual_manual, visual_text_loss
+
+    report = json.loads(Path(args[0]).read_text())
+    queries = visual_rules.phone_queries(report)
+    final = visual_rules.choose_final(answers, visual_rules.phone_stage(report, "B"), queries, rules)
+    golden = visual_rules.golden_from(json.loads(Path(options["golden"]).read_text()))
+    decisive = None
+    if final is not None:
+        rows = visual_manual.load()
+        texto, chosen = visual_manual.figures(rows, "texto"), visual_manual.figures(rows, final["variant"])
+        loss = _read_json(visual_text_loss.RUNS / final["variant"] / "result.json")
+        if texto is None or chosen is None or loss is None or loss["mix_answer_correct"] is None:
+            raise SystemExit(f"the decisive review of texto and {final['variant']} and its text loss must be judged first "
+                             f"(visual-manual --decisive variant={final['variant']}, visual-text-loss variant={final['variant']})")
+        decisive = {"visual": {"texto": texto["visual_correct"], "ambos": chosen["visual_correct"]},
+                    "f05": {"texto": 100 * loss["v4_answer_correct"], "ambos": 100 * loss["mix_answer_correct"]}}
+    result = visual_rules.decide(rules, final, decisive, golden)
+    result.update({"final": final, "decisive": decisive, "queries_ms": queries, "retrieval": _read_json(
+        visual_index.VISUAL_DIR / "decision-retrieval.json"), "rules_git_hash": visual_rules.git_hash(visual_rules.RULES)})
+    visual_retrieval.write_json(visual_index.VISUAL_DIR / "decision-final.json", result)
+    print(json.dumps(result, ensure_ascii=False))
+
+
+def _read_json(path):
+    return json.loads(Path(path).read_text()) if Path(path).exists() else None
+
+
+def _answer_runs():
+    """metrics.json of each answer run that exists, in the default order."""
+    from eval import visual_index
+
+    runs = visual_index.VISUAL_DIR / "runs"
+    return {key: json.loads((runs / f"answers-{key}" / "metrics.json").read_text())
+            for key in default_variants() if (runs / f"answers-{key}" / "metrics.json").exists()}
 
 
 # Answer variants (research R11). The candidates of the rule are mixes, so the mix runs the whole grid; «Páginas» only
@@ -504,8 +552,7 @@ def visual_manual(args):
     rules = visual_rules.load()
     by_id = {q.id: q for q in _questions() if q.review == "ok"}
     runs = visual_index.VISUAL_DIR / "runs"
-    available = {key: json.loads((runs / f"answers-{key}" / "metrics.json").read_text())
-                 for key in default_variants() if (runs / f"answers-{key}" / "metrics.json").exists()}
+    available = _answer_runs()
     if decisive:
         if not options["variant"]:
             raise SystemExit("visual-manual --decisive needs variant=<the chosen configuration>")
