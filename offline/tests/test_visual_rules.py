@@ -90,9 +90,15 @@ class EndToEndTest(unittest.TestCase):
 
 
 class RetrievalChoiceTest(unittest.TestCase):
-    def rows(self, values):
-        return [{"mode": "ambos", "px": px, "tokens": tokens, "dim": dim, "visual_recall@5": recall}
+    mode = RULES["selection"]["retrieval"]["mode"]
+
+    def rows(self, values, mode=None):
+        return [{"mode": mode or self.mode, "px": px, "tokens": tokens, "dim": dim, "visual_recall@5": recall}
                 for (px, tokens, dim), recall in values.items()]
+
+    def test_the_choice_reads_the_page_list(self):
+        self.assertEqual(self.mode, "visual")
+        self.assertEqual(RULES["answer_pages"], "visual")
 
     def test_a_cheaper_configuration_close_to_the_best_wins(self):
         rows = self.rows({(1536, 140, 256): 0.80, (768, 70, 256): 0.79, (1024, 140, 256): 0.70,
@@ -106,8 +112,7 @@ class RetrievalChoiceTest(unittest.TestCase):
         self.assertEqual(visual_rules.choose_retrieval(rows, RULES)["dim"], 256)
 
     def test_other_modes_are_ignored(self):
-        rows = self.rows({(768, 70, 256): 0.5}) + [{"mode": "visual", "px": 1536, "tokens": 140, "dim": 256,
-                                                    "visual_recall@5": 0.99}]
+        rows = self.rows({(768, 70, 256): 0.5}) + self.rows({(1536, 140, 256): 0.99}, mode="ambos")
         self.assertEqual(visual_rules.choose_retrieval(rows, RULES)["px"], 768)
 
 

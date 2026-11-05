@@ -74,7 +74,7 @@ def e2e_ms(rules, ttft_p95_ms, query_440_p95_ms, query_270_p95_ms):
 
 
 def choose_retrieval(rows, rules):
-    """Resolution, tokens and dimension of «Ambos» by visual Recall@5, preferring the cheaper within the margin."""
+    """Resolution, tokens and dimension by the visual Recall@5 of the rule's mode, preferring the cheaper within the margin."""
     selection = rules["selection"]
     metric, mode = selection["retrieval"]["metric"], selection["retrieval"]["mode"]
     dimension = selection["dimension"]

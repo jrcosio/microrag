@@ -199,7 +199,7 @@ Con ellos ejecuta las ablaciones de recuperación y de respuesta, y obtiene un i
 3. **Given** el corpus indexado, **When** se ejecutan las ablaciones de recuperación, **Then** se informan, por página y por tipo de pregunta, el Recall@k, el MRR y el nDCG@10 de:
    - «Texto»: la búsqueda híbrida de hoy, con cada fragmento llevado a su página;
    - «Visual»: los vectores de página;
-   - «Ambos»: RRF de las tres listas.
+   - «Ambos»: RRF de las tres listas. *Tras D-076, las páginas de la respuesta salen de «Visual»; la RRF de tres listas queda como hallazgo.*
 4. **Given** las mismas preguntas, **When** se ejecutan las ablaciones de respuesta con Gemma 4 E2B, **Then** se informan las respuestas correctas, las negativas y las citas a la página correcta, por tipo de pregunta, para:
    - bloques de texto;
    - imágenes de página;
@@ -367,7 +367,7 @@ Mientras se mide, nunca hay dos engines en GPU, la interfaz responde y las prueb
   - con criterios explícitos: pregunta realista y no ambigua, respuesta deducible de la página, y preguntas sin respuesta comprobadas en el corpus.
 
   Los veredictos quedan registrados.
-- **FR-022**: Las ablaciones de recuperación MUST comparar «Texto» (la búsqueda híbrida de D-034, con cada fragmento llevado a su página), «Visual» (vectores de página) y «Ambos» (RRF con k = 60 de las tres listas).
+- **FR-022**: Las ablaciones de recuperación MUST comparar «Texto» (la búsqueda híbrida de D-034, con cada fragmento llevado a su página), «Visual» (vectores de página) y «Ambos» (RRF con k = 60 de las tres listas). Tras D-076, las páginas que entran en la respuesta salen de «Visual», y la resolución, los tokens y la dimensión se eligen con su Recall@5 visual.
   - Métricas: Recall@k, MRR y nDCG@10 por página, por tipo de pregunta.
   - Variantes: dimensión de página 256 o 512, 70 o 140 tokens por imagen, y las resoluciones candidatas.
 - **FR-023**: Las ablaciones de respuesta MUST usar Gemma 4 E2B con el mismo fichero que la app, y comparar:
@@ -380,7 +380,7 @@ Mientras se mide, nunca hay dos engines en GPU, la interfaz responde y las prueb
 - **FR-024**: Con «Texto», el conjunto de prueba de F05 MUST dar las mismas cifras que hoy (D-034, D-051). El corpus visual no toca el de texto.
 - **FR-025**: Antes de ejecutar la evaluación, MUST quedar fijados por escrito los umbrales, la regla para elegir cada parámetro y la **regla de sí o no** (clarify y analyze).
 
-  **«Ambos»** es la configuración que elige la regla de parámetros: recuperación con las tres listas, y respuesta con páginas o con la mezcla. La regla pide las tres condiciones:
+  **«Ambos»** es la configuración que elige la regla de parámetros: los bloques de texto de la búsqueda de fragmentos y las páginas de la búsqueda por páginas (D-076), en la mezcla. La regla pide las tres condiciones:
   1. **Calidad visual:** en las preguntas visuales (tabla, gráfico, escaneado e imagen suelta), «Ambos» da al menos 15 puntos más de respuestas correctas que «Texto».
   2. **Sin pérdida en texto:** en las 323 preguntas respondibles del conjunto de F05, «Ambos» no pierde más de 2 puntos de respuestas correctas frente a «Texto».
   3. **Primer token:** con la configuración elegida, el p95 en el teléfono de referencia es ≤ 8 s de extremo a extremo, con al menos 1 página.

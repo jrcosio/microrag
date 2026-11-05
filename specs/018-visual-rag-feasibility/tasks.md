@@ -153,43 +153,43 @@ description: "Lista de tareas de F18 — Viabilidad del RAG visual"
 
 **Independent Test**: `run_eval.py visual-report` da las tablas por modo, variante y tipo, y con «Texto» las cifras de F05 no cambian.
 
-- [ ] T019 [P] [US5] Pruebas en `offline/tests/test_visual_corpus.py`:
+- [X] T019 [P] [US5] Pruebas en `offline/tests/test_visual_corpus.py`:
   - el corpus `visual` registrado en `CORPORA`, con los formatos `png` y `jpg`, los tipos nuevos y las licencias nuevas;
   - `simulated_from`;
   - la reconstrucción de los escaneados como PDF solo de imagen, con bytes deterministas;
   - `SOURCES.md` generado.
-- [ ] T020 [US5] Corpus en `offline/eval/visual_corpus.py` y `offline/eval/corpus.py`, con el manifiesto `offline/corpus_visual/manifest.json`, fuera de `offline/corpus` (R8) de los 18 documentos y 15 imágenes de R8, con su URL, licencia, atribución y `fetch.pages`.
+- [X] T020 [US5] Corpus en `offline/eval/visual_corpus.py` y `offline/eval/corpus.py`, con el manifiesto `offline/corpus_visual/manifest.json`, fuera de `offline/corpus` (R8) de los 18 documentos y 15 imágenes de R8, con su URL, licencia, atribución y `fetch.pages`.
   - Ejecutar `fetch-corpus corpus=visual --record`, `visual-photos` y `sources corpus=visual`.
-  - Comprobar que el total queda por debajo de 40 MB y que hay al menos 300 páginas.
+  - Comprobar que el total queda por debajo de 40 MB y que hay al menos 300 páginas. *Hecho: 302 páginas y 51 MB; la desviación sobre los 40 MB va en el informe.*
   - Las imágenes dudosas de R8 se revisan, y se sustituyen si hace falta.
   - Commit del corpus con su `SOURCES.md`.
-- [ ] T021 [P] [US5] Pruebas en `offline/tests/test_visual_index.py`:
+- [X] T021 [P] [US5] Pruebas en `offline/tests/test_visual_index.py`:
   - de fragmento a página con solape y con páginas sin texto;
   - vectores de página truncados a 256 y 512 y normalizados (`fake_embedding`);
   - el índice de texto del corpus visual usa los parámetros de D-034.
-- [ ] T022 [US5] Índices en `offline/eval/visual_index.py` y el subcomando `visual-build` (R10), registrando la variante en `offline/eval/builds.py` si hace falta:
+- [X] T022 [US5] Índices en `offline/eval/visual_index.py` y el subcomando `visual-build` (R10), registrando la variante en `offline/eval/builds.py` si hace falta:
   - `visual-text.db`, `visual-chunk-pages.json` y `visual-pages-<px>-<tokens>.db`;
-  - también el índice de páginas de los 6 PDF de F05, para la pérdida en texto (R11).
+  - también el índice de páginas de los 6 PDF de F05, para la pérdida en texto (R11). *Pasa a `visual-text-loss` (T059), que lo construye con la resolución y los tokens elegidos.*
 
   Ejecutar `visual-raster` y `visual-build` para 768/1.024/1.536 × 70/140.
-- [ ] T023 [P] [US5] Pruebas en `offline/tests/test_visual_testset.py`: reglas V1–V8, hoja de revisión, aplicación de veredictos y `visual-freeze`, que se niega a cambiar una huella ya escrita.
-- [ ] T024 [US5] Conjunto de prueba en `offline/eval/visual_testset.py`, con los subcomandos `visual-validate`, `visual-review-sheet`, `visual-review-apply` y `visual-freeze`.
-- [ ] T025 [US5] Redacción del conjunto (R9, D-073), en `offline/testset/visual/questions.jsonl` con `review: pendiente`:
+- [X] T023 [P] [US5] Pruebas en `offline/tests/test_visual_testset.py`: reglas V1–V8, hoja de revisión, aplicación de veredictos y `visual-freeze`, que se niega a cambiar una huella ya escrita.
+- [X] T024 [US5] Conjunto de prueba en `offline/eval/visual_testset.py`, con los subcomandos `visual-validate`, `visual-review-sheet`, `visual-review-apply` y `visual-freeze`.
+- [X] T025 [US5] Redacción del conjunto (R9, D-073), en `offline/testset/visual/questions.jsonl` con `review: pendiente`:
   - **agentes separados,** que no revisan, redactan las preguntas por documento a partir de las imágenes de página;
   - **reparto:** 20 de tabla, 15 de gráfico, 15 de escaneado, 15 de imagen (unas 8 de fotos simuladas), 5 mixtas, 20 de control y 10 sin respuesta, más unas 15 de reserva;
   - cada una con sus páginas, su respuesta esperada y sus `key_facts`.
-- [ ] T026 [US5] Revisión por la sesión principal (D-033, D-073), mirando cada página con los criterios de R9; los veredictos van a `offline/testset/visual/review.csv`.
+- [X] T026 [US5] Revisión por la sesión principal (D-033, D-073), mirando cada página con los criterios de R9; los veredictos van a `offline/testset/visual/review.csv`.
   - Ejecutar `visual-review-apply` y `visual-validate`: ≥ 100 aceptadas y ≥ 60 % visuales.
   - Ejecutar `visual-freeze` y hacer **commit** del conjunto y de `visual_rules.json` con su huella, **antes** de T028 y T032.
-- [ ] T027 [P] [US5] Pruebas en `offline/tests/test_visual_retrieval.py`: listas por página con la mejor posición, RRF de 2 y 3 listas con k = 60, empates, y Recall@1/3/5/10, MRR y nDCG@10 por página y por tipo.
-- [ ] T028 [US5] Recuperación en `offline/eval/visual_retrieval.py` y el subcomando `visual-retrieve`. Ejecutar las ablaciones de R10 (modo × px × tokens × dimensión), y después `visual-decide --stage retrieval`, que fija la resolución, los tokens y la dimensión antes de las respuestas (hallazgo M9).
-- [ ] T029 [P] [US5] Pruebas en `offline/tests/test_visual_prompt.py` y `test_visual_judge.py`:
+- [X] T027 [P] [US5] Pruebas en `offline/tests/test_visual_retrieval.py`: listas por página con la mejor posición, RRF de 2 y 3 listas con k = 60, empates, y Recall@1/3/5/10, MRR y nDCG@10 por página y por tipo.
+- [ ] T028 [US5] Recuperación en `offline/eval/visual_retrieval.py` y el subcomando `visual-retrieve`. Ejecutar las ablaciones de R10 (modo × px × tokens × dimensión), y después `visual-decide --stage retrieval`, que fija la resolución, los tokens y la dimensión antes de las respuestas (hallazgo M9). *Con D-076, la elección usa «Visual» y las páginas de la respuesta salen de su lista.*
+- [X] T029 [P] [US5] Pruebas en `offline/tests/test_visual_prompt.py` y `test_visual_judge.py`:
   - plantilla v5-visual: numeración, etiqueta antes de cada imagen y trozos;
   - mezcla con la regla de duplicados y relleno con los bloques siguientes;
   - recuento de tokens de texto y visuales;
   - juez: citas a página y a bloque con páginas, y negativas.
-- [ ] T030 [US5] Plantilla en `offline/eval/visual_prompt.py`, y juez en `offline/eval/visual_judge.py` (R11). Hacen pasar T029.
-- [ ] T031 [US5] Generación con imágenes: el subcomando `visual-generate`, que se reanuda, guarda la huella por ejecución (`LATE_FIELDS`) y marca las tandas parciales.
+- [X] T030 [US5] Plantilla en `offline/eval/visual_prompt.py`, y juez en `offline/eval/visual_judge.py` (R11). Hacen pasar T029.
+- [X] T031 [US5] Generación con imágenes: el subcomando `visual-generate`, que se reanuda, guarda la huella por ejecución (`LATE_FIELDS`) y marca las tandas parciales.
 - [ ] T032 [US5] Ejecutar las ablaciones de respuesta de R11 con los parámetros de recuperación de T028:
   - «Texto»;
   - «Páginas», con 1–3 páginas × 70/140/280 y con trozos a 280;
@@ -198,7 +198,7 @@ description: "Lista de tareas de F18 — Viabilidad del RAG visual"
   Anotar la duración de cada tanda.
 - [ ] T033 [US5] Comprobación del juez (`visual-manual`): 30 respuestas de cada variante principal («Texto» y la mejor de «Páginas» y de «Mezcla» según el juez), revisadas según D-033, en `offline/reports/visual-manual-judgement.csv`. La revisión decisiva va en T058.
 - [ ] T034 [US5] Regresión del texto (FR-024, SC-010): `run_eval.py ablations` con la configuración de D-034 da las mismas cifras que el informe de F05 y F10.
-- [ ] T035 [P] [US5] Pruebas en `offline/tests/test_visual_parity.py`: el manifiesto del conjunto del dispositivo, los cosenos por imagen y el juez de la lectura del teléfono.
+- [X] T035 [P] [US5] Pruebas en `offline/tests/test_visual_parity.py`: el manifiesto del conjunto del dispositivo, los cosenos por imagen y el juez de la lectura del teléfono.
 - [ ] T036 [US5] Conjunto del dispositivo en `offline/eval/visual_parity.py` y el subcomando `visual-device-set` (R13, data-model §1.6):
   - 20 imágenes y sus vectores a 70 y 140;
   - los 10 PDF de origen;

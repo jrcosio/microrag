@@ -1915,6 +1915,35 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G47).
 
 ---
 
+## D-076 — Las páginas de la respuesta salen de la lista de páginas (implement de F18)
+
+- **Fecha:** 2026-11-05
+- **Decisión** (respuesta del usuario tras las ablaciones de recuperación):
+  - **las páginas** que recibe Gemma en «Páginas» y en «Mezcla» salen de la búsqueda por páginas («Visual»), no de la RRF de las tres listas;
+  - **los bloques de texto** siguen saliendo de la búsqueda de fragmentos de D-034, con la regla de duplicados;
+  - **la resolución, los tokens y la dimensión** se eligen con el Recall@5 visual de «Visual», con los mismos márgenes (0,02 y 0,03);
+  - **los umbrales del sí o no no cambian** (D-073, D-075). «Ambos» sigue siendo la configuración que eligen las reglas, ahora con la fusión en el contexto y no en la lista.
+  - La RRF de tres listas sigue en el informe, como hallazgo.
+- **Motivo:** la RRF premia las páginas que aparecen en varias listas, y una página sin texto solo está en la de páginas. Con 1.024 px, 140 tokens y 256 dimensiones, este es el Recall@5 de cada fusión:
+
+  | | Escaneados | Imágenes | Visuales | Todas |
+  |---|---|---|---|---|
+  | «Texto» | 0,00 | 0,25 | 0,42 | 0,55 |
+  | «Visual» | 0,66 | 0,82 | 0,73 | 0,76 |
+  | «Ambos» con la RRF de tres listas | 0,00 | 0,25 | 0,45 | 0,56 |
+
+  Con la RRF de tres listas, casi ningún escaneado ni imagen llegaría a Gemma, y el sí o no mediría la fusión, no la lectura de las páginas.
+- **Desviación:** el cambio se hizo después de ver las ablaciones de recuperación, con la regla ya congelada (FR-025). Se volvió a hacer commit de la regla antes de las ablaciones de respuesta, y el informe lo explica.
+- **Alternativas descartadas:**
+  - mantener la RRF de tres listas, la registrada antes de mirar los datos;
+  - una RRF en dos niveles, con un voto por tipo de lista: los escaneados suben a unos 0,27, pero las imágenes siguen en 0,25.
+- **Origen:** usuario (pregunta de la sesión tras T028).
+- **Afecta:**
+  - F18: spec (FR-022, FR-025 y US5), research (R10, R11 y R12), plan, `offline/config/visual_rules.json` (`selection.retrieval.mode` y `answer_pages`) y tareas (T028 y T032);
+  - F20: la recuperación con tres listas de su ficha se revisa con lo que diga F18.
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.

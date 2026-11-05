@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "note": "F18 go rule and parameter choice (D-073, D-075, research R12). Committed before any ablation; the ablations refuse to run if this file differs from HEAD or the test set's hash does not match.",
+  "note": "F18 go rule and parameter choice (D-073, D-075, research R12). Committed before any ablation; the ablations refuse to run if this file differs from HEAD or the test set's hash does not match. D-076 (after the retrieval ablations, with the user's approval): the answer pages come from the page list, not from the RRF of three lists, which buries pages without text; the thresholds did not change.",
   "testset_sha256": "8a769c23d8d42c422d9c7a4a29d4ef40783483c4fc10fcc9d82c881de65405d6",
   "go_rule": {
     "visual_gain_points": 15,
@@ -32,7 +32,7 @@
   "judge_check_sample": 30,
   "selection": {
     "retrieval": {
-      "mode": "ambos",
+      "mode": "visual",
       "metric": "visual_recall@5",
       "cheaper_within": 0.02,
       "cost_order": [
@@ -51,6 +51,7 @@
       "cheaper_within_points": 1.0
     }
   },
+  "answer_pages": "visual",
   "seeds": {
     "photos": 20261105,
     "sample": 20261105

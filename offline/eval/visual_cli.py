@@ -171,7 +171,7 @@ def visual_decide(args):
     if args[:2] == ["--stage", "retrieval"]:
         ablations = json.loads((visual_index.VISUAL_DIR / "retrieval-ablations.json").read_text())
         rows = [{"mode": r["mode"], "px": r["px"], "tokens": r["tokens"], "dim": r["dim"],
-                 "visual_recall@5": r["summary"]["visual"]["recall@5"]} for r in ablations["results"] if r["mode"] == "ambos"]
+                 "visual_recall@5": r["summary"]["visual"]["recall@5"]} for r in ablations["results"]]
         chosen = visual_rules.choose_retrieval(rows, rules)
         out = visual_index.VISUAL_DIR / "decision-retrieval.json"
         visual_retrieval.write_json(out, {"stamp": ablations["stamp"], **chosen})
@@ -198,14 +198,18 @@ def _parse_variant(key):
 
 
 class _AnswerContext:
-    """What every variant needs: the text index, its chunk lists, the page ranking of «Ambos» and the page images."""
+    """What every variant needs: the text index, its chunk lists, the page ranking and the page images.
+
+    The answer pages come from the list the rule file names (D-076: the page list; the RRF of three lists buries
+    the pages without text); the text blocks keep D-034's chunk retrieval."""
 
     def __init__(self, decision):
-        from eval import builds, corpus, index, visual_index, visual_retrieval
+        from eval import builds, corpus, index, visual_index, visual_retrieval, visual_rules
         from eval.retrieval import Retriever
         from eval.selector import ContextSelector
 
         self.px, self.tokens, self.dim = decision["px"], decision["tokens"], decision["dim"]
+        self.pages_mode = visual_rules.load()["answer_pages"]
         source = corpus.CORPORA["visual"]
         self.docs_dir = source.docs
         self.docs = {doc.sha256: doc for doc in corpus.load_manifest(source.manifest)}
@@ -232,7 +236,7 @@ class _AnswerContext:
         vector_pages = visual_retrieval.to_pages(vector_ids, self.chunk_pages, self.chunk_doc)
         fts_pages = visual_retrieval.to_pages(fts_ids, self.chunk_pages, self.chunk_doc)
         page_list = visual_retrieval.rank_pages(self.embedder.truncated(question, self.dim), self.pages)
-        return chunks, visual_retrieval.fuse("ambos", vector_pages, fts_pages, page_list)
+        return chunks, visual_retrieval.fuse(self.pages_mode, vector_pages, fts_pages, page_list)
 
     def blocks(self, chunk_ids):
         from eval.selector import ChunkView
@@ -280,8 +284,8 @@ def _sources_and_parts(ctx, question, variant):
     from eval.vision_runtime import Text
 
     family, count, _, tiles = _parse_variant(variant)
-    chunks, ambos = ctx.lists(question)
-    chosen = ambos[:count]
+    chunks, ranked_pages = ctx.lists(question)
+    chosen = ranked_pages[:count]
     text_sources = []
     if family in ("texto", "mezcla"):
         ranked = visual_prompt.without_pages(chunks, ctx.chunk_pages, ctx.chunk_doc, set(chosen)) if chosen else chunks

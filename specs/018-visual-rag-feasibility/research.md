@@ -299,6 +299,7 @@ Comprobaciones hechas el 2026-11-05 en el ordenador de desarrollo (macOS, Apple 
   - «Texto»: RRF (k = 60) de las dos listas de fragmentos, llevadas a páginas;
   - «Visual»: la lista de páginas sola;
   - «Ambos»: RRF (k = 60) de las tres.
+  - **D-076:** la RRF de las tres listas deja los escaneados con un Recall@5 de 0 y las imágenes en 0,25, porque una página sin texto solo está en una lista. Las páginas de la respuesta salen de «Visual», y la de tres listas queda como hallazgo.
 - **Métricas por página y por tipo de pregunta:** Recall@1, @3, @5 y @10, MRR y nDCG@10.
 
 **Motivo:** la página es la unidad común de las tres listas. La fusión es la RRF de la constitución III, con una lista más, como en las variantes de trigramas de F10.
@@ -314,7 +315,7 @@ Comprobaciones hechas el 2026-11-05 en el ordenador de desarrollo (macOS, Apple 
 **Decisión:**
 - **Variantes de respuesta,** sobre las mismas preguntas:
   - **«Texto»:** el contexto de D-034 (4 bloques, como mucho 3 por documento, 1.719 tokens) con la plantilla v4;
-  - **«Páginas»:** las *P* primeras páginas de «Ambos» (*P* = 1, 2 o 3) como imágenes, con un presupuesto *B* de 70, 140 o 280 tokens. Variante de **trozos:** cada página partida en 2 mitades con un 10 % de solape, solo a 280 por trozo, como en el teléfono (hallazgo H1);
+  - **«Páginas»:** las *P* primeras páginas de «Visual» (*P* = 1, 2 o 3; D-076) como imágenes, con un presupuesto *B* de 70, 140 o 280 tokens. Variante de **trozos:** cada página partida en 2 mitades con un 10 % de solape, solo a 280 por trozo, como en el teléfono (hallazgo H1);
   - **«Mezcla»:** los bloques de texto de D-034 más *P* páginas, con la **regla de duplicados:** si una página entra como imagen, sus fragmentos salen del texto, y los huecos los ocupan los siguientes bloques.
 - **Plantilla v5-visual** (solo se evalúa, la app no cambia):
   - la v4, con cada fuente numerada `[n]`;
@@ -355,7 +356,7 @@ Es un primer indicio de que la letra pequeña será el límite. La evaluación l
 
    Las cifras de calidad salen de la revisión decisiva de R11. «Ambos» es la configuración que eligen las reglas del punto 2.
 2. **La regla para elegir los parámetros:**
-   - **resolución y tokens del embedder:** la combinación con mejor Recall@5 visual en «Ambos». Si hay otra a menos de 0,02 que cuesta menos (menos píxeles o menos tokens), se elige esa;
+   - **resolución y tokens del embedder:** la combinación con mejor Recall@5 visual en «Visual» (D-076). Si hay otra a menos de 0,02 que cuesta menos (menos píxeles o menos tokens), se elige esa;
    - **dimensión de página:** 256, salvo que 512 dé al menos 0,03 más de Recall@5 visual;
    - **páginas, presupuesto y trozos:** la variante con más respuestas correctas visuales entre las que cumplen el primer token en el teléfono. Si hay otra a menos de 1 punto con menor primer token, se elige esa;
    - **mezcla o solo páginas:** «Ambos» es siempre una variante de la mezcla. En F20, los documentos de solo texto no tienen páginas, así que una respuesta solo con páginas los dejaría sin contexto. «Páginas» queda como ablación que informa del valor de las imágenes, y la pérdida en texto de la mezcla la mide la regla en F05.

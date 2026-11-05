@@ -13,7 +13,7 @@ F18 decide, con cifras, si se construyen F19 y F20 (D-066, D-073). No cambia el 
   - **EmbeddingGemma 2 de 440M:** golden e identidad con la 270M; consulta, fragmento y página a 70 y 140 tokens (R5).
   - **`PdfRenderer` e `ImageDecoder`:** tiempo, peso y memoria a 768, 1.024 y 1.536 px, y la proyección de un PDF de 200 páginas (R6, R14).
 - **En el escritorio:** el harness de F05 gana un corpus visual aparte, un conjunto de unas 100 preguntas con relevancia por página, y las ablaciones (R8–R11).
-  - **Recuperación:** «Texto», «Visual» y «Ambos», con RRF de tres listas por página.
+  - **Recuperación:** «Texto», «Visual» y «Ambos», con RRF de tres listas por página. Tras D-076, las páginas de la respuesta salen de «Visual».
   - **Respuesta:** bloques de texto, páginas y mezcla, con la regla de duplicados y la plantilla v5-visual.
   - **Regla:** queda congelada en git antes de evaluar (R12).
 - **Paridad:** un conjunto fijo de imágenes y páginas se embebe en los dos lados, con un umbral de coseno ≥ 0,99 (R13).
