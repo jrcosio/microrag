@@ -4,6 +4,8 @@ import com.lisdatasolutions.microrag.domain.indexing.IndexingState
 import com.lisdatasolutions.microrag.domain.indexing.ObserveIndexingUseCase
 import com.lisdatasolutions.microrag.domain.model.ComputeBackend
 import com.lisdatasolutions.microrag.domain.model.LocalAiStatus
+import com.lisdatasolutions.microrag.domain.multimodal.MultimodalStage
+import com.lisdatasolutions.microrag.domain.multimodal.MultimodalStore
 import com.lisdatasolutions.microrag.domain.onboarding.ObserveLocalAiUseCase
 import com.lisdatasolutions.microrag.domain.rag.ChatLibraryState
 import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
@@ -38,6 +40,8 @@ class ObserveChatAvailabilityUseCase(
     private val engine: AnswerEngine,
     private val observeIndexing: ObserveIndexingUseCase,
     private val index: RagIndex,
+    /** F20 (contract M3): with the mode on, the documents with pages only can be asked too. */
+    private val multimodal: MultimodalStore,
 ) {
     /** F17 (contract F8): [scope] is what the chat asks; the global states come first (F17 research R8, M5). */
     operator fun invoke(retries: Flow<Int> = flowOf(0), scope: SearchScope = SearchScope.All): Flow<ChatAvailability> = flow {
@@ -46,9 +50,10 @@ class ObserveChatAvailabilityUseCase(
             return@flow
         }
         val indexing = observeIndexing().filter { it != IndexingState.Loading }
+        val pagesInChat = combine(multimodal.state, index.pagesUsable) { stored, usable -> stored.stage == MultimodalStage.ON && usable }
         emitAll(
-            combine(observeLocalAi(), engine.preparedBackend(), indexing, library(retries, scope)) { ai, backend, run, library ->
-                decide(ai, backend, run, library, scoped = scope is SearchScope.Only)
+            combine(observeLocalAi(), engine.preparedBackend(), indexing, library(retries, scope), pagesInChat) { ai, backend, run, library, pages ->
+                decide(ai, backend, run, library, scoped = scope is SearchScope.Only, pagesInChat = pages)
             },
         )
     }.distinctUntilChanged()
@@ -75,13 +80,15 @@ class ObserveChatAvailabilityUseCase(
         indexing: IndexingState,
         library: ChatLibraryState?,
         scoped: Boolean,
+        pagesInChat: Boolean,
     ): ChatAvailability =
         when {
             ai != LocalAiStatus.READY || backend == null -> ChatAvailability.ModelsNotReady
             library == null -> ChatAvailability.IndexUnavailable
             library.documents == 0 -> ChatAvailability.EmptyLibrary
             indexing is IndexingState.Active && indexing.pause == null -> ChatAvailability.WaitingForIndexing
-            library.searchable == 0 -> if (scoped) ChatAvailability.NothingInScope else ChatAvailability.NothingReady
+            library.searchable + (if (pagesInChat) library.visualOnly else 0) == 0 ->
+                if (scoped) ChatAvailability.NothingInScope else ChatAvailability.NothingReady
             else -> ChatAvailability.Ready(cpuMode = backend == ComputeBackend.CPU, partialCoverage = library.pendingIncluded > 0)
         }
 }
@@ -211,10 +218,25 @@ class ConversationExistsUseCase(private val repository: ChatRepository) {
     }
 }
 
-/** Loads Gemma ahead of the first question, only when the chat is Ready (never during a batch, D-053). */
-class WarmUpAnswerEngineUseCase(private val engine: AnswerEngine, private val observeAvailability: ObserveChatAvailabilityUseCase) {
+/**
+ * Loads Gemma ahead of the first question, only when the chat is Ready (never during a batch, D-053). F20 (contract
+ * M4): with vision when the next answer will likely carry a page, the mode on and searchable documents with pages.
+ */
+class WarmUpAnswerEngineUseCase(
+    private val engine: AnswerEngine,
+    private val observeAvailability: ObserveChatAvailabilityUseCase,
+    private val multimodal: MultimodalStore,
+    private val index: RagIndex,
+) {
     suspend operator fun invoke() {
-        if (observeAvailability().first() is ChatAvailability.Ready) engine.warmUp()
+        if (observeAvailability().first() !is ChatAvailability.Ready) return
+        engine.warmUp(visual = withPages())
+    }
+
+    private suspend fun withPages(): Boolean = try {
+        multimodal.state.first().stage == MultimodalStage.ON && index.pagesUsable.value && index.chatLibraryState().withPages > 0
+    } catch (e: IndexUnavailableException) {
+        false
     }
 }
 

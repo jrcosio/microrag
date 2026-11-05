@@ -3,18 +3,23 @@ package com.lisdatasolutions.microrag.data.chat
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import com.lisdatasolutions.microrag.domain.chat.ActiveAnswer
+import com.lisdatasolutions.microrag.domain.chat.AnswerPrompt
 import com.lisdatasolutions.microrag.domain.chat.AnswerSource
 import com.lisdatasolutions.microrag.domain.chat.ChatAvailability
 import com.lisdatasolutions.microrag.domain.chat.ChatScope
 import com.lisdatasolutions.microrag.domain.chat.ChatStorageException
 import com.lisdatasolutions.microrag.domain.chat.ChatStorageState
+import com.lisdatasolutions.microrag.domain.chat.PromptPart
 import com.lisdatasolutions.microrag.domain.chat.ResolvedScope
+import com.lisdatasolutions.microrag.domain.chat.SourceKind
 import com.lisdatasolutions.microrag.domain.chat.TurnFailure
 import com.lisdatasolutions.microrag.domain.chat.TurnState
 import com.lisdatasolutions.microrag.domain.chat.TurnUpdate
+import com.lisdatasolutions.microrag.domain.multimodal.PageDetail
 import com.lisdatasolutions.microrag.domain.rag.DocumentRef
 import com.lisdatasolutions.microrag.domain.rag.FolderRef
 import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
+import com.lisdatasolutions.microrag.domain.rag.ScoredPage
 import com.lisdatasolutions.microrag.domain.rag.SearchScope
 import com.lisdatasolutions.microrag.domain.retrieval.CandidateScore
 import com.lisdatasolutions.microrag.domain.retrieval.ContextBlock
@@ -53,6 +58,10 @@ class DefaultChatSessionTest {
     /** F17: the scopes the availability was asked for, in order. */
     private val availabilityScopes = mutableListOf<SearchScope>()
 
+    /** F20: the page detail the session reads at each answer (null: the mode off), and the stored images. */
+    private var detail: PageDetail? = null
+    private val images = mutableMapOf<Pair<Long, Int>, ByteArray>()
+
     private fun TestScope.session(
         availabilityOf: (SearchScope) -> ChatAvailability? = { null },
         resolve: (ChatScope) -> ResolvedScope = { ResolvedScope(it) },
@@ -63,6 +72,7 @@ class DefaultChatSessionTest {
             availabilityOf(scope)?.let { MutableStateFlow(it) } ?: availability
         },
         scope = this, logger = logger, now = { testScheduler.currentTime }, resolveScope = { resolve(it) },
+        pageDetail = { detail }, pageImage = { documentId, page -> images[documentId to page] },
     )
 
     private fun block(n: Int, documentId: Long = n.toLong(), chunks: List<Long> = listOf(100L + n), text: String = "Texto del bloque $n.") =
@@ -1003,5 +1013,187 @@ class DefaultChatSessionTest {
         session.setScope(id, legal)
 
         assertThat(logger.lines.filter { "scope" in it }).containsExactly("chat scope set folders=1 general=false documents=1")
+    }
+
+    // --- F20: answers with a page (T016, T025, T028; contract S1–S8, analyze A1, G1, G3) -------------
+
+    private val jpeg = byteArrayOf(0xFF.toByte(), 0xD8.toByte(), 1, 2)
+
+    private fun page(documentId: Long = 9, number: Int = 4, image: Boolean = false, name: String = "Informe.pdf") =
+        ScoredPage(documentId, number, 0.2, name, "$documentId-$number.jpg", image)
+
+    private fun withPages(outcome: RetrievalOutcome.Blocks, vararg pages: ScoredPage) = outcome.copy(pages = pages.toList())
+
+    private fun visualPrompt() = engine.answerPrompts.single() as AnswerPrompt.Visual
+
+    private fun visualText() = visualPrompt().parts.filterIsInstance<PromptPart.Text>().joinToString("") { it.text }
+
+    @Test
+    fun aPageWithoutBlocks_isAnsweredWithThePageAsItsOnlySource() = runTest {
+        detail = PageDetail.BALANCED
+        images[9L to 1] = jpeg
+        retriever.outcome = RetrievalOutcome.Blocks(emptyList(), emptyList(), listOf(page(number = 1, image = true, name = "Cartel.jpg")))
+        engine.tokens = listOf("Anuncia las fiestas [1].")
+
+        session().ask(null, "¿Qué dice el cartel?")
+        advanceUntilIdle()
+
+        assertThat(retriever.requests.single().withPages).isTrue()
+        assertThat(visualPrompt().visualTokens).isEqualTo(140)
+        assertThat(visualText()).contains("[1] Cartel.jpg\n")
+        with(lastTurn()) {
+            assertThat(state).isEqualTo(TurnState.COMPLETED)
+            assertThat(promptBlocks).isEqualTo(1)
+            assertThat(pageTokens).isEqualTo(140)
+            assertThat(sources).containsExactly(AnswerSource(1, 1, 9, 0, 0, 0, "Cartel.jpg", 1, SourceKind.IMAGE))
+        }
+    }
+
+    @Test
+    fun theDetailGivesTheVisualTokens() = runTest {
+        images[9L to 4] = jpeg
+        PageDetail.entries.forEach { d ->
+            detail = d
+            engine.answerPrompts.clear()
+            retriever.outcome = withPages(blocks(block(1)), page())
+            session().ask(null, "¿Tabla?")
+            advanceUntilIdle()
+            assertWithMessage(d.name).that(visualPrompt().visualTokens).isEqualTo(d.visualTokens)
+        }
+        assertThat(PageDetail.entries.map { it.visualTokens }).containsExactly(70, 140, 280).inOrder()
+    }
+
+    @Test
+    fun blocksAndAPage_keepTheV4Blocks_andThePageIsTheLastNumber() = runTest {
+        detail = PageDetail.BALANCED
+        images[1L to 1] = jpeg
+        // The page is of the first block's document and page: both enter (D-078, no duplicate rule).
+        retriever.outcome = withPages(blocks(block(1), block(2), block(3)), page(documentId = 1, number = 1, name = "Documento 1.pdf"))
+        engine.tokens = listOf("Primero [4] y luego [2]; [7] no existe.")
+
+        session().ask(null, "¿Plazo?")
+        advanceUntilIdle()
+
+        val text = visualText()
+        assertThat(text).contains("[1] Documento 1.pdf › Capítulo 1 (p. 1)\nTexto del bloque 1.")
+        assertThat(text).contains("[4] Documento 1.pdf, página 1\n")
+        assertThat(text).contains(PromptBuilder.PAGE_RULE)
+        with(lastTurn()) {
+            assertThat(promptBlocks).isEqualTo(4)
+            assertThat(sources).containsExactly(
+                AnswerSource(1, 4, 1, 0, 0, 0, "Documento 1.pdf", 1, SourceKind.PAGE),
+                AnswerSource(2, 2, 2, 102, 20, 20, "Documento 2.pdf", 2),
+            ).inOrder()
+        }
+    }
+
+    /** Analyze A1: the limit runs on the v4 prompt; with a page the same blocks enter as without it. */
+    @Test
+    fun atTheLimit_thePageDropsNoBlock() = runTest {
+        val long = "x".repeat(2_400)
+        val outcome = blocks(block(1, text = long), block(2, text = long), block(3, text = long), block(4, text = long))
+        retriever.outcome = outcome
+        session().ask(null, "¿Plazo?")
+        advanceUntilIdle()
+        val withoutPage = engine.prompts.single()
+        val sourceLine = Regex("^\\[\\d+] Documento \\d\\.pdf.*$", RegexOption.MULTILINE)
+        val kept = sourceLine.findAll(withoutPage).map { it.value }.toList()
+        assertWithMessage("the limit drops a block").that(kept.size).isLessThan(4)
+
+        detail = PageDetail.BALANCED
+        images[9L to 4] = jpeg
+        engine.prompts.clear()
+        engine.answerPrompts.clear()
+        retriever.outcome = withPages(outcome, page())
+        session().ask(null, "¿Plazo?")
+        advanceUntilIdle()
+
+        val visual = visualText()
+        assertThat(sourceLine.findAll(visual).map { it.value }.toList()).isEqualTo(kept)
+        assertThat(visual).contains("[${kept.size + 1}] Informe.pdf, página 4\n")
+    }
+
+    @Test
+    fun aMissingOrBrokenImage_dropsThePage_andTheAnswerGoesOnWithTheV4() = runTest {
+        detail = PageDetail.BALANCED
+        images[9L to 4] = byteArrayOf(1, 2, 3)
+        retriever.outcome = withPages(blocks(block(1)), page())
+
+        session().ask(null, "¿Plazo?")
+        advanceUntilIdle()
+
+        assertThat(engine.answerPrompts.single()).isInstanceOf(AnswerPrompt.Text::class.java)
+        assertThat(lastTurn().pageTokens).isNull()
+        assertThat(logger.lines.single { it.startsWith("chat answer") }).contains(" page=0 page_tokens=- page_dropped=true ")
+    }
+
+    @Test
+    fun noBlocksAndAMissingImage_isTheRefusal_withoutCallingTheModel() = runTest {
+        detail = PageDetail.BALANCED
+        retriever.outcome = RetrievalOutcome.Blocks(emptyList(), emptyList(), listOf(page()))
+
+        session().ask(null, "¿Qué dice?")
+        advanceUntilIdle()
+
+        assertThat(engine.prompts).isEmpty()
+        assertThat(lastTurn().refusal).isTrue()
+        assertThat(lastTurn().answer).isEqualTo(PromptBuilder.REFUSAL)
+    }
+
+    @Test
+    fun cancellingWhileThePageIsRead_keepsWhatArrived() = runTest {
+        detail = PageDetail.DETAILED
+        images[9L to 4] = jpeg
+        retriever.outcome = withPages(blocks(block(1)), page())
+        engine.prefillMs = 10_000
+        val session = session()
+
+        session.ask(null, "¿Plazo?")
+        advanceTimeBy(retriever.delayMs + 1_000)
+        assertThat(session.active.value!!.pageTokens).isEqualTo(280)
+        session.cancel()
+        advanceUntilIdle()
+
+        assertThat(lastTurn().state).isEqualTo(TurnState.CANCELLED)
+        assertThat(engine.cancellations).isEqualTo(1)
+    }
+
+    // US3 (FR-001, FR-005, SC-001): without the mode or without pages, the prompt is today's, byte for byte.
+
+    @Test
+    fun withoutTheModeOrWithoutPages_thePromptIsTodays() = runTest {
+        retriever.outcome = blocks(block(1), block(2))
+        session().ask(null, "¿Plazo?")
+        advanceUntilIdle()
+        val today = engine.answerPrompts.single()
+        assertThat(today).isInstanceOf(AnswerPrompt.Text::class.java)
+        assertThat(retriever.requests.last().withPages).isFalse()
+
+        // The mode on, but the scope has no pages.
+        detail = PageDetail.BALANCED
+        engine.answerPrompts.clear()
+        session().ask(null, "¿Plazo?")
+        advanceUntilIdle()
+        assertThat(retriever.requests.last().withPages).isTrue()
+        assertThat(engine.answerPrompts.single()).isEqualTo(today)
+
+        val line = logger.lines.last { it.startsWith("chat answer") }
+        assertThat(line).contains(" page=0 page_tokens=- page_dropped=false pages_ms=")
+    }
+
+    @Test
+    fun theLogWithAPage_hasOnlyNumbers() = runTest {
+        detail = PageDetail.BALANCED
+        images[9L to 4] = jpeg
+        retriever.outcome = withPages(blocks(block(1, text = "SECRETO-BLOQUE")), page(name = "SECRETO-NOMBRE.pdf"))
+        engine.tokens = listOf("SECRETO-RESPUESTA [2].")
+
+        session().ask(null, "SECRETO-PREGUNTA")
+        advanceUntilIdle()
+
+        val line = logger.lines.single { it.startsWith("chat answer") }
+        assertThat(line).contains("blocks=1 cited=1")
+        assertThat(line).contains(" page=1 page_tokens=140 page_dropped=false ")
+        logger.lines.forEach { assertThat(it).doesNotContain("SECRETO") }
     }
 }

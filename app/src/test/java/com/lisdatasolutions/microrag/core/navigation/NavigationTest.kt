@@ -70,6 +70,7 @@ import com.lisdatasolutions.microrag.domain.library.ObserveDocumentUseCase
 import com.lisdatasolutions.microrag.domain.library.ObserveFoldersUseCase
 import com.lisdatasolutions.microrag.domain.library.ObserveLibrarySummaryUseCase
 import com.lisdatasolutions.microrag.domain.library.ObserveLibraryUseCase
+import com.lisdatasolutions.microrag.domain.library.PageImageRepository
 import com.lisdatasolutions.microrag.domain.library.ReindexDocumentUseCase
 import com.lisdatasolutions.microrag.domain.library.RemoveFromIndexUseCase
 import com.lisdatasolutions.microrag.domain.library.RenameFolderUseCase
@@ -108,6 +109,7 @@ import com.lisdatasolutions.microrag.domain.settings.SettingsNotices
 import com.lisdatasolutions.microrag.feature.chat.chatViewModel
 import com.lisdatasolutions.microrag.feature.chat.scope.ScopeSelectorViewModel
 import com.lisdatasolutions.microrag.feature.document.DocumentViewModel
+import com.lisdatasolutions.microrag.feature.document.PageImageLoader
 import com.lisdatasolutions.microrag.feature.folders.FoldersViewModel
 import com.lisdatasolutions.microrag.feature.history.HistoryViewModel
 import com.lisdatasolutions.microrag.feature.home.HomeViewModel
@@ -264,6 +266,8 @@ internal fun settingsViewModels(
 /** The chat (F11) and Historial (F13) take their ViewModels from Koin too; [graph] holds their fakes. */
 internal fun chatViewModels(graph: ChatTestGraph = ChatTestGraph()) = module {
     viewModel { graph.chatViewModel(get()) }
+    // F20: the chat's page thumbnails; no page has an image here.
+    single { PageImageLoader(object : PageImageRepository { override suspend fun image(documentId: Long, page: Int): ByteArray? = null }) }
     // F17 K8: the «Buscar en» sheet of the chat.
     viewModel {
         ScopeSelectorViewModel(

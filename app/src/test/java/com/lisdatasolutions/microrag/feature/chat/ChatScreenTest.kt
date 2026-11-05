@@ -723,4 +723,91 @@ class ChatScreenTest {
         compose.onNodeWithText("Cambiar ámbito").performClick()
         assertThat(changes).containsExactly("scope")
     }
+
+    // F20 T018 (contract U4–U8, wireframe §4 and §10).
+
+    private val withPages = ChatPreviewData.png.copy(
+        turns = listOf(
+            ChatPreviewData.completedTurn.copy(
+                sources = listOf(ChatPreviewData.manual, ChatPreviewData.reportPage, ChatPreviewData.poster),
+                chipTargets = listOf(ChatPreviewData.manual.target, ChatPreviewData.reportPage.target, ChatPreviewData.poster.target),
+            ),
+        ),
+    )
+
+    @Test
+    fun aPageSource_saysItsPageAndThatItIsAnImage_andALooseImageSaysImage() {
+        show(withPages)
+
+        row("Fuente 2: informe-ine.pdf, Página 4, Imagen de la página").assertExists()
+        row("Fuente 3: cartel.jpg, Imagen").assertExists()
+        exists("Página 4 · Imagen de la página")
+        exists("Imagen")
+        absent("Página 1")
+        // A fragment source is today's.
+        row("Fuente 1: Manual de procesos.pdf, Página 12, Fragmento 86").assertExists()
+    }
+
+    @Test
+    fun aPageSource_opensItsPage_fromTheRowAndFromItsChip() {
+        show(withPages)
+
+        row("Fuente 2: informe-ine.pdf, Página 4, Imagen de la página").performClick()
+
+        assertThat(opened).containsExactly(SourceTarget(documentId = 9, chunkId = 0, page = 4))
+    }
+
+    @Test
+    fun theThumbnailIsLoadedForPages_only() {
+        val asked = mutableListOf<SourceTarget>()
+        compose.setContent {
+            LisdataTheme {
+                // Null, as before the decode: Robolectric's legacy graphics cannot make bitmaps here.
+                ChatScreen(withPages, actions.copy(loadThumbnail = { asked += it; null }))
+            }
+        }
+        compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasContentDescription("Fuente 3: cartel.jpg, Imagen"))
+        compose.waitForIdle()
+
+        assertThat(asked).containsExactly(ChatPreviewData.reportPage.target, ChatPreviewData.poster.target)
+    }
+
+    @Test
+    fun copyingAnAnswer_withAPageAndAnImage() {
+        show(withPages)
+        scrollToQuestion()
+
+        compose.onNodeWithText("Copiar respuesta").performClick()
+
+        assertThat(copiedTexts.single()).contains("[2] informe-ine.pdf, página 4")
+        assertThat(copiedTexts.single()).contains("[3] cartel.jpg")
+        assertThat(copiedTexts.single()).doesNotContain("cartel.jpg, página")
+    }
+
+    // F20 T026 (contract U3): «Leyendo 1 página · unos 11,5 s…», with the locale's decimal mark.
+
+    private val readingPage = ChatPreviewData.png.copy(
+        turns = listOf(
+            ChatPreviewData.completedTurn.copy(
+                state = AnswerState.Streaming, status = TurnStatus.READING_PAGE, content = AnswerContent.Empty,
+                sources = emptyList(), chipTargets = emptyList(), pageWaitTenths = 115,
+            ),
+        ),
+    )
+
+    @Test
+    fun readingAPage_saysItWithItsWait() {
+        show(readingPage)
+
+        exists("Leyendo 1 página · unos 11,5 s…")
+        absent("Generando respuesta…")
+    }
+
+    @Test
+    @Config(qualifiers = "en")
+    fun readingAPage_inEnglish() {
+        show(readingPage)
+
+        exists("Reading 1 page · about 11.5 s…")
+    }
 }

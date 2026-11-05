@@ -6,9 +6,11 @@ import com.lisdatasolutions.microrag.domain.rag.IndexUnavailableException
 import com.lisdatasolutions.microrag.domain.rag.RagIndex
 import com.lisdatasolutions.microrag.domain.rag.RagParameters
 import com.lisdatasolutions.microrag.domain.rag.ScoredChunk
+import com.lisdatasolutions.microrag.domain.rag.ScoredPage
 import com.lisdatasolutions.microrag.domain.rag.SearchScope
 import com.lisdatasolutions.microrag.domain.retrieval.CandidateScore
 import com.lisdatasolutions.microrag.domain.retrieval.ContextRetriever
+import com.lisdatasolutions.microrag.domain.retrieval.RetrievalLists
 import com.lisdatasolutions.microrag.domain.retrieval.RetrievalOutcome
 import com.lisdatasolutions.microrag.domain.retrieval.RetrievalRequest
 import com.lisdatasolutions.microrag.domain.retrieval.RetrievalResult
@@ -65,7 +67,7 @@ class HybridRetriever(
         if (!modelReady()) return unsearched(started, searchText, RetrievalOutcome.ModelsNotReady, followUp, coldEngine)
 
         val search = try {
-            search(question, request.previousQuestion.takeIf { followUp }, searchText, request.scope)
+            search(question, request.previousQuestion.takeIf { followUp }, searchText, request.scope, request.withPages)
         } catch (e: CancellationException) {
             throw e
         } catch (e: EmbeddingFailure) {
@@ -87,8 +89,10 @@ class HybridRetriever(
                 selectionMs = search.selectionMs,
                 totalMs = elapsedMs(started),
                 coldEngine = coldEngine,
+                pagesMs = search.pagesMs,
             ),
             outcome = search.outcome,
+            lists = search.lists,
         )
         log(result, search)
         return result
@@ -104,9 +108,10 @@ class HybridRetriever(
 
     /**
      * The lexical search overlaps the embedding (rule Q7); only the embedded text may be cut (rule Q8).
-     * F17: both searches and the selection keep to [scope].
+     * F17: both searches and the selection keep to [scope]. F20 (research R2): with [withPages], the page search
+     * runs with the same vector, beside the vector search, and is never fused (D-076).
      */
-    private suspend fun search(question: String, previous: String?, searchText: String, scope: SearchScope): Search = coroutineScope {
+    private suspend fun search(question: String, previous: String?, searchText: String, scope: SearchScope, withPages: Boolean): Search = coroutineScope {
         val text = async { timed { index.textSearch(searchText, RagParameters.CANDIDATES, scope) } }
         val embedding = timed {
             try {
@@ -117,25 +122,28 @@ class HybridRetriever(
                 throw EmbeddingFailure(e)
             }
         }
+        val pages = if (withPages) async { timed { index.pageSearch(embedding.value.vector, RagParameters.PAGE_CANDIDATES, scope) } } else null
         val vector = timed { index.vectorSearch(embedding.value.vector, RagParameters.CANDIDATES, scope) }
         val lexical = text.await()
+        val pageHits = pages?.await()
         val fused = ReciprocalRankFusion.fuse(listOf(vector.value.map { it.id }, lexical.value), RagParameters.RRF_K)
-        val selection = timed { select(fused.take(RagParameters.FUSED_LIMIT), vector.value, scope) }
+        val selection = timed { select(fused.take(RagParameters.FUSED_LIMIT), vector.value, scope, pageHits?.value.orEmpty()) }
         Search(
             embedding = embedding.value, vectorHits = vector.value.size, textHits = lexical.value.size, fused = fused.size,
             outcome = selection.value, embeddingMs = embedding.ms, vectorMs = vector.ms, textMs = lexical.ms, selectionMs = selection.ms,
+            pageHits = pageHits?.value?.size, pagesMs = pageHits?.ms, lists = RetrievalLists(vector.value, lexical.value),
         )
     }
 
-    /** The first FUSED_LIMIT candidates, loaded only if still searchable, and the selector (FR-015). */
-    private suspend fun select(fused: List<FusedCandidate>, vector: List<ScoredChunk>, scope: SearchScope): RetrievalOutcome {
+    /** The first FUSED_LIMIT candidates, loaded only if still searchable, and the selector (FR-015); [pages] go apart. */
+    private suspend fun select(fused: List<FusedCandidate>, vector: List<ScoredChunk>, scope: SearchScope, pages: List<ScoredPage>): RetrievalOutcome {
         val views = index.loadChunks(fused.map { it.id }, searchableOnly = true, scope = scope)
         val blocks = selector.select(fused.mapNotNull { views[it.id] }) { document, ordinal ->
             index.neighbor(document, ordinal, searchableOnly = true, scope = scope)
         }
-        if (blocks.isEmpty()) return RetrievalOutcome.NoResults
+        if (blocks.isEmpty() && pages.isEmpty()) return RetrievalOutcome.NoResults
         val selected = blocks.flatMapTo(HashSet()) { it.chunkIds }
-        return RetrievalOutcome.Blocks(blocks, fused.mapIndexed { i, candidate -> candidate.score(i + 1, vector, selected) })
+        return RetrievalOutcome.Blocks(blocks, fused.mapIndexed { i, candidate -> candidate.score(i + 1, vector, selected) }, pages)
     }
 
     private fun FusedCandidate.score(fusedRank: Int, vector: List<ScoredChunk>, selected: Set<Long>): CandidateScore {
@@ -178,7 +186,9 @@ class HybridRetriever(
             "retrieval outcome=${result.outcome.name()} follow_up=${result.followUp} cuts=${result.embeddingCuts} " +
                 "vector=${search.vectorHits} text=${search.textHits} fused=${search.fused} blocks=${blocks.size} " +
                 "tokens=${blocks.sumOf { it.tokens }} cold=${t.coldEngine} embed_ms=${ms(t.embeddingMs)} vector_ms=${ms(t.vectorMs)} " +
-                "text_ms=${ms(t.textMs)} select_ms=${ms(t.selectionMs)} total_ms=${ms(t.totalMs)}"
+                "text_ms=${ms(t.textMs)} select_ms=${ms(t.selectionMs)} total_ms=${ms(t.totalMs)}" +
+                // F20 (research R18): only when the pages were searched, so the line without them is today's.
+                (search.pageHits?.let { " page_hits=$it pages_ms=${ms(t.pagesMs ?: 0.0)}" } ?: "")
         }
     }
 
@@ -196,6 +206,9 @@ class HybridRetriever(
         val vectorMs: Double,
         val textMs: Double,
         val selectionMs: Double,
+        val pageHits: Int?,
+        val pagesMs: Double?,
+        val lists: RetrievalLists,
     )
 
     /** Marks a failure of the query engine, to tell it from the index's. */

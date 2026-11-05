@@ -31,7 +31,7 @@ internal fun ChatTestGraph.chatViewModel(savedState: SavedStateHandle, sdkInt: I
     startNewConversation = StartNewConversationUseCase(session),
     deleteConversation = DeleteConversationUseCase(session),
     lastConversation = LastConversationUseCase(chats),
-    warmUp = WarmUpAnswerEngineUseCase(engine, availability),
+    warmUp = WarmUpAnswerEngineUseCase(engine, availability, multimodal, index),
     resolveSources = ResolveSourcesUseCase(index),
     historyCleared = ObserveHistoryClearedUseCase(session),
     openConversation = OpenConversationUseCase(session),

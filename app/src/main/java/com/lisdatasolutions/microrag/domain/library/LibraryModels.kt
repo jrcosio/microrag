@@ -87,7 +87,7 @@ data class DocumentDetail(
 ) {
     val canChangeInclusion: Boolean get() = state == DocumentDetailState.Indexed
 
-    /** «Solo páginas. Todavía no se usa en el chat» (research R13). */
+    /** Indexed with pages and no chunks (F19 research R13): only the chat with the mode on uses it (F20, FR-006b). */
     val pagesOnly: Boolean get() = indexMode != IndexMode.TEXT && state == DocumentDetailState.Indexed && (chunks ?: 0) == 0
 }
 

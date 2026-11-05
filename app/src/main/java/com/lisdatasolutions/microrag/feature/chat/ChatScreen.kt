@@ -27,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -35,8 +36,10 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -58,16 +61,19 @@ import com.lisdatasolutions.microrag.core.designsystem.component.LisdataInfoCard
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataModelMissingBlock
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataOutlinedButton
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataOverflowMenu
+import com.lisdatasolutions.microrag.core.designsystem.component.LisdataPageThumbnail
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataScopeChip
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataSectionHeader
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataSnackbarOnce
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataSourceCitation
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataTopBar
+import com.lisdatasolutions.microrag.core.designsystem.component.citationDetails
 import com.lisdatasolutions.microrag.core.designsystem.icon.LisdataIcons
 import com.lisdatasolutions.microrag.core.designsystem.model.AnswerBlock
 import com.lisdatasolutions.microrag.core.designsystem.model.AnswerContent
 import com.lisdatasolutions.microrag.core.designsystem.model.AnswerSpan
 import com.lisdatasolutions.microrag.core.designsystem.model.AnswerState
+import com.lisdatasolutions.microrag.core.designsystem.model.CitationKind
 import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
 import com.lisdatasolutions.microrag.core.navigation.ChatRequest
 import com.lisdatasolutions.microrag.domain.chat.ChatAvailability
@@ -76,7 +82,10 @@ import com.lisdatasolutions.microrag.feature.chat.scope.ScopeSheet
 import com.lisdatasolutions.microrag.feature.chat.scope.ScopeSummary
 import com.lisdatasolutions.microrag.feature.chat.scope.sheetActions
 import com.lisdatasolutions.microrag.feature.chat.scope.text
+import com.lisdatasolutions.microrag.feature.document.PageImageLoader
+import com.lisdatasolutions.microrag.feature.settings.waitSeconds
 import kotlinx.coroutines.launch
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
 /** User actions of the chat; defaults keep previews and tests short. */
@@ -100,6 +109,8 @@ data class ChatActions(
     val onRetryAvailability: () -> Unit = {},
     /** F17 K7–K9: the scope chip and «Cambiar ámbito» open the selector. */
     val onChangeScope: () -> Unit = {},
+    /** F20 (contract U4): the thumbnail of a cited page, or null while it is not there. */
+    val loadThumbnail: suspend (SourceTarget) -> ImageBitmap? = { null },
 )
 
 /**
@@ -110,6 +121,8 @@ data class ChatActions(
 fun ChatRoute(
     onBack: () -> Unit,
     onOpenSource: (documentId: Long, chunkId: Long) -> Unit,
+    /** F20 (contract U7): a cited page or image opens the detail on it. */
+    onOpenPage: (documentId: Long, page: Int) -> Unit = { _, _ -> },
     onCompleteSetup: () -> Unit,
     onImport: () -> Unit,
     onOpenIndex: () -> Unit,
@@ -121,6 +134,7 @@ fun ChatRoute(
     viewModel: ChatViewModel = koinViewModel(),
     selector: ScopeSelectorViewModel = koinViewModel(),
     listState: LazyListState = rememberLazyListState(),
+    pageImages: PageImageLoader = koinInject(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val selection by selector.state.collectAsStateWithLifecycle()
@@ -133,7 +147,8 @@ fun ChatRoute(
     LaunchedEffect(viewModel) {
         viewModel.eventFlow.collect { event ->
             when (event) {
-                is ChatEvent.OpenSource -> onOpenSource(event.target.documentId, event.target.chunkId)
+                is ChatEvent.OpenSource -> event.target.page?.let { onOpenPage(event.target.documentId, it) }
+                    ?: onOpenSource(event.target.documentId, event.target.chunkId)
                 is ChatEvent.Copy -> clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(clipLabel, event.text)))
             }
         }
@@ -170,6 +185,7 @@ fun ChatRoute(
             onImport = onImport,
             onOpenIndex = onOpenIndex,
             onRetryAvailability = viewModel::onRetryAvailability,
+            loadThumbnail = { target -> target.page?.let { pageImages.thumbnail(target.documentId, it) } },
             onChangeScope = {
                 selector.start(viewModel.currentScope())
                 viewModel.onChangeScope()
@@ -402,6 +418,9 @@ private fun Answer(turn: TurnUi, state: ChatUiState, actions: ChatActions, onSou
         onCopy = { actions.onCopy(turn.id, copyText) },
         statusText = when (turn.status) {
             TurnStatus.SEARCHING -> stringResource(R.string.chat_searching)
+            TurnStatus.READING_PAGE -> turn.pageWaitTenths
+                ?.let { stringResource(R.string.chat_reading_page, waitSeconds(it, LocalConfiguration.current.locales[0])) }
+                ?: stringResource(R.string.chat_generating)
             TurnStatus.GENERATING -> stringResource(R.string.chat_generating)
             null -> null
         },
@@ -423,28 +442,24 @@ private fun Sources(turn: TurnUi, actions: ChatActions) {
     Column(verticalArrangement = Arrangement.spacedBy(LisdataTheme.spacing.space2)) {
         LisdataSectionHeader(stringResource(R.string.chat_sources_header))
         turn.sources.forEach { row ->
-            val details = buildList {
-                if (!row.citation.available) {
-                    add(stringResource(R.string.source_unavailable))
-                } else {
-                    row.citation.page?.let { add(stringResource(R.string.citation_page, it)) }
-                    val fragment = row.citation.fragment
-                    val lastFragment = row.citation.lastFragment
-                    when {
-                        fragment != null && lastFragment != null -> add(stringResource(R.string.citation_fragments, fragment, lastFragment))
-                        fragment != null -> add(stringResource(R.string.citation_fragment, fragment))
-                    }
-                }
-            }
+            val details = if (row.citation.available) citationDetails(row.citation) else listOf(stringResource(R.string.source_unavailable))
             LisdataSourceCitation(
                 citation = row.citation,
                 onOpen = { actions.onOpenSource(row.target) },
                 modifier = Modifier.fillMaxWidth(),
                 description = stringResource(R.string.chat_source_sentence, row.position, (listOf(row.citation.documentName) + details).joinToString(", ")),
                 onClickLabel = stringResource(R.string.chat_open_source),
+                leading = if (row.citation.kind == CitationKind.FRAGMENT) null else { { PageThumbnail(row.target, actions.loadThumbnail) } },
             )
         }
     }
+}
+
+/** F20 (contract U4): the page's thumbnail, the document icon until it is decoded. */
+@Composable
+private fun PageThumbnail(target: SourceTarget, load: suspend (SourceTarget) -> ImageBitmap?) {
+    val image by produceState<ImageBitmap?>(initialValue = null, target) { value = load(target) }
+    LisdataPageThumbnail(image)
 }
 
 /**
@@ -560,6 +575,7 @@ private fun Announcement(announcement: ChatAnnouncement?) {
     val text = when (announcement) {
         null -> return
         ChatAnnouncement.SEARCHING -> stringResource(R.string.chat_announce_searching)
+        ChatAnnouncement.READING_PAGE -> stringResource(R.string.chat_announce_reading_page)
         ChatAnnouncement.GENERATING -> stringResource(R.string.chat_announce_generating)
         ChatAnnouncement.COMPLETED -> stringResource(R.string.chat_announce_completed)
         ChatAnnouncement.CANCELLED -> stringResource(R.string.chat_announce_cancelled)

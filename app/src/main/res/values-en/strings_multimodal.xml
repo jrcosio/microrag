@@ -70,8 +70,6 @@
         <item quantity="other">%1$s pages</item>
     </plurals>
     <string name="document_format_image">Image</string>
-    <string name="document_visual_only_note">Pages only. Not used in chat yet</string>
-    <string name="document_include_subtitle_pages_only">It will be used once chat supports pages</string>
     <string name="document_pages_need_multimodal">Its pages need multimodal mode</string>
     <string name="document_reindex_as_pages">Reindex as pages</string>
 </resources>

@@ -158,6 +158,12 @@ val dataModule = module {
             scope = get<ApplicationScope>().scope,
             logger = get(),
             resolveScope = { resolveScope(it) },
+            // F20 (research R1): pages only with the mode on and the index's page space usable.
+            pageDetail = {
+                val stored = get<MultimodalStore>().state.first()
+                stored.pageDetail.takeIf { stored.stage == MultimodalStage.ON && get<RagIndex>().pagesUsable.value }
+            },
+            pageImage = { documentId, page -> get<PageImageRepository>().image(documentId, page) },
         )
     } binds arrayOf(ChatSession::class, MemoryTrimListener::class)
 

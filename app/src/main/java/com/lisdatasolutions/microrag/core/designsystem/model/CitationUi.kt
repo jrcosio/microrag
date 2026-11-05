@@ -12,4 +12,8 @@ data class CitationUi(
     val available: Boolean = true,
     /** The last fragment of a block that spans several («Fragmentos 86–87», F11 C11); null for one fragment. */
     val lastFragment: Int? = null,
+    /** F20: a PDF page shows «Página p · Imagen de la página» and a loose image «Imagen»; neither has fragments. */
+    val kind: CitationKind = CitationKind.FRAGMENT,
 )
+
+enum class CitationKind { FRAGMENT, PAGE, IMAGE }

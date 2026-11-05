@@ -13,6 +13,7 @@ import com.lisdatasolutions.microrag.domain.chat.ChatScope
 import com.lisdatasolutions.microrag.domain.chat.ChatStorageState
 import com.lisdatasolutions.microrag.domain.chat.PromptBlockRef
 import com.lisdatasolutions.microrag.domain.chat.ResolvedScope
+import com.lisdatasolutions.microrag.domain.chat.SourceKind
 import com.lisdatasolutions.microrag.domain.chat.TurnFailure
 import com.lisdatasolutions.microrag.domain.chat.TurnState
 import com.lisdatasolutions.microrag.domain.chat.TurnUpdate
@@ -937,5 +938,52 @@ class ChatViewModelTest {
         advanceUntilIdle()
 
         assertThat(graph.session.askedScopes).containsExactly(legal)
+    }
+
+    // F20 T026 (contract U3, research R13, analyze U3).
+
+    @Test
+    fun aPageInThePrompt_readsThePage_untilTheFirstToken_andIsAnnouncedSo() = runTest(dispatcher) {
+        val document = graph.addDocument("Informe.pdf")
+        val vm = graph.chatViewModel(saved())
+        val said = mutableListOf<ChatAnnouncement?>()
+        val listening = launch { vm.state.map { it.announcement }.distinctUntilChanged().toList(said) }
+        advanceUntilIdle()
+
+        vm.onQuestionChange("¿Qué dice la tabla?")
+        vm.onSend()
+        advanceUntilIdle()
+        val asked = graph.session.active.value!!
+        val page = PromptBlockRef(1, document, 0, 0, 0, "Informe.pdf", 4, SourceKind.PAGE)
+        graph.session.active.value = asked.copy(state = TurnState.GENERATING, blocks = listOf(page), pageTokens = 140)
+        advanceUntilIdle()
+
+        val reading = vm.state.value.turns.last()
+        assertThat(reading.status).isEqualTo(TurnStatus.READING_PAGE)
+        assertThat(reading.pageWaitTenths).isEqualTo(115)
+
+        graph.session.active.value = asked.copy(state = TurnState.GENERATING, text = "La tabla [1]", blocks = listOf(page), pageTokens = 140)
+        advanceUntilIdle()
+        assertThat(vm.state.value.turns.last().status).isEqualTo(TurnStatus.GENERATING)
+        assertThat(vm.state.value.turns.last().chipTargets).containsExactly(SourceTarget(document, 0, page = 4))
+        listening.cancel()
+
+        assertThat(said).containsExactly(null, ChatAnnouncement.SEARCHING, ChatAnnouncement.READING_PAGE).inOrder()
+    }
+
+    @Test
+    fun withoutAPage_theAnswerIsGeneratingAsToday() = runTest(dispatcher) {
+        val document = graph.addDocument("Manual.pdf")
+        val vm = graph.chatViewModel(saved())
+        advanceUntilIdle()
+        vm.onQuestionChange("¿Plazo?")
+        vm.onSend()
+        advanceUntilIdle()
+        val asked = graph.session.active.value!!
+        graph.session.active.value = asked.copy(state = TurnState.GENERATING, blocks = listOf(block(document)))
+        advanceUntilIdle()
+
+        assertThat(vm.state.value.turns.last().status).isEqualTo(TurnStatus.GENERATING)
+        assertThat(vm.state.value.turns.last().pageWaitTenths).isNull()
     }
 }

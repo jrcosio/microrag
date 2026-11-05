@@ -5,10 +5,12 @@ import com.lisdatasolutions.microrag.data.indexing.FakeTextEmbedder
 import com.lisdatasolutions.microrag.domain.rag.ChunkInput
 import com.lisdatasolutions.microrag.domain.rag.DocumentStatus
 import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
+import com.lisdatasolutions.microrag.domain.rag.IndexMode
 import com.lisdatasolutions.microrag.domain.rag.IndexUnavailableException
 import com.lisdatasolutions.microrag.domain.rag.NewDocument
 import com.lisdatasolutions.microrag.domain.rag.RagParameters
 import com.lisdatasolutions.microrag.domain.rag.ScoredChunk
+import com.lisdatasolutions.microrag.domain.rag.ScoredPage
 import com.lisdatasolutions.microrag.domain.retrieval.RetrievalOutcome
 import com.lisdatasolutions.microrag.domain.retrieval.RetrievalRequest
 import com.lisdatasolutions.microrag.domain.retrieval.RetrievalResult
@@ -387,5 +389,96 @@ class HybridRetrieverTest {
         retriever.retrieve(RetrievalRequest(QUESTION))
 
         assertThat(index.scopes.toSet()).containsExactly(com.lisdatasolutions.microrag.domain.rag.SearchScope.All)
+    }
+
+    // F20 T015 (contract Q1–Q5, research R2, R3; analyze G4).
+
+    /** A document with pages; [ScoredPage]s for it, as the page search would rank them. */
+    private suspend fun pagesOf(name: String, vararg numbers: Int): List<ScoredPage> {
+        val id = index.addDocument(NewDocument(displayName = name, contentHash = name, indexMode = IndexMode.VISUAL))
+        index.updateStatus(id, DocumentStatus.DONE, chunkCount = 0)
+        return numbers.mapIndexed { i, n -> ScoredPage(id, n, 0.2 + i / 100.0, name, "$id-$n.jpg", image = false) }
+    }
+
+    @Test
+    fun withoutPages_nothingChanges_andNoPageIsSearched() = runTest {
+        val ids = documents("Bombas")
+        program(ids, ids)
+        index.pageResults = { error("never asked") }
+
+        val result = retriever.retrieve(RetrievalRequest(QUESTION))
+
+        assertThat(index.calls.none { it.startsWith("pages:") }).isTrue()
+        assertThat(blocksOf(result).pages).isEmpty()
+        assertThat(result.timings.pagesMs).isNull()
+        assertThat(logger.lines.single { it.startsWith("retrieval ") }).doesNotContain("page_hits")
+    }
+
+    @Test
+    fun withPages_theSameVectorAndScopeFindThem_andTheyAreNotFused() = runTest {
+        val ids = documents("Bombas")
+        program(ids, ids)
+        val pages = pagesOf("Plano.pdf", 2, 5)
+        val vectors = mutableListOf<FloatArray>()
+        index.pageResults = { vectors += it; pages }
+        val textVectors = mutableListOf<FloatArray>()
+        val vectorResults = index.vectorResults
+        index.vectorResults = { textVectors += it; vectorResults(it) }
+        val scope = com.lisdatasolutions.microrag.domain.rag.SearchScope.All
+
+        val result = retriever.retrieve(RetrievalRequest(QUESTION, scope = scope, withPages = true))
+
+        assertThat(index.calls).contains("pages:${RagParameters.PAGE_CANDIDATES}")
+        val outcome = blocksOf(result)
+        assertThat(outcome.pages).isEqualTo(pages)
+        assertThat(vectors.single()).isEqualTo(textVectors.single())
+        // The fusion is that of the two text lists only.
+        val fused = ReciprocalRankFusion.fuse(listOf(ids.take(50), ids.take(50))).take(RagParameters.FUSED_LIMIT)
+        assertThat(outcome.candidates.map { it.chunkId }).isEqualTo(fused.map { it.id })
+        assertThat(result.timings.pagesMs).isNotNull()
+        assertThat(result.lists.vector.map { it.id }).isEqualTo(ids.take(RagParameters.CANDIDATES))
+        assertThat(result.lists.lexical).isEqualTo(ids.take(RagParameters.CANDIDATES))
+        assertThat(logger.lines.single { it.startsWith("retrieval ") }).containsMatch(" page_hits=2 pages_ms=\\d+\\.\\d$")
+    }
+
+    @Test
+    fun pagesWithoutBlocks_areStillAContext_andNothingAtAllIsNoResults() = runTest {
+        program(emptyList(), emptyList())
+        val pages = pagesOf("Cartel.jpg", 1)
+        index.pageResults = { pages }
+
+        val result = retriever.retrieve(RetrievalRequest(QUESTION, withPages = true))
+
+        assertThat(blocksOf(result).blocks).isEmpty()
+        assertThat(blocksOf(result).pages).isEqualTo(pages)
+
+        index.pageResults = { emptyList() }
+        assertThat(retriever.retrieve(RetrievalRequest(QUESTION, withPages = true)).outcome).isEqualTo(RetrievalOutcome.NoResults)
+    }
+
+    @Test
+    fun theScopeReachesThePageSearch() = runTest {
+        program(emptyList(), emptyList())
+        val pages = pagesOf("Plano.pdf", 1)
+        index.pageResults = { pages }
+        val scope = com.lisdatasolutions.microrag.domain.rag.SearchScope.Only(emptySet(), general = false, documentIds = setOf(pages.single().documentId))
+
+        val result = retriever.retrieve(RetrievalRequest(QUESTION, scope = scope, withPages = true))
+
+        assertThat(index.scopes.toSet()).containsExactly(scope)
+        assertThat(blocksOf(result).pages).isEqualTo(pages)
+    }
+
+    /** Analyze G4: in a follow-up, the page is searched with the same vector as the text, which carries the previous question. */
+    @Test
+    fun aFollowUp_searchesThePagesWithTheVectorOfBothQuestions() = runTest {
+        program(emptyList(), emptyList())
+        val pages = pagesOf("Plano.pdf", 1)
+        index.pageResults = { pages }
+
+        retriever.retrieve(RetrievalRequest("¿Y el aceite?", previousQuestion = PREVIOUS, withPages = true))
+
+        assertThat(embedder.engine.embedded).containsExactly(EmbeddingPrefixes.query("$PREVIOUS ¿Y el aceite?"))
+        assertThat(index.calls.count { it.startsWith("pages:") }).isEqualTo(1)
     }
 }

@@ -490,24 +490,27 @@ class DocumentScreenTest {
         exists("Modo de indexación")
         exists("Ambos")
         exists("48 páginas")
-        absent("Solo páginas. Todavía no se usa en el chat")
+        absent("Sus páginas necesitan el modo multimodal")
     }
 
+    /** F20 T019 (FR-006b, wireframe §7): with the mode on, a document with pages only is used in the chat. */
     @Test
-    fun aVisualOnlyDocument_saysItIsNotInTheChatYet() {
+    fun aVisualOnlyDocument_withTheModeOn_isAvailableForTheChat() {
         show(loaded(DocumentPreviewData.manual.copy(indexMode = IndexMode.VISUAL, pagesStored = 48, chunks = 0), multimodalOn = true))
 
-        exists("Solo páginas. Todavía no se usa en el chat")
-        exists("Se usará cuando el chat admita páginas")
-        absent("Disponible para consultas RAG")
+        exists("Disponible para consultas RAG")
+        absent("Sus páginas necesitan el modo multimodal")
+        absent("Se usará al activar el modo multimodal")
     }
 
-    /** T045: with the mode off and pages stored. */
+    /** F19 T045 and F20 T019: with the mode off and pages stored, they wait for the mode. */
     @Test
     fun withTheModeOff_itsPagesNeedTheMode() {
         show(loaded(DocumentPreviewData.manual.copy(indexMode = IndexMode.VISUAL, pagesStored = 48, chunks = 0)))
 
         exists("Sus páginas necesitan el modo multimodal")
+        exists("Se usará al activar el modo multimodal")
+        absent("Disponible para consultas RAG")
     }
 
     @Test

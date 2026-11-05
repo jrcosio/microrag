@@ -55,18 +55,22 @@ data class TurnUi(
     val retryable: Boolean,
     /** «Reintentar» works now: the chat is Ready and no other answer runs (A10). */
     val canRetry: Boolean,
+    /** F20 (research R13): while [status] is READING_PAGE, the page detail's wait in tenths of a second. */
+    val pageWaitTenths: Int? = null,
 )
 
-enum class TurnStatus { SEARCHING, GENERATING }
+/** F20: READING_PAGE is GENERATING with a page in the prompt, until the first token. */
+enum class TurnStatus { SEARCHING, READING_PAGE, GENERATING }
 
 /** A row under «Fuentes consultadas». */
 data class SourceRow(val position: Int, val target: SourceTarget, val citation: CitationUi)
 
 /** What a source opens: the document detail on its first fragment (D-043). */
-data class SourceTarget(val documentId: Long, val chunkId: Long)
+/** F20: [page] is set for a cited page or image, which opens the detail on it instead of a fragment. */
+data class SourceTarget(val documentId: Long, val chunkId: Long, val page: Int? = null)
 
 /** K10, in this order of precedence. */
 enum class ScopeNotice { WHOLE_AGAIN, FOLDER_GONE, DOCUMENT_GONE }
 
 /** F13 R6: [DELETE_FAILED], a deletion `chat.db` refused; the conversation stays. */
-enum class ChatAnnouncement { SEARCHING, GENERATING, COMPLETED, CANCELLED, INTERRUPTED, FAILED, DELETED, DELETE_FAILED, COPIED }
+enum class ChatAnnouncement { SEARCHING, READING_PAGE, GENERATING, COMPLETED, CANCELLED, INTERRUPTED, FAILED, DELETED, DELETE_FAILED, COPIED }

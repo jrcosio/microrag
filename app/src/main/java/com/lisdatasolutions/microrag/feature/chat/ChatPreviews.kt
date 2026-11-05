@@ -6,6 +6,7 @@ import com.lisdatasolutions.microrag.core.designsystem.model.AnswerBlock
 import com.lisdatasolutions.microrag.core.designsystem.model.AnswerContent
 import com.lisdatasolutions.microrag.core.designsystem.model.AnswerSpan
 import com.lisdatasolutions.microrag.core.designsystem.model.AnswerState
+import com.lisdatasolutions.microrag.core.designsystem.model.CitationKind
 import com.lisdatasolutions.microrag.core.designsystem.model.CitationUi
 import com.lisdatasolutions.microrag.core.designsystem.preview.LisdataPreviews
 import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
@@ -19,6 +20,12 @@ object ChatPreviewData {
 
     val manual = SourceRow(1, SourceTarget(documentId = 1, chunkId = 186), CitationUi("Manual de procesos.pdf", page = 12, fragment = 86))
     val protocol = SourceRow(2, SourceTarget(documentId = 2, chunkId = 241), CitationUi("Protocolo interno.pdf", page = 8, fragment = 41))
+
+    /** F20: a cited PDF page and a cited loose image (wireframe §4, §10). */
+    val reportPage = SourceRow(
+        2, SourceTarget(documentId = 9, chunkId = 0, page = 4), CitationUi("informe-ine.pdf", page = 4, fragment = null, kind = CitationKind.PAGE),
+    )
+    val poster = SourceRow(3, SourceTarget(documentId = 10, chunkId = 0, page = 1), CitationUi("cartel.jpg", page = null, fragment = null, kind = CitationKind.IMAGE))
 
     /** The answer of PNG 04: an intro, three bullets and their citation chips. */
     val answer = AnswerContent(

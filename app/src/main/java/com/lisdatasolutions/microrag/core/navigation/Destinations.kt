@@ -40,9 +40,12 @@ data object Library
 @Serializable
 data class LibraryFolder(val folderId: Long? = null)
 
-/** `chunkId` is set only when arriving from a citation, to highlight the fragment (F11). */
+/**
+ * `chunkId` is set only when arriving from a citation, to highlight the fragment (F11); F20 (research R15): `page`
+ * when the citation is a page, shown instead of the fragment.
+ */
 @Serializable
-data class Document(val documentId: Long, val chunkId: Long? = null)
+data class Document(val documentId: Long, val chunkId: Long? = null, val page: Int? = null)
 
 @Serializable
 data object Index

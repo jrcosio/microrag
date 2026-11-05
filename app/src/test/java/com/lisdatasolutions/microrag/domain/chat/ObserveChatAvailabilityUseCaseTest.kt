@@ -7,13 +7,18 @@ import com.lisdatasolutions.microrag.domain.indexing.PauseReason
 import com.lisdatasolutions.microrag.domain.indexing.RunProgress
 import com.lisdatasolutions.microrag.domain.model.ComputeBackend
 import com.lisdatasolutions.microrag.domain.model.ModelCatalog
+import com.lisdatasolutions.microrag.domain.multimodal.MultimodalStage
+import com.lisdatasolutions.microrag.domain.multimodal.StoredMultimodal
 import com.lisdatasolutions.microrag.domain.onboarding.ObserveLocalAiUseCase
 import com.lisdatasolutions.microrag.domain.rag.DocumentStatus
 import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
 import com.lisdatasolutions.microrag.domain.rag.IndexMode
 import com.lisdatasolutions.microrag.domain.rag.NewDocument
+import com.lisdatasolutions.microrag.domain.rag.PageInput
+import com.lisdatasolutions.microrag.domain.rag.SearchScope
 import com.lisdatasolutions.microrag.testing.FakeAnswerEngine
 import com.lisdatasolutions.microrag.testing.FakeIndexingRepository
+import com.lisdatasolutions.microrag.testing.FakeMultimodalStore
 import com.lisdatasolutions.microrag.testing.FakeRagIndex
 import com.lisdatasolutions.microrag.testing.InMemoryChatRepository
 import com.lisdatasolutions.microrag.testing.InMemoryModelFileRepository
@@ -38,7 +43,8 @@ class ObserveChatAvailabilityUseCaseTest {
     private val indexing = FakeIndexingRepository()
     private val index = FakeRagIndex()
 
-    private val observe = ObserveChatAvailabilityUseCase(chats, ObserveLocalAiUseCase(models), engine, ObserveIndexingUseCase(indexing), index)
+    private val multimodal = FakeMultimodalStore()
+    private val observe = ObserveChatAvailabilityUseCase(chats, ObserveLocalAiUseCase(models), engine, ObserveIndexingUseCase(indexing), index, multimodal)
 
     private suspend fun doc(name: String, status: DocumentStatus, included: Boolean = true): Long {
         val id = index.addDocument(NewDocument(displayName = name, contentHash = name, mimeType = "text/plain"))
@@ -216,5 +222,52 @@ class ObserveChatAvailabilityUseCaseTest {
 
         doc("Hecho.txt", DocumentStatus.DONE)
         assertThat(current()).isEqualTo(ChatAvailability.Ready(cpuMode = false, partialCoverage = false))
+    }
+
+    // F20 T017 (contract M3, M4; research R5, R11).
+
+    /** A done document with one page and no chunks, as F19 leaves a scanned PDF in Visual. */
+    private suspend fun pagesOnly(name: String): Long {
+        val id = index.addDocument(NewDocument(displayName = name, contentHash = name, mimeType = "application/pdf", indexMode = IndexMode.VISUAL))
+        index.insertPage(id, PageInput(1, "$id-1.jpg", 10, 10, 1, FloatArray(256)))
+        index.updateStatus(id, DocumentStatus.DONE, null, 0, null)
+        return id
+    }
+
+    @Test
+    fun documentsWithPagesOnly_countWithTheModeOnAndUsablePages() = runTest {
+        val id = pagesOnly("Escaneado.pdf")
+        assertThat(current()).isEqualTo(ChatAvailability.NothingReady)
+
+        multimodal.state.value = StoredMultimodal(stage = MultimodalStage.ON)
+        assertThat(current()).isEqualTo(ChatAvailability.Ready(cpuMode = false, partialCoverage = false))
+        assertThat(observe(scope = SearchScope.Only(emptySet(), general = false, documentIds = setOf(id))).first())
+            .isEqualTo(ChatAvailability.Ready(cpuMode = false, partialCoverage = false))
+
+        index.pagesUsable.value = false
+        assertThat(current()).isEqualTo(ChatAvailability.NothingReady)
+        assertThat(observe(scope = SearchScope.Only(emptySet(), general = false, documentIds = setOf(id))).first())
+            .isEqualTo(ChatAvailability.NothingInScope)
+    }
+
+    @Test
+    fun theWarmUp_loadsGemmaWithVision_onlyWithTheModeOnAndPages() = runTest {
+        val warmUp = WarmUpAnswerEngineUseCase(engine, observe, multimodal, index)
+        doc("Hecho.txt", DocumentStatus.DONE)
+
+        warmUp()
+        assertThat(engine.warmUps to engine.visualWarmUps).isEqualTo(1 to 0)
+
+        multimodal.state.value = StoredMultimodal(stage = MultimodalStage.ON)
+        warmUp()
+        assertThat(engine.visualWarmUps).isEqualTo(0)
+
+        pagesOnly("Escaneado.pdf")
+        warmUp()
+        assertThat(engine.warmUps to engine.visualWarmUps).isEqualTo(3 to 1)
+
+        multimodal.state.value = StoredMultimodal(stage = MultimodalStage.OFF)
+        warmUp()
+        assertThat(engine.visualWarmUps).isEqualTo(1)
     }
 }

@@ -82,6 +82,7 @@ fun MicroRagNavHost(
                 onBack = back,
                 // R13: from a resumed chat only, so a double tap opens a single detail.
                 onOpenSource = { documentId, chunkId -> resumed { navController.navigate(Document(documentId, chunkId)) } },
+                onOpenPage = { documentId, page -> resumed { navController.navigate(Document(documentId, page = page)) } },
                 onCompleteSetup = { resumed { navController.navigate(Setup) { launchSingleTop = true } } },
                 onImport = { resumed { navController.navigate(Ingest()) { launchSingleTop = true } } },
                 onOpenIndex = { resumed { navController.navigate(Index) { launchSingleTop = true } } },

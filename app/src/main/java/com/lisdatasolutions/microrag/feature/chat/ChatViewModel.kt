@@ -8,6 +8,7 @@ import androidx.navigation.toRoute
 import com.lisdatasolutions.microrag.R
 import com.lisdatasolutions.microrag.core.designsystem.model.AnswerContent
 import com.lisdatasolutions.microrag.core.designsystem.model.AnswerState
+import com.lisdatasolutions.microrag.core.designsystem.model.CitationKind
 import com.lisdatasolutions.microrag.core.designsystem.model.CitationUi
 import com.lisdatasolutions.microrag.core.navigation.Chat
 import com.lisdatasolutions.microrag.domain.chat.ActiveAnswer
@@ -36,6 +37,7 @@ import com.lisdatasolutions.microrag.domain.chat.ResolveSourcesUseCase
 import com.lisdatasolutions.microrag.domain.chat.ResolvedScope
 import com.lisdatasolutions.microrag.domain.chat.RetryAnswerUseCase
 import com.lisdatasolutions.microrag.domain.chat.SourceAvailability
+import com.lisdatasolutions.microrag.domain.chat.SourceKind
 import com.lisdatasolutions.microrag.domain.chat.StartNewConversationUseCase
 import com.lisdatasolutions.microrag.domain.chat.TurnFailure
 import com.lisdatasolutions.microrag.domain.chat.TurnState
@@ -46,6 +48,7 @@ import com.lisdatasolutions.microrag.domain.library.ObserveFoldersUseCase
 import com.lisdatasolutions.microrag.domain.rag.FolderList
 import com.lisdatasolutions.microrag.feature.chat.scope.ScopeSelection
 import com.lisdatasolutions.microrag.feature.chat.scope.ScopeSummary
+import com.lisdatasolutions.microrag.feature.settings.waitTenthsFor
 import com.lisdatasolutions.microrag.rag.answer.AnswerReading
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -296,7 +299,8 @@ class ChatViewModel(
             if (last != null && last?.first == turn.id || active) {
                 announcement.value = when (turn.state) {
                     TurnState.RETRIEVING -> ChatAnnouncement.SEARCHING
-                    TurnState.GENERATING -> ChatAnnouncement.GENERATING
+                    // F20 (contract U3): «Leyendo 1 página» instead, when a page entered.
+                    TurnState.GENERATING -> if (v.active?.takeIf { active }?.pageTokens != null) ChatAnnouncement.READING_PAGE else ChatAnnouncement.GENERATING
                     TurnState.COMPLETED -> ChatAnnouncement.COMPLETED
                     TurnState.CANCELLED -> ChatAnnouncement.CANCELLED
                     TurnState.INTERRUPTED -> ChatAnnouncement.INTERRUPTED
@@ -430,7 +434,8 @@ class ChatViewModel(
             id = turn.id,
             question = turn.question,
             state = answerState(turn.state),
-            status = status(turn.state),
+            status = status(turn.state, active),
+            pageWaitTenths = active?.pageTokens?.let(::waitTenthsFor),
             content = content,
             refusal = turn.refusal,
             failureText = failureText(turn.state, turn.failure),
@@ -440,7 +445,7 @@ class ChatViewModel(
                 chipTargets(turn.answer, blocks, available)
             } else {
                 // F13 Q12: a deleted document's chip opens nothing, as its row.
-                sources.map { source -> SourceTarget(source.documentId, source.chunkId).takeIf { available[CitedSource(source, turn.createdAt)] != SourceAvailability.DOCUMENT_GONE } }
+                sources.map { source -> source.target().takeIf { available[CitedSource(source, turn.createdAt)] != SourceAvailability.DOCUMENT_GONE } }
             },
             retryable = retryable,
             canRetry = canRetry && retryable,
@@ -455,7 +460,8 @@ class ChatViewModel(
             id = ActiveAnswer.UNSAVED,
             question = active.question,
             state = answerState(active.state),
-            status = status(active.state),
+            status = status(active.state, active),
+            pageWaitTenths = active.pageTokens?.let(::waitTenthsFor),
             content = content,
             refusal = active.refusal,
             failureText = failureText(active.state, active.failure),
@@ -475,28 +481,43 @@ class ChatViewModel(
     private fun chipTargets(text: String, blocks: List<PromptBlockRef>, available: Map<CitedSource, SourceAvailability>): List<SourceTarget?> {
         val byNumber = blocks.associateBy { it.promptNumber }
         return AnswerReading.citedOrder(text, blocks.size).mapNotNull { byNumber[it] }
-            .map { block -> SourceTarget(block.documentId, block.chunkId).takeIf { available[block.cited()] != SourceAvailability.DOCUMENT_GONE } }
+            .map { block -> block.target().takeIf { available[block.cited()] != SourceAvailability.DOCUMENT_GONE } }
     }
+
+    /** F20: a page or an image opens the detail on its page, a fragment on its chunk. */
+    private fun AnswerSource.target() = SourceTarget(documentId, chunkId, page.takeIf { kind != SourceKind.FRAGMENT })
+
+    private fun PromptBlockRef.target() = SourceTarget(documentId, chunkId, page.takeIf { kind != SourceKind.FRAGMENT })
 
     /** A prompt block comes from the index of the moment, so any document it names was there before (F13 Q15). */
     private fun PromptBlockRef.cited() = CitedSource(
         AnswerSource(
             position = 0, promptNumber = promptNumber, documentId = documentId, chunkId = chunkId, firstOrdinal = firstOrdinal,
-            lastOrdinal = lastOrdinal, documentName = documentName, page = page,
+            lastOrdinal = lastOrdinal, documentName = documentName, page = page, kind = kind,
         ),
         citedAt = Long.MAX_VALUE,
     )
 
     private fun sourceRow(source: AnswerSource, availability: SourceAvailability): SourceRow = SourceRow(
         position = source.position,
-        target = SourceTarget(source.documentId, source.chunkId),
-        citation = CitationUi(
-            documentName = source.documentName,
-            page = source.page,
-            fragment = source.firstOrdinal + 1,
-            available = availability != SourceAvailability.DOCUMENT_GONE,
-            lastFragment = (source.lastOrdinal + 1).takeIf { source.lastOrdinal > source.firstOrdinal },
-        ),
+        target = source.target(),
+        citation = when (source.kind) {
+            SourceKind.FRAGMENT -> CitationUi(
+                documentName = source.documentName,
+                page = source.page,
+                fragment = source.firstOrdinal + 1,
+                available = availability != SourceAvailability.DOCUMENT_GONE,
+                lastFragment = (source.lastOrdinal + 1).takeIf { source.lastOrdinal > source.firstOrdinal },
+            )
+            // F20 (contract U4, U5): no fragments; an image has no page number to show.
+            SourceKind.PAGE, SourceKind.IMAGE -> CitationUi(
+                documentName = source.documentName,
+                page = source.page.takeIf { source.kind == SourceKind.PAGE },
+                fragment = null,
+                available = availability != SourceAvailability.DOCUMENT_GONE,
+                kind = if (source.kind == SourceKind.PAGE) CitationKind.PAGE else CitationKind.IMAGE,
+            )
+        },
     )
 
     private fun notes(
@@ -517,9 +538,9 @@ class ChatViewModel(
         TurnState.FAILED, TurnState.INTERRUPTED -> AnswerState.Failed
     }
 
-    private fun status(state: TurnState): TurnStatus? = when (state) {
+    private fun status(state: TurnState, active: ActiveAnswer?): TurnStatus? = when (state) {
         TurnState.RETRIEVING -> TurnStatus.SEARCHING
-        TurnState.GENERATING -> TurnStatus.GENERATING
+        TurnState.GENERATING -> if (active?.pageTokens != null && active.text.isEmpty()) TurnStatus.READING_PAGE else TurnStatus.GENERATING
         else -> null
     }
 

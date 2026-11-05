@@ -36,6 +36,7 @@ import com.lisdatasolutions.microrag.rag.runtime.TextEmbedder
 import com.lisdatasolutions.microrag.rag.runtime.TextGenerator
 import com.lisdatasolutions.microrag.testing.FakeContextRetriever
 import com.lisdatasolutions.microrag.testing.FakeIndexingRepository
+import com.lisdatasolutions.microrag.testing.FakeMultimodalStore
 import com.lisdatasolutions.microrag.testing.FakeRagIndex
 import com.lisdatasolutions.microrag.testing.InMemoryChatRepository
 import com.lisdatasolutions.microrag.testing.InMemoryModelFileRepository
@@ -81,8 +82,9 @@ class ChatDuringIndexingTest {
             listOf(CandidateScore(101L, 1, 0.1, null, null, null, true)),
         ),
     )
-    private val availability = ObserveChatAvailabilityUseCase(chats, ObserveLocalAiUseCase(models), answerEngine, ObserveIndexingUseCase(indexing), index)
-    private val warmUp = WarmUpAnswerEngineUseCase(answerEngine, availability)
+    private val multimodal = FakeMultimodalStore()
+    private val availability = ObserveChatAvailabilityUseCase(chats, ObserveLocalAiUseCase(models), answerEngine, ObserveIndexingUseCase(indexing), index, multimodal)
+    private val warmUp = WarmUpAnswerEngineUseCase(answerEngine, availability, multimodal, index)
     private val gemma = EngineKey(ModelId.GEMMA4_E2B, GPU)
     private val embedder = EngineKey(ModelId.EG2_270M, GPU)
     private var gemmaTokens = List(5) { "t$it " }

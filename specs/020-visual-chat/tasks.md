@@ -170,7 +170,7 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
 
 ### Pruebas
 
-- [ ] T015 [P] [US1] `…/test/…/data/retrieval/HybridRetrieverTest.kt` (Q1–Q5):
+- [X] T015 [P] [US1] `…/test/…/data/retrieval/HybridRetrieverTest.kt` (Q1–Q5):
   - sin `withPages`, nada cambia y `pages` está vacío;
   - con `withPages`, `pageSearch` usa el mismo vector y el mismo ámbito;
   - las páginas no entran en la RRF;
@@ -178,7 +178,7 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
   - `NoResults` sin nada;
   - `lists` lleva las dos listas;
   - en un seguimiento, la página se busca con el mismo vector que el texto, que lleva la pregunta anterior (analyze G4).
-- [ ] T016 [P] [US1] `…/test/…/data/chat/DefaultChatSessionTest.kt` (S1, S3–S7), con índice, motor e imágenes falsos y el modo `ON`:
+- [X] T016 [P] [US1] `…/test/…/data/chat/DefaultChatSessionTest.kt` (S1, S3–S7), con índice, motor e imágenes falsos y el modo `ON`:
   - una pregunta sin bloques y con página genera con la página como `[1]`;
   - la fuente citada es de tipo `PAGE`, con su número de página;
   - una imagen que falta o no es JPEG lleva a la negativa sin llamar a Gemma;
@@ -187,20 +187,20 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
   - el turno guarda `page_tokens`;
   - `AnswerPrompt.Visual.visualTokens` es 70, 140 o 280 según el detalle (analyze G1);
   - una imagen suelta da una fuente `IMAGE`.
-- [ ] T017 [P] [US1] `…/test/…/domain/chat/ObserveChatAvailabilityUseCaseTest.kt` (M3): con el modo `ON` y `pagesUsable`, una biblioteca solo con páginas está `Ready`. Con el modo apagado o `pagesUsable = false`, `NothingReady`, como hoy. Lo mismo con un ámbito.
-- [ ] T018 [P] [US1] `…/test/…/feature/chat/ChatScreenTest.kt` y un fichero nuevo, `…/test/…/core/designsystem/component/SourceCitationTest.kt` (U4–U8):
+- [X] T017 [P] [US1] `…/test/…/domain/chat/ObserveChatAvailabilityUseCaseTest.kt` (M3): con el modo `ON` y `pagesUsable`, una biblioteca solo con páginas está `Ready`. Con el modo apagado o `pagesUsable = false`, `NothingReady`, como hoy. Lo mismo con un ámbito.
+- [X] T018 [P] [US1] `…/test/…/feature/chat/ChatScreenTest.kt` y un fichero nuevo, `…/test/…/core/designsystem/component/SourceCitationTest.kt` (U4–U8):
   - la tarjeta con miniatura, «Página 4 · Imagen de la página» y la de una imagen suelta, «Imagen»;
   - sin `leading`, la tarjeta es la de hoy;
   - el icono de documento mientras carga;
   - la descripción para TalkBack;
   - la marca `[n]` de una página abre `Document(documentId, page = p)`;
   - la línea de copiar.
-- [ ] T019 [P] [US1] `…/test/…/feature/document/DocumentScreenTest.kt` (FR-006b, U11): con el modo activo, un documento solo Visual no tiene la nota y su interruptor dice «Disponible para consultas RAG». Con el modo apagado, «Se usará al activar el modo multimodal». Se sustituyen las pruebas de F19 que decían lo contrario.
+- [X] T019 [P] [US1] `…/test/…/feature/document/DocumentScreenTest.kt` (FR-006b, U11): con el modo activo, un documento solo Visual no tiene la nota y su interruptor dice «Disponible para consultas RAG». Con el modo apagado, «Se usará al activar el modo multimodal». Se sustituyen las pruebas de F19 que decían lo contrario.
 
 ### Implementación
 
-- [ ] T020 [US1] `…/microrag/data/retrieval/HybridRetriever.kt` (Q1–Q5) y `RetrieveContextUseCase`. T015 pasa.
-- [ ] T021 [US1] `…/microrag/data/chat/DefaultChatSession.kt` (S1, S3–S7):
+- [X] T020 [US1] `…/microrag/data/retrieval/HybridRetriever.kt` (Q1–Q5) y `RetrieveContextUseCase`. T015 pasa.
+- [X] T021 [US1] `…/microrag/data/chat/DefaultChatSession.kt` (S1, S3–S7):
   - leer el modo, `pagesUsable` y el detalle al empezar;
   - pedir páginas;
   - cargar y comprobar la imagen;
@@ -209,12 +209,12 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
   - `page_tokens`.
 
   T016 pasa.
-- [ ] T022 [US1] `…/microrag/domain/chat/ChatUseCases.kt` (M3 y M4), con Koin:
+- [X] T022 [US1] `…/microrag/domain/chat/ChatUseCases.kt` (M3 y M4), con Koin:
   - `ObserveChatAvailabilityUseCase` combina el modo y `pagesUsable`;
   - `WarmUpAnswerEngineUseCase` precarga la Gemma con visión cuando tocará.
 
   T017 pasa, con un caso de M4.
-- [ ] T023 [US1] UI de la fuente de página:
+- [X] T023 [US1] UI de la fuente de página:
   - en `…/microrag/core/designsystem/component/Rows.kt`, con sus previews: `LisdataSourceCitation.leading`, que se ignora si la fuente no está disponible, y `LisdataPageThumbnail` (analyze C4);
   - `CitationUi.kind` en `…/microrag/core/designsystem/model/CitationUi.kt` (analyze U4);
   - `…/microrag/feature/document/PageImageLoader.kt` (R14: `BitmapFactory` con `inSampleSize`, LRU de 24, fuera del hilo principal);
@@ -223,7 +223,7 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
   - Koin del cargador.
 
   T018 pasa.
-- [ ] T024 [US1] Notas de F19 (R16) en `…/microrag/feature/document/DocumentScreen.kt`. Se borran `document_visual_only_note` y `document_include_subtitle_pages_only` de `strings_multimodal.xml` (es/en). T019 pasa y lint no avisa de textos sin usar.
+- [X] T024 [US1] Notas de F19 (R16) en `…/microrag/feature/document/DocumentScreen.kt`. Se borran `document_visual_only_note` y `document_include_subtitle_pages_only` de `strings_multimodal.xml` (es/en). T019 pasa y lint no avisa de textos sin usar.
 
 **Checkpoint:** con el modo activo, un documento solo con páginas se pregunta, y su cita sale con miniatura.
 
@@ -237,7 +237,7 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
 
 ### Pruebas
 
-- [ ] T025 [P] [US2] `DefaultChatSessionTest` (S4, S6, S7):
+- [X] T025 [P] [US2] `DefaultChatSessionTest` (S4, S6, S7):
   - con bloques y página, los bloques son los de `withPages = false` y la página va la última;
   - un bloque de la misma página se mantiene (sin regla de duplicados);
   - el límite de 2.000 tokens se aplica solo al texto;
@@ -245,7 +245,7 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
   - cancelar durante el prefill termina en `CANCELLED` con lo que llegó;
   - el bucle del límite corre sobre la v4, y con un prompt justo en el límite entran los mismos bloques con página que sin ella (analyze A1);
   - con bloques y la imagen que falta, sigue con la v4 y `page_dropped=1` (analyze G3).
-- [ ] T026 [P] [US2] `…/test/…/feature/chat/ChatViewModelTest.kt` y `ChatScreenTest` (U3, R13):
+- [X] T026 [P] [US2] `…/test/…/feature/chat/ChatViewModelTest.kt` y `ChatScreenTest` (U3, R13):
   - `READING_PAGE` mientras no hay texto y hay `pageTokens`;
   - «Leyendo 1 página · unos 11,5 s…» con Equilibrado, «11.5» en inglés;
   - «Generando respuesta…» sin página;
@@ -254,7 +254,7 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
 
 ### Implementación
 
-- [ ] T027 [US2] El estado de la respuesta: `TurnStatus.READING_PAGE`, `ChatAnnouncement.READING_PAGE` y sus textos en `…/microrag/feature/chat/{ChatUiState,ChatViewModel,ChatScreen}.kt`, con la espera de `PageDetail` formateada con la configuración regional. T025 y T026 pasan.
+- [X] T027 [US2] El estado de la respuesta: `TurnStatus.READING_PAGE`, `ChatAnnouncement.READING_PAGE` y sus textos en `…/microrag/feature/chat/{ChatUiState,ChatViewModel,ChatScreen}.kt`, con la espera de `PageDetail` formateada con la configuración regional. T025 y T026 pasan.
 
 **Checkpoint:** las respuestas con texto y página citan los dos y avisan de la espera.
 
@@ -268,7 +268,7 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
 
 ### Pruebas
 
-- [ ] T028 [P] [US3] `DefaultChatSessionTest` (S2):
+- [X] T028 [P] [US3] `DefaultChatSessionTest` (S2):
   - con el modo apagado y documentos con páginas, el prompt es `AnswerPrompt.Text`, idéntico byte a byte al de antes de F20;
   - con el modo `ON` y un ámbito sin páginas, lo mismo;
   - con `pagesUsable = false`, lo mismo;
@@ -278,7 +278,7 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
 
 ### Implementación
 
-- [ ] T030 [US3] Lo que falte para que T028 pase en `DefaultChatSession`. Si ya pasa con T021, se marca sin cambios.
+- [X] T030 [US3] Lo que falte para que T028 pase en `DefaultChatSession`. Si ya pasa con T021, se marca sin cambios. (Sin cambios: T021 ya lo cumple.)
 
 **Checkpoint:** el chat de texto queda intacto.
 

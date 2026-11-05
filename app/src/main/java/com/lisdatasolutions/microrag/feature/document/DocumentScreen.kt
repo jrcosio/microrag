@@ -220,7 +220,7 @@ fun DocumentScreen(
                 Mode(state, state.content.detail)
                 LisdataSwitchRow(
                     title = stringResource(R.string.document_include_title),
-                    subtitle = includeSubtitle(state.content.detail, state.included),
+                    subtitle = includeSubtitle(state.content.detail, state.included, state.multimodalOn),
                     checked = state.included,
                     onCheckedChange = actions.onIncludedChange,
                     enabled = state.content.detail.canChangeInclusion && !state.deleting,
@@ -283,12 +283,15 @@ fun DocumentScreen(
     LisdataSnackbarOnce(moved, snackbarHostState, onMoveMessageShown)
 }
 
-/** What the switch does now: PNG 07 only shows the included case (constitution V); F19 pages wait for F20. */
+/**
+ * What the switch does now: PNG 07 only shows the included case (constitution V). F20 (FR-006b): a document with
+ * pages only is used in the chat with the mode on; with it off, it waits for the mode.
+ */
 @Composable
-private fun includeSubtitle(detail: DocumentDetail, included: Boolean): String = stringResource(
+private fun includeSubtitle(detail: DocumentDetail, included: Boolean, multimodalOn: Boolean): String = stringResource(
     when {
         !detail.canChangeInclusion -> R.string.document_include_subtitle_not_indexed
-        included && detail.pagesOnly -> R.string.document_include_subtitle_pages_only
+        included && detail.pagesOnly && !multimodalOn -> R.string.document_include_subtitle_needs_multimodal
         included -> R.string.document_include_subtitle
         else -> R.string.document_include_subtitle_excluded
     },
@@ -369,13 +372,9 @@ private fun Mode(state: DocumentUiState, detail: DocumentDetail) {
                 modifier = Modifier.fillMaxWidth(),
             )
         }
-        val note = when {
-            state.pagesNeedMultimodal -> R.string.document_pages_need_multimodal
-            detail.pagesOnly -> R.string.document_visual_only_note
-            else -> null
-        }
-        note?.let {
-            LisdataInfoCard(icon = LisdataIcons.Info, title = stringResource(it), modifier = Modifier.fillMaxWidth())
+        // F20 (FR-006b, wireframe §7): with the mode on, the chat uses the pages, so only the mode off has a note.
+        if (state.pagesNeedMultimodal) {
+            LisdataInfoCard(icon = LisdataIcons.Info, title = stringResource(R.string.document_pages_need_multimodal), modifier = Modifier.fillMaxWidth())
         }
     }
 }

@@ -1,6 +1,9 @@
 package com.lisdatasolutions.microrag.core.designsystem.component
 
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,7 +28,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -44,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import com.lisdatasolutions.microrag.R
 import com.lisdatasolutions.microrag.core.designsystem.icon.LisdataIcon
 import com.lisdatasolutions.microrag.core.designsystem.icon.LisdataIcons
+import com.lisdatasolutions.microrag.core.designsystem.model.CitationKind
 import com.lisdatasolutions.microrag.core.designsystem.model.CitationUi
 import com.lisdatasolutions.microrag.core.designsystem.model.IconTileStyle
 import com.lisdatasolutions.microrag.core.designsystem.model.ProgressValue
@@ -290,7 +297,8 @@ fun LisdataConversationRow(
 /**
  * Source under an answer ("Manual.pdf · Página 12 · Fragmento 86", or "Fragmentos 86–87" for a block of
  * several); deleted sources are inert. [description] replaces the sentence TalkBack reads, and
- * [onClickLabel] names the action (F11 U3).
+ * [onClickLabel] names the action (F11 U3). F20 (contract U4): a page or an image says so instead of its
+ * fragments, and [leading] (its thumbnail) takes the document icon's place while the source is available.
  */
 @Composable
 fun LisdataSourceCitation(
@@ -299,18 +307,11 @@ fun LisdataSourceCitation(
     modifier: Modifier = Modifier,
     description: String? = null,
     onClickLabel: String? = null,
+    leading: (@Composable () -> Unit)? = null,
 ) {
     val colors = LisdataTheme.colors
     val spacing = LisdataTheme.spacing
-    val fragment = citation.fragment
-    val details = buildList {
-        citation.page?.let { add(stringResource(R.string.citation_page, it)) }
-        val last = citation.lastFragment
-        when {
-            fragment != null && last != null && last > fragment -> add(stringResource(R.string.citation_fragments, fragment, last))
-            fragment != null -> add(stringResource(R.string.citation_fragment, fragment))
-        }
-    }.joinToString(" · ")
+    val details = citationDetails(citation).joinToString(" · ")
     LisdataCard(modifier = modifier, onClick = if (citation.available) onOpen else null, onClickLabel = onClickLabel) {
         Row(
             modifier = if (description != null) Modifier.clearAndSetSemantics { contentDescription = description }
@@ -318,12 +319,16 @@ fun LisdataSourceCitation(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(spacing.space4),
         ) {
-            LisdataIcon(
-                icon = LisdataIcons.FileText,
-                contentDescription = null,
-                tint = if (citation.available) colors.brandBlue else colors.textSecondary,
-                size = 28.dp,
-            )
+            if (leading != null && citation.available) {
+                leading()
+            } else {
+                LisdataIcon(
+                    icon = LisdataIcons.FileText,
+                    contentDescription = null,
+                    tint = if (citation.available) colors.brandBlue else colors.textSecondary,
+                    size = 28.dp,
+                )
+            }
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = citation.documentName,
@@ -338,6 +343,51 @@ fun LisdataSourceCitation(
                 }
             }
             if (citation.available) LisdataIcon(LisdataIcons.ChevronRight, contentDescription = null, tint = colors.brandBlue)
+        }
+    }
+}
+
+/** The second line of a source: its page and fragments, or what a page or an image is (F20 wireframe §4, §10). */
+@Composable
+fun citationDetails(citation: CitationUi): List<String> = buildList {
+    when (citation.kind) {
+        CitationKind.PAGE -> {
+            citation.page?.let { add(stringResource(R.string.citation_page, it)) }
+            add(stringResource(R.string.citation_page_image))
+        }
+        CitationKind.IMAGE -> add(stringResource(R.string.citation_image))
+        CitationKind.FRAGMENT -> {
+            citation.page?.let { add(stringResource(R.string.citation_page, it)) }
+            val fragment = citation.fragment
+            val last = citation.lastFragment
+            when {
+                fragment != null && last != null && last > fragment -> add(stringResource(R.string.citation_fragments, fragment, last))
+                fragment != null -> add(stringResource(R.string.citation_fragment, fragment))
+            }
+        }
+    }
+}
+
+/**
+ * A page's thumbnail in a source (F20 contract U4, analyze C4): 40 × 56 dp with the tokens' corners and border;
+ * the document icon until [image] arrives. Decorative: the source's sentence names the page.
+ */
+@Composable
+fun LisdataPageThumbnail(image: ImageBitmap?, modifier: Modifier = Modifier) {
+    val colors = LisdataTheme.colors
+    val shape = LisdataTheme.shapes.material.extraSmall
+    Box(
+        modifier = modifier
+            .size(width = 40.dp, height = 56.dp)
+            .clip(shape)
+            .background(colors.surface)
+            .border(LisdataTheme.spacing.borderWidth, colors.outline, shape),
+        contentAlignment = Alignment.Center,
+    ) {
+        if (image != null) {
+            Image(bitmap = image, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.matchParentSize())
+        } else {
+            LisdataIcon(icon = LisdataIcons.FileText, contentDescription = null, tint = colors.brandBlue, size = 28.dp)
         }
     }
 }

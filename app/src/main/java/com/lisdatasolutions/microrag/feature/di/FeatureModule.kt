@@ -3,6 +3,7 @@ package com.lisdatasolutions.microrag.feature.di
 import com.lisdatasolutions.microrag.feature.chat.ChatViewModel
 import com.lisdatasolutions.microrag.feature.chat.scope.ScopeSelectorViewModel
 import com.lisdatasolutions.microrag.feature.document.DocumentViewModel
+import com.lisdatasolutions.microrag.feature.document.PageImageLoader
 import com.lisdatasolutions.microrag.feature.folders.FoldersViewModel
 import com.lisdatasolutions.microrag.feature.history.HistoryViewModel
 import com.lisdatasolutions.microrag.feature.home.HomeViewModel
@@ -23,6 +24,8 @@ import org.koin.dsl.module
 /** Screen ViewModels (`viewModelOf`). */
 val featureModule = module {
     viewModelOf(::WelcomeViewModel)
+    // F20 (research R14): one cache of page thumbnails for the chat and the document detail.
+    single { PageImageLoader(get()) }
     viewModel {
         SetupViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get())
     }

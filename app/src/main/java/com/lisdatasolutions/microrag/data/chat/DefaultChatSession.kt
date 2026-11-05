@@ -4,6 +4,7 @@ import com.lisdatasolutions.microrag.core.logging.AppLogger
 import com.lisdatasolutions.microrag.domain.chat.ActiveAnswer
 import com.lisdatasolutions.microrag.domain.chat.AnswerEngine
 import com.lisdatasolutions.microrag.domain.chat.AnswerEvent
+import com.lisdatasolutions.microrag.domain.chat.AnswerPrompt
 import com.lisdatasolutions.microrag.domain.chat.AnswerSource
 import com.lisdatasolutions.microrag.domain.chat.ChatAvailability
 import com.lisdatasolutions.microrag.domain.chat.ChatLimits
@@ -14,11 +15,14 @@ import com.lisdatasolutions.microrag.domain.chat.ChatStorageException
 import com.lisdatasolutions.microrag.domain.chat.ChatTurn
 import com.lisdatasolutions.microrag.domain.chat.PromptBlockRef
 import com.lisdatasolutions.microrag.domain.chat.ResolvedScope
+import com.lisdatasolutions.microrag.domain.chat.SourceKind
 import com.lisdatasolutions.microrag.domain.chat.TurnFailure
 import com.lisdatasolutions.microrag.domain.chat.TurnState
 import com.lisdatasolutions.microrag.domain.chat.TurnUpdate
 import com.lisdatasolutions.microrag.domain.chat.toSearchScope
+import com.lisdatasolutions.microrag.domain.multimodal.PageDetail
 import com.lisdatasolutions.microrag.domain.rag.RagParameters
+import com.lisdatasolutions.microrag.domain.rag.ScoredPage
 import com.lisdatasolutions.microrag.domain.rag.SearchScope
 import com.lisdatasolutions.microrag.domain.retrieval.ContextBlock
 import com.lisdatasolutions.microrag.domain.retrieval.RetrievalOutcome
@@ -49,6 +53,11 @@ import kotlinx.coroutines.withContext
  * A1–A15). It runs in the application scope, so an answer outlives the screen that asked it; the text
  * stays in memory ([active]) and reaches `chat.db` at most once a second and when the answer ends.
  * Logs one line of numbers per answer, never text (constitution I).
+ *
+ * F20 (research R1, R4, R7; contract S1–S8): with [pageDetail] not null when an answer starts, the pages are
+ * searched too, and the first one enters after the D-034 blocks as an image, with the v5-visual template. The
+ * blocks are those the v4's limit leaves (D-078: no duplicate rule). A page whose image is missing or not a JPEG
+ * is dropped, and the answer goes on without it.
  */
 class DefaultChatSession(
     private val repository: ChatRepository,
@@ -62,6 +71,10 @@ class DefaultChatSession(
     private val now: () -> Long = System::currentTimeMillis,
     /** F17 S1: a saved scope as it means now; the scope as it is without an index to check it against. */
     private val resolveScope: suspend (ChatScope) -> ResolvedScope = { ResolvedScope(it) },
+    /** F20 S1: the page detail when the answers use pages (the mode on and the index's page space usable); else null. */
+    private val pageDetail: suspend () -> PageDetail? = { null },
+    /** F20 S3: the stored JPEG of a page, or null if it is gone. */
+    private val pageImage: suspend (documentId: Long, page: Int) -> ByteArray? = { _, _ -> null },
 ) : ChatSession, MemoryTrimListener {
 
     private val current = MutableStateFlow<ActiveAnswer?>(null)
@@ -259,21 +272,40 @@ class DefaultChatSession(
         val text = StringBuilder()
         var refs = emptyList<PromptBlockRef>()
         try {
-            val retrieval = retrieve(question, previous?.question, search)
+            val detail = pageDetail()
+            val retrieval = retrieve(question, previous?.question, search, withPages = detail != null)
             log.retrievalMs = now() - started
+            log.pagesMs = retrieval.timings.pagesMs
             val blocks = when (val outcome = retrieval.outcome) {
                 is RetrievalOutcome.Blocks -> outcome
                 RetrievalOutcome.NoResults -> return finishRefusalWithoutBlocks(turnId, log, started)
                 is RetrievalOutcome.IndexUnavailable -> return fail(turnId, TurnFailure.INDEX, "", refs, log, started)
                 else -> return fail(turnId, TurnFailure.GENERATION, "", refs, log, started)
             }
+            val page = blocks.pages.takeIf { detail != null }?.firstOrNull()
+            val image = page?.let { pageImage(it.documentId, it.page) }?.takeIf(::isJpeg)
+            if (page != null && image == null) log.pageDropped = true
+            if (blocks.blocks.isEmpty() && image == null) return finishRefusalWithoutBlocks(turnId, log, started)
             val prompt = prompt(question, blocks, previous, log)
             refs = prompt.blocks.mapIndexed { i, block -> block.ref(i + 1) }
-            log.blocks = refs.size
-            current.update { it?.copy(state = TurnState.GENERATING, blocks = refs) }
-            save(turnId) { repository.updateTurn(turnId, TurnUpdate(state = TurnState.GENERATING, promptBlocks = refs.size)) }
+            val pageTokens = if (image != null) checkNotNull(detail).visualTokens else null
+            val answerPrompt = if (image != null && page != null) {
+                refs = refs + page.ref(refs.size + 1)
+                AnswerPrompt.Visual(
+                    PromptBuilder.buildVisual(question, prompt.blocks.map { it.forPrompt() }, page.source(), image, prompt.previous),
+                    checkNotNull(pageTokens),
+                )
+            } else {
+                AnswerPrompt.Text(prompt.text)
+            }
+            log.blocks = prompt.blocks.size
+            log.pageTokens = pageTokens
+            current.update { it?.copy(state = TurnState.GENERATING, blocks = refs, pageTokens = pageTokens) }
+            save(turnId) {
+                repository.updateTurn(turnId, TurnUpdate(state = TurnState.GENERATING, promptBlocks = refs.size, pageTokens = pageTokens))
+            }
             var lastCheckpoint = now()
-            engine.generate(prompt.text).collect { event ->
+            engine.generate(answerPrompt).collect { event ->
                 when (event) {
                     is AnswerEvent.Token -> {
                         if (text.isEmpty()) log.ttftMs = now() - started
@@ -296,7 +328,8 @@ class DefaultChatSession(
         }
     }
 
-    private class Prompt(val text: String, val blocks: List<ContextBlock>)
+    /** The v4 prompt within the limit, with the blocks and the previous turn it kept (A6). */
+    private class Prompt(val text: String, val blocks: List<ContextBlock>, val previous: Pair<String, String>?)
 
     /** A6 (FR-015): within the limit, dropping the worst ranked blocks first, then the previous turn, never the last block. */
     private fun prompt(question: String, outcome: RetrievalOutcome.Blocks, previous: ChatTurn?, log: AnswerLog): Prompt {
@@ -304,7 +337,7 @@ class DefaultChatSession(
         fun rankOf(block: ContextBlock) = block.chunkIds.minOfOrNull { rank[it] ?: Int.MAX_VALUE } ?: Int.MAX_VALUE
         var blocks = outcome.blocks
         var turn = previous?.let { it.question to it.answer }
-        fun build() = PromptBuilder.build(question, blocks.map { PromptBuilder.Block(it.documentName, it.headingPath, it.page, it.text) }, turn)
+        fun build() = PromptBuilder.build(question, blocks.map { it.forPrompt() }, turn)
         var text = build()
         while (PromptBuilder.estimatedTokens(text) > RagParameters.PROMPT_LIMIT_TOKENS) {
             when {
@@ -322,8 +355,16 @@ class DefaultChatSession(
             text = build()
         }
         log.promptTokens = PromptBuilder.estimatedTokens(text)
-        return Prompt(text, blocks)
+        return Prompt(text, blocks, turn)
     }
+
+    private fun ContextBlock.forPrompt() = PromptBuilder.Block(documentName, headingPath, page, text)
+
+    /** A loose image's label has no page number (research R4). */
+    private fun ScoredPage.source() = PromptBuilder.PageSource(documentName, page.takeUnless { image })
+
+    /** F20 R7: the image goes to Gemma only if it still is the JPEG F19 stored. */
+    private fun isJpeg(bytes: ByteArray): Boolean = bytes.size > 2 && bytes[0] == JPEG_0 && bytes[1] == JPEG_1
 
     /** A8: the refusal, an answer with its cited sources, or an empty answer that failed. */
     private suspend fun complete(turnId: Long, text: String, refs: List<PromptBlockRef>, log: AnswerLog, started: Long) {
@@ -396,6 +437,7 @@ class DefaultChatSession(
             AnswerSource(
                 position = i + 1, promptNumber = n, documentId = ref.documentId, chunkId = ref.chunkId,
                 firstOrdinal = ref.firstOrdinal, lastOrdinal = ref.lastOrdinal, documentName = ref.documentName, page = ref.page,
+                kind = ref.kind,
             )
         }
     }
@@ -403,6 +445,12 @@ class DefaultChatSession(
     private fun ContextBlock.ref(number: Int) = PromptBlockRef(
         promptNumber = number, documentId = documentId, chunkId = chunkIds.first(), firstOrdinal = firstOrdinal,
         lastOrdinal = lastOrdinal, documentName = documentName, page = page,
+    )
+
+    /** A page has no chunk: its id and ordinals are 0 (data-model §1). */
+    private fun ScoredPage.ref(number: Int) = PromptBlockRef(
+        promptNumber = number, documentId = documentId, chunkId = 0, firstOrdinal = 0, lastOrdinal = 0,
+        documentName = documentName, page = page, kind = if (image) SourceKind.IMAGE else SourceKind.PAGE,
     )
 
     /** The numbers of one answer (research R6); never its text. */
@@ -414,12 +462,18 @@ class DefaultChatSession(
         var retrievalMs = 0L
         var ttftMs: Long? = null
         var decodeTokensPerSecond: Double? = null
+        var pageTokens: Int? = null
+        var pageDropped = false
+        var pagesMs: Double? = null
 
         fun write(state: TurnState, failure: TurnFailure?, refusal: Boolean, cited: Int, totalMs: Long, error: Throwable?) {
             val line = "chat answer outcome=${state.name.lowercase()}${failure?.let { "/${it.name.lowercase()}" }.orEmpty()} " +
                 "follow_up=$followUp blocks=$blocks cited=$cited refusal=$refusal prompt_tokens_est=$promptTokens " +
                 "dropped_blocks=$droppedBlocks dropped_previous=$droppedPrevious retrieval_ms=$retrievalMs " +
                 "ttft_ms=${ttftMs ?: "-"} total_ms=$totalMs decode_tok_s=${decodeTokensPerSecond?.let { String.format(Locale.ROOT, "%.1f", it) } ?: "-"}" +
+                // F20 (contract S8): numbers only.
+                " page=${if (pageTokens != null) 1 else 0} page_tokens=${pageTokens ?: "-"} page_dropped=$pageDropped " +
+                "pages_ms=${pagesMs?.let { String.format(Locale.ROOT, "%.1f", it) } ?: "-"}" +
                 (error?.let { " error=${it.javaClass.simpleName}" } ?: "")
             if (error == null) logger.i(TAG) { line } else logger.w(TAG) { line }
         }
@@ -430,5 +484,9 @@ class DefaultChatSession(
 
         /** Deletions waiting for a slow collector; one per tap, so a few are plenty. */
         const val DELETIONS_BUFFER = 8
+
+        /** The JPEG start-of-image marker, FF D8. */
+        const val JPEG_0: Byte = 0xFF.toByte()
+        const val JPEG_1: Byte = 0xD8.toByte()
     }
 }

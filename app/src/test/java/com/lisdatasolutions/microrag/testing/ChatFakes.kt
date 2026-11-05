@@ -360,7 +360,9 @@ class ChatTestGraph {
     val index = FakeRagIndex()
     /** F17: the folders the chat's chip names. */
     val library = FakeLibraryRepository()
-    val availability = ObserveChatAvailabilityUseCase(chats, ObserveLocalAiUseCase(models), engine, ObserveIndexingUseCase(indexing), index)
+    /** F20: the multimodal mode, off as in a fresh install. */
+    val multimodal = FakeMultimodalStore()
+    val availability = ObserveChatAvailabilityUseCase(chats, ObserveLocalAiUseCase(models), engine, ObserveIndexingUseCase(indexing), index, multimodal)
 
     suspend fun addDocument(name: String, status: DocumentStatus = DocumentStatus.DONE): Long {
         val id = index.addDocument(NewDocument(displayName = name, contentHash = name, mimeType = "application/pdf"))
