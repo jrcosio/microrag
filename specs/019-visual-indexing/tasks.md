@@ -377,7 +377,7 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
   - sus pruebas: `ImportModeViewModelTest`, `ImportModeScreenTest` y `NavigationTest`.
 
   Con el patrón de Tema y `PreferencesSaveFailure`.
-- [ ] T048 [P] [US7] Accesibilidad instrumentada (ATF) en `…/androidTest/…/feature/settings/MultimodalAccessibilityTest.kt`: Ajustes con el modo en varias etapas, «Modo al importar PDF», la hoja de la Ingesta y el detalle con páginas. Al 200 % (`fontScale = 2f`) y en oscuro.
+- [X] T048 [P] [US7] Accesibilidad instrumentada (ATF) en `…/androidTest/…/feature/settings/MultimodalAccessibilityTest.kt`: Ajustes con el modo en varias etapas, «Modo al importar PDF», la hoja de la Ingesta y el detalle con páginas. Al 200 % (`fontScale = 2f`) y en oscuro.
 - [ ] T049 [US7] Revisión del wireframe frente a las pantallas, en el emulador: las diferencias se anotan en `specs/019-visual-indexing/report.md` §6.
 
 **Checkpoint:** pantallas fieles al wireframe, accesibles y traducidas.
