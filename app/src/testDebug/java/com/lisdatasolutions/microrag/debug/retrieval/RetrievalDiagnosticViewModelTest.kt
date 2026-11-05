@@ -111,7 +111,25 @@ class RetrievalDiagnosticViewModelTest {
 
     @Test
     fun theViewModelOnlyDependsOnTheUseCase_soItCannotLog() {
-        val parameters = RetrievalDiagnosticViewModel::class.java.constructors.single().parameterTypes.toList()
-        assertThat(parameters).containsExactly(RetrieveContextUseCase::class.java)
+        // F20: plus whether the mode is on, a plain function; still no logger.
+        val parameters = RetrievalDiagnosticViewModel::class.java.constructors.filterNot { it.isSynthetic }
+            .maxBy { it.parameterCount }.parameterTypes.toList()
+        assertThat(parameters).containsExactly(RetrieveContextUseCase::class.java, kotlin.jvm.functions.Function1::class.java).inOrder()
+    }
+
+    /** F20 T048 (research R17): pages are searched only with the mode on, as the chat does. */
+    @Test
+    fun thePagesAreSearched_onlyWithTheModeOn() = runTest(main) {
+        var modeOn = false
+        val vm = RetrievalDiagnosticViewModel(RetrieveContextUseCase(retriever)) { modeOn }
+
+        vm.onQuestionChange("¿Qué dice la tabla?")
+        vm.onSearch()
+        advanceUntilIdle()
+        modeOn = true
+        vm.onSearch()
+        advanceUntilIdle()
+
+        assertThat(requests.map { it.withPages }).containsExactly(false, true).inOrder()
     }
 }

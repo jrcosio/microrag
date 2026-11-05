@@ -391,14 +391,14 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
 
 **Goal:** las tres listas y el contexto en debug (FR-022).
 
-- [ ] T048 [P] [US8] `app/src/testDebug/java/com/lisdatasolutions/microrag/debug/retrieval/RetrievalDiagnosticViewModelTest.kt`, donde ya existe (analyze P1): las cinco secciones de R17 y la de páginas solo con el modo activo.
-- [ ] T049 [US8] `…/debug/…/debug/retrieval/{RetrievalDiagnosticScreen,RetrievalDiagnosticViewModel}.kt`, con `RetrievalResult.lists` y las páginas. La verificación de release comprueba que no está en el APK. T048 pasa.
+- [X] T048 [P] [US8] `app/src/testDebug/java/com/lisdatasolutions/microrag/debug/retrieval/RetrievalDiagnosticViewModelTest.kt`, donde ya existe (analyze P1): las cinco secciones de R17 y la de páginas solo con el modo activo.
+- [X] T049 [US8] `…/debug/…/debug/retrieval/{RetrievalDiagnosticScreen,RetrievalDiagnosticViewModel}.kt`, con `RetrievalResult.lists` y las páginas. La verificación de release comprueba que no está en el APK. T048 pasa.
 
 ---
 
 ## Phase 11: Polish, medición y cierre
 
-- [ ] T050 [P] Registros (R18, FR-021): `theLogHasOneLineOfNumbers_andNoText` y `oneLogLinePerRetrieval_withNumbersOnly` con una página y marcadores «SECRETO» en el nombre, la etiqueta y la imagen; `AppLoggerTest` sin cambios.
+- [X] T050 [P] Registros (R18, FR-021): `theLogHasOneLineOfNumbers_andNoText` y `oneLogLinePerRetrieval_withNumbersOnly` con una página y marcadores «SECRETO» en el nombre, la etiqueta y la imagen; `AppLoggerTest` sin cambios.
 - [ ] T051 [P] `…/androidTest/…/rag/runtime/litert/GemmaVisionSmokeTest.kt` (`@RequiresModels`, R19): una página generada con `PdfDocument` que dice un número. Gemma, con la v5-visual y Equilibrado, lo lee y cita `[1]`. Se salta sin Gemma.
 - [ ] T052 [P] `…/androidTest/…/data/chat/VisualChatBenchmarkTest.kt` (`@RequiresModels`, R19, SC-003):
   - un índice temporal con la 440M;

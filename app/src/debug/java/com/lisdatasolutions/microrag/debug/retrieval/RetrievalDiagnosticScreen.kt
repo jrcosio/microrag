@@ -32,6 +32,7 @@ import com.lisdatasolutions.microrag.core.designsystem.preview.LisdataPreviews
 import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
 import com.lisdatasolutions.microrag.debug.retrieval.RetrievalDiagnosticUiState.Status
 import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
+import com.lisdatasolutions.microrag.domain.rag.RagParameters
 import com.lisdatasolutions.microrag.domain.retrieval.CandidateScore
 import com.lisdatasolutions.microrag.domain.retrieval.ContextBlock
 import com.lisdatasolutions.microrag.domain.retrieval.RetrievalOutcome
@@ -129,6 +130,13 @@ private fun LazyListScope.resultSections(result: RetrievalResult) {
     val outcome = result.outcome as? RetrievalOutcome.Blocks ?: return
     item { LisdataSectionHeader(stringResource(R.string.retrieval_section_blocks)) }
     itemsIndexed(outcome.blocks, key = { index, _ -> "block-$index" }) { index, block -> BlockCard(index + 1, block) }
+    // F20 (research R17): the two searches apart, then their fusion, then the pages, ids and numbers only.
+    item { LisdataSectionHeader(stringResource(R.string.retrieval_section_vector)) }
+    item {
+        Lines(result.lists.vector.mapIndexed { i, hit -> stringResource(R.string.retrieval_vector_hit, i + 1, hit.id, num(hit.distance, 3)) })
+    }
+    item { LisdataSectionHeader(stringResource(R.string.retrieval_section_lexical)) }
+    item { Lines(result.lists.lexical.mapIndexed { i, id -> stringResource(R.string.retrieval_lexical_hit, i + 1, id) }) }
     item { LisdataSectionHeader(stringResource(R.string.retrieval_section_candidates)) }
     item {
         LisdataCard(modifier = Modifier.fillMaxWidth()) {
@@ -136,6 +144,27 @@ private fun LazyListScope.resultSections(result: RetrievalResult) {
                 if (index > 0) LisdataDivider()
                 BodyText(candidateLine(candidate))
             }
+        }
+    }
+    if (result.timings.pagesMs != null) {
+        item { LisdataSectionHeader(stringResource(R.string.retrieval_section_pages)) }
+        item {
+            val lines = outcome.pages.mapIndexed { i, page ->
+                val line = stringResource(R.string.retrieval_page_hit, i + 1, page.documentId, page.page, num(page.distance, 3))
+                if (i < RagParameters.ANSWER_PAGES) stringResource(R.string.retrieval_page_in_context, line) else line
+            }
+            Lines(lines.ifEmpty { listOf(stringResource(R.string.retrieval_no_pages)) })
+        }
+    }
+}
+
+@Composable
+private fun Lines(lines: List<String>) {
+    LisdataCard(modifier = Modifier.fillMaxWidth()) {
+        if (lines.isEmpty()) BodyText(stringResource(R.string.retrieval_absent))
+        lines.forEachIndexed { index, line ->
+            if (index > 0) LisdataDivider()
+            BodyText(line)
         }
     }
 }
@@ -174,6 +203,7 @@ private fun TimingsCard(timings: RetrievalTimings) {
         BodyText(stringResource(R.string.retrieval_timing_vector, ms(timings.vectorMs)))
         BodyText(stringResource(R.string.retrieval_timing_text, ms(timings.textMs)))
         BodyText(stringResource(R.string.retrieval_timing_selection, ms(timings.selectionMs)))
+        timings.pagesMs?.let { BodyText(stringResource(R.string.retrieval_timing_pages, ms(it))) }
         BodyText(stringResource(R.string.retrieval_timing_total, ms(timings.totalMs)))
         BodyText(stringResource(R.string.retrieval_engine_loaded, yesNo(!timings.coldEngine)))
     }

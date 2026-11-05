@@ -22,8 +22,11 @@ import com.google.common.truth.Truth.assertThat
 import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
 import com.lisdatasolutions.microrag.debug.retrieval.RetrievalDiagnosticUiState.Status
 import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
+import com.lisdatasolutions.microrag.domain.rag.ScoredChunk
+import com.lisdatasolutions.microrag.domain.rag.ScoredPage
 import com.lisdatasolutions.microrag.domain.retrieval.CandidateScore
 import com.lisdatasolutions.microrag.domain.retrieval.ContextBlock
+import com.lisdatasolutions.microrag.domain.retrieval.RetrievalLists
 import com.lisdatasolutions.microrag.domain.retrieval.RetrievalOutcome
 import com.lisdatasolutions.microrag.domain.retrieval.RetrievalResult
 import com.lisdatasolutions.microrag.domain.retrieval.RetrievalTimings
@@ -172,5 +175,33 @@ class RetrievalDiagnosticScreenTest {
                 CandidateScore(77, 3, 0.016129, null, null, 1, selected = false),
             ),
         )
+    }
+
+    /** F20 T048 (research R17): the two searches apart and, with the mode on, the pages and which one enters. */
+    @Test
+    fun theListsApart_andThePagesWithTheOneThatEnters() {
+        val outcome = (BLOCKS as RetrievalOutcome.Blocks).copy(
+            pages = listOf(ScoredPage(9, 4, 0.2, "Informe.pdf", "9-4.jpg", false), ScoredPage(9, 5, 0.31, "Informe.pdf", "9-5.jpg", false)),
+        )
+        val state = done(outcome).let { it.copy(status = Status.Done((it.status as Status.Done).result.copy(
+            timings = RetrievalTimings(118.24, 22.9, 19.36, 3.14, 146.04, coldEngine = true, pagesMs = 12.5),
+            lists = RetrievalLists(vector = listOf(ScoredChunk(815, 0.123)), lexical = listOf(77, 815)),
+        ))) }
+        show(state)
+
+        exists("#1 · id 815 · distancia 0.123")
+        exists("#2 · id 815")
+        exists("Páginas: 12.5 ms")
+        exists("#1 · documento 9 · página 4 · distancia 0.200 · entra en el contexto")
+        exists("#2 · documento 9 · página 5 · distancia 0.310")
+        absent("página 5 · distancia 0.310 · entra")
+    }
+
+    @Test
+    fun withoutPages_thereIsNoPageSection() {
+        show(done(BLOCKS))
+
+        absent("Ninguna página")
+        absent("Páginas:")
     }
 }

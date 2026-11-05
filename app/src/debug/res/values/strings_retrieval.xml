@@ -33,10 +33,19 @@
     <string name="retrieval_block_heading" translatable="false">Ruta: %1$s</string>
     <string name="retrieval_block_page" translatable="false">Página %1$d</string>
     <string name="retrieval_block_chunks" translatable="false">Fragmentos %1$s · ids %2$s · tokens: %3$d</string>
+    <string name="retrieval_section_vector" translatable="false">Vectores</string>
+    <string name="retrieval_vector_hit" translatable="false">#%1$d · id %2$d · distancia %3$s</string>
+    <string name="retrieval_section_lexical" translatable="false">Palabras</string>
+    <string name="retrieval_lexical_hit" translatable="false">#%1$d · id %2$d</string>
     <string name="retrieval_section_candidates" translatable="false">Candidatos</string>
     <string name="retrieval_candidate" translatable="false">#%1$d · id %2$d · RRF %3$s · vector %4$s · léxica %5$s</string>
     <string name="retrieval_candidate_vector" translatable="false">%1$d (%2$s)</string>
     <string name="retrieval_candidate_selected" translatable="false">%1$s · elegido</string>
+    <string name="retrieval_section_pages" translatable="false">Páginas</string>
+    <string name="retrieval_page_hit" translatable="false">#%1$d · documento %2$d · página %3$d · distancia %4$s</string>
+    <string name="retrieval_page_in_context" translatable="false">%1$s · entra en el contexto</string>
+    <string name="retrieval_no_pages" translatable="false">Ninguna página</string>
+    <string name="retrieval_timing_pages" translatable="false">Páginas: %1$s ms</string>
     <string name="retrieval_absent" translatable="false">—</string>
     <string name="retrieval_yes" translatable="false">sí</string>
     <string name="retrieval_no" translatable="false">no</string>
