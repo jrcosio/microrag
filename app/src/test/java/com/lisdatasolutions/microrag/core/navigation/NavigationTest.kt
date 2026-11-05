@@ -79,6 +79,10 @@ import com.lisdatasolutions.microrag.domain.model.ModelCatalog
 import com.lisdatasolutions.microrag.domain.model.ModelId
 import com.lisdatasolutions.microrag.domain.model.OnboardingStage
 import com.lisdatasolutions.microrag.domain.model.StartDestination
+import com.lisdatasolutions.microrag.domain.multimodal.MultimodalStage
+import com.lisdatasolutions.microrag.domain.multimodal.ObserveImportModeUseCase
+import com.lisdatasolutions.microrag.domain.multimodal.SetDefaultImportModeUseCase
+import com.lisdatasolutions.microrag.domain.multimodal.StoredMultimodal
 import com.lisdatasolutions.microrag.domain.onboarding.BuildDownloadConfirmationUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.CompleteOnboardingUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.FakeOnboardingStore
@@ -111,9 +115,9 @@ import com.lisdatasolutions.microrag.feature.indexing.IndexViewModel
 import com.lisdatasolutions.microrag.feature.ingest.IngestViewModel
 import com.lisdatasolutions.microrag.feature.library.LibraryViewModel
 import com.lisdatasolutions.microrag.feature.onboarding.setup.SetupViewModel
+import com.lisdatasolutions.microrag.feature.settings.ImportModeViewModel
 import com.lisdatasolutions.microrag.feature.settings.LanguagesViewModel
 import com.lisdatasolutions.microrag.feature.settings.SettingsViewModel
-import com.lisdatasolutions.microrag.testing.fakeMultimodalSettingsViewModel
 import com.lisdatasolutions.microrag.feature.settings.ThemeViewModel
 import com.lisdatasolutions.microrag.rag.runtime.CompatibilityResult
 import com.lisdatasolutions.microrag.testing.ChatTestGraph
@@ -124,9 +128,11 @@ import com.lisdatasolutions.microrag.testing.FakeChatSession
 import com.lisdatasolutions.microrag.testing.FakeImportQueueRepository
 import com.lisdatasolutions.microrag.testing.FakeLibraryRepository
 import com.lisdatasolutions.microrag.testing.FakeModelSetup
+import com.lisdatasolutions.microrag.testing.FakeMultimodalStore
 import com.lisdatasolutions.microrag.testing.InMemoryChatRepository
 import com.lisdatasolutions.microrag.testing.InMemoryModelFileRepository
 import com.lisdatasolutions.microrag.testing.RecordingLogger
+import com.lisdatasolutions.microrag.testing.fakeMultimodalSettingsViewModel
 import java.io.ByteArrayInputStream
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -205,6 +211,8 @@ internal fun settingsViewModels(
     language: FakeAppLanguageController = FakeAppLanguageController(),
     themeStore: FakeAppThemeStore = FakeAppThemeStore(),
     themeController: FakeAppThemeController = FakeAppThemeController(),
+    /** F19: the multimodal mode's copy, shared by Ajustes and «Modo al importar PDF». */
+    multimodal: FakeMultimodalStore = FakeMultimodalStore(),
 ) = module {
     single { SettingsNotices() }
     viewModel {
@@ -222,7 +230,8 @@ internal fun settingsViewModels(
             Dispatchers.Unconfined,
         )
     }
-    viewModel { fakeMultimodalSettingsViewModel(savedState = get()) }
+    viewModel { fakeMultimodalSettingsViewModel(savedState = get(), store = multimodal) }
+    viewModel { ImportModeViewModel(ObserveImportModeUseCase(multimodal), SetDefaultImportModeUseCase(multimodal), get()) }
     viewModel { LanguagesViewModel(ObserveLanguageSettingsUseCase(language), SaveLanguageSettingsUseCase(language, get()), get()) }
     viewModel { ThemeViewModel(ObserveThemeSettingsUseCase(themeStore), SaveThemeSettingsUseCase(themeStore, themeController, get()), get()) }
     // «Completar configuración» in a model sheet opens the Preparation (F12 S2), over the same fakes.
@@ -302,6 +311,7 @@ class NavigationTest {
         ready(ModelId.EG2_270M, ComputeBackend.CPU)
     }
     private val chat = ChatTestGraph()
+    private val multimodal = FakeMultimodalStore()
 
     @get:Rule(order = 0)
     val ingestGraph = object : ExternalResource() {
@@ -311,7 +321,7 @@ class NavigationTest {
                 modules(
                     libraryViewModels(library),
                     homeViewModels(),
-                    settingsViewModels(models),
+                    settingsViewModels(models, multimodal = multimodal),
                     chatViewModels(chat),
                     module {
                         viewModel {
@@ -831,6 +841,24 @@ class NavigationTest {
 
         settingsControl(context.getString(R.string.settings_theme))
         settingsControl(context.getString(R.string.languages_save))
+        assertThat(nav.currentDestination?.hasRoute(Settings::class)).isTrue()
+        assertThat(routesInBackStack()).hasSize(2)
+    }
+
+    /** F19 T047 (contract U5–U6): with the mode on, «Modo al importar PDF» opens, and Back or a save return to Ajustes. */
+    @Test
+    fun importModeFromSettings_backOrSave_returnToSettings() {
+        multimodal.state.value = StoredMultimodal(MultimodalStage.ON)
+        launchShell()
+        openSettings()
+
+        settingsControl(context.getString(R.string.import_mode_title))
+        assertThat(nav.currentDestination?.hasRoute(ImportMode::class)).isTrue()
+        backArrow()
+        assertThat(nav.currentDestination?.hasRoute(Settings::class)).isTrue()
+
+        settingsControl(context.getString(R.string.import_mode_title))
+        settingsControl(context.getString(R.string.import_mode_save))
         assertThat(nav.currentDestination?.hasRoute(Settings::class)).isTrue()
         assertThat(routesInBackStack()).hasSize(2)
     }

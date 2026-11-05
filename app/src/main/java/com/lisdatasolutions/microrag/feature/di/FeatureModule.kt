@@ -11,6 +11,7 @@ import com.lisdatasolutions.microrag.feature.ingest.IngestViewModel
 import com.lisdatasolutions.microrag.feature.library.LibraryViewModel
 import com.lisdatasolutions.microrag.feature.onboarding.setup.SetupViewModel
 import com.lisdatasolutions.microrag.feature.onboarding.welcome.WelcomeViewModel
+import com.lisdatasolutions.microrag.feature.settings.ImportModeViewModel
 import com.lisdatasolutions.microrag.feature.settings.LanguagesViewModel
 import com.lisdatasolutions.microrag.feature.settings.MultimodalSettingsViewModel
 import com.lisdatasolutions.microrag.feature.settings.SettingsViewModel
@@ -40,5 +41,6 @@ val featureModule = module {
     viewModel { MultimodalSettingsViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModelOf(::LanguagesViewModel)
     viewModelOf(::ThemeViewModel)
+    viewModelOf(::ImportModeViewModel)
     viewModel { HistoryViewModel(get(), get(), get(), get()) }
 }

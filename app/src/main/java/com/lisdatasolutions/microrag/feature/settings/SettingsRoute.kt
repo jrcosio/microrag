@@ -15,6 +15,7 @@ fun SettingsRoute(
     onLanguages: () -> Unit,
     onTheme: () -> Unit,
     onIndex: () -> Unit,
+    onImportMode: () -> Unit = {},
     viewModel: SettingsViewModel = koinViewModel(),
     multimodalViewModel: MultimodalSettingsViewModel = koinViewModel(),
 ) {
@@ -45,6 +46,7 @@ fun SettingsRoute(
             onDismissDialog = multimodalViewModel::onDismissDialog,
             onAction = multimodalViewModel::onAction,
             onNoticeShown = multimodalViewModel::onNoticeShown,
+            onImportMode = onImportMode,
         ),
     )
 }

@@ -4,12 +4,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.Lifecycle
 import com.lisdatasolutions.microrag.domain.rag.LibraryFolderFilter
 import com.lisdatasolutions.microrag.feature.chat.ChatRoute
 import com.lisdatasolutions.microrag.feature.document.DocumentRoute
@@ -21,6 +21,7 @@ import com.lisdatasolutions.microrag.feature.library.LibraryMessage
 import com.lisdatasolutions.microrag.feature.library.LibraryRoute
 import com.lisdatasolutions.microrag.feature.onboarding.setup.SetupRoute
 import com.lisdatasolutions.microrag.feature.onboarding.welcome.WelcomeRoute
+import com.lisdatasolutions.microrag.feature.settings.ImportModeRoute
 import com.lisdatasolutions.microrag.feature.settings.LanguagesRoute
 import com.lisdatasolutions.microrag.feature.settings.SettingsRoute
 import com.lisdatasolutions.microrag.feature.settings.ThemeRoute
@@ -162,11 +163,14 @@ fun MicroRagNavHost(
                 onLanguages = { navController.navigate(Languages) { launchSingleTop = true } },
                 onTheme = { navController.navigate(Theme) { launchSingleTop = true } },
                 onIndex = { navController.navigate(Index) { launchSingleTop = true } },
+                onImportMode = { navController.navigate(ImportMode) { launchSingleTop = true } },
             )
         }
         // S7: Back and a save both return to where Idiomas was opened from, Ajustes or Home.
         composable<Languages> { LanguagesRoute(onBack = back) }
         // F16 U3: Back and a save both return to Ajustes; the system recreates the activity in the new theme.
         composable<Theme> { ThemeRoute(onBack = back) }
+        // F19 U6: as Tema, Back and a save both return to Ajustes.
+        composable<ImportMode> { ImportModeRoute(onBack = back) }
     }
 }

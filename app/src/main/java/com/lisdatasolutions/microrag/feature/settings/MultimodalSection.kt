@@ -2,8 +2,8 @@ package com.lisdatasolutions.microrag.feature.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,14 +16,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import com.lisdatasolutions.microrag.R
+import com.lisdatasolutions.microrag.core.designsystem.component.LisdataCardGroup
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataConfirmationDialog
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataLinearProgress
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataOutlinedButton
+import com.lisdatasolutions.microrag.core.designsystem.component.LisdataSettingsRow
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataSwitchRow
+import com.lisdatasolutions.microrag.core.designsystem.icon.LisdataIcons
 import com.lisdatasolutions.microrag.core.designsystem.model.ProgressValue
 import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
 import com.lisdatasolutions.microrag.domain.multimodal.MultimodalError
 import com.lisdatasolutions.microrag.domain.multimodal.MultimodalStage
+import com.lisdatasolutions.microrag.feature.ingest.summary
 import com.lisdatasolutions.microrag.feature.onboarding.setup.bytesText
 
 /** What the «Modo multimodal» block asks for; [MultimodalSettingsViewModel] decides what happens. */
@@ -34,6 +38,8 @@ data class MultimodalActions(
     val onDismissDialog: () -> Unit = {},
     val onAction: (MultimodalAction) -> Unit = {},
     val onNoticeShown: () -> Unit = {},
+    /** U5: «Modo al importar PDF», only with the mode on. */
+    val onImportMode: () -> Unit = {},
 )
 
 /**
@@ -55,6 +61,18 @@ fun MultimodalSection(state: MultimodalUiState, actions: MultimodalActions, modi
         )
         if (state.showsProgress) {
             LisdataLinearProgress(state.percent?.let { ProgressValue.Determinate(it / 100f) } ?: ProgressValue.Indeterminate)
+        }
+        // U5 (wireframe §1): the default mode of the imports, with the mode on.
+        if (state.stage == MultimodalStage.ON) {
+            LisdataCardGroup {
+                LisdataSettingsRow(
+                    icon = LisdataIcons.Layers,
+                    title = stringResource(R.string.import_mode_title),
+                    subtitle = stringResource(state.defaultMode.summary()),
+                    onClick = actions.onImportMode,
+                    modifier = Modifier.testTag("import_mode_row"),
+                )
+            }
         }
         if (state.actions.isNotEmpty()) {
             FlowRow(horizontalArrangement = Arrangement.spacedBy(spacing.space2), verticalArrangement = Arrangement.spacedBy(spacing.space2)) {

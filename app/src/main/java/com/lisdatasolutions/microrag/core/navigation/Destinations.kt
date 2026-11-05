@@ -56,3 +56,7 @@ data object Languages
 /** F16: Tema, opened from Ajustes (D-067). */
 @Serializable
 data object Theme
+
+/** F19: «Modo al importar PDF», opened from Ajustes with the multimodal mode on (contract U5). */
+@Serializable
+data object ImportMode

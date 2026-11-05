@@ -371,7 +371,7 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
 
 ### Pruebas e implementación
 
-- [ ] T047 [P] [US7] «Modo al importar PDF» (U5, U6):
+- [X] T047 [P] [US7] «Modo al importar PDF» (U5, U6):
   - `…/microrag/feature/settings/ImportModeScreen.kt` e `ImportModeViewModel.kt`;
   - la ruta `ImportModeRoute` en `core/navigation`;
   - sus pruebas: `ImportModeViewModelTest`, `ImportModeScreenTest` y `NavigationTest`.
