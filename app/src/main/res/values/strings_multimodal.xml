@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- F19 Modo multimodal e indexación visual (wireframe §1–§8, contracts/multimodal-ui.md, D-078, D-079, D-081). -->
+<resources>
+    <!-- Ajustes: interruptor y etapas (U2–U4, U7). -->
+    <string name="multimodal_title">Modo multimodal</string>
+    <string name="multimodal_subtitle">Lee también páginas e imágenes. Respuestas más lentas.</string>
+    <string name="multimodal_stage_downloading">Descargando el modelo · %1$d %%</string>
+    <string name="multimodal_stage_paused">Descarga en pausa</string>
+    <string name="multimodal_stage_validating">Comprobando el modelo…</string>
+    <string name="multimodal_stage_switching">Cambiando el modelo de búsqueda…</string>
+    <string name="multimodal_error_no_space">Falta espacio: libera %1$s</string>
+    <string name="multimodal_error_offline">Sin conexión. Se reanudará sola</string>
+    <string name="multimodal_error_download">No se ha podido descargar el modelo</string>
+    <string name="multimodal_error_identity">Este modelo no es compatible con tu teléfono</string>
+    <string name="multimodal_error_prepare">No se ha podido preparar el modelo</string>
+    <string name="multimodal_action_pause">Pausar</string>
+    <string name="multimodal_action_resume">Reanudar</string>
+    <string name="multimodal_action_cancel">Cancelar</string>
+    <string name="multimodal_action_retry">Reintentar</string>
+    <string name="multimodal_action_ok">Aceptar</string>
+    <string name="multimodal_enabled_snackbar">Modo multimodal activado</string>
+    <!-- Diálogo de activar (U3). -->
+    <string name="multimodal_enable_title">¿Activar el modo multimodal?</string>
+    <string name="multimodal_enable_body">La app leerá también las páginas de tus PDF y tus imágenes.</string>
+    <string name="multimodal_enable_download">Descarga un modelo de %1$s.</string>
+    <string name="multimodal_enable_pages">Cada página tarda unos 3 s en indexarse y ocupa unos 100 KB.</string>
+    <string name="multimodal_enable_answers">Las respuestas que miran páginas tardan 10–15 s.</string>
+    <string name="multimodal_enable_text">Tus documentos de texto siguen funcionando igual.</string>
+    <string name="multimodal_enable_confirm">Activar</string>
+    <!-- Diálogo de desactivar (U4). -->
+    <string name="multimodal_disable_title">¿Desactivar el modo multimodal?</string>
+    <string name="multimodal_disable_body">Solo podrás importar en Texto. Las páginas ya indexadas y el modelo se conservan: si lo vuelves a activar, estará listo al momento.</string>
+    <string name="multimodal_disable_confirm">Desactivar</string>
+    <!-- Modo al importar PDF (U5, U6). -->
+    <string name="import_mode_title">Modo al importar PDF</string>
+    <string name="import_mode_both">Ambos</string>
+    <string name="import_mode_both_subtitle">Texto y páginas. Lo más completo y lo más lento.</string>
+    <string name="import_mode_text">Texto</string>
+    <string name="import_mode_text_subtitle">Como hasta ahora.</string>
+    <string name="import_mode_visual">Visual</string>
+    <string name="import_mode_visual_subtitle">Solo páginas. Para escaneados y documentos con muchas tablas.</string>
+    <string name="import_mode_both_summary">Ambos (texto y páginas)</string>
+    <string name="import_mode_images_note">Las imágenes JPG y PNG se indexan siempre como páginas.</string>
+    <string name="import_mode_save">Guardar</string>
+    <!-- Ingesta (U8–U10, wireframe §8). -->
+    <string name="ingest_mode_row">Modo de los PDF</string>
+    <string name="ingest_pages_progress">Indexando páginas · %1$s / %2$s</string>
+    <plurals name="ingest_pages_estimate">
+        <item quantity="one">%1$s página · %2$s · ≈ %3$s</item>
+        <item quantity="other">%1$s páginas · %2$s · ≈ %3$s</item>
+    </plurals>
+    <string name="ingest_pages_estimate_time">unos %1$s</string>
+    <string name="ingest_pages_no_space">Falta espacio para las páginas: libera %1$s</string>
+    <string name="ingest_error_image_needs_multimodal">Imagen no admitida</string>
+    <string name="ingest_error_image_needs_multimodal_detail">Activa el modo multimodal en Ajustes para importar imágenes</string>
+    <string name="ingest_error_image_unreadable">Imagen no válida</string>
+    <string name="ingest_error_image_unreadable_detail">No se ha podido leer la imagen</string>
+    <!-- Indexación y notificación (U15–U17). -->
+    <string name="index_stage_pages">Imágenes de página</string>
+    <string name="index_pages">%1$s / %2$s páginas</string>
+    <string name="index_pages_ring_description">%1$d %% completado, %2$s de %3$s páginas</string>
+    <string name="index_paused_model_switch">En pausa: cambiando el modelo de búsqueda</string>
+    <string name="index_paused_model_switch_body">Se reanudará sola en unos segundos.</string>
+    <string name="index_waiting_multimodal">Esperando al modo multimodal</string>
+    <string name="index_waiting_multimodal_body">Este documento tiene páginas. Activa el modo multimodal en Ajustes para terminarlo.</string>
+    <string name="index_notification_pages">Indexando páginas · %1$s / %2$s</string>
+    <!-- Biblioteca y detalle (U11–U14). -->
+    <string name="document_mode_label">Modo de indexación</string>
+    <string name="document_mode_text">Texto</string>
+    <string name="document_mode_visual">Visual</string>
+    <string name="document_mode_both">Ambos</string>
+    <string name="document_pages_label">Páginas</string>
+    <plurals name="document_pages">
+        <item quantity="one">%1$s página</item>
+        <item quantity="other">%1$s páginas</item>
+    </plurals>
+    <string name="document_format_image">Imagen</string>
+    <string name="document_visual_only_note">Solo páginas. Todavía no se usa en el chat</string>
+    <string name="document_pages_need_multimodal">Sus páginas necesitan el modo multimodal</string>
+    <string name="document_reindex_as_pages">Reindexar como páginas</string>
+</resources>

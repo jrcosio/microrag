@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- F19 multimodal mode and visual indexing (wireframe §1–§8, contracts/multimodal-ui.md, D-078, D-079, D-081). -->
+<resources>
+    <string name="multimodal_title">Multimodal mode</string>
+    <string name="multimodal_subtitle">Also reads pages and images. Slower answers.</string>
+    <string name="multimodal_stage_downloading">Downloading the model · %1$d%%</string>
+    <string name="multimodal_stage_paused">Download paused</string>
+    <string name="multimodal_stage_validating">Checking the model…</string>
+    <string name="multimodal_stage_switching">Switching the search model…</string>
+    <string name="multimodal_error_no_space">Not enough space: free up %1$s</string>
+    <string name="multimodal_error_offline">No connection. It will resume by itself</string>
+    <string name="multimodal_error_download">The model could not be downloaded</string>
+    <string name="multimodal_error_identity">This model is not compatible with your phone</string>
+    <string name="multimodal_error_prepare">The model could not be prepared</string>
+    <string name="multimodal_action_pause">Pause</string>
+    <string name="multimodal_action_resume">Resume</string>
+    <string name="multimodal_action_cancel">Cancel</string>
+    <string name="multimodal_action_retry">Retry</string>
+    <string name="multimodal_action_ok">OK</string>
+    <string name="multimodal_enabled_snackbar">Multimodal mode on</string>
+    <string name="multimodal_enable_title">Turn on multimodal mode?</string>
+    <string name="multimodal_enable_body">The app will also read the pages of your PDFs and your images.</string>
+    <string name="multimodal_enable_download">Downloads a %1$s model.</string>
+    <string name="multimodal_enable_pages">Each page takes about 3 s to index and uses about 100 KB.</string>
+    <string name="multimodal_enable_answers">Answers that look at pages take 10–15 s.</string>
+    <string name="multimodal_enable_text">Your text documents keep working as before.</string>
+    <string name="multimodal_enable_confirm">Turn on</string>
+    <string name="multimodal_disable_title">Turn off multimodal mode?</string>
+    <string name="multimodal_disable_body">You will only be able to import as Text. Pages already indexed and the model are kept: if you turn it on again, it will be ready right away.</string>
+    <string name="multimodal_disable_confirm">Turn off</string>
+    <string name="import_mode_title">PDF import mode</string>
+    <string name="import_mode_both">Both</string>
+    <string name="import_mode_both_subtitle">Text and pages. The most complete and the slowest.</string>
+    <string name="import_mode_text">Text</string>
+    <string name="import_mode_text_subtitle">As before.</string>
+    <string name="import_mode_visual">Visual</string>
+    <string name="import_mode_visual_subtitle">Pages only. For scans and documents with many tables.</string>
+    <string name="import_mode_both_summary">Both (text and pages)</string>
+    <string name="import_mode_images_note">JPG and PNG images are always indexed as pages.</string>
+    <string name="import_mode_save">Save</string>
+    <string name="ingest_mode_row">PDF mode</string>
+    <string name="ingest_pages_progress">Indexing pages · %1$s / %2$s</string>
+    <plurals name="ingest_pages_estimate">
+        <item quantity="one">%1$s page · %2$s · ≈ %3$s</item>
+        <item quantity="other">%1$s pages · %2$s · ≈ %3$s</item>
+    </plurals>
+    <string name="ingest_pages_estimate_time">about %1$s</string>
+    <string name="ingest_pages_no_space">Not enough space for the pages: free up %1$s</string>
+    <string name="ingest_error_image_needs_multimodal">Image not supported</string>
+    <string name="ingest_error_image_needs_multimodal_detail">Turn on multimodal mode in Settings to import images</string>
+    <string name="ingest_error_image_unreadable">Invalid image</string>
+    <string name="ingest_error_image_unreadable_detail">The image could not be read</string>
+    <string name="index_stage_pages">Page images</string>
+    <string name="index_pages">%1$s / %2$s pages</string>
+    <string name="index_pages_ring_description">%1$d%% done, %2$s of %3$s pages</string>
+    <string name="index_paused_model_switch">Paused: switching the search model</string>
+    <string name="index_paused_model_switch_body">It will resume by itself in a few seconds.</string>
+    <string name="index_waiting_multimodal">Waiting for multimodal mode</string>
+    <string name="index_waiting_multimodal_body">This document has pages. Turn on multimodal mode in Settings to finish it.</string>
+    <string name="index_notification_pages">Indexing pages · %1$s / %2$s</string>
+    <string name="document_mode_label">Indexing mode</string>
+    <string name="document_mode_text">Text</string>
+    <string name="document_mode_visual">Visual</string>
+    <string name="document_mode_both">Both</string>
+    <string name="document_pages_label">Pages</string>
+    <plurals name="document_pages">
+        <item quantity="one">%1$s page</item>
+        <item quantity="other">%1$s pages</item>
+    </plurals>
+    <string name="document_format_image">Image</string>
+    <string name="document_visual_only_note">Pages only. Not used in chat yet</string>
+    <string name="document_pages_need_multimodal">Its pages need multimodal mode</string>
+    <string name="document_reindex_as_pages">Reindex as pages</string>
+</resources>

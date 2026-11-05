@@ -1,0 +1,20 @@
+{"id": "q01", "kind": "query", "text": "¿Cada cuántas horas hay que revisar el motor de la bomba?"}
+{"id": "q02", "kind": "query", "text": "¿Cómo restablezco mi contraseña?"}
+{"id": "q03", "kind": "query", "text": "plazo para pedir un reembolso"}
+{"id": "q04", "kind": "query", "text": "¿Qué cubre la garantía del equipo?"}
+{"id": "q05", "kind": "query", "text": "temperatura máxima de trabajo"}
+{"id": "q06", "kind": "query", "text": "¿Quién aprueba los proveedores que no están homologados?"}
+{"id": "q07", "kind": "query", "text": "horario de la biblioteca en agosto"}
+{"id": "q08", "kind": "query", "text": "¿Cuántos días de vacaciones tiene un trabajador a tiempo parcial?"}
+{"id": "q09", "kind": "query", "text": "versión de firmware recomendada antes de conectar el equipo"}
+{"id": "q10", "kind": "query", "text": "riesgos críticos de la sala de servidores"}
+{"id": "d01", "kind": "doc", "text": "El motor de la bomba hidráulica debe revisarse cada 500 horas de funcionamiento. La revisión incluye el control del nivel de aceite, el estado de las juntas y la medición de vibraciones. Si la vibración supera los 7 mm/s, hay que detener el equipo y avisar al servicio técnico."}
+{"id": "d02", "kind": "doc", "text": "Para restablecer la contraseña, pulse «¿Olvidaste tu contraseña?» en la pantalla de acceso. Recibirá un correo con un enlace válido durante 30 minutos. Por seguridad, la nueva contraseña no puede coincidir con ninguna de las tres anteriores."}
+{"id": "d03", "kind": "doc", "text": "Las solicitudes de reembolso deben presentarse en un plazo de 30 días desde la compra, acompañadas del ticket original. El importe se devuelve por el mismo medio de pago en un máximo de 14 días hábiles."}
+{"id": "d04", "kind": "doc", "text": "La garantía cubre los defectos de fabricación durante dos años desde la fecha de entrega. No cubre los daños causados por golpes, por un uso indebido o por reparaciones hechas fuera de los talleres autorizados."}
+{"id": "d05", "kind": "doc", "text": "La temperatura máxima de trabajo es de 85 °C. Por encima de ese valor, el sistema se apaga automáticamente para evitar daños y solo puede volver a arrancarse cuando la temperatura baja de 70 °C."}
+{"id": "d06", "kind": "doc", "text": "Los proveedores homologados figuran en el anexo II. Cualquier compra a un proveedor no homologado requiere la aprobación por escrito del director de compras y un informe que justifique la excepción."}
+{"id": "d07", "kind": "doc", "text": "La biblioteca abre de lunes a viernes de 9:00 a 20:00 y los sábados de 10:00 a 14:00. En agosto permanece cerrada por las tardes y los sábados."}
+{"id": "d08", "kind": "doc", "text": "Los trabajadores a tiempo parcial disfrutan de los mismos días naturales de vacaciones que los de jornada completa, 30 al año, y cobran la parte proporcional a su jornada."}
+{"id": "d09", "kind": "doc", "text": "Se recomienda actualizar el firmware a la versión 3.4.1 antes de conectar el equipo a la red de la planta. Las versiones anteriores tienen un fallo conocido en la sincronización horaria."}
+{"id": "d10", "kind": "doc", "text": "El análisis identificó tres puntos críticos: la alimentación eléctrica, que depende de un único SAI; la ventilación, insuficiente en verano; y el control de acceso, que no registra las entradas fuera de horario."}
