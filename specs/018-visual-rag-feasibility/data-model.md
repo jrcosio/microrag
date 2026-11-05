@@ -48,7 +48,7 @@ En `offline/testset/visual/questions.jsonl` (R9).
 | `type` | `tabla` · `grafico` · `escaneado` · `imagen` · `mixta` · `control` · `sin_respuesta` | — |
 | `question` | texto | Sin copiar frases literales de la página |
 | `doc` | id del manifiesto, o `null` | `null` solo en `sin_respuesta` |
-| `pages` | lista de `[doc_sha, page]` | Vacía solo en `sin_respuesta`; las páginas existen |
+| `pages` | lista de `[doc_sha, page]` | Vacía solo en `sin_respuesta`; las páginas existen y al menos una es de `doc`. Las de otro documento con el mismo contenido también cuentan (la foto y su original; el folleto de la BNE y la Gaceta de 1931) |
 | `expected_answer` | texto | — |
 | `key_facts` | lista de textos | Vacía solo en `sin_respuesta`; cada una está en su página |
 | `review` | `pendiente` · `ok` · `descartada` | — |

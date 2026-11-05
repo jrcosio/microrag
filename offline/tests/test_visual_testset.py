@@ -56,12 +56,21 @@ class RulesTest(unittest.TestCase):
         items[0] = question("v0001", pages=((4,),))
         self.assertTrue(any(e.startswith("V3") for e in visual_testset.validate(items, DOCS)))
 
-    def test_v4_pages_belong_to_the_document(self):
+    def test_v4_a_page_of_its_own_document_and_only_corpus_pages(self):
         items = balanced()
         bad = question("v0001")
         bad.pages = [["sha-b", 1]]
         items[0] = bad
-        self.assertTrue(any(e.startswith("V4") for e in visual_testset.validate(items, DOCS)))
+        self.assertTrue(any(e.startswith("V4") and "no page" in e for e in visual_testset.validate(items, DOCS)))
+        bad.pages = [["sha-a", 1], ["sha-x", 1]]
+        self.assertTrue(any(e.startswith("V4") and "outside" in e for e in visual_testset.validate(items, DOCS)))
+
+    def test_v4_pages_of_another_document_with_the_same_content_are_allowed(self):
+        items = balanced()
+        items[0].pages = [["sha-a", 1], ["sha-b", 1]]
+        self.assertEqual(visual_testset.validate(items, DOCS), [])
+        items[0].pages = [["sha-a", 1], ["sha-b", 2]]
+        self.assertTrue(any(e.startswith("V3") for e in visual_testset.validate(items, DOCS)))
 
     def test_v5_facts_only_when_answerable(self):
         items = balanced()

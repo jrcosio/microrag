@@ -1,7 +1,9 @@
 """The visual test set of F18 (research R9, data-model §1.3, D-033, D-073).
 
 Questions are drafted by separate agents from the page images and reviewed by the main session, page in
-view. Relevance is by (document, page), not by literal evidence: scanned pages and images have no text.
+view. Relevance is by (document, page), not by literal evidence: scanned pages and images have no text. A
+question needs a page of its own document; pages of another document with the same content are relevant too
+(a photo and its original, a booklet and the Gaceta that printed the same law).
 """
 
 import csv
@@ -69,12 +71,14 @@ def validate(questions, docs, pre_review=False):
             if q.doc not in docs:
                 errors.append(f"V3 {q.id}: unknown document {q.doc}")
                 continue
-            sha, count, _ = docs[q.doc]
+            by_sha = {sha: count for sha, count, _ in docs.values()}
             for page_sha, page in q.pages:
-                if page_sha != sha:
-                    errors.append(f"V4 {q.id}: page of another document ({page_sha[:8]})")
-                elif not 1 <= page <= count:
-                    errors.append(f"V3 {q.id}: page {page} of {count}")
+                if page_sha not in by_sha:
+                    errors.append(f"V4 {q.id}: page of a document outside the corpus ({page_sha[:8]})")
+                elif not 1 <= page <= by_sha[page_sha]:
+                    errors.append(f"V3 {q.id}: page {page} of {by_sha[page_sha]}")
+            if q.pages and all(page_sha != docs[q.doc][0] for page_sha, _ in q.pages):
+                errors.append(f"V4 {q.id}: no page of its document {q.doc}")
             if not q.pages or not q.key_facts:
                 errors.append(f"V5 {q.id}: an answerable question needs its pages and key facts")
         elif q.doc or q.pages or q.key_facts:
