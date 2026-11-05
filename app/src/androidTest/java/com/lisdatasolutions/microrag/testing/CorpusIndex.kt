@@ -13,6 +13,7 @@ import com.lisdatasolutions.microrag.data.ingest.IngestRunner
 import com.lisdatasolutions.microrag.data.ingest.PlatformPdfOpener
 import com.lisdatasolutions.microrag.data.ingest.SafDocumentSource
 import com.lisdatasolutions.microrag.data.ingest.SourceInfo
+import com.lisdatasolutions.microrag.domain.model.ModelId
 import com.lisdatasolutions.microrag.domain.rag.DocumentStatus
 import com.lisdatasolutions.microrag.rag.ingest.DocumentExtractor
 import com.lisdatasolutions.microrag.rag.runtime.EngineCoordinator
@@ -37,9 +38,16 @@ class CorpusIndex(private val temp: TempRagIndex, private val root: File, privat
     private val context = instrumentation.targetContext
 
     /** Imports and indexes every document, on the backend this device picks for indexing (F07); manifest id → document id. */
-    suspend fun build(coordinator: EngineCoordinator, factory: EngineFactory, embeddingModel: File): Map<String, Long> {
+    suspend fun build(
+        coordinator: EngineCoordinator,
+        factory: EngineFactory,
+        embeddingModel: File,
+        textEmbedder: ModelId = ModelId.EG2_270M,
+    ): Map<String, Long> {
         val documents = importCorpus()
-        val session = ChunkEmbeddingSession(coordinator, factory, { embeddingModel }, InMemoryIngestRunStore(), APP_VERSION, temp.logger)
+        val session = ChunkEmbeddingSession(
+            coordinator, factory, { embeddingModel }, InMemoryIngestRunStore(), APP_VERSION, temp.logger, textEmbedder = { textEmbedder },
+        )
         val runner = IngestRunner(temp.index, DocumentExtractor(pdf), session, InMemoryIngestRunStore(), FakeThermalStatusSource(), { Long.MAX_VALUE }, Dispatchers.IO, temp.logger)
         runner.process(documents.values.toList()) { }
         documents.values.forEach { assertThat(temp.index.document(it)!!.status).isEqualTo(DocumentStatus.DONE) }

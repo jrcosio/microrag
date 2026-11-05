@@ -101,9 +101,12 @@ class RetrievalDuringIndexingTest {
             val factory = LiteRtEngineFactory(context, dispatchers)
             val runs = InMemoryIngestRunStore().apply { setGpuCheck("${embedding.sha256}|$APP_VERSION|${backend.name.lowercase()}") }
             // A CPU run as on a phone that failed the GPU check, or on the emulator.
-            val session = ChunkEmbeddingSession(coordinator, factory, { models.file }, runs, APP_VERSION, temp.logger, isEmulator = backend == ComputeBackend.CPU)
+            val session = ChunkEmbeddingSession(
+                coordinator, factory, { models.file }, runs, APP_VERSION, temp.logger, isEmulator = backend == ComputeBackend.CPU,
+                textEmbedder = { models.id },
+            )
             val runner = IngestRunner(temp.index, DocumentExtractor(pdf), session, runs, FakeThermalStatusSource(), { Long.MAX_VALUE }, Dispatchers.IO, temp.logger)
-            val retriever = HybridRetriever(temp.index, EngineQueryEmbedder(coordinator, factory, models), temp.logger)
+            val retriever = HybridRetriever(temp.index, EngineQueryEmbedder(coordinator, factory, models, textEmbedder = { models.id }), temp.logger)
 
             val embeddingStarted = CompletableDeferred<Unit>()
             val backends = CopyOnWriteArraySet<ComputeBackend>()

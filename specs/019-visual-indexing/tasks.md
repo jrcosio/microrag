@@ -387,8 +387,8 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
 ## Phase 10: Polish sin teléfono
 
 - [X] T050 Chat (R13): la disponibilidad del chat (`ObserveChatAvailabilityUseCase`) usa el recuento `visualOnly` de P9 (T014) para no contar como buscables los documentos solo Visual. Lo prueban `ObserveChatAvailabilityUseCaseTest` y `ChatViewModelTest`.
-- [ ] T051 Regresión del texto (FR-025, SC-001): `run_eval.py ablations` y `order-review` dan las mismas cifras que en la tarea T034 de F18. `test_appconfig.py` sigue en verde.
-- [ ] T052 Release:
+- [X] T051 Regresión del texto (FR-025, SC-001): `run_eval.py ablations` y `order-review` dan las mismas cifras que en la tarea T034 de F18. `test_appconfig.py` sigue en verde.
+- [X] T052 Release:
   - `assembleRelease`;
   - `apkanalyzer` con `JAVA_HOME`: los mismos 9 permisos y sin `feasibility`;
   - `ManifestInvariantsTest` y `NetworkConfinementTest` en verde.
@@ -406,7 +406,7 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
 ## Phase 11: Última fase — teléfono de referencia y cierre
 
 - [ ] T055 **Pedir permiso al usuario** para la fase del teléfono, con el recorrido: los ajustes que se anotan, la instalación, la activación real (**que borra la 270M del teléfono**), los documentos de prueba, la batería y la limpieza.
-- [ ] T062 [P] Golden con el embedder activo (analyze, H5): `EmbeddingGoldenTest` e `InstalledEmbeddingModel` usan el embedder de texto activo (la 270M o la 440M) contra los mismos vectores de referencia de `offline/golden`, que valen para los dos por la identidad. Así la 440M queda con golden cuando la 270M ya no existe.
+- [X] T062 [P] Golden con el embedder activo (analyze, H5): `EmbeddingGoldenTest` e `InstalledEmbeddingModel` usan el embedder de texto activo (la 270M o la 440M) contra los mismos vectores de referencia de `offline/golden`, que valen para los dos por la identidad. Así la 440M queda con golden cuando la 270M ya no existe.
 - [ ] T056 Fase del teléfono (quickstart §5):
   - **antes de activar el modo:** la batería completa, `IdentityValidatorDeviceTest` (T059) y el golden con la 270M (analyze, H5);
   - activar el modo y medir cada paso;

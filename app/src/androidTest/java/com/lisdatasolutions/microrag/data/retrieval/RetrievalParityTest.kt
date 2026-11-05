@@ -62,9 +62,9 @@ class RetrievalParityTest {
         val coordinator = EngineCoordinator(temp.logger)
         try {
             val factory = LiteRtEngineFactory(context, dispatchers)
-            val documents = CorpusIndex(temp, root, pdf).build(coordinator, factory, models.file)
+            val documents = CorpusIndex(temp, root, pdf).build(coordinator, factory, models.file, models.id)
 
-            val retriever = HybridRetriever(temp.index, EngineQueryEmbedder(coordinator, factory, models), temp.logger)
+            val retriever = HybridRetriever(temp.index, EngineQueryEmbedder(coordinator, factory, models, textEmbedder = { models.id }), temp.logger)
             val phone = mutableMapOf<String, Int>()
             val notExtracted = mutableListOf<String>()
             for (question in questions) {

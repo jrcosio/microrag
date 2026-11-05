@@ -13,16 +13,23 @@ import kotlinx.coroutines.flow.MutableStateFlow
 /**
  * The embedding model already installed on the device, seen as verified and prepared on the CPU, for
  * `@RequiresModels` retrieval tests (F10). Read only: it never hashes, moves, deletes or downloads a file.
+ * F19 (analyze H5): the text embedder in use, the 270M, or the 440M once the multimodal mode deleted the 270M.
  */
 class InstalledEmbeddingModel(context: Context) : ModelFileRepository {
 
-    val file = File(context.noBackupFilesDir, "models/${ModelCatalog.byId(ModelId.EG2_270M).fileName}")
+    private val modelsDir = File(context.noBackupFilesDir, "models")
+
+    private fun fileOf(id: ModelId) = File(modelsDir, ModelCatalog.byId(id).fileName)
+
+    /** The 270M while it is there; otherwise the 440M, whose text vectors are the 270M's (constitution 1.2.0). */
+    val id: ModelId = listOf(ModelId.EG2_270M, ModelId.EG2_440M).firstOrNull { fileOf(it).isFile } ?: ModelId.EG2_270M
+    val file = fileOf(id)
     val isInstalled: Boolean get() = file.isFile
 
     override val states = MutableStateFlow<Map<ModelId, ModelFileState>>(
-        ModelCatalog.all.associate { it.id to if (it.id == ModelId.EG2_270M && isInstalled) ModelFileState.Verified(file) else ModelFileState.Missing },
+        ModelCatalog.all.associate { it.id to if (it.id == id && isInstalled) ModelFileState.Verified(file) else ModelFileState.Missing },
     )
-    override val preparedBackends = MutableStateFlow(mapOf(ModelId.EG2_270M to ComputeBackend.CPU))
+    override val preparedBackends = MutableStateFlow(mapOf(id to ComputeBackend.CPU))
 
     override suspend fun refresh() = Unit
 

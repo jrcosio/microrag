@@ -29,7 +29,8 @@ import org.junit.runner.RunWith
 /**
  * SC-002 / constitution VI: the phone embeds the 50 golden texts again, on CPU and on GPU, and each
  * pair must reach a cosine >= 0.99 with the desktop vector (D-030). Run it on every test phone and
- * on every LiteRT-LM update.
+ * on every LiteRT-LM update. F19 (analyze H5): with the text embedder in use, the 270M or, once the multimodal
+ * mode deleted it, the 440M against the same vectors, which hold for both by their identity (constitution 1.2.0).
  */
 @RequiresModels
 @RunWith(AndroidJUnit4::class)
@@ -37,7 +38,8 @@ class EmbeddingGoldenTest {
 
     private val context = InstrumentationRegistry.getInstrumentation().targetContext
     private val assets = InstrumentationRegistry.getInstrumentation().context.assets
-    private val model = ModelCatalog.byId(ModelId.EG2_270M)
+    private val model = listOf(ModelId.EG2_270M, ModelId.EG2_440M).map(ModelCatalog::byId)
+        .firstOrNull { File(context.noBackupFilesDir, "models/${it.fileName}").isFile } ?: ModelCatalog.byId(ModelId.EG2_270M)
 
     private class Case(val id: String, val isQuery: Boolean, val text: String, val header: String, val input: String, val vector: FloatArray)
 
@@ -52,12 +54,15 @@ class EmbeddingGoldenTest {
     @Test
     fun deviceVectorsMatchTheDesktopGolden() = runBlocking<Unit> {
         val path = File(context.noBackupFilesDir, "models/${model.fileName}")
-        assumeTrue("EmbeddingGemma 2 270M is not installed", path.isFile)
+        assumeTrue("No text embedder is installed", path.isFile)
 
         val golden = jsonl("embedding_golden.jsonl")
         val goldenSha = golden.first().getValue("meta").jsonObject.getValue("model_sha256").jsonPrimitive.content
         val deviceSha = path.inputStream().use { Sha256.of(it) }
-        assertWithMessage("The device model does not match the golden model").that(deviceSha).isEqualTo(goldenSha)
+        // The golden was made with the 270M; the 440M is checked against its own pinned hash.
+        val expectedSha = if (model.id == ModelId.EG2_270M) goldenSha else model.sha256
+        assertWithMessage("The device model does not match the golden model").that(deviceSha).isEqualTo(expectedSha)
+        Log.i(TAG, "golden model=${model.id}")
 
         val texts = jsonl("embedding_texts.jsonl").associateBy { it.getValue("id").jsonPrimitive.content }
         val cases = golden.drop(1).map { entry ->

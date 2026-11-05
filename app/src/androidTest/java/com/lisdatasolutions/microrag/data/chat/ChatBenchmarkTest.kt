@@ -92,7 +92,10 @@ class ChatBenchmarkTest {
 
     @Test
     fun firstTokenOfTheChat() = runBlocking<Unit> {
-        assumeTrue("Gemma or the embedding model is not installed and prepared", models.isReady(ModelId.EG2_270M) && models.isReady(ModelId.GEMMA4_E2B))
+        // F19 (analyze H5): the text embedder in use, the 440M once the multimodal mode deleted the 270M.
+        val textEmbedder = listOf(ModelId.EG2_270M, ModelId.EG2_440M).firstOrNull { models.isReady(it) }
+        assumeTrue("Gemma or the embedding model is not installed and prepared", textEmbedder != null && models.isReady(ModelId.GEMMA4_E2B))
+        checkNotNull(textEmbedder)
         assumeTrue(pdf.isAvailable)
         val onReferencePhone = Build.MODEL == REFERENCE_PHONE
         val measured = if (onReferencePhone) questions else questions.take(EMULATOR_QUESTIONS)
@@ -102,7 +105,7 @@ class ChatBenchmarkTest {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
         try {
             val factory = LiteRtEngineFactory(context, dispatchers)
-            CorpusIndex(temp, root, pdf).build(coordinator, factory, models.pathOf(ModelId.EG2_270M)!!)
+            CorpusIndex(temp, root, pdf).build(coordinator, factory, models.pathOf(textEmbedder)!!, textEmbedder)
 
             val backend = models.preparedBackends.value.getValue(ModelId.GEMMA4_E2B)
             val ready = ChatAvailability.Ready(cpuMode = backend == ComputeBackend.CPU, partialCoverage = false)
@@ -110,7 +113,9 @@ class ChatBenchmarkTest {
             val repository = SqliteChatRepository(File(root, "chat.db"), { ChatSchema.load(context.assets) }, Dispatchers.IO, temp.logger)
             val session = DefaultChatSession(
                 repository = repository,
-                retrieve = RetrieveContextUseCase(HybridRetriever(temp.index, EngineQueryEmbedder(coordinator, factory, models), temp.logger)),
+                retrieve = RetrieveContextUseCase(
+                    HybridRetriever(temp.index, EngineQueryEmbedder(coordinator, factory, models, textEmbedder = { textEmbedder }), temp.logger),
+                ),
                 engine = engine,
                 availability = { flowOf(ready) },
                 scope = scope,

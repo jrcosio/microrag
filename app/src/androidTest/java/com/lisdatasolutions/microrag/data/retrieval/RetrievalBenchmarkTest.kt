@@ -76,7 +76,7 @@ class RetrievalBenchmarkTest {
         val dispatchers = AppDispatchers.create()
         val coordinator = EngineCoordinator(temp.logger)
         try {
-            val embedder = EngineQueryEmbedder(coordinator, LiteRtEngineFactory(context, dispatchers), models)
+            val embedder = EngineQueryEmbedder(coordinator, LiteRtEngineFactory(context, dispatchers), models, textEmbedder = { models.id })
             val retriever = HybridRetriever(temp.index, embedder, temp.logger)
 
             val cold = retriever.retrieve(request(0))
