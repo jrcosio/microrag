@@ -3,6 +3,8 @@ package com.lisdatasolutions.microrag.data.chat
 import com.lisdatasolutions.microrag.data.models.ModelFileRepository
 import com.lisdatasolutions.microrag.domain.chat.AnswerEngine
 import com.lisdatasolutions.microrag.domain.chat.AnswerEvent
+import com.lisdatasolutions.microrag.domain.chat.AnswerPrompt
+import com.lisdatasolutions.microrag.domain.chat.PromptPart
 import com.lisdatasolutions.microrag.domain.model.ComputeBackend
 import com.lisdatasolutions.microrag.domain.model.ModelCatalog
 import com.lisdatasolutions.microrag.domain.model.ModelFileState
@@ -10,8 +12,11 @@ import com.lisdatasolutions.microrag.domain.rag.RagParameters
 import com.lisdatasolutions.microrag.rag.runtime.EngineCoordinator
 import com.lisdatasolutions.microrag.rag.runtime.EngineFactory
 import com.lisdatasolutions.microrag.rag.runtime.EngineKey
+import com.lisdatasolutions.microrag.rag.runtime.EngineKind
 import com.lisdatasolutions.microrag.rag.runtime.GenerationConfig
 import com.lisdatasolutions.microrag.rag.runtime.GenerationEvent
+import com.lisdatasolutions.microrag.rag.runtime.GenerationPart
+import com.lisdatasolutions.microrag.rag.runtime.GenerationPrompt
 import com.lisdatasolutions.microrag.rag.runtime.TextGenerator
 import com.lisdatasolutions.microrag.rag.runtime.initializeOrClose
 import java.io.File
@@ -24,6 +29,10 @@ import kotlinx.coroutines.flow.distinctUntilChanged
  * Gemma for the chat (F11 research R5): the backend F03 prepared (GPU, or CPU with the «Modo CPU» notice),
  * the desktop's config (context, answer length and greedy sampling), loaded on demand through the
  * [EngineCoordinator]. Never held: the memory callbacks release it when the UI is hidden.
+ *
+ * F20 (research R5, D-085): a prompt with a page uses Gemma with its vision encoder on the CPU and a wider window,
+ * under its own key; any other prompt uses today's Gemma. The key comes from the prompt, never from the mode read
+ * apart, so a page never reaches an engine without vision.
  */
 class EngineAnswerEngine(
     private val coordinator: EngineCoordinator,
@@ -32,10 +41,15 @@ class EngineAnswerEngine(
 ) : AnswerEngine {
 
     private val model = ModelCatalog.byId(RagParameters.LLM_MODEL)
-    private val config = GenerationConfig(
+    private val textConfig = GenerationConfig(
         maxNumTokens = RagParameters.LLM_MAX_NUM_TOKENS,
         maxOutputTokens = RagParameters.MAX_OUTPUT_TOKENS,
         greedy = true,
+    )
+    private val visualConfig = textConfig.copy(
+        maxNumTokens = RagParameters.LLM_VISUAL_MAX_NUM_TOKENS,
+        visionBackend = ComputeBackend.CPU,
+        maxNumImages = RagParameters.LLM_MAX_NUM_IMAGES,
     )
 
     override suspend fun ready(): Boolean {
@@ -49,15 +63,15 @@ class EngineAnswerEngine(
             if (states[model.id] is ModelFileState.Verified) prepared[model.id] else null
         }.distinctUntilChanged()
 
-    override suspend fun warmUp() {
-        val (key, path) = target() ?: return
-        coordinator.withEngine(key, { load(path, key.backend) }) { }
+    override suspend fun warmUp(visual: Boolean) {
+        val (key, path) = target(visual) ?: return
+        coordinator.withEngine(key, { load(path, key) }) { }
     }
 
-    override fun generate(prompt: String): Flow<AnswerEvent> = channelFlow {
-        val (key, path) = checkNotNull(target()) { "Gemma is not verified and prepared" }
-        coordinator.withEngine(key, { load(path, key.backend) }) { engine ->
-            engine.generate(prompt).collect { event ->
+    override fun generate(prompt: AnswerPrompt): Flow<AnswerEvent> = channelFlow {
+        val (key, path) = checkNotNull(target(visual = prompt is AnswerPrompt.Visual)) { "Gemma is not verified and prepared" }
+        coordinator.withEngine(key, { load(path, key) }) { engine ->
+            engine.generate(prompt.toGeneration()).collect { event ->
                 send(
                     when (event) {
                         is GenerationEvent.Token -> AnswerEvent.Token(event.textDelta)
@@ -72,12 +86,27 @@ class EngineAnswerEngine(
         }
     }
 
-    private fun target(): Pair<EngineKey, File>? {
+    private fun target(visual: Boolean): Pair<EngineKey, File>? {
         val path = models.pathOf(model.id) ?: return null
         val backend = models.preparedBackends.value[model.id] ?: return null
-        return EngineKey(model.id, backend) to path
+        return EngineKey(model.id, backend, if (visual) EngineKind.VISION_GENERATOR else EngineKind.DEFAULT) to path
     }
 
-    private suspend fun load(path: File, backend: ComputeBackend): TextGenerator =
-        factory.generator(model, path, backend, config).initializeOrClose { it.initialize() }
+    private suspend fun load(path: File, key: EngineKey): TextGenerator {
+        val config = if (key.kind == EngineKind.VISION_GENERATOR) visualConfig else textConfig
+        return factory.generator(model, path, key.backend, config).initializeOrClose { it.initialize() }
+    }
+
+    private fun AnswerPrompt.toGeneration(): GenerationPrompt = when (this) {
+        is AnswerPrompt.Text -> GenerationPrompt.Text(text)
+        is AnswerPrompt.Visual -> GenerationPrompt.Parts(
+            parts.map { part ->
+                when (part) {
+                    is PromptPart.Text -> GenerationPart.Text(part.text)
+                    is PromptPart.Image -> GenerationPart.Image(part.jpeg)
+                }
+            },
+            visualTokens,
+        )
+    }
 }

@@ -79,7 +79,15 @@ data class ChatTurn(
     val sources: List<AnswerSource>,
     val createdAt: Long,
     val finishedAt: Long?,
+    /** F20: the visual tokens of the page the prompt carried, or null without a page (`turns.page_tokens`). */
+    val pageTokens: Int? = null,
 )
+
+/**
+ * What a source cites (F20 research R8): a block of chunks, a PDF page, or a loose JPG or PNG (its page 1). A page
+ * or an image has no chunk: its [AnswerSource.chunkId] and ordinals are 0, and [AnswerSource.page] is its number.
+ */
+enum class SourceKind { FRAGMENT, PAGE, IMAGE }
 
 /** A cited block, as it was when the answer was given (research R12). */
 data class AnswerSource(
@@ -94,6 +102,7 @@ data class AnswerSource(
     val lastOrdinal: Int,
     val documentName: String,
     val page: Int?,
+    val kind: SourceKind = SourceKind.FRAGMENT,
 )
 
 /** A block of the prompt, by its [n]: what a chip opens while the answer streams. */
@@ -106,9 +115,26 @@ data class PromptBlockRef(
     val lastOrdinal: Int,
     val documentName: String,
     val page: Int?,
+    val kind: SourceKind = SourceKind.FRAGMENT,
 )
 
-enum class SourceAvailability { AVAILABLE, FRAGMENT_GONE, DOCUMENT_GONE }
+/** F20 research R10: [PAGE_GONE] is a cited page no longer in a document that is still there. */
+enum class SourceAvailability { AVAILABLE, FRAGMENT_GONE, PAGE_GONE, DOCUMENT_GONE }
+
+/** What Gemma receives (F20 research R4): today's v4 text, or the v5-visual parts with a page. */
+sealed interface AnswerPrompt {
+    data class Text(val text: String) : AnswerPrompt
+
+    /** [visualTokens] is the page detail's (D-078). */
+    data class Visual(val parts: List<PromptPart>, val visualTokens: Int) : AnswerPrompt
+}
+
+sealed interface PromptPart {
+    data class Text(val text: String) : PromptPart
+
+    /** The page's JPEG as F19 stored it; never logged. */
+    class Image(val jpeg: ByteArray) : PromptPart
+}
 
 /** The answer being generated, kept in memory between checkpoints (research R6). */
 data class ActiveAnswer(
@@ -129,6 +155,8 @@ data class ActiveAnswer(
     val refusal: Boolean = false,
     val failure: TurnFailure? = null,
     val partialCoverage: Boolean = false,
+    /** F20 (research R13): the page's visual tokens once a page entered the prompt; drives «Leyendo 1 página». */
+    val pageTokens: Int? = null,
 ) {
     companion object {
         /** Id of a conversation or turn that only exists in memory: SQLite row ids start at 1. */

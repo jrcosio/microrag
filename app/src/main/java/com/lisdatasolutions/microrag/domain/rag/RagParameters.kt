@@ -42,4 +42,15 @@ object RagParameters {
     /** Context of the Gemma engine, prompt and answer together, as the desktop generates (D-054). */
     const val LLM_MAX_NUM_TOKENS = 4096
     const val MAX_OUTPUT_TOKENS = 512
+
+    /** F20 (D-078, research R2): pages the page search returns; only the first enters, the rest are for the diagnosis. */
+    const val PAGE_CANDIDATES = 5
+    const val ANSWER_PAGES = 1
+
+    /** The v4 rules plus one for page images (F18 research R11), used only when a page enters. */
+    const val PROMPT_TEMPLATE_VISUAL = "v5-visual"
+
+    /** Gemma with a page: its window, and images per prompt (D-078; F18 found 4,096 too small with a page). */
+    const val LLM_VISUAL_MAX_NUM_TOKENS = 8192
+    const val LLM_MAX_NUM_IMAGES = 1
 }

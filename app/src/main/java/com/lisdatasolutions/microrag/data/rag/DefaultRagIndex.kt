@@ -26,11 +26,13 @@ import com.lisdatasolutions.microrag.domain.rag.LibraryEntry
 import com.lisdatasolutions.microrag.domain.rag.LibraryFolderFilter
 import com.lisdatasolutions.microrag.domain.rag.NewDocument
 import com.lisdatasolutions.microrag.domain.rag.PageInput
+import com.lisdatasolutions.microrag.domain.rag.PageKey
 import com.lisdatasolutions.microrag.domain.rag.PageSpace
 import com.lisdatasolutions.microrag.domain.rag.RagIndex
 import com.lisdatasolutions.microrag.domain.rag.RagIndexConfig
 import com.lisdatasolutions.microrag.domain.rag.RagMetaKeys
 import com.lisdatasolutions.microrag.domain.rag.ScoredChunk
+import com.lisdatasolutions.microrag.domain.rag.ScoredPage
 import com.lisdatasolutions.microrag.domain.rag.SearchScope
 import com.lisdatasolutions.microrag.domain.rag.StoredDocument
 import com.lisdatasolutions.microrag.rag.runtime.EmbeddingMath
@@ -428,6 +430,37 @@ class DefaultRagIndex(
         ) { it.getText(0) }
     }
 
+    override suspend fun pageSearch(query: FloatArray, k: Int, scope: SearchScope): List<ScoredPage> {
+        requireUnitVector(query)
+        require(k > 0) { "k must be positive" }
+        if (!pagesUsable.value) return emptyList()
+        return withIndex { db ->
+            val (condition, args) = (scope as? SearchScope.Only)?.let(::scopeCondition) ?: ("1" to emptyArray())
+            db.query(pageSearchSql(condition), query.toLeBlob(), *args, k) {
+                ScoredPage(
+                    documentId = it.getLong(0), page = it.getLong(1).toInt(), distance = it.getDouble(2),
+                    documentName = it.getText(3), fileName = it.getText(4), image = it.getLong(5) == 1L,
+                )
+            }
+        }
+    }
+
+    override suspend fun existingPages(keys: Collection<PageKey>): Set<PageKey> {
+        if (keys.isEmpty()) return emptySet()
+        return withIndex { db ->
+            keys.distinct().chunked(MAX_KEYS_PER_QUERY).flatMap { batch ->
+                db.query(
+                    "SELECT document_id, page FROM pages WHERE " + batch.joinToString(" OR ") { "(document_id = ? AND page = ?)" },
+                    *batch.flatMap { listOf<Any?>(it.documentId, it.page.toLong()) }.toTypedArray(),
+                ) { PageKey(it.getLong(0), it.getLong(1).toInt()) }
+            }.toSet()
+        }
+    }
+
+    override suspend fun pageFile(documentId: Long, page: Int): String? = withIndex { db ->
+        db.queryOne("SELECT file_name FROM pages WHERE document_id = ? AND page = ?", documentId, page) { it.getText(0) }
+    }
+
     override suspend fun allPageFiles(): Set<String> = withIndex { db ->
         db.query("SELECT file_name FROM pages") { it.getText(0) }.toSet()
     }
@@ -535,16 +568,20 @@ class DefaultRagIndex(
         val pending = listOf(DocumentStatus.PENDING, DocumentStatus.PARSED, DocumentStatus.EMBEDDING, DocumentStatus.PAUSED)
         val (condition, scopeArgs) = (scope as? SearchScope.Only)?.let(::scopeCondition)?.let { (sql, args) -> " AND $sql" to args }
             ?: ("" to emptyArray())
-        // F19 research R13 (contract P9): a done document with pages and no chunks is not searchable yet; it counts apart.
+        // F19 research R13 (contract P9): a done document with pages and no chunks counts apart; F20 (R5) also
+        // counts the searchable ones with any page, for the warm-up.
         db.queryOne(
             "SELECT count(*), " +
                 "COALESCE(SUM(CASE WHEN d.status = ? AND d.included = 1 AND NOT $PAGES_ONLY$condition THEN 1 ELSE 0 END), 0), " +
                 "COALESCE(SUM(CASE WHEN d.status IN (${pending.joinToString { "?" }}) AND d.included = 1$condition THEN 1 ELSE 0 END), 0), " +
-                "COALESCE(SUM(CASE WHEN d.status = ? AND d.included = 1 AND $PAGES_ONLY$condition THEN 1 ELSE 0 END), 0) " +
+                "COALESCE(SUM(CASE WHEN d.status = ? AND d.included = 1 AND $PAGES_ONLY$condition THEN 1 ELSE 0 END), 0), " +
+                "COALESCE(SUM(CASE WHEN d.status = ? AND d.included = 1 AND $HAS_PAGES$condition THEN 1 ELSE 0 END), 0) " +
                 "FROM documents d WHERE d.replaces_id IS NULL",
             DocumentStatus.DONE.sqlValue, *scopeArgs, *pending.map { it.sqlValue }.toTypedArray(), *scopeArgs,
-            DocumentStatus.DONE.sqlValue, *scopeArgs,
-        ) { ChatLibraryState(it.getLong(0).toInt(), it.getLong(1).toInt(), it.getLong(2).toInt(), it.getLong(3).toInt()) }
+            DocumentStatus.DONE.sqlValue, *scopeArgs, DocumentStatus.DONE.sqlValue, *scopeArgs,
+        ) {
+            ChatLibraryState(it.getLong(0).toInt(), it.getLong(1).toInt(), it.getLong(2).toInt(), it.getLong(3).toInt(), it.getLong(4).toInt())
+        }
             ?: ChatLibraryState(0, 0, 0)
     }
 
@@ -821,6 +858,17 @@ class DefaultRagIndex(
             "SELECT v.rowid, v.distance FROM v JOIN chunks c ON c.id = v.rowid JOIN documents d ON d.id = c.document_id " +
             "WHERE " + SEARCHABLE + " AND " + scopeCondition + " ORDER BY v.distance LIMIT ?"
 
+        /**
+         * F20 (research R2): the streaming scan of the pages, as [scopedVectorSearchSql], with what the chat shows of
+         * each one; [scopeCondition] is "1" for the whole library. Arguments: the query blob, the scope's and k.
+         */
+        fun pageSearchSql(scopeCondition: String): String = "WITH v AS MATERIALIZED (" +
+            "SELECT rowid, distance FROM vector_full_scan('pages', 'embedding', ?)) " +
+            "SELECT p.document_id, p.page, v.distance, d.display_name, p.file_name, " +
+            "CASE WHEN d.mime_type IN ('image/jpeg', 'image/png') THEN 1 ELSE 0 END " +
+            "FROM v JOIN pages p ON p.id = v.rowid JOIN documents d ON d.id = p.document_id " +
+            "WHERE " + SEARCHABLE + " AND " + scopeCondition + " ORDER BY v.distance LIMIT ?"
+
         /** Every match, then the scope and the top k. Arguments: the FTS query, the scope's and k. */
         fun scopedTextSearchSql(scopeCondition: String): String = "WITH f AS MATERIALIZED (" +
             "SELECT rowid, bm25(chunks_fts, 3.0, 1.0) AS score FROM chunks_fts WHERE chunks_fts MATCH ?) " +
@@ -854,6 +902,12 @@ class DefaultRagIndex(
 
         /** F19 research R13: a document indexed with pages and without chunks (Visual, or Both with no text). */
         private const val PAGES_ONLY = "(d.index_mode <> 'text' AND COALESCE(d.chunk_count, 0) = 0)"
+
+        /** F20 research R5: the document has at least one stored page. */
+        private const val HAS_PAGES = "EXISTS (SELECT 1 FROM pages p WHERE p.document_id = d.id)"
+
+        /** Below SQLite's default limit of variables, two per key. */
+        private const val MAX_KEYS_PER_QUERY = 400
 
         /** [libraryPage] reads the shadow's status after the [DOCUMENT_COLUMNS]. */
         private const val SHADOW_STATUS_COLUMN = 20

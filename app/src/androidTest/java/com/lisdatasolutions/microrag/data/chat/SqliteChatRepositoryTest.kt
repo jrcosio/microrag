@@ -9,6 +9,7 @@ import com.lisdatasolutions.microrag.domain.chat.AnswerSource
 import com.lisdatasolutions.microrag.domain.chat.ChatScope
 import com.lisdatasolutions.microrag.domain.chat.ChatStorageException
 import com.lisdatasolutions.microrag.domain.chat.ChatStorageState
+import com.lisdatasolutions.microrag.domain.chat.SourceKind
 import com.lisdatasolutions.microrag.domain.chat.TurnFailure
 import com.lisdatasolutions.microrag.domain.chat.TurnState
 import com.lisdatasolutions.microrag.domain.chat.TurnUpdate
@@ -390,7 +391,7 @@ class SqliteChatRepositoryTest {
         assertThat(repo.conversationScope(id)).isEqualTo(ChatScope.WholeLibrary)
         assertThat(repo.lastScope()).isEqualTo(ChatScope.WholeLibrary)
         RagConnection.open(dbFile, extensionPath = null).use { db ->
-            assertThat(db.queryOne("SELECT value FROM chat_meta WHERE key = 'schema_version'") { it.getText(0) }).isEqualTo("2")
+            assertThat(db.queryOne("SELECT value FROM chat_meta WHERE key = 'schema_version'") { it.getText(0) }).isEqualTo("3")
             assertThat(db.tableNames()).containsAtLeast("conversation_scope", "last_scope")
         }
     }
@@ -512,5 +513,69 @@ class SqliteChatRepositoryTest {
         assertThat(repo.lastScope()).isEqualTo(ChatScope.WholeLibrary)
         assertThrows(ChatStorageException::class.java) { runBlocking { repo.setLastScope(scope) } }
         assertThrows(ChatStorageException::class.java) { runBlocking { repo.createConversation(now = 1, scope = scope) } }
+    }
+
+    // F20 T005 and T043 (research R9, data-model §1): the page sources and the turn's page tokens.
+
+    /** A v2 file as F17–F19 left it: v1 plus its migration, with one conversation, a turn and a source. */
+    private fun versionTwoFile(): Long {
+        val id = versionOneFile()
+        RagConnection.open(dbFile, extensionPath = null).use { db ->
+            db.transaction {
+                ChatMigrations.all.single { it.from == 1 }.statements.forEach { db.exec(it) }
+                db.exec("UPDATE chat_meta SET value = '2' WHERE key = 'schema_version'")
+            }
+        }
+        return id
+    }
+
+    @Test
+    fun versionTwo_isMigratedWithItsSourcesAsChunksAndNoPage() = runBlocking<Unit> {
+        val id = versionTwoFile()
+        val repo = repository()
+
+        assertThat(repo.open()).isEqualTo(ChatStorageState.OK)
+
+        val turn = repo.conversation(id).first().single()
+        assertThat(turn.sources).containsExactly(source(1).copy(promptNumber = 1, chunkId = 101))
+        assertThat(turn.sources.single().kind).isEqualTo(SourceKind.FRAGMENT)
+        assertThat(turn.pageTokens).isNull()
+        RagConnection.open(dbFile, extensionPath = null).use { db ->
+            assertThat(db.queryOne("SELECT value FROM chat_meta WHERE key = 'schema_version'") { it.getText(0) }).isEqualTo("3")
+        }
+    }
+
+    @Test
+    fun failingMigration_leavesTheVersionTwoFileUntouched() = runBlocking<Unit> {
+        versionTwoFile()
+        val before = dbFile.readBytes()
+        val repo = repository(migrations = ChatMigrations.all.filter { it.from == 1 } + ChatMigration(from = 2, statements = listOf("NOT SQL")))
+
+        assertThat(repo.open()).isEqualTo(ChatStorageState.UNAVAILABLE)
+
+        assertThat(dbFile.readBytes()).isEqualTo(before)
+    }
+
+    @Test
+    fun pageAndImageSources_andThePageTokens_roundTrip() = runBlocking<Unit> {
+        val repo = repository()
+        val id = repo.createConversation(now = 1)
+        val turnId = repo.insertTurn(id, "¿Qué dice la tabla?", partialCoverage = false, now = 2).id
+        val page = AnswerSource(
+            position = 1, promptNumber = 3, documentId = 9, chunkId = 0, firstOrdinal = 0, lastOrdinal = 0,
+            documentName = "informe.pdf", page = 4, kind = SourceKind.PAGE,
+        )
+        val image = page.copy(position = 3, promptNumber = 4, documentId = 10, documentName = "cartel.jpg", page = 1, kind = SourceKind.IMAGE)
+
+        repo.updateTurn(turnId, TurnUpdate(pageTokens = 140))
+        repo.replaceSources(turnId, listOf(page, source(2), image))
+
+        val turn = repo.conversation(id).first().single()
+        assertThat(turn.sources).containsExactly(page, source(2), image).inOrder()
+        assertThat(turn.pageTokens).isEqualTo(140)
+
+        repo.resetForRetry(turnId)
+
+        assertThat(repo.conversation(id).first().single().pageTokens).isNull()
     }
 }

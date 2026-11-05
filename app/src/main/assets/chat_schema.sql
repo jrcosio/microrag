@@ -1,4 +1,5 @@
--- chat.db, schema version 2: F11 (specs/011-chat-sources/data-model.md §3) and the scope of F17 (research R7).
+-- chat.db, schema version 3: F11 (specs/011-chat-sources/data-model.md §3), the scope of F17 (research R7) and the
+-- page sources of F20 (specs/020-visual-chat/data-model.md §1).
 -- Every statement is IF NOT EXISTS, so it runs on each open; each version adds a ChatMigration and keeps this
 -- file as the latest schema.
 
@@ -28,10 +29,12 @@ CREATE TABLE IF NOT EXISTS turns (
   prompt_blocks    INTEGER NOT NULL DEFAULT 0,
   created_at       INTEGER NOT NULL,
   finished_at      INTEGER,
+  page_tokens      INTEGER,
   UNIQUE (conversation_id, ordinal)
 );
 
--- No foreign key to the documents: they live in rag.db, and a source outlives its document (FR-027).
+-- No foreign key to the documents: they live in rag.db, and a source outlives its document (FR-027). F20: a page or
+-- an image has no chunk, so its chunk_id and ordinals are 0 and page is its number.
 CREATE TABLE IF NOT EXISTS sources (
   turn_id        INTEGER NOT NULL REFERENCES turns(id) ON DELETE CASCADE,
   position       INTEGER NOT NULL,
@@ -42,6 +45,7 @@ CREATE TABLE IF NOT EXISTS sources (
   last_ordinal   INTEGER NOT NULL,
   document_name  TEXT NOT NULL,
   page           INTEGER,
+  kind TEXT NOT NULL DEFAULT 'chunk' CHECK (kind IN ('chunk','page','image')),
   PRIMARY KEY (turn_id, position)
 );
 

@@ -1,6 +1,8 @@
 package com.lisdatasolutions.microrag.domain.retrieval
 
 import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
+import com.lisdatasolutions.microrag.domain.rag.ScoredChunk
+import com.lisdatasolutions.microrag.domain.rag.ScoredPage
 import com.lisdatasolutions.microrag.domain.rag.SearchScope
 
 // The context of one question (F10 data-model §2–§3): what the chat (F11) puts in the prompt and the
@@ -12,6 +14,8 @@ data class RetrievalRequest(
     val previousQuestion: String? = null,
     /** F17: the documents the question may use; [SearchScope.All] searches as F10 did. */
     val scope: SearchScope = SearchScope.All,
+    /** F20 (research R1): also search the pages, with the same query vector. */
+    val withPages: Boolean = false,
 )
 
 data class RetrievalResult(
@@ -23,13 +27,29 @@ data class RetrievalResult(
     val embeddingCuts: Int,
     val timings: RetrievalTimings,
     val outcome: RetrievalOutcome,
+    /** F20 (research R3): the two searches by rank, for the debug diagnostic; empty when nothing was searched. */
+    val lists: RetrievalLists = RetrievalLists(),
+)
+
+/** The vector search (ids with their distance) and the lexical one (ids), in rank order. */
+data class RetrievalLists(
+    val vector: List<ScoredChunk> = emptyList(),
+    val lexical: List<Long> = emptyList(),
 )
 
 sealed interface RetrievalOutcome {
-    /** At most MAX_BLOCKS blocks, ordered by document and ordinal; [candidates] are the first FUSED_LIMIT of the fusion. */
-    data class Blocks(val blocks: List<ContextBlock>, val candidates: List<CandidateScore>) : RetrievalOutcome
+    /**
+     * At most MAX_BLOCKS blocks, ordered by document and ordinal; [candidates] are the first FUSED_LIMIT of the fusion.
+     * F20 (research R3): [pages] is the page search, by distance, never fused (D-076); [blocks] may be empty only
+     * when [pages] is not.
+     */
+    data class Blocks(
+        val blocks: List<ContextBlock>,
+        val candidates: List<CandidateScore>,
+        val pages: List<ScoredPage> = emptyList(),
+    ) : RetrievalOutcome
 
-    /** Neither search found a searchable chunk. */
+    /** Neither search found a searchable chunk, nor a page when pages were asked for. */
     data object NoResults : RetrievalOutcome
 
     data object EmptyQuestion : RetrievalOutcome
@@ -89,4 +109,6 @@ data class RetrievalTimings(
     val totalMs: Double = 0.0,
     /** The query engine was not loaded when the retrieval started. */
     val coldEngine: Boolean = false,
+    /** F20: the page search, which overlaps the vector search; null when pages were not asked for. */
+    val pagesMs: Double? = null,
 )

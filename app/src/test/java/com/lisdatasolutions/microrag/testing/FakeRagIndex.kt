@@ -14,6 +14,7 @@ import com.lisdatasolutions.microrag.domain.model.ModelId
 import com.lisdatasolutions.microrag.domain.rag.IndexCounts
 import com.lisdatasolutions.microrag.domain.rag.IndexMode
 import com.lisdatasolutions.microrag.domain.rag.PageInput
+import com.lisdatasolutions.microrag.domain.rag.PageKey
 import com.lisdatasolutions.microrag.domain.rag.IndexStorageFullException
 import com.lisdatasolutions.microrag.domain.rag.IndexUnavailableException
 import com.lisdatasolutions.microrag.domain.rag.LibraryEntry
@@ -22,6 +23,7 @@ import com.lisdatasolutions.microrag.domain.rag.LibrarySummary
 import com.lisdatasolutions.microrag.domain.rag.NewDocument
 import com.lisdatasolutions.microrag.domain.rag.RagIndex
 import com.lisdatasolutions.microrag.domain.rag.ScoredChunk
+import com.lisdatasolutions.microrag.domain.rag.ScoredPage
 import com.lisdatasolutions.microrag.domain.rag.SearchScope
 import com.lisdatasolutions.microrag.domain.rag.StoredDocument
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -85,6 +87,9 @@ class FakeRagIndex(initial: IndexCompatibility = IndexCompatibility.Compatible) 
     /** What textSearch returns, best first, before taking k (F10). */
     @Volatile
     var textResults: (String) -> List<Long> = { emptyList() }
+
+    /** F20: what [pageSearch] returns before its rules (searchable, scope, pagesUsable and k). */
+    var pageResults: (FloatArray) -> List<ScoredPage> = { emptyList() }
 
     /** Thrown by both searches when set, as an index failing under a retrieval would. */
     @Volatile
@@ -441,8 +446,25 @@ class FakeRagIndex(initial: IndexCompatibility = IndexCompatibility.Compatible) 
             searchable = inScope.count { it.status == DocumentStatus.DONE && it.included && !pagesOnly(it) },
             pendingIncluded = inScope.count { it.status in pending && it.included },
             visualOnly = inScope.count { it.status == DocumentStatus.DONE && it.included && pagesOnly(it) },
+            withPages = inScope.count { it.status == DocumentStatus.DONE && it.included && !pages[it.id].isNullOrEmpty() },
         )
     }
+
+    override suspend fun pageSearch(query: FloatArray, k: Int, scope: SearchScope): List<ScoredPage> = available {
+        calls += "pages:$k"
+        scopes += scope
+        searchError?.let { throw it }
+        if (!pagesUsable.value) return@available emptyList()
+        pageResults(query).filter { page ->
+            docs[page.documentId]?.let { it.status == DocumentStatus.DONE && it.included && inScope(it, scope) } == true
+        }.take(k)
+    }
+
+    override suspend fun existingPages(keys: Collection<PageKey>): Set<PageKey> = available {
+        keys.filter { pages[it.documentId]?.containsKey(it.page) == true }.toSet()
+    }
+
+    override suspend fun pageFile(documentId: Long, page: Int): String? = available { pages[documentId]?.get(page)?.fileName }
 
     /** F17: the rule of DefaultRagIndex.scopeCondition. */
     fun inScope(document: StoredDocument, scope: SearchScope): Boolean = when (scope) {

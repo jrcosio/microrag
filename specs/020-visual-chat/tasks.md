@@ -58,10 +58,10 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
 
 ## Phase 1: Setup
 
-- [ ] T001 Línea base, antes de tocar nada:
+- [X] T001 Línea base, antes de tocar nada:
   - `./gradlew :app:testDebugUnitTest :app:lintDebug` en verde (1.285 pruebas JVM y 2 avisos);
   - `offline/.venv/bin/python -I -m unittest discover -s offline/tests` en verde.
-- [ ] T002 [P] Textos del wireframe §9 y de `chat-pages-ui.md` en `app/src/main/res/values{,-en}/strings_visual_chat.xml`:
+- [X] T002 [P] Textos del wireframe §9 y de `chat-pages-ui.md` en `app/src/main/res/values{,-en}/strings_visual_chat.xml`:
   - la fila y la pantalla «Detalle de las páginas»;
   - «Leyendo 1 página · unos %1$s s…»;
   - la tarjeta de página y su descripción para TalkBack;
@@ -71,7 +71,7 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
   - las variantes de las imágenes sueltas y el anuncio «Leyendo 1 página» del wireframe §10.
 
   `StringsParityTest` pasa.
-- [ ] T003 [P] Golden de la v5-visual (R4):
+- [X] T003 [P] Golden de la v5-visual (R4):
   - `offline/gen_visual_prompt_golden.py` (`--check` como `gen_answer_golden.py`) escribe `offline/golden/visual_prompt_golden.jsonl` con `visual_prompt.build_parts`. Son unos 12 casos: con y sin turno anterior, de 0 a 4 bloques, una página de PDF y una imagen suelta. Cada imagen va como el marcador `{"image": "<id>"}`;
   - `offline/tests/test_visual_prompt_golden.py` comprueba que el fichero está al día.
 
@@ -90,7 +90,7 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
 
 ### Pruebas (antes, y deben fallar)
 
-- [ ] T004 [P] `…/androidTest/…/data/rag/RagIndexPageSearchTest.kt` (P1–P3):
+- [X] T004 [P] `…/androidTest/…/data/rag/RagIndexPageSearchTest.kt` (P1–P3):
   - el orden por distancia y el límite `k`;
   - solo documentos indexados e incluidos;
   - el ámbito de carpetas, «General» y documentos de F17;
@@ -100,16 +100,16 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
   - `pageFile`;
   - un documento que se reindexa con una sombra con páginas: salen las de la versión publicada hasta que se publica la nueva (analyze G2);
   - `chatLibraryState.withPages`.
-- [ ] T005 [P] Migración de `chat.db` 2 → 3:
+- [X] T005 [P] Migración de `chat.db` 2 → 3:
   - en `…/androidTest/…/data/chat/SqliteChatRepositoryTest.kt`, donde ya se prueban las migraciones de `chat.db` (analyze P2): un `chat.db` v2 con turnos y fuentes migra con todo intacto, las fuentes como `chunk` y `page_tokens` nulo. Un fallo deja el fichero v2;
   - en `…/test/…/data/chat/ChatSchemaTest.kt`: la versión 3, y la regla «termina donde `chat_schema.sql`» cambia a la de `RagSchemaTest`. Un `ALTER TABLE t ADD COLUMN <def>` aparece idéntico como columna del `CREATE TABLE t`, y un `CREATE`, entero (analyze I4).
-- [ ] T006 [P] `…/test/…/rag/answer/VisualPromptGoldenTest.kt` y casos en `PromptBuilderTest` (B1–B3):
+- [X] T006 [P] `…/test/…/rag/answer/VisualPromptGoldenTest.kt` y casos en `PromptBuilderTest` (B1–B3):
   - las partes de `buildVisual` coinciden con la golden de T003;
   - la página lleva el número `k + 1`;
   - con 0 bloques, la página es la `[1]`;
   - `estimatedTokens` solo sobre el texto;
   - `build` (la v4) no cambia (`AnswerGoldenTest` en verde).
-- [ ] T007 [P] `…/test/…/data/chat/EngineAnswerEngineTest.kt` (nuevo, si no existe) y `…/test/…/rag/runtime/EngineCoordinatorTest.kt` (JVM; G1–G5 y M4), con una fábrica falsa:
+- [X] T007 [P] `…/test/…/data/chat/EngineAnswerEngineTest.kt` (nuevo, si no existe) y `…/test/…/rag/runtime/EngineCoordinatorTest.kt` (JVM; G1–G5 y M4), con una fábrica falsa:
   - un `AnswerPrompt.Text` usa la clave y la configuración de hoy, con el modo activo o no;
   - un `AnswerPrompt.Visual` usa `VISION_GENERATOR` con `visionBackend = CPU`, 8.192 tokens y 1 imagen, y pasa sus partes y sus tokens a `GenerationPrompt.Parts` (analyze G1);
   - alternar los dos tipos cierra la Gemma anterior, en GPU **y en CPU** («Modo CPU»): nunca hay dos Gemma cargadas (analyze I2);
@@ -118,7 +118,7 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
 
 ### Implementación
 
-- [ ] T008 Tipos del dominio (data-model §3):
+- [X] T008 Tipos del dominio (data-model §3):
   - `PageDetail` y `StoredMultimodal.pageDetail` en `…/microrag/domain/multimodal/MultimodalModels.kt`;
   - `ScoredPage`, `PageKey` y las constantes de `RagParameters` en `…/microrag/domain/rag/{RagModels,RagParameters}.kt`;
   - `withPages`, `pages`, `lists` y `pagesMs` en `…/microrag/domain/retrieval/RetrievalModels.kt`;
@@ -126,33 +126,33 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
   - `PageImageRepository` en `…/microrag/domain/library/PageImageRepository.kt`.
 
   Se actualizan los usos y los fakes (`FakeRagIndex`, `FakeAnswerEngine`, `InMemoryChatRepository`), sin cambiar el comportamiento: la batería JVM sigue en verde.
-- [ ] T009 Índice (P1–P3) en `…/microrag/domain/rag/RagIndex.kt` y `…/microrag/data/rag/DefaultRagIndex.kt`:
+- [X] T009 Índice (P1–P3) en `…/microrag/domain/rag/RagIndex.kt` y `…/microrag/data/rag/DefaultRagIndex.kt`:
   - `pageSearch`, con el SQL de R2 junto a `scopedVectorSearchSql`;
   - `existingPages`;
   - `pageFile`;
   - `withPages` en `chatLibraryState`.
 
   `FakeRagIndex` los implementa. T004 pasa.
-- [ ] T010 `chat.db` v3 (R9):
+- [X] T010 `chat.db` v3 (R9):
   - `app/src/main/assets/chat_schema.sql`;
   - `…/microrag/data/chat/ChatSchema.kt`, con `VERSION = 3` y `ChatMigration(from = 2, …)`;
   - `…/microrag/data/chat/SqliteChatRepository.kt`, que escribe y lee `kind` y `page_tokens` (H1, H2).
 
   T005 pasa.
-- [ ] T011 Gemma con visión (R5, R6):
+- [X] T011 Gemma con visión (R5, R6):
   - `GenerationConfig.visionBackend`/`maxNumImages`, `GenerationPrompt` (con `visualTokens: Int?`, analyze I7) y `EngineKind.VISION_GENERATOR` en `…/microrag/rag/runtime/{TextGenerator,ManagedEngine}.kt`;
   - `…/microrag/rag/runtime/EngineCoordinator.kt`: al cargar un engine de la familia LLM, cierra antes cualquier otro de esa familia, sea cual sea su backend (analyze I2);
   - `…/microrag/rag/runtime/litert/LiteRtTextGenerator.kt`: `EngineConfig` con visión cuando la hay, `Contents.of` con `Content.Text`/`Content.ImageBytes`, y `visualTokenBudget` fijado y restaurado (G3). La cancelación, como hoy (G6);
   - el diagnóstico de F18 pasa a usarlo: `…/debug/…/rag/runtime/litert/LiteRtVisionEngines.kt` se queda sin el generador, y se actualizan `…/debug/…/debug/feasibility/visual/{VisualContracts,VisualSuite,VisualFeasibilityModule}.kt`.
 
   `VisualSuiteTest` sigue en verde, y `LayeringTest` también.
-- [ ] T012 `PromptBuilder.buildVisual` en `…/microrag/rag/answer/PromptBuilder.kt` (B2, B3), con `PAGE_RULE` y la etiqueta de R4. T006 pasa.
-- [ ] T013 `AnswerEngine.generate(AnswerPrompt)` y `warmUp(visual)` en `…/microrag/domain/chat/` y `…/microrag/data/chat/EngineAnswerEngine.kt` (G1–G4):
+- [X] T012 `PromptBuilder.buildVisual` en `…/microrag/rag/answer/PromptBuilder.kt` (B2, B3), con `PAGE_RULE` y la etiqueta de R4. T006 pasa.
+- [X] T013 `AnswerEngine.generate(AnswerPrompt)` y `warmUp(visual)` en `…/microrag/domain/chat/` y `…/microrag/data/chat/EngineAnswerEngine.kt` (G1–G4):
   - la clave y la configuración salen del tipo de prompt, nunca del modo leído aparte (analyze I3);
   - Koin en `DataModule`.
 
   T007 pasa.
-- [ ] T014 `…/microrag/data/library/DefaultPageImageRepository.kt` (I1, I2), después de T009 porque usa `pageFile` (analyze I6). Lee con `PageFileStore.file(name)` (no hay `read`, analyze P3), y va en Koin. Prueba en `…/test/…/data/library/DefaultPageImageRepositoryTest.kt`: la fila o el fichero que faltan dan null, y el registro no lleva nombres.
+- [X] T014 `…/microrag/data/library/DefaultPageImageRepository.kt` (I1, I2), después de T009 porque usa `pageFile` (analyze I6). Lee con `PageFileStore.file(name)` (no hay `read`, analyze P3), y va en Koin. Prueba en `…/test/…/data/library/DefaultPageImageRepositoryTest.kt`: la fila o el fichero que faltan dan null, y el registro no lleva nombres.
 
 **Checkpoint:**
 - el índice busca páginas;

@@ -41,6 +41,7 @@ import com.lisdatasolutions.microrag.data.ingest.PlatformPdfOpener
 import com.lisdatasolutions.microrag.data.ingest.SafDocumentSource
 import com.lisdatasolutions.microrag.data.ingest.WorkManagerIngestScheduler
 import com.lisdatasolutions.microrag.data.library.DefaultLibraryRepository
+import com.lisdatasolutions.microrag.data.library.DefaultPageImageRepository
 import com.lisdatasolutions.microrag.data.models.AppDirs
 import com.lisdatasolutions.microrag.data.models.ContentResolverModelFileSource
 import com.lisdatasolutions.microrag.data.models.DefaultModelFileRepository
@@ -63,6 +64,7 @@ import com.lisdatasolutions.microrag.domain.chat.ResolveScopeUseCase
 import com.lisdatasolutions.microrag.domain.indexing.IndexingRepository
 import com.lisdatasolutions.microrag.domain.ingest.ImportQueueRepository
 import com.lisdatasolutions.microrag.domain.library.LibraryRepository
+import com.lisdatasolutions.microrag.domain.library.PageImageRepository
 import com.lisdatasolutions.microrag.domain.model.ModelId
 import com.lisdatasolutions.microrag.domain.model.NetworkKind
 import com.lisdatasolutions.microrag.domain.multimodal.IdentityChecker
@@ -197,6 +199,7 @@ val dataModule = module {
     }
     // F19 research R9: the page phase, with the 440M's image engine on the CPU and the images in no-backup storage.
     single { PageFileStore(get<AppDirs>().pages, get<AppDispatchers>().io) }
+    single<PageImageRepository> { DefaultPageImageRepository(get(), get(), get<AppDispatchers>().io, get()) }
     single<PageEmbeddingSessions> {
         val models = get<ModelFileRepository>()
         PageEmbeddingSession(

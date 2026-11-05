@@ -12,6 +12,7 @@ import com.lisdatasolutions.microrag.domain.chat.ChatTurn
 import com.lisdatasolutions.microrag.domain.chat.ConversationPage
 import com.lisdatasolutions.microrag.domain.chat.ConversationSummary
 import com.lisdatasolutions.microrag.domain.chat.HistoryLimits
+import com.lisdatasolutions.microrag.domain.chat.SourceKind
 import com.lisdatasolutions.microrag.domain.chat.TurnFailure
 import com.lisdatasolutions.microrag.domain.chat.TurnState
 import com.lisdatasolutions.microrag.domain.chat.TurnUpdate
@@ -136,6 +137,7 @@ class SqliteChatRepository(
             update.refusal?.let { add("refusal" to it) }
             update.promptBlocks?.let { add("prompt_blocks" to it) }
             update.finishedAt?.let { add("finished_at" to it) }
+            update.pageTokens?.let { add("page_tokens" to it) }
         }
         if (columns.isEmpty()) return
         write { db ->
@@ -152,8 +154,9 @@ class SqliteChatRepository(
             sources.forEach { s ->
                 db.exec(
                     "INSERT INTO sources(turn_id, position, prompt_number, document_id, chunk_id, first_ordinal, last_ordinal, " +
-                        "document_name, page) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                        "document_name, page, kind) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     turnId, s.position, s.promptNumber, s.documentId, s.chunkId, s.firstOrdinal, s.lastOrdinal, s.documentName, s.page,
+                    s.kind.sql,
                 )
             }
         }
@@ -162,7 +165,8 @@ class SqliteChatRepository(
     override suspend fun resetForRetry(turnId: Long) = write { db ->
         db.transaction {
             db.exec(
-                "UPDATE turns SET state = ?, answer = '', failure = NULL, refusal = 0, prompt_blocks = 0, finished_at = NULL WHERE id = ?",
+                "UPDATE turns SET state = ?, answer = '', failure = NULL, refusal = 0, prompt_blocks = 0, finished_at = NULL, " +
+                    "page_tokens = NULL WHERE id = ?",
                 TurnState.RETRIEVING.sql, turnId,
             )
             db.exec("DELETE FROM sources WHERE turn_id = ?", turnId)
@@ -223,19 +227,19 @@ class SqliteChatRepository(
     private fun turns(db: RagConnection, conversationId: Long): List<ChatTurn> {
         val sources = db.query(
             "SELECT s.turn_id, s.position, s.prompt_number, s.document_id, s.chunk_id, s.first_ordinal, s.last_ordinal, " +
-                "s.document_name, s.page FROM sources s JOIN turns t ON t.id = s.turn_id WHERE t.conversation_id = ? " +
+                "s.document_name, s.page, s.kind FROM sources s JOIN turns t ON t.id = s.turn_id WHERE t.conversation_id = ? " +
                 "ORDER BY s.turn_id, s.position",
             conversationId,
         ) {
             it.getLong(0) to AnswerSource(
                 position = it.getLong(1).toInt(), promptNumber = it.getLong(2).toInt(), documentId = it.getLong(3),
                 chunkId = it.getLong(4), firstOrdinal = it.getLong(5).toInt(), lastOrdinal = it.getLong(6).toInt(),
-                documentName = it.getText(7), page = if (it.isNull(8)) null else it.getLong(8).toInt(),
+                documentName = it.getText(7), page = if (it.isNull(8)) null else it.getLong(8).toInt(), kind = sourceKind(it.getText(9)),
             )
         }.groupBy({ it.first }, { it.second })
         return db.query(
-            "SELECT id, ordinal, question, answer, state, failure, refusal, partial_coverage, prompt_blocks, created_at, finished_at " +
-                "FROM turns WHERE conversation_id = ? ORDER BY ordinal",
+            "SELECT id, ordinal, question, answer, state, failure, refusal, partial_coverage, prompt_blocks, created_at, finished_at, " +
+                "page_tokens FROM turns WHERE conversation_id = ? ORDER BY ordinal",
             conversationId,
         ) {
             val id = it.getLong(0)
@@ -245,6 +249,7 @@ class SqliteChatRepository(
                 failure = if (it.isNull(5)) null else turnFailure(it.getText(5)),
                 refusal = it.getLong(6) != 0L, partialCoverage = it.getLong(7) != 0L, promptBlocks = it.getLong(8).toInt(),
                 sources = sources[id].orEmpty(), createdAt = it.getLong(9), finishedAt = if (it.isNull(10)) null else it.getLong(10),
+                pageTokens = if (it.isNull(11)) null else it.getLong(11).toInt(),
             )
         }
     }
@@ -376,5 +381,14 @@ class SqliteChatRepository(
 
         fun turnState(value: String): TurnState = TurnState.valueOf(value.uppercase())
         fun turnFailure(value: String): TurnFailure = TurnFailure.valueOf(value.uppercase())
+
+        /** `sources.kind` (F20 data-model §1): a fragment is stored as 'chunk', as every source before v3. */
+        val SourceKind.sql: String get() = when (this) {
+            SourceKind.FRAGMENT -> "chunk"
+            SourceKind.PAGE -> "page"
+            SourceKind.IMAGE -> "image"
+        }
+
+        fun sourceKind(value: String): SourceKind = SourceKind.entries.first { it.sql == value }
     }
 }

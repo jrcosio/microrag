@@ -11,11 +11,14 @@ interface AnswerEngine {
     /** The prepared backend, or null when Gemma is not ready; CPU drives the C9 notice. */
     fun preparedBackend(): Flow<ComputeBackend?>
 
-    /** Loads Gemma without generating. */
-    suspend fun warmUp()
+    /** Loads Gemma without generating: with vision when the next answer will carry a page (F20 research R5). */
+    suspend fun warmUp(visual: Boolean = false)
 
-    /** Streams the answer; cancelling the collector stops the engine. */
-    fun generate(prompt: String): Flow<AnswerEvent>
+    /** Streams the answer; cancelling the collector stops the engine. The engine follows the prompt's kind (R5). */
+    fun generate(prompt: AnswerPrompt): Flow<AnswerEvent>
+
+    /** Today's text prompt. */
+    fun generate(prompt: String): Flow<AnswerEvent> = generate(AnswerPrompt.Text(prompt))
 }
 
 sealed interface AnswerEvent {

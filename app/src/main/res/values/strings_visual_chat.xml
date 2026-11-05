@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- F20 Chat con páginas (wireframe §1–§10, contracts/chat-pages-ui.md, D-083, D-085). -->
+<resources>
+    <!-- Ajustes: detalle de las páginas (U1, U2). -->
+    <string name="page_detail_title">Detalle de las páginas</string>
+    <string name="page_detail_intro">Cuánto detalle lee Gemma en la página que entra en cada respuesta.</string>
+    <string name="page_detail_fast">Rápido</string>
+    <string name="page_detail_balanced">Equilibrado</string>
+    <string name="page_detail_detailed">Detallado</string>
+    <string name="page_detail_fast_body">Menos detalle.</string>
+    <string name="page_detail_balanced_body">El detalle con que se indexan las páginas.</string>
+    <string name="page_detail_detailed_body">Para letra pequeña y tablas densas.</string>
+    <string name="page_detail_wait">Unos %1$s s por respuesta.</string>
+    <string name="page_detail_summary">%1$s · unos %2$s s</string>
+    <string name="page_detail_note">Tiempos medidos en el teléfono de referencia. Las respuestas sin páginas no cambian.</string>
+    <string name="page_detail_save">Guardar</string>
+    <!-- Chat (U3–U8). -->
+    <string name="chat_reading_page">Leyendo 1 página · unos %1$s s…</string>
+    <string name="chat_announce_reading_page">Leyendo 1 página</string>
+    <string name="citation_page_image">Imagen de la página</string>
+    <string name="citation_image">Imagen</string>
+    <!-- Detalle y visor (U9–U15). -->
+    <string name="page_preview_hint">Toca para ampliar</string>
+    <string name="page_preview_description">Página %1$d de %2$s</string>
+    <string name="image_preview_description">Imagen %1$s</string>
+    <string name="page_viewer_title">%1$s · Página %2$d</string>
+    <string name="page_viewer_close">Cerrar</string>
+    <string name="page_viewer_zoom_in">Ampliar</string>
+    <string name="page_viewer_zoom_out">Reducir</string>
+    <string name="page_viewer_zoom_reset">Restablecer</string>
+    <string name="document_citation_page_missing">La página citada ya no está en este documento.</string>
+    <string name="document_include_subtitle_needs_multimodal">Se usará al activar el modo multimodal</string>
+</resources>

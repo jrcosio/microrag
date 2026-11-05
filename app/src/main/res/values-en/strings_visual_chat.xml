@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="page_detail_title">Page detail</string>
+    <string name="page_detail_intro">How much detail Gemma reads in the page that goes into each answer.</string>
+    <string name="page_detail_fast">Fast</string>
+    <string name="page_detail_balanced">Balanced</string>
+    <string name="page_detail_detailed">Detailed</string>
+    <string name="page_detail_fast_body">Less detail.</string>
+    <string name="page_detail_balanced_body">The detail pages are indexed with.</string>
+    <string name="page_detail_detailed_body">For small print and dense tables.</string>
+    <string name="page_detail_wait">About %1$s s per answer.</string>
+    <string name="page_detail_summary">%1$s · about %2$s s</string>
+    <string name="page_detail_note">Times measured on the reference phone. Answers without pages don\'t change.</string>
+    <string name="page_detail_save">Save</string>
+    <string name="chat_reading_page">Reading 1 page · about %1$s s…</string>
+    <string name="chat_announce_reading_page">Reading 1 page</string>
+    <string name="citation_page_image">Page image</string>
+    <string name="citation_image">Image</string>
+    <string name="page_preview_hint">Tap to zoom</string>
+    <string name="page_preview_description">Page %1$d of %2$s</string>
+    <string name="image_preview_description">Image %1$s</string>
+    <string name="page_viewer_title">%1$s · Page %2$d</string>
+    <string name="page_viewer_close">Close</string>
+    <string name="page_viewer_zoom_in">Zoom in</string>
+    <string name="page_viewer_zoom_out">Zoom out</string>
+    <string name="page_viewer_zoom_reset">Reset</string>
+    <string name="document_citation_page_missing">The cited page is no longer in this document.</string>
+    <string name="document_include_subtitle_needs_multimodal">It will be used once multimodal mode is on</string>
+</resources>

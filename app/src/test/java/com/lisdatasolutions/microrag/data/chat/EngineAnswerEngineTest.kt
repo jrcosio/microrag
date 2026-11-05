@@ -2,6 +2,8 @@ package com.lisdatasolutions.microrag.data.chat
 
 import com.google.common.truth.Truth.assertThat
 import com.lisdatasolutions.microrag.domain.chat.AnswerEvent
+import com.lisdatasolutions.microrag.domain.chat.AnswerPrompt
+import com.lisdatasolutions.microrag.domain.chat.PromptPart
 import com.lisdatasolutions.microrag.domain.model.ComputeBackend
 import com.lisdatasolutions.microrag.domain.model.ComputeBackend.CPU
 import com.lisdatasolutions.microrag.domain.model.ComputeBackend.GPU
@@ -11,8 +13,11 @@ import com.lisdatasolutions.microrag.domain.model.ModelId
 import com.lisdatasolutions.microrag.rag.runtime.EngineCoordinator
 import com.lisdatasolutions.microrag.rag.runtime.EngineFactory
 import com.lisdatasolutions.microrag.rag.runtime.EngineKey
+import com.lisdatasolutions.microrag.rag.runtime.EngineKind
 import com.lisdatasolutions.microrag.rag.runtime.GenerationConfig
 import com.lisdatasolutions.microrag.rag.runtime.GenerationEvent
+import com.lisdatasolutions.microrag.rag.runtime.GenerationPart
+import com.lisdatasolutions.microrag.rag.runtime.GenerationPrompt
 import com.lisdatasolutions.microrag.rag.runtime.GenerationStats
 import com.lisdatasolutions.microrag.rag.runtime.ModelMetadata
 import com.lisdatasolutions.microrag.rag.runtime.TextEmbedder
@@ -49,6 +54,7 @@ class EngineAnswerEngineTest {
         var cancelled = 0
         var tokens = listOf("El plazo ", "es de 30 días [1].")
         var failure: Exception? = null
+        val partsPrompts = mutableListOf<GenerationPrompt.Parts>()
 
         override fun generator(file: ModelFile, path: File, backend: ComputeBackend, config: GenerationConfig): TextGenerator {
             created += backend to config
@@ -71,6 +77,15 @@ class EngineAnswerEngineTest {
                     } catch (e: CancellationException) {
                         cancelled++
                         throw e
+                    }
+                }
+
+                override fun generate(prompt: GenerationPrompt): Flow<GenerationEvent> = when (prompt) {
+                    is GenerationPrompt.Text -> generate(prompt.text)
+                    is GenerationPrompt.Parts -> {
+                        check(config.visionBackend != null) { "no vision" }
+                        partsPrompts += prompt
+                        generate("parts")
                     }
                 }
 
@@ -158,5 +173,73 @@ class EngineAnswerEngineTest {
     fun anEngineFailure_propagates() = runTest {
         factory.failure = IllegalStateException("gpu lost")
         assertThrows(IllegalStateException::class.java) { kotlinx.coroutines.runBlocking { engine.generate("prompt").toList() } }
+    }
+
+    // F20 T007 (research R5, contract G1–G5, analyze I2, I3 and G1).
+
+    private val visual = AnswerPrompt.Visual(listOf(PromptPart.Text("FUENTES:\n[1] cartel.jpg\n"), PromptPart.Image(byteArrayOf(1, 2)), PromptPart.Text("\nPREGUNTA: ¿Qué?")), 140)
+    private val visionKey = EngineKey(ModelId.GEMMA4_E2B, GPU, EngineKind.VISION_GENERATOR)
+    private val textKey = EngineKey(ModelId.GEMMA4_E2B, GPU)
+
+    @Test
+    fun aPagePrompt_usesGemmaWithVision_andPassesItsPartsAndTokens() = runTest {
+        engine.generate(visual).toList()
+
+        assertThat(factory.created).containsExactly(
+            GPU to GenerationConfig(maxNumTokens = 8192, maxOutputTokens = 512, greedy = true, visionBackend = CPU, maxNumImages = 1),
+        )
+        assertThat(coordinator.loaded.value).containsExactly(visionKey)
+        val sent = factory.partsPrompts.single()
+        assertThat(sent.visualTokens).isEqualTo(140)
+        assertThat(sent.parts.map { it.javaClass }).containsExactly(
+            GenerationPart.Text::class.java, GenerationPart.Image::class.java, GenerationPart.Text::class.java,
+        ).inOrder()
+        assertThat((sent.parts[1] as GenerationPart.Image).bytes).isEqualTo(byteArrayOf(1, 2))
+    }
+
+    @Test
+    fun aTextPrompt_isTodaysGemma_andSwitchingClosesTheOther() = runTest {
+        engine.generate(visual).toList()
+        engine.generate(AnswerPrompt.Text("prompt")).toList()
+
+        assertThat(factory.created.last()).isEqualTo(GPU to GenerationConfig(maxNumTokens = 4096, maxOutputTokens = 512, greedy = true))
+        assertThat(coordinator.loaded.value).containsExactly(textKey)
+        assertThat(factory.partsPrompts).hasSize(1)
+    }
+
+    @Test
+    fun onCpu_neverTwoGemmasLoaded() = runTest {
+        models.preparedBackends.value = mapOf(ModelId.GEMMA4_E2B to CPU)
+
+        engine.generate(AnswerPrompt.Text("prompt")).toList()
+        engine.generate(visual).toList()
+
+        assertThat(coordinator.loaded.value).containsExactly(EngineKey(ModelId.GEMMA4_E2B, CPU, EngineKind.VISION_GENERATOR))
+
+        engine.generate(AnswerPrompt.Text("prompt")).toList()
+
+        assertThat(coordinator.loaded.value).containsExactly(EngineKey(ModelId.GEMMA4_E2B, CPU))
+    }
+
+    @Test
+    fun warmUp_loadsTheGemmaTheNextAnswerNeeds() = runTest {
+        engine.warmUp(visual = true)
+        assertThat(coordinator.loaded.value).containsExactly(visionKey)
+
+        engine.warmUp()
+        assertThat(coordinator.loaded.value).containsExactly(textKey)
+        assertThat(factory.generations).isEqualTo(0)
+    }
+
+    @Test
+    fun releasingTheGenerators_closesGemmaWithVision() = runTest {
+        engine.generate(visual).toList()
+
+        coordinator.releaseGenerators()
+        assertThat(coordinator.loaded.value).isEmpty()
+
+        engine.generate(visual).toList()
+        coordinator.releaseUnheld()
+        assertThat(coordinator.loaded.value).isEmpty()
     }
 }

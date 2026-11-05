@@ -120,6 +120,22 @@ data class ChunkView(
 /** A vector search hit; SQLite-Vector cosine distance, lower is more similar. */
 data class ScoredChunk(val id: Long, val distance: Double)
 
+/**
+ * A page of the page search (F20 research R2), with what the chat needs to show and load it: [fileName] lives in
+ * `noBackupFilesDir/pages/`, and [image] marks a loose JPG or PNG, whose label has no page number.
+ */
+data class ScoredPage(
+    val documentId: Long,
+    val page: Int,
+    val distance: Double,
+    val documentName: String,
+    val fileName: String,
+    val image: Boolean,
+)
+
+/** A document's page, 1-based (F20 research R10). */
+data class PageKey(val documentId: Long, val page: Int)
+
 /** [ftsRows] counts what the FTS5 index really holds (`chunks_fts_docsize`). */
 data class IndexCounts(val documents: Int, val chunks: Int, val ftsRows: Int)
 
@@ -133,8 +149,10 @@ data class ChatLibraryState(
     val searchable: Int,
     /** Included and pending, parsed, embedding or paused: what a running or paused batch will add. */
     val pendingIncluded: Int,
-    /** F19 research R13: done and included with pages and no chunks; the chat does not use them until F20. */
+    /** F19 research R13: done and included with pages and no chunks; F20 counts them with the mode on (R11). */
     val visualOnly: Int = 0,
+    /** F20 research R5: done and included with at least one page, so Gemma warms up with vision. */
+    val withPages: Int = 0,
 )
 
 /** Whether the index can be used (F04 research R7). Only [Compatible] allows reads and writes. */

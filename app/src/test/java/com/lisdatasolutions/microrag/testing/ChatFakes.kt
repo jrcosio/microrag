@@ -3,6 +3,7 @@ package com.lisdatasolutions.microrag.testing
 import com.lisdatasolutions.microrag.domain.chat.ActiveAnswer
 import com.lisdatasolutions.microrag.domain.chat.AnswerEngine
 import com.lisdatasolutions.microrag.domain.chat.AnswerEvent
+import com.lisdatasolutions.microrag.domain.chat.AnswerPrompt
 import com.lisdatasolutions.microrag.domain.chat.AnswerSource
 import com.lisdatasolutions.microrag.domain.chat.ChatRepository
 import com.lisdatasolutions.microrag.domain.chat.ChatScope
@@ -14,6 +15,7 @@ import com.lisdatasolutions.microrag.domain.chat.ConversationPage
 import com.lisdatasolutions.microrag.domain.chat.ConversationSummary
 import com.lisdatasolutions.microrag.domain.chat.HistoryLimits
 import com.lisdatasolutions.microrag.domain.chat.ObserveChatAvailabilityUseCase
+import com.lisdatasolutions.microrag.domain.chat.PromptPart
 import com.lisdatasolutions.microrag.domain.chat.ResolvedScope
 import com.lisdatasolutions.microrag.domain.chat.TurnState
 import com.lisdatasolutions.microrag.domain.chat.TurnUpdate
@@ -119,7 +121,7 @@ class InMemoryChatRepository : ChatRepository {
             t.copy(
                 state = update.state ?: t.state, answer = update.answer ?: t.answer, failure = update.failure ?: t.failure,
                 refusal = update.refusal ?: t.refusal, promptBlocks = update.promptBlocks ?: t.promptBlocks,
-                finishedAt = update.finishedAt ?: t.finishedAt,
+                finishedAt = update.finishedAt ?: t.finishedAt, pageTokens = update.pageTokens ?: t.pageTokens,
             )
         }
         Unit
@@ -132,7 +134,10 @@ class InMemoryChatRepository : ChatRepository {
 
     override suspend fun resetForRetry(turnId: Long) = write("reset") {
         turns.computeIfPresent(turnId) { _, t ->
-            t.copy(state = TurnState.RETRIEVING, answer = "", failure = null, refusal = false, promptBlocks = 0, sources = emptyList(), finishedAt = null)
+            t.copy(
+                state = TurnState.RETRIEVING, answer = "", failure = null, refusal = false, promptBlocks = 0, sources = emptyList(),
+                finishedAt = null, pageTokens = null,
+            )
         }
         Unit
     }
@@ -188,7 +193,8 @@ class InMemoryChatRepository : ChatRepository {
 
 /**
  * [AnswerEngine] that streams [tokens], one every [delayPerTokenMs] of virtual time, after [prefillMs].
- * [failAt] throws before that token; cancellations and prompts are recorded.
+ * [failAt] throws before that token; cancellations and prompts are recorded. F20: [answerPrompts] keeps each prompt as
+ * it came, and [prompts] its text (a visual prompt's text parts joined, each image as `<image>`).
  */
 class FakeAnswerEngine(var isReady: Boolean = true) : AnswerEngine {
     val backend = MutableStateFlow<ComputeBackend?>(ComputeBackend.GPU)
@@ -198,7 +204,9 @@ class FakeAnswerEngine(var isReady: Boolean = true) : AnswerEngine {
     var failAt: Int? = null
     var failure: Exception = IllegalStateException("engine failed")
     val prompts = mutableListOf<String>()
+    val answerPrompts = mutableListOf<AnswerPrompt>()
     var warmUps = 0
+    var visualWarmUps = 0
     var cancellations = 0
     var generating = false
         private set
@@ -207,12 +215,17 @@ class FakeAnswerEngine(var isReady: Boolean = true) : AnswerEngine {
 
     override fun preparedBackend(): Flow<ComputeBackend?> = backend
 
-    override suspend fun warmUp() {
+    override suspend fun warmUp(visual: Boolean) {
         warmUps++
+        if (visual) visualWarmUps++
     }
 
-    override fun generate(prompt: String): Flow<AnswerEvent> = flow {
-        prompts += prompt
+    override fun generate(prompt: AnswerPrompt): Flow<AnswerEvent> = flow {
+        answerPrompts += prompt
+        prompts += when (prompt) {
+            is AnswerPrompt.Text -> prompt.text
+            is AnswerPrompt.Visual -> prompt.parts.joinToString("") { if (it is PromptPart.Text) it.text else "<image>" }
+        }
         generating = true
         try {
             delay(prefillMs)

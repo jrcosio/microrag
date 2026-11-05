@@ -76,6 +76,20 @@ class EngineCoordinatorTest {
         assertThat(coordinator.loaded.value).containsExactly(cpuA, cpuB)
     }
 
+    /** F20 T007 (analyze I2): Gemma with and without vision are never loaded together, not even on the CPU. */
+    @Test
+    fun neverTwoLlms_onAnyBackend_whileEmbeddersStay() = runTest {
+        val gemmaText = EngineKey(ModelId.GEMMA4_E2B, CPU)
+        val gemmaVision = EngineKey(ModelId.GEMMA4_E2B, CPU, EngineKind.VISION_GENERATOR)
+
+        coordinator.withEngine(cpuA, factory("a", CPU)) { }
+        coordinator.withEngine(gemmaText, factory("text", CPU)) { }
+        coordinator.withEngine(gemmaVision, factory("vision", CPU)) { }
+
+        assertThat(events).containsExactly("create a", "create text", "close text", "create vision").inOrder()
+        assertThat(coordinator.loaded.value).containsExactly(cpuA, gemmaVision)
+    }
+
     /** F19 T061 (analyze H2): the 440M's image and text engines are two entries, so a query never waits for a page. */
     @Test
     fun theImageAndTextEnginesOfOneModel_areDistinct_andAQueryDuringThePagesGetsTheText() = runTest {

@@ -191,6 +191,18 @@ interface RagIndex {
     /** The chunk at [ordinal] of [documentId], if any; only if [loadChunks] would load it with the same arguments. */
     suspend fun neighbor(documentId: Long, ordinal: Int, searchableOnly: Boolean = false, scope: SearchScope = SearchScope.All): ChunkView?
 
+    /**
+     * F20 (contract P1): exact top-[k] pages by cosine distance to the unit [query], only of documents that are done
+     * and included, and only in [scope]. Empty when the index's page space does not match ([pagesUsable]).
+     */
+    suspend fun pageSearch(query: FloatArray, k: Int = RagParameters.PAGE_CANDIDATES, scope: SearchScope = SearchScope.All): List<ScoredPage>
+
+    /** F20 (contract P2): which of [keys] are still stored, in one query. */
+    suspend fun existingPages(keys: Collection<PageKey>): Set<PageKey>
+
+    /** F20 (contract P3): the file of [page] of [documentId] in `noBackupFilesDir/pages/`, or null. */
+    suspend fun pageFile(documentId: Long, page: Int): String?
+
     suspend fun counts(): IndexCounts
 
     /** All documents without shadows, and the stored chunks of the done ones, in one query on `documents` (F09 R2). */

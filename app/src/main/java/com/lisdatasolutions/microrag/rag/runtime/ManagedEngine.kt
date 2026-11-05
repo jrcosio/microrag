@@ -10,9 +10,10 @@ interface ManagedEngine : AutoCloseable {
 
 /**
  * What a model file is loaded as (F19 analyze H2): [DEFAULT] is Gemma's generator or an embedder's text side;
- * [IMAGE_EMBEDDER] is the 440M with its vision encoder, another native engine than its text one.
+ * [IMAGE_EMBEDDER] is the 440M with its vision encoder, another native engine than its text one;
+ * [VISION_GENERATOR] is Gemma with its vision encoder, for an answer with a page (F20 research R5).
  */
-enum class EngineKind { DEFAULT, IMAGE_EMBEDDER }
+enum class EngineKind { DEFAULT, IMAGE_EMBEDDER, VISION_GENERATOR }
 
 data class EngineKey(val model: ModelId, val backend: ComputeBackend, val kind: EngineKind = EngineKind.DEFAULT)
 

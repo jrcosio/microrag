@@ -6,8 +6,8 @@ import com.lisdatasolutions.microrag.data.rag.RagSchema
 /** `assets/chat_schema.sql` (F11 data-model §3), split as the index schema. */
 object ChatSchema {
     const val ASSET = "chat_schema.sql"
-    /** 2 since F17: `conversation_scope` and `last_scope` (research R7). */
-    const val VERSION = 2
+    /** 2 since F17: `conversation_scope` and `last_scope` (research R7); 3 since F20: the page sources (data-model §1). */
+    const val VERSION = 3
     const val VERSION_KEY = "schema_version"
 
     /** Blocking asset read; call it on the database dispatcher. */
@@ -36,6 +36,14 @@ object ChatMigrations {
                     "  ref_created_at_ms  INTEGER,\n" +
                     "  PRIMARY KEY (kind, ref_id)\n" +
                     ")",
+            ),
+        ),
+        // F20 (research R9): every source of before is a chunk, and no turn carried a page.
+        ChatMigration(
+            from = 2,
+            statements = listOf(
+                "ALTER TABLE sources ADD COLUMN kind TEXT NOT NULL DEFAULT 'chunk' CHECK (kind IN ('chunk','page','image'))",
+                "ALTER TABLE turns ADD COLUMN page_tokens INTEGER",
             ),
         ),
     )

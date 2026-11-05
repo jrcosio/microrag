@@ -1,5 +1,6 @@
 package com.lisdatasolutions.microrag.rag.answer
 
+import com.lisdatasolutions.microrag.domain.chat.PromptPart
 import com.lisdatasolutions.microrag.domain.rag.RagParameters
 import com.lisdatasolutions.microrag.rag.ingest.PyText
 import kotlin.math.ceil
@@ -22,6 +23,16 @@ object PromptBuilder {
 
     /** A context block as the prompt shows it; null parts are left out of its header. */
     data class Block(val documentName: String?, val headingPath: String?, val page: Int?, val text: String)
+
+    /** F20: the page that enters as an image; [page] is null for a loose JPG or PNG, whose label is only its name. */
+    data class PageSource(val documentName: String, val page: Int?) {
+        val label: String get() = if (page != null) "$documentName, página $page" else documentName
+    }
+
+    /** The rule the v5-visual adds after the v4's (`visual_prompt.PAGE_RULE`, F18 research R11). */
+    const val PAGE_RULE = "- Algunas FUENTES son imágenes de páginas: léelas y cítalas igual que las demás."
+
+    private const val SOURCES = "FUENTES:\n"
 
     // Rules each template adds after the report's (D-035 levers of F05 and the F11 review, research R4).
     private val V2_RULES = listOf(
@@ -70,13 +81,42 @@ object PromptBuilder {
         }
         lines += "FUENTES:"
         blocks.forEachIndexed { i, block ->
-            val where = listOfNotNull(block.documentName, block.headingPath).joinToString(" › ")
-            val page = block.page?.let { " (p. $it)" }.orEmpty()
-            lines += "[${i + 1}] $where$page"
+            lines += "[${i + 1}] ${block.header()}"
             lines += PyText.strip(block.text)
             lines += ""
         }
         return lines.joinToString("\n") + "\nPREGUNTA: " + PyText.strip(question)
+    }
+
+    /**
+     * F20 (research R4, contract B2): the v5-visual parts, exactly as `offline/eval/visual_prompt.build_parts` makes
+     * them. The v4 rules, then [PAGE_RULE], then the previous turn; the text sources as the v4 numbers them; the page
+     * after them, its label and then its [image]; and the question. `VisualPromptGoldenTest` checks it against the
+     * desktop. [blocks] and [previous] are what the v4's limit left (DefaultChatSession).
+     */
+    fun buildVisual(
+        question: String,
+        blocks: List<Block>,
+        page: PageSource,
+        image: ByteArray,
+        previous: Pair<String, String>?,
+        language: PromptLanguage = PromptLanguage.SPANISH,
+    ): List<PromptPart> {
+        val template = RagParameters.PROMPT_TEMPLATE
+        val (head, tail) = build(question, emptyList(), previous, template, language).split(SOURCES, limit = 2)
+        val rulesEnd = build(question, emptyList(), null, template, language).substringBefore(SOURCES).trimEnd('\n')
+        val conversation = head.substring(rulesEnd.length).trimStart('\n')
+        val text = StringBuilder("$rulesEnd\n$PAGE_RULE\n\n$conversation$SOURCES")
+        blocks.forEachIndexed { i, block -> text.append("[${i + 1}] ${block.header()}\n${PyText.strip(block.text)}\n\n") }
+        text.append("[${blocks.size + 1}] ${page.label}\n")
+        val question = "\n" + tail.trimStart('\n')
+        return listOf(PromptPart.Text(text.toString()), PromptPart.Image(image), PromptPart.Text(question))
+    }
+
+    /** «documento › encabezados (p. N)», as the v4 writes a source's first line. */
+    private fun Block.header(): String {
+        val where = listOfNotNull(documentName, headingPath).joinToString(" › ")
+        return where + page?.let { " (p. $it)" }.orEmpty()
     }
 
     /** ⌈code points / CHARS_PER_TOKEN⌉, the estimate of the context budget (research R10). */

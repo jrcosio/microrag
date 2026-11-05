@@ -17,8 +17,9 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 /**
- * Owns every loaded engine (constitution IV): never two engines on the GPU at once, and an
- * engine is never closed while a block is using it.
+ * Owns every loaded engine (constitution IV): never two engines on the GPU at once, never two LLMs loaded at once
+ * on any backend (F20 analyze I2: Gemma with and without vision), and an engine is never closed while a block is
+ * using it.
  *
  * Embedding engines are shared (F10 research R5): several blocks can use one at once, so a query does
  * not wait for the ingest's whole run; each call already runs alone on the single embeddings thread.
@@ -125,7 +126,7 @@ class EngineCoordinator(private val logger: AppLogger) {
                 // Taken before the load lock is released so no release can close it in between.
                 when {
                     existing != null -> existing.takeIf { it.enter() }
-                    key.backend == ComputeBackend.GPU && otherGpuInUse(key) -> null
+                    conflictsInUse(key) -> null
                     else -> load(key, factory)
                 }?.also { if (held) it.holds.incrementAndGet() }
             }
@@ -142,14 +143,21 @@ class EngineCoordinator(private val logger: AppLogger) {
         useLock.tryLock()
     }
 
-    private fun otherGpuInUse(key: EngineKey): Boolean =
-        entries.any { (other, entry) -> other != key && other.backend == ComputeBackend.GPU && entry.inUse }
+    /** The engines [key] cannot be loaded beside: the other GPU ones for a GPU engine, the other LLMs for an LLM. */
+    private fun conflicts(key: EngineKey): List<EngineKey> = entries.keys.filter { other ->
+        other != key && (
+            (key.backend == ComputeBackend.GPU && other.backend == ComputeBackend.GPU) ||
+                (key.isLlm() && other.isLlm())
+            )
+    }
 
-    /** Under the load lock: no other GPU engine is in use, so closing them does not wait. */
+    private fun conflictsInUse(key: EngineKey): Boolean = conflicts(key).any { entries.getValue(it).inUse }
+
+    private fun EngineKey.isLlm(): Boolean = ModelCatalog.byId(model).family == ModelFamily.LLM
+
+    /** Under the load lock: no conflicting engine is in use, so closing them does not wait. */
     private suspend fun load(key: EngineKey, factory: suspend () -> ManagedEngine): Entry {
-        if (key.backend == ComputeBackend.GPU) {
-            entries.keys.filter { it.backend == ComputeBackend.GPU }.forEach { closeLocked(it) }
-        }
+        conflicts(key).forEach { closeLocked(it) }
         val entry = Entry(factory(), shared = ModelCatalog.byId(key.model).family == ModelFamily.EMBEDDING)
         entries[key] = entry
         entry.enter()

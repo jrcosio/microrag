@@ -76,4 +76,6 @@ data class TurnUpdate(
     val refusal: Boolean? = null,
     val promptBlocks: Int? = null,
     val finishedAt: Long? = null,
+    /** F20: the page's visual tokens, written once when a page enters. */
+    val pageTokens: Int? = null,
 )

@@ -26,12 +26,26 @@ enum class MultimodalError {
     PREPARE_FAILED,
 }
 
-/** What `multimodal.preferences_pb` holds (data-model §3). [textEmbedder] mirrors `rag_meta` before the index opens (analyze H3). */
+/**
+ * How much of the page Gemma reads in an answer (F20 research R12, D-078): its visual tokens, and the first-token
+ * wait F18 measured on the reference phone with 1 page, in tenths of a second, for Settings and the chat.
+ */
+enum class PageDetail(val visualTokens: Int, val estimateTenthsOfSecond: Int) {
+    FAST(70, 100),
+    BALANCED(140, 115),
+    DETAILED(280, 145),
+}
+
+/**
+ * What `multimodal.preferences_pb` holds (data-model §3). [textEmbedder] mirrors `rag_meta` before the index opens
+ * (analyze H3); [pageDetail] is F20's (D-083).
+ */
 data class StoredMultimodal(
     val stage: MultimodalStage = MultimodalStage.OFF,
     val error: MultimodalError? = null,
     val defaultMode: IndexMode = IndexMode.BOTH,
     val textEmbedder: ModelId = ModelId.EG2_270M,
+    val pageDetail: PageDetail = PageDetail.BALANCED,
 )
 
 /** The persisted mode (contract M1); a corrupt file reads as the defaults. */
