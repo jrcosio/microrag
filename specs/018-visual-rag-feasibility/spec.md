@@ -57,6 +57,7 @@
 - Q: ¿De dónde salen las imágenes sueltas de prueba? → A: De dos fuentes:
   - imágenes públicas con licencia, como gráficos e infografías;
   - **fotos simuladas:** páginas del corpus convertidas en «foto» (giro, perspectiva, sombra, ruido y compresión JPEG), cuyo contenido y relevancia se conocen (FR-019).
+- Q: ¿Se aprueba la spec con estas respuestas, y se sigue el ciclo en automático hasta la implementación? → A: Sí (revisión del clarify, 2026-11-05). La fase del teléfono y el cierre se preguntan antes. Queda en D-073.
 
 ## User Scenarios & Testing *(mandatory)*
 

@@ -1798,6 +1798,42 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G47).
 
 ---
 
+## D-073 — Regla de viabilidad del RAG visual (clarify de F18)
+
+- **Fecha:** 2026-11-05
+- **Decisión:**
+  1. **Regla de sí o no a F19–F20**, fijada antes de evaluar (FR-025 de F18). Se sigue si se cumplen las tres condiciones:
+     - **calidad visual:** en las preguntas visuales (tabla, gráfico, escaneado e imagen suelta), «Ambos» da al menos **15 puntos más** de respuestas correctas que «Texto»;
+     - **sin pérdida en texto:** en los controles de texto no pierde más de **2 puntos**;
+     - **primer token:** p95 **≤ 8 s** de extremo a extremo en el teléfono de referencia, con al menos 1 página. Entran las páginas que quepan. Si no cabe ni una, el usuario decide si se sigue con una excepción o se para.
+
+     Además, la 440M tiene que pasar el golden y dar los mismos vectores de texto que la 270M (SC-002), o decide el usuario.
+  2. **Revisión del conjunto de prueba:** la hace el asistente, como en F05 (D-033). Las preguntas las redactan agentes separados a partir de las imágenes de página, y la sesión principal las revisa mirando cada página.
+  3. **Imágenes sueltas de prueba:** imágenes públicas con licencia, más fotos simuladas generadas con semilla a partir de páginas del corpus (giro, perspectiva, sombra, ruido y JPEG).
+- **Hallazgo previo** (sonda de `ModelInfo` en el escritorio, 2026-11-05):
+  - el fichero de Gemma de la app admite como mucho **280 tokens por imagen** (70, 140 o 280), no los 560 que suponía el roadmap;
+  - la visión de Gemma y la de la 440M solo corren en CPU.
+
+  F18 mide hasta 280 y evalúa partir la página en trozos como alternativa. Otro fichero de Gemma sería un cambio de modelo, fuera de F18.
+- **Motivo:**
+  - F19–F20 cambian el modelo, el esquema, la ingesta y el prompt. Solo compensan con una mejora clara de las respuestas visuales, sin empeorar las de texto;
+  - 8 s es una espera notable, pero solo en las respuestas que llevan páginas;
+  - la revisión por el asistente no le quita tiempo al usuario, y su independencia se compensa como en D-033;
+  - las fotos simuladas tienen contenido y relevancia conocidos y son reproducibles, y hay pocas fotos de documentos con licencia clara.
+- **Alternativas descartadas:**
+  - +10 o +25 puntos, o decidir sin umbral al ver las cifras;
+  - un primer token de 10 s, el de hoy (≈ 6,6 s, D-057) o sin límite previo;
+  - que el usuario revise una muestra o todas las preguntas;
+  - solo imágenes públicas, o fotos hechas por el usuario.
+- **Proceso:** como en F16 y F17, el usuario pidió el 2026-11-05 seguir el ciclo SDD en automático salvo que haga falta preguntarle. La fase del teléfono y el cierre se le preguntan antes.
+- **Origen:** usuario (clarify y revisión de la spec de F18).
+- **Afecta:**
+  - F18: FR-019, FR-021, FR-025, SC-004 y SC-008;
+  - F19 y F20: solo siguen si se cumple la regla;
+  - el roadmap de F18, en los 560 tokens por imagen.
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.
