@@ -378,7 +378,7 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
 
 **Independent Test:** quickstart §4, paso 4.
 
-- [ ] T046 [P] [US7] `…/androidTest/…/feature/chat/VisualChatAccessibilityTest.kt` (U17), parametrizada en claro y en oscuro, como `MultimodalAccessibilityTest`. Recorre `PageDetailRoute`, la conversación con una tarjeta de página, la vista previa de página y el visor:
+- [X] T046 [P] [US7] `…/androidTest/…/feature/chat/VisualChatAccessibilityTest.kt` (U17), parametrizada en claro y en oscuro, como `MultimodalAccessibilityTest`. Recorre `PageDetailRoute`, la conversación con una tarjeta de página, la vista previa de página y el visor:
   - ATF;
   - 48 dp;
   - grupo de radios;
@@ -399,8 +399,8 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
 ## Phase 11: Polish, medición y cierre
 
 - [X] T050 [P] Registros (R18, FR-021): `theLogHasOneLineOfNumbers_andNoText` y `oneLogLinePerRetrieval_withNumbersOnly` con una página y marcadores «SECRETO» en el nombre, la etiqueta y la imagen; `AppLoggerTest` sin cambios.
-- [ ] T051 [P] `…/androidTest/…/rag/runtime/litert/GemmaVisionSmokeTest.kt` (`@RequiresModels`, R19): una página generada con `PdfDocument` que dice un número. Gemma, con la v5-visual y Equilibrado, lo lee y cita `[1]`. Se salta sin Gemma.
-- [ ] T052 [P] `…/androidTest/…/data/chat/VisualChatBenchmarkTest.kt` (`@RequiresModels`, R19, SC-003):
+- [X] T051 [P] `…/androidTest/…/rag/runtime/litert/GemmaVisionSmokeTest.kt` (`@RequiresModels`, R19): una página generada con `PdfDocument` que dice un número. Gemma, con la v5-visual y Equilibrado, lo lee y cita `[1]`. Se salta sin Gemma.
+- [X] T052 [P] `…/androidTest/…/data/chat/VisualChatBenchmarkTest.kt` (`@RequiresModels`, R19, SC-003):
   - un índice temporal con la 440M;
   - un PDF generado de 12 páginas en Ambos;
   - 20 preguntas por detalle, más 20 con el modo activo y sin páginas, que usan la Gemma de hoy;
