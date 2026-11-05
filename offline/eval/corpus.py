@@ -5,10 +5,14 @@ written only if its SHA-256 matches the manifest. `fetch` entries pin what is do
 - boe: a consolidated law from the BOE open data API, converted to Markdown;
 - pdf: a PDF URL, optionally reduced to a page range;
 - wikibooks: Wikibooks pages at fixed revisions, converted to plain text; `site` picks the language edition (es by
-  default; en for the English corpus of F12).
+  default; en for the English corpus of F12);
+- image (F18): an image file as published;
+- scan (F18): pages of a scanned PDF rebuilt as an image-only PDF, so its OCR layer goes away (research R8);
+- photo (F18): a simulated phone photo of a page of another document of the same corpus (D-073).
 
-Two corpora share this code: the Spanish one of F05 (offline/corpus) and the English one of F12 (offline/corpus/en,
-contracts/eval-language.md L8), each with its own manifest, documents and SOURCES.md.
+Three corpora share this code: the Spanish one of F05 (offline/corpus), the English one of F12 (offline/corpus/en,
+contracts/eval-language.md L8) and the visual one of F18 (offline/corpus_visual, outside offline/corpus because that
+folder is an asset folder of the instrumented tests), each with its own manifest, documents and SOURCES.md.
 """
 
 import hashlib
@@ -16,7 +20,11 @@ import html
 import io
 import json
 import re
+import shutil
+import ssl
+import subprocess
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 from dataclasses import dataclass
@@ -42,6 +50,9 @@ CORPORA = {
     "es": Corpus("es", MANIFEST, DOCS, SOURCES, "Documentos públicos reutilizados para la evaluación offline de MicroRAG (F05, D-032)."),
     "en": Corpus("en", CORPUS / "en" / "manifest.json", CORPUS / "en" / "docs", CORPUS / "en" / "SOURCES.md",
                  "Documentos públicos en inglés para la medida entre idiomas de MicroRAG (F12)."),
+    "visual": Corpus("visual", OFFLINE / "corpus_visual" / "manifest.json", OFFLINE / "corpus_visual" / "docs",
+                     OFFLINE / "corpus_visual" / "SOURCES.md",
+                     "Documentos e imágenes públicos para la evaluación del RAG visual de MicroRAG (F18, D-073)."),
 }
 
 USER_AGENT = "MicroRAG-eval/0.1 (desktop evaluation tooling; https://github.com/jrcosio/microrag)"
@@ -49,9 +60,15 @@ FIELDS = (
     "id", "title", "format", "kind", "source_url", "publisher", "license", "attribution",
     "source_updated", "retrieved", "transformations", "fetch", "sha256",
 )
-LICENSES = ("BOE: reutilización con atribución", "AEAT: RD 1495/2011", "CC BY-SA 4.0")
-FORMATS = ("md", "pdf", "txt")
-KINDS = ("normativa", "guia", "manual")
+LICENSES = (
+    "BOE: reutilización con atribución", "AEAT: RD 1495/2011", "CC BY-SA 4.0",
+    # F18 visual corpus (research R8).
+    "INE: CC BY 4.0", "AEMET: Ley 37/2007", "BNE: dominio público", "Dominio público", "CC0 1.0",
+    "CC BY 2.0", "CC BY 4.0", "CC BY-SA 3.0",
+)
+FORMATS = ("md", "pdf", "txt", "png", "jpg")
+KINDS = ("normativa", "guia", "manual", "estadistica", "informe", "escaneado", "imagen")
+MIME_TYPES = {"md": "text/markdown", "pdf": "application/pdf", "txt": "text/plain", "png": "image/png", "jpg": "image/jpeg"}
 
 
 @dataclass(frozen=True)
@@ -76,7 +93,7 @@ class Doc:
 
     @property
     def mime_type(self):
-        return {"md": "text/markdown", "pdf": "application/pdf", "txt": "text/plain"}[self.format]
+        return MIME_TYPES[self.format]
 
 
 def parse_manifest(entries):
@@ -176,12 +193,22 @@ def sources_markdown(docs, purpose=CORPORA["es"].purpose):
 # --- fetchers ----------------------------------------------------------------------------------------
 
 def http_get(url, accept=None, pause=0.0):
+    """GET with the project's User-Agent, which carries no personal data. If Python cannot verify the site's
+    certificate (a Python without the system's trust store), curl, which uses it, fetches the same URL."""
     headers = {"User-Agent": USER_AGENT}
     if accept:
         headers["Accept"] = accept
     time.sleep(pause)
-    with urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=120) as response:
-        return response.read()
+    try:
+        with urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=120) as response:
+            return response.read()
+    except urllib.error.URLError as error:
+        if not isinstance(error.reason, ssl.SSLCertVerificationError) or shutil.which("curl") is None:
+            raise
+    command = ["curl", "--silent", "--show-error", "--fail", "--location", "--max-time", "300", "-A", USER_AGENT]
+    if accept:
+        command += ["-H", f"Accept: {accept}"]
+    return subprocess.run(command + [url], check=True, capture_output=True).stdout
 
 
 def fetch_boe(spec, doc):
@@ -231,6 +258,61 @@ def fetch_wikibooks(spec, doc):
     return ("\n\n".join(parts) + "\n").encode("utf-8")
 
 
+def fetch_image(spec, doc):
+    """An image as published; `jpeg` re-encodes a heavy PNG as JPEG (stated in `transformations`)."""
+    data = http_get(spec["url"])
+    quality = spec.get("jpeg")
+    if not quality:
+        return data
+    from PIL import Image
+
+    image = Image.open(io.BytesIO(data)).convert("RGB")
+    out = io.BytesIO()
+    image.save(out, "JPEG", quality=quality, optimize=False, progressive=False)
+    return out.getvalue()
+
+
+def fetch_scan(spec, doc):
+    """Pages of a scanned PDF rebuilt as an image-only PDF in greyscale JPEG at `dpi` (research R8).
+
+    pypdfium2 renders each page, and Pillow writes the PDF without dates, so the same pages give the same bytes."""
+    import pypdfium2 as pdfium
+    from PIL import Image
+
+    document = pdfium.PdfDocument(http_get(spec["url"]))
+    try:
+        first, last = spec["pages"]
+        pages = []
+        for number in range(first, last + 1):
+            rendered = document[number - 1].render(scale=spec["dpi"] / 72, fill_color=(255, 255, 255, 255))
+            grey = rendered.to_pil().convert("L")
+            encoded = io.BytesIO()
+            grey.save(encoded, "JPEG", quality=spec.get("quality", 70), optimize=False, progressive=False)
+            pages.append(Image.open(io.BytesIO(encoded.getvalue())))
+    finally:
+        document.close()
+    # Pillow stamps the current time unless told otherwise: the download date keeps the bytes fixed.
+    stamp = time.strptime(doc.retrieved, "%Y-%m-%d")
+    out = io.BytesIO()
+    pages[0].save(out, "PDF", save_all=True, append_images=pages[1:], resolution=spec["dpi"], title=doc.title,
+                  producer="MicroRAG eval (Pillow)", creationDate=stamp, modDate=stamp)
+    return out.getvalue()
+
+
+def fetch_photo(spec, doc, docs_dir=None):
+    """A simulated phone photo of page `page` of document `from`, which must already be in [docs_dir] (D-073)."""
+    from eval import photos, raster
+
+    docs_dir = docs_dir or CORPORA["visual"].docs
+    source = next(docs_dir.glob(f"{spec['from']}.*"))
+    page = raster.render_page(source, spec["page"], photos.RECIPE_V1["long_side_px"]) if source.suffix == ".pdf" \
+        else raster.scale_image(source, photos.RECIPE_V1["long_side_px"])
+    if spec.get("recipe", "v1") != photos.RECIPE_V1["name"]:
+        raise ValueError(f"{doc.id}: unknown photo recipe {spec['recipe']}")
+    data, _ = photos.simulate_photo(page, spec["seed"])
+    return data
+
+
 def default_fetcher(doc):
     kind = doc.fetch["type"]
     if kind == "boe":
@@ -239,6 +321,12 @@ def default_fetcher(doc):
         return fetch_pdf(doc.fetch, doc)
     if kind == "wikibooks":
         return fetch_wikibooks(doc.fetch, doc)
+    if kind == "image":
+        return fetch_image(doc.fetch, doc)
+    if kind == "scan":
+        return fetch_scan(doc.fetch, doc)
+    if kind == "photo":
+        return fetch_photo(doc.fetch, doc)
     raise ValueError(f"{doc.id}: unknown fetch type {kind}")
 
 
