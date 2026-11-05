@@ -129,10 +129,12 @@ data class LibrarySummary(val documents: Int, val indexedChunks: Int)
 /** The library as the chat sees it (F11 research R11): shadows left out. */
 data class ChatLibraryState(
     val documents: Int,
-    /** Done and included: what the search can use. */
+    /** Done and included, with chunks: what the search can use. */
     val searchable: Int,
     /** Included and pending, parsed, embedding or paused: what a running or paused batch will add. */
     val pendingIncluded: Int,
+    /** F19 research R13: done and included with pages and no chunks; the chat does not use them until F20. */
+    val visualOnly: Int = 0,
 )
 
 /** Whether the index can be used (F04 research R7). Only [Compatible] allows reads and writes. */

@@ -7,6 +7,7 @@ import com.lisdatasolutions.microrag.domain.rag.DocumentNames
 import com.lisdatasolutions.microrag.domain.rag.DocumentStatus
 import com.lisdatasolutions.microrag.domain.rag.DocumentTitle
 import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
+import com.lisdatasolutions.microrag.domain.rag.IndexMode
 import com.lisdatasolutions.microrag.domain.rag.RagIndexConfig
 import com.lisdatasolutions.microrag.domain.rag.RagMetaKeys
 import com.lisdatasolutions.microrag.rag.text.SpanishText
@@ -18,8 +19,8 @@ import org.junit.runner.RunWith
 
 /**
  * The real migrations on indexes with data: 1 → 2 (documents.skipped_pages, F06 T007, D-038),
- * 2 → 3 (name_norm, replaces_id and the Library indexes, F08 T002, research R1) and 3 → 4 (folders and
- * documents.folder_id, F17 T004, research R1).
+ * 2 → 3 (name_norm, replaces_id and the Library indexes, F08 T002, research R1), 3 → 4 (folders and
+ * documents.folder_id, F17 T004, research R1) and 4 → 5 (documents.index_mode and the pages table, F19 T005, research R8).
  */
 @RunWith(AndroidJUnit4::class)
 class RagIndexMigrationTest {
@@ -32,6 +33,11 @@ class RagIndexMigrationTest {
     /** The released v3 schema (F08), a test asset as the v2 one (F17 T004, analyze M7). */
     private val v3Schema: List<String> = RagSchema.split(
         InstrumentationRegistry.getInstrumentation().context.assets.open("schema/schema_v3.sql").bufferedReader().use { it.readText() },
+    )
+
+    /** The released v4 schema (F17), a test asset as the older ones (F19 T005). */
+    private val v4Schema: List<String> = RagSchema.split(
+        InstrumentationRegistry.getInstrumentation().context.assets.open("schema/schema_v4.sql").bufferedReader().use { it.readText() },
     )
 
     /** One document per state, with names that fold differently; chunks for the done and embedding ones. */
@@ -51,6 +57,23 @@ class RagIndexMigrationTest {
             db.exec("UPDATE documents SET included = 0 WHERE id = ?", ids.getValue(DocumentStatus.ERROR))
         }
         return ids
+    }
+
+    /** Builds a version 4 file with raw SQL, as F17 left it, with the done document in a folder and one excluded. */
+    private fun versionFourIndex(temp: TempRagIndex): Map<DocumentStatus, Long> {
+        val ids = oldIndex(temp, v4Schema, version = 4)
+        temp.withRaw { db ->
+            db.exec("UPDATE documents SET name_norm = lower(display_name)")
+            db.exec("INSERT INTO folders(name, name_norm, created_at_ms, updated_at_ms) VALUES ('Motores', 'motores', 1, 1)")
+            val folder = checkNotNull(db.queryOne("SELECT last_insert_rowid()") { it.getLong(0) })
+            db.exec("UPDATE documents SET folder_id = ? WHERE id = ?", folder, ids.getValue(DocumentStatus.DONE))
+            db.exec("UPDATE documents SET included = 0 WHERE id = ?", ids.getValue(DocumentStatus.ERROR))
+        }
+        return ids
+    }
+
+    private fun pageTables(temp: TempRagIndex): Long = temp.withRaw { db ->
+        checkNotNull(db.queryOne("SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name = 'pages'") { it.getLong(0) })
     }
 
     private fun oldIndex(temp: TempRagIndex, schema: List<String>, version: Int): Map<DocumentStatus, Long> = temp.withRaw { db ->
@@ -140,7 +163,7 @@ class RagIndexMigrationTest {
             assertThat(temp.index.open()).isEqualTo(IndexCompatibility.Compatible)
 
             assertThat(temp.index.meta()[RagMetaKeys.SCHEMA_VERSION]).isEqualTo(RagIndexConfig.SCHEMA_VERSION.toString())
-            assertThat(RagIndexConfig.SCHEMA_VERSION).isEqualTo(4)
+            assertThat(RagIndexConfig.SCHEMA_VERSION).isEqualTo(5)
             assertThat(columns(temp)).containsAtLeast("skipped_pages", "name_norm", "replaces_id")
             assertThat(indexes(temp)).containsAtLeast("idx_documents_created", "idx_documents_replaces")
             assertThat(nameNorms(temp)).isEqualTo(names.associateWith { DocumentNames.fold(it) })
@@ -162,7 +185,7 @@ class RagIndexMigrationTest {
 
             assertThat(temp.index.open()).isEqualTo(IndexCompatibility.Compatible)
 
-            assertThat(temp.index.meta()[RagMetaKeys.SCHEMA_VERSION]).isEqualTo("4")
+            assertThat(temp.index.meta()[RagMetaKeys.SCHEMA_VERSION]).isEqualTo(RagIndexConfig.SCHEMA_VERSION.toString())
             assertThat(columns(temp)).contains("folder_id")
             assertThat(indexes(temp)).contains("idx_documents_folder")
             assertThat(temp.withRaw { db -> db.queryOne("SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name = 'folders'") { it.getLong(0) } })
@@ -188,6 +211,55 @@ class RagIndexMigrationTest {
 
             assertThat(temp.fileDigest()).isEqualTo(before)
             assertThat(columns(temp)).doesNotContain("folder_id")
+        }
+    }
+
+    /** F19 FR-016: every document stays as it was, in Text mode, and the pages table starts empty. */
+    @Test
+    fun versionFour_isMigratedWithEveryDocumentInTextMode() = runBlocking<Unit> {
+        TempRagIndex().use { temp ->
+            val ids = versionFourIndex(temp)
+            assertThat(columns(temp)).doesNotContain("index_mode")
+            assertThat(pageTables(temp)).isEqualTo(0L)
+
+            assertThat(temp.index.open()).isEqualTo(IndexCompatibility.Compatible)
+
+            assertThat(temp.index.meta()[RagMetaKeys.SCHEMA_VERSION]).isEqualTo("5")
+            assertThat(columns(temp)).contains("index_mode")
+            assertThat(pageTables(temp)).isEqualTo(1L)
+            ids.values.forEach { id ->
+                val doc = temp.index.document(id)!!
+                assertThat(doc.indexMode).isEqualTo(IndexMode.TEXT)
+                assertThat(doc.pagesStored).isEqualTo(0)
+            }
+            assertThat(temp.index.document(ids.getValue(DocumentStatus.DONE))!!.folderId).isNotNull()
+            assertThat(temp.index.document(ids.getValue(DocumentStatus.ERROR))!!.included).isFalse()
+            assertThat(temp.index.pagesUsable.value).isTrue()
+            assertThat(temp.index.allPageFiles()).isEmpty()
+            assertDataKept(temp, ids)
+
+            // Reopening is a no-op: same version, same mode.
+            temp.index.close()
+            assertThat(temp.index.open()).isEqualTo(IndexCompatibility.Compatible)
+            assertThat(temp.index.document(ids.getValue(DocumentStatus.DONE))!!.indexMode).isEqualTo(IndexMode.TEXT)
+        }
+    }
+
+    @Test
+    fun failingMigration_leavesTheVersionFourFileUntouched() = runBlocking<Unit> {
+        val migrations = RagMigrations.all.filter { it.from < 4 } + RagMigration(from = 4, statements = listOf("NOT SQL"))
+        TempRagIndex(migrations = migrations).use { temp ->
+            versionFourIndex(temp)
+            val before = temp.fileDigest()
+
+            assertThat(temp.index.open()).isEqualTo(
+                IndexCompatibility.Incompatible(RagMetaKeys.SCHEMA_VERSION, RagIndexConfig.SCHEMA_VERSION.toString(), "4"),
+            )
+            temp.index.close()
+
+            assertThat(temp.fileDigest()).isEqualTo(before)
+            assertThat(columns(temp)).doesNotContain("index_mode")
+            assertThat(pageTables(temp)).isEqualTo(0L)
         }
     }
 

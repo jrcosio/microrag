@@ -10,7 +10,10 @@ import com.lisdatasolutions.microrag.domain.rag.DuplicateDocumentException
 import com.lisdatasolutions.microrag.domain.rag.Folder
 import com.lisdatasolutions.microrag.domain.rag.FolderList
 import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
+import com.lisdatasolutions.microrag.domain.model.ModelId
 import com.lisdatasolutions.microrag.domain.rag.IndexCounts
+import com.lisdatasolutions.microrag.domain.rag.IndexMode
+import com.lisdatasolutions.microrag.domain.rag.PageInput
 import com.lisdatasolutions.microrag.domain.rag.IndexStorageFullException
 import com.lisdatasolutions.microrag.domain.rag.IndexUnavailableException
 import com.lisdatasolutions.microrag.domain.rag.LibraryEntry
@@ -39,6 +42,16 @@ class FakeRagIndex(initial: IndexCompatibility = IndexCompatibility.Compatible) 
     override val documentChanges: StateFlow<Long> = changes
 
     val docs = linkedMapOf<Long, StoredDocument>()
+
+    /** F19: the text embedder rag_meta records, and whether the page space matches (contract E1, E3). */
+    override val textEmbedder = MutableStateFlow(ModelId.EG2_270M)
+    override val pagesUsable = MutableStateFlow(true)
+
+    /** F19: stored pages per document, by page number, as INSERT OR IGNORE leaves them. */
+    val pages = linkedMapOf<Long, java.util.SortedMap<Int, PageInput>>()
+
+    /** Set to make the next insertPage fail as a full disk would. */
+    var failNextPageWithFullDisk = false
 
     /** Stored chunks per document, by ordinal, as INSERT OR IGNORE leaves them. */
     val chunks = linkedMapOf<Long, java.util.SortedMap<Int, ChunkInput>>()
@@ -110,12 +123,13 @@ class FakeRagIndex(initial: IndexCompatibility = IndexCompatibility.Compatible) 
             uri = document.uri, status = DocumentStatus.PENDING, chunkCount = null, error = null, included = true,
             sizeBytes = document.sizeBytes, pageCount = document.pageCount, localPath = document.localPath,
             createdAtMs = now++, updatedAtMs = now, folderId = document.folderId?.takeIf { it in folderRows },
+            indexMode = document.indexMode,
         )
         changes.value += 1
         id
     }
 
-    override suspend fun document(id: Long): StoredDocument? = available { docs[id]?.let(::withFolderName) }
+    override suspend fun document(id: Long): StoredDocument? = available { docs[id]?.let(::withFolderName)?.let(::withPages) }
 
     override suspend fun documents(statuses: Set<DocumentStatus>): List<StoredDocument> = available {
         docs.values.filter { it.status in statuses }.sortedWith(compareBy({ it.createdAtMs }, { it.id })).map(::withFolderName)
@@ -246,6 +260,41 @@ class FakeRagIndex(initial: IndexCompatibility = IndexCompatibility.Compatible) 
         docs.remove(id)
         chunks.remove(id)
         chunkIds.remove(id)
+        pages.remove(id)
+    }
+
+    private fun withPages(document: StoredDocument): StoredDocument = document.copy(pagesStored = pages[document.id]?.size ?: 0)
+
+    override suspend fun switchTextEmbedder(to: ModelId): Boolean = available {
+        if (textEmbedder.value == to) return@available false
+        textEmbedder.value = to
+        true
+    }
+
+    override suspend fun storedPages(documentId: Long): Set<Int> = available { pages[documentId]?.keys?.toSet().orEmpty() }
+
+    override suspend fun insertPage(documentId: Long, page: PageInput): Boolean = available {
+        require(docs.containsKey(documentId)) { "Unknown document $documentId" }
+        if (failNextPageWithFullDisk) {
+            failNextPageWithFullDisk = false
+            throw IndexStorageFullException(IllegalStateException("database or disk is full"))
+        }
+        val stored = pages.getOrPut(documentId) { sortedMapOf() }
+        if (page.page in stored) return@available false
+        stored[page.page] = page
+        changes.value += 1
+        true
+    }
+
+    override suspend fun pageFiles(documentId: Long): List<String> = available {
+        (listOf(documentId) + listOfNotNull(shadow(documentId)?.id)).flatMap { id -> pages[id]?.values?.map { it.fileName }.orEmpty() }
+    }
+
+    override suspend fun allPageFiles(): Set<String> = available { pages.values.flatMap { it.values.map(PageInput::fileName) }.toSet() }
+
+    override suspend fun setIndexMode(id: Long, mode: IndexMode) = available {
+        docs[id]?.let { docs[id] = it.copy(indexMode = mode, updatedAtMs = now++) }
+        changes.value += 1
     }
 
     override suspend fun addReindexShadow(originalId: Long): Long = available {
@@ -270,7 +319,12 @@ class FakeRagIndex(initial: IndexCompatibility = IndexCompatibility.Compatible) 
         val moved = chunks.remove(shadowId) ?: sortedMapOf()
         chunks[original.id] = moved
         chunkIds[original.id] = chunkIds.remove(shadowId) ?: mutableMapOf()
-        docs[original.id] = original.copy(chunkCount = moved.size, skippedPages = shadow.skippedPages, error = null, updatedAtMs = now++)
+        pages.remove(original.id)
+        pages.remove(shadowId)?.let { pages[original.id] = it }
+        docs[original.id] = original.copy(
+            chunkCount = moved.size, skippedPages = shadow.skippedPages, pageCount = shadow.pageCount, indexMode = shadow.indexMode,
+            error = null, updatedAtMs = now++,
+        )
         docs.remove(shadowId)
         quantDirty = true
         changes.value += 1
@@ -282,6 +336,7 @@ class FakeRagIndex(initial: IndexCompatibility = IndexCompatibility.Compatible) 
         shadow(id)?.let { dropDocument(it.id) }
         val removed = chunks.remove(id)?.size ?: 0
         chunkIds.remove(id)
+        pages.remove(id)
         docs[id] = document.copy(status = DocumentStatus.OUT_OF_INDEX, chunkCount = null, error = null, updatedAtMs = now++)
         quantDirty = true
         changes.value += 1
@@ -379,10 +434,13 @@ class FakeRagIndex(initial: IndexCompatibility = IndexCompatibility.Compatible) 
         val library = docs.values.filter { it.replacesId == null }
         val inScope = library.filter { inScope(it, scope) }
         val pending = setOf(DocumentStatus.PENDING, DocumentStatus.PARSED, DocumentStatus.EMBEDDING, DocumentStatus.PAUSED)
+        // DefaultRagIndex.PAGES_ONLY.
+        val pagesOnly = { d: StoredDocument -> d.indexMode != IndexMode.TEXT && (d.chunkCount ?: 0) == 0 }
         ChatLibraryState(
             documents = library.size,
-            searchable = inScope.count { it.status == DocumentStatus.DONE && it.included },
+            searchable = inScope.count { it.status == DocumentStatus.DONE && it.included && !pagesOnly(it) },
             pendingIncluded = inScope.count { it.status in pending && it.included },
+            visualOnly = inScope.count { it.status == DocumentStatus.DONE && it.included && pagesOnly(it) },
         )
     }
 

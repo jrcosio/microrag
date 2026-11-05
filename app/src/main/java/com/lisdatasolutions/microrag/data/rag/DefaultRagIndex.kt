@@ -2,6 +2,8 @@ package com.lisdatasolutions.microrag.data.rag
 
 import androidx.sqlite.SQLiteStatement
 import com.lisdatasolutions.microrag.core.logging.AppLogger
+import com.lisdatasolutions.microrag.domain.model.ModelCatalog
+import com.lisdatasolutions.microrag.domain.model.ModelId
 import com.lisdatasolutions.microrag.domain.rag.ChatLibraryState
 import com.lisdatasolutions.microrag.domain.rag.ChunkInput
 import com.lisdatasolutions.microrag.domain.rag.ChunkView
@@ -16,12 +18,15 @@ import com.lisdatasolutions.microrag.domain.rag.FolderList
 import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
 import com.lisdatasolutions.microrag.domain.rag.IndexCompatibilityChecker
 import com.lisdatasolutions.microrag.domain.rag.IndexCounts
+import com.lisdatasolutions.microrag.domain.rag.IndexMode
 import com.lisdatasolutions.microrag.domain.rag.LibrarySummary
 import com.lisdatasolutions.microrag.domain.rag.IndexStorageFullException
 import com.lisdatasolutions.microrag.domain.rag.IndexUnavailableException
 import com.lisdatasolutions.microrag.domain.rag.LibraryEntry
 import com.lisdatasolutions.microrag.domain.rag.LibraryFolderFilter
 import com.lisdatasolutions.microrag.domain.rag.NewDocument
+import com.lisdatasolutions.microrag.domain.rag.PageInput
+import com.lisdatasolutions.microrag.domain.rag.PageSpace
 import com.lisdatasolutions.microrag.domain.rag.RagIndex
 import com.lisdatasolutions.microrag.domain.rag.RagIndexConfig
 import com.lisdatasolutions.microrag.domain.rag.RagMetaKeys
@@ -52,7 +57,18 @@ class DefaultRagIndex(
     private val logger: AppLogger,
     private val migrations: List<RagMigration> = RagMigrations.all,
     private val clock: () -> Long = System::currentTimeMillis,
+    /** F19 research R2 (analyze H3): what [textEmbedder] says before the file is open, from the mode's mirror. */
+    initialTextEmbedder: ModelId = ModelId.EG2_270M,
+    /** The verified text embedder a new, empty file is created with: the 440M once the 270M is gone. */
+    private val newIndexEmbedder: () -> ModelId = { initialTextEmbedder },
+    private val pageSpace: PageSpace = PageSpace.CURRENT,
 ) : RagIndex {
+
+    private val embedder = MutableStateFlow(initialTextEmbedder)
+    override val textEmbedder: StateFlow<ModelId> = embedder.asStateFlow()
+
+    private val pagesMatch = MutableStateFlow(true)
+    override val pagesUsable: StateFlow<Boolean> = pagesMatch.asStateFlow()
 
     private val state = MutableStateFlow<IndexCompatibility>(IndexCompatibility.Closed)
     override val compatibility: StateFlow<IndexCompatibility> = state.asStateFlow()
@@ -82,11 +98,12 @@ class DefaultRagIndex(
         db.exec(
             """
             INSERT INTO documents(source, uri, display_name, mime_type, content_hash, size_bytes, page_count,
-                local_path, created_at_ms, updated_at_ms, name_norm, folder_id)
-            VALUES ('user', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, (SELECT f.id FROM folders f WHERE f.id = ?))
+                local_path, created_at_ms, updated_at_ms, name_norm, folder_id, index_mode)
+            VALUES ('user', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, (SELECT f.id FROM folders f WHERE f.id = ?), ?)
             """.trimIndent(),
             document.uri, document.displayName, document.mimeType, document.contentHash, document.sizeBytes,
             document.pageCount, document.localPath, now, now, DocumentNames.fold(document.displayName), document.folderId,
+            document.indexMode.sqlValue,
         )
         val id = checkNotNull(db.queryOne("SELECT last_insert_rowid()") { it.getLong(0) })
         logger.i(TAG) { "rag document add id=$id" }
@@ -250,9 +267,9 @@ class DefaultRagIndex(
             db.exec(
                 """
                 INSERT INTO documents(source, uri, display_name, mime_type, content_hash, size_bytes, page_count,
-                    local_path, created_at_ms, updated_at_ms, name_norm, replaces_id)
+                    local_path, created_at_ms, updated_at_ms, name_norm, replaces_id, index_mode)
                 SELECT source, uri, display_name, mime_type, content_hash || ?, size_bytes, page_count,
-                    local_path, ?, ?, name_norm, id
+                    local_path, ?, ?, name_norm, id, index_mode
                 FROM documents WHERE id = ?
                 """.trimIndent(),
                 SHADOW_HASH_SUFFIX, now, now, originalId,
@@ -281,9 +298,13 @@ class DefaultRagIndex(
             db.exec("DELETE FROM chunks WHERE document_id = ?", originalId)
             db.exec("UPDATE chunks SET document_id = ? WHERE document_id = ?", originalId, shadowId)
             val moved = db.changes()
+            // F19 contract P5: the shadow's pages and mode replace the original's; the caller deletes the old files.
+            db.exec("DELETE FROM pages WHERE document_id = ?", originalId)
+            db.exec("UPDATE pages SET document_id = ? WHERE document_id = ?", originalId, shadowId)
             db.exec(
-                "UPDATE documents SET chunk_count = ?, skipped_pages = ?, error = NULL, updated_at_ms = ? WHERE id = ?",
-                moved, shadow.skippedPages, clock(), originalId,
+                "UPDATE documents SET chunk_count = ?, skipped_pages = ?, page_count = ?, index_mode = ?, error = NULL, " +
+                    "updated_at_ms = ? WHERE id = ?",
+                moved, shadow.skippedPages, shadow.pageCount, shadow.indexMode.sqlValue, clock(), originalId,
             )
             db.exec("DELETE FROM documents WHERE id = ?", shadowId)
             markQuantDirty(db)
@@ -304,6 +325,7 @@ class DefaultRagIndex(
             db.exec("DELETE FROM documents WHERE replaces_id = ?", id)
             db.exec("DELETE FROM chunks WHERE document_id = ?", id)
             val chunks = db.changes()
+            db.exec("DELETE FROM pages WHERE document_id = ?", id)
             db.exec(
                 "UPDATE documents SET status = ?, chunk_count = NULL, error = NULL, updated_at_ms = ? WHERE id = ?",
                 DocumentStatus.OUT_OF_INDEX.sqlValue, clock(), id,
@@ -343,6 +365,72 @@ class DefaultRagIndex(
             before
         }
         logger.i(TAG) { "rag chunks doc=$documentId deleted=$deleted" }
+        notifyChanged()
+    }
+
+    override suspend fun switchTextEmbedder(to: ModelId): Boolean = withIndex { db ->
+        val sha = ModelCatalog.byId(to).sha256
+        require(sha in config.acceptedEmbeddingModels) { "$to is not an accepted text embedder" }
+        val switched = db.transaction {
+            val current = db.queryOne("SELECT value FROM rag_meta WHERE key = ?", RagMetaKeys.EMBEDDING_MODEL_SHA256) { it.getText(0) }
+            check(current in config.acceptedEmbeddingModels) { "The index records an unknown text embedder" }
+            if (current == sha) return@transaction false
+            db.exec("UPDATE rag_meta SET value = ? WHERE key = ?", sha, RagMetaKeys.EMBEDDING_MODEL_SHA256)
+            true
+        }
+        embedder.value = to
+        logger.i(TAG) { "rag text embedder ${if (switched) "switched to" else "already"} $to" }
+        switched
+    }
+
+    override suspend fun storedPages(documentId: Long): Set<Int> = withIndex { db ->
+        db.query("SELECT page FROM pages WHERE document_id = ?", documentId) { it.getLong(0).toInt() }.toSet()
+    }
+
+    override suspend fun insertPage(documentId: Long, page: PageInput): Boolean {
+        requireUnitVector(page.embedding)
+        return withIndex { db ->
+            requireNotNull(db.queryOne("SELECT id FROM documents WHERE id = ?", documentId) { it.getLong(0) }) {
+                "Unknown document $documentId"
+            }
+            val inserted = storageFullAware {
+                db.transaction {
+                    if (count(db, "SELECT count(*) FROM pages") == 0) {
+                        RagMetaKeys.PAGE_SPACE.forEach { db.exec("DELETE FROM rag_meta WHERE key = ?", it) }
+                        pageSpace.toMeta().forEach { (key, value) -> db.exec("INSERT INTO rag_meta(key, value) VALUES (?, ?)", key, value) }
+                    } else {
+                        // Constitution III: vectors of two page spaces never share the table.
+                        check(pageSpace.matches(readMeta(db))) { "The stored pages belong to another page space" }
+                    }
+                    db.exec(
+                        """
+                        INSERT OR IGNORE INTO pages(document_id, page, file_name, width_px, height_px, size_bytes, embedding)
+                        VALUES (?, ?, ?, ?, ?, ?, vector_as_f32(?))
+                        """.trimIndent(),
+                        documentId, page.page, page.fileName, page.widthPx, page.heightPx, page.sizeBytes, page.embedding.toLeBlob(),
+                    )
+                    db.changes() > 0
+                }
+            }
+            pagesMatch.value = pageSpace.matches(readMeta(db))
+            if (inserted) notifyChanged()
+            inserted
+        }
+    }
+
+    override suspend fun pageFiles(documentId: Long): List<String> = withIndex { db ->
+        db.query(
+            "SELECT p.file_name FROM pages p JOIN documents d ON d.id = p.document_id WHERE d.id = ? OR d.replaces_id = ?",
+            documentId, documentId,
+        ) { it.getText(0) }
+    }
+
+    override suspend fun allPageFiles(): Set<String> = withIndex { db ->
+        db.query("SELECT file_name FROM pages") { it.getText(0) }.toSet()
+    }
+
+    override suspend fun setIndexMode(id: Long, mode: IndexMode) = withIndex { db ->
+        db.exec("UPDATE documents SET index_mode = ?, updated_at_ms = ? WHERE id = ?", mode.sqlValue, clock(), id)
         notifyChanged()
     }
 
@@ -444,13 +532,17 @@ class DefaultRagIndex(
         val pending = listOf(DocumentStatus.PENDING, DocumentStatus.PARSED, DocumentStatus.EMBEDDING, DocumentStatus.PAUSED)
         val (condition, scopeArgs) = (scope as? SearchScope.Only)?.let(::scopeCondition)?.let { (sql, args) -> " AND $sql" to args }
             ?: ("" to emptyArray())
+        // F19 research R13 (contract P9): a done document with pages and no chunks is not searchable yet; it counts apart.
         db.queryOne(
             "SELECT count(*), " +
-                "COALESCE(SUM(CASE WHEN d.status = ? AND d.included = 1$condition THEN 1 ELSE 0 END), 0), " +
-                "COALESCE(SUM(CASE WHEN d.status IN (${pending.joinToString { "?" }}) AND d.included = 1$condition THEN 1 ELSE 0 END), 0) " +
+                "COALESCE(SUM(CASE WHEN d.status = ? AND d.included = 1 AND NOT $PAGES_ONLY$condition THEN 1 ELSE 0 END), 0), " +
+                "COALESCE(SUM(CASE WHEN d.status IN (${pending.joinToString { "?" }}) AND d.included = 1$condition THEN 1 ELSE 0 END), 0), " +
+                "COALESCE(SUM(CASE WHEN d.status = ? AND d.included = 1 AND $PAGES_ONLY$condition THEN 1 ELSE 0 END), 0) " +
                 "FROM documents d WHERE d.replaces_id IS NULL",
             DocumentStatus.DONE.sqlValue, *scopeArgs, *pending.map { it.sqlValue }.toTypedArray(), *scopeArgs,
-        ) { ChatLibraryState(it.getLong(0).toInt(), it.getLong(1).toInt(), it.getLong(2).toInt()) } ?: ChatLibraryState(0, 0, 0)
+            DocumentStatus.DONE.sqlValue, *scopeArgs,
+        ) { ChatLibraryState(it.getLong(0).toInt(), it.getLong(1).toInt(), it.getLong(2).toInt(), it.getLong(3).toInt()) }
+            ?: ChatLibraryState(0, 0, 0)
     }
 
     /** The INT8 index no longer matches the chunks (D-030); F14 rebuilds it. */
@@ -534,6 +626,10 @@ class DefaultRagIndex(
         } catch (e: Exception) {
             throw RagOpenException("vector_init: ${e.message}", e)
         }
+        // F19 research R2 and R8: what the open file records.
+        val meta = readMeta(db)
+        RagIndexConfig.textEmbedderOf(meta[RagMetaKeys.EMBEDDING_MODEL_SHA256])?.let { embedder.value = it }
+        pagesMatch.value = pageSpace.matches(meta)
         return IndexCompatibility.Compatible
     }
 
@@ -543,7 +639,8 @@ class DefaultRagIndex(
         db.enableWal()
         db.transaction {
             statements.forEach { db.exec(it) }
-            config.toMeta().forEach { (key, value) -> db.exec("INSERT INTO rag_meta(key, value) VALUES (?, ?)", key, value) }
+            config.copy(embeddingModelSha256 = ModelCatalog.byId(newIndexEmbedder()).sha256).toMeta()
+                .forEach { (key, value) -> db.exec("INSERT INTO rag_meta(key, value) VALUES (?, ?)", key, value) }
         }
     }
 
@@ -624,6 +721,8 @@ class DefaultRagIndex(
         replacesId = s.longOrNull(15),
         folderId = s.longOrNull(16),
         folderName = s.textOrNull(17),
+        indexMode = IndexMode.fromSql(s.textOrNull(18)),
+        pagesStored = s.getLong(19).toInt(),
     )
 
     private fun readMeta(db: RagConnection): Map<String, String> =
@@ -747,13 +846,17 @@ class DefaultRagIndex(
         /** A shadow's hash: unique while it lives, and never equal to a file's, so F06 duplicates ignore it. */
         private const val SHADOW_HASH_SUFFIX = "#reindex"
 
+        /** F19 research R13: a document indexed with pages and without chunks (Visual, or Both with no text). */
+        private const val PAGES_ONLY = "(d.index_mode <> 'text' AND COALESCE(d.chunk_count, 0) = 0)"
+
         /** [libraryPage] reads the shadow's status after the [DOCUMENT_COLUMNS]. */
-        private const val SHADOW_STATUS_COLUMN = 18
+        private const val SHADOW_STATUS_COLUMN = 20
         private const val LOAD_BLOCK = 500
         private const val UNIT_NORM_TOLERANCE = 1e-3
         private const val DOCUMENT_COLUMNS = "id, display_name, content_hash, mime_type, uri, status, chunk_count, error, " +
             "included, size_bytes, page_count, local_path, created_at_ms, updated_at_ms, skipped_pages, replaces_id, " +
-            "folder_id, (SELECT f.name FROM folders f WHERE f.id = documents.folder_id)"
+            "folder_id, (SELECT f.name FROM folders f WHERE f.id = documents.folder_id), index_mode, " +
+            "(SELECT count(*) FROM pages p WHERE p.document_id = documents.id)"
     }
 }
 

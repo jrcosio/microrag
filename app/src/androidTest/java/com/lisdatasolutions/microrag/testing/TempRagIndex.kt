@@ -8,6 +8,7 @@ import com.lisdatasolutions.microrag.data.rag.RagConnection
 import com.lisdatasolutions.microrag.data.rag.RagMigration
 import com.lisdatasolutions.microrag.data.rag.RagMigrations
 import com.lisdatasolutions.microrag.data.rag.RagSchema
+import com.lisdatasolutions.microrag.domain.model.ModelId
 import com.lisdatasolutions.microrag.domain.rag.ChunkInput
 import com.lisdatasolutions.microrag.domain.rag.RagIndexConfig
 import com.lisdatasolutions.microrag.rag.runtime.EmbeddingMath
@@ -29,6 +30,8 @@ class TempRagIndex(
     migrations: List<RagMigration> = RagMigrations.all,
     val extensionPath: String = defaultExtensionPath(),
     val dbFile: File = File(context.cacheDir, "rag-test-${UUID.randomUUID()}.db"),
+    /** F19: the mode's mirror, what the index says before the file is open and what a new file records. */
+    initialTextEmbedder: ModelId = ModelId.EG2_270M,
 ) : Closeable {
     /** Value returned by the index clock; tests move it to check timestamps. */
     @Volatile
@@ -46,6 +49,7 @@ class TempRagIndex(
         logger = logger,
         migrations = migrations,
         clock = { now },
+        initialTextEmbedder = initialTextEmbedder,
     )
 
     /** A separate connection with the extension, to inspect or tamper with the file; the caller closes it. */

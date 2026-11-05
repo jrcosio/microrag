@@ -1,5 +1,6 @@
 package com.lisdatasolutions.microrag.domain.rag
 
+import com.lisdatasolutions.microrag.domain.model.ModelId
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -16,6 +17,43 @@ interface RagIndex {
     suspend fun open(): IndexCompatibility
 
     suspend fun meta(): Map<String, String>
+
+    /**
+     * F19 research R2 (contract E1): the text embedder `rag_meta` records, the 270M or the 440M. Before the index
+     * opens, the value it was built with; the only source for whoever embeds text.
+     */
+    val textEmbedder: StateFlow<ModelId>
+
+    /** F19 contract E3: the page keys of `rag_meta` match this app, or no page was stored yet. */
+    val pagesUsable: StateFlow<Boolean>
+
+    /**
+     * F19 research R4 (contract E2): records [to] as the text embedder in one transaction, after checking that the
+     * index still records the other accepted one. False when it already records [to]. Chunks and vectors stay.
+     */
+    suspend fun switchTextEmbedder(to: ModelId): Boolean
+
+    /** F19 contract P1: the page numbers already stored for [documentId], to resume where it stopped. */
+    suspend fun storedPages(documentId: Long): Set<Int>
+
+    /**
+     * F19 contract P2: stores one page in its own transaction; the first page of the index also writes the page keys
+     * of `rag_meta`. False when it was already stored. Throws [IndexStorageFullException] as [insertChunks] does, and
+     * [IllegalStateException] when the stored pages belong to another page space ([pagesUsable] is false).
+     */
+    suspend fun insertPage(documentId: Long, page: PageInput): Boolean
+
+    /**
+     * F19 contract P3 (research R11): the image files of [documentId] and of its reindex shadow. Callers read them
+     * before deleting or replacing the rows, and delete the files after; the startup sweep catches the rest.
+     */
+    suspend fun pageFiles(documentId: Long): List<String>
+
+    /** F19 contract P6: every image file the index names, for the startup sweep. */
+    suspend fun allPageFiles(): Set<String>
+
+    /** F19 contract P8: the mode of a fresh shadow, or of an errored or out-of-index document before it is retried. */
+    suspend fun setIndexMode(id: Long, mode: IndexMode)
 
     /** Registers a user document as pending; throws [DuplicateDocumentException] for a known content hash. */
     suspend fun addDocument(document: NewDocument): Long
@@ -101,7 +139,8 @@ interface RagIndex {
      * Puts the shadow's chunks in place of its original's in one transaction (F08 research R5): the
      * original keeps its id, status and inclusion, the chunks keep their ids, vectors and FTS rows, and
      * the shadow is deleted. Returns the chunks published, or null, changing nothing, when [shadowId] is
-     * not a shadow or its original is not done.
+     * not a shadow or its original is not done. F19 (contract P5): the shadow's pages and index mode replace
+     * the original's too.
      */
     suspend fun publishReindex(shadowId: Long): Int?
 
@@ -109,6 +148,7 @@ interface RagIndex {
      * «Quitar del índice» (F08 research R6), in one transaction: deletes the document's shadow and
      * chunks, leaves it [DocumentStatus.OUT_OF_INDEX] with its private copy and inclusion, and marks
      * `quant_dirty`. Returns the chunks removed, or null, changing nothing, when it is not a done document.
+     * F19 (contract P4): its pages go too.
      */
     suspend fun removeFromIndex(id: Long): Int?
 

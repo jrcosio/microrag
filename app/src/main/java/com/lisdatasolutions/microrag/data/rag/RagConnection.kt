@@ -21,9 +21,10 @@ class RagConnection private constructor(private val connection: SQLiteConnection
         queryOne("PRAGMA journal_mode = WAL") { it.getText(0) }
     }
 
-    /** Vector search configuration of this connection; SQLite-Vector needs it on every open. */
+    /** Vector search configuration of this connection; SQLite-Vector needs it on every open (F19: the pages too). */
     fun initVector(dims: Int) {
         queryOne("SELECT vector_init('chunks', 'embedding', 'dimension=$dims,type=FLOAT32,distance=COSINE,normalized=1')") {}
+        queryOne("SELECT vector_init('pages', 'embedding', 'dimension=$dims,type=FLOAT32,distance=COSINE,normalized=1')") {}
     }
 
     /** Tables of the file, leaving out SQLite's own and [VECTOR_EXTENSION_TABLE]. */

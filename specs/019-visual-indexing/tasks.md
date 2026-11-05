@@ -51,9 +51,9 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
 
 ## Phase 1: Setup
 
-- [ ] T001 Línea base: `./gradlew :app:testDebugUnitTest :app:lintDebug` en verde (1.163 pruebas JVM, 2 avisos) y `offline/.venv/bin/python -I -m unittest discover -s offline/tests` (285 pruebas), antes de tocar nada.
-- [ ] T002 [P] Textos de `multimodal-ui.md` §4 y del wireframe §7 en `app/src/main/res/values{,-en}/strings_multimodal.xml`: Ajustes, diálogos, etapas, errores, «Modo al importar PDF», Ingesta, cola, Biblioteca y detalle. Con plurales para páginas y fragmentos. `StringsParityTest` pasa.
-- [ ] T003 [P] Muestra de identidad: `app/src/main/assets/embedding/identity_texts.jsonl`, con 20 líneas `{"id","text"}` tomadas de `offline/golden/embedding_texts.jsonl` (R3), párrafos y consultas en español.
+- [X] T001 Línea base: `./gradlew :app:testDebugUnitTest :app:lintDebug` en verde (1.163 pruebas JVM, 2 avisos) y `offline/.venv/bin/python -I -m unittest discover -s offline/tests` (285 pruebas), antes de tocar nada.
+- [X] T002 [P] Textos de `multimodal-ui.md` §4 y del wireframe §7 en `app/src/main/res/values{,-en}/strings_multimodal.xml`: Ajustes, diálogos, etapas, errores, «Modo al importar PDF», Ingesta, cola, Biblioteca y detalle. Con plurales para páginas y fragmentos. `StringsParityTest` pasa.
+- [X] T003 [P] Muestra de identidad: `app/src/main/assets/embedding/identity_texts.jsonl`, con 20 líneas `{"id","text"}` tomadas de `offline/golden/embedding_texts.jsonl` (R3), párrafos y consultas en español.
 
 ---
 
@@ -69,19 +69,19 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
 
 ### Pruebas (antes, y deben fallar)
 
-- [ ] T004 [P] Esquema de `rag.db` v5:
+- [X] T004 [P] Esquema de `rag.db` v5:
   - `…/test/…/data/rag/RagSchemaTest.kt`: 15 sentencias (renombrar la prueba «Thirteen»), la migración `from = 4` y la versión 5. El `ALTER … CHECK` tiene que ir en una sola línea, idéntico a la columna de `documents`, para que pase la regla «termina donde `schema.sql`»;
   - `offline/tests/test_appconfig.py`: `schema_version == 5`.
-- [ ] T005 [P] `…/androidTest/…/data/rag/RagIndexMigrationTest.kt`, con un recurso nuevo que hay que crear, `app/src/androidTest/assets/schema/schema_v4.sql`:
+- [X] T005 [P] `…/androidTest/…/data/rag/RagIndexMigrationTest.kt`, con un recurso nuevo que hay que crear, `app/src/androidTest/assets/schema/schema_v4.sql`:
   - un índice v4 con documentos, fragmentos, carpetas y sombras migra a v5 con todo intacto;
   - `index_mode = 'text'` y la tabla `pages` vacía;
   - un fallo de migración deja el fichero v4 intacto.
-- [ ] T006 [P] `…/test/…/domain/rag/IndexCompatibilityCheckerTest.kt`:
+- [X] T006 [P] `…/test/…/domain/rag/IndexCompatibilityCheckerTest.kt`:
   - acepta la huella de la 270M y la de la 440M (R2);
   - rechaza cualquier otra;
   - el resto de claves se valida como hoy;
   - las claves `page_*` no deciden si se abre.
-- [ ] T007 [P] `…/androidTest/…/data/rag/RagIndexPagesTest.kt` (P1–P8 y E1–E3):
+- [X] T007 [P] `…/androidTest/…/data/rag/RagIndexPagesTest.kt` (P1–P8 y E1–E3):
   - `insertPage` reanudable (`storedPages`);
   - la primera página escribe las claves `page_*`;
   - `pagesUsable` es falso con claves distintas;
@@ -98,7 +98,7 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
   - antes de abrir el índice, el valor del espejo `text_embedder`;
   - tras el cambio, la 270M no es obligatoria: el chip no vuelve a «pendiente» y no se descarga otra vez (analyze, H3).
 - [ ] T009 [P] `…/test/…/data/models/DefaultModelFileRepositoryTest.kt` (D1): `delete(id)` borra el fichero, su entrada de `verification.json` y su backend, y publica `Missing`. Borrar un modelo que no existe da `false`.
-- [ ] T010 [P] `…/androidTest/…/data/ingest/AndroidPageRasterizerTest.kt`: la prueba `DebugPageRasterizerTest` de F18, movida al conversor de `main`:
+- [X] T010 [P] `…/androidTest/…/data/ingest/AndroidPageRasterizerTest.kt`: la prueba `DebugPageRasterizerTest` de F18, movida al conversor de `main`:
   - páginas a 768 px sobre blanco;
   - PDF con contraseña de propietario;
   - PNG con transparencia, EXIF y CMYK;
@@ -106,7 +106,7 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
 
 ### Implementación
 
-- [ ] T011 Adaptadores en `main` (R7):
+- [X] T011 Adaptadores en `main` (R7):
   - `…/microrag/rag/runtime/ImageEmbedder.kt`;
   - `…/microrag/rag/ingest/PageRasterizer.kt`, con `EncodedImage` e `ImageFormat`;
   - `…/microrag/rag/runtime/litert/LiteRtImageEmbedder.kt`, con `LiteRtEngineFactory.imageEmbedder(file, path, tokens)`;
@@ -117,7 +117,7 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
   - `…/debug/…/rag/runtime/litert/LiteRtVisionEngines.kt`, que se queda solo con el generador.
 
   Se borran `DebugPageRasterizer.kt` y la copia del embedder de debug. `LayeringTest` gana una regla para `android.graphics.ImageDecoder` y ajusta la de los nombres prohibidos en main (línea 116). T010 pasa, y `VisualSuiteTest` sigue en verde.
-- [ ] T012 Esquema v5:
+- [X] T012 Esquema v5:
   - `app/src/main/assets/schema.sql`;
   - `…/microrag/data/rag/RagSchema.kt`, con `RagMigration(from = 4, …)`;
   - `…/microrag/domain/rag/RagIndexConfig.kt`: `SCHEMA_VERSION = 5`, `acceptedTextEmbedders`, `PageSpace` y las claves `page_*`;
@@ -125,7 +125,7 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
   - `…/microrag/data/rag/RagConnection.kt`, con el `vector_init` de `pages`.
 
   T004 a T006 pasan.
-- [ ] T013 Tipos del dominio (data-model §4), antes de T016 (analyze, M2):
+- [X] T013 Tipos del dominio (data-model §4), antes de T016 (analyze, M2):
   - `MultimodalStage`, `MultimodalState` y la interfaz `MultimodalStore` en `…/microrag/domain/multimodal/MultimodalModels.kt`;
   - `IndexMode` y `StoredDocument.indexMode`/`pagesStored` en `…/microrag/domain/rag/RagModels.kt`;
   - `StoredPage` y `PageInput`;
@@ -136,7 +136,7 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
   - `NewDocument.indexMode`, que pasa aquí desde T032 (analyze, L6).
 
   **Rutas que conocen la etapa `PAGES`** (analyze, H1): `IngestScheduler` (`STAGES`, `progressData` y `progressOf`), `DefaultIndexingRepository.forScreen` y `RunPauseCause.reason()`. Con una prueba de ida y vuelta de `progressData`/`progressOf` en `PAGES` (`…/test/…/data/ingest/IngestSchedulerTest.kt`).
-- [ ] T014 Índice (contrato §1) en `…/microrag/domain/rag/RagIndex.kt` y `…/microrag/data/rag/DefaultRagIndex.kt`: E1–E3 y P1–P9. `FakeRagIndex` los implementa. T007 pasa.
+- [X] T014 Índice (contrato §1) en `…/microrag/domain/rag/RagIndex.kt` y `…/microrag/data/rag/DefaultRagIndex.kt`: E1–E3 y P1–P9. `FakeRagIndex` los implementa. T007 pasa.
 - [ ] T015 `ModelFileRepository.delete(id)` en `…/microrag/data/models/DefaultModelFileRepository.kt` y en la interfaz (D1). Se actualizan las implementaciones de prueba de la interfaz (unas 7) y `ReadyModelsRule` (analyze, L3). T009 pasa.
 - [ ] T016 `…/microrag/domain/multimodal/ModelRequirements.kt` (M6). Pasan a usarlo:
   - `ModelDownloadRunner`, `DefaultModelDownloadController.deleteOrphanPartials` y `ModelCatalog.allReady`;

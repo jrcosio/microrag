@@ -53,6 +53,8 @@ class RagIndexWriteTest {
             "table:folders", "index:idx_documents_folder",
             "table:chunks", "index:idx_chunks_doc", "table:chunks_fts",
             "trigger:chunks_ai", "trigger:chunks_ad", "trigger:chunks_au",
+            // F19 (research R8): the pages of the multimodal mode.
+            "table:pages",
             // Created by SQLite-Vector itself when it is loaded (research R3).
             "table:${RagConnection.VECTOR_EXTENSION_TABLE}",
         )
