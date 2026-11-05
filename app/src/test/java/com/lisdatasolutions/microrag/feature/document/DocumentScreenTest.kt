@@ -498,6 +498,8 @@ class DocumentScreenTest {
         show(loaded(DocumentPreviewData.manual.copy(indexMode = IndexMode.VISUAL, pagesStored = 48, chunks = 0), multimodalOn = true))
 
         exists("Solo páginas. Todavía no se usa en el chat")
+        exists("Se usará cuando el chat admita páginas")
+        absent("Disponible para consultas RAG")
     }
 
     /** T045: with the mode off and pages stored. */

@@ -45,6 +45,8 @@
     <string name="import_mode_save">Guardar</string>
     <!-- Ingesta (U8–U10, wireframe §8). -->
     <string name="ingest_mode_row">Modo de los PDF</string>
+    <string name="ingest_formats_with_images">Formatos: PDF · TXT · Markdown · JPG · PNG</string>
+    <string name="ingest_formats_no_pdf_with_images">Formatos: TXT · Markdown · JPG · PNG · PDF requiere actualizar el sistema</string>
     <string name="ingest_pages_progress">Indexando páginas · %1$s / %2$s</string>
     <plurals name="ingest_pages_estimate">
         <item quantity="one">%1$s página · %2$s · ≈ %3$s</item>
@@ -77,6 +79,7 @@
     </plurals>
     <string name="document_format_image">Imagen</string>
     <string name="document_visual_only_note">Solo páginas. Todavía no se usa en el chat</string>
+    <string name="document_include_subtitle_pages_only">Se usará cuando el chat admita páginas</string>
     <string name="document_pages_need_multimodal">Sus páginas necesitan el modo multimodal</string>
     <string name="document_reindex_as_pages">Reindexar como páginas</string>
 </resources>

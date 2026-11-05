@@ -39,6 +39,8 @@
     <string name="import_mode_images_note">JPG and PNG images are always indexed as pages.</string>
     <string name="import_mode_save">Save</string>
     <string name="ingest_mode_row">PDF mode</string>
+    <string name="ingest_formats_with_images">Formats: PDF · TXT · Markdown · JPG · PNG</string>
+    <string name="ingest_formats_no_pdf_with_images">Formats: TXT · Markdown · JPG · PNG · PDF needs a system update</string>
     <string name="ingest_pages_progress">Indexing pages · %1$s / %2$s</string>
     <plurals name="ingest_pages_estimate">
         <item quantity="one">%1$s page · %2$s · ≈ %3$s</item>
@@ -69,6 +71,7 @@
     </plurals>
     <string name="document_format_image">Image</string>
     <string name="document_visual_only_note">Pages only. Not used in chat yet</string>
+    <string name="document_include_subtitle_pages_only">It will be used once chat supports pages</string>
     <string name="document_pages_need_multimodal">Its pages need multimodal mode</string>
     <string name="document_reindex_as_pages">Reindex as pages</string>
 </resources>

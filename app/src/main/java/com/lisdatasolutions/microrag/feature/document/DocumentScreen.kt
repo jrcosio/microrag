@@ -283,11 +283,12 @@ fun DocumentScreen(
     LisdataSnackbarOnce(moved, snackbarHostState, onMoveMessageShown)
 }
 
-/** What the switch does now: PNG 07 only shows the included case (constitution V). */
+/** What the switch does now: PNG 07 only shows the included case (constitution V); F19 pages wait for F20. */
 @Composable
 private fun includeSubtitle(detail: DocumentDetail, included: Boolean): String = stringResource(
     when {
         !detail.canChangeInclusion -> R.string.document_include_subtitle_not_indexed
+        included && detail.pagesOnly -> R.string.document_include_subtitle_pages_only
         included -> R.string.document_include_subtitle
         else -> R.string.document_include_subtitle_excluded
     },

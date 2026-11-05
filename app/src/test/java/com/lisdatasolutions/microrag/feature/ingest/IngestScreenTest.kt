@@ -159,6 +159,20 @@ class IngestScreenTest {
         assertThat(IngestMimeTypes.of(true).toList()).containsAtLeast("application/pdf", "image/jpeg", "image/png")
     }
 
+    @Test
+    fun theFormatsLine_namesTheImagesOnlyWithTheModeOn() {
+        show(IngestPreviewData.png.copy(multimodalOn = true))
+
+        compose.onNodeWithText("Formatos: PDF · TXT · Markdown · JPG · PNG").assertExists()
+    }
+
+    @Test
+    fun theFormatsLine_withoutSystemPdfAndTheModeOn() {
+        show(IngestPreviewData.noPdf.copy(multimodalOn = true))
+
+        compose.onNodeWithText("Formatos: TXT · Markdown · JPG · PNG · PDF requiere actualizar el sistema").assertExists()
+    }
+
     private fun startButton() = compose.onNode(hasText(context.getString(R.string.ingest_start)) and hasClickAction())
 
     @Test

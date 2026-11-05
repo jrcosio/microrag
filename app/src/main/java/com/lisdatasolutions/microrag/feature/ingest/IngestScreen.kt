@@ -161,7 +161,7 @@ fun IngestScreen(state: IngestUiState, actions: IngestActions, modifier: Modifie
                 enabled = state.pickEnabled,
             )
             Text(
-                stringResource(if (state.queue.pdfSupported) R.string.ingest_formats else R.string.ingest_formats_no_pdf),
+                stringResource(formatsLine(pdfSupported = state.queue.pdfSupported, images = state.multimodalOn)),
                 style = typography.bodySmall,
                 color = colors.textSecondary,
                 textAlign = TextAlign.Center,
@@ -246,6 +246,14 @@ private fun Destination(state: IngestUiState, actions: IngestActions) {
             modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
         )
     }
+}
+
+/** The formats the picker offers: JPG and PNG only with the multimodal mode on, as [IngestMimeTypes]. */
+private fun formatsLine(pdfSupported: Boolean, images: Boolean): Int = when {
+    pdfSupported && images -> R.string.ingest_formats_with_images
+    pdfSupported -> R.string.ingest_formats
+    images -> R.string.ingest_formats_no_pdf_with_images
+    else -> R.string.ingest_formats_no_pdf
 }
 
 /** The last row that became ready or failed since the previous state, as TalkBack announces it (U5). */
