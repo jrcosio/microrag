@@ -2111,6 +2111,33 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G47).
 
 ---
 
+## D-081 — Ajustes del analyze de F19
+
+- **Fecha:** 2026-11-05
+- **Decisión:**
+  1. **Anexo del wireframe (§8),** aprobado por el usuario (C1):
+     - **cola:** una estimación de páginas, tiempo y espacio, y la pausa por espacio con lo que falta;
+     - **Indexación:** la etapa «Imágenes de página», con el anillo en páginas;
+     - **notificación:** «Indexando páginas · 12 / 40»;
+     - **pausas:** «cambiando el modelo de búsqueda» y «Esperando al modo multimodal»;
+     - **error:** «Imagen no válida».
+  2. **Correcciones técnicas,** recogidas en research, contratos y tareas (T058–T062):
+     - **la etapa de páginas llega al programador, a Indexación y a la notificación (H1).** Sin ello, el worker fallaría al publicar el progreso;
+     - **`EngineKey` con tipo (H2):** el embedder de imagen y el de texto de la 440M en CPU son engines distintos;
+     - **el embedder activo, antes de abrir el índice (H3),** sale de un espejo en el almacén del modo, y `rag_meta` manda al abrir;
+     - **reindexar con modo sin sombra (H4),** para un documento en error o fuera del índice, y `publishReindex` copia el modo;
+     - **en el teléfono, la batería y la validación antes de activar el modo (H5),** y después el golden con la 440M contra los mismos vectores de referencia;
+     - **fallos (M1):** los de descarga se quedan en `DOWNLOADING` con Reintentar y Cancelar; los de validación vuelven a `OFF` y borran la 440M;
+     - **con el modo apagado (M5),** los documentos con páginas esperan, y se reanudan al reactivarlo;
+     - **el tamaño de la descarga** sale del catálogo, 388 MB (M7);
+     - **los ficheros de página** comparten un cerrojo con el barrido de huérfanos, y la limpieza cubre las sombras (M6);
+     - correcciones menores de nombres, rutas, cifras y pruebas (M2–M4, M8 y L1–L9).
+- **Motivo:** la revisión independiente encontró 23 hallazgos: 1 CRITICAL, 5 HIGH, 8 MEDIUM y 9 LOW.
+- **Origen:** usuario (aprobación del anexo) y analyze de F19.
+- **Afecta:** F19: spec (FR-002, FR-007, FR-015 y FR-018), wireframe, research (R2, R4, R7, R9, R11, R14–R16), contratos y tareas (62).
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.

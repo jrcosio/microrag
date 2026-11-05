@@ -57,7 +57,7 @@ Los textos van entre «» en español; la versión inglesa está al final. Los d
 │ La app leerá también las páginas  │
 │ de tus PDF y tus imágenes.        │
 │                                   │
-│ • Descarga un modelo de 369 MB.   │
+│ • Descarga un modelo de 388 MB.   │
 │ • Cada página tarda unos 3 s en   │
 │   indexarse y ocupa unos 100 KB.  │
 │ • Las respuestas que miran        │
@@ -192,7 +192,7 @@ La hoja (`LisdataBottomSheet`) tiene las mismas tres `LisdataRadioRow` que §4, 
 | Modo multimodal | Multimodal mode |
 | Lee también páginas e imágenes. Respuestas más lentas. | Also reads pages and images. Slower answers. |
 | ¿Activar el modo multimodal? | Turn on multimodal mode? |
-| Descarga un modelo de 369 MB. | Downloads a 369 MB model. |
+| Descarga un modelo de 388 MB. | Downloads a 388 MB model. |
 | Cada página tarda unos 3 s en indexarse y ocupa unos 100 KB. | Each page takes about 3 s to index and uses about 100 KB. |
 | Las respuestas que miran páginas tardan 10–15 s. | Answers that look at pages take 10–15 s. |
 | Tus documentos de texto siguen funcionando igual. | Your text documents keep working as before. |
@@ -213,3 +213,52 @@ La hoja (`LisdataBottomSheet`) tiene las mismas tres `LisdataRadioRow` que §4, 
 | Solo páginas. Todavía no se usa en el chat | Pages only. Not used in chat yet |
 | Sus páginas necesitan el modo multimodal | Its pages need multimodal mode |
 | Reindexar como páginas | Reindex as pages |
+
+## 8. Anexo del analyze (C1): indexación por páginas en la cola, en Indexación y en la notificación
+
+Propuesto tras el analyze y aprobado por el usuario el 2026-11-05 (D-081).
+
+**Tamaño del modelo:** los textos no fijan «369 MB». Usan el tamaño del catálogo con el mismo formato que las filas de modelos, que muestran «388 MB» (M7).
+
+**Cola de la Ingesta, antes de indexar las páginas** (FR-018, caso límite de 2.000 páginas): en cuanto se conoce el número de páginas, la fila de un PDF en Visual o en Ambos añade una línea de estimación, sin diálogos que bloqueen.
+
+```
+│ informe-ine.pdf            Ambos    │
+│ 40 páginas · unos 2 min · ≈ 10 MB   │ ← estimación (3,2 s y 250 KB por página)
+```
+
+- **Sin espacio para las páginas:** la fila pasa a la pausa por espacio de hoy, con la cantidad que falta: «Falta espacio para las páginas: libera 210 MB».
+- **Imagen ilegible** (`IMAGE_UNREADABLE`): el estado de error de hoy, con «Imagen no válida» y debajo «No se ha podido leer la imagen».
+
+**Pantalla Indexación (PNG 08):**
+- **En las etapas,** tras «Generación de embeddings», aparece una etapa nueva, «Imágenes de página», con el icono de imagen. Solo se ve cuando el documento en curso tiene páginas.
+- **El anillo y el recuento:** durante esa etapa, son los del documento en curso en páginas («12 / 40 páginas»). En el resto, los fragmentos del run, como hoy.
+- **Pausas nuevas,** con el mismo bloque de pausa de hoy:
+  - «En pausa: cambiando el modelo de búsqueda», con el cuerpo «Se reanudará sola en unos segundos»;
+  - «Esperando al modo multimodal», con el cuerpo «Este documento tiene páginas. Activa el modo multimodal en Ajustes para terminarlo». Los documentos de texto del run siguen indexándose.
+
+```
+│ Etapas del proceso                  │
+│ ✓ Extracción de texto               │
+│ ✓ Fragmentación                     │
+│ ✓ Generación de embeddings          │
+│ ● Imágenes de página      En curso  │ ← nueva; solo con páginas
+│ ○ Persistencia vectorial            │
+```
+
+**Notificación de indexación:** en la etapa de páginas, «Indexando páginas · 12 / 40», con su barra. Fuera de ella, como hoy.
+
+**Textos en inglés del anexo:**
+
+| Español | English |
+|---|---|
+| 40 páginas · unos 2 min · ≈ 10 MB | 40 pages · about 2 min · ≈ 10 MB |
+| Falta espacio para las páginas: libera 210 MB | Not enough space for the pages: free up 210 MB |
+| Imagen no válida | Invalid image |
+| No se ha podido leer la imagen | The image could not be read |
+| Imágenes de página | Page images |
+| 12 / 40 páginas | 12 / 40 pages |
+| En pausa: cambiando el modelo de búsqueda | Paused: switching the search model |
+| Se reanudará sola en unos segundos | It will resume by itself in a few seconds |
+| Esperando al modo multimodal | Waiting for multimodal mode |
+| Este documento tiene páginas. Activa el modo multimodal en Ajustes para terminarlo | This document has pages. Turn on multimodal mode in Settings to finish it |

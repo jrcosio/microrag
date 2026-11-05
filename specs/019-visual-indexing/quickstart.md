@@ -23,7 +23,7 @@ offline/.venv/bin/python -I -m unittest discover -s offline/tests
 cd offline && .venv/bin/python -I run_eval.py ablations && .venv/bin/python -I run_eval.py order-review
 ```
 
-**Esperado:** las mismas cifras que en F18 (T034), salvo los segundos.
+**Esperado:** las mismas cifras que en la tarea T034 de F18, salvo los segundos.
 
 ## 3. Instrumentadas en los emuladores
 

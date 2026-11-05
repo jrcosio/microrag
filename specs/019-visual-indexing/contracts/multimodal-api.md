@@ -8,17 +8,17 @@ Los tipos están en el data-model, §4.
 
 | Método | Regla |
 |---|---|
-| `textEmbedder: StateFlow<ModelId>` | **E1:** el modelo de `rag_meta.embedding_model_sha256` del fichero abierto, la 270M o la 440M. Es la única fuente para quien embebe texto (R2) |
+| `textEmbedder: StateFlow<ModelId>` | **E1:** el modelo de `rag_meta.embedding_model_sha256` del fichero abierto, la 270M o la 440M. Es la única fuente para quien embebe texto (R2). Antes de abrir el índice, su valor inicial sale del espejo `text_embedder` del almacén, y al abrir se corrige con `rag_meta` (analyze, H3) |
 | `switchTextEmbedder(to: ModelId): Boolean` | **E2:** en una transacción, comprueba que `embedding_model_sha256` sigue siendo el de origen y lo cambia al de `to`. Devuelve `false` si ya estaba en `to`. No toca fragmentos ni vectores (R4) |
 | `pagesUsable: StateFlow<Boolean>` | **E3:** las claves `page_*` de `rag_meta` coinciden con `PageSpace`, o no hay ninguna todavía |
 | `storedPages(documentId): Set<Int>` | **P1:** los números de página ya guardados, para reanudar (R9) |
 | `insertPage(documentId, PageInput)` | **P2:** una página por transacción. Con la primera del índice, escribe también las claves `page_*`. Lanza `IndexStorageFullException` como `insertChunks` |
 | `pageFiles(documentId): List<String>` | **P3:** los `file_name` de un documento, para borrar sus ficheros después de la transacción (R11) |
 | `deleteDocument(id)` / `removeFromIndex(id)` | **P4:** devuelven, además, los `file_name` de las páginas que han borrado. `removeFromIndex` borra también sus páginas |
-| `publishReindex(shadowId)` | **P5:** también mueve las páginas de la sombra al original y borra las del original. Devuelve los ficheros que hay que borrar |
+| `publishReindex(shadowId)` | **P5:** también mueve las páginas de la sombra al original, borra las del original y copia `index_mode`. Devuelve los ficheros que hay que borrar |
 | `allPageFiles(): Set<String>` | **P6:** para el barrido de huérfanos al arrancar |
 | `addDocument(NewDocument(indexMode))` | **P7:** el documento se registra con su modo. Una imagen, siempre `VISUAL`, con `page_count = 1` |
-| `setIndexMode(id, mode)` | **P8:** solo para una sombra recién creada |
+| `setIndexMode(id, mode)` | **P8:** para una sombra recién creada, y para un documento en error o fuera del índice antes de reintentarlo o reindexarlo, que no tienen sombra (analyze, H4) |
 | `chatLibraryState(scope)` | **P9:** cuenta como buscable un documento con fragmentos. Uno solo Visual cuenta aparte, en `visualOnly` (R13) |
 
 ## 2. Modo multimodal (`domain/multimodal`)
@@ -26,7 +26,7 @@ Los tipos están en el data-model, §4.
 | Pieza | Contrato |
 |---|---|
 | `MultimodalStore` | **M1:** `state: Flow<StoredMultimodal>` y `write(transform): Boolean`. Un fichero corrupto vuelve a los valores por defecto |
-| `MultimodalController` | **M2:** una sola instancia, con ámbito de aplicación. `start()` se llama desde `Application.onCreate` y retoma la etapa guardada (R1). Avanza `DOWNLOADING → VALIDATING → SWITCHING → ON` según el estado de la 440M, la validación y el cambio. Un fallo vuelve a `OFF` con su error y borra la 440M, salvo que el índice ya esté en ella |
+| `MultimodalController` | **M2:** una sola instancia, con ámbito de aplicación. `start()` se llama desde `Application.onCreate` y retoma la etapa guardada (R1). Avanza `DOWNLOADING → VALIDATING → SWITCHING → ON` según el estado de la 440M, la validación y el cambio. Un fallo de descarga se queda en `DOWNLOADING` con su error, Reintentar y Cancelar. Un fallo de validación o de preparación vuelve a `OFF`, borra la 440M y lo explica (analyze, M1). Al reactivar, pide la indexación de los documentos que esperaban |
 | `ObserveMultimodalUseCase` | `Flow<MultimodalState>`, que combina la etapa, el error, el modo por defecto y el progreso de la descarga de la 440M |
 | `EnableMultimodalUseCase` | **M3:** si el índice ya está en la 440M y la tiene verificada, pasa a `ON` al momento (reactivar, D-079). Si no, comprueba el espacio (369 MB más 500 MB de margen), pasa a `DOWNLOADING` y pide la descarga de `[EG2_440M]` |
 | `DisableMultimodalUseCase` | **M4:** pasa a `OFF`. En `DOWNLOADING`, cancela la descarga y borra su fichero a medias. No borra páginas ni modelos (D-079) |
@@ -45,12 +45,12 @@ Los tipos están en el data-model, §4.
 
 | Pieza | Contrato |
 |---|---|
-| `DocumentImporter` | **I1:** acepta `jpg`, `jpeg` y `png` solo si la etapa es `ON`; si no, `IMAGE_NEEDS_MULTIMODAL`. Cada PDF se registra con el modo de la selección (`ImportRequest.indexMode`, que solo vale con `ON`). Sin el modo activo, todo va en `TEXT` |
-| `IngestRunner` | **I2:**<br>• por modo: `TEXT` como hoy; `VISUAL` se salta las fases de texto (`chunk_count = 0`); `BOTH` hace el texto y después las páginas. En `BOTH`, `NO_TEXT` no es un error;<br>• fase de páginas: para cada página que falta, convertir, escribir el fichero, embeber, truncar a 256 y normalizar, e insertar (R9);<br>• `done` con los fragmentos y las páginas completos;<br>• pausas por calor, espacio (64 MiB + 250 KB por página) y modelo, como hoy;<br>• respeta `MODEL_SWITCH` |
-| `PageEmbeddingSession` | **I3:** mantiene un `ImageEmbedder` de la 440M en CPU durante la fase de páginas y lo libera al terminar. Nunca a la vez que el embedder de texto |
+| `ImportQueueRepository` y `DocumentImporter` | **I1:** `ImportQueueRepository.import(uris, folderId, indexMode)` y `DocumentImporter.import(uri, info, folderId, indexMode)`, con el modo de la selección, que solo vale con `ON`. `retry` conserva el modo. Acepta `jpg`, `jpeg` y `png` solo con `ON`; si no, `IMAGE_NEEDS_MULTIMODAL`. Sin el modo activo, todo va en `TEXT` (analyze, M3) |
+| `IngestRunner` | **I2:**<br>• con el modo en `OFF`, se salta los documentos Visual o Ambos sin terminar («Esperando al modo multimodal»; analyze, M5);<br>• la etapa `PAGES` llega a `IngestScheduler`, a la pantalla Indexación y a la notificación (analyze, H1);<br>• por modo: `TEXT` como hoy; `VISUAL` se salta las fases de texto (`chunk_count = 0`); `BOTH` hace el texto y después las páginas. En `BOTH`, `NO_TEXT` no es un error;<br>• fase de páginas: para cada página que falta, convertir, escribir el fichero, embeber, truncar a 256 y normalizar, e insertar (R9);<br>• `done` con los fragmentos y las páginas completos;<br>• pausas por calor, espacio (64 MiB + 250 KB por página) y modelo, como hoy;<br>• respeta `MODEL_SWITCH` |
+| `PageEmbeddingSession` | **I3:** mantiene un `ImageEmbedder` de la 440M en CPU durante la fase de páginas y lo libera al terminar, con la clave `EngineKey(EG2_440M, CPU, IMAGE_EMBEDDER)`, distinta de la del embedder de texto (analyze, H2). No hay dos embedders en la ingesta a la vez |
 | `PageRasterizer` (`rag/ingest`) | **I4:** `pageCount(pdf)`, `renderPage(pdf, page, longSidePx, JPEG, 85)` y `scaleImage(file, longSidePx, JPEG, 85)`, siempre sobre blanco y con la orientación EXIF. Es bloqueante y se llama en `io` |
 | `ImageEmbedder` (`rag/runtime`) | **I5:** `embedImage(bytes): FloatArray`, el vector crudo de 768. El llamante usa `EmbeddingMath.truncateAndNormalize` |
-| `PageFileStore` (`data/ingest`) | **I6:** `write(name, bytes)` con un fichero `.part` que después se renombra, y `delete(names)` en `noBackupFilesDir/pages/` |
+| `PageFileStore` (`data/ingest`) | **I6:** `write(name, bytes)` con un fichero `.part` que después se renombra, y `delete(names)` en `noBackupFilesDir/pages/`. Las dos y el barrido comparten un cerrojo (analyze, M6) |
 | Barrido de huérfanos | **I7:** al arrancar, borra los ficheros de `pages/` que no estén en `allPageFiles()` |
 
 ## 5. Lo que no cambia

@@ -20,7 +20,15 @@
 |---|---|
 | Fila «Modo de los PDF» | **U8:** solo en `ON`, bajo «Carpeta de destino». Abre una hoja con las tres `LisdataRadioRow`. El modo de la selección empieza siendo el de Ajustes y se guarda en `SavedStateHandle` |
 | Selector de archivos | **U9:** con `ON`, los tipos MIME admitidos incluyen `image/jpeg` e `image/png` |
-| Fila de la cola | **U10:**<br>• un `LisdataStatusChip` con el modo;<br>• en `PAGES`, «Indexando páginas · 12 / 40» con progreso y el tiempo restante;<br>• `IMAGE_NEEDS_MULTIMODAL` dice «Imagen no admitida» y «Activa el modo multimodal en Ajustes para importar imágenes» |
+| Fila de la cola | **U10:**<br>• un `LisdataStatusChip` con el modo;<br>• la estimación de páginas, tiempo y espacio en cuanto se conoce el número de páginas (wireframe §8);<br>• `IMAGE_UNREADABLE` dice «Imagen no válida» y «No se ha podido leer la imagen»;<br>• en `PAGES`, «Indexando páginas · 12 / 40» con progreso y el tiempo restante;<br>• `IMAGE_NEEDS_MULTIMODAL` dice «Imagen no admitida» y «Activa el modo multimodal en Ajustes para importar imágenes» |
+
+## 2b. Indexación y notificación (`feature/indexing`, `data/indexing`)
+
+| Elemento | Regla |
+|---|---|
+| Etapa «Imágenes de página» | **U15:** tras «Generación de embeddings», solo si el documento en curso tiene páginas. Durante ella, el anillo y el recuento son del documento en curso, en páginas (wireframe §8) |
+| Pausas nuevas | **U16:** «En pausa: cambiando el modelo de búsqueda» y «Esperando al modo multimodal», con el bloque de pausa de hoy |
+| Notificación | **U17:** «Indexando páginas · 12 / 40», con su barra, en la etapa de páginas |
 
 ## 3. Biblioteca y detalle (`feature/library`, `feature/document`)
 

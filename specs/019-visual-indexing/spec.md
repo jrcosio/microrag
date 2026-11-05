@@ -71,6 +71,13 @@
 - Q: ¿Apruebas el wireframe? → A: Sí, tal como está en [wireframe.md](wireframe.md) (FR-027, G47).
 - Q: ¿Apruebas la enmienda de la constitución 1.1.1 → 1.2.0? → A: Sí, tal como está en [constitution-amendment.md](constitution-amendment.md). Se aplica antes del plan.
 
+### Session 2026-11-05 (analyze)
+
+- **C1:** el anexo del wireframe (§8) cubre la estimación en la cola, la etapa «Imágenes de página» en Indexación, la notificación, las pausas por cambio de modelo y por modo apagado, y la imagen ilegible. Aprobado por el usuario el 2026-11-05 (D-081).
+- **M1:** los fallos de descarga (sin espacio, red o huella) mantienen `DOWNLOADING`, con Reintentar y Cancelar. Los de validación o preparación vuelven a `OFF`, borran la 440M y lo explican.
+- **M5:** con el modo apagado, los documentos con páginas sin terminar esperan («Esperando al modo multimodal») y se reanudan al reactivarlo. Los de texto del mismo run siguen.
+- **M7:** el tamaño de la descarga sale del catálogo con el formato de las filas de modelos (388 MB).
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Activar el modo multimodal (Priority: P1)
@@ -231,7 +238,7 @@ Las pantallas nuevas y los cambios en Ajustes, Ingesta, Biblioteca y detalle sig
 
 - **FR-001**: Ajustes MUST tener un interruptor «Modo multimodal» en la sección «Inteligencia artificial», junto a los modelos, desactivado por defecto. Desactivado, la app MUST comportarse exactamente como sin esta feature: la misma descarga, la misma importación, el mismo índice y las mismas búsquedas.
 - **FR-002**: Activar el modo MUST pedir confirmación con un aviso de:
-  - la descarga, de 369 MB;
+  - la descarga, con el tamaño del catálogo en el formato de las filas de modelos (388 MB);
   - el espacio que ocupa cada página;
   - el tiempo de indexación, unos 3 s por página en el teléfono de referencia;
   - que las respuestas con páginas tardarán más (F20).
@@ -249,7 +256,7 @@ Las pantallas nuevas y los cambios en Ajustes, Ingesta, Biblioteca y detalle sig
   - se explica.
 - **FR-005**: Tras la validación, la 440M MUST pasar a embeber el texto de la indexación y de las consultas, y el índice MUST registrar el modelo nuevo **sin reindexar**. La búsqueda de texto MUST dar los mismos resultados antes y después. La 270M MUST borrarse solo después de que el cambio esté guardado.
 - **FR-006**: Un cambio de modelo interrumpido MUST reanudarse o deshacerse al relanzar la app. El índice MUST abrirse y buscar en todo momento.
-- **FR-007**: Desactivar el modo MUST pedir confirmación, y la importación MUST volver a ser solo Texto. Las páginas indexadas y sus vectores MUST conservarse sin usarse, y la 440M MUST seguir embebiendo el texto: la 270M no vuelve. Reactivar el modo MUST ser inmediato, sin descargar ni reindexar.
+- **FR-007**: Desactivar el modo MUST pedir confirmación, y la importación MUST volver a ser solo Texto. Los documentos con páginas sin terminar MUST esperar («Esperando al modo multimodal») y reanudarse al reactivarlo. Las páginas indexadas y sus vectores MUST conservarse sin usarse, y la 440M MUST seguir embebiendo el texto: la 270M no vuelve. Reactivar el modo MUST ser inmediato, sin descargar ni reindexar.
 - **FR-008**: El primer arranque de una instalación nueva MUST seguir igual, con la 270M y Gemma. El modo solo se activa desde Ajustes.
 - **FR-008b**: Activar el modo MUST NOT reindexar nada por sí solo. Los PDF ya indexados en Texto MUST seguir igual hasta que el usuario los reindexe en otro modo desde su detalle.
 
@@ -264,14 +271,14 @@ Las pantallas nuevas y los cambios en Ajustes, Ingesta, Biblioteca y detalle sig
 - **FR-012**: Cada página MUST convertirse en una imagen de 768 px por el lado largo, sobre blanco, en JPEG de calidad 85, y guardarse en el almacenamiento privado de la app, fuera de las copias de seguridad. Las imágenes sueltas MUST pasar por lo mismo, con su orientación aplicada.
 - **FR-013**: Cada página MUST embeberse con la 440M a 140 tokens por imagen, y su vector MUST guardarse a 256 dimensiones, normalizado, en el índice, junto con el documento y el número de página.
 - **FR-014**: La indexación visual MUST reanudarse por página: tras un cierre, MUST seguir por la siguiente sin duplicar ninguna.
-- **FR-015**: El progreso MUST contarse en páginas para la parte visual y en fragmentos para la de texto, con el tiempo restante.
+- **FR-015**: El progreso MUST contarse en páginas para la parte visual y en fragmentos para la de texto, con el tiempo restante, en la cola de la Ingesta, en la pantalla Indexación (etapa «Imágenes de página») y en la notificación (wireframe §8).
 - **FR-016**: La indexación visual MUST pausarse:
   - por temperatura y por falta de espacio, contando también las imágenes de página;
   - por un modelo que falta, como en F07.
 
   El LLM MUST NOT estar cargado mientras se indexa, y MUST NOT haber dos engines en GPU.
 - **FR-017**: Un documento MUST pasar a indexado solo cuando sus dos partes, según su modo, estén completas. Reindexar en otro modo MUST mantener la versión anterior en las búsquedas hasta que la nueva esté completa, y entonces sustituirla de una vez.
-- **FR-018**: Antes de indexar un PDF en Visual o en Ambos, la app MUST comprobar que hay espacio para sus imágenes de página, con su margen. Si no lo hay, MUST avisarse antes de empezar.
+- **FR-018**: En cuanto se conoce el número de páginas de un PDF en Visual o en Ambos, la cola MUST mostrar una estimación de páginas, tiempo y espacio (wireframe §8). Antes de indexar sus páginas, la app MUST comprobar que hay espacio para ellas con su margen. Si no lo hay, MUST pausarse con la cantidad que falta.
 
 **Biblioteca, detalle y Ajustes**
 

@@ -45,6 +45,7 @@ Cada apartado sigue el formato Decisión · Motivo · Alternativas. Lo «verific
   - las filas de modelos de Ajustes;
   - `ModelRequirements` (R5).
 - **Un índice nuevo** se crea con el embedder verificado que haya: la 270M en una instalación nueva, o la 440M si la 270M ya se borró.
+- **Antes de abrir el índice** (analyze, H3), y en el proceso del worker, `textEmbedder` sale de un espejo en `multimodal.preferences_pb` (`text_embedder`), que se escribe justo después del cambio en `rag_meta`. Al abrir, `rag_meta` manda y corrige el espejo si hace falta. `ModelRequirements` usa el espejo hasta que el índice está abierto.
 
 **Motivo:**
 - hoy la 270M está fijada en cinco sitios (verificado), y cualquiera que se quede atrás embebería con el modelo equivocado;
@@ -57,7 +58,7 @@ Cada apartado sigue el formato Decisión · Motivo · Alternativas. Lo «verific
 ## R3. Validación de identidad en el dispositivo
 
 **Decisión:**
-- **Muestra:** 20 textos fijos en `app/src/main/assets/embedding/identity_texts.jsonl`. Salen de los 50 de `embedding_texts.jsonl` de F18 (androidTest), con párrafos y consultas en español.
+- **Muestra:** 20 textos fijos en `app/src/main/assets/embedding/identity_texts.jsonl`. Salen de `offline/golden/embedding_texts.jsonl`, que es el fichero que el golden de F04 ya empaqueta en androidTest, con párrafos y consultas en español.
 - **Comparación:**
   - cada texto se embebe como documento y como consulta, con la 270M y con la 440M, en CPU y en secuencia, liberando cada engine;
   - se compara el vector final de 256D normalizado, el que se guarda y el que se busca;
@@ -74,6 +75,8 @@ Cada apartado sigue el formato Decisión · Motivo · Alternativas. Lo «verific
 - comparar todo el índice: son minutos y no aporta más que una muestra fija.
 
 ## R4. El cambio de modelo, atómico y reanudable
+
+**Fallos** (analyze, M1): sin espacio, sin red o con una huella que no cuadra, la etapa se queda en `DOWNLOADING` con su error, Reintentar y Cancelar. Si falla la validación o la preparación, vuelve a `OFF`, borra la 440M y lo explica.
 
 **Decisión:** en `SWITCHING`:
 1. Se pausa la ingesta con una causa nueva, `RunPauseCause.MODEL_SWITCH`, y se espera a que suelte el embedder.
@@ -134,8 +137,9 @@ Cada apartado sigue el formato Decisión · Motivo · Alternativas. Lo «verific
   - `AndroidPageRasterizer`, en `data/ingest`: `PdfRenderer` para las páginas e `ImageDecoder` (con EXIF y sobre blanco) para las imágenes.
 
   Las dos son el código de F18, sin cambios de comportamiento.
-- **El diagnóstico de F18** usa las versiones de `main`. `VisualContracts` conserva `VisionGenerator`, que es de F20.
-- **`LayeringTest`:** el SDK sigue solo en `rag/runtime/litert`, y `PdfRenderer` e `ImageDecoder` solo en `data/ingest`.
+- **El diagnóstico de F18** usa las versiones de `main`. `VisualContracts` conserva `VisionGenerator`, que es de F20. `imageEmbedder(file, path, backend, tokens)` mantiene el backend, porque el escenario de GPU del diagnóstico lo pide (analyze, M4).
+- **Clave del engine** (analyze, H2): `EngineKey` gana un tipo (`TEXT_EMBEDDER`, `IMAGE_EMBEDDER` o `GENERATOR`). El embedder de imagen y el de texto de la 440M en CPU son engines distintos, y una consulta del chat durante la fase de páginas recibe siempre un embedder de texto.
+- **`LayeringTest`:** el SDK sigue solo en `rag/runtime/litert`, y `PdfRenderer` y `android.graphics.ImageDecoder` (regla nueva) solo en `data/ingest`. La regla que prohíbe en main los nombres «LiteRtVisionEngines» y «DebugPageRasterizer» se ajusta a los nombres nuevos.
 
 **Motivo:** ya se midieron en el A063 (F18), y reescribirlos repetiría ese trabajo.
 
@@ -178,6 +182,8 @@ Cada apartado sigue el formato Decisión · Motivo · Alternativas. Lo «verific
   - **Texto:** como hoy;
   - **Visual:** sin fases de texto, con `chunk_count = 0`, y después las páginas;
   - **Ambos:** el texto como hoy y después las páginas. Si el texto da `NO_TEXT`, no es un error: el documento sigue solo con páginas (FR-011).
+- **Con el modo apagado** (analyze, M5), los documentos Visual o Ambos que no han terminado se saltan, con la espera «Esperando al modo multimodal». Los de texto del mismo run siguen, y al reactivar el modo el controlador vuelve a pedir la indexación de los que esperaban.
+- **Progreso hacia fuera** (analyze, H1): `IngestScheduler` (`STAGES` y `progressData`/`progressOf`), `DefaultIndexingRepository.forScreen`, `IndexingNotifications` e `IndexTexts`/`IndexScreen` conocen la etapa `PAGES` (wireframe §8). Sin ello, el worker fallaría al publicar el progreso.
 - **Fase de páginas** en `IngestRunner`, tras el texto, dentro del mismo run, de la misma cola y del mismo trabajo en primer plano. Para cada página que falta:
   1. se convierte a 768 px en JPEG de calidad 85;
   2. se escribe en `noBackupFilesDir/pages/<file_name>` con un nombre temporal y se renombra, para que sea atómico;
@@ -219,12 +225,12 @@ Cada apartado sigue el formato Decisión · Motivo · Alternativas. Lo «verific
 ## R11. Reindexar, quitar y eliminar con páginas
 
 **Decisión:**
-- **Reindexar en otro modo:** la copia en sombra de F08 lleva el modo nuevo, e indexa su texto y sus páginas. `publishReindex`, en la misma transacción:
+- **Reindexar en otro modo:** la copia en sombra de F08 lleva el modo nuevo, e indexa su texto y sus páginas. `publishReindex` copia también `index_mode` al original. Un documento en error o fuera del índice no tiene sombra: se cambia su modo y se reintenta o se reindexa sobre él (analyze, H4). `publishReindex`, en la misma transacción:
   - borra las filas de páginas del original y sus ficheros (estos después del commit);
   - mueve las de la sombra (`UPDATE pages SET document_id`), que conservan su nombre.
 - **Quitar del índice:** borra las páginas, además de los fragmentos.
 - **Eliminar:** borra los ficheros de páginas, después de la cascada.
-- **Huérfanos:** al arrancar, un barrido borra los ficheros de `pages/` que ninguna fila nombra, como las copias privadas de F08.
+- **Huérfanos:** al arrancar, un barrido borra los ficheros de `pages/` que ninguna fila nombra, como las copias privadas de F08. Comparte cerrojo con la escritura de páginas, como `DocumentFiles` de F08, y cubre también las páginas de las sombras en `discardReindex`, `deleteDocument` y `removeFromIndex` (analyze, M6).
 - **La lista de ficheros** se lee antes de borrar, dentro de la misma transacción.
 
 **Motivo:** la versión anterior sigue respondiendo hasta el cambio (FR-017), y no quedan huérfanos (SC-005).
@@ -257,15 +263,15 @@ Cada apartado sigue el formato Decisión · Motivo · Alternativas. Lo «verific
 ## R14. Estimaciones de espacio y de tiempo
 
 **Decisión:**
-- **Espacio:** 250 KB por página para comprobarlo antes de empezar (FR-018). F18 midió de 54 a 224 KB a 768 px.
+- **Espacio:** 250 KB por página para comprobarlo antes de empezar (FR-018). F18 midió de 54 a 144 KB de mediana a 768 px, y 224 KB a 1.024 px.
 - **Tiempo:** 3,2 s por página en el aviso del modo. F18 lo midió a 140 tokens en el A063.
 - **Lo que se mide en el teléfono:** el espacio y el ritmo reales, como cifras informativas (SC-003).
 
 ## R15. El harness del escritorio
 
 **Decisión:**
-- `offline/` lee `schema.sql` y el catálogo de modelos de la app (`test_appconfig.py`). Sus pruebas pasan a la versión 5 y aceptan los dos embedders;
-- las cifras de F05 y F10 no cambian, porque el texto sigue igual (FR-025, SC-001). Se comprueba con `run_eval.py ablations` y `order-review`, como en F18 (T034).
+- `offline/` lee `schema.sql` y el catálogo de modelos de la app (`test_appconfig.py`). Sus pruebas pasan a la versión 5. El índice del escritorio sigue siendo de la 270M;
+- las cifras de F05 y F10 no cambian, porque el texto sigue igual (FR-025, SC-001). Se comprueba con `run_eval.py ablations` y `order-review`, como en la tarea T034 de F18.
 
 ## R16. Pruebas
 
@@ -292,6 +298,6 @@ Cada apartado sigue el formato Decisión · Motivo · Alternativas. Lo «verific
   - un escaneado, un JPG y un PNG;
   - la batería completa.
 
-  La 270M del teléfono se borra al activar el modo: antes de la prueba se pregunta al usuario.
+  La 270M del teléfono se borra al activar el modo: antes de la prueba se pregunta al usuario. La batería completa va **antes** de activar el modo (analyze, H5). Después, el golden se repite con el embedder activo: compara la 440M con los mismos vectores de referencia, que son los de la 270M por la identidad.
 
 **Motivo:** son los criterios SC-001 a SC-008, sin pruebas comparativas (D-078).

@@ -37,6 +37,8 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
 
 **Commits**: atómicos, en inglés, uno por tarea o grupo lógico (constitución VIII).
 
+**Analyze** (2026-11-05): 23 hallazgos, con 1 CRITICAL, 5 HIGH, 8 MEDIUM y 9 LOW. Se recogen en estas tareas, y se añaden T058 a T062. El CRITICAL (C1) es el anexo del wireframe (§8), que aprueba el usuario.
+
 ## Format: `[ID] [P?] [Story] Description`
 
 - **[P]**: ejecutable en paralelo (ficheros distintos, sin dependencias pendientes).
@@ -51,7 +53,7 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
 
 - [ ] T001 Línea base: `./gradlew :app:testDebugUnitTest :app:lintDebug` en verde (1.163 pruebas JVM, 2 avisos) y `offline/.venv/bin/python -I -m unittest discover -s offline/tests` (285 pruebas), antes de tocar nada.
 - [ ] T002 [P] Textos de `multimodal-ui.md` §4 y del wireframe §7 en `app/src/main/res/values{,-en}/strings_multimodal.xml`: Ajustes, diálogos, etapas, errores, «Modo al importar PDF», Ingesta, cola, Biblioteca y detalle. Con plurales para páginas y fragmentos. `StringsParityTest` pasa.
-- [ ] T003 [P] Muestra de identidad: `app/src/main/assets/embedding/identity_texts.jsonl`, con 20 líneas `{"id","text"}` tomadas de `app/src/androidTest/assets/embedding_texts.jsonl` (R3), párrafos y consultas en español.
+- [ ] T003 [P] Muestra de identidad: `app/src/main/assets/embedding/identity_texts.jsonl`, con 20 líneas `{"id","text"}` tomadas de `offline/golden/embedding_texts.jsonl` (R3), párrafos y consultas en español.
 
 ---
 
@@ -68,9 +70,9 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
 ### Pruebas (antes, y deben fallar)
 
 - [ ] T004 [P] Esquema de `rag.db` v5:
-  - `…/test/…/data/rag/RagSchemaTest.kt`: 15 sentencias, la migración `from = 4` y la versión 5;
+  - `…/test/…/data/rag/RagSchemaTest.kt`: 15 sentencias (renombrar la prueba «Thirteen»), la migración `from = 4` y la versión 5. El `ALTER … CHECK` tiene que ir en una sola línea, idéntico a la columna de `documents`, para que pase la regla «termina donde `schema.sql`»;
   - `offline/tests/test_appconfig.py`: `schema_version == 5`.
-- [ ] T005 [P] `…/androidTest/…/data/rag/RagIndexMigrationTest.kt`, con `app/src/androidTest/assets/schema/schema_v4.sql`:
+- [ ] T005 [P] `…/androidTest/…/data/rag/RagIndexMigrationTest.kt`, con un recurso nuevo que hay que crear, `app/src/androidTest/assets/schema/schema_v4.sql`:
   - un índice v4 con documentos, fragmentos, carpetas y sombras migra a v5 con todo intacto;
   - `index_mode = 'text'` y la tabla `pages` vacía;
   - un fallo de migración deja el fichero v4 intacto.
@@ -90,7 +92,11 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
   - `allPageFiles`;
   - `chatLibraryState` cuenta aparte los documentos solo Visual (P9);
   - `vector_init` de `pages` en cada conexión.
-- [ ] T008 [P] `…/test/…/domain/multimodal/ModelRequirementsTest.kt` (M6): la 270M o la 440M según el índice, Gemma siempre, y la 440M añadida mientras la etapa está en marcha.
+- [ ] T008 [P] `…/test/…/domain/multimodal/ModelRequirementsTest.kt` (M6):
+  - la 270M o la 440M según el índice, y Gemma siempre;
+  - la 440M añadida mientras la etapa está en marcha;
+  - antes de abrir el índice, el valor del espejo `text_embedder`;
+  - tras el cambio, la 270M no es obligatoria: el chip no vuelve a «pendiente» y no se descarga otra vez (analyze, H3).
 - [ ] T009 [P] `…/test/…/data/models/DefaultModelFileRepositoryTest.kt` (D1): `delete(id)` borra el fichero, su entrada de `verification.json` y su backend, y publica `Missing`. Borrar un modelo que no existe da `false`.
 - [ ] T010 [P] `…/androidTest/…/data/ingest/AndroidPageRasterizerTest.kt`: la prueba `DebugPageRasterizerTest` de F18, movida al conversor de `main`:
   - páginas a 768 px sobre blanco;
@@ -106,7 +112,11 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
   - `…/microrag/rag/runtime/litert/LiteRtImageEmbedder.kt`, con `LiteRtEngineFactory.imageEmbedder(file, path, tokens)`;
   - `…/microrag/data/ingest/AndroidPageRasterizer.kt`.
 
-  El diagnóstico de debug (`…/debug/…/feasibility/visual/VisualContracts.kt`, `LiteRtVisionEngines.kt`, `VisualSuite.kt` y `VisualFeasibilityModule.kt`) pasa a usarlos, y se borran `DebugPageRasterizer.kt` y la copia del embedder de debug. `LayeringTest` se actualiza. T010 pasa, y `VisualSuiteTest` sigue en verde.
+  `imageEmbedder(file, path, backend, tokens)` conserva el backend (analyze, M4). El diagnóstico de debug pasa a usarlos:
+  - `…/debug/…/debug/feasibility/visual/VisualContracts.kt`, `VisualSuite.kt` y `VisualFeasibilityModule.kt`;
+  - `…/debug/…/rag/runtime/litert/LiteRtVisionEngines.kt`, que se queda solo con el generador.
+
+  Se borran `DebugPageRasterizer.kt` y la copia del embedder de debug. `LayeringTest` gana una regla para `android.graphics.ImageDecoder` y ajusta la de los nombres prohibidos en main (línea 116). T010 pasa, y `VisualSuiteTest` sigue en verde.
 - [ ] T012 Esquema v5:
   - `app/src/main/assets/schema.sql`;
   - `…/microrag/data/rag/RagSchema.kt`, con `RagMigration(from = 4, …)`;
@@ -115,21 +125,27 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
   - `…/microrag/data/rag/RagConnection.kt`, con el `vector_init` de `pages`.
 
   T004 a T006 pasan.
-- [ ] T013 Tipos del dominio (data-model §4):
+- [ ] T013 Tipos del dominio (data-model §4), antes de T016 (analyze, M2):
+  - `MultimodalStage`, `MultimodalState` y la interfaz `MultimodalStore` en `…/microrag/domain/multimodal/MultimodalModels.kt`;
   - `IndexMode` y `StoredDocument.indexMode`/`pagesStored` en `…/microrag/domain/rag/RagModels.kt`;
   - `StoredPage` y `PageInput`;
   - `Stage.PAGES` y los campos de páginas en `…/microrag/domain/ingest/IngestModels.kt`;
   - `DocumentFormat.JPEG`/`PNG`;
   - `IngestError.IMAGE_NEEDS_MULTIMODAL`/`IMAGE_UNREADABLE`;
-  - `RunPauseCause.MODEL_SWITCH`.
+  - `RunPauseCause.MODEL_SWITCH`;
+  - `NewDocument.indexMode`, que pasa aquí desde T032 (analyze, L6).
+
+  **Rutas que conocen la etapa `PAGES`** (analyze, H1): `IngestScheduler` (`STAGES`, `progressData` y `progressOf`), `DefaultIndexingRepository.forScreen` y `RunPauseCause.reason()`. Con una prueba de ida y vuelta de `progressData`/`progressOf` en `PAGES` (`…/test/…/data/ingest/IngestSchedulerTest.kt`).
 - [ ] T014 Índice (contrato §1) en `…/microrag/domain/rag/RagIndex.kt` y `…/microrag/data/rag/DefaultRagIndex.kt`: E1–E3 y P1–P9. `FakeRagIndex` los implementa. T007 pasa.
-- [ ] T015 `ModelFileRepository.delete(id)` en `…/microrag/data/models/DefaultModelFileRepository.kt` y en la interfaz (D1). T009 pasa.
+- [ ] T015 `ModelFileRepository.delete(id)` en `…/microrag/data/models/DefaultModelFileRepository.kt` y en la interfaz (D1). Se actualizan las implementaciones de prueba de la interfaz (unas 7) y `ReadyModelsRule` (analyze, L3). T009 pasa.
 - [ ] T016 `…/microrag/domain/multimodal/ModelRequirements.kt` (M6). Pasan a usarlo:
   - `ModelDownloadRunner`, `DefaultModelDownloadController.deleteOrphanPartials` y `ModelCatalog.allReady`;
   - los casos de uso de `domain/onboarding`, generalizados a listas de modelos (R6);
-  - `SetupViewModel`, `ObserveLocalAiUseCase` y `ObserveModelOverviewUseCase`.
+  - `SetupViewModel`, `ObserveLocalAiUseCase` (`LocalAiUseCases.kt`) y `ObserveModelOverviewUseCase` (`SettingsUseCases.kt`), incluidas las dimensiones de la línea 37, que hoy solo da la 270M (analyze, L3);
+  - el espejo `text_embedder` del almacén (analyze, H3).
 
   T008 pasa. La preparación del primer arranque no cambia: lo comprueban sus pruebas.
+- [ ] T061 [P] `…/test/…/rag/runtime/EngineCoordinatorTest.kt` (analyze, H2): `EngineKey` con tipo. El embedder de imagen y el de texto de la 440M en CPU son engines distintos, y una consulta durante la fase de páginas recibe un embedder de texto. Se implementa en `…/microrag/rag/runtime/{ManagedEngine,EngineCoordinator}.kt`, y se actualizan los usos de `EngineKey`.
 - [ ] T017 Embedder activo (R2):
   - `ChunkEmbeddingSession` y `EngineQueryEmbedder` leen `RagIndex.textEmbedder`, en vez de `EG2_270M`;
   - `DataModule` resuelve la ruta del modelo activo;
@@ -166,7 +182,9 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
   - los diálogos;
   - los botones de pausar, reanudar, cancelar y reintentar;
   - las filas de modelos con la 270M o la 440M;
-  - el aviso «Modo multimodal activado» una sola vez.
+  - el aviso «Modo multimodal activado» una sola vez;
+  - el tamaño de la descarga sale del catálogo con el formato de las filas de modelos (analyze, M7);
+  - los fallos de descarga se quedan en `DOWNLOADING` con Reintentar y Cancelar; los de validación vuelven a `OFF` (analyze, M1).
 
 ### Implementación
 
@@ -185,6 +203,7 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
   - los diálogos.
 
   T021 pasa.
+- [ ] T059 [P] [US1] Prueba instrumentada `…/androidTest/…/data/multimodal/IdentityValidatorDeviceTest.kt` (`@RequiresModels`, analyze, M8): la validación con la 270M y la 440M reales da ≥ 0,9999. Un corte en `VALIDATING` repite la validación al arrancar. Se ejecuta en el emulador con los modelos de desarrollo, si los hay, y en el teléfono **antes** de activar el modo.
 - [ ] T026 [US1] Prueba instrumentada `…/androidTest/…/data/multimodal/MultimodalSwitchTest.kt`:
   - con un `TempRagIndex` de la 270M y los ficheros de modelo falsos, el cambio de `rag_meta` y el borrado de la 270M;
   - un proceso matado entre los pasos 2 y 4 (simulado) deja el índice abriéndose y buscando;
@@ -222,8 +241,14 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
 
 - [ ] T030 [US2] `…/microrag/data/ingest/PageFileStore.kt` (I6) y `…/microrag/data/indexing/PageEmbeddingSession.kt` (I3), cableados en `DataModule`.
 - [ ] T031 [US2] Fase de páginas en `…/microrag/data/ingest/IngestRunner.kt` (I2, R9). T027 pasa.
-- [ ] T032 [US2] Modo en la importación: `DocumentImporter`, `ImportRequest.indexMode`, `DefaultImportQueueRepository` y `NewDocument.indexMode`. T028 pasa.
-- [ ] T033 [US2] Ingesta, según el wireframe §5: `…/microrag/feature/ingest/IndexModeSheet.kt`, `IngestScreen` e `IngestViewModel`, y la cola con progreso en páginas. T029 pasa.
+- [ ] T032 [US2] Modo en la importación (analyze, M3): `ImportQueueRepository.import(uris, folderId, indexMode)`, el `Pending` y el `retry` de `DefaultImportQueueRepository`, que conservan el modo, y `DocumentImporter.import(uri, info, folderId, indexMode)`. T028 pasa.
+- [ ] T033 [US2] Ingesta, según el wireframe §5 y §8: `…/microrag/feature/ingest/IndexModeSheet.kt`, `IngestScreen` e `IngestViewModel`; la cola, con el progreso en páginas y la estimación. T029 pasa.
+- [ ] T058 [US2] Indexación y notificación, según el wireframe §8 (U15–U17, analyze, H1 y C1):
+  - la etapa «Imágenes de página» y el anillo en páginas, en `…/microrag/feature/indexing/{IndexTexts,IndexScreen}.kt` y `…/microrag/domain/indexing/IndexingModels.kt`;
+  - las pausas «cambiando el modelo de búsqueda» y «Esperando al modo multimodal»;
+  - «Indexando páginas · 12 / 40» en `…/microrag/data/indexing/IndexingNotifications.kt`.
+
+  Con `IndexScreenTest`, `IndexViewModelTest` e `IndexingNotificationsTest`.
 
 **Checkpoint:** un PDF en Visual o Ambos queda indexado con sus páginas, con progreso por páginas.
 
@@ -266,8 +291,9 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
 - [ ] T037 [P] [US4] `…/test/…/data/library/DefaultLibraryRepositoryTest.kt` (R11):
   - reindexar con modo crea la sombra con ese modo;
   - al publicar se borran los ficheros de páginas del original;
-  - quitar y eliminar borran los ficheros;
-  - el barrido de huérfanos.
+  - quitar y eliminar borran los ficheros, también los de la sombra en `discardReindex`, `deleteDocument` y `removeFromIndex` (analyze, M6);
+  - un documento en error o fuera del índice cambia de modo sin sombra (analyze, H4);
+  - el barrido de huérfanos, que comparte cerrojo con la escritura de páginas.
 - [ ] T038 [P] [US4] `LibraryScreenTest`, `DocumentViewModelTest` y `DocumentScreenTest` (U11–U14):
   - el subtítulo con el modo y las páginas;
   - los datos del detalle;
@@ -277,7 +303,8 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
 
 ### Implementación
 
-- [ ] T039 [US4] `…/microrag/data/library/DefaultLibraryRepository.kt`: reindexar con modo, la limpieza de ficheros de página (P4–P6) y el barrido de huérfanos al arrancar (I7). T037 pasa.
+- [ ] T039 [US4] `…/microrag/data/library/DefaultLibraryRepository.kt`: reindexar con modo (P5 y P8 ampliados), la limpieza de ficheros de página (P4–P6) y el barrido de huérfanos al arrancar (I7), con su cerrojo. T037 pasa.
+- [ ] T060 [P] [US4] Prueba instrumentada `…/androidTest/…/data/library/PageFilesCleanupTest.kt` (SC-005, analyze, L8): con ficheros reales en `TempRagIndex` y `PageFileStore`, eliminar, quitar, reindexar, descartar una reindexación y el barrido no dejan ficheros ni filas huérfanas.
 - [ ] T040 [US4] Biblioteca y detalle, según el wireframe §6: `LibraryScreen`, `DocumentScreen` y `DocumentViewModel`, que reutilizan `IndexModeSheet`. T038 pasa.
 
 **Checkpoint:** el modo se ve y se cambia, y no quedan páginas huérfanas.
@@ -325,13 +352,14 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
   - desactivar en `ON` no borra páginas ni la 440M;
   - desactivar en `DOWNLOADING` cancela la descarga;
   - reactivar es directo;
+  - activar no reindexa nada por sí solo (FR-008b, analyze, L8);
   - una indexación visual en curso se detiene al desactivar y se reanuda al reactivar;
   - la Ingesta vuelve a solo Texto.
 - [ ] T045 [P] [US6] `DocumentScreenTest`: con el modo apagado y páginas guardadas, «Sus páginas necesitan el modo multimodal».
 
 ### Implementación
 
-- [ ] T046 [US6] Desactivar y reactivar en el controlador, en los casos de uso y en Ajustes, con el diálogo del wireframe §3, y la nota del detalle. T044 y T045 pasan.
+- [ ] T046 [US6] Desactivar y reactivar en el controlador, en los casos de uso y en Ajustes, con el diálogo del wireframe §3, y la nota del detalle. Con el modo apagado, `IngestRunner` se salta los documentos con páginas sin terminar («Esperando al modo multimodal»), y al reactivarlo el controlador los vuelve a pedir (analyze, M5). T044 y T045 pasan.
 
 **Checkpoint:** el modo es una opción de verdad: se apaga y se enciende sin perder nada.
 
@@ -358,8 +386,8 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
 
 ## Phase 10: Polish sin teléfono
 
-- [ ] T050 Chat (R13): `chatLibraryState` y la disponibilidad del chat no cuentan los documentos solo Visual como buscables. Lo prueban `ObserveChatAvailabilityUseCaseTest` y `ChatViewModelTest`.
-- [ ] T051 Regresión del texto (FR-025, SC-001): `run_eval.py ablations` y `order-review` dan las mismas cifras que en F18. `test_appconfig.py` sigue en verde.
+- [ ] T050 Chat (R13): la disponibilidad del chat (`ObserveChatAvailabilityUseCase`) usa el recuento `visualOnly` de P9 (T014) para no contar como buscables los documentos solo Visual. Lo prueban `ObserveChatAvailabilityUseCaseTest` y `ChatViewModelTest`.
+- [ ] T051 Regresión del texto (FR-025, SC-001): `run_eval.py ablations` y `order-review` dan las mismas cifras que en la tarea T034 de F18. `test_appconfig.py` sigue en verde.
 - [ ] T052 Release:
   - `assembleRelease`;
   - `apkanalyzer` con `JAVA_HOME`: los mismos 9 permisos y sin `feasibility`;
@@ -378,12 +406,14 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
 ## Phase 11: Última fase — teléfono de referencia y cierre
 
 - [ ] T055 **Pedir permiso al usuario** para la fase del teléfono, con el recorrido: los ajustes que se anotan, la instalación, la activación real (**que borra la 270M del teléfono**), los documentos de prueba, la batería y la limpieza.
+- [ ] T062 [P] Golden con el embedder activo (analyze, H5): `EmbeddingGoldenTest` e `InstalledEmbeddingModel` usan el embedder de texto activo (la 270M o la 440M) contra los mismos vectores de referencia de `offline/golden`, que valen para los dos por la identidad. Así la 440M queda con golden cuando la 270M ya no existe.
 - [ ] T056 Fase del teléfono (quickstart §5):
+  - **antes de activar el modo:** la batería completa, `IdentityValidatorDeviceTest` (T059) y el golden con la 270M (analyze, H5);
   - activar el modo y medir cada paso;
+  - después, el golden con la 440M (T062);
   - comprobar la búsqueda antes y después, solo con etiquetas;
   - `VisualIngestBenchmarkTest` (T043);
   - un escaneado, un JPG y un PNG de prueba;
-  - la batería completa;
   - las cifras, a `report.md` §4;
   - la limpieza y los ajustes restaurados.
 - [ ] T057 Cierre:
@@ -403,7 +433,7 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
 - **Foundational (2):** depende de Setup y **bloquea todas las historias**. Dentro de la fase:
   - T011 va antes de T030;
   - T012 → T013 → T014;
-  - T016 depende de T014 (el embedder del índice), y T017 de T014.
+  - T016 depende de T013 (los tipos del modo) y de T014 (el embedder del índice). T017 y T061 dependen de T014.
 - **US1 (3):** depende de la fase 2. Es el MVP: sin el modo activo no hay nada visual.
 - **US2 (4)** y **US3 (5):** dependen de US1, porque la importación visual exige `ON`. US3 depende de T031.
 - **US4 (6):** depende de US2.
