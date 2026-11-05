@@ -61,13 +61,16 @@ class SetupViewModel(
     /** Activity-bound requests: permission prompt, system settings, file picker, navigation. */
     val setupEvents: Flow<SetupEvent> = events.receiveAsFlow()
 
-    private val statuses = observeSetup()
+    /** PNG 02 order: Gemma, then the text embedder the index uses (F19 contract U1). */
+    private val rows = observeSetup.rows()
+    private val statuses = rows.map { it.toMap() }
 
-    val state: StateFlow<SetupUiState> = combine(statuses, confirmation) { statuses, confirm ->
+    val state: StateFlow<SetupUiState> = combine(rows, confirmation) { rows, confirm ->
         val storage = prepareStorage()
+        val statuses = rows.toMap()
         SetupUiState(
             step = SetupStepResolver.step(statuses.values),
-            rows = DISPLAY_ORDER.map { ModelRowUi(it, statuses.getValue(it)) },
+            rows = rows.map { (id, status) -> ModelRowUi(id, status) },
             storage = storage,
             blocker = SetupStepResolver.blocker(statuses.values, storage),
             confirmation = confirm,
@@ -142,10 +145,5 @@ class SetupViewModel(
             // Space may have changed since the dialog: show it again with the fresh numbers.
             if (startDownload() is StartDownloadResult.NoSpace) openConfirmation(state.value.rows.first().id)
         }
-    }
-
-    private companion object {
-        /** PNG 02 order. */
-        val DISPLAY_ORDER = listOf(ModelId.GEMMA4_E2B, ModelId.EG2_270M)
     }
 }

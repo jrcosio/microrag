@@ -152,7 +152,7 @@ class LocalWorkUseCasesTest {
     }
 
     @Test
-    fun storage_isOfflineWithFoldersAndSpace_otherwiseNoSpace() {
+    fun storage_isOfflineWithFoldersAndSpace_otherwiseNoSpace() = runTest {
         val repository = InMemoryModelFileRepository(verified = setOf(ModelId.EG2_270M, ModelId.GEMMA4_E2B))
         val resources = FakeDeviceResources(free = 1_000_000_000L)
         val prepareStorage = PrepareStorageUseCase(repository, controller, resources)

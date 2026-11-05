@@ -41,6 +41,7 @@ import com.lisdatasolutions.microrag.data.models.AppDirs
 import com.lisdatasolutions.microrag.data.models.ContentResolverModelFileSource
 import com.lisdatasolutions.microrag.data.models.DefaultModelFileRepository
 import com.lisdatasolutions.microrag.data.models.ModelFileRepository
+import com.lisdatasolutions.microrag.data.multimodal.DataStoreMultimodalStore
 import com.lisdatasolutions.microrag.data.onboarding.DataStoreOnboardingStore
 import com.lisdatasolutions.microrag.data.rag.DefaultRagIndex
 import com.lisdatasolutions.microrag.data.rag.RagSchema
@@ -58,6 +59,8 @@ import com.lisdatasolutions.microrag.domain.ingest.ImportQueueRepository
 import com.lisdatasolutions.microrag.domain.library.LibraryRepository
 import com.lisdatasolutions.microrag.domain.model.ModelId
 import com.lisdatasolutions.microrag.domain.model.NetworkKind
+import com.lisdatasolutions.microrag.domain.multimodal.ModelRequirements
+import com.lisdatasolutions.microrag.domain.multimodal.MultimodalStore
 import com.lisdatasolutions.microrag.domain.onboarding.DeviceResources
 import com.lisdatasolutions.microrag.domain.onboarding.ModelDownloadController
 import com.lisdatasolutions.microrag.domain.onboarding.ModelFileSource
@@ -70,6 +73,7 @@ import com.lisdatasolutions.microrag.rag.ingest.DocumentExtractor
 import com.lisdatasolutions.microrag.rag.ingest.PdfOpener
 import com.lisdatasolutions.microrag.rag.runtime.MemoryTrimListener
 import java.io.File
+import kotlinx.coroutines.flow.first
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.binds
 import org.koin.dsl.module
@@ -90,12 +94,15 @@ val dataModule = module {
     }
     // F16: the copy of the app theme (research R2).
     single<AppThemeStore> { DataStoreAppThemeStore.create(androidContext().noBackupFilesDir, get<ApplicationScope>().scope, get()) }
+    // F19: the multimodal mode's copy, with the mirror of the index's text embedder (data-model §3).
+    single<MultimodalStore> { DataStoreMultimodalStore.create(androidContext().noBackupFilesDir, get<ApplicationScope>().scope, get()) }
     single<DeviceResources> { AndroidDeviceResources(androidContext(), get(), androidContext().noBackupFilesDir) }
     single<ModelFileSource> { ContentResolverModelFileSource(androidContext().contentResolver) }
 
     // The local RAG index (F04): one connection on the database dispatcher, opened on first use.
     single<RagIndex> {
         val context = androidContext()
+        val store = get<MultimodalStore>()
         DefaultRagIndex(
             dbFile = File(get<AppDirs>().index, "rag.db"),
             schema = { RagSchema.load(context.assets) },
@@ -103,6 +110,8 @@ val dataModule = module {
             config = RagIndexConfig.current(),
             dispatcher = get<AppDispatchers>().database,
             logger = get(),
+            // F19 (analyze H3): a file created after the switch records the 440M, the only text embedder left.
+            newIndexEmbedder = { store.state.first().textEmbedder },
         )
     }
 
@@ -222,6 +231,7 @@ val dataModule = module {
     single<FileDownloader> { ModelDownloader(userAgent = "MicroRAG/${BuildConfig.VERSION_NAME}") }
     single {
         val resources = get<DeviceResources>()
+        val requirements = get<ModelRequirements>()
         ModelDownloadRunner(
             downloader = get(),
             repository = get(),
@@ -230,6 +240,7 @@ val dataModule = module {
             freeBytes = resources::freeBytes,
             hasInternet = { resources.currentNetwork() != NetworkKind.NONE },
             logger = get(),
+            required = { requirements.current().files },
         )
     }
     single { DownloadNotifications(androidContext()) }

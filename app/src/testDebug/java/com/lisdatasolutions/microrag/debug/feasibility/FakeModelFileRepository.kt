@@ -73,5 +73,12 @@ class FakeModelFileRepository(
 
     override fun pathOf(id: ModelId): File? = (states.value[id] as? ModelFileState.Verified)?.path
 
+    override suspend fun delete(id: ModelId): Boolean {
+        val present = onDisk.remove(id)
+        states.update { it + (id to ModelFileState.Missing) }
+        preparedBackends.update { it - id }
+        return present
+    }
+
     private fun path(id: ModelId) = File("/models/${ModelCatalog.byId(id).fileName}")
 }

@@ -62,7 +62,7 @@ class ModelDownloadRunnerTest {
         freeBytes = { free },
         hasInternet = { online },
         logger = logger,
-        required = required,
+        required = { required },
         sleep = { sleeps += it },
         nowMs = { 0L },
     )

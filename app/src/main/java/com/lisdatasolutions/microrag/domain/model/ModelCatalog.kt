@@ -63,14 +63,18 @@ object ModelCatalog {
     )
 
     /**
-     * Files the product sets up during onboarding, in download order (F03 FR-014): the embedding
-     * model first, then the LLM. The other entries are only used by the debug diagnostics.
+     * Files a new install sets up during onboarding, in download order (F03 FR-014): the embedding
+     * model first, then the LLM. F19: what is required later depends on the index's text embedder
+     * (`ModelRequirements`). The other entries are only used by the multimodal mode and the debug diagnostics.
      */
     val required: List<ModelFile> = listOf(ModelId.EG2_270M, ModelId.GEMMA4_E2B).map { id -> all.first { it.id == id } }
 
     fun byId(id: ModelId): ModelFile = all.first { it.id == id }
 
-    /** Every [required] file verified and prepared on a backend: what completes onboarding and lights the Home chip. */
-    fun allReady(states: Map<ModelId, ModelFileState>, prepared: Map<ModelId, ComputeBackend>): Boolean =
-        required.all { states[it.id] is ModelFileState.Verified && it.id in prepared }
+    /** Every [files] entry verified and prepared on a backend: what completes onboarding and lights the Home chip. */
+    fun allReady(
+        states: Map<ModelId, ModelFileState>,
+        prepared: Map<ModelId, ComputeBackend>,
+        files: List<ModelFile> = required,
+    ): Boolean = files.all { states[it.id] is ModelFileState.Verified && it.id in prepared }
 }

@@ -92,12 +92,12 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
   - `allPageFiles`;
   - `chatLibraryState` cuenta aparte los documentos solo Visual (P9);
   - `vector_init` de `pages` en cada conexión.
-- [ ] T008 [P] `…/test/…/domain/multimodal/ModelRequirementsTest.kt` (M6):
+- [X] T008 [P] `…/test/…/domain/multimodal/ModelRequirementsTest.kt` (M6):
   - la 270M o la 440M según el índice, y Gemma siempre;
   - la 440M añadida mientras la etapa está en marcha;
   - antes de abrir el índice, el valor del espejo `text_embedder`;
   - tras el cambio, la 270M no es obligatoria: el chip no vuelve a «pendiente» y no se descarga otra vez (analyze, H3).
-- [ ] T009 [P] `…/test/…/data/models/DefaultModelFileRepositoryTest.kt` (D1): `delete(id)` borra el fichero, su entrada de `verification.json` y su backend, y publica `Missing`. Borrar un modelo que no existe da `false`.
+- [X] T009 [P] `…/test/…/data/models/DefaultModelFileRepositoryTest.kt` (D1): `delete(id)` borra el fichero, su entrada de `verification.json` y su backend, y publica `Missing`. Borrar un modelo que no existe da `false`.
 - [X] T010 [P] `…/androidTest/…/data/ingest/AndroidPageRasterizerTest.kt`: la prueba `DebugPageRasterizerTest` de F18, movida al conversor de `main`:
   - páginas a 768 px sobre blanco;
   - PDF con contraseña de propietario;
@@ -137,8 +137,8 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
 
   **Rutas que conocen la etapa `PAGES`** (analyze, H1): `IngestScheduler` (`STAGES`, `progressData` y `progressOf`), `DefaultIndexingRepository.forScreen` y `RunPauseCause.reason()`. Con una prueba de ida y vuelta de `progressData`/`progressOf` en `PAGES` (`…/test/…/data/ingest/IngestSchedulerTest.kt`).
 - [X] T014 Índice (contrato §1) en `…/microrag/domain/rag/RagIndex.kt` y `…/microrag/data/rag/DefaultRagIndex.kt`: E1–E3 y P1–P9. `FakeRagIndex` los implementa. T007 pasa.
-- [ ] T015 `ModelFileRepository.delete(id)` en `…/microrag/data/models/DefaultModelFileRepository.kt` y en la interfaz (D1). Se actualizan las implementaciones de prueba de la interfaz (unas 7) y `ReadyModelsRule` (analyze, L3). T009 pasa.
-- [ ] T016 `…/microrag/domain/multimodal/ModelRequirements.kt` (M6). Pasan a usarlo:
+- [X] T015 `ModelFileRepository.delete(id)` en `…/microrag/data/models/DefaultModelFileRepository.kt` y en la interfaz (D1). Se actualizan las implementaciones de prueba de la interfaz (unas 7) y `ReadyModelsRule` (analyze, L3). T009 pasa.
+- [X] T016 `…/microrag/domain/multimodal/ModelRequirements.kt` (M6). Pasan a usarlo:
   - `ModelDownloadRunner`, `DefaultModelDownloadController.deleteOrphanPartials` y `ModelCatalog.allReady`;
   - los casos de uso de `domain/onboarding`, generalizados a listas de modelos (R6);
   - `SetupViewModel`, `ObserveLocalAiUseCase` (`LocalAiUseCases.kt`) y `ObserveModelOverviewUseCase` (`SettingsUseCases.kt`), incluidas las dimensiones de la línea 37, que hoy solo da la 270M (analyze, L3);
@@ -167,7 +167,7 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
 
 ### Pruebas
 
-- [ ] T018 [P] [US1] `…/test/…/data/multimodal/DataStoreMultimodalStoreTest.kt`: los valores por defecto (`OFF`, sin error, `BOTH`), la escritura, el fichero corrupto y `write()` que falla.
+- [X] T018 [P] [US1] `…/test/…/data/multimodal/DataStoreMultimodalStoreTest.kt`: los valores por defecto (`OFF`, sin error, `BOTH`), la escritura, el fichero corrupto y `write()` que falla.
 - [ ] T019 [P] [US1] `…/test/…/data/multimodal/DefaultMultimodalControllerTest.kt` (M2–M4), con descarga, índice y validador falsos:
   - cada transición de R1;
   - el fallo de identidad borra la 440M y deja la 270M;
@@ -188,7 +188,7 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
 
 ### Implementación
 
-- [ ] T022 [US1] Almacén y modelos: `…/microrag/domain/multimodal/MultimodalModels.kt` y `…/microrag/data/multimodal/DataStoreMultimodalStore.kt` (`multimodal.preferences_pb`), cableados en `DataModule`. T018 pasa.
+- [X] T022 [US1] Almacén y modelos: `…/microrag/domain/multimodal/MultimodalModels.kt` y `…/microrag/data/multimodal/DataStoreMultimodalStore.kt` (`multimodal.preferences_pb`), cableados en `DataModule`. T018 pasa.
 - [ ] T023 [US1] `…/microrag/data/multimodal/IdentityValidator.kt`, con la muestra de T003, y `ValidateIdentityUseCase`. T020 pasa.
 - [ ] T024 [US1] Controlador y casos de uso:
   - `…/microrag/data/multimodal/DefaultMultimodalController.kt`, con `start()` llamado desde `MicroRagApplication.onCreate`;

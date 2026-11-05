@@ -59,8 +59,11 @@ class DefaultRagIndex(
     private val clock: () -> Long = System::currentTimeMillis,
     /** F19 research R2 (analyze H3): what [textEmbedder] says before the file is open, from the mode's mirror. */
     initialTextEmbedder: ModelId = ModelId.EG2_270M,
-    /** The verified text embedder a new, empty file is created with: the 440M once the 270M is gone. */
-    private val newIndexEmbedder: () -> ModelId = { initialTextEmbedder },
+    /**
+     * The text embedder a new, empty file is created with: the mode's mirror, so the 440M once the 270M is gone.
+     * Read before the file is touched, so opening never suspends halfway.
+     */
+    private val newIndexEmbedder: suspend () -> ModelId = { initialTextEmbedder },
     private val pageSpace: PageSpace = PageSpace.CURRENT,
 ) : RagIndex {
 
@@ -577,11 +580,14 @@ class DefaultRagIndex(
         block(db)
     }
 
-    private fun ensureOpen(): IndexCompatibility {
+    private suspend fun ensureOpen(): IndexCompatibility {
+        if (state.value != IndexCompatibility.Closed) return state.value
+        val newEmbedder = newIndexEmbedder()
+        // The database dispatcher is single-threaded: from here on nothing suspends, so one open runs at a time.
         if (state.value != IndexCompatibility.Closed) return state.value
         val started = System.nanoTime()
         val result = try {
-            openConnection()
+            openConnection(newEmbedder)
         } catch (e: RagOpenException) {
             logger.w(TAG, e) { "rag index unreadable: ${e.reason}" }
             IndexCompatibility.Unreadable(e.reason)
@@ -591,11 +597,11 @@ class DefaultRagIndex(
         return result
     }
 
-    private fun openConnection(): IndexCompatibility {
+    private fun openConnection(newEmbedder: ModelId): IndexCompatibility {
         dbFile.parentFile?.mkdirs()
         val db = RagConnection.open(dbFile, extensionPath)
         val result = try {
-            prepare(db)
+            prepare(db, newEmbedder)
         } catch (e: Exception) {
             db.close()
             throw e as? RagOpenException ?: RagOpenException("prepare: ${e.message}", e)
@@ -608,10 +614,10 @@ class DefaultRagIndex(
      * Pragmas, `rag_meta` validation, schema and `vector_init`. The metadata is checked before anything
      * that may write (journal mode, schema), so an incompatible file is left exactly as it was.
      */
-    private fun prepare(db: RagConnection): IndexCompatibility {
+    private fun prepare(db: RagConnection, newEmbedder: ModelId): IndexCompatibility {
         val tables = db.tableNames()
         if (tables.isEmpty()) {
-            createIndex(db)
+            createIndex(db, newEmbedder)
         } else {
             val meta = if (META_TABLE in tables) readMeta(db) else emptyMap()
             when (val decision = IndexCompatibilityChecker.check(config, meta, migrations.map { it.from }.toSet())) {
@@ -634,12 +640,12 @@ class DefaultRagIndex(
     }
 
     /** A file without tables becomes a new index: schema and `rag_meta` in one transaction. */
-    private fun createIndex(db: RagConnection) {
+    private fun createIndex(db: RagConnection, newEmbedder: ModelId) {
         val statements = loadSchema()
         db.enableWal()
         db.transaction {
             statements.forEach { db.exec(it) }
-            config.copy(embeddingModelSha256 = ModelCatalog.byId(newIndexEmbedder()).sha256).toMeta()
+            config.copy(embeddingModelSha256 = ModelCatalog.byId(newEmbedder).sha256).toMeta()
                 .forEach { (key, value) -> db.exec("INSERT INTO rag_meta(key, value) VALUES (?, ?)", key, value) }
         }
     }

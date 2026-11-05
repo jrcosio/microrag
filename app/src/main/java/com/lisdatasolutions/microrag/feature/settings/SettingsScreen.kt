@@ -84,7 +84,8 @@ fun SettingsScreen(
                 Section(stringResource(R.string.settings_section_ai)) {
                     ModelRow(ModelId.GEMMA4_E2B, state.models, actions.onOpenModel)
                     LisdataDivider()
-                    ModelRow(ModelId.EG2_270M, state.models, actions.onOpenModel)
+                    // F19 (contract U1): the text embedder the index uses, the 270M or the 440M.
+                    ModelRow(state.models.firstOrNull { it.id != ModelId.GEMMA4_E2B }?.id ?: ModelId.EG2_270M, state.models, actions.onOpenModel)
                 }
                 Section(stringResource(R.string.settings_section_preferences)) {
                     LisdataSettingsRow(

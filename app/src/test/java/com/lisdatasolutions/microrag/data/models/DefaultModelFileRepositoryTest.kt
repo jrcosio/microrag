@@ -227,6 +227,39 @@ class DefaultModelFileRepositoryTest {
         assertThat(repo.preparedBackends.value).containsExactly(file.id, ComputeBackend.GPU)
     }
 
+    /** F19 T009 (contract D1): the 270M goes once the 440M embeds the text. */
+    @Test
+    fun delete_removesTheFileItsRecordAndItsBackend_andKeepsTheOthers() = runTest {
+        val (repo, modelsDir) = repository()
+        repo.installVerified(file.id, source(content), deleteSourceOnSuccess = false)
+        repo.installVerified(second.id, source(otherContent, "second.bin"), deleteSourceOnSuccess = false)
+        repo.markPrepared(file.id, ComputeBackend.CPU)
+        repo.markPrepared(second.id, ComputeBackend.CPU)
+
+        assertThat(repo.delete(file.id)).isTrue()
+
+        assertThat(File(modelsDir, file.fileName).exists()).isFalse()
+        assertThat(repo.states.value[file.id]).isEqualTo(ModelFileState.Missing)
+        assertThat(repo.pathOf(file.id)).isNull()
+        assertThat(repo.preparedBackends.value).containsExactly(second.id, ComputeBackend.CPU)
+        assertThat(VerificationRecordStore(File(modelsDir, "verification.json")).read().keys).containsExactly(second.fileName)
+
+        // A new process sees it missing, and the other model still verified and prepared.
+        val (restarted, _) = repository()
+        restarted.refresh()
+        assertThat(restarted.states.value[file.id]).isEqualTo(ModelFileState.Missing)
+        assertThat(restarted.states.value[second.id]).isEqualTo(ModelFileState.Verified(File(modelsDir, second.fileName)))
+        assertThat(restarted.preparedBackends.value).containsExactly(second.id, ComputeBackend.CPU)
+    }
+
+    @Test
+    fun delete_ofAMissingModel_isFalse() = runTest {
+        val (repo, _) = repository()
+
+        assertThat(repo.delete(file.id)).isFalse()
+        assertThat(repo.states.value[file.id]).isEqualTo(ModelFileState.Missing)
+    }
+
     @Test
     fun refresh_keepsPartialDownloads() = runTest {
         val (repo, modelsDir) = repository()

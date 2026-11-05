@@ -1,6 +1,7 @@
 package com.lisdatasolutions.microrag.domain.settings
 
 import com.lisdatasolutions.microrag.domain.model.ModelCatalog
+import com.lisdatasolutions.microrag.domain.model.ModelFamily
 import com.lisdatasolutions.microrag.domain.model.ModelId
 import com.lisdatasolutions.microrag.domain.model.ModelSetupStatus
 import com.lisdatasolutions.microrag.domain.onboarding.ObserveModelSetupUseCase
@@ -23,7 +24,8 @@ class ObserveModelOverviewUseCase(
 ) {
     operator fun invoke(): Flow<List<ModelOverview>> = flow {
         refresh()
-        emitAll(setup().map { statuses -> ORDER.map { id -> overview(id, statuses[id] ?: ModelSetupStatus.Unconfigured()) } })
+        // F19 (contract U1): Gemma and the text embedder the index uses, the 270M or the 440M.
+        emitAll(setup.rows().map { rows -> rows.map { (id, status) -> overview(id, status) } })
     }.distinctUntilChanged()
 
     private fun overview(id: ModelId, status: ModelSetupStatus): ModelOverview {
@@ -34,13 +36,9 @@ class ObserveModelOverviewUseCase(
             fileName = file.fileName,
             sizeBytes = file.sizeBytes,
             sha256 = file.sha256,
-            dimensions = if (id == ModelId.EG2_270M) RagParameters.DIMS else null,
+            dimensions = if (file.family == ModelFamily.EMBEDDING) RagParameters.DIMS else null,
             status = status,
         )
-    }
-
-    private companion object {
-        val ORDER = listOf(ModelId.GEMMA4_E2B, ModelId.EG2_270M)
     }
 }
 

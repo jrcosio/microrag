@@ -29,7 +29,7 @@ class DownloadUseCasesTest {
     private val tracker = LocalModelWorkTracker()
 
     @Test
-    fun confirmation_listsPendingModelsSpaceNetworkAndMemory() {
+    fun confirmation_listsPendingModelsSpaceNetworkAndMemory() = runTest {
         resources.free = 10_000_000_000L
         resources.network = NetworkKind.MOBILE
         resources.ram = 7_499_999_999L

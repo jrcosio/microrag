@@ -151,6 +151,20 @@ class DefaultModelFileRepository(
         }
     }
 
+    override suspend fun delete(id: ModelId): Boolean = withContext(ioDispatcher) {
+        mutex.withLock {
+            val file = file(id)
+            val target = target(file)
+            val existed = target.isFile
+            if (existed && !target.delete()) {
+                logger.w(TAG) { "delete $id failed" }
+                return@withLock false
+            }
+            finish(file, "delete", ModelFileState.Missing)
+            existed
+        }
+    }
+
     override fun pathOf(id: ModelId): File? = (_states.value[id] as? ModelFileState.Verified)?.path
 
     private fun finish(file: ModelFile, operation: String, result: ModelFileState): ModelFileState {

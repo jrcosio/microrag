@@ -18,6 +18,7 @@ import com.lisdatasolutions.microrag.core.logging.AppLogger
 import com.lisdatasolutions.microrag.data.models.AppDirs
 import com.lisdatasolutions.microrag.domain.model.DownloadProgress
 import com.lisdatasolutions.microrag.domain.model.ModelCatalog
+import com.lisdatasolutions.microrag.domain.model.ModelFile
 import com.lisdatasolutions.microrag.domain.model.ModelId
 import com.lisdatasolutions.microrag.domain.onboarding.ModelDownloadController
 import kotlinx.coroutines.flow.StateFlow
@@ -60,8 +61,8 @@ class DefaultModelDownloadController(
 
     override fun partialBytes(id: ModelId): Long = dirs.partial(ModelCatalog.byId(id)).length()
 
-    override fun deleteOrphanPartials() {
-        val expected = ModelCatalog.required.map { dirs.partial(it).name }.toSet()
+    override fun deleteOrphanPartials(required: List<ModelFile>) {
+        val expected = required.map { dirs.partial(it).name }.toSet()
         dirs.downloads.listFiles()?.filter { it.isFile && it.name !in expected }?.forEach { it.delete() }
     }
 

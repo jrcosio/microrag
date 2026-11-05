@@ -56,6 +56,8 @@ class InstalledModels(context: Context) : ModelFileRepository {
 
     override fun pathOf(id: ModelId): File? = (states.value[id] as? ModelFileState.Verified)?.path
 
+    override suspend fun delete(id: ModelId): Boolean = unsupported()
+
     private fun unsupported(): Nothing = throw UnsupportedOperationException("read-only test repository")
 
     private companion object {

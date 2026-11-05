@@ -5,6 +5,7 @@ import com.lisdatasolutions.microrag.data.models.ModelFileRepository
 import com.lisdatasolutions.microrag.domain.model.ComputeBackend
 import com.lisdatasolutions.microrag.domain.model.DownloadProgress
 import com.lisdatasolutions.microrag.domain.model.ModelCatalog
+import com.lisdatasolutions.microrag.domain.model.ModelFile
 import com.lisdatasolutions.microrag.domain.model.ModelFileState
 import com.lisdatasolutions.microrag.domain.model.ModelId
 import com.lisdatasolutions.microrag.domain.model.NetworkKind
@@ -68,6 +69,16 @@ class InMemoryModelFileRepository(
 
     override fun pathOf(id: ModelId): File? = (states.value[id] as? ModelFileState.Verified)?.path
 
+    val deleted = mutableListOf<ModelId>()
+
+    override suspend fun delete(id: ModelId): Boolean {
+        val present = states.value[id] !is ModelFileState.Missing
+        deleted += id
+        states.update { it + (id to ModelFileState.Missing) }
+        preparedBackends.update { it - id }
+        return present
+    }
+
     private fun result(id: ModelId): ModelFileState {
         val state = if (id in corrupt) ModelFileState.Mismatch(ModelCatalog.byId(id).sha256, "0".repeat(64)) else ModelFileState.Verified(path(id))
         states.update { it + (id to state) }
@@ -128,8 +139,12 @@ class FakeModelDownloadController(
 
     override fun partialBytes(id: ModelId) = partials[id] ?: 0L
 
-    override fun deleteOrphanPartials() {
+    /** What the last cleanup kept (F19 research R5). */
+    var keptPartials: List<ModelId> = emptyList()
+
+    override fun deleteOrphanPartials(required: List<ModelFile>) {
         orphanCleanups++
+        keptPartials = required.map { it.id }
     }
 }
 

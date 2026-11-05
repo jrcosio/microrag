@@ -11,6 +11,7 @@ import com.lisdatasolutions.microrag.domain.model.ModelId
 import com.lisdatasolutions.microrag.domain.model.OnboardingStage
 import com.lisdatasolutions.microrag.domain.model.SetupProblem
 import com.lisdatasolutions.microrag.domain.model.StorageStatus
+import com.lisdatasolutions.microrag.domain.multimodal.ModelRequirements
 import com.lisdatasolutions.microrag.rag.runtime.CompatibilityResult
 import com.lisdatasolutions.microrag.rag.runtime.ModelCompatibility
 import java.io.FilterInputStream
@@ -32,16 +33,19 @@ class ReconcileDownloadsUseCase(
     private val store: OnboardingStore,
     private val resources: DeviceResources,
     private val logger: AppLogger,
+    private val requirements: ModelRequirements = ModelRequirements.FirstRun,
 ) {
     suspend operator fun invoke() {
+        // F19 research R5: what is required now, so the 440M's partial download stays and a deleted 270M is not fetched again.
+        val required = requirements.current().files
         repository.refresh()
-        controller.deleteOrphanPartials()
-        ModelCatalog.required
+        controller.deleteOrphanPartials(required)
+        required
             .filter { repository.states.value[it.id] is ModelFileState.Unverified }
             .forEach { repository.verify(it.id) }
 
         val requested = store.downloadRequested.first()
-        val pending = pendingDownloads(repository, controller).filter { it.first.id in requested }
+        val pending = pendingDownloads(repository, controller, required).filter { it.first.id in requested }
         if (pending.isEmpty() || store.downloadPaused.first() || controller.isScheduledOrRunning()) return
         val outcomes = controller.progress.value.outcomes
         if (outcomes.values.any { it is DownloadOutcome.Failed }) return
@@ -69,6 +73,7 @@ class PrepareModelsUseCase(
     private val checker: ModelCompatibility,
     private val tracker: LocalModelWorkTracker,
     private val applicationScope: ApplicationScope,
+    private val requirements: ModelRequirements = ModelRequirements.FirstRun,
 ) {
     private val mutex = Mutex()
 
@@ -81,7 +86,7 @@ class PrepareModelsUseCase(
     suspend fun prepareAll() {
         if (!mutex.tryLock()) return
         try {
-            for (file in ModelCatalog.required) {
+            for (file in requirements.current().files) {
                 val state = repository.states.value[file.id] as? ModelFileState.Verified ?: continue
                 if (file.id in repository.preparedBackends.value || tracker.work.value[file.id] is LocalModelWork.Rejected) continue
                 tracker.set(file.id, LocalModelWork.Preparing)
@@ -110,12 +115,13 @@ class RetryModelUseCase(
     private val controller: ModelDownloadController,
     private val store: OnboardingStore,
     private val tracker: LocalModelWorkTracker,
+    private val requirements: ModelRequirements = ModelRequirements.FirstRun,
 ) {
     suspend operator fun invoke(id: ModelId) {
         tracker.set(id, null)
         repository.refresh()
         store.requestDownload(setOf(id))
-        controller.schedule(pendingDownloads(repository, controller).sumOf { it.second })
+        controller.schedule(pendingDownloads(repository, controller, requirements.current().files).sumOf { it.second })
     }
 }
 
@@ -189,10 +195,12 @@ class PrepareStorageUseCase(
     private val repository: ModelFileRepository,
     private val controller: ModelDownloadController,
     private val resources: DeviceResources,
+    private val requirements: ModelRequirements = ModelRequirements.FirstRun,
 ) {
-    operator fun invoke(): StorageStatus {
+    suspend operator fun invoke(): StorageStatus {
         if (!resources.prepareStorage()) return StorageStatus.NoSpace(ModelSetupPolicy.SPACE_MARGIN_BYTES)
-        val needed = pendingDownloads(repository, controller).sumOf { it.second } + ModelSetupPolicy.SPACE_MARGIN_BYTES
+        val needed = pendingDownloads(repository, controller, requirements.current().files).sumOf { it.second } +
+            ModelSetupPolicy.SPACE_MARGIN_BYTES
         val free = resources.freeBytes()
         return if (free < needed) StorageStatus.NoSpace(needed - free) else StorageStatus.Offline
     }
@@ -202,9 +210,10 @@ class PrepareStorageUseCase(
 class CompleteOnboardingUseCase(
     private val repository: ModelFileRepository,
     private val store: OnboardingStore,
+    private val requirements: ModelRequirements = ModelRequirements.FirstRun,
 ) {
     suspend operator fun invoke(): Boolean {
-        val ready = ModelCatalog.allReady(repository.states.value, repository.preparedBackends.value)
+        val ready = ModelCatalog.allReady(repository.states.value, repository.preparedBackends.value, requirements.current().core)
         if (ready) store.setStage(OnboardingStage.COMPLETED)
         return ready
     }

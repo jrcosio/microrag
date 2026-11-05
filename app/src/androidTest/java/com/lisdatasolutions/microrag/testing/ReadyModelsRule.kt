@@ -59,4 +59,11 @@ private class ReadyModelFileRepository : ModelFileRepository {
     override suspend fun markPrepared(id: ModelId, backend: ComputeBackend) = Unit
 
     override fun pathOf(id: ModelId): File? = (states.value[id] as? ModelFileState.Verified)?.path
+
+    override suspend fun delete(id: ModelId): Boolean {
+        val present = states.value[id] is ModelFileState.Verified
+        states.value = states.value + (id to ModelFileState.Missing)
+        preparedBackends.value = preparedBackends.value - id
+        return present
+    }
 }

@@ -37,7 +37,8 @@ class ModelDownloadRunner(
     private val freeBytes: () -> Long,
     private val hasInternet: () -> Boolean,
     private val logger: AppLogger,
-    private val required: List<ModelFile> = ModelCatalog.required,
+    /** F19 research R5: the models required when the queue runs, the 440M included while the mode is being turned on. */
+    private val required: suspend () -> List<ModelFile> = { ModelCatalog.required },
     private val sleep: suspend (Long) -> Unit = { delay(it) },
     private val nowMs: () -> Long = System::currentTimeMillis,
 ) {
@@ -52,7 +53,7 @@ class ModelDownloadRunner(
         repository.refresh()
         val requested = store.downloadRequested.first()
         var last: DownloadOutcome? = null
-        for (file in required) {
+        for (file in required()) {
             if (file.id !in requested || repository.states.value[file.id] is ModelFileState.Verified) continue
             val outcome = download(file)
             last = outcome

@@ -49,6 +49,8 @@ import com.lisdatasolutions.microrag.domain.library.ReindexDocumentUseCase
 import com.lisdatasolutions.microrag.domain.library.RemoveFromIndexUseCase
 import com.lisdatasolutions.microrag.domain.library.RenameFolderUseCase
 import com.lisdatasolutions.microrag.domain.library.SetIncludedUseCase
+import com.lisdatasolutions.microrag.domain.multimodal.DefaultModelRequirements
+import com.lisdatasolutions.microrag.domain.multimodal.ModelRequirements
 import com.lisdatasolutions.microrag.domain.onboarding.BuildDownloadConfirmationUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.CompleteOnboardingUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.ImportModelFileUseCase
@@ -79,6 +81,8 @@ import org.koin.dsl.module
 /** Use cases. */
 val domainModule = module {
     singleOf(::LocalModelWorkTracker)
+    // F19 research R5: the models required now, from the index's text embedder and the mode's stage.
+    single<ModelRequirements> { DefaultModelRequirements(get(), get()) }
     factoryOf(::ResolveStartDestinationUseCase)
     factoryOf(::StartOnboardingUseCase)
     factoryOf(::ObserveModelSetupUseCase)

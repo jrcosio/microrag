@@ -41,6 +41,12 @@ interface ModelFileRepository {
     /** Records that a verified file passed the on-device test on [backend] (F03 FR-021). */
     suspend fun markPrepared(id: ModelId, backend: ComputeBackend)
 
+    /**
+     * F19 (contract D1): deletes the installed file with its verification record and prepared backend, and
+     * publishes [ModelFileState.Missing]. False when there was no file. The caller releases its engines first.
+     */
+    suspend fun delete(id: ModelId): Boolean
+
     /** Path of the file only while it is [ModelFileState.Verified]. */
     fun pathOf(id: ModelId): File?
 }

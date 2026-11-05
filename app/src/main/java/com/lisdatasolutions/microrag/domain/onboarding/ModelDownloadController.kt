@@ -1,6 +1,7 @@
 package com.lisdatasolutions.microrag.domain.onboarding
 
 import com.lisdatasolutions.microrag.domain.model.DownloadProgress
+import com.lisdatasolutions.microrag.domain.model.ModelFile
 import com.lisdatasolutions.microrag.domain.model.ModelId
 import kotlinx.coroutines.flow.StateFlow
 
@@ -25,6 +26,6 @@ interface ModelDownloadController {
     /** Bytes already on disk for [id]'s partial download. */
     fun partialBytes(id: ModelId): Long
 
-    /** Deletes partial downloads of files that are no longer required (F03 FR-023). */
-    fun deleteOrphanPartials()
+    /** Deletes partial downloads of files that are not in [required] (F03 FR-023, F19 research R5). */
+    fun deleteOrphanPartials(required: List<ModelFile>)
 }
