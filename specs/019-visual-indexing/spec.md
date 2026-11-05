@@ -60,6 +60,17 @@
   - ficha de estado, progreso, hoja inferior y avisos.
 - **Diagnóstico de F18 (solo en debug):** embedder de imagen sobre la 440M y conversión de páginas e imágenes (en blanco, con la orientación EXIF y en JPEG).
 
+## Clarifications
+
+### Session 2026-11-05
+
+- Q: ¿Qué pasa con las páginas indexadas y con la 440M al desactivar el modo? → A: Se conserva todo. Las páginas y sus vectores se quedan sin usarse, y la 440M sigue embebiendo el texto. Volver a activarlo es inmediato, sin descargar ni reindexar (FR-007).
+- Q: Al activar el modo, ¿qué se hace con los PDF que ya estaban indexados en Texto? → A: Nada automático. Cada documento se pasa a Visual o Ambos desde su detalle, cuando el usuario quiera (FR-008b).
+- Q: ¿Con qué modo sale por defecto la importación de un PDF con el modo activo? → A: Ambos, texto más páginas (FR-022).
+- Q: ¿Dónde va el interruptor en Ajustes? → A: En «Inteligencia artificial», junto a los modelos. Debajo van el modo por defecto y, en F20, el detalle de las páginas (FR-001).
+- Q: ¿Apruebas el wireframe? → A: Sí, tal como está en [wireframe.md](wireframe.md) (FR-027, G47).
+- Q: ¿Apruebas la enmienda de la constitución 1.1.1 → 1.2.0? → A: Sí, tal como está en [constitution-amendment.md](constitution-amendment.md). Se aplica antes del plan.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Activar el modo multimodal (Priority: P1)
@@ -172,8 +183,9 @@ La persona prueba el modo y decide apagarlo. La app vuelve a comportarse como an
 
 **Acceptance Scenarios**:
 
-1. **Given** el modo activo con documentos visuales, **When** la persona lo desactiva, **Then** un aviso dice qué pasará con sus páginas y con la 440M, y la búsqueda de texto sigue igual.
+1. **Given** el modo activo con documentos visuales, **When** la persona lo desactiva, **Then** un aviso dice que las páginas y la 440M se conservan sin usarse, y la búsqueda de texto sigue igual.
 2. **Given** el modo desactivado, **When** importa, **Then** vuelve a ser solo Texto. Las imágenes se rechazan con su explicación.
+3. **Given** el modo desactivado tras haberlo usado, **When** la persona lo vuelve a activar, **Then** queda activo al momento, sin descargar ni reindexar, con las mismas páginas que tenía.
 
 ---
 
@@ -207,7 +219,8 @@ Las pantallas nuevas y los cambios en Ajustes, Ingesta, Biblioteca y detalle sig
 - **Mismo archivo importado en otro modo:** sigue siendo un duplicado. Para cambiar el modo se reindexa.
 - **PDF de 2.000 páginas en Visual:** se permite. Antes de empezar se avisa del tiempo y del espacio estimados.
 - **Documento quitado del índice o eliminado mientras se indexan sus páginas:** su indexación se detiene y no quedan páginas huérfanas.
-- **Documentos solo en Visual con el modo desactivado:** su estado lo dice; no se reindexan solos.
+- **Documentos solo en Visual con el modo desactivado:** conservan sus páginas, y su estado dice que necesitan el modo multimodal. No se reindexan solos.
+- **Desactivar y reactivar con descargas o indexaciones en curso:** una indexación visual en curso se detiene al desactivar y se reanuda al reactivar.
 - **Hasta F20, el chat no usa las páginas.** Un documento solo en Visual se ve como «Sin texto para el chat» en la disponibilidad del chat, sin contar como buscable por texto.
 
 ## Requirements *(mandatory)*
@@ -216,7 +229,7 @@ Las pantallas nuevas y los cambios en Ajustes, Ingesta, Biblioteca y detalle sig
 
 **Modo multimodal y modelo**
 
-- **FR-001**: Ajustes MUST tener un interruptor «Modo multimodal», desactivado por defecto. Desactivado, la app MUST comportarse exactamente como sin esta feature: la misma descarga, la misma importación, el mismo índice y las mismas búsquedas.
+- **FR-001**: Ajustes MUST tener un interruptor «Modo multimodal» en la sección «Inteligencia artificial», junto a los modelos, desactivado por defecto. Desactivado, la app MUST comportarse exactamente como sin esta feature: la misma descarga, la misma importación, el mismo índice y las mismas búsquedas.
 - **FR-002**: Activar el modo MUST pedir confirmación con un aviso de:
   - la descarga, de 369 MB;
   - el espacio que ocupa cada página;
@@ -236,8 +249,9 @@ Las pantallas nuevas y los cambios en Ajustes, Ingesta, Biblioteca y detalle sig
   - se explica.
 - **FR-005**: Tras la validación, la 440M MUST pasar a embeber el texto de la indexación y de las consultas, y el índice MUST registrar el modelo nuevo **sin reindexar**. La búsqueda de texto MUST dar los mismos resultados antes y después. La 270M MUST borrarse solo después de que el cambio esté guardado.
 - **FR-006**: Un cambio de modelo interrumpido MUST reanudarse o deshacerse al relanzar la app. El índice MUST abrirse y buscar en todo momento.
-- **FR-007**: Desactivar el modo MUST pedir confirmación, y la importación MUST volver a ser solo Texto. Lo que pasa con las páginas indexadas y con la 440M se decide en el clarify. Por defecto, se conservan las páginas, que no se usan, y la 440M, que sigue embebiendo el texto.
+- **FR-007**: Desactivar el modo MUST pedir confirmación, y la importación MUST volver a ser solo Texto. Las páginas indexadas y sus vectores MUST conservarse sin usarse, y la 440M MUST seguir embebiendo el texto: la 270M no vuelve. Reactivar el modo MUST ser inmediato, sin descargar ni reindexar.
 - **FR-008**: El primer arranque de una instalación nueva MUST seguir igual, con la 270M y Gemma. El modo solo se activa desde Ajustes.
+- **FR-008b**: Activar el modo MUST NOT reindexar nada por sí solo. Los PDF ya indexados en Texto MUST seguir igual hasta que el usuario los reindexe en otro modo desde su detalle.
 
 **Importación**
 
@@ -264,7 +278,7 @@ Las pantallas nuevas y los cambios en Ajustes, Ingesta, Biblioteca y detalle sig
 - **FR-019**: La Biblioteca y el detalle MUST mostrar el modo de cada documento (Texto, Visual o Ambos) y, para Visual y Ambos, su número de páginas.
 - **FR-020**: Con el modo activo, «Reindexar» en el detalle MUST permitir elegir el modo.
 - **FR-021**: Eliminar un documento, quitarlo del índice o reindexarlo en un modo sin páginas MUST borrar sus imágenes de página y sus vectores. Las imágenes huérfanas MUST limpiarse como las copias privadas de F08.
-- **FR-022**: Con el modo activo, Ajustes MUST tener «Modo por defecto al importar» (Texto, Visual o Ambos), que MUST guardarse como las demás preferencias. Si guardar falla, se avisa y se mantiene el valor anterior.
+- **FR-022**: Con el modo activo, Ajustes MUST tener, debajo del interruptor, «Modo por defecto al importar» (Texto, Visual o Ambos), con **Ambos** por defecto. MUST guardarse como las demás preferencias. Si guardar falla, se avisa y se mantiene el valor anterior.
 - **FR-023**: Con el modo activo, la sección de modelos de Ajustes MUST mostrar la 440M en lugar de la 270M, con su estado y su descarga.
 - **FR-024**: Hasta F20, el chat MUST NOT usar las páginas. Un documento solo en Visual MUST aparecer en la disponibilidad del chat como sin texto, sin contar como buscable.
 

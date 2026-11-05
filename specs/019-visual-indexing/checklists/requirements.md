@@ -32,9 +32,9 @@
 ## Notes
 
 - **Parámetros fijados:** la resolución (768 px), el formato (JPEG 85), los tokens por imagen (140) y la dimensión (256) son parámetros del producto, fijados por F18 y D-078, no detalles de implementación. Se mantienen en los requisitos, como en las specs de F05, F10 y F18. El conversor del sistema solo se nombra en las suposiciones.
-- **FR-007** (qué pasa al desactivar el modo) tiene un valor por defecto razonable, pero cambia lo que ve el usuario. Va como pregunta al clarify.
-- **Para el clarify:**
-  - la aprobación del wireframe G47, antes del plan;
-  - la enmienda de la constitución (III, IV y Restricciones), que se aprueba antes del plan;
-  - qué pasa con los documentos ya indexados al activar el modo: hoy no se reindexan solos;
-  - el modo por defecto al importar.
+- **Resuelto en el clarify (2026-11-05):**
+  - al desactivar el modo, se conserva todo (FR-007);
+  - los documentos ya indexados no se reindexan solos (FR-008b);
+  - Ambos es el modo por defecto (FR-022);
+  - el interruptor va en «Inteligencia artificial» (FR-001).
+- **Aprobados por el usuario el 2026-11-05:** el wireframe G47 y la enmienda de la constitución 1.2.0 (III, IV y Restricciones).

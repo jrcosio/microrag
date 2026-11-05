@@ -2031,6 +2031,45 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G47).
 
 ---
 
+## D-079 — Modo multimodal: decisiones del clarify de F19 y enmienda 1.2.0
+
+- **Fecha:** 2026-11-05
+- **Decisión** (respuestas del usuario en el clarify de F19):
+  1. **Desactivar el modo conserva todo:**
+     - las páginas y sus vectores se quedan, sin usarse;
+     - la 440M sigue embebiendo el texto, y la 270M no vuelve;
+     - reactivarlo es inmediato, sin descargar ni reindexar.
+  2. **Activar el modo no reindexa nada:** los PDF ya indexados en Texto se pasan a Visual o Ambos desde su detalle, cuando el usuario quiera.
+  3. **El modo por defecto al importar es Ambos,** texto más páginas.
+  4. **El interruptor va en Ajustes → «Inteligencia artificial»,** junto a los modelos. Debajo van el modo por defecto y, en F20, el detalle de las páginas.
+  5. **Wireframe G47 aprobado** (`specs/019-visual-indexing/wireframe.md`):
+     - aviso y progreso al activar;
+     - la pantalla «Modo al importar PDF», como Tema;
+     - la fila «Modo de los PDF» en la Ingesta;
+     - el modo y las páginas en la Biblioteca y en el detalle;
+     - todo con piezas `Lisdata*` que ya existen.
+  6. **Enmienda de la constitución 1.1.1 → 1.2.0** (MINOR):
+     - **III:** el espacio de páginas en `rag_meta`; la 440M en el modo multimodal, que sustituye a la 270M sin reindexar tras validar en el dispositivo una identidad ≥ 0,9999; los vectores de página a 256D con L2; y las citas a una página real;
+     - **IV:** el primer token propio de las respuestas con páginas, medido y avisado; la visión en CPU; y la indexación visual medida e informada;
+     - **Restricciones:** la 440M y los escaneados, JPG y PNG con el modo activo.
+- **Motivo:**
+  - quien desactiva el modo puede volver a activarlo sin repetir una descarga ni una indexación de minutos;
+  - una indexación de unos 3 s por página no debe empezar sin pedirla;
+  - Ambos es lo más completo, y no pierde la respuesta por texto;
+  - el interruptor cambia el modelo de embeddings, así que va con los modelos.
+- **Alternativas descartadas:**
+  - al desactivar, preguntar si borrar las páginas, o volver a la 270M;
+  - ofrecer reindexar en bloque, o hacerlo automático;
+  - Texto o Visual por defecto;
+  - el interruptor en «Preferencias» o en una pantalla propia.
+- **Origen:** usuario (clarify de F19).
+- **Afecta:**
+  - F19: spec (FR-001, FR-007, FR-008b y FR-022), wireframe y plan;
+  - F20: el detalle de las páginas va bajo el interruptor;
+  - la constitución, D-025 y D-078.
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.

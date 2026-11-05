@@ -1,16 +1,26 @@
 <!--
 Sync Impact Report
-- Versión: 1.1.0 → 1.1.1 (PATCH). Aclaración sin cambio de principio: la regla de III («los parámetros solo cambian con una evaluación documentada y una entrada en DECISIONS») ya amparaba D-034.
+- Versión: 1.1.1 → 1.2.0 (MINOR). Amplía la guía de III, IV y las Restricciones con el modo multimodal opcional (D-078). No quita ni redefine principios: con el modo apagado rige lo mismo que en 1.1.1. Aprobado por el usuario en el clarify de F19 (2026-11-05).
 - Principios modificados (sin cambios de título):
-  - III. RAG según el informe técnico: la línea de contexto conservaba los valores iniciales del informe (4 a 6 bloques, ~2.200 tokens, vecinos) y contradecía D-034. Ahora remite a la última evaluación registrada en DECISIONS (hoy D-034: 4 bloques, sin vecinos, como mucho 3 por documento y 1.719 tokens estimados). Aprobado por el usuario en el clarify de F10.
+  - III. RAG según el informe técnico:
+    - el espacio de páginas se registra en `rag_meta`;
+    - la 440M es el embedder del modo multimodal y puede sustituir a la 270M sin reindexar, tras validar en el dispositivo la identidad de los vectores de texto (coseno mínimo ≥ 0,9999);
+    - los vectores de página van a 256D con L2;
+    - una cita puede apuntar a un `chunkId` o a una página real.
+  - IV. Rendimiento y recursos:
+    - las respuestas con páginas tienen su propio primer token, medido y avisado;
+    - el codificador de visión corre en CPU;
+    - la indexación visual se mide e informa.
+- Secciones modificadas: Restricciones técnicas (la 440M en el modo multimodal; escaneados, JPG y PNG con el modo activo).
 - Secciones añadidas: ninguna.
 - Secciones eliminadas: ninguna.
 - Plantillas dependientes:
   - ✅ .specify/templates/plan-template.md: su «Constitution Check» lee este fichero en tiempo de ejecución; no requiere cambios.
-  - ✅ .specify/templates/spec-template.md, tasks-template.md y .claude/skills/speckit-*: sin referencias a parámetros de contexto.
+  - ✅ .specify/templates/spec-template.md, tasks-template.md y .claude/skills/speckit-*: sin referencias al modelo de embeddings ni a las citas.
 - Documentos dependientes:
-  - ✅ docs/roadmap/FEATURES.md: la ficha de F10 pasa a los valores de D-034.
-  - ✅ docs/roadmap/DECISIONS.md: D-049 registra la enmienda.
+  - ✅ docs/roadmap/FEATURES.md: F19–F20 ya describen el modo opcional (D-078).
+  - ✅ docs/roadmap/DECISIONS.md: D-079 registra la enmienda.
+  - ✅ specs/019-visual-indexing/constitution-amendment.md: la propuesta aprobada.
 - TODO diferidos: ninguno.
 -->
 
@@ -70,6 +80,13 @@ Fuentes de verdad:
 - FTS5, INT8 y cualquier ANN futuro son **índices reconstruibles**.
 - El espacio vectorial se registra en `rag_meta`: `embedding_model_sha256`, `embedding_dims`, `embedding_doc_prefix`, `embedding_query_prefix`, `normalizer_version`, `schema_version` y `quant_dirty`.
 - `rag_meta` se valida al abrir la base. Si no coincide con la configuración de la app, **no se busca**: se reindexa de forma explícita.
+- **Espacio de páginas (modo multimodal, D-078):** también se registra en `rag_meta`:
+  - el modelo y su huella;
+  - la dimensión de los vectores de página;
+  - los tokens por imagen;
+  - la resolución y el formato de las imágenes.
+
+  Si no coincide con la configuración de la app, **no se buscan páginas**, pero el texto sigue funcionando.
 
 **Embeddings:**
 - Prefijos de EmbeddingGemma 2 exactamente como los documenta LiteRT-LM:
@@ -78,6 +95,12 @@ Fuentes de verdad:
 - Se recortan los espacios antes de añadir el prefijo. Los prefijos son constantes compartidas y también se guardan en `rag_meta`.
 - Truncado Matryoshka a **256D** y re-normalización **L2** en código propio.
 - La cabecera contextual («documento › ruta de encabezados») va solo en el texto embebido, nunca en `content`.
+- **Modo multimodal (opcional, D-078):**
+  - el embedder del texto y de las imágenes es EmbeddingGemma 2 de 440M;
+  - un índice creado con la 270M pasa a la 440M **sin reindexar**, solo si el dispositivo comprueba antes que la 440M reproduce sus vectores de texto sobre una muestra fija, con un coseno mínimo ≥ 0,9999;
+  - entonces `embedding_model_sha256` se actualiza en la misma transacción en que se da por válido;
+  - si la comprobación falla, el índice se queda con la 270M.
+- Los vectores de página se truncan a **256D** y se re-normalizan con **L2**, igual que los de texto.
 
 **Búsqueda:**
 - El normalizador español es idéntico en Kotlin y Python, garantizado por `normalizer_golden`. Aplica:
@@ -91,7 +114,7 @@ Fuentes de verdad:
 
 **Respuesta:**
 - El prompt lleva fuentes numeradas, citas `[n]` y una negativa explícita.
-- Toda cita mostrada MUST ser trazable a un `documentId` y un `chunkId` reales. **Nunca** se fabrican citas, páginas ni nombres de archivo.
+- Toda cita mostrada MUST ser trazable a un `documentId` real y a un `chunkId` real o a una página real de ese documento (su número de página y su imagen indexada). **Nunca** se fabrican citas, páginas ni nombres de archivo.
 
 Los parámetros de este principio solo cambian con una evaluación documentada (harness offline o benchmark) y una entrada en DECISIONS.
 
@@ -106,7 +129,13 @@ Los parámetros de este principio solo cambian con una evaluación documentada (
 - Presupuestos en el teléfono de referencia:
   - primer token ≤ 5 s de extremo a extremo (de enviar la pregunta a ver el primer token) con un prompt de ≈ 2.000 tokens (6 bloques). Base medida en F02: TTFT de 4,53 s en el motor y 4,75 s de reloj con 1.986 tokens, más el embedding de consulta y la búsqueda (D-026). F05 fija el número de bloques dentro de este presupuesto y F14 evalúa palancas para bajarlo;
   - embedding de consulta < 150 ms;
-  - INT8 + preload solo si el p95 de la búsqueda vectorial supera 20 ms.
+  - INT8 + preload solo si el p95 de la búsqueda vectorial supera 20 ms;
+  - **respuestas con páginas** (modo multimodal, D-078):
+    - tienen un primer token propio, que se mide en el teléfono de referencia con cada nivel de detalle;
+    - se avisa al usuario antes de activar el modo y al elegir el detalle;
+    - no están sujetas a los 5 s del texto. F18 midió en el A063 unos 10, 11,5 y 14,5 s con 1 página a 70, 140 y 280 tokens;
+    - el codificador de visión corre en CPU, y la regla de nunca dos engines en GPU no cambia;
+  - **indexación visual:** su ritmo, en páginas por minuto, y el espacio por página se miden e informan, pero no bloquean (D-078).
 - Si la RAM total es < 7,5 GB, se muestra un aviso.
 - Corpus objetivo: 10k–100k fragmentos. Siempre paginación y consultas agregadas. Nunca se cargan embeddings ni listas completas de fragmentos en la UI.
 
@@ -196,9 +225,12 @@ Los parámetros de este principio solo cambian con una evaluación documentada (
   - `litert-lm-api` 0.18.x en Python offline.
 - **Modelos:**
   - LLM: Gemma 4 E2B instruction-tuned, fichero genérico `gemma-4-E2B-it.litertlm`, en GPU (D-023).
-  - Embeddings: EmbeddingGemma 2 de 270M de solo texto (`embeddinggemma-2-text-270m.litertlm`) a 256D (D-025).
+  - Embeddings: EmbeddingGemma 2 de 270M de solo texto (`embeddinggemma-2-text-270m.litertlm`) a 256D (D-025), por defecto. Con el modo multimodal, EmbeddingGemma 2 de 440M (`embeddinggemma-2-text-vision-440m.litertlm`), a 256D para texto y páginas y a 140 tokens por imagen (D-078).
 - **Motor vectorial:** SQLite-Vector (coseno, `normalized=1`, `vector_init` en cada conexión) sobre SQLite bundled con FTS5.
-- **Formatos del MVP:** PDF con texto extraíble, TXT y Markdown. Los PDF sin texto se detectan y se informa al usuario. OCR, HTML, DOCX y exportar/restaurar están fuera del MVP (backlog).
+- **Formatos del MVP:**
+  - PDF con texto extraíble, TXT y Markdown. Los PDF sin texto se detectan y se informa al usuario.
+  - Con el modo multimodal se añaden los PDF escaneados, que se indexan como páginas, y las imágenes JPG y PNG (D-078).
+  - OCR, HTML, DOCX y exportar/restaurar están fuera del MVP (backlog).
 - **Pipeline Python offline (`offline/`):** solo para evaluación, ajuste y generación de golden. **No** distribuye índices.
 
 ## Flujo de desarrollo y puertas de calidad
@@ -226,4 +258,4 @@ Los parámetros de este principio solo cambian con una evaluación documentada (
   - PATCH: aclaraciones y redacción.
 - **Cumplimiento:** se verifica en el *Constitution Check* de `/speckit-plan` y en `/speckit-analyze`. Un incumplimiento no justificado bloquea `/speckit-implement`.
 
-**Version**: 1.1.1 | **Ratified**: 2026-10-25 | **Last Amended**: 2026-10-29
+**Version**: 1.2.0 | **Ratified**: 2026-10-25 | **Last Amended**: 2026-11-05
