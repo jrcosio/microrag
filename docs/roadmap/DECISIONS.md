@@ -2070,6 +2070,47 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G47).
 
 ---
 
+## D-080 — Cómo se construye el modo multimodal (plan de F19)
+
+- **Fecha:** 2026-11-05
+- **Decisión** (plan de F19, `specs/019-visual-indexing/research.md`):
+  1. **Activación** como máquina de estados persistida, `OFF → DOWNLOADING → VALIDATING → SWITCHING → ON`, en `multimodal.preferences_pb`. La lleva un controlador con ámbito de aplicación, que la retoma al arrancar (R1).
+  2. **El embedder de texto activo lo dice el índice** (`rag_meta.embedding_model_sha256`). El comprobador acepta la 270M y la 440M. La indexación, la consulta, Ajustes y la lista de modelos obligatorios lo leen del índice (R2, R5).
+  3. **Validación de identidad:** 20 textos fijos, embebidos como documento y como consulta con los dos modelos en CPU. Pasa con un coseno mínimo ≥ 0,9999 sobre el vector final de 256D (R3).
+  4. **Cambio:**
+     - pausa la ingesta;
+     - actualiza la huella en una transacción;
+     - libera los engines y borra la 270M con `ModelFileRepository.delete`, que es nuevo;
+     - reanuda.
+
+     Un corte se reconcilia al arrancar (R4).
+  5. **La descarga de la 440M** usa el camino de F03, con las listas de modelos generalizadas (R6).
+  6. **El embedder de imagen y el conversor** de F18 pasan de debug a `rag/runtime/litert` y `data/ingest`, y el diagnóstico los reutiliza (R7).
+  7. **`rag.db` v5:**
+     - `documents.index_mode`;
+     - la tabla `pages`, con un vector de 256D y su `vector_init`;
+     - las claves `page_*` de `rag_meta`, que no impiden abrir el índice: sin ellas no se usan las páginas (R8).
+  8. **Una fase de páginas en el mismo run de ingesta:**
+     - una página por transacción;
+     - el fichero en `noBackupFilesDir/pages/`, escrito de forma atómica;
+     - las pausas de F07, con 250 KB por página más el margen;
+     - el documento solo queda indexado con todo completo (R9).
+  9. **JPG y PNG** solo con el modo activo, siempre en Visual. Un PDF sin texto en Ambos no es un error (R9, R10).
+  10. **Reindexar en otro modo** usa la copia en sombra con sus páginas. Quitar del índice y eliminar borran los ficheros, y al arrancar se barren los huérfanos (R11).
+- **Motivo:**
+  - reutiliza lo que ya funciona: la descarga de F03, la ingesta de F07, la sombra de F08 y los adaptadores de F18;
+  - deja una sola fuente para el embedder activo;
+  - con el modo apagado, no cambia nada.
+- **Alternativas descartadas:**
+  - un `WorkManager` para toda la activación;
+  - un ajuste aparte con el modelo activo;
+  - las páginas en la tabla de fragmentos;
+  - un trabajo de ingesta aparte para las páginas.
+- **Origen:** plan de F19.
+- **Afecta:** F19 (tareas e implementación) y F20, que busca en `pages`.
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.
