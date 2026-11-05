@@ -15,6 +15,12 @@ COMMANDS = [
     "retrieve", "generate", "ablations", "report", "chunker-golden", "calibrate", "rejudge", "device-extraction",
     "order-review", "template-review", "limit-review", "language-review", "crosslang-review",
 ]
+# F18 visual evaluation (specs/018-visual-rag-feasibility/contracts/visual-harness.md §3), in eval/visual_cli.py.
+VISUAL_COMMANDS = [
+    "visual-raster", "visual-build", "visual-validate", "visual-review-sheet", "visual-review-apply", "visual-freeze",
+    "visual-retrieve", "visual-decide",
+]
+COMMANDS += VISUAL_COMMANDS
 
 
 def corpus_option(options):
@@ -367,6 +373,11 @@ def main(argv=None):
     parser.add_argument("command", choices=COMMANDS)
     parser.add_argument("args", nargs=argparse.REMAINDER)
     options = parser.parse_args(argv)
+    if options.command in VISUAL_COMMANDS:
+        from eval import visual_cli
+
+        visual_cli.HANDLERS[options.command](options.args)
+        return
     handler = HANDLERS.get(options.command)
     if handler is None:
         raise SystemExit(f"{options.command}: not implemented")
