@@ -378,7 +378,7 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
 
   Con el patrón de Tema y `PreferencesSaveFailure`.
 - [X] T048 [P] [US7] Accesibilidad instrumentada (ATF) en `…/androidTest/…/feature/settings/MultimodalAccessibilityTest.kt`: Ajustes con el modo en varias etapas, «Modo al importar PDF», la hoja de la Ingesta y el detalle con páginas. Al 200 % (`fontScale = 2f`) y en oscuro.
-- [ ] T049 [US7] Revisión del wireframe frente a las pantallas, en el emulador: las diferencias se anotan en `specs/019-visual-indexing/report.md` §6.
+- [X] T049 [US7] Revisión del wireframe frente a las pantallas, en el emulador: las diferencias se anotan en `specs/019-visual-indexing/report.md` §6.
 
 **Checkpoint:** pantallas fieles al wireframe, accesibles y traducidas.
 
@@ -394,8 +394,8 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
   - `ManifestInvariantsTest` y `NetworkConfinementTest` en verde.
 
   Se anota en `specs/019-visual-indexing/checklists/release-verification.md`.
-- [ ] T053 Batería JVM, lint y Python (quickstart §1), y la instrumentada en `Pixel_10` y `MicroRAG_API33` (quickstart §3), sin `@RequiresNetwork`.
-- [ ] T054 Recorrido en el emulador (quickstart §4) y borrador de `specs/019-visual-indexing/report.md`:
+- [X] T053 Batería JVM, lint y Python (quickstart §1), y la instrumentada en `Pixel_10` y `MicroRAG_API33` (quickstart §3), sin `@RequiresNetwork`.
+- [X] T054 Recorrido en el emulador (quickstart §4) y borrador de `specs/019-visual-indexing/report.md`:
   - lo implementado;
   - build y pruebas;
   - las desviaciones;
