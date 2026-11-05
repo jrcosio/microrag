@@ -81,13 +81,19 @@ def image_count(parts):
 
 
 def open_gemma(model_path, max_num_images, backend="gpu", cache_dir=None):
-    """Gemma with its text on [backend] and its vision encoder on the CPU, the only backend the file offers."""
-    from litert_lm import Backend, Engine, conversation
+    """Gemma with its text on [backend] and its vision encoder on the CPU, the only backend the file offers.
+
+    On the Mac GPU the default activations are fp16, which corrupt figures in prompts full of them («2020» comes
+    out as «20000», «36,4» as «366,4»); FP32 gives the CPU's answer, so the desktop measures the model's own quality.
+    """
+    from litert_lm import ActivationDataType, Backend, Engine, conversation
 
     install_budget_hook(conversation.Conversation)
     chosen = Backend.GPU() if backend == "gpu" else Backend.CPU()
+    activations = ActivationDataType.FLOAT32 if backend == "gpu" else None
     return Engine(str(model_path), backend=chosen, vision_backend=Backend.CPU(), max_num_images=max_num_images,
-                  max_num_tokens=MAX_NUM_TOKENS, cache_dir=str(cache_dir) if cache_dir else None, enable_benchmark=True)
+                  max_num_tokens=MAX_NUM_TOKENS, cache_dir=str(cache_dir) if cache_dir else None, enable_benchmark=True,
+                  activation_data_type=activations)
 
 
 def generate(engine, parts, budget, max_output_tokens):
