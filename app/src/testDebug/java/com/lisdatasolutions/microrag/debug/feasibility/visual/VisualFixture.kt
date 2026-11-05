@@ -12,6 +12,10 @@ import com.lisdatasolutions.microrag.domain.model.ComputeBackend
 import com.lisdatasolutions.microrag.domain.model.ModelCatalog
 import com.lisdatasolutions.microrag.domain.model.ModelFile
 import com.lisdatasolutions.microrag.domain.model.ModelId
+import com.lisdatasolutions.microrag.rag.ingest.EncodedImage
+import com.lisdatasolutions.microrag.rag.ingest.ImageFormat
+import com.lisdatasolutions.microrag.rag.ingest.PageRasterizer
+import com.lisdatasolutions.microrag.rag.runtime.ImageEmbedder
 import java.io.File
 import kotlinx.coroutines.CoroutineDispatcher
 

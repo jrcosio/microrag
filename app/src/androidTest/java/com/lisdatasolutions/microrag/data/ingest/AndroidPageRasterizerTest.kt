@@ -6,7 +6,7 @@ import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.google.common.truth.Truth.assertThat
-import com.lisdatasolutions.microrag.debug.feasibility.visual.ImageFormat
+import com.lisdatasolutions.microrag.rag.ingest.ImageFormat
 import java.io.File
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -16,10 +16,10 @@ import org.junit.runner.RunWith
  * fixtures and the images of `offline/gen_image_fixtures.py`.
  */
 @RunWith(AndroidJUnit4::class)
-class DebugPageRasterizerTest {
+class AndroidPageRasterizerTest {
 
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
-    private val rasterizer = DebugPageRasterizer()
+    private val rasterizer = AndroidPageRasterizer()
 
     private fun asset(name: String): File {
         val target = File(instrumentation.targetContext.cacheDir, "raster-test/${name.substringAfterLast('/')}")

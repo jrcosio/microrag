@@ -3,7 +3,7 @@ package com.lisdatasolutions.microrag.debug.feasibility.visual.report
 import com.lisdatasolutions.microrag.debug.feasibility.ThermalLevel
 import com.lisdatasolutions.microrag.debug.feasibility.report.DeviceSnapshot
 import com.lisdatasolutions.microrag.debug.feasibility.report.ModelEntry
-import com.lisdatasolutions.microrag.debug.feasibility.visual.ImageFormat
+import com.lisdatasolutions.microrag.rag.ingest.ImageFormat
 import com.lisdatasolutions.microrag.debug.feasibility.visual.VisionModelInfo
 import com.lisdatasolutions.microrag.domain.model.ComputeBackend
 import com.lisdatasolutions.microrag.domain.model.ModelId

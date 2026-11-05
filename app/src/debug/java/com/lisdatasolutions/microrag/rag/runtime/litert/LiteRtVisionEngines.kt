@@ -7,18 +7,14 @@ import com.google.ai.edge.litertlm.Contents
 import com.google.ai.edge.litertlm.Conversation
 import com.google.ai.edge.litertlm.ConversationConfig
 import com.google.ai.edge.litertlm.EmbeddingEngine
-import com.google.ai.edge.litertlm.EmbeddingEngineConfig
-import com.google.ai.edge.litertlm.EmbeddingOptions
 import com.google.ai.edge.litertlm.Engine
 import com.google.ai.edge.litertlm.EngineConfig
 import com.google.ai.edge.litertlm.ExperimentalApi
 import com.google.ai.edge.litertlm.ExperimentalFlags
-import com.google.ai.edge.litertlm.InputData
 import com.google.ai.edge.litertlm.Modality
 import com.google.ai.edge.litertlm.ModelInfo
 import com.google.ai.edge.litertlm.SamplerConfig
 import com.lisdatasolutions.microrag.core.dispatchers.AppDispatchers
-import com.lisdatasolutions.microrag.debug.feasibility.visual.ImageEmbedder
 import com.lisdatasolutions.microrag.debug.feasibility.visual.VisionEngineFactory
 import com.lisdatasolutions.microrag.debug.feasibility.visual.VisionGeneration
 import com.lisdatasolutions.microrag.debug.feasibility.visual.VisionGenerator
@@ -28,6 +24,7 @@ import com.lisdatasolutions.microrag.debug.feasibility.visual.VisualProtocol
 import com.lisdatasolutions.microrag.domain.model.ComputeBackend
 import com.lisdatasolutions.microrag.domain.model.ModelFile
 import com.lisdatasolutions.microrag.domain.model.ModelId
+import com.lisdatasolutions.microrag.rag.runtime.ImageEmbedder
 import java.io.File
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
@@ -170,51 +167,6 @@ internal class LiteRtVisionGenerator(
 }
 
 /** EmbeddingGemma 2 with images: its vision encoder on [backend], with a fixed number of tokens per image. */
-internal class LiteRtImageEmbedder(
-    override val model: ModelId,
-    private val modelPath: File,
-    override val backend: ComputeBackend,
-    private val cacheDir: File,
-    override val visionTokensPerImage: Int,
-    private val dispatcher: CoroutineDispatcher,
-) : ImageEmbedder {
-
-    @Volatile
-    private var engine: EmbeddingEngine? = null
-
-    override suspend fun initialize() = withContext(dispatcher) {
-        if (engine != null) return@withContext
-        val created = EmbeddingEngine(
-            EmbeddingEngineConfig(
-                modelPath = modelPath.path,
-                backend = ComputeBackend.CPU.toLiteRt(),
-                visionBackend = backend.toLiteRt(),
-                cacheDir = cacheDir.path,
-                visionTokensPerImage = visionTokensPerImage,
-            ),
-        )
-        try {
-            created.initialize()
-        } catch (t: Throwable) {
-            created.close()
-            throw t
-        }
-        engine = created
-    }
-
-    override suspend fun embedImage(bytes: ByteArray): FloatArray = withContext(dispatcher) {
-        val engine = checkNotNull(engine) { "Image embedder for $model is not initialized" }
-        engine.computeEmbedding(
-            listOf(InputData.Image(bytes)),
-            EmbeddingOptions(normalize = false, visionTokensPerImage = visionTokensPerImage),
-        ).embedding
-    }
-
-    override fun close() {
-        engine?.close()
-        engine = null
-    }
-}
 
 private fun BackendType.toComputeBackend(): ComputeBackend? = when (this) {
     BackendType.CPU -> ComputeBackend.CPU

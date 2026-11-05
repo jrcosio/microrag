@@ -8,20 +8,20 @@ import android.graphics.Matrix
 import android.graphics.pdf.PdfRenderer
 import android.os.ParcelFileDescriptor
 import androidx.core.graphics.createBitmap
-import com.lisdatasolutions.microrag.debug.feasibility.visual.EncodedImage
-import com.lisdatasolutions.microrag.debug.feasibility.visual.ImageFormat
-import com.lisdatasolutions.microrag.debug.feasibility.visual.PageRasterizer
+import com.lisdatasolutions.microrag.rag.ingest.EncodedImage
+import com.lisdatasolutions.microrag.rag.ingest.ImageFormat
+import com.lisdatasolutions.microrag.rag.ingest.PageRasterizer
 import java.io.ByteArrayOutputStream
 import java.io.File
 import kotlin.math.max
 import kotlin.math.roundToInt
 
 /**
- * Pages and images as the visual index of F19 would store them (F18 research R6): PdfRenderer, which works
+ * Pages and images as the visual index stores them (F19 research R7, F18 research R6): PdfRenderer, which works
  * on API 31 without the S extension 13 of the text extraction, and ImageDecoder, which applies the EXIF
- * orientation. Always on white. Debug source set only (research R3); blocking, call it off the main thread.
+ * orientation. Always on white. The only place PdfRenderer and ImageDecoder are used; blocking, call it on io.
  */
-class DebugPageRasterizer : PageRasterizer {
+class AndroidPageRasterizer : PageRasterizer {
 
     override fun pageCount(pdf: File): Int = open(pdf) { renderer -> renderer.pageCount }
 

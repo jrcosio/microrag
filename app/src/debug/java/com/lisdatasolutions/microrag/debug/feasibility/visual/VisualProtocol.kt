@@ -1,6 +1,7 @@
 package com.lisdatasolutions.microrag.debug.feasibility.visual
 
 import com.lisdatasolutions.microrag.debug.feasibility.MeasurementProtocol
+import com.lisdatasolutions.microrag.rag.ingest.ImageFormat
 import kotlinx.serialization.Serializable
 
 /**

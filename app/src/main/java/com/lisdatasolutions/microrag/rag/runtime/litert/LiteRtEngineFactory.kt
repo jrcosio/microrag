@@ -12,22 +12,27 @@ import com.lisdatasolutions.microrag.domain.model.ComputeBackend
 import com.lisdatasolutions.microrag.domain.model.ModelFile
 import com.lisdatasolutions.microrag.rag.runtime.EngineFactory
 import com.lisdatasolutions.microrag.rag.runtime.GenerationConfig
+import com.lisdatasolutions.microrag.rag.runtime.ImageEmbedder
+import com.lisdatasolutions.microrag.rag.runtime.ImageEmbedderFactory
 import com.lisdatasolutions.microrag.rag.runtime.ModelMetadata
 import com.lisdatasolutions.microrag.rag.runtime.TextEmbedder
 import com.lisdatasolutions.microrag.rag.runtime.TextGenerator
 import java.io.File
 
-/** The only entry point to LiteRT-LM (constitution II): everything else sees [EngineFactory]. */
+/** The only entry point to LiteRT-LM (constitution II): everything else sees [EngineFactory] and [ImageEmbedderFactory]. */
 class LiteRtEngineFactory(
     private val context: Context,
     private val dispatchers: AppDispatchers,
-) : EngineFactory {
+) : EngineFactory, ImageEmbedderFactory {
 
     private val compiledCacheDir: File
         get() = File(context.cacheDir, CACHE_DIR).apply { mkdirs() }
 
     override fun embedder(file: ModelFile, path: File, backend: ComputeBackend): TextEmbedder =
         LiteRtTextEmbedder(file.id, path, backend, compiledCacheDir, dispatchers.embeddings)
+
+    override fun imageEmbedder(file: ModelFile, path: File, backend: ComputeBackend, visionTokensPerImage: Int): ImageEmbedder =
+        LiteRtImageEmbedder(file.id, path, backend, compiledCacheDir, visionTokensPerImage, dispatchers.embeddings)
 
     override fun generator(
         file: ModelFile,

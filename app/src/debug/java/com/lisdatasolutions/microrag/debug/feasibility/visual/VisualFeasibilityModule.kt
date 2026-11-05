@@ -1,9 +1,10 @@
 package com.lisdatasolutions.microrag.debug.feasibility.visual
 
 import com.lisdatasolutions.microrag.core.dispatchers.AppDispatchers
-import com.lisdatasolutions.microrag.data.ingest.DebugPageRasterizer
+import com.lisdatasolutions.microrag.data.ingest.AndroidPageRasterizer
 import com.lisdatasolutions.microrag.debug.feasibility.visual.report.VisualReportSink
 import com.lisdatasolutions.microrag.debug.feasibility.visual.report.VisualReportWriter
+import com.lisdatasolutions.microrag.rag.ingest.PageRasterizer
 import com.lisdatasolutions.microrag.rag.runtime.litert.LiteRtVisionEngineFactory
 import java.io.File
 import org.koin.android.ext.koin.androidContext
@@ -14,7 +15,7 @@ import org.koin.dsl.module
 /** Dependencies of the visual feasibility diagnostic (F18). Reuses F02's thermal, memory, device and importer. */
 val visualFeasibilityModule = module {
     single<VisionEngineFactory> { LiteRtVisionEngineFactory(androidContext(), get()) }
-    single<PageRasterizer> { DebugPageRasterizer() }
+    single<PageRasterizer> { AndroidPageRasterizer() }
     single {
         val externalFiles = checkNotNull(androidContext().getExternalFilesDir(null)) { "External storage unavailable" }
         DeviceSetLoader(File(externalFiles, "dev-visual"))

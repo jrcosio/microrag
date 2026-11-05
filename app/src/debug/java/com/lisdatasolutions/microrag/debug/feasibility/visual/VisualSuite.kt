@@ -30,6 +30,9 @@ import com.lisdatasolutions.microrag.domain.model.ModelCatalog
 import com.lisdatasolutions.microrag.domain.model.ModelFile
 import com.lisdatasolutions.microrag.domain.model.ModelFileState
 import com.lisdatasolutions.microrag.domain.model.ModelId
+import com.lisdatasolutions.microrag.rag.ingest.EncodedImage
+import com.lisdatasolutions.microrag.rag.ingest.ImageFormat
+import com.lisdatasolutions.microrag.rag.ingest.PageRasterizer
 import com.lisdatasolutions.microrag.rag.runtime.EmbeddingMath
 import com.lisdatasolutions.microrag.rag.runtime.EngineCoordinator
 import com.lisdatasolutions.microrag.rag.runtime.EngineFactory

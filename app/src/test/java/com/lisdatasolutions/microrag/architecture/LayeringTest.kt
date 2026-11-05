@@ -34,13 +34,15 @@ class LayeringTest {
             .that(offenders("androidx.sqlite", allowedDir)).isEmpty()
     }
 
+    /** F19 research R7: the page rasterizer of F18 moved to main, so the PDF and image decoders stay in data/ingest. */
     @Test
     fun onlyTheIngestDataLayerImportsThePlatformPdfApi() {
         val main = File("src/main/java/com/lisdatasolutions/microrag/data/ingest")
-        val debug = File("src/debug/java/com/lisdatasolutions/microrag/data/ingest")
 
         assertWithMessage("Files importing android.graphics.pdf outside data/ingest")
-            .that(offenders("android.graphics.pdf", main, debug)).isEmpty()
+            .that(offenders("android.graphics.pdf", main)).isEmpty()
+        assertWithMessage("Files importing android.graphics.ImageDecoder outside data/ingest")
+            .that(offenders("android.graphics.ImageDecoder", main)).isEmpty()
     }
 
     @Test
