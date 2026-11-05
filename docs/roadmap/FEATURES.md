@@ -984,7 +984,7 @@ Con esos datos se fijan:
 ## F20 — Chat con páginas
 
 - **Tipo:** Producto, **sin mockup**. Requiere una propuesta de UI aprobada (G47, constitución VII).
-- **Estado:** 🟨 en curso en la rama `020-visual-chat` desde el 2026-11-05. Modo opcional «Multimodal», con F19 (D-078). Clarify y wireframe aprobados el 2026-11-05, con la decisión D-083: la página entra siempre que haya páginas en el ámbito, Equilibrado por defecto y un visor a pantalla completa. Sin enmienda de la constitución. Spec en `specs/020-visual-chat/spec.md`.
+- **Estado:** 🟨 en curso en la rama `020-visual-chat` desde el 2026-11-05. Modo opcional «Multimodal», con F19 (D-078). Clarify y wireframe aprobados el 2026-11-05, con la decisión D-083: la página entra siempre que haya páginas en el ámbito, Equilibrado por defecto y un visor a pantalla completa. Sin enmienda de la constitución. Plan hecho el 2026-11-05, con la decisión D-084. Spec en `specs/020-visual-chat/spec.md`.
 
 **Objetivo.**
 - **Recuperación (D-076, D-078):**

@@ -2197,6 +2197,42 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G47).
 
 ---
 
+## D-084 — Chat con páginas: decisiones del plan de F20
+
+- **Fecha:** 2026-11-05
+- **Decisión** (plan de F20, `specs/020-visual-chat/research.md`):
+  1. **Cuándo hay páginas:** solo con el modo en `ON`, el espacio de páginas del índice compatible y alguna página en el ámbito. Se decide al empezar cada respuesta (R1).
+  2. **Búsqueda de páginas:** `RagIndex.pageSearch`, un barrido completo de `pages` con el mismo vector de la consulta, filtrado por ámbito y por buscables. Devuelve 5 candidatas (`PAGE_CANDIDATES`), de las que entra 1. No pasa por la RRF (R2, D-076).
+  3. **Plantilla v5-visual:** port exacto de `visual_prompt.py` a `PromptBuilder.buildVisual`:
+     - los bloques de D-034 sin tocar y la página después, con el número `[k + 1]`;
+     - el límite de 2.000 tokens solo sobre el texto;
+     - una golden del escritorio (`visual_prompt_golden.jsonl`) vigila la paridad (R4).
+  4. **Gemma con el modo activo:** siempre con la visión en CPU, una ventana de 8.192 tokens y 1 imagen, haya página o no. Lleva su propia clave (`EngineKind.VISION_GENERATOR`) y el generador de F18 pasa de debug a `LiteRtTextGenerator` (R5, R6).
+  5. **La imagen:** el JPEG guardado por F19. Si falta, la respuesta sigue sin la página (R7).
+  6. **Fuentes de página:**
+     - `kind` en las fuentes, con `chunk_id = 0` para las páginas;
+     - `chat.db` v3, con `sources.kind` y `turns.page_tokens`;
+     - `PAGE_GONE` en el Historial (R8–R10).
+  7. **Detalle de las páginas:** `PageDetail` (70, 140 y 280 tokens), con las esperas de F18 hasta que F20 las mida, y la clave `page_detail` en el almacén del modo (R12).
+  8. **UI:**
+     - el hueco `leading` en `LisdataSourceCitation` para la miniatura;
+     - `PageImageRepository` y un cargador con caché;
+     - la ruta `PageViewer` con `ZoomState`, de 1× a 4×, con acciones de TalkBack (R14, R15).
+  9. **Medición:** `VisualChatBenchmarkTest` en el teléfono, con 20 preguntas por detalle y 20 sin páginas, sin umbral (R19).
+- **Motivo:**
+  - una sola configuración de Gemma por modo evita recargarlo entre respuestas;
+  - un campo de tipo en las fuentes es el cambio más pequeño, sin reconstruir tablas;
+  - la golden evita que el port se separe del escritorio.
+- **Alternativas descartadas:**
+  - cargar Gemma con visión solo cuando entra una página;
+  - un tipo sellado de fuente;
+  - `chunk_id` nulo, que obliga a reconstruir `sources`;
+  - una librería de imágenes o de zoom.
+- **Origen:** plan de F20, en el ciclo automático que pidió el usuario.
+- **Afecta:** F20: plan, research, data-model, contratos y tareas; F14, que mide el camino con visión.
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.
