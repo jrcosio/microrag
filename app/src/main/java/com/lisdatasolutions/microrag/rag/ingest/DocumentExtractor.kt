@@ -38,6 +38,8 @@ class DocumentExtractor(
         }
         DocumentFormat.TXT -> extractText(file, onBlock) { lines, emit -> PlainTextExtractor(maxBlockChars).extract(lines, emit) }
         DocumentFormat.MARKDOWN -> extractText(file, onBlock) { lines, emit -> MarkdownExtractor(maxBlockChars).extract(lines, emit) }
+        // F19 research R10: an image has no text; it is always indexed as one page.
+        DocumentFormat.JPEG, DocumentFormat.PNG -> ExtractionSummary(blocks = 0, pages = 1, skippedPages = null)
     }
 
     private fun extractText(

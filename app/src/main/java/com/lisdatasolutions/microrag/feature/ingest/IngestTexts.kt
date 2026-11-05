@@ -110,6 +110,8 @@ private fun IngestError.chipRes(): Int = when (this) {
     IngestError.INDEX_UNAVAILABLE -> R.string.ingest_error_index_unavailable
     IngestError.EMBEDDING_FAILED -> R.string.ingest_error_embedding_failed
     IngestError.INCOMPLETE -> R.string.ingest_error_incomplete
+    IngestError.IMAGE_NEEDS_MULTIMODAL -> R.string.ingest_error_image_needs_multimodal
+    IngestError.IMAGE_UNREADABLE -> R.string.ingest_error_image_unreadable
 }
 
 /** Sentence of the detail sheet (G15). */
@@ -130,6 +132,8 @@ fun IngestError.detailText(format: DocumentFormat?): String = when (this) {
     IngestError.INDEX_UNAVAILABLE -> stringResource(R.string.ingest_error_index_unavailable_detail)
     IngestError.EMBEDDING_FAILED -> stringResource(R.string.ingest_error_embedding_failed_detail)
     IngestError.INCOMPLETE -> stringResource(R.string.ingest_error_incomplete_detail)
+    IngestError.IMAGE_NEEDS_MULTIMODAL -> stringResource(R.string.ingest_error_image_needs_multimodal_detail)
+    IngestError.IMAGE_UNREADABLE -> stringResource(R.string.ingest_error_image_unreadable_detail)
 }
 
 @Composable
@@ -138,6 +142,7 @@ fun DocumentFormat.label(): String = stringResource(
         DocumentFormat.PDF -> R.string.ingest_format_pdf
         DocumentFormat.TXT -> R.string.ingest_format_txt
         DocumentFormat.MARKDOWN -> R.string.ingest_format_markdown
+        DocumentFormat.JPEG, DocumentFormat.PNG -> R.string.document_format_image
     },
 )
 

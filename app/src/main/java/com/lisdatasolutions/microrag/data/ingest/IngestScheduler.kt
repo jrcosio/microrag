@@ -102,9 +102,13 @@ class WorkManagerIngestScheduler(private val workManager: WorkManager) : IngestS
         const val KEY_RATE = "rate"
         const val KEY_BACKEND = "backend"
         const val KEY_WAITING = "waiting"
+        const val KEY_PAGES_DONE = "pages_done"
+        const val KEY_PAGES_TOTAL = "pages_total"
+        const val KEY_PAGES_RATE = "pages_rate"
         const val STAGE_EXTRACTING = "extracting"
         const val STAGE_CHUNKING = "chunking"
         const val STAGE_EMBEDDING = "embedding"
+        const val STAGE_PAGES = "pages"
         const val STAGE_CLOSING = "closing"
         const val WAITING_THERMAL = "thermal"
 
@@ -117,6 +121,8 @@ class WorkManagerIngestScheduler(private val workManager: WorkManager) : IngestS
             IngestProgress.Stage.EXTRACTING to STAGE_EXTRACTING,
             IngestProgress.Stage.CHUNKING to STAGE_CHUNKING,
             IngestProgress.Stage.EMBEDDING to STAGE_EMBEDDING,
+            // F19 (analyze H1): without it, getValue would throw when the page phase publishes its progress.
+            IngestProgress.Stage.PAGES to STAGE_PAGES,
             IngestProgress.Stage.CLOSING to STAGE_CLOSING,
         )
 
@@ -130,6 +136,9 @@ class WorkManagerIngestScheduler(private val workManager: WorkManager) : IngestS
             .putDouble(KEY_RATE, progress.chunksPerSecond ?: -1.0)
             .putString(KEY_BACKEND, progress.backend?.name)
             .putString(KEY_WAITING, if (progress.waiting == IngestProgress.WaitReason.THERMAL) WAITING_THERMAL else null)
+            .putInt(KEY_PAGES_DONE, progress.pagesDone ?: -1)
+            .putInt(KEY_PAGES_TOTAL, progress.pagesTotal ?: -1)
+            .putDouble(KEY_PAGES_RATE, progress.pagesPerMinute ?: -1.0)
             .build()
 
         fun progressOf(data: Data): IngestProgress? {
@@ -146,6 +155,9 @@ class WorkManagerIngestScheduler(private val workManager: WorkManager) : IngestS
                 chunksPerSecond = data.getDouble(KEY_RATE, -1.0).takeIf { it >= 0 },
                 backend = data.getString(KEY_BACKEND)?.let { name -> ComputeBackend.entries.firstOrNull { it.name == name } },
                 waiting = if (data.getString(KEY_WAITING) == WAITING_THERMAL) IngestProgress.WaitReason.THERMAL else null,
+                pagesDone = int(KEY_PAGES_DONE),
+                pagesTotal = int(KEY_PAGES_TOTAL),
+                pagesPerMinute = data.getDouble(KEY_PAGES_RATE, -1.0).takeIf { it >= 0 },
             )
         }
     }

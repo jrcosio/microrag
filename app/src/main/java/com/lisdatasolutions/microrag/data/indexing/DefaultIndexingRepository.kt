@@ -172,12 +172,14 @@ class DefaultIndexingRepository(
         RunPauseCause.USER -> PauseReason.USER
         RunPauseCause.NO_SPACE -> PauseReason.NO_SPACE
         RunPauseCause.MODEL_MISSING -> PauseReason.MODEL_MISSING
+        RunPauseCause.MODEL_SWITCH -> PauseReason.MODEL_SWITCH
     }
 
     private fun IngestProgress.Stage.forScreen(): CurrentDocument.Stage = when (this) {
         IngestProgress.Stage.EXTRACTING -> CurrentDocument.Stage.EXTRACTING
         IngestProgress.Stage.CHUNKING -> CurrentDocument.Stage.CHUNKING
         IngestProgress.Stage.EMBEDDING -> CurrentDocument.Stage.EMBEDDING
+        IngestProgress.Stage.PAGES -> CurrentDocument.Stage.PAGES
         IngestProgress.Stage.CLOSING -> CurrentDocument.Stage.CLOSING
     }
 

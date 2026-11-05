@@ -79,5 +79,6 @@ fun PauseReason.text(): String = stringResource(
         PauseReason.NO_SPACE -> R.string.index_no_space
         PauseReason.MODEL_MISSING -> R.string.index_model_missing_title
         PauseReason.SYSTEM_LIMIT -> R.string.index_paused_system
+        PauseReason.MODEL_SWITCH -> R.string.index_paused_model_switch
     },
 )

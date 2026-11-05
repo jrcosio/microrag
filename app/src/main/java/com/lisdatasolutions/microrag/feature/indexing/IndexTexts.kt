@@ -35,11 +35,15 @@ fun remainingText(seconds: Long): String {
     return stringResource(R.string.index_remaining, duration)
 }
 
-/** The four stages of PNG 08 (G29), with the icon each one shows while it is not done. */
+/**
+ * The four stages of PNG 08 (G29), with the icon each one shows while it is not done. [PAGES] is F19's (wireframe
+ * §8): it only shows for a document with pages.
+ */
 enum class IndexStage(@StringRes val title: Int, @DrawableRes val icon: Int) {
     EXTRACTION(R.string.index_stage_extraction, LisdataIcons.FileText),
     CHUNKING(R.string.index_stage_chunking, LisdataIcons.Layers),
     EMBEDDINGS(R.string.index_stage_embeddings, LisdataIcons.Cpu),
+    PAGES(R.string.index_stage_pages, LisdataIcons.FileText),
     PERSISTENCE(R.string.index_stage_persistence, LisdataIcons.Database),
 }
 
@@ -48,13 +52,17 @@ fun CurrentDocument.Stage.indexStage(): IndexStage = when (this) {
     CurrentDocument.Stage.EXTRACTING -> IndexStage.EXTRACTION
     CurrentDocument.Stage.CHUNKING -> IndexStage.CHUNKING
     CurrentDocument.Stage.EMBEDDING -> IndexStage.EMBEDDINGS
+    CurrentDocument.Stage.PAGES -> IndexStage.PAGES
     CurrentDocument.Stage.CLOSING -> IndexStage.PERSISTENCE
 }
 
-/** Data-model §3: the current document's stage decides which stages are done, in progress or pending. */
-fun stagesOf(current: CurrentDocument.Stage?, paused: Boolean): List<Pair<IndexStage, StageStatus>> {
+/**
+ * Data-model §3: the current document's stage decides which stages are done, in progress or pending. The page
+ * stage only shows for a document with pages ([withPages], F19 wireframe §8).
+ */
+fun stagesOf(current: CurrentDocument.Stage?, paused: Boolean, withPages: Boolean = false): List<Pair<IndexStage, StageStatus>> {
     val inProgress = current?.indexStage()
-    return IndexStage.entries.map { stage ->
+    return IndexStage.entries.filter { it != IndexStage.PAGES || withPages || inProgress == IndexStage.PAGES }.map { stage ->
         stage to when {
             inProgress == null -> StageStatus.Pending
             stage.ordinal < inProgress.ordinal -> StageStatus.Done
@@ -82,6 +90,7 @@ fun PauseReason.chip(): Pair<String, StatusKind>? = when (this) {
     PauseReason.SYSTEM_LIMIT -> stringResource(R.string.index_paused_system) to StatusKind.Warning
     PauseReason.NO_SPACE -> stringResource(R.string.index_no_space) to StatusKind.Error
     PauseReason.MODEL_MISSING -> null
+    PauseReason.MODEL_SWITCH -> stringResource(R.string.index_paused_model_switch) to StatusKind.Paused
 }
 
 /** The explanation card of P4 and P5; the user's own pause needs none. */
@@ -90,5 +99,6 @@ fun PauseReason.explanation(): String? = when (this) {
     PauseReason.THERMAL -> stringResource(R.string.index_paused_thermal_body)
     PauseReason.SYSTEM_LIMIT -> stringResource(R.string.index_paused_system_body)
     PauseReason.NO_SPACE -> stringResource(R.string.index_no_space_body)
+    PauseReason.MODEL_SWITCH -> stringResource(R.string.index_paused_model_switch_body)
     PauseReason.USER, PauseReason.MODEL_MISSING -> null
 }

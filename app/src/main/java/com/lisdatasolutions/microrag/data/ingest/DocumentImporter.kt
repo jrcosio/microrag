@@ -175,6 +175,8 @@ class DocumentImporter(
 
     /** Content checks (research R4, R5); returns the page count of a PDF. */
     private fun validate(file: File, format: DocumentFormat): Int? = when (format) {
+        // F19 research R10: one page; whether the system decoder can read it is checked when it is rendered.
+        DocumentFormat.JPEG, DocumentFormat.PNG -> 1
         DocumentFormat.PDF -> {
             if (!file.startsWithPdfHeader()) reject(IngestError.DAMAGED)
             val pages = try {

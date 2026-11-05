@@ -7,7 +7,13 @@ enum class DocumentFormat(val mimeType: String, val extension: String) {
     PDF("application/pdf", "pdf"),
     TXT("text/plain", "txt"),
     MARKDOWN("text/markdown", "md"),
+
+    /** F19 research R10: only with the multimodal mode on, always indexed as one page. */
+    JPEG("image/jpeg", "jpg"),
+    PNG("image/png", "png"),
     ;
+
+    val isImage: Boolean get() = this == JPEG || this == PNG
 
     companion object {
         fun fromMime(mimeType: String?): DocumentFormat? = entries.firstOrNull { it.mimeType == mimeType }
@@ -37,6 +43,12 @@ enum class IngestError(val code: String, val retryable: Boolean) {
 
     /** At closing, the stored chunks did not match the chunking (F07 research R9). */
     INCOMPLETE("incomplete", true),
+
+    /** F19 research R10: a JPG or PNG with the multimodal mode off. */
+    IMAGE_NEEDS_MULTIMODAL("image_needs_multimodal", false),
+
+    /** F19 research R10: an image the system decoder cannot read. */
+    IMAGE_UNREADABLE("image_unreadable", false),
     ;
 
     companion object {
@@ -140,8 +152,12 @@ data class IngestProgress(
     /** The whole run's stored chunks and total, counted as on the Index screen (D-042). */
     val runChunksDone: Int? = null,
     val runChunksTotal: Int? = null,
+    /** F19 research R9: the current document's page images, while [stage] is [Stage.PAGES]. */
+    val pagesDone: Int? = null,
+    val pagesTotal: Int? = null,
+    val pagesPerMinute: Double? = null,
 ) {
-    enum class Stage { EXTRACTING, CHUNKING, EMBEDDING, CLOSING }
+    enum class Stage { EXTRACTING, CHUNKING, EMBEDDING, PAGES, CLOSING }
 
     enum class WaitReason { THERMAL }
 }

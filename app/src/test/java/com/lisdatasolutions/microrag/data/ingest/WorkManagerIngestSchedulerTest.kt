@@ -88,6 +88,14 @@ class WorkManagerIngestSchedulerTest {
         assertThat(WorkManagerIngestScheduler.progressOf(WorkManagerIngestScheduler.progressData(closing))).isEqualTo(closing)
     }
 
+    /** F19 analyze H1: the page phase publishes its progress through the same Data, without throwing. */
+    @Test
+    fun pagesProgressRoundTrips() {
+        val pages = IngestProgress(documentId = 9, stage = IngestProgress.Stage.PAGES, pagesDone = 12, pagesTotal = 40, pagesPerMinute = 18.5)
+
+        assertThat(WorkManagerIngestScheduler.progressOf(WorkManagerIngestScheduler.progressData(pages))).isEqualTo(pages)
+    }
+
     @Test
     fun replaceKeepsOneRequestAndCancelStopsTheWork() = runBlocking<Unit> {
         scheduler.enqueue(listOf(1L))

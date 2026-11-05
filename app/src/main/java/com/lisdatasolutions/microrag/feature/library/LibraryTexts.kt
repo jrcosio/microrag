@@ -23,6 +23,7 @@ fun DocumentFormat?.label(): String = stringResource(
         DocumentFormat.PDF -> R.string.library_format_pdf
         DocumentFormat.TXT -> R.string.library_format_txt
         DocumentFormat.MARKDOWN -> R.string.library_format_markdown
+        DocumentFormat.JPEG, DocumentFormat.PNG -> R.string.document_format_image
         null -> R.string.library_format_unknown
     },
 )

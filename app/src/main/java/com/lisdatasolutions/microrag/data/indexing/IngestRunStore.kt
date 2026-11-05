@@ -7,6 +7,9 @@ enum class RunPauseCause(val code: String) {
     USER("user"),
     NO_SPACE("no_space"),
     MODEL_MISSING("model_missing"),
+
+    /** F19 research R4: the multimodal mode is switching the text embedder; it resumes by itself. */
+    MODEL_SWITCH("model_switch"),
     ;
 
     companion object {

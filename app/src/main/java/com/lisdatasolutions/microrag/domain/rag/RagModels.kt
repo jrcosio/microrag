@@ -24,6 +24,31 @@ enum class DocumentStatus(val sqlValue: String) {
 }
 
 /** A document to register; it starts as [DocumentStatus.PENDING] and included in searches. */
+/** How a document is indexed (F19 research R9, D-078): text chunks, page images, or both. Images are always [VISUAL]. */
+enum class IndexMode(val sqlValue: String) {
+    TEXT("text"),
+    VISUAL("visual"),
+    BOTH("both"),
+    ;
+
+    val hasText: Boolean get() = this != VISUAL
+    val hasPages: Boolean get() = this != TEXT
+
+    companion object {
+        fun fromSql(value: String?): IndexMode = entries.firstOrNull { it.sqlValue == value } ?: TEXT
+    }
+}
+
+/** A page ready to store: its image file under `pages/`, its size and its 256D unit vector (F19 data-model §4). */
+class PageInput(
+    val page: Int,
+    val fileName: String,
+    val widthPx: Int,
+    val heightPx: Int,
+    val sizeBytes: Long,
+    val embedding: FloatArray,
+)
+
 data class NewDocument(
     val displayName: String,
     val contentHash: String,
@@ -34,6 +59,8 @@ data class NewDocument(
     val localPath: String? = null,
     /** F17 (contract F6): null is «General»; a folder deleted meanwhile is «General» too (M3). */
     val folderId: Long? = null,
+    /** F19 (contract P7): TEXT unless the multimodal mode is on; an image is always VISUAL. */
+    val indexMode: IndexMode = IndexMode.TEXT,
 )
 
 data class StoredDocument(
@@ -58,6 +85,9 @@ data class StoredDocument(
     /** F17: null is «General»; a shadow never has one. */
     val folderId: Long? = null,
     val folderName: String? = null,
+    /** F19: Text, Visual or Both; [pagesStored] counts its rows in `pages`. */
+    val indexMode: IndexMode = IndexMode.TEXT,
+    val pagesStored: Int = 0,
 )
 
 /** A Library row (F08 research R2): a document and the status of its reindex shadow, if it has one. */
