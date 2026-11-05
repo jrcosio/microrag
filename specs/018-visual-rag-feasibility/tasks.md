@@ -50,13 +50,13 @@ description: "Lista de tareas de F18 — Viabilidad del RAG visual"
 
 ## Phase 1: Setup
 
-- [ ] T001 Dependencias del escritorio:
+- [X] T001 Dependencias del escritorio:
   - `pypdfium2==5.14.0` y `pillow==12.3.0` en `offline/requirements.txt`;
   - instalarlas en `offline/.venv`;
   - registrar `EG2_440M` en `offline/eval/models.py`, con su SHA-256 y tamaño de `ModelCatalog.kt`;
   - enlazar `offline/models/embeddinggemma-2-text-vision-440m.litertlm`.
-- [ ] T002 [P] En `offline/tests/test_appconfig.py`, comprobar que `models.verify("EG2_440M")` resuelve el fichero enlazado con la huella de `ModelCatalog.kt`. `models.py` ya lee el catálogo, así que no se duplica nada. Ejecutar toda la batería de Python como línea base (181 pruebas).
-- [ ] T003 [P] Línea base de la app: `./gradlew :app:testDebugUnitTest :app:lintDebug` en verde (1.128 pruebas JVM) antes de tocar nada.
+- [X] T002 [P] En `offline/tests/test_appconfig.py`, comprobar que `models.verify("EG2_440M")` resuelve el fichero enlazado con la huella de `ModelCatalog.kt`. `models.py` ya lee el catálogo, así que no se duplica nada. Ejecutar toda la batería de Python como línea base (181 pruebas).
+- [X] T003 [P] Línea base de la app: `./gradlew :app:testDebugUnitTest :app:lintDebug` en verde (1.128 pruebas JVM) antes de tocar nada.
 
 ---
 
@@ -64,28 +64,28 @@ description: "Lista de tareas de F18 — Viabilidad del RAG visual"
 
 **Teléfono: el armazón del diagnóstico.**
 
-- [ ] T004 Pruebas de capas en `…/test/architecture/LayeringTest.kt` (contrato del diagnóstico §6, R3), que deben fallar:
+- [X] T004 Pruebas de capas en `…/test/architecture/LayeringTest.kt` (contrato del diagnóstico §6, R3), que deben fallar:
   - LiteRT-LM admitido también en `src/debug/java/…/rag/runtime/litert`, y `android.graphics.pdf` también en `src/debug/java/…/data/ingest`;
   - una regla nueva: ni `src/main` ni `src/release` contienen `debug.feasibility.visual`, y `VisualFeasibilityScreen.kt` existe en debug.
-- [ ] T005 [P] Interfaces y tipos en `…/debug/debug/feasibility/visual/VisualContracts.kt`: `VisionGenerator`, `VisionGeneration`, `ImageEmbedder`, `VisionModelInfo`, `VisionEngineFactory`, `PageRasterizer`, `ImageFormat` y `EncodedImage` (contrato del diagnóstico §1). Sin imports de LiteRT-LM ni de la API de PDF.
-- [ ] T006 [P] Protocolo en `…/debug/debug/feasibility/visual/VisualProtocol.kt`:
+- [X] T005 [P] Interfaces y tipos en `…/debug/debug/feasibility/visual/VisualContracts.kt`: `VisionGenerator`, `VisionGeneration`, `ImageEmbedder`, `VisionModelInfo`, `VisionEngineFactory`, `PageRasterizer`, `ImageFormat` y `EncodedImage` (contrato del diagnóstico §1). Sin imports de LiteRT-LM ni de la API de PDF.
+- [X] T006 [P] Protocolo en `…/debug/debug/feasibility/visual/VisualProtocol.kt`:
   - la etapa A de R4, con 25 combinaciones: páginas solas y mezcla con el contexto de D-034, 1–3 páginas × 70/140/280, trozos a 280 y la base sin imagen, con 3 repeticiones;
   - la etapa B: candidatas recibidas como parámetro, con las 20 preguntas de `contexts.json`;
   - repeticiones: generación 1 + 3 con 64 tokens de salida; embeddings y conversión 3 + 30;
   - resoluciones 768/1.024/1.536, calidad 85 y la tanda de 50 páginas de R14.
-- [ ] T007 [P] Pruebas JVM del informe en `…/testDebug/debug/feasibility/visual/VisualReportTest.kt`:
+- [X] T007 [P] Pruebas JVM del informe en `…/testDebug/debug/feasibility/visual/VisualReportTest.kt`:
   - esquema v1;
   - escritura atómica en JSON y Markdown;
   - el texto de las respuestas (`GEMMA_PAGES` y `READING`) y los vectores, solo en el JSON, nunca en el Markdown;
   - `charging` en cada escenario.
-- [ ] T008 Informe en `…/debug/debug/feasibility/visual/report/VisualReport.kt` y `VisualReportWriter.kt` (data-model §2.2), siguiendo `ReportWriter` de F02 (`filesDir/reports/visual-<ts>.{json,md}`). Hace pasar T007.
-- [ ] T009 [P] Pruebas JVM del conjunto del dispositivo en `…/testDebug/debug/feasibility/visual/DeviceSetLoaderTest.kt`:
+- [X] T008 Informe en `…/debug/debug/feasibility/visual/report/VisualReport.kt` y `VisualReportWriter.kt` (data-model §2.2), siguiendo `ReportWriter` de F02 (`filesDir/reports/visual-<ts>.{json,md}`). Hace pasar T007.
+- [X] T009 [P] Pruebas JVM del conjunto del dispositivo en `…/testDebug/debug/feasibility/visual/DeviceSetLoaderTest.kt`:
   - manifiesto válido;
   - un fichero con huella distinta queda fuera y se informa;
   - falta el manifiesto;
   - la carpeta no existe.
-- [ ] T010 Cargador en `…/debug/debug/feasibility/visual/DeviceSetLoader.kt`, que lee `getExternalFilesDir(null)/dev-visual/manifest.json` y verifica SHA-256 (data-model §2.1). Hace pasar T009.
-- [ ] T011 Pruebas JVM del núcleo de la suite en `…/testDebug/debug/feasibility/visual/VisualSuiteTest.kt`, con fakes de `VisionEngineFactory`, `PageRasterizer` y `EngineFactory` como `SuiteFixture` de F02:
+- [X] T010 Cargador en `…/debug/debug/feasibility/visual/DeviceSetLoader.kt`, que lee `getExternalFilesDir(null)/dev-visual/manifest.json` y verifica SHA-256 (data-model §2.1). Hace pasar T009.
+- [X] T011 Pruebas JVM del núcleo de la suite en `…/testDebug/debug/feasibility/visual/VisualSuiteTest.kt`, con fakes de `VisionEngineFactory`, `PageRasterizer` y `EngineFactory` como `SuiteFixture` de F02:
   - `releaseAll()` antes y después de cada escenario;
   - espera térmica y confirmación si el estado es «severo»;
   - un error en GPU da `NOT_AVAILABLE` y cualquier otro `FAILED`;
@@ -98,18 +98,18 @@ description: "Lista de tareas de F18 — Viabilidad del RAG visual"
   - estado de los modelos y del conjunto;
   - lanzar y cancelar;
   - `onStop` cancela, espera y libera.
-- [ ] T012 Núcleo de la suite en `…/debug/debug/feasibility/visual/VisualSuite.kt`: `run(blocks, confirmHot)`, el ejecutor de escenarios y el mapa de estados (contrato §2). Hace pasar T011. Los bloques se rellenan en sus historias.
-- [ ] T013 [P] Adaptadores de LiteRT-LM en `…/debug/rag/runtime/litert/LiteRtVisionEngines.kt` (R1, contrato §1):
+- [X] T012 Núcleo de la suite en `…/debug/debug/feasibility/visual/VisualSuite.kt`: `run(blocks, confirmHot)`, el ejecutor de escenarios y el mapa de estados (contrato §2). Hace pasar T011. Los bloques se rellenan en sus historias.
+- [X] T013 [P] Adaptadores de LiteRT-LM en `…/debug/rag/runtime/litert/LiteRtVisionEngines.kt` (R1, contrato §1):
   - `LiteRtVisionGenerator`: `EngineConfig` con `visionBackend = CPU` y `maxNumImages`; fija y restaura `ExperimentalFlags.visualTokenBudget` en la cola del LLM; `sendMessageAsync(Contents.of(ImageBytes…, Text))`, con el primer token y `BenchmarkInfo`;
   - `LiteRtImageEmbedder`: `EmbeddingEngineConfig` con `visionBackend = CPU` y `visionTokensPerImage`; `computeEmbedding(listOf(InputData.Image(bytes)), EmbeddingOptions(normalize = false, visionTokensPerImage = …))`;
   - `LiteRtVisionEngineFactory.modelInfo(path)`, con `ModelInfo.from(path)`.
 
   Sin texto en logcat.
-- [ ] T014 [P] Rasterizador en `…/debug/data/ingest/DebugPageRasterizer.kt` (R6):
+- [X] T014 [P] Rasterizador en `…/debug/data/ingest/DebugPageRasterizer.kt` (R6):
   - `PdfRenderer` sobre un `ARGB_8888` en blanco, escalado por el lado largo;
   - `ImageDecoder` con `setTargetSize`, EXIF y `ALLOCATOR_SOFTWARE`, y transparencias sobre blanco;
   - `Bitmap.compress` en `WEBP_LOSSY`, `JPEG` o `PNG`.
-- [ ] T015 Pantalla, ViewModel, estado y Koin:
+- [X] T015 Pantalla, ViewModel, estado y Koin:
   - `…/debug/debug/feasibility/visual/VisualFeasibility{Screen,ViewModel,UiState,Module}.kt`, con componentes `Lisdata*`, un botón por bloque, el estado de los modelos y del conjunto del dispositivo, el progreso y «Cancelar». Al pasar a segundo plano, cancela y libera, como F02;
   - textos en `app/src/debug/res/values/strings_feasibility.xml`;
   - entrada «Viabilidad visual» en `…/debug/debug/DebugEntries.kt` y el módulo en `DebugModules.kt`;
@@ -119,13 +119,13 @@ description: "Lista de tareas de F18 — Viabilidad del RAG visual"
 
 **Escritorio: lo común.**
 
-- [ ] T016 [P] Pruebas de Python en `offline/tests/test_vision_runtime.py`, `test_raster.py` y `test_photos.py`:
+- [X] T016 [P] Pruebas de Python en `offline/tests/test_vision_runtime.py`, `test_raster.py` y `test_photos.py`:
   - **presupuesto por `ctypes`:** con una librería falsa, se llama a `…set_visual_token_budget` con el valor y solo cuando se pide;
   - **`Contents` intercalado:** etiqueta, imagen y texto en orden;
   - **rasterizado:** píxeles por lado largo, fondo blanco, formatos, trozos con un 10 % de solape y caché;
   - **fotos simuladas:** misma semilla, mismos bytes, y recetas dentro de límites.
-- [ ] T017 Módulos `offline/eval/vision_runtime.py`, `raster.py` y `photos.py` (contrato del harness §2, R1, R7). Hacen pasar T016.
-- [ ] T018 Regla congelada, parte 1: `offline/config/visual_rules.json`, con `testset_sha256: null` y todas las claves de data-model §1.5:
+- [X] T017 Módulos `offline/eval/vision_runtime.py`, `raster.py` y `photos.py` (contrato del harness §2, R1, R7). Hacen pasar T016.
+- [X] T018 Regla congelada, parte 1: `offline/config/visual_rules.json`, con `testset_sha256: null` y todas las claves de data-model §1.5:
   - los umbrales de D-073 y D-075;
   - la fórmula compuesta y sus constantes (206,5 y 53,0 ms);
   - la etapa B;
@@ -218,7 +218,7 @@ description: "Lista de tareas de F18 — Viabilidad del RAG visual"
 
 **Independent Test**: `VisualSuiteTest` cubre la matriz con fakes, y en el teléfono el informe trae las cifras de cada combinación.
 
-- [ ] T038 [P] [US1] Pruebas JVM en `VisualSuiteTest`:
+- [X] T038 [P] [US1] Pruebas JVM en `VisualSuiteTest`:
   - `GEMMA_INFO` informa las modalidades y los backends;
   - **`GEMMA_PAGES`:**
     - recorre las 25 combinaciones de la etapa A, en el orden de v5-visual (etiqueta, imagen y texto);
@@ -226,7 +226,7 @@ description: "Lista de tareas de F18 — Viabilidad del RAG visual"
     - la visión en GPU se pide una vez y queda `NOT_AVAILABLE` si el fake la rechaza (FR-007);
   - un presupuesto mayor que el máximo del fichero da `NOT_SUPPORTED` sin cargar nada;
   - `GEMMA_PAGES` y `READING` guardan las respuestas solo en el JSON del informe, y nunca en el registro.
-- [ ] T039 [US1] Bloques `GEMMA_INFO`, `GEMMA_PAGES` y `READING` en `VisualSuite.kt`, con las páginas y el contexto del conjunto del dispositivo. Hacen pasar T038.
+- [X] T039 [US1] Bloques `GEMMA_INFO`, `GEMMA_PAGES` y `READING` en `VisualSuite.kt`, con las páginas y el contexto del conjunto del dispositivo. Hacen pasar T038.
 
 ---
 
@@ -236,15 +236,15 @@ description: "Lista de tareas de F18 — Viabilidad del RAG visual"
 
 **Independent Test**: `EmbeddingVariantGoldenTest` en el teléfono da ≥ 0,99 frente al golden y ≥ 0,9999 frente a la 270M.
 
-- [ ] T040 [P] [US2] Prueba instrumentada `…/androidTest/rag/runtime/EmbeddingVariantGoldenTest.kt` (`@RequiresModels`, R5):
+- [X] T040 [P] [US2] Prueba instrumentada `…/androidTest/rag/runtime/EmbeddingVariantGoldenTest.kt` (`@RequiresModels`, R5):
   - la 440M frente a `embedding_golden.jsonl` en CPU y en GPU (la GPU, omitida en el emulador), sin comprobar la huella del golden;
   - la identidad con la 270M en CPU;
   - antes de medir, las huellas de las dos variantes contra `ModelCatalog` (hallazgo M2);
   - sus cifras, en `filesDir/reports/variant-golden-<ts>.json` (hallazgo M3).
 
   Ampliar `testing/InstalledModels` si hace falta para la 440M.
-- [ ] T041 [P] [US2] Pruebas JVM en `VisualSuiteTest` de `EMBED_TEXT`: la carga en frío, la consulta y el fragmento con las dos variantes, con 3 + 30, los p50 y p95 de cada una, y el pico de memoria (FR-010).
-- [ ] T042 [US2] Bloque `EMBED_TEXT` en `VisualSuite.kt`, con el `EngineFactory` de `main` (`LiteRtTextEmbedder`) y el fichero de cada variante. Hace pasar T041.
+- [X] T041 [P] [US2] Pruebas JVM en `VisualSuiteTest` de `EMBED_TEXT`: la carga en frío, la consulta y el fragmento con las dos variantes, con 3 + 30, los p50 y p95 de cada una, y el pico de memoria (FR-010).
+- [X] T042 [US2] Bloque `EMBED_TEXT` en `VisualSuite.kt`, con el `EngineFactory` de `main` (`LiteRtTextEmbedder`) y el fichero de cada variante. Hace pasar T041.
 
 ---
 
@@ -254,10 +254,10 @@ description: "Lista de tareas de F18 — Viabilidad del RAG visual"
 
 **Independent Test**: con fakes, la suite produce los vectores y los cosenos. En el teléfono, `visual-parity` da ≥ 0,99 con los mismos bytes.
 
-- [ ] T043 [P] [US3] Pruebas JVM en `VisualSuiteTest`:
+- [X] T043 [P] [US3] Pruebas JVM en `VisualSuiteTest`:
   - **`EMBED_IMAGE`:** 70 y 140 tokens en CPU; la GPU pedida da `NOT_AVAILABLE` si el fake la rechaza; dimensión y norma a 256 y 512 con `EmbeddingMath`;
   - **`PARITY`:** vectores de 768 de cada imagen del manifiesto y de las páginas rasterizadas, solo en el JSON.
-- [ ] T044 [US3] Bloques `EMBED_IMAGE` y `PARITY` en `VisualSuite.kt`. Hacen pasar T043.
+- [X] T044 [US3] Bloques `EMBED_IMAGE` y `PARITY` en `VisualSuite.kt`. Hacen pasar T043.
 
 ---
 
@@ -267,15 +267,15 @@ description: "Lista de tareas de F18 — Viabilidad del RAG visual"
 
 **Independent Test**: `DebugPageRasterizerTest` pasa en los emuladores, y con fakes la suite da sus cifras.
 
-- [ ] T045 [P] [US4] Prueba instrumentada `…/androidTest/data/ingest/DebugPageRasterizerTest.kt`, sin modelos:
+- [X] T045 [P] [US4] Prueba instrumentada `…/androidTest/data/ingest/DebugPageRasterizerTest.kt`, sin modelos:
   - con los PDF de fixtures de F06 (`androidTest/assets/pdf`): páginas a 768 px por el lado largo, fondo blanco y WebP o JPEG decodificables;
   - con una imagen JPEG con EXIF girado y un PNG con transparencia, generados con `offline/gen_pdf_fixtures.py` (o un script hermano): quedan derechos y sobre blanco;
   - con `restricted.pdf` de las fixtures de F06, cifrado solo con contraseña de propietario: se abre o queda registrado (R8).
-- [ ] T046 [P] [US4] Pruebas JVM en `VisualSuiteTest`:
+- [X] T046 [P] [US4] Pruebas JVM en `VisualSuiteTest`:
   - `RASTER` cubre resolución × formato × orientación;
   - `IMAGE_DECODE` cubre las tres resoluciones;
   - `PROJECTION` informa por página, el estado térmico al principio, a la mitad y al final, y la proyección a 200 marcada como tal.
-- [ ] T047 [US4] Bloques `RASTER`, `IMAGE_DECODE` y `PROJECTION` en `VisualSuite.kt`. Hacen pasar T045 y T046.
+- [X] T047 [US4] Bloques `RASTER`, `IMAGE_DECODE` y `PROJECTION` en `VisualSuite.kt`. Hacen pasar T045 y T046.
 
 ---
 
@@ -285,10 +285,10 @@ description: "Lista de tareas de F18 — Viabilidad del RAG visual"
 
 **Independent Test**: las pruebas JVM y `LayeringTest` en verde, y `apkanalyzer` sin rastro de F18 en release.
 
-- [ ] T048 [P] [US7] Pruebas JVM en `VisualSuiteTest`:
+- [X] T048 [P] [US7] Pruebas JVM en `VisualSuiteTest`:
   - `EMBED_IMAGE` seguido de `GEMMA_PAGES` libera el embedder antes de cargar Gemma (`EngineCoordinator` real con fakes);
   - la cancelación llega en menos de 1 s fuera de la carga.
-- [ ] T049 [US7] Prueba instrumentada `…/androidTest/debug/feasibility/visual/VisualFeasibilityBenchmarkTest.kt` (`@RequiresModels`, contrato §4):
+- [X] T049 [US7] Prueba instrumentada `…/androidTest/debug/feasibility/visual/VisualFeasibilityBenchmarkTest.kt` (`@RequiresModels`, contrato §4):
   - lee `-e blocks`, responde `confirmHot = { false }` y escribe el informe;
   - en logcat, solo una línea de cifras por escenario.
 - [ ] T050 [US7] Verificación de release, como el checklist de F02:
