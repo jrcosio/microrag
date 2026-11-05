@@ -143,9 +143,13 @@ class FakeImportQueueRepository : com.lisdatasolutions.microrag.domain.ingest.Im
     /** F17: the destination of each import call, in order (null: «General»). */
     val destinations = mutableListOf<Long?>()
 
-    override fun import(uris: List<String>, folderId: Long?) {
+    /** F19: the selection's mode of each import call, in order. */
+    val modes = mutableListOf<com.lisdatasolutions.microrag.domain.rag.IndexMode>()
+
+    override fun import(uris: List<String>, folderId: Long?, indexMode: com.lisdatasolutions.microrag.domain.rag.IndexMode) {
         imported += uris
         destinations += folderId
+        modes += indexMode
     }
 
     override suspend fun retry(key: com.lisdatasolutions.microrag.domain.ingest.QueueKey) {

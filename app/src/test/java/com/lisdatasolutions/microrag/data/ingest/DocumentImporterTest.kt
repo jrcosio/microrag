@@ -5,6 +5,7 @@ import com.lisdatasolutions.microrag.domain.ingest.DocumentFormat
 import com.lisdatasolutions.microrag.domain.ingest.ImportLimits
 import com.lisdatasolutions.microrag.domain.ingest.IngestError
 import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
+import com.lisdatasolutions.microrag.domain.rag.IndexMode
 import com.lisdatasolutions.microrag.domain.rag.DocumentStatus
 import com.lisdatasolutions.microrag.testing.FakeDocumentSource
 import com.lisdatasolutions.microrag.testing.FakeFile
@@ -90,7 +91,86 @@ class DocumentImporterTest {
         assertThat(importer.detectFormat("sin extensión", "text/plain")).isEqualTo(DocumentFormat.TXT)
         assertThat(importer.detectFormat("sin extensión", "application/pdf")).isEqualTo(DocumentFormat.PDF)
         assertThat(importer.detectFormat("hoja.xlsx", "application/vnd.ms-excel")).isNull()
-        assertThat(importer.detectFormat("foto.jpg", "text/plain")).isNull()
+        // F19 research R10: JPG and PNG are known formats; whether they are accepted depends on the mode.
+        assertThat(importer.detectFormat("foto.jpg", "text/plain")).isEqualTo(DocumentFormat.JPEG)
+        assertThat(importer.detectFormat("Foto.JPEG", null)).isEqualTo(DocumentFormat.JPEG)
+        assertThat(importer.detectFormat("captura.png", null)).isEqualTo(DocumentFormat.PNG)
+        assertThat(importer.detectFormat("sin extensión", "image/png")).isEqualTo(DocumentFormat.PNG)
+        assertThat(importer.detectFormat("animación.gif", "image/gif")).isNull()
+    }
+
+    // F19 T028 (contract I1, analyze M3) and T034 (research R10).
+
+    private var modeOn = false
+    private val multimodalImporter = DocumentImporter(source, DocumentFileStore(dir), pdf, index, { free }, logger, multimodalOn = { modeOn })
+
+    private suspend fun importIn(uri: String, mode: IndexMode): ImportResult = multimodalImporter.import(uri, source.describe(uri), indexMode = mode)
+
+    @Test
+    fun withTheModeOn_aPdfKeepsTheSelectionsMode_andTextFilesStayText() = runTest {
+        modeOn = true
+        source.add("content://1", "plano.pdf", FakePdfOpener.pdf("uno", "dos"), "application/pdf")
+        source.add("content://2", "manual.pdf", FakePdfOpener.pdf("tres"), "application/pdf")
+        source.add("content://3", "notas.txt", "notas".toByteArray(), "text/plain")
+
+        val visual = (importIn("content://1", IndexMode.VISUAL) as ImportResult.Imported).documentId
+        val both = (importIn("content://2", IndexMode.BOTH) as ImportResult.Imported).documentId
+        val notes = (importIn("content://3", IndexMode.VISUAL) as ImportResult.Imported).documentId
+
+        assertThat(index.docs.getValue(visual).indexMode).isEqualTo(IndexMode.VISUAL)
+        assertThat(index.docs.getValue(visual).pageCount).isEqualTo(2)
+        assertThat(index.docs.getValue(both).indexMode).isEqualTo(IndexMode.BOTH)
+        assertThat(index.docs.getValue(notes).indexMode).isEqualTo(IndexMode.TEXT)
+    }
+
+    @Test
+    fun withTheModeOff_everythingIsText() = runTest {
+        source.add("content://1", "plano.pdf", FakePdfOpener.pdf("uno"), "application/pdf")
+
+        val id = (importIn("content://1", IndexMode.VISUAL) as ImportResult.Imported).documentId
+
+        assertThat(index.docs.getValue(id).indexMode).isEqualTo(IndexMode.TEXT)
+        // The importer of F06, without the mode, is the same.
+        source.add("content://2", "otro.pdf", FakePdfOpener.pdf("dos"), "application/pdf")
+        assertThat(index.docs.getValue((import("content://2") as ImportResult.Imported).documentId).indexMode).isEqualTo(IndexMode.TEXT)
+    }
+
+    @Test
+    fun withTheModeOn_imagesAreOneVisualPage() = runTest {
+        modeOn = true
+        source.add("content://1", "foto.jpg", byteArrayOf(1, 2, 3), "image/jpeg")
+        source.add("content://2", "captura.png", byteArrayOf(4, 5, 6), "image/png")
+        source.add("content://3", "copia.jpeg", byteArrayOf(1, 2, 3), "image/jpeg")
+
+        val jpg = (importIn("content://1", IndexMode.TEXT) as ImportResult.Imported).documentId
+        val png = (importIn("content://2", IndexMode.BOTH) as ImportResult.Imported).documentId
+
+        listOf(jpg to "image/jpeg", png to "image/png").forEach { (id, mime) ->
+            val document = index.docs.getValue(id)
+            assertThat(document.indexMode).isEqualTo(IndexMode.VISUAL)
+            assertThat(document.pageCount).isEqualTo(1)
+            assertThat(document.mimeType).isEqualTo(mime)
+            assertThat(File(document.localPath!!).isFile).isTrue()
+        }
+        // The same bytes are the same document (F06 rule).
+        assertThat(importIn("content://3", IndexMode.VISUAL)).isEqualTo(ImportResult.Rejected(IngestError.DUPLICATE))
+    }
+
+    @Test
+    fun withTheModeOff_imagesAreRefused_andNothingIsCopied() = runTest {
+        source.add("content://1", "foto.jpg", byteArrayOf(1, 2, 3), "image/jpeg")
+
+        assertThat(importIn("content://1", IndexMode.VISUAL)).isEqualTo(ImportResult.Rejected(IngestError.IMAGE_NEEDS_MULTIMODAL))
+        assertThat(index.docs).isEmpty()
+        assertThat(dir.walk().filter { it.isFile }.toList()).isEmpty()
+    }
+
+    @Test
+    fun anImageOverTheSizeLimit_isTooLarge() = runTest {
+        modeOn = true
+        source.add("content://1", "enorme.png", byteArrayOf(1), "image/png", size = ImportLimits.MAX_FILE_BYTES + 1)
+
+        assertThat(importIn("content://1", IndexMode.VISUAL)).isEqualTo(ImportResult.Rejected(IngestError.TOO_LARGE))
     }
 
     @Test

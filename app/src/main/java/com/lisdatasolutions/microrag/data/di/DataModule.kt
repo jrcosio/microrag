@@ -26,6 +26,9 @@ import com.lisdatasolutions.microrag.data.indexing.EmbeddingSessions
 import com.lisdatasolutions.microrag.data.indexing.IndexingAlarm
 import com.lisdatasolutions.microrag.data.indexing.IndexingNotifications
 import com.lisdatasolutions.microrag.data.indexing.IngestRunStore
+import com.lisdatasolutions.microrag.data.indexing.PageEmbeddingSession
+import com.lisdatasolutions.microrag.data.indexing.PageEmbeddingSessions
+import com.lisdatasolutions.microrag.data.ingest.AndroidPageRasterizer
 import com.lisdatasolutions.microrag.data.ingest.DefaultImportQueueRepository
 import com.lisdatasolutions.microrag.data.ingest.DocumentFileStore
 import com.lisdatasolutions.microrag.data.ingest.DocumentFiles
@@ -33,6 +36,7 @@ import com.lisdatasolutions.microrag.data.ingest.DocumentImporter
 import com.lisdatasolutions.microrag.data.ingest.DocumentSource
 import com.lisdatasolutions.microrag.data.ingest.IngestRunner
 import com.lisdatasolutions.microrag.data.ingest.IngestScheduler
+import com.lisdatasolutions.microrag.data.ingest.PageFileStore
 import com.lisdatasolutions.microrag.data.ingest.PlatformPdfOpener
 import com.lisdatasolutions.microrag.data.ingest.SafDocumentSource
 import com.lisdatasolutions.microrag.data.ingest.WorkManagerIngestScheduler
@@ -64,6 +68,7 @@ import com.lisdatasolutions.microrag.domain.model.NetworkKind
 import com.lisdatasolutions.microrag.domain.multimodal.IdentityChecker
 import com.lisdatasolutions.microrag.domain.multimodal.ModelRequirements
 import com.lisdatasolutions.microrag.domain.multimodal.MultimodalController
+import com.lisdatasolutions.microrag.domain.multimodal.MultimodalStage
 import com.lisdatasolutions.microrag.domain.multimodal.MultimodalStore
 import com.lisdatasolutions.microrag.domain.onboarding.DeviceResources
 import com.lisdatasolutions.microrag.domain.onboarding.ModelDownloadController
@@ -74,6 +79,7 @@ import com.lisdatasolutions.microrag.domain.rag.RagIndexConfig
 import com.lisdatasolutions.microrag.domain.retrieval.ContextRetriever
 import com.lisdatasolutions.microrag.domain.settings.AppThemeStore
 import com.lisdatasolutions.microrag.rag.ingest.DocumentExtractor
+import com.lisdatasolutions.microrag.rag.ingest.PageRasterizer
 import com.lisdatasolutions.microrag.rag.ingest.PdfOpener
 import com.lisdatasolutions.microrag.rag.runtime.MemoryTrimListener
 import java.io.File
@@ -158,7 +164,10 @@ val dataModule = module {
     single { DocumentFiles(get(), get(), get<AppDispatchers>().io, get()) }
     single<PdfOpener> { PlatformPdfOpener() }
     single<DocumentSource> { SafDocumentSource(androidContext().contentResolver) }
-    single { DocumentImporter(get(), get(), get(), get(), get<DeviceResources>()::freeBytes, get()) }
+    single {
+        val store = get<MultimodalStore>()
+        DocumentImporter(get(), get(), get(), get(), get<DeviceResources>()::freeBytes, get(), multimodalOn = { store.state.first().stage == MultimodalStage.ON })
+    }
     single<IngestScheduler> { WorkManagerIngestScheduler(WorkManager.getInstance(androidContext())) }
     single { DocumentExtractor(get()) }
 
@@ -185,9 +194,23 @@ val dataModule = module {
             textEmbedder = { requirements.current().textEmbedder },
         )
     }
+    // F19 research R9: the page phase, with the 440M's image engine on the CPU and the images in no-backup storage.
+    single { PageFileStore(get<AppDirs>().pages, get<AppDispatchers>().io) }
+    single<PageEmbeddingSessions> {
+        val models = get<ModelFileRepository>()
+        PageEmbeddingSession(
+            coordinator = get(),
+            factory = get(),
+            modelPath = { models.pathOf(ModelId.EG2_440M) ?: models.refresh().let { models.pathOf(ModelId.EG2_440M) } },
+            logger = get(),
+        )
+    }
+    single<PageRasterizer> { AndroidPageRasterizer() }
     single {
+        val store = get<MultimodalStore>()
+        val index = get<RagIndex>()
         IngestRunner(
-            index = get(),
+            index = index,
             extractor = get(),
             sessions = get(),
             runStore = get(),
@@ -195,6 +218,12 @@ val dataModule = module {
             freeBytes = get<DeviceResources>()::freeBytes,
             io = get<AppDispatchers>().io,
             logger = get(),
+            pages = IngestRunner.PagePhase(
+                sessions = get(),
+                rasterizer = get(),
+                files = get(),
+                enabled = { store.state.first().stage == MultimodalStage.ON && index.pagesUsable.value },
+            ),
         )
     }
     single<IndexingRepository> {

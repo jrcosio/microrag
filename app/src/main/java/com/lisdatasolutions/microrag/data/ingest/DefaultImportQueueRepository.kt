@@ -16,6 +16,7 @@ import com.lisdatasolutions.microrag.domain.ingest.QueueKey
 import com.lisdatasolutions.microrag.domain.library.DeleteDocumentUseCase
 import com.lisdatasolutions.microrag.domain.rag.DocumentStatus
 import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
+import com.lisdatasolutions.microrag.domain.rag.IndexMode
 import com.lisdatasolutions.microrag.domain.rag.RagIndex
 import com.lisdatasolutions.microrag.domain.rag.StoredDocument
 import com.lisdatasolutions.microrag.rag.ingest.PdfOpener
@@ -76,9 +77,11 @@ class DefaultImportQueueRepository(
         val registeredAt: Long? = null,
         /** F17 (M3): the destination chosen with the files; a retry keeps it. */
         val folderId: Long? = null,
+        /** F19 (contract I1): the selection's mode; a retry keeps it. */
+        val indexMode: IndexMode = IndexMode.TEXT,
     )
 
-    private data class Pending(val attemptId: String, val uri: String, val info: SourceInfo, val folderId: Long?)
+    private data class Pending(val attemptId: String, val uri: String, val info: SourceInfo, val folderId: Long?, val indexMode: IndexMode)
 
     /**
      * [stored] counts chunks of documents being embedded, for «Indexando · N de M» (F07 index-ui §Ingesta);
@@ -123,7 +126,7 @@ class DefaultImportQueueRepository(
         )
     }
 
-    override fun import(uris: List<String>, folderId: Long?) {
+    override fun import(uris: List<String>, folderId: Long?, indexMode: IndexMode) {
         if (uris.isEmpty()) return
         scope.launch(io) {
             for (uri in uris) {
@@ -140,9 +143,10 @@ class DefaultImportQueueRepository(
                         QueueItemState.Importing(0, info.sizeBytes)
                     },
                     folderId = folderId,
+                    indexMode = indexMode,
                 )
                 attempts.update { list -> list.filterNot { it.registeredAt != null } + attempt }
-                if (info != null) submit(Pending(attempt.id, uri, info, folderId))
+                if (info != null) submit(Pending(attempt.id, uri, info, folderId, indexMode))
             }
         }
     }
@@ -159,7 +163,7 @@ class DefaultImportQueueRepository(
                     return
                 }
                 updateAttempt(attempt.id) { it.copy(state = QueueItemState.Importing(0, info.sizeBytes), sizeBytes = info.sizeBytes) }
-                submit(Pending(attempt.id, attempt.uri, info, attempt.folderId))
+                submit(Pending(attempt.id, attempt.uri, info, attempt.folderId, attempt.indexMode))
             }
             is QueueKey.Document -> indexing.retry(key.id)
         }
@@ -200,7 +204,7 @@ class DefaultImportQueueRepository(
 
     private suspend fun runImport(job: Pending) {
         var lastUpdate = 0L
-        val result = importer.import(job.uri, job.info, job.folderId) { copied, total ->
+        val result = importer.import(job.uri, job.info, job.folderId, job.indexMode) { copied, total ->
             val now = clock()
             if (now - lastUpdate >= PROGRESS_INTERVAL_MS || (total != null && copied >= total)) {
                 lastUpdate = now

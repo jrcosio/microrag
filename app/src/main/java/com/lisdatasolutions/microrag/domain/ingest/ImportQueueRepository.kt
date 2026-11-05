@@ -1,5 +1,6 @@
 package com.lisdatasolutions.microrag.domain.ingest
 
+import com.lisdatasolutions.microrag.domain.rag.IndexMode
 import kotlinx.coroutines.flow.Flow
 
 /** The import queue (F06 contracts/ingest-api.md). */
@@ -9,9 +10,10 @@ interface ImportQueueRepository {
 
     /**
      * Starts importing [uris] (strings from the system picker) one by one, in the application scope, into
-     * [folderId] (null: «General»), fixed for each attempt as it is chosen (F17 contract F6, M3).
+     * [folderId] (null: «General»), fixed for each attempt as it is chosen (F17 contract F6, M3). F19 (contract
+     * I1): [indexMode] is the selection's, kept by a retry; it only counts for a PDF with the multimodal mode on.
      */
-    fun import(uris: List<String>, folderId: Long? = null)
+    fun import(uris: List<String>, folderId: Long? = null, indexMode: IndexMode = IndexMode.TEXT)
 
     /** Retries a failed attempt from its URI, or puts a failed document back in the processing queue. */
     suspend fun retry(key: QueueKey)

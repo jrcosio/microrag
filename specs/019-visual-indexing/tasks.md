@@ -221,7 +221,7 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
 
 ### Pruebas
 
-- [ ] T027 [P] [US2] `…/test/…/data/ingest/IngestRunnerPagesTest.kt`, con un rasterizador y un embedder de imagen falsos:
+- [X] T027 [P] [US2] `…/test/…/data/ingest/IngestRunnerPagesTest.kt`, con un rasterizador y un embedder de imagen falsos:
   - Visual: sin fragmentos, todas las páginas y `done`;
   - Ambos: fragmentos y páginas, y `done` solo con los dos completos;
   - Texto: exactamente como hoy;
@@ -229,7 +229,7 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
   - ficheros escritos con `.part` y renombrados;
   - los vectores truncados a 256 y normalizados;
   - el LLM liberado y nunca dos engines a la vez.
-- [ ] T028 [P] [US2] `…/test/…/data/ingest/DocumentImporterTest.kt` (I1): el modo de la selección se registra en cada PDF solo con `ON`; sin `ON`, todo en `TEXT`.
+- [X] T028 [P] [US2] `…/test/…/data/ingest/DocumentImporterTest.kt` (I1): el modo de la selección se registra en cada PDF solo con `ON`; sin `ON`, todo en `TEXT`.
 - [ ] T029 [P] [US2] `…/test/…/feature/ingest/IngestViewModelTest.kt` e `IngestScreenTest` (U8–U10):
   - la fila «Modo de los PDF» solo con `ON`;
   - la hoja;
@@ -239,9 +239,9 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
 
 ### Implementación
 
-- [ ] T030 [US2] `…/microrag/data/ingest/PageFileStore.kt` (I6) y `…/microrag/data/indexing/PageEmbeddingSession.kt` (I3), cableados en `DataModule`.
-- [ ] T031 [US2] Fase de páginas en `…/microrag/data/ingest/IngestRunner.kt` (I2, R9). T027 pasa.
-- [ ] T032 [US2] Modo en la importación (analyze, M3): `ImportQueueRepository.import(uris, folderId, indexMode)`, el `Pending` y el `retry` de `DefaultImportQueueRepository`, que conservan el modo, y `DocumentImporter.import(uri, info, folderId, indexMode)`. T028 pasa.
+- [X] T030 [US2] `…/microrag/data/ingest/PageFileStore.kt` (I6) y `…/microrag/data/indexing/PageEmbeddingSession.kt` (I3), cableados en `DataModule`.
+- [X] T031 [US2] Fase de páginas en `…/microrag/data/ingest/IngestRunner.kt` (I2, R9). T027 pasa.
+- [X] T032 [US2] Modo en la importación (analyze, M3): `ImportQueueRepository.import(uris, folderId, indexMode)`, el `Pending` y el `retry` de `DefaultImportQueueRepository`, que conservan el modo, y `DocumentImporter.import(uri, info, folderId, indexMode)`. T028 pasa.
 - [ ] T033 [US2] Ingesta, según el wireframe §5 y §8: `…/microrag/feature/ingest/IndexModeSheet.kt`, `IngestScreen` e `IngestViewModel`; la cola, con el progreso en páginas y la estimación. T029 pasa.
 - [ ] T058 [US2] Indexación y notificación, según el wireframe §8 (U15–U17, analyze, H1 y C1):
   - la etapa «Imágenes de página» y el anillo en páginas, en `…/microrag/feature/indexing/{IndexTexts,IndexScreen}.kt` y `…/microrag/domain/indexing/IndexingModels.kt`;
@@ -262,12 +262,12 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
 
 ### Pruebas
 
-- [ ] T034 [P] [US3] `DocumentImporterTest`:
+- [X] T034 [P] [US3] `DocumentImporterTest`:
   - `jpg`, `jpeg` y `png` aceptados con `ON`, siempre en `VISUAL` y con `page_count = 1`;
   - rechazados sin `ON`, con `IMAGE_NEEDS_MULTIMODAL`;
   - duplicados por huella;
   - el límite de tamaño.
-- [ ] T035 [P] [US3] `IngestRunnerPagesTest`:
+- [X] T035 [P] [US3] `IngestRunnerPagesTest`:
   - un PDF sin texto en Ambos queda solo con páginas, sin error;
   - en Texto sigue en `NO_TEXT`;
   - una imagen ilegible da `IMAGE_UNREADABLE`.

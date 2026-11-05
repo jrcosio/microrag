@@ -7,6 +7,7 @@ import com.lisdatasolutions.microrag.data.device.ThermalStatusSource
 import com.lisdatasolutions.microrag.data.indexing.ChunkEmbedder
 import com.lisdatasolutions.microrag.data.indexing.EmbeddingSessions
 import com.lisdatasolutions.microrag.data.indexing.IngestRunStore
+import com.lisdatasolutions.microrag.data.indexing.PageEmbeddingSessions
 import com.lisdatasolutions.microrag.data.indexing.RunPauseCause
 import com.lisdatasolutions.microrag.domain.ingest.DocumentFormat
 import com.lisdatasolutions.microrag.domain.ingest.ImportLimits
@@ -16,18 +17,25 @@ import com.lisdatasolutions.microrag.domain.model.ComputeBackend
 import com.lisdatasolutions.microrag.domain.rag.ChunkInput
 import com.lisdatasolutions.microrag.domain.rag.DocumentStatus
 import com.lisdatasolutions.microrag.domain.rag.DocumentTitle
+import com.lisdatasolutions.microrag.domain.rag.IndexMode
 import com.lisdatasolutions.microrag.domain.rag.IndexStorageFullException
+import com.lisdatasolutions.microrag.domain.rag.PageInput
+import com.lisdatasolutions.microrag.domain.rag.PageSpace
 import com.lisdatasolutions.microrag.domain.rag.RagIndex
 import com.lisdatasolutions.microrag.domain.rag.RagParameters
 import com.lisdatasolutions.microrag.domain.rag.StoredDocument
 import com.lisdatasolutions.microrag.rag.ingest.Chunk
 import com.lisdatasolutions.microrag.rag.ingest.Chunker
 import com.lisdatasolutions.microrag.rag.ingest.DocumentExtractor
+import com.lisdatasolutions.microrag.rag.ingest.EncodedImage
+import com.lisdatasolutions.microrag.rag.ingest.ImageFormat
 import com.lisdatasolutions.microrag.rag.ingest.PdfDamagedException
 import com.lisdatasolutions.microrag.rag.ingest.PdfEncryptedException
+import com.lisdatasolutions.microrag.rag.ingest.PageRasterizer
 import com.lisdatasolutions.microrag.rag.ingest.PdfUnavailableException
 import com.lisdatasolutions.microrag.rag.runtime.EmbeddingEngineException
 import com.lisdatasolutions.microrag.rag.runtime.EmbeddingInputTooLongException
+import com.lisdatasolutions.microrag.rag.runtime.EmbeddingMath
 import java.io.File
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.cancellation.CancellationException
@@ -60,6 +68,11 @@ import kotlinx.coroutines.withTimeoutOrNull
  *   resumed document goes on where it stopped. A document becomes `done` only when all its chunks are
  *   stored, so searches never see it half indexed.
  *
+ * - **Pages** (F19 research R9): a document in Visual or Both mode gets one image and one vector per page after
+ *   its text, on the 440M's image engine, which never shares the run with the text one. Each page is its own
+ *   checkpoint, and the document becomes `done` with its chunks and all its pages. With the multimodal mode off,
+ *   those documents wait (analyze M5) while the text ones go on.
+ *
  * Heat, a full disk, a missing model and the user's pause stop it safely; errors stay per document.
  */
 class IngestRunner(
@@ -74,7 +87,20 @@ class IngestRunner(
     private val newChunker: () -> Chunker = { Chunker() },
     private val clock: () -> Long = SystemClock::elapsedRealtime,
     private val progressIntervalMs: Long = PROGRESS_INTERVAL_MS,
+    /** F19: the page phase; without it, documents with pages wait as with the mode off. */
+    private val pages: PagePhase? = null,
 ) {
+
+    /** What the page phase needs (F19 contracts I2–I6). */
+    class PagePhase(
+        val sessions: PageEmbeddingSessions,
+        val rasterizer: PageRasterizer,
+        val files: PageFileStore,
+        /** The multimodal mode is ON and the index's page keys match this app (contract E3). */
+        val enabled: suspend () -> Boolean,
+    )
+
+    private suspend fun pagesOn(): Boolean = pages?.enabled?.invoke() == true
 
     private sealed interface Outcome {
         data class Parsed(val chunks: Int, val skippedPages: Int?) : Outcome
@@ -125,11 +151,23 @@ class IngestRunner(
                 logger.i(TAG) { "ingest paused: embedding model missing" }
                 return
             }
-            while (nextToEmbed() != null) {
+            while (true) {
+                val next = nextToEmbed() ?: break
                 rate.reset()
                 current = null
                 try {
-                    sessions.use { embedder -> embedAll(embedder) }
+                    if (next.indexMode.hasPages && textDone(next)) {
+                        // The text engine is released by now: the image one never runs beside it (research R9).
+                        val phase = checkNotNull(pages)
+                        if (!phase.sessions.modelReady()) {
+                            runStore.edit { it.pausedBy(RunPauseCause.MODEL_MISSING) }
+                            logger.i(TAG) { "ingest paused: page model missing" }
+                            return
+                        }
+                        embedPages(next, phase)
+                    } else {
+                        sessions.use { embedder -> embedAll(embedder) }
+                    }
                 } catch (e: TooHot) {
                     waitForCooling()
                 } catch (e: NoSpace) {
@@ -148,9 +186,10 @@ class IngestRunner(
         private suspend fun members(): List<Long> = (requested + runStore.run.first().documentIds).distinct()
 
         private suspend fun parsePending() {
+            val pagesOn = pagesOn()
             for (id in members()) {
                 coroutineContext.ensureActive()
-                parse(id, progress)
+                parse(id, progress, pagesOn)
             }
         }
 
@@ -162,15 +201,30 @@ class IngestRunner(
             return elsewhere to total
         }
 
-        private suspend fun nextToEmbed(): StoredDocument? = members().firstNotNullOfOrNull { id ->
-            index.document(id)?.takeIf { it.status == DocumentStatus.PARSED || it.status == DocumentStatus.EMBEDDING }
+        /** Analyze M5: with the mode off, a document with pages waits; the text ones of the run go on. */
+        private suspend fun nextToEmbed(): StoredDocument? {
+            val pagesOn = pagesOn()
+            return members().firstNotNullOfOrNull { id ->
+                index.document(id)?.takeIf {
+                    (it.status == DocumentStatus.PARSED || it.status == DocumentStatus.EMBEDDING) && (pagesOn || !it.indexMode.hasPages)
+                }
+            }
         }
 
+        /** Its chunks are all stored, or it has none to store (Visual, or Both without text). */
+        private suspend fun textDone(document: StoredDocument): Boolean {
+            if (!document.indexMode.hasText) return true
+            val expected = document.chunkCount ?: return false
+            return expected == 0 || index.storedChunkCounts(listOf(document.id)).getValue(document.id) == expected
+        }
+
+        /** Embeds the text of the run's documents, and leaves the session before one whose pages come next. */
         private suspend fun embedAll(embedder: ChunkEmbedder) {
             while (true) {
                 if (runStore.run.first().paused) return
                 parsePending()
                 val document = nextToEmbed() ?: return
+                if (document.indexMode.hasPages && textDone(document)) return
                 embedDocument(document, embedder, restarted = false)
             }
         }
@@ -271,9 +325,11 @@ class IngestRunner(
             val stored = index.storedChunkCounts(listOf(id)).getValue(id)
             when {
                 produced == 0 || stored != produced -> fail(id, IngestError.INCOMPLETE)
+                // F19 research R9: its pages come next, in their own session; done only with them.
+                document.indexMode.hasPages -> logger.i(TAG) { "ingest text done id=$id chunks=$produced; pages next" }
                 // F08 rule L7: a reindex shadow replaces its original's chunks, never becomes a document of its own.
                 document.replacesId != null -> {
-                    val published = index.publishReindex(id)
+                    val published = publish(document)
                     if (published == null) {
                         logger.i(TAG) { "ingest reindex gone id=$id" }
                     } else {
@@ -283,6 +339,129 @@ class IngestRunner(
                 else -> {
                     index.updateStatus(id, DocumentStatus.DONE, chunkCount = produced)
                     logger.i(TAG) { "ingest done id=$id chunks=$produced cuts=$cuts backend=$backend in ${clock() - started} ms" }
+                }
+            }
+        }
+
+        /**
+         * F08 rule L7 with F19's pages (research R11): the shadow's chunks and pages replace the original's, and the
+         * original's old images are deleted after the transaction.
+         */
+        private suspend fun publish(shadow: StoredDocument): Int? {
+            val original = checkNotNull(shadow.replacesId)
+            val before = index.pageFiles(original).toSet()
+            val published = index.publishReindex(shadow.id) ?: return null
+            pages?.files?.delete(before - index.pageFiles(original).toSet())
+            return published
+        }
+
+        /** F19 research R9: the missing pages of [document], one image, vector and row at a time. */
+        private suspend fun embedPages(document: StoredDocument, phase: PagePhase) {
+            val id = document.id
+            current = id
+            val format = DocumentFormat.fromMime(document.mimeType)
+            val file = document.localPath?.let(::File)
+            if (format == null || file == null || !file.isFile) {
+                fail(id, IngestError.EXTRACTION_FAILED)
+                return
+            }
+            if (document.status != DocumentStatus.EMBEDDING) index.updateStatus(id, DocumentStatus.EMBEDDING)
+            val stored = index.storedPages(id)
+            val chunks = index.storedChunkCounts(listOf(id)).getValue(id)
+            val (storedElsewhere, runTotal) = runCounts(id)
+            val pageRate = PageRate()
+            val started = clock()
+            var total = document.pageCount ?: if (format.isImage) 1 else null
+            var done = stored.size
+
+            fun report(waiting: IngestProgress.WaitReason? = null) = IngestProgress(
+                id, IngestProgress.Stage.PAGES, chunksDone = chunks, chunksTotal = document.chunkCount,
+                backend = ComputeBackend.CPU, waiting = waiting, runChunksDone = storedElsewhere + chunks, runChunksTotal = runTotal,
+                pagesDone = done, pagesTotal = total, pagesPerMinute = pageRate.perMinute(),
+            )
+
+            try {
+                val pageCount = total ?: withContext(io) { phase.rasterizer.pageCount(file) }.also { total = it }
+                logger.i(TAG) { "ingest pages id=$id stored=${stored.size} total=$pageCount" }
+                progress.now(report())
+                phase.sessions.use { embedder ->
+                    for (page in 1..pageCount) {
+                        if (page in stored) continue
+                        coroutineContext.ensureActive()
+                        if (heat.value == ThermalLevel.SEVERE_OR_WORSE) {
+                            progress.now(report(IngestProgress.WaitReason.THERMAL))
+                            throw TooHot()
+                        }
+                        if (freeBytes() < ImportLimits.SPACE_MARGIN_BYTES + PAGE_SPACE_BYTES) throw NoSpace()
+                        if (index.document(id)?.status != DocumentStatus.EMBEDDING) throw DocumentGone()
+                        val image = withContext(io) {
+                            if (format.isImage) {
+                                phase.rasterizer.scaleImage(file, PageSpace.PX, ImageFormat.JPEG, PageSpace.JPEG_QUALITY)
+                            } else {
+                                phase.rasterizer.renderPage(file, page, PageSpace.PX, ImageFormat.JPEG, PageSpace.JPEG_QUALITY)
+                            }
+                        }
+                        val vector = EmbeddingMath.truncateAndNormalize(embedder.embed(image.bytes))
+                        storePage(phase, document, page, image, vector)
+                        done++
+                        pageRate.stored()
+                        progress.offer(report())
+                    }
+                }
+            } catch (e: DocumentGone) {
+                return
+            } catch (e: PdfEncryptedException) {
+                fail(id, IngestError.ENCRYPTED)
+                return
+            } catch (e: PdfDamagedException) {
+                fail(id, IngestError.DAMAGED)
+                return
+            } catch (e: PdfUnavailableException) {
+                fail(id, IngestError.PDF_UNAVAILABLE)
+                return
+            } catch (e: java.io.IOException) {
+                fail(id, if (format.isImage) IngestError.IMAGE_UNREADABLE else IngestError.EXTRACTION_FAILED)
+                return
+            }
+            closePages(id, total ?: 0, started)
+        }
+
+        private suspend fun storePage(phase: PagePhase, document: StoredDocument, page: Int, image: EncodedImage, vector: FloatArray) {
+            val name = PageFileStore.nameOf(document.contentHash, page)
+            val input = PageInput(page, name, image.widthPx, image.heightPx, image.bytes.size.toLong(), vector)
+            try {
+                phase.files.write(name, image.bytes) { index.insertPage(document.id, input) }
+            } catch (e: IndexStorageFullException) {
+                throw NoSpace()
+            } catch (e: IllegalArgumentException) {
+                throw DocumentGone()
+            } catch (e: java.io.IOException) {
+                // The image could not be written: the disk is full or failing.
+                throw NoSpace()
+            }
+        }
+
+        /** Done with all its chunks and all its pages; a shadow is published instead (F08 rule L7). */
+        private suspend fun closePages(id: Long, total: Int, started: Long) {
+            val document = index.document(id)?.takeIf { it.status == DocumentStatus.EMBEDDING } ?: return
+            val stored = index.storedPages(id).size
+            val chunks = index.storedChunkCounts(listOf(id)).getValue(id)
+            progress.now(
+                IngestProgress(
+                    id, IngestProgress.Stage.CLOSING, chunksDone = chunks, chunksTotal = chunks, backend = ComputeBackend.CPU,
+                    pagesDone = stored, pagesTotal = total,
+                ),
+            )
+            when {
+                total == 0 || stored != total -> fail(id, IngestError.INCOMPLETE)
+                document.indexMode.hasText && chunks != (document.chunkCount ?: 0) -> fail(id, IngestError.INCOMPLETE)
+                document.replacesId != null -> {
+                    val published = publish(document)
+                    logger.i(TAG) { "ingest reindex ${if (published == null) "gone" else "published"} id=$id pages=$stored in ${clock() - started} ms" }
+                }
+                else -> {
+                    index.updateStatus(id, DocumentStatus.DONE, chunkCount = chunks)
+                    logger.i(TAG) { "ingest done id=$id chunks=$chunks pages=$stored in ${clock() - started} ms" }
                 }
             }
         }
@@ -333,10 +512,19 @@ class IngestRunner(
         }
     }
 
-    /** Phase 1 for one document, exactly as F06 does it (research R7). */
-    private suspend fun parse(id: Long, progress: Progress) {
+    /**
+     * Phase 1 for one document, exactly as F06 does it (research R7). F19: a document with pages waits while the
+     * mode is off; a Visual one has no text to extract; a Both one without text goes on with its pages (FR-011).
+     */
+    private suspend fun parse(id: Long, progress: Progress, pagesOn: Boolean) {
         val document = index.document(id) ?: return
         if (document.status != DocumentStatus.PENDING) return
+        if (document.indexMode.hasPages && !pagesOn) return
+        if (document.indexMode == IndexMode.VISUAL) {
+            index.updateStatus(id, DocumentStatus.PARSED, chunkCount = 0)
+            logger.i(TAG) { "ingest parsed id=$id visual pages=${document.pageCount}" }
+            return
+        }
         val started = clock()
         val format = DocumentFormat.fromMime(document.mimeType)
         val file = document.localPath?.let(::File)
@@ -344,7 +532,9 @@ class IngestRunner(
             Outcome.Failed(IngestError.EXTRACTION_FAILED)
         } else {
             progress.now(IngestProgress(id, IngestProgress.Stage.EXTRACTING, page = 0, pages = document.pageCount))
-            count(id, file, format, progress)
+            count(id, file, format, progress).let {
+                if (document.indexMode == IndexMode.BOTH && it == Outcome.Failed(IngestError.NO_TEXT)) Outcome.Parsed(0, null) else it
+            }
         }
         // Removed or retried meanwhile: nothing to write (F06 contracts I7).
         if (index.document(id)?.status != DocumentStatus.PENDING) return
@@ -489,9 +679,27 @@ class IngestRunner(
         }
     }
 
+    /** Pages per minute of the current document, once two pages are stored. */
+    private inner class PageRate {
+        private val times = ArrayList<Long>()
+
+        fun stored() {
+            times += clock()
+        }
+
+        fun perMinute(): Double? {
+            if (times.size < 2) return null
+            val ms = times.last() - times.first()
+            return if (ms > 0) (times.size - 1) * 60_000.0 / ms else null
+        }
+    }
+
     companion object {
         /** Chunks stored per transaction (FR-014). */
         const val BATCH = 64
+
+        /** Research R14: the room checked for each page image, on top of the margin. */
+        const val PAGE_SPACE_BYTES = 250L * 1024
         private const val TAG = "MicroRAG"
         private const val PROGRESS_INTERVAL_MS = 250L
         private const val CHANNEL_CAPACITY = 16

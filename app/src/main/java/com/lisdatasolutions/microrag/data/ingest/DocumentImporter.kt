@@ -6,6 +6,7 @@ import com.lisdatasolutions.microrag.domain.ingest.ImportLimits
 import com.lisdatasolutions.microrag.domain.ingest.IngestError
 import com.lisdatasolutions.microrag.domain.rag.DuplicateDocumentException
 import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
+import com.lisdatasolutions.microrag.domain.rag.IndexMode
 import com.lisdatasolutions.microrag.domain.rag.IndexUnavailableException
 import com.lisdatasolutions.microrag.domain.rag.NewDocument
 import com.lisdatasolutions.microrag.domain.rag.RagIndex
@@ -41,6 +42,8 @@ class DocumentImporter(
     private val index: RagIndex,
     private val freeBytes: () -> Long,
     private val logger: AppLogger,
+    /** F19 (contract I1): the multimodal mode is ON, so images are accepted and a PDF keeps its chosen mode. */
+    private val multimodalOn: suspend () -> Boolean = { false },
 ) {
 
     /** Extension first; only a name without extension falls back to the provider's MIME type (research R4). */
@@ -50,14 +53,16 @@ class DocumentImporter(
         return if (hasExtension) EXTENSIONS[extension] else MIME_TYPES[mimeType?.lowercase()]
     }
 
+    /** F19: [indexMode] is the selection's; it only counts for a PDF with the mode ON, and an image is always Visual. */
     suspend fun import(
         uri: String,
         info: SourceInfo,
         folderId: Long? = null,
+        indexMode: IndexMode = IndexMode.TEXT,
         onProgress: (copied: Long, total: Long?) -> Unit = { _, _ -> },
     ): ImportResult {
         val result = try {
-            importChecked(uri, info, folderId, onProgress)
+            importChecked(uri, info, folderId, indexMode, onProgress)
         } catch (e: Rejection) {
             ImportResult.Rejected(e.error)
         } catch (e: IndexUnavailableException) {
@@ -76,8 +81,22 @@ class DocumentImporter(
         return result
     }
 
-    private suspend fun importChecked(uri: String, info: SourceInfo, folderId: Long?, onProgress: (Long, Long?) -> Unit): ImportResult {
+    private suspend fun importChecked(
+        uri: String,
+        info: SourceInfo,
+        folderId: Long?,
+        indexMode: IndexMode,
+        onProgress: (Long, Long?) -> Unit,
+    ): ImportResult {
         val format = detectFormat(info.displayName, info.mimeType) ?: reject(IngestError.UNSUPPORTED_FORMAT)
+        // F19 research R10: without the mode the app is as before, so an image is not accepted and a PDF is Text.
+        val on = multimodalOn()
+        if (format.isImage && !on) reject(IngestError.IMAGE_NEEDS_MULTIMODAL)
+        val mode = when {
+            format.isImage -> IndexMode.VISUAL
+            format == DocumentFormat.PDF && on -> indexMode
+            else -> IndexMode.TEXT
+        }
         if (index.open() != IndexCompatibility.Compatible) reject(IngestError.INDEX_UNAVAILABLE)
         info.sizeBytes?.let { size ->
             if (size > ImportLimits.MAX_FILE_BYTES) reject(IngestError.TOO_LARGE)
@@ -105,6 +124,7 @@ class DocumentImporter(
                             pageCount = pages,
                             localPath = final.absolutePath,
                             folderId = folderId,
+                            indexMode = mode,
                         ),
                     ),
                 )
@@ -231,12 +251,18 @@ class DocumentImporter(
             "txt" to DocumentFormat.TXT,
             "md" to DocumentFormat.MARKDOWN,
             "markdown" to DocumentFormat.MARKDOWN,
+            // F19 research R10: accepted only with the multimodal mode on.
+            "jpg" to DocumentFormat.JPEG,
+            "jpeg" to DocumentFormat.JPEG,
+            "png" to DocumentFormat.PNG,
         )
         val MIME_TYPES = mapOf(
             "application/pdf" to DocumentFormat.PDF,
             "text/plain" to DocumentFormat.TXT,
             "text/markdown" to DocumentFormat.MARKDOWN,
             "text/x-markdown" to DocumentFormat.MARKDOWN,
+            "image/jpeg" to DocumentFormat.JPEG,
+            "image/png" to DocumentFormat.PNG,
         )
     }
 }

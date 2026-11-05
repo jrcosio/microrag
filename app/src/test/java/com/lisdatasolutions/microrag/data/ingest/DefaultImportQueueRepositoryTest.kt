@@ -13,6 +13,7 @@ import com.lisdatasolutions.microrag.domain.ingest.QueueKey
 import com.lisdatasolutions.microrag.domain.rag.ChunkInput
 import com.lisdatasolutions.microrag.domain.rag.DocumentStatus
 import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
+import com.lisdatasolutions.microrag.domain.rag.IndexMode
 import com.lisdatasolutions.microrag.domain.rag.NewDocument
 import com.lisdatasolutions.microrag.testing.FakeDocumentSource
 import com.lisdatasolutions.microrag.testing.FakeFile
@@ -56,9 +57,12 @@ class DefaultImportQueueRepositoryTest {
         dir.deleteRecursively()
     }
 
+    /** F19: the multimodal mode as the importer sees it. */
+    private var modeOn = false
+
     private fun TestScope.repository(deleteDocument: DeleteDocumentUseCase? = null): DefaultImportQueueRepository {
         val dispatcher = UnconfinedTestDispatcher(testScheduler)
-        val importer = DocumentImporter(source, files, pdf, index, { Long.MAX_VALUE / 2 }, logger)
+        val importer = DocumentImporter(source, files, pdf, index, { Long.MAX_VALUE / 2 }, logger, multimodalOn = { modeOn })
         val indexing = DefaultIndexingRepository(index, scheduler, runStore, FakeThermalStatusSource(), dispatcher, logger)
         val documentFiles = DocumentFiles(files, index, dispatcher, logger)
         val delete = deleteDocument ?: DeleteDocumentUseCase(DefaultLibraryRepository(index, documentFiles, runStore, indexing, dispatcher, logger) { 0L })
@@ -480,6 +484,25 @@ class DefaultImportQueueRepositoryTest {
         advanceUntilIdle()
 
         assertThat(index.docs.values.single().folderId).isEqualTo(legal)
+    }
+
+    /** F19 T032 (contract I1): the selection's mode goes with each file, and a retry keeps it. */
+    @Test
+    fun theSelectionsMode_goesWithEachFile_andARetryKeepsIt() = runTest {
+        modeOn = true
+        source.files["content://1"] = FakeFile(
+            SourceInfo("plano.pdf", 9, "application/pdf"), FakePdfOpener.pdf("uno"), readError = java.io.IOException("I/O"),
+        )
+        val repository = repository()
+        val values = collect(repository)
+        repository.import(listOf("content://1"), indexMode = IndexMode.VISUAL)
+        advanceUntilIdle()
+
+        source.add("content://1", "plano.pdf", FakePdfOpener.pdf("uno"), "application/pdf")
+        repository.retry(values.last().items.single().key)
+        advanceUntilIdle()
+
+        assertThat(index.docs.values.single().indexMode).isEqualTo(IndexMode.VISUAL)
     }
 
     /** M3: a destination deleted before the document registers sends it to «General». */

@@ -18,6 +18,9 @@ class AppDirs(root: File) {
     /** The saved conversations, `chat.db` (F11 research R9). */
     val chat = File(root, "chat")
 
+    /** F19: the page images of the multimodal mode, created with the first one (research R9). */
+    val pages = File(root, "pages")
+
     fun partial(file: ModelFile): File = File(downloads, file.fileName + PARTIAL_SUFFIX)
 
     /** Creates every folder; false if any of them could not be created. */
