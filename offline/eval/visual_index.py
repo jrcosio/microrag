@@ -94,6 +94,14 @@ class PageStore:
     def has(self, doc_id, page):
         return self.db.execute("SELECT 1 FROM pages WHERE doc_id = ? AND page = ?", (doc_id, page)).fetchone() is not None
 
+    def prune(self, current):
+        """Drops the rows of documents no longer in the corpus or whose bytes changed; [current] is {doc_id: sha}."""
+        stale = [(doc_id, page) for doc_id, sha, page in self.db.execute("SELECT doc_id, doc_sha, page FROM pages")
+                 if current.get(doc_id) != sha]
+        self.db.executemany("DELETE FROM pages WHERE doc_id = ? AND page = ?", stale)
+        self.db.commit()
+        return len(stale)
+
     def add(self, doc_id, doc_sha, page, vector):
         self.db.execute("INSERT OR REPLACE INTO pages VALUES (?, ?, ?, ?)",
                         (doc_id, doc_sha, page, struct.pack(f"<{len(vector)}f", *vector)))
@@ -156,6 +164,7 @@ def build_pages(px, tokens):
     engine = vision_runtime.open_image_embedder(models.verify(models.VISUAL_EMBEDDING), tokens, cache_dir=builds.BUILD / "litert-cache")
 
     store = PageStore(pages_path(px, tokens))
+    store.prune({doc.id: doc.sha256 for doc in docs})
     done = store.keys()
     store.close()
 

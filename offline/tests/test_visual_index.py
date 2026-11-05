@@ -84,6 +84,17 @@ class PageVectorsTest(unittest.TestCase):
             self.assertEqual(len(visual_index.load_pages(db, dims=256)), 2)
         self.assertEqual(calls, [3, 3])
 
+    def test_rows_of_changed_or_removed_documents_are_pruned(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            store = visual_index.PageStore(Path(tmp, "pages.sqlite"))
+            store.add("doc-a", "sha-old", 1, fake_vector(1))
+            store.add("doc-a", "sha-old", 2, fake_vector(2))
+            store.add("img-b", "sha-b", 1, fake_vector(3))
+            store.add("gone", "sha-g", 1, fake_vector(4))
+            self.assertEqual(store.prune({"doc-a": "sha-new", "img-b": "sha-b"}), 3)
+            self.assertEqual(store.keys(), {("img-b", 1)})
+            store.close()
+
 
 if __name__ == "__main__":
     unittest.main()
