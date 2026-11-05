@@ -11,7 +11,10 @@ import com.lisdatasolutions.microrag.domain.ingest.RetryQueueItemUseCase
 import com.lisdatasolutions.microrag.domain.ingest.StartIndexingUseCase
 import com.lisdatasolutions.microrag.domain.library.FoldersResult
 import com.lisdatasolutions.microrag.domain.library.ObserveFoldersUseCase
+import com.lisdatasolutions.microrag.domain.multimodal.ImportModeSettings
+import com.lisdatasolutions.microrag.domain.multimodal.ObserveImportModeUseCase
 import com.lisdatasolutions.microrag.domain.rag.FolderList
+import com.lisdatasolutions.microrag.domain.rag.IndexMode
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -23,6 +26,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -44,6 +48,8 @@ class IngestViewModel(
     private val removeItem: RemoveQueueItemUseCase,
     observeFolders: ObserveFoldersUseCase,
     private val savedState: SavedStateHandle,
+    /** F19 (contract U8): null for screens built without the mode, which then imports in Text as before. */
+    observeMode: ObserveImportModeUseCase? = null,
     backgroundDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : ViewModel() {
 
@@ -51,6 +57,20 @@ class IngestViewModel(
     private val destination = savedState.getStateFlow(KEY_DESTINATION, savedState.get<Long>(ROUTE_FOLDER) ?: GENERAL)
     private val choice = savedState.getStateFlow<Long?>(KEY_CHOICE, null)
     private val missing = MutableStateFlow(false)
+
+    /** F19: the selection's mode lives in the SavedStateHandle; until the user picks one, Ajustes' default. */
+    private val mode = (observeMode?.invoke() ?: flowOf(ImportModeSettings()))
+        .catch { error ->
+            if (error is CancellationException) throw error
+            emit(ImportModeSettings())
+        }
+        .flowOn(backgroundDispatcher)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, ImportModeSettings())
+    private val chosenMode = savedState.getStateFlow<String?>(KEY_MODE, null)
+    private val choosingMode = savedState.getStateFlow(KEY_MODE_SHEET, false)
+    private val modeState = combine(mode, chosenMode, choosingMode) { settings, chosen, choosing ->
+        ModeState(settings.on, chosen?.let(IndexMode::valueOf) ?: settings.defaultMode, choosing && settings.on)
+    }
 
     private val folders = observeFolders()
         .map { (it as? FoldersResult.Loaded)?.folders }
@@ -72,7 +92,7 @@ class IngestViewModel(
         DestinationState(destination.toFolder(), choice?.let { DestinationChoice(it.toFolder()) }, missing, folders)
     }
 
-    val state: StateFlow<IngestUiState> = combine(observeQueue(), local, destinationState) { queue, local, destination ->
+    val state: StateFlow<IngestUiState> = combine(observeQueue(), local, destinationState, modeState) { queue, local, destination, mode ->
         IngestUiState(
             loading = false,
             queue = queue,
@@ -83,6 +103,9 @@ class IngestViewModel(
             destination = destination.destination,
             choosing = destination.choosing.takeIf { destination.folders != null },
             destinationMissing = destination.missing,
+            multimodalOn = mode.on,
+            indexMode = mode.selected,
+            choosingMode = mode.choosing,
         )
     }.flowOn(backgroundDispatcher).stateIn(viewModelScope, SharingStarted.Eagerly, IngestUiState())
 
@@ -102,8 +125,28 @@ class IngestViewModel(
 
     /** URIs chosen in the system picker; an empty list is a cancelled picker and changes nothing (US1-4). */
     fun onFilesPicked(uris: List<String>) {
-        importDocuments(uris, destination.value.toFolder())
+        // Contract I1: the mode only goes with the files while the multimodal mode is on.
+        val mode = currentMode()
+        importDocuments(uris, destination.value.toFolder(), if (mode.on) mode.selected else IndexMode.TEXT)
     }
+
+    /** U8: the sheet with the three modes. */
+    fun onChooseMode() {
+        if (mode.value.on) savedState[KEY_MODE_SHEET] = true
+    }
+
+    /** Applies to the files picked from now on; it survives a rotation. */
+    fun onModeSelect(selected: IndexMode) {
+        savedState[KEY_MODE] = selected.name
+        savedState[KEY_MODE_SHEET] = false
+    }
+
+    fun onDismissMode() {
+        savedState[KEY_MODE_SHEET] = false
+    }
+
+    private fun currentMode(): ModeState =
+        ModeState(mode.value.on, chosenMode.value?.let(IndexMode::valueOf) ?: mode.value.defaultMode, choosingMode.value)
 
     /** K6: the sheet starts on the current destination. */
     fun onChooseDestination() {
@@ -183,12 +226,16 @@ class IngestViewModel(
 
     private class DestinationState(val destination: Long?, val choosing: DestinationChoice?, val missing: Boolean, val folders: FolderList?)
 
+    private data class ModeState(val on: Boolean, val selected: IndexMode, val choosing: Boolean)
+
     private fun Long.toFolder(): Long? = takeIf { it != GENERAL }
 
     private companion object {
         const val ROUTE_FOLDER = "folderId"
         const val KEY_DESTINATION = "ingest_destination"
         const val KEY_CHOICE = "ingest_destination_choice"
+        const val KEY_MODE = "ingest_index_mode"
+        const val KEY_MODE_SHEET = "ingest_index_mode_sheet"
         const val GENERAL = 0L
     }
 }

@@ -12,6 +12,7 @@ import com.lisdatasolutions.microrag.domain.rag.IndexMode
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 
 /** What «Activar» did (contract M3). */
 sealed interface EnableMultimodalResult {
@@ -118,4 +119,12 @@ class ResumeMultimodalDownloadUseCase(private val resume: ResumeModelDownloadUse
 /** «Modo al importar PDF» (contract U6): false when the copy could not be written. */
 class SetDefaultImportModeUseCase(private val store: MultimodalStore) {
     suspend operator fun invoke(mode: IndexMode): Boolean = store.write { it.copy(defaultMode = mode) }
+}
+
+/** What the Ingesta needs of the mode (contract U8): whether it is on, and Ajustes' «Modo al importar PDF». */
+data class ImportModeSettings(val on: Boolean = false, val defaultMode: IndexMode = IndexMode.BOTH)
+
+class ObserveImportModeUseCase(private val store: MultimodalStore) {
+    operator fun invoke(): Flow<ImportModeSettings> =
+        store.state.map { ImportModeSettings(it.stage == MultimodalStage.ON, it.defaultMode) }.distinctUntilChanged()
 }

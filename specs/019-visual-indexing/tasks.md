@@ -230,7 +230,7 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
   - los vectores truncados a 256 y normalizados;
   - el LLM liberado y nunca dos engines a la vez.
 - [X] T028 [P] [US2] `…/test/…/data/ingest/DocumentImporterTest.kt` (I1): el modo de la selección se registra en cada PDF solo con `ON`; sin `ON`, todo en `TEXT`.
-- [ ] T029 [P] [US2] `…/test/…/feature/ingest/IngestViewModelTest.kt` e `IngestScreenTest` (U8–U10):
+- [X] T029 [P] [US2] `…/test/…/feature/ingest/IngestViewModelTest.kt` e `IngestScreenTest` (U8–U10):
   - la fila «Modo de los PDF» solo con `ON`;
   - la hoja;
   - el modo por defecto de Ajustes;
@@ -242,8 +242,8 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
 - [X] T030 [US2] `…/microrag/data/ingest/PageFileStore.kt` (I6) y `…/microrag/data/indexing/PageEmbeddingSession.kt` (I3), cableados en `DataModule`.
 - [X] T031 [US2] Fase de páginas en `…/microrag/data/ingest/IngestRunner.kt` (I2, R9). T027 pasa.
 - [X] T032 [US2] Modo en la importación (analyze, M3): `ImportQueueRepository.import(uris, folderId, indexMode)`, el `Pending` y el `retry` de `DefaultImportQueueRepository`, que conservan el modo, y `DocumentImporter.import(uri, info, folderId, indexMode)`. T028 pasa.
-- [ ] T033 [US2] Ingesta, según el wireframe §5 y §8: `…/microrag/feature/ingest/IndexModeSheet.kt`, `IngestScreen` e `IngestViewModel`; la cola, con el progreso en páginas y la estimación. T029 pasa.
-- [ ] T058 [US2] Indexación y notificación, según el wireframe §8 (U15–U17, analyze, H1 y C1):
+- [X] T033 [US2] Ingesta, según el wireframe §5 y §8: `…/microrag/feature/ingest/IndexModeSheet.kt`, `IngestScreen` e `IngestViewModel`; la cola, con el progreso en páginas y la estimación. T029 pasa.
+- [X] T058 [US2] Indexación y notificación, según el wireframe §8 (U15–U17, analyze, H1 y C1):
   - la etapa «Imágenes de página» y el anillo en páginas, en `…/microrag/feature/indexing/{IndexTexts,IndexScreen}.kt` y `…/microrag/domain/indexing/IndexingModels.kt`;
   - las pausas «cambiando el modelo de búsqueda» y «Esperando al modo multimodal»;
   - «Indexando páginas · 12 / 40» en `…/microrag/data/indexing/IndexingNotifications.kt`.
@@ -274,7 +274,7 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
 
 ### Implementación
 
-- [ ] T036 [US3] Formatos e imágenes en `DocumentImporter`, `DocumentFormat`, `IngestRunner` y en los tipos MIME del selector de la Ingesta (U9). Errores y textos en `IngestTexts`. T034 y T035 pasan.
+- [X] T036 [US3] Formatos e imágenes en `DocumentImporter`, `DocumentFormat`, `IngestRunner` y en los tipos MIME del selector de la Ingesta (U9). Errores y textos en `IngestTexts`. T034 y T035 pasan.
 
 **Checkpoint:** un escaneado, un JPG y un PNG se indexan con el modo activo, y con el modo apagado se rechazan como dice la spec.
 

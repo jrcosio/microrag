@@ -25,7 +25,7 @@ val featureModule = module {
     viewModel {
         SetupViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get())
     }
-    viewModel { IngestViewModel(get(), get(), get(), get(), get(), get(), get()) }
+    viewModel { IngestViewModel(get(), get(), get(), get(), get(), get(), get(), observeMode = get()) }
     viewModel { IndexViewModel(get(), get(), get(), get()) }
     // F17 (research R5): the folder comes from the route, as a parameter; none is the root.
     viewModel { params -> LibraryViewModel(get(), get(), get(), folder = params.getOrNull()) }

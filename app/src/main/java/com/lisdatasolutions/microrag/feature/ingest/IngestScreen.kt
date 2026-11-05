@@ -22,6 +22,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -34,6 +35,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lisdatasolutions.microrag.R
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataCardGroup
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataCountChip
+import com.lisdatasolutions.microrag.core.designsystem.component.LisdataDivider
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataEmptyState
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataEyebrow
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataFilePickerCard
@@ -48,6 +50,7 @@ import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
 import com.lisdatasolutions.microrag.domain.ingest.QueueItem
 import com.lisdatasolutions.microrag.domain.ingest.QueueItemState
 import com.lisdatasolutions.microrag.domain.ingest.QueueKey
+import com.lisdatasolutions.microrag.domain.rag.IndexMode
 import com.lisdatasolutions.microrag.feature.folders.FolderChoiceActions
 import com.lisdatasolutions.microrag.feature.folders.FolderChoiceSheet
 import com.lisdatasolutions.microrag.feature.folders.FolderDialogs
@@ -72,6 +75,10 @@ data class IngestActions(
     val onConfirmDestination: () -> Unit = {},
     val onDismissDestination: () -> Unit = {},
     val onNewFolder: () -> Unit = {},
+    /** F19 (contract U8): the «Modo de los PDF» row and its sheet. */
+    val onChooseMode: () -> Unit = {},
+    val onModeSelect: (IndexMode) -> Unit = {},
+    val onDismissMode: () -> Unit = {},
 )
 
 @Composable
@@ -99,7 +106,8 @@ fun IngestRoute(
         state = state,
         actions = IngestActions(
             onBack = onBack,
-            onPickFiles = { picker.launch(IngestMimeTypes.ALL) },
+            // U9: with the multimodal mode on, the picker offers JPG and PNG too.
+            onPickFiles = { picker.launch(IngestMimeTypes.of(state.multimodalOn)) },
             onRowClick = viewModel::onRowClick,
             onStartIndexing = viewModel::onStartIndexing,
             onDismissSheet = viewModel::onDismissSheet,
@@ -112,6 +120,9 @@ fun IngestRoute(
             onConfirmDestination = viewModel::onConfirmDestination,
             onDismissDestination = viewModel::onDismissDestination,
             onNewFolder = foldersViewModel::onNewFolder,
+            onChooseMode = viewModel::onChooseMode,
+            onModeSelect = viewModel::onModeSelect,
+            onDismissMode = viewModel::onDismissMode,
         ),
     )
     FolderDialogs(folders.dialog, folders.busy, foldersViewModel.dialogActions())
@@ -187,6 +198,7 @@ fun IngestScreen(state: IngestUiState, actions: IngestActions, modifier: Modifie
     state.removalItem?.let { item ->
         RemovalConfirmation(item = item, onConfirm = actions.onConfirmRemoval, onDismiss = actions.onDismissRemoval)
     }
+    if (state.choosingMode) IndexModeSheet(selected = state.indexMode, onSelect = actions.onModeSelect, onDismiss = actions.onDismissMode)
     val folders = state.folders
     if (state.choosing != null && folders != null) {
         FolderChoiceSheet(
@@ -214,6 +226,17 @@ private fun Destination(state: IngestUiState, actions: IngestActions) {
             subtitle = state.destinationName ?: stringResource(R.string.library_folder_general),
             onClick = actions.onChooseDestination.takeIf { state.pickEnabled && state.folders != null },
         )
+        // F19 (wireframe §5, contract U8): only with the multimodal mode on, under the destination.
+        if (state.multimodalOn) {
+            LisdataDivider()
+            LisdataSettingsRow(
+                icon = LisdataIcons.Layers,
+                title = stringResource(R.string.ingest_mode_row),
+                subtitle = stringResource(state.indexMode.summary()),
+                onClick = actions.onChooseMode.takeIf { state.pickEnabled },
+                modifier = Modifier.testTag("ingest_mode_row"),
+            )
+        }
     }
     if (state.destinationMissing) {
         Text(
@@ -265,11 +288,13 @@ private fun QueueContent(state: IngestUiState, actions: IngestActions) {
         )
         else -> state.items.forEach { item ->
             val error = item.state.error
+            // U10: an error says its reason; otherwise a row in Visual or Both says its mode.
+            val mode = item.modeChip()
             LisdataQueueRow(
                 name = item.displayName,
                 meta = item.metaText(),
-                statusText = error?.chipText(),
-                status = error?.let { StatusKind.Error },
+                statusText = error?.chipText() ?: mode,
+                status = error?.let { StatusKind.Error } ?: mode?.let { StatusKind.Info },
                 progress = item.state.progress(),
                 accessibilityText = item.accessibilityText(),
                 onClickLabel = stringResource(R.string.ingest_row_action),

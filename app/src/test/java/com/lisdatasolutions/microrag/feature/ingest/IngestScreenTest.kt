@@ -9,6 +9,7 @@ import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isSelected
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
@@ -19,7 +20,13 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import com.lisdatasolutions.microrag.R
 import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
+import com.lisdatasolutions.microrag.domain.ingest.DocumentFormat
+import com.lisdatasolutions.microrag.domain.ingest.ImportQueue
+import com.lisdatasolutions.microrag.domain.ingest.IngestError
+import com.lisdatasolutions.microrag.domain.ingest.QueueItem
+import com.lisdatasolutions.microrag.domain.ingest.QueueItemState
 import com.lisdatasolutions.microrag.domain.ingest.QueueKey
+import com.lisdatasolutions.microrag.domain.rag.IndexMode
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -36,10 +43,101 @@ class IngestScreenTest {
     private val context: Context = ApplicationProvider.getApplicationContext()
     private val clicked = mutableListOf<QueueKey>()
 
+    private val modeCalls = mutableListOf<String>()
+
     private fun show(state: IngestUiState) {
         compose.setContent {
-            LisdataTheme { IngestScreen(state, IngestActions(onRowClick = { clicked += it })) }
+            LisdataTheme {
+                IngestScreen(
+                    state,
+                    IngestActions(
+                        onRowClick = { clicked += it },
+                        onChooseMode = { modeCalls += "choose" },
+                        onModeSelect = { modeCalls += "select:$it" },
+                        onDismissMode = { modeCalls += "dismiss" },
+                    ),
+                )
+            }
         }
+    }
+
+    // F19 T029 (contracts/multimodal-ui.md U8–U10, wireframe §5 and §8).
+
+    private fun pdfRow(id: Long, mode: IndexMode, state: QueueItemState, pages: Int? = 40) =
+        QueueItem(QueueKey.Document(id), "informe-$id.pdf", 2_400_000, DocumentFormat.PDF, state, indexMode = mode, pageCount = pages)
+
+    @Test
+    fun withTheModeOff_theRowIsNotThere() {
+        show(IngestPreviewData.png)
+
+        compose.onNodeWithText("Modo de los PDF").assertDoesNotExist()
+    }
+
+    @Test
+    fun withTheModeOn_theRowSaysTheSelection_andOpensTheSheet() {
+        show(IngestPreviewData.png.copy(multimodalOn = true, indexMode = IndexMode.BOTH))
+
+        compose.onNodeWithText("Ambos (texto y páginas)", useUnmergedTree = true).assertExists()
+        compose.onNodeWithText("Modo de los PDF").performClick()
+
+        assertThat(modeCalls).containsExactly("choose")
+    }
+
+    @Test
+    fun theSheet_isARadioGroup_withTheImagesNote() {
+        show(IngestPreviewData.png.copy(multimodalOn = true, indexMode = IndexMode.BOTH, choosingMode = true))
+
+        compose.onNode(hasText("Ambos") and isSelected()).assertExists()
+        compose.onNodeWithText("Las imágenes JPG y PNG se indexan siempre como páginas.").assertExists()
+        compose.onNodeWithText("Visual").performClick()
+
+        assertThat(modeCalls).containsExactly("select:VISUAL")
+    }
+
+    @Test
+    fun theQueue_saysTheModeAndThePages() {
+        show(
+            IngestPreviewData.png.copy(
+                multimodalOn = true,
+                queue = ImportQueue(
+                    items = listOf(
+                        pdfRow(1, IndexMode.BOTH, QueueItemState.Ready),
+                        pdfRow(2, IndexMode.VISUAL, QueueItemState.IndexingPages(12, 40)),
+                        pdfRow(3, IndexMode.TEXT, QueueItemState.Ready),
+                    ),
+                    readyCount = 2, pdfSupported = true, indexAvailable = true, canStart = true,
+                ),
+            ),
+        )
+
+        compose.onNodeWithText("Ambos", useUnmergedTree = true).assertExists()
+        compose.onNodeWithText("Visual", useUnmergedTree = true).assertExists()
+        compose.onNodeWithText("40 páginas · unos 3 min", substring = true, useUnmergedTree = true).assertExists()
+        compose.onNodeWithText("Indexando páginas · 12 / 40", substring = true, useUnmergedTree = true).assertExists()
+        // A Text row keeps the look it had.
+        compose.onAllNodesWithText("Texto", useUnmergedTree = true).assertCountEquals(0)
+    }
+
+    @Test
+    fun anImageWithTheModeOff_saysWhy() {
+        show(
+            IngestPreviewData.png.copy(
+                queue = ImportQueue(
+                    items = listOf(
+                        QueueItem(QueueKey.Attempt("a"), "foto.jpg", 1_000, DocumentFormat.JPEG, QueueItemState.ImportFailed(IngestError.IMAGE_NEEDS_MULTIMODAL)),
+                    ),
+                    readyCount = 0, pdfSupported = true, indexAvailable = true, canStart = false,
+                ),
+            ),
+        )
+
+        compose.onNodeWithText("Imagen no admitida", useUnmergedTree = true).assertExists()
+    }
+
+    @Test
+    fun thePicker_offersImagesOnlyWithTheModeOn() {
+        assertThat(IngestMimeTypes.of(false).toList()).containsNoneOf("image/jpeg", "image/png")
+        assertThat(IngestMimeTypes.of(true).toList()).containsAtLeast("application/pdf", "image/jpeg", "image/png")
     }
 
     private fun startButton() = compose.onNode(hasText(context.getString(R.string.ingest_start)) and hasClickAction())

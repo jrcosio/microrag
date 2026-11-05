@@ -1,5 +1,6 @@
 package com.lisdatasolutions.microrag.domain.ingest
 
+import com.lisdatasolutions.microrag.domain.rag.IndexMode
 import kotlinx.coroutines.flow.Flow
 
 /** The import queue as the screen shows it (F06 contracts/ingest-api.md). */
@@ -9,8 +10,8 @@ class ObserveImportQueueUseCase(private val repository: ImportQueueRepository) {
 
 /** Files picked with the system picker; the import runs in the application scope. */
 class ImportDocumentsUseCase(private val repository: ImportQueueRepository) {
-    operator fun invoke(uris: List<String>, folderId: Long? = null) {
-        if (uris.isNotEmpty()) repository.import(uris, folderId)
+    operator fun invoke(uris: List<String>, folderId: Long? = null, indexMode: IndexMode = IndexMode.TEXT) {
+        if (uris.isNotEmpty()) repository.import(uris, folderId, indexMode)
     }
 }
 

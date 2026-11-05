@@ -237,6 +237,7 @@ class DefaultImportQueueRepository(
                     format = attempt.format,
                     state = if (attempt.registeredAt != null) QueueItemState.Ready else attempt.state,
                     folderName = attempt.folderId?.let { loaded.folders[it] },
+                    indexMode = if (attempt.format?.isImage == true) IndexMode.VISUAL else attempt.indexMode,
                 )
             }
         val documentItems = loaded.documents.map { document ->
@@ -247,6 +248,8 @@ class DefaultImportQueueRepository(
                 format = DocumentFormat.fromMime(document.mimeType),
                 state = stateOf(document, active, progress, run, loaded.stored[document.id]),
                 folderName = document.folderName,
+                indexMode = document.indexMode,
+                pageCount = document.pageCount,
             )
         }
         val items = attemptItems + documentItems
@@ -275,6 +278,9 @@ class DefaultImportQueueRepository(
             DocumentStatus.ERROR -> QueueItemState.Failed(IngestError.fromCode(document.error) ?: IngestError.EXTRACTION_FAILED)
             DocumentStatus.PARSED, DocumentStatus.EMBEDDING -> when {
                 paused -> QueueItemState.Paused(stored, document.chunkCount)
+                // F19 (contract U10): the page phase counts pages, not chunks.
+                current?.stage == IngestProgress.Stage.PAGES && current.pagesTotal != null ->
+                    QueueItemState.IndexingPages(current.pagesDone ?: 0, current.pagesTotal, current.pagesPerMinute)
                 current?.chunksDone != null && current.chunksTotal != null -> QueueItemState.Indexing(current.chunksDone, current.chunksTotal)
                 document.status == DocumentStatus.EMBEDDING -> QueueItemState.Indexing(stored ?: 0, document.chunkCount ?: 0)
                 else -> QueueItemState.Prepared(document.chunkCount ?: 0, document.skippedPages)

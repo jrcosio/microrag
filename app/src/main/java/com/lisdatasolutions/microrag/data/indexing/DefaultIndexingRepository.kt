@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onStart
@@ -42,14 +43,19 @@ class DefaultIndexingRepository(
     private val io: CoroutineDispatcher,
     private val logger: AppLogger,
     private val alarm: IndexingAlarm = IndexingAlarm.NONE,
+    /** F19 (analyze M5): the multimodal mode is on, so documents with pages are indexed. */
+    private val multimodalOn: Flow<Boolean> = flowOf(false),
 ) : IndexingRepository {
 
-    private class Inputs(val run: IngestRun, val progress: IngestProgress?, val work: IngestWork, val heat: ThermalLevel)
+    private class Inputs(val run: IngestRun, val progress: IngestProgress?, val work: IngestWork, val heat: ThermalLevel, val pagesOn: Boolean)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override val state: Flow<IndexingState> = combine(
-        index.documentChanges, runStore.run, scheduler.progress, scheduler.work, thermal.level,
-    ) { _, run, progress, work, heat -> Inputs(run, progress, work, heat) }
+        combine(index.documentChanges, runStore.run, scheduler.progress, scheduler.work, thermal.level) { _, run, progress, work, heat ->
+            Inputs(run, progress, work, heat, pagesOn = false)
+        },
+        multimodalOn.distinctUntilChanged(),
+    ) { inputs, on -> Inputs(inputs.run, inputs.progress, inputs.work, inputs.heat, on) }
         .mapLatest(::compute)
         .onStart { emit(IndexingState.Loading) }
         .distinctUntilChanged()
@@ -70,15 +76,22 @@ class DefaultIndexingRepository(
             val done = members.sumOf { stored[it.id] ?: 0 }
             val running = inputs.progress?.takeIf { inputs.work.running && unfinished.any { doc -> doc.id == it.documentId } }
             val current = running?.let { progress ->
-                all[progress.documentId]?.let { CurrentDocument(it.id, it.displayName, progress.stage.forScreen()) }
-            } ?: unfinished.firstOrNull { it.status == DocumentStatus.EMBEDDING }?.let {
+                all[progress.documentId]?.let {
+                    CurrentDocument(
+                        it.id, it.displayName, progress.stage.forScreen(), hasPages = it.indexMode.hasPages,
+                        pagesDone = progress.pagesDone, pagesTotal = progress.pagesTotal,
+                    )
+                }
+            } ?: unfinished.firstOrNull { it.status == DocumentStatus.EMBEDDING && (inputs.pagesOn || !it.indexMode.hasPages) }?.let {
                 // Paused or waiting, the document left halfway is still the current one: its stage shows «En pausa» (P3).
-                CurrentDocument(it.id, it.displayName, CurrentDocument.Stage.EMBEDDING)
+                CurrentDocument(it.id, it.displayName, CurrentDocument.Stage.EMBEDDING, hasPages = it.indexMode.hasPages)
             }
             val pause = when {
                 inputs.run.pauseCause != null -> inputs.run.pauseCause.reason()
                 inputs.heat == ThermalLevel.SEVERE_OR_WORSE || running?.waiting == IngestProgress.WaitReason.THERMAL -> PauseReason.THERMAL
                 inputs.work.waitingForSystem -> PauseReason.SYSTEM_LIMIT
+                // F19 (analyze M5, wireframe §8): only documents with pages are left, and they wait for the mode.
+                running == null && !inputs.pagesOn && unfinished.all { it.indexMode.hasPages } -> PauseReason.WAITING_MULTIMODAL
                 else -> null
             }
             val remaining = running?.chunksPerSecond

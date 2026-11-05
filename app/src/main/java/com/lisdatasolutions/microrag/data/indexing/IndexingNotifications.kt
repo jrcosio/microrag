@@ -58,9 +58,16 @@ class IndexingNotifications(private val context: Context) {
             progress?.runChunksTotal != null -> progress.runChunksDone to progress.runChunksTotal
             else -> progress?.chunksDone to progress?.chunksTotal
         }
+        val pagesTotal = progress?.pagesTotal?.takeIf { progress.stage == IngestProgress.Stage.PAGES && it > 0 }
         return when {
             progress?.waiting == IngestProgress.WaitReason.THERMAL ->
                 builder.setContentText(texts().getString(R.string.index_paused_thermal)).setProgress(0, 0, false)
+            // F19 (contract U17): «Indexando páginas · 12 / 40» with its bar.
+            pagesTotal != null -> {
+                val pagesDone = (progress.pagesDone ?: 0).coerceAtMost(pagesTotal)
+                builder.setContentText(texts().getString(R.string.index_notification_pages, pagesDone.grouped(), pagesTotal.grouped()))
+                    .setProgress(pagesTotal, pagesDone, false)
+            }
             done != null && total != null && total > 0 ->
                 builder.setContentText(texts().getString(R.string.index_notification_chunks, done.grouped(), total.grouped()))
                     .setProgress(total, done.coerceAtMost(total), false)

@@ -47,6 +47,7 @@ import com.lisdatasolutions.microrag.core.designsystem.icon.LisdataIcons
 import com.lisdatasolutions.microrag.core.designsystem.model.ProgressValue
 import com.lisdatasolutions.microrag.core.designsystem.model.StatusKind
 import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
+import com.lisdatasolutions.microrag.domain.indexing.CurrentDocument
 import com.lisdatasolutions.microrag.domain.indexing.FailedDocument
 import com.lisdatasolutions.microrag.domain.indexing.IndexingState
 import com.lisdatasolutions.microrag.domain.indexing.PauseReason
@@ -157,12 +158,23 @@ private fun Running(state: IndexingState.Active) {
     val colors = LisdataTheme.colors
     val spacing = LisdataTheme.spacing
     val progress = state.progress
-    val ring = progress.ring()
+    // F19 (wireframe §8): during the page stage, the ring and its count are the current document's pages.
+    val pages = state.current?.takeIf { it.stage == CurrentDocument.Stage.PAGES }?.let { current ->
+        val total = current.pagesTotal?.takeIf { it > 0 } ?: return@let null
+        (current.pagesDone ?: 0).coerceAtMost(total) to total
+    }
+    val ring = pages?.let { (done, total) -> ProgressValue.Determinate(done.toFloat() / total) } ?: progress.ring()
     val total = progress.total
-    val ringDescription = if (ring is ProgressValue.Determinate && total != null) {
-        stringResource(R.string.index_ring_description, ring.percent, progress.done.grouped(), total.grouped())
-    } else {
-        stringResource(R.string.index_preparing)
+    val count = when {
+        pages != null -> stringResource(R.string.index_pages, pages.first.grouped(), pages.second.grouped())
+        total != null -> stringResource(R.string.index_chunks, progress.done.grouped(), total.grouped())
+        else -> stringResource(R.string.index_preparing)
+    }
+    val ringDescription = when {
+        pages != null -> count
+        ring is ProgressValue.Determinate && total != null ->
+            stringResource(R.string.index_ring_description, ring.percent, progress.done.grouped(), total.grouped())
+        else -> stringResource(R.string.index_preparing)
     }
     // D-042: compact hero and ring as in PNG 08, so «Procesando ahora» shows without scrolling.
     LisdataHeroCard(title = null, eyebrow = stringResource(R.string.index_eyebrow), modifier = Modifier.fillMaxWidth(), compact = true) {
@@ -174,11 +186,7 @@ private fun Running(state: IndexingState.Active) {
         ) {
             LisdataProgressRing(progress = ring, label = stringResource(R.string.index_ring_label), size = HERO_RING_SIZE)
             Text(
-                text = if (total != null) {
-                    stringResource(R.string.index_chunks, progress.done.grouped(), total.grouped())
-                } else {
-                    stringResource(R.string.index_preparing)
-                },
+                text = count,
                 style = LisdataTheme.typography.material.titleMedium,
                 color = colors.onDarkText,
                 textAlign = TextAlign.Center,
@@ -202,7 +210,7 @@ private fun Running(state: IndexingState.Active) {
 
     LisdataSectionHeader(text = stringResource(R.string.index_stages), modifier = Modifier.padding(top = spacing.space2))
     val paused = state.pause != null
-    val stages = stagesOf(state.current?.stage, paused)
+    val stages = stagesOf(state.current?.stage, paused, withPages = state.current?.hasPages == true)
     val currentStage = state.current?.stage?.indexStage()
     stages.forEach { (stage, status) ->
         LisdataStageRow(

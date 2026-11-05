@@ -14,8 +14,13 @@ import com.lisdatasolutions.microrag.domain.ingest.RemoveQueueItemUseCase
 import com.lisdatasolutions.microrag.domain.ingest.RetryQueueItemUseCase
 import com.lisdatasolutions.microrag.domain.ingest.StartIndexingUseCase
 import com.lisdatasolutions.microrag.domain.library.ObserveFoldersUseCase
+import com.lisdatasolutions.microrag.domain.multimodal.MultimodalStage
+import com.lisdatasolutions.microrag.domain.multimodal.ObserveImportModeUseCase
+import com.lisdatasolutions.microrag.domain.multimodal.StoredMultimodal
+import com.lisdatasolutions.microrag.domain.rag.IndexMode
 import com.lisdatasolutions.microrag.testing.FakeImportQueueRepository
 import com.lisdatasolutions.microrag.testing.FakeLibraryRepository
+import com.lisdatasolutions.microrag.testing.FakeMultimodalStore
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -47,6 +52,9 @@ class IngestViewModelTest {
     @After
     fun tearDown() = Dispatchers.resetMain()
 
+    /** F19: the mode's copy, as Ajustes leaves it. */
+    private val mode = FakeMultimodalStore()
+
     private fun viewModel() = IngestViewModel(
         ObserveImportQueueUseCase(repository),
         ImportDocumentsUseCase(repository),
@@ -55,8 +63,64 @@ class IngestViewModelTest {
         RemoveQueueItemUseCase(repository),
         ObserveFoldersUseCase(library),
         saved,
+        observeMode = ObserveImportModeUseCase(mode),
         backgroundDispatcher = dispatcher,
     )
+
+    // F19 T029 (contracts/multimodal-ui.md U8, contract I1).
+
+    @Test
+    fun withTheModeOff_thereIsNoModeRow_andEverythingIsText() = runTest(dispatcher) {
+        val vm = viewModel()
+        advanceUntilIdle()
+
+        assertThat(vm.state.value.multimodalOn).isFalse()
+        vm.onChooseMode()
+        advanceUntilIdle()
+        assertThat(vm.state.value.choosingMode).isFalse()
+        vm.onFilesPicked(listOf("content://a"))
+        assertThat(repository.modes).containsExactly(IndexMode.TEXT)
+    }
+
+    @Test
+    fun withTheModeOn_theSelectionStartsAsAjustes_andGoesWithThePick() = runTest(dispatcher) {
+        mode.state.value = StoredMultimodal(MultimodalStage.ON, defaultMode = IndexMode.VISUAL)
+        val vm = viewModel()
+        advanceUntilIdle()
+
+        assertThat(vm.state.value.multimodalOn).isTrue()
+        assertThat(vm.state.value.indexMode).isEqualTo(IndexMode.VISUAL)
+        vm.onFilesPicked(listOf("content://a"))
+        assertThat(repository.modes).containsExactly(IndexMode.VISUAL)
+    }
+
+    @Test
+    fun theSheet_changesTheSelection_whichSurvivesARotation() = runTest(dispatcher) {
+        mode.state.value = StoredMultimodal(MultimodalStage.ON)
+        val vm = viewModel()
+        advanceUntilIdle()
+        assertThat(vm.state.value.indexMode).isEqualTo(IndexMode.BOTH)
+
+        vm.onChooseMode()
+        advanceUntilIdle()
+        assertThat(vm.state.value.choosingMode).isTrue()
+        vm.onModeSelect(IndexMode.TEXT)
+        advanceUntilIdle()
+        assertThat(vm.state.value.choosingMode).isFalse()
+        assertThat(vm.state.value.indexMode).isEqualTo(IndexMode.TEXT)
+
+        val rotated = viewModel()
+        advanceUntilIdle()
+        assertThat(rotated.state.value.indexMode).isEqualTo(IndexMode.TEXT)
+        rotated.onFilesPicked(listOf("content://a"))
+        assertThat(repository.modes).containsExactly(IndexMode.TEXT)
+
+        // Turning the mode off sends everything in Text again.
+        mode.state.value = StoredMultimodal(MultimodalStage.OFF)
+        advanceUntilIdle()
+        rotated.onFilesPicked(listOf("content://b"))
+        assertThat(repository.modes).containsExactly(IndexMode.TEXT, IndexMode.TEXT).inOrder()
+    }
 
     private fun ready(id: Long, name: String = "doc$id.pdf") =
         QueueItem(QueueKey.Document(id), name, 2_400_000, DocumentFormat.PDF, QueueItemState.Ready)

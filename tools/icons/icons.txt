@@ -35,3 +35,5 @@ ic_warning = triangle-alert
 ic_close = x
 # Theme row of Settings, added in F16 (D-067).
 ic_sun_moon = sun-moon
+# Page images of the multimodal mode (Indexación, Biblioteca), added in F19 (wireframe §8).
+ic_image = image

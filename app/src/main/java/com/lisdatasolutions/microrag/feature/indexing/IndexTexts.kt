@@ -25,14 +25,17 @@ fun RunProgress.ring(): ProgressValue = total?.takeIf { it > 0 }
     ?: ProgressValue.Indeterminate
 
 @Composable
-fun remainingText(seconds: Long): String {
+fun remainingText(seconds: Long): String = stringResource(R.string.index_remaining, durationText(seconds))
+
+/** «3 min», «1 h 20 min» or «menos de un minuto», rounded up to the minute. */
+@Composable
+fun durationText(seconds: Long): String {
     val minutes = (seconds + 59) / 60
-    val duration = when {
+    return when {
         minutes < 1 -> stringResource(R.string.index_duration_less_than_a_minute)
         minutes < 60 -> stringResource(R.string.index_duration_minutes, minutes.toInt())
         else -> stringResource(R.string.index_duration_hours, (minutes / 60).toInt(), (minutes % 60).toInt())
     }
-    return stringResource(R.string.index_remaining, duration)
 }
 
 /**
@@ -43,7 +46,7 @@ enum class IndexStage(@StringRes val title: Int, @DrawableRes val icon: Int) {
     EXTRACTION(R.string.index_stage_extraction, LisdataIcons.FileText),
     CHUNKING(R.string.index_stage_chunking, LisdataIcons.Layers),
     EMBEDDINGS(R.string.index_stage_embeddings, LisdataIcons.Cpu),
-    PAGES(R.string.index_stage_pages, LisdataIcons.FileText),
+    PAGES(R.string.index_stage_pages, LisdataIcons.Image),
     PERSISTENCE(R.string.index_stage_persistence, LisdataIcons.Database),
 }
 
@@ -91,6 +94,7 @@ fun PauseReason.chip(): Pair<String, StatusKind>? = when (this) {
     PauseReason.NO_SPACE -> stringResource(R.string.index_no_space) to StatusKind.Error
     PauseReason.MODEL_MISSING -> null
     PauseReason.MODEL_SWITCH -> stringResource(R.string.index_paused_model_switch) to StatusKind.Paused
+    PauseReason.WAITING_MULTIMODAL -> stringResource(R.string.index_waiting_multimodal) to StatusKind.Paused
 }
 
 /** The explanation card of P4 and P5; the user's own pause needs none. */
@@ -100,5 +104,6 @@ fun PauseReason.explanation(): String? = when (this) {
     PauseReason.SYSTEM_LIMIT -> stringResource(R.string.index_paused_system_body)
     PauseReason.NO_SPACE -> stringResource(R.string.index_no_space_body)
     PauseReason.MODEL_SWITCH -> stringResource(R.string.index_paused_model_switch_body)
+    PauseReason.WAITING_MULTIMODAL -> stringResource(R.string.index_waiting_multimodal_body)
     PauseReason.USER, PauseReason.MODEL_MISSING -> null
 }

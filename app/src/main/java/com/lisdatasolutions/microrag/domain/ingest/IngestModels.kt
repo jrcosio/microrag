@@ -1,6 +1,7 @@
 package com.lisdatasolutions.microrag.domain.ingest
 
 import com.lisdatasolutions.microrag.domain.model.ComputeBackend
+import com.lisdatasolutions.microrag.domain.rag.IndexMode
 
 /** Formats of the MVP (constitution, technical constraints). [extension] names the private copy. */
 enum class DocumentFormat(val mimeType: String, val extension: String) {
@@ -91,6 +92,9 @@ sealed interface QueueItemState {
     /** Calculating embeddings: [done] stored chunks of [total] (F07 index-ui §Ingesta). */
     data class Indexing(val done: Int, val total: Int) : QueueItemState
 
+    /** F19 (contract U10): page images, [done] of [total], at [perMinute] once it is known. */
+    data class IndexingPages(val done: Int, val total: Int, val perMinute: Double? = null) : QueueItemState
+
     /** In a paused run; the counts are known once the document is chunked. */
     data class Paused(val done: Int?, val total: Int?) : QueueItemState
     data class Failed(val error: IngestError) : QueueItemState
@@ -104,6 +108,10 @@ data class QueueItem(
     val state: QueueItemState,
     /** F17: the folder it goes to, from its attempt or its document; null is «General». */
     val folderName: String? = null,
+    /** F19 (contract U10): Text, Visual or Both, from its attempt or its document. */
+    val indexMode: IndexMode = IndexMode.TEXT,
+    /** The pages to index, once the document is registered (wireframe §8). */
+    val pageCount: Int? = null,
 ) {
     val canRetry: Boolean
         get() = when (state) {

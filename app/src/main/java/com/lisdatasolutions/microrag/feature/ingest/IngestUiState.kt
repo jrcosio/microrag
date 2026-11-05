@@ -4,6 +4,7 @@ import com.lisdatasolutions.microrag.domain.ingest.ImportQueue
 import com.lisdatasolutions.microrag.domain.ingest.QueueItem
 import com.lisdatasolutions.microrag.domain.ingest.QueueKey
 import com.lisdatasolutions.microrag.domain.rag.FolderList
+import com.lisdatasolutions.microrag.domain.rag.IndexMode
 
 /** P05 state (F06 contracts/ingest-ui.md). */
 data class IngestUiState(
@@ -22,6 +23,11 @@ data class IngestUiState(
     val choosing: DestinationChoice? = null,
     /** The destination was deleted: back to «General», said once (M3). */
     val destinationMissing: Boolean = false,
+    /** F19 (contract U8): with the multimodal mode on, the PDFs picked now go in [indexMode]. */
+    val multimodalOn: Boolean = false,
+    val indexMode: IndexMode = IndexMode.BOTH,
+    /** The open «Modo de los PDF» sheet. */
+    val choosingMode: Boolean = false,
 ) {
     /** The destination's name; null is «General». */
     val destinationName: String? get() = destination?.let { id -> folders?.folders?.firstOrNull { it.id == id }?.name }
@@ -43,4 +49,9 @@ sealed interface IngestEvent {
 /** Types offered by the system picker (FR-001, research R4). */
 object IngestMimeTypes {
     val ALL: Array<String> = arrayOf("application/pdf", "text/plain", "text/markdown", "text/x-markdown")
+
+    /** F19 (contract U9): JPG and PNG too, only with the multimodal mode on. */
+    val WITH_IMAGES: Array<String> = ALL + arrayOf("image/jpeg", "image/png")
+
+    fun of(multimodalOn: Boolean): Array<String> = if (multimodalOn) WITH_IMAGES else ALL
 }

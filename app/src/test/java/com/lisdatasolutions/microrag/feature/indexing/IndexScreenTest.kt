@@ -20,6 +20,10 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
+import com.lisdatasolutions.microrag.domain.indexing.CurrentDocument
+import com.lisdatasolutions.microrag.domain.indexing.IndexingState
+import com.lisdatasolutions.microrag.domain.indexing.PauseReason
+import com.lisdatasolutions.microrag.domain.indexing.RunProgress
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -211,5 +215,53 @@ class IndexScreenTest {
 
         state = IndexPreviewData.idle
         compose.onNode(summary and hasContentDescription("Todo actualizado")).assertExists()
+    }
+
+
+    // F19 T058 (contracts/multimodal-ui.md U15–U16, wireframe §8).
+
+    private fun pagesState(pause: PauseReason? = null, stage: CurrentDocument.Stage = CurrentDocument.Stage.PAGES) = IndexUiState(
+        IndexingState.Active(
+            progress = RunProgress(done = 400, total = 900, remainingSeconds = null),
+            current = CurrentDocument(1, "informe-ine.pdf", stage, hasPages = true, pagesDone = 12, pagesTotal = 40),
+            queuedDocuments = 0,
+            pause = pause,
+            failed = emptyList(),
+        ),
+    )
+
+    @Test
+    fun aDocumentWithPages_showsThePageStage_andTheRingCountsItsPages() {
+        show(pagesState())
+
+        exists("Imágenes de página")
+        exists("12 / 40 páginas")
+        compose.onNodeWithText("400 de 900 fragmentos", useUnmergedTree = true).assertDoesNotExist()
+    }
+
+    @Test
+    fun aTextDocument_hasNoPageStage() {
+        show(IndexPreviewData.png)
+
+        compose.onNodeWithText("Imágenes de página", useUnmergedTree = true).assertDoesNotExist()
+    }
+
+    /** The chip and the explanation card, as the other pauses; it resumes by itself, so no button. */
+    @Test
+    fun theSwitchPause_saysItResumesByItself() {
+        show(pagesState(pause = PauseReason.MODEL_SWITCH, stage = CurrentDocument.Stage.EMBEDDING))
+
+        compose.onAllNodesWithText("En pausa: cambiando el modelo de búsqueda", useUnmergedTree = true).assertCountEquals(2)
+        exists("Se reanudará sola en unos segundos.")
+        assertThat(pagesState(pause = PauseReason.MODEL_SWITCH).action).isNull()
+    }
+
+    @Test
+    fun theWaitForTheMode_saysWhereToTurnItOn() {
+        show(pagesState(pause = PauseReason.WAITING_MULTIMODAL, stage = CurrentDocument.Stage.EMBEDDING))
+
+        compose.onAllNodesWithText("Esperando al modo multimodal", useUnmergedTree = true).assertCountEquals(2)
+        exists("Este documento tiene páginas. Activa el modo multimodal en Ajustes para terminarlo.")
+        assertThat(pagesState(pause = PauseReason.WAITING_MULTIMODAL).action).isNull()
     }
 }

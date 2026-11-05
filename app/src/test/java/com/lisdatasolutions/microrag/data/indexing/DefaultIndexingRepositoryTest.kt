@@ -14,11 +14,13 @@ import com.lisdatasolutions.microrag.domain.model.ComputeBackend
 import com.lisdatasolutions.microrag.domain.rag.ChunkInput
 import com.lisdatasolutions.microrag.domain.rag.DocumentStatus
 import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
+import com.lisdatasolutions.microrag.domain.rag.IndexMode
 import com.lisdatasolutions.microrag.domain.rag.NewDocument
 import com.lisdatasolutions.microrag.testing.FakeIngestScheduler
 import com.lisdatasolutions.microrag.testing.FakeRagIndex
 import com.lisdatasolutions.microrag.testing.RecordingLogger
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
@@ -346,5 +348,54 @@ class DefaultIndexingRepositoryTest {
             runStore.edit { IngestRun(listOf(id), cause) }
             assertThat((state(repository) as IndexingState.Active).pause).isEqualTo(reason)
         }
+    }
+
+
+    // F19 T058 (analyze M5, wireframe §8).
+
+    private val multimodalOn = MutableStateFlow(false)
+
+    private fun TestScope.multimodalRepository() =
+        DefaultIndexingRepository(index, scheduler, runStore, thermal, StandardTestDispatcher(testScheduler), logger, alarm, multimodalOn)
+
+    private suspend fun pagesDoc(name: String, mode: IndexMode, status: DocumentStatus = DocumentStatus.PENDING): Long {
+        val id = index.addDocument(NewDocument(displayName = name, contentHash = name, mimeType = "application/pdf", pageCount = 40, indexMode = mode))
+        if (status != DocumentStatus.PENDING) index.updateStatus(id, status, chunkCount = 0)
+        return id
+    }
+
+    @Test
+    fun withTheModeOff_onlyDocumentsWithPagesLeft_waitForIt() = runTest {
+        val visual = pagesDoc("Plano.pdf", IndexMode.VISUAL)
+        val both = pagesDoc("Manual.pdf", IndexMode.BOTH)
+        runStore.edit { it.adding(listOf(visual, both)) }
+        val repository = multimodalRepository()
+
+        assertThat((state(repository) as IndexingState.Active).pause).isEqualTo(PauseReason.WAITING_MULTIMODAL)
+
+        multimodalOn.value = true
+        assertThat(repository.state.first { it is IndexingState.Active && it.pause == null }).isNotNull()
+    }
+
+    @Test
+    fun aTextDocumentLeft_isNotWaiting() = runTest {
+        val visual = pagesDoc("Plano.pdf", IndexMode.VISUAL)
+        val text = doc("Notas.txt", DocumentStatus.PARSED, chunks = 5)
+        runStore.edit { it.adding(listOf(visual, text)) }
+
+        assertThat((state(multimodalRepository()) as IndexingState.Active).pause).isNull()
+    }
+
+    @Test
+    fun thePageStage_bringsTheDocumentsPages() = runTest {
+        multimodalOn.value = true
+        val visual = pagesDoc("Plano.pdf", IndexMode.VISUAL, DocumentStatus.EMBEDDING)
+        runStore.edit { it.adding(listOf(visual)) }
+        scheduler.work.value = IngestWork(unfinished = true, running = true, waitingForSystem = false)
+        scheduler.progress.value = IngestProgress(visual, IngestProgress.Stage.PAGES, pagesDone = 12, pagesTotal = 40)
+
+        val current = (state(multimodalRepository()) as IndexingState.Active).current
+
+        assertThat(current).isEqualTo(CurrentDocument(visual, "Plano.pdf", CurrentDocument.Stage.PAGES, hasPages = true, pagesDone = 12, pagesTotal = 40))
     }
 }

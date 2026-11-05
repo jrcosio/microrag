@@ -84,6 +84,7 @@ import com.lisdatasolutions.microrag.rag.ingest.PdfOpener
 import com.lisdatasolutions.microrag.rag.runtime.MemoryTrimListener
 import java.io.File
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.bind
 import org.koin.core.module.dsl.singleOf
@@ -235,6 +236,7 @@ val dataModule = module {
             io = get<AppDispatchers>().io,
             logger = get(),
             alarm = get(),
+            multimodalOn = get<MultimodalStore>().state.map { it.stage == MultimodalStage.ON },
         )
     }
     // Single: the import attempts live here, in the application scope (D-038).

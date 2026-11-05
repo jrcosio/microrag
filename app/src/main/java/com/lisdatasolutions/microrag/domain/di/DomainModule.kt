@@ -55,6 +55,7 @@ import com.lisdatasolutions.microrag.domain.multimodal.DisableMultimodalUseCase
 import com.lisdatasolutions.microrag.domain.multimodal.DismissMultimodalErrorUseCase
 import com.lisdatasolutions.microrag.domain.multimodal.EnableMultimodalUseCase
 import com.lisdatasolutions.microrag.domain.multimodal.ModelRequirements
+import com.lisdatasolutions.microrag.domain.multimodal.ObserveImportModeUseCase
 import com.lisdatasolutions.microrag.domain.multimodal.ObserveMultimodalUseCase
 import com.lisdatasolutions.microrag.domain.multimodal.PauseMultimodalDownloadUseCase
 import com.lisdatasolutions.microrag.domain.multimodal.ResumeMultimodalDownloadUseCase
@@ -103,6 +104,7 @@ val domainModule = module {
     factoryOf(::ResumeMultimodalDownloadUseCase)
     factoryOf(::SetDefaultImportModeUseCase)
     factoryOf(::DismissMultimodalErrorUseCase)
+    factoryOf(::ObserveImportModeUseCase)
     factoryOf(::ValidateIdentityUseCase)
     factoryOf(::ResolveStartDestinationUseCase)
     factoryOf(::StartOnboardingUseCase)

@@ -12,11 +12,42 @@ import com.lisdatasolutions.microrag.domain.ingest.DocumentFormat
 import com.lisdatasolutions.microrag.domain.ingest.IngestError
 import com.lisdatasolutions.microrag.domain.ingest.QueueItem
 import com.lisdatasolutions.microrag.domain.ingest.QueueItemState
+import com.lisdatasolutions.microrag.domain.rag.IndexMode
+import com.lisdatasolutions.microrag.feature.indexing.durationText
+import com.lisdatasolutions.microrag.feature.indexing.remainingText
 
 // Queue state → texts of contracts/ingest-ui.md. Pure mapping: no state.
 
 @Composable
 fun sizeText(bytes: Long?): String? = bytes?.let { Formatter.formatShortFileSize(LocalContext.current, it) }
+
+/**
+ * F19 (wireframe §8): before its pages are indexed, a PDF or image in Visual or Both says what they will take,
+ * «40 páginas · unos 2 min · ≈ 10 MB» (3.2 s and 250 KB a page, research R14).
+ */
+@Composable
+fun QueueItem.pagesEstimate(): String? {
+    val pages = pageCount?.takeIf { it > 0 && indexMode.hasPages } ?: return null
+    if (state !is QueueItemState.Ready && state !is QueueItemState.Queued && state !is QueueItemState.Prepared) return null
+    val time = stringResource(R.string.ingest_pages_estimate_time, durationText((pages * PAGE_SECONDS).toLong()))
+    val size = sizeText(pages * PAGE_BYTES).orEmpty()
+    return pluralStringResource(R.plurals.ingest_pages_estimate, pages, pages.grouped(), time, size)
+}
+
+/** Research R14: the figures F18 measured on the reference phone. */
+private const val PAGE_SECONDS = 3.2
+private const val PAGE_BYTES = 250L * 1024
+
+/** U10: the row's chip says its mode while it has no error; Text rows keep the chip they had. */
+@Composable
+fun QueueItem.modeChip(): String? = indexMode.takeIf { it != IndexMode.TEXT && state.error == null }?.let { stringResource(it.label()) }
+
+@StringRes
+fun IndexMode.label(): Int = when (this) {
+    IndexMode.TEXT -> R.string.document_mode_text
+    IndexMode.VISUAL -> R.string.document_mode_visual
+    IndexMode.BOTH -> R.string.document_mode_both
+}
 
 /**
  * «2,4 MB · Listo para procesar · Legal»: every row says its folder, «General» too (F17 K6); an error row
@@ -32,7 +63,8 @@ fun QueueItem.metaText(): String {
         else -> stringResource(R.string.ingest_meta, size, state)
     }
     val folder = folderName ?: stringResource(R.string.library_folder_general)
-    return if (base.isEmpty()) folder else stringResource(R.string.ingest_meta, base, folder)
+    val meta = if (base.isEmpty()) folder else stringResource(R.string.ingest_meta, base, folder)
+    return pagesEstimate()?.let { "$meta\n$it" } ?: meta
 }
 
 /** State as the row and the sheet show it; null for errors, whose text is [IngestError.chipText]. */
@@ -53,6 +85,12 @@ fun QueueItemState.stateText(): String? = when (this) {
         if (skipped == null) prepared else "$prepared · " + pluralStringResource(R.plurals.ingest_skipped_pages, skipped, skipped)
     }
     is QueueItemState.Indexing -> stringResource(R.string.ingest_state_indexing, done.grouped(), total.grouped())
+    // F19 (wireframe §5): «Indexando páginas · 12 / 40 · ≈ 1 min restantes» once the rate is known.
+    is QueueItemState.IndexingPages -> {
+        val text = stringResource(R.string.ingest_pages_progress, done.grouped(), total.grouped())
+        val left = perMinute?.takeIf { it > 0 && total > done }?.let { ((total - done) * 60 / it).toLong() }
+        if (left == null) text else "$text · " + remainingText(left)
+    }
     is QueueItemState.Paused -> if (done != null && total != null) {
         stringResource(R.string.ingest_state_paused, done.grouped(), total.grouped())
     } else {
@@ -87,6 +125,8 @@ fun QueueItemState.progress(): ProgressValue? = when (this) {
         }
     QueueItemState.Chunking -> ProgressValue.Indeterminate
     is QueueItemState.Indexing ->
+        if (total > 0) ProgressValue.Determinate((done.toFloat() / total).coerceIn(0f, 1f)) else ProgressValue.Indeterminate
+    is QueueItemState.IndexingPages ->
         if (total > 0) ProgressValue.Determinate((done.toFloat() / total).coerceIn(0f, 1f)) else ProgressValue.Indeterminate
     else -> null
 }

@@ -39,10 +39,13 @@ object LisdataIcons {
     val Close = R.drawable.ic_close
     val SunMoon = R.drawable.ic_sun_moon
 
+    /** F19 (wireframe §8): page images. */
+    val Image = R.drawable.ic_image
+
     /** All icons, for the debug catalog and resource checks. */
     val all: List<Int> = listOf(
         Sparkle, Layers, Database, Cpu, ShieldCheck, Home, Chat, Folder, Settings, ChevronLeft,
         ChevronRight, ArrowRight, MoreHorizontal, Upload, Send, Stop, Copy, Trash, Plus, Search,
-        Pause, Play, Refresh, Globe, FileText, Info, Check, CheckCircle, Warning, Close, SunMoon,
+        Pause, Play, Refresh, Globe, FileText, Info, Check, CheckCircle, Warning, Close, SunMoon, Image,
     )
 }

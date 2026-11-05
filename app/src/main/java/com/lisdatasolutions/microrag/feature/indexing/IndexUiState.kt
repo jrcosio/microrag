@@ -15,8 +15,8 @@ data class IndexUiState(
             is IndexingState.Active -> when (state.pause) {
                 null, PauseReason.THERMAL, PauseReason.SYSTEM_LIMIT -> IndexAction.Pause
                 PauseReason.USER, PauseReason.NO_SPACE -> IndexAction.Resume
-                // F19 research R4: the switch resumes by itself in seconds.
-                PauseReason.MODEL_MISSING, PauseReason.MODEL_SWITCH -> null
+                // F19 research R4: the switch resumes by itself in seconds; the mode is turned on in Ajustes.
+                PauseReason.MODEL_MISSING, PauseReason.MODEL_SWITCH, PauseReason.WAITING_MULTIMODAL -> null
             }
             is IndexingState.Idle -> state.failed.singleOrNull()?.takeIf { it.canRetry }?.let { IndexAction.Retry(it.id) }
             else -> null

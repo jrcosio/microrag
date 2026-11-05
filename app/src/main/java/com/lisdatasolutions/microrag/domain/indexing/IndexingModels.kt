@@ -30,14 +30,26 @@ sealed interface IndexingState {
  */
 data class RunProgress(val done: Int, val total: Int?, val remainingSeconds: Long?)
 
-data class CurrentDocument(val id: Long, val displayName: String, val stage: Stage) {
+/**
+ * F19 (wireframe §8): [hasPages] shows the page stage; during it, [pagesDone] of [pagesTotal] are the ring's.
+ */
+data class CurrentDocument(
+    val id: Long,
+    val displayName: String,
+    val stage: Stage,
+    val hasPages: Boolean = false,
+    val pagesDone: Int? = null,
+    val pagesTotal: Int? = null,
+) {
     /** The PNG 08 stages map to these (data-model §3, G29). */
     enum class Stage { EXTRACTING, CHUNKING, EMBEDDING, PAGES, CLOSING }
 }
 
-/** Why the run is not advancing (data-model §7). */
-/** F19: MODEL_SWITCH while the multimodal mode switches the text embedder (research R4). */
-enum class PauseReason { USER, THERMAL, NO_SPACE, MODEL_MISSING, SYSTEM_LIMIT, MODEL_SWITCH }
+/**
+ * Why the run is not advancing (data-model §7). F19: MODEL_SWITCH while the multimodal mode switches the text
+ * embedder (research R4); WAITING_MULTIMODAL when only documents with pages are left and the mode is off (M5).
+ */
+enum class PauseReason { USER, THERMAL, NO_SPACE, MODEL_MISSING, SYSTEM_LIMIT, MODEL_SWITCH, WAITING_MULTIMODAL }
 
 data class FailedDocument(val id: Long, val displayName: String, val error: IngestError) {
     val canRetry: Boolean get() = error.retryable

@@ -107,4 +107,18 @@ class IndexingNotificationsTest {
             context.getSystemService(LocaleManager::class.java).applicationLocales = LocaleList.getEmptyLocaleList()
         }
     }
+
+
+    /** F19 T058 (contract U17): in the page stage, the document's pages with their bar. */
+    @Test
+    fun thePageStage_countsPages() {
+        val pages = notifications.build(
+            IngestProgress(5, IngestProgress.Stage.PAGES, runChunksDone = 400, runChunksTotal = 900, pagesDone = 12, pagesTotal = 40),
+        )
+
+        assertThat(pages.text()).isEqualTo("Indexando páginas · 12 / 40")
+        assertThat(pages.extras.getInt(Notification.EXTRA_PROGRESS)).isEqualTo(12)
+        assertThat(pages.extras.getInt(Notification.EXTRA_PROGRESS_MAX)).isEqualTo(40)
+        assertThat(pages.extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE)).isFalse()
+    }
 }
