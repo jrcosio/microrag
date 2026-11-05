@@ -15,6 +15,8 @@ MODELS_DIR = OFFLINE / "models"
 HASH_CACHE = OFFLINE / "build" / "model_hashes.json"
 
 EMBEDDING = "EG2_270M"
+# F18: text and image embeddings for the visual evaluation; same text vectors as the 270M (D-025, R5).
+VISUAL_EMBEDDING = "EG2_440M"
 LLMS = {"E2B": "GEMMA4_E2B", "E4B": "GEMMA4_E4B"}
 
 # litert-community/gemma-4-E4B-it-litert-lm @ e6a3892a8c22cf87ff99583996149cf3cb32452b (Apache-2.0)

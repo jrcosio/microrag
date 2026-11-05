@@ -19,6 +19,17 @@ class AppConfigTest(unittest.TestCase):
         self.assertEqual(e2b.file_name, "gemma-4-E2B-it.litertlm")
         self.assertEqual(e2b.sha256, "181938105e0eefd105961417e8da75903eacda102c4fce9ce90f50b97139a63c")
 
+    def test_the_visual_embedder_comes_from_the_catalog(self):
+        """F18 T002: the 440M is the catalog's file, and verify() resolves the linked file by that hash."""
+        from eval import models
+        eg = appconfig.model(models.VISUAL_EMBEDDING)
+        self.assertEqual(eg.file_name, "embeddinggemma-2-text-vision-440m.litertlm")
+        self.assertEqual(eg.sha256, "92dcbea108899e5d6e30d919b0744f90d9967e80c67a4ab5503ac16d54f62eb0")
+        self.assertEqual(eg.size_bytes, 387_710_976)
+        self.assertEqual(models.path(models.VISUAL_EMBEDDING).name, eg.file_name)
+        if models.path(models.VISUAL_EMBEDDING).exists():
+            self.assertEqual(models.verify(models.VISUAL_EMBEDDING), models.path(models.VISUAL_EMBEDDING))
+
     def test_vector_space_values(self):
         self.assertEqual(appconfig.dimensions(), 256)
         self.assertEqual(appconfig.document_prefix(), "task: search result | text: ")
