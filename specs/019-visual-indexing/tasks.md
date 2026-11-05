@@ -348,7 +348,7 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
 
 ### Pruebas
 
-- [ ] T044 [P] [US6] `DefaultMultimodalControllerTest` y `MultimodalSettingsViewModelTest`:
+- [X] T044 [P] [US6] `DefaultMultimodalControllerTest` y `MultimodalSettingsViewModelTest`:
   - desactivar en `ON` no borra páginas ni la 440M;
   - desactivar en `DOWNLOADING` cancela la descarga;
   - reactivar es directo;
@@ -359,7 +359,7 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
 
 ### Implementación
 
-- [ ] T046 [US6] Desactivar y reactivar en el controlador, en los casos de uso y en Ajustes, con el diálogo del wireframe §3, y la nota del detalle. Con el modo apagado, `IngestRunner` se salta los documentos con páginas sin terminar («Esperando al modo multimodal»), y al reactivarlo el controlador los vuelve a pedir (analyze, M5). T044 y T045 pasan.
+- [X] T046 [US6] Desactivar y reactivar en el controlador, en los casos de uso y en Ajustes, con el diálogo del wireframe §3, y la nota del detalle. Con el modo apagado, `IngestRunner` se salta los documentos con páginas sin terminar («Esperando al modo multimodal»), y al reactivarlo el controlador los vuelve a pedir (analyze, M5). T044 y T045 pasan.
 
 **Checkpoint:** el modo es una opción de verdad: se apaga y se enciende sin perder nada.
 

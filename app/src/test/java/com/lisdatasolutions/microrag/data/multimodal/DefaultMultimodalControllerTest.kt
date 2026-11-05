@@ -26,6 +26,8 @@ import com.lisdatasolutions.microrag.domain.onboarding.FakeOnboardingStore
 import com.lisdatasolutions.microrag.domain.onboarding.LocalModelWorkTracker
 import com.lisdatasolutions.microrag.domain.onboarding.PrepareModelsUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.StartModelDownloadUseCase
+import com.lisdatasolutions.microrag.domain.rag.DocumentStatus
+import com.lisdatasolutions.microrag.domain.rag.NewDocument
 import com.lisdatasolutions.microrag.rag.runtime.CompatibilityResult
 import com.lisdatasolutions.microrag.rag.runtime.EngineCoordinator
 import com.lisdatasolutions.microrag.testing.FakeDeviceResources
@@ -295,5 +297,23 @@ class DefaultMultimodalControllerTest {
         advanceUntilIdle()
 
         assertThat(store.state.first().error).isEqualTo(MultimodalError.DOWNLOAD_FAILED)
+    }
+
+    /** T044 (FR-008b, analyze L8): turning it on changes no document; they keep their mode and chunks. */
+    @Test
+    fun turningItOn_reindexesNothingByItself() = runTest {
+        val id = index.addDocument(NewDocument(displayName = "Manual.pdf", contentHash = "m"))
+        index.updateStatus(id, DocumentStatus.DONE, chunkCount = 3)
+        val before = index.document(id)
+        val controller = controller()
+
+        controller.enable()
+        downloaded()
+        advanceUntilIdle()
+
+        assertThat(stage()).isEqualTo(MultimodalStage.ON)
+        assertThat(index.document(id)).isEqualTo(before)
+        assertThat(index.shadowOf(id)).isNull()
+        assertThat(indexing.calls).containsNoneOf("start", "pause")
     }
 }
