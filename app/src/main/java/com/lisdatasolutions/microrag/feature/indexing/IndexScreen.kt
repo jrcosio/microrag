@@ -171,7 +171,9 @@ private fun Running(state: IndexingState.Active) {
         else -> stringResource(R.string.index_preparing)
     }
     val ringDescription = when {
-        pages != null -> count
+        pages != null -> stringResource(
+            R.string.index_pages_ring_description, (ring as ProgressValue.Determinate).percent, pages.first.grouped(), pages.second.grouped(),
+        )
         ring is ProgressValue.Determinate && total != null ->
             stringResource(R.string.index_ring_description, ring.percent, progress.done.grouped(), total.grouped())
         else -> stringResource(R.string.index_preparing)

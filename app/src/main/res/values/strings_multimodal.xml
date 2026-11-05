@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- F19 Modo multimodal e indexación visual (wireframe §1–§8, contracts/multimodal-ui.md, D-078, D-079, D-081). -->
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Ajustes: interruptor y etapas (U2–U4, U7). -->
     <string name="multimodal_title">Modo multimodal</string>
     <string name="multimodal_subtitle">Lee también páginas e imágenes. Respuestas más lentas.</string>
@@ -29,7 +29,8 @@
     <string name="multimodal_enable_confirm">Activar</string>
     <!-- Diálogo de desactivar (U4). -->
     <string name="multimodal_disable_title">¿Desactivar el modo multimodal?</string>
-    <string name="multimodal_disable_body">Solo podrás importar en Texto. Las páginas ya indexadas y el modelo se conservan: si lo vuelves a activar, estará listo al momento.</string>
+    <!-- «al momento» is Spanish, not a misspelling of «memento». -->
+    <string name="multimodal_disable_body" tools:ignore="Typos">Solo podrás importar en Texto. Las páginas ya indexadas y el modelo se conservan: si lo vuelves a activar, estará listo al momento.</string>
     <string name="multimodal_disable_confirm">Desactivar</string>
     <!-- Modo al importar PDF (U5, U6). -->
     <string name="import_mode_title">Modo al importar PDF</string>
