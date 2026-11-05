@@ -53,7 +53,7 @@ Al cerrar cada feature se entrega:
 | F16 | Apariencia: tema e icono de Ajustes | Producto (UI propuesta) | F12 | ✅ cerrada |
 | F17 | Carpetas y ámbito del chat | Producto (UI propuesta) | F08, F11, F13 | ✅ cerrada |
 | F18 | Viabilidad del RAG visual (fase 0 visual) | Técnica | F05, F10, F11 | ✅ cerrada |
-| F19 | Indexación visual (modo opcional) | Producto (UI propuesta) | F17, F18 | 🟨 en curso (tasks) |
+| F19 | Indexación visual (modo opcional) | Producto (UI propuesta) | F17, F18 | 🟨 en curso (analyze) |
 | F20 | Chat con páginas (modo opcional) | Producto (UI propuesta) | F19 | ⬜ |
 
 **Orden de ejecución (D-066, D-078):** F01–F13 → **F16 → F17 → F18 → F19 → F20** → F14 → F15. F19 y F20 construyen el modo «Multimodal» opcional, desactivado por defecto. F14 y F15 conservan su número porque las decisiones cerradas las citan así. Las ramas nuevas se crean con `--number` (`016-…` a `020-…`), y F14 se lanzará con `--number 14`.
@@ -922,7 +922,7 @@ Con esos datos se fijan:
 ## F19 — Indexación visual
 
 - **Tipo:** Producto, **sin mockup**. Requiere una propuesta de UI aprobada (G47, constitución VII).
-- **Estado:** 🟨 en curso en la rama `019-visual-indexing` desde el 2026-11-05. Modo opcional «Multimodal», desactivado por defecto (D-078). Clarify y wireframe aprobados el 2026-11-05, con la decisión D-079 y la constitución 1.2.0. Plan hecho el 2026-11-05, con la decisión D-080. Spec en `specs/019-visual-indexing/spec.md`.
+- **Estado:** 🟨 en curso en la rama `019-visual-indexing` desde el 2026-11-05. Modo opcional «Multimodal», desactivado por defecto (D-078). Clarify y wireframe aprobados el 2026-11-05, con la decisión D-079 y la constitución 1.2.0. Plan hecho el 2026-11-05, con la decisión D-080. Tareas T001–T057. Spec en `specs/019-visual-indexing/spec.md`.
 
 **Objetivo.**
 - **Modo «Multimodal» en Ajustes (D-078),** desactivado por defecto. Desactivado, la app se comporta exactamente como hoy.
