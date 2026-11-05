@@ -1,6 +1,6 @@
 # Informe de cierre — F17 Carpetas y ámbito del chat
 
-> **Estado:** borrador (T054). Falta la fase del teléfono (T055–T056) y el cierre (T057).
+> **Estado:** implementada; pendiente de la revisión de cierre del usuario.
 
 **Rama:** `017-folders-chat-scope`, creada desde `62f6ff2`.
 **Fecha:** 2026-11-04 y 2026-11-05.
@@ -84,7 +84,7 @@
 | `Pixel_10` (API 37), instrumentadas | 909 pruebas (94 más que en F16), en 21,1 min. Un fallo de F17, corregido: `RagIndexWriteTest` no conocía la tabla `folders`. Repetición con los APK finales abajo |
 | `MicroRAG_API33` (API 33), instrumentadas | 909 pruebas, en 22,1 min: los 4 fallos previos de Atrás desde la raíz, y el mismo `RagIndexWriteTest` |
 | Repetición con los APK finales, en los dos emuladores | 349 de 349: `RagIndexWriteTest` y la accesibilidad de la Biblioteca, el detalle, la Ingesta y el chat |
-| Teléfono A063 | *pendiente (T055)* |
+| Teléfono A063, instrumentadas (T055) | 909 de 909 con los APK finales, en 22,8 min, con la salida en el teléfono y sin pantalla de bloqueo. Además, cada una aparte: `RetrievalBenchmarkTest` con ámbitos (1 de 1) y `LibraryBenchmarkTest` con carpetas |
 
 **Pruebas nuevas o ampliadas:**
 - **JVM:**
@@ -101,10 +101,10 @@
 | SC-001: actualizar no pierde nada y todo queda en «General» | ✅ `RagIndexMigrationTest` 3 → 4 con documentos, fragmentos e inclusiones variadas; `SqliteChatRepositoryTest` 1 → 2 |
 | SC-002: nada fuera del ámbito, excluido o sin indexar | ✅ `ScopedSearchTest`: 0 resultados fuera, en vectorial y en FTS, con k = 5 y k = 50 |
 | SC-003: «Toda la biblioteca» como antes | ✅ el SQL de F10 sin cambios; `ScopedSearchTest` y `RagIndexVisibilityTest` |
-| SC-004: búsqueda acotada en el teléfono | *pendiente (T055)* |
+| SC-004: búsqueda acotada en el teléfono | ⚠️ anotado para F14. p95 de 202,3 ms con una carpeta de 1.000 fragmentos y 198,4 ms con 5 documentos sueltos, frente a 206,5 ms con «Toda la biblioteca». El ámbito no la hace más lenta. El exceso sobre los 200 ms es el de F10 (D-052): sale de la consulta de embeddings, con un p95 de unos 145 ms |
 | SC-005: el ámbito se conserva desde Historial, al girar y al cerrar | ✅ en JVM (`ChatViewModelTest`, `SqliteChatRepositoryTest`); en API 32, «Nuevo chat» tras cerrar la app sale con el último ámbito |
 | SC-006: eliminar con «Mover» no borra nada; con «Eliminar», exactamente la carpeta | ✅ `RagIndexFoldersTest` y `FolderUseCasesTest` |
-| SC-007: 1.000 documentos en 20 carpetas, carpetas en menos de 1 s | ✅ en emuladores, p95 de 0,32 ms (API 37) y 0,49 ms (API 33); *teléfono pendiente* |
+| SC-007: 1.000 documentos en 20 carpetas, carpetas en menos de 1 s | ✅ p95 de 4,29 ms en el A063, y de 0,32 ms (API 37) y 0,49 ms (API 33) en los emuladores |
 | SC-008: accesibilidad, 200 %, horizontal, claro y oscuro | ✅ ATF en los dos emuladores: Biblioteca (raíz, búsqueda y carpeta), detalle, Ingesta con destino, chat con la ficha y K9, diálogos y hojas (`FolderSheetsAccessibilityTest`) y el catálogo; recorrido en oscuro, al 200 % y en horizontal |
 
 ## 4. Cifras medidas
@@ -113,12 +113,30 @@
 
 | Medida | `Pixel_10` (API 37) | `MicroRAG_API33` | A063 |
 |---|---|---|---|
-| Lista de carpetas | p50 0,28 ms · p95 0,32 ms | p50 0,34 ms · p95 0,49 ms | *pendiente* |
-| Primera tanda de una carpeta, con su recuento | p50 0,29 ms · p95 0,38 ms | p50 0,32 ms · p95 0,41 ms | *pendiente* |
+| Lista de carpetas | p50 0,28 ms · p95 0,32 ms | p50 0,34 ms · p95 0,49 ms | p50 3,90 ms · p95 4,29 ms |
+| Primera tanda de una carpeta, con su recuento | p50 0,29 ms · p95 0,38 ms | p50 0,32 ms · p95 0,41 ms | p50 7,55 ms · p95 12,34 ms |
 
 Las cifras de F08 (página y tandas de toda la biblioteca) no cambian: primera página con recuento en p95 1,29 ms en API 37 con 50.000 fragmentos.
 
-**Búsqueda acotada** (`RetrievalBenchmarkTest`, T049): necesita el modelo de embeddings, así que solo se ejecuta en el teléfono (T055). Mide la búsqueda completa con «Toda la biblioteca», con una carpeta de 1.000 fragmentos y con 5 documentos sueltos sobre 10.000 fragmentos, y compara el streaming con top-(k + m). *Pendiente.*
+**Búsqueda acotada** (`RetrievalBenchmarkTest`, T049). Necesita el modelo de embeddings, así que solo se ejecuta en el teléfono (T055). Corre sobre 10.000 fragmentos sintéticos, con 100 consultas por caso, y los tiempos van en ms en el A063:
+
+| Ámbito | Embedding p95 | Vectorial p95 | FTS p95 | Total p50 | Total p95 |
+|---|---|---|---|---|---|
+| Toda la biblioteca | 142,1 | 53,0 | 116,1 | 182,8 | 206,5 |
+| Toda la biblioteca con 4.300 ocultos (el caso de F10) | 144,8 | 66,7 | 150,0 | 198,5 | 207,9 |
+| Una carpeta de 1.000 fragmentos | 147,0 | 48,7 | 145,5 | 196,4 | 202,3 |
+| 5 documentos sueltos (500 fragmentos) | 146,1 | 53,1 | 149,2 | 188,3 | 198,4 |
+
+- **Primera consulta en frío:** 891,6 ms, de ellos 834,3 ms de embedding, como en F10. El embedding solo, ya cargado, tarda 121,9 ms de p50 y 125,1 ms de p95.
+- **Streaming frente a top-(k + m)**, solo la búsqueda vectorial:
+
+  | Ámbito | Streaming | Top-(k + m) |
+  |---|---|---|
+  | Carpeta: 1.000 de 10.000 fragmentos | p50 27,0 · p95 28,2 | p50 29,8 · p95 30,1 |
+  | Sueltos: 500 de 10.000 fragmentos | p50 26,5 · p95 27,9 | p50 30,0 · p95 30,4 |
+
+  El streaming es el más rápido en los dos casos, así que se queda (D-072).
+- **SC-004:** con un ámbito, el total no sube. El p95 pasa de 200 ms en los dos casos de «Toda la biblioteca» y con la carpeta, igual que en F10, y queda anotado para F14 con INT8 y la precarga (D-052).
 
 ### Recorrido en el emulador (T053)
 
@@ -133,6 +151,53 @@ En `MicroRAG_API32` con documentos de prueba TXT, y el inglés en `Pixel_10`. El
 7. **Oscuro y 200 %:** Biblioteca y chat sin cortes. **Horizontal:** la ficha sobre el compositor y la hoja desplazable con sus botones.
 8. **Inglés** (`Pixel_10`): «Library», «FOLDERS», «New folder», «Rename folder», «Import into Legal», «Destination folder», «Search in: Whole library».
 9. **Limpieza:** carpetas, documentos y ficheros de prueba borrados en los dos emuladores, y el idioma por app de `Pixel_10` vacío, como estaba.
+
+### Teléfono A063 (T055–T056)
+
+Recorrido aprobado por el usuario el 2026-11-05.
+- **Privacidad:** no se abrió, capturó ni volcó su conversación ni su documento. En Biblioteca, Inicio e Historial solo se buscaron etiquetas concretas, y las capturas fueron solo de la conversación de prueba.
+- **Documentos de prueba:** 4 TXT de menos de 100 B copiados a `Download/` («Contrato», «Garantia», «Manual motor» y «Notas», todos «… prueba F17.txt») e importados con el selector del sistema.
+
+1. **Migración de los datos del usuario:**
+   - al abrir la app, `rag migrated schema 3 -> 4`, y el índice abre como `Compatible` en 33 ms;
+   - el historial abre sin error (`chat db open: OK`, 33 ms);
+   - la raíz muestra «CARPETAS», «General · 1 documento» y «Nueva carpeta».
+2. **Carpetas:** «Prueba Legal», «Prueba Motores» y «Prueba Pendiente» creadas desde la raíz, con «0 documentos».
+3. **Importar a una carpeta:**
+   - desde el «＋» de «Prueba Legal», la Ingesta sale con «Carpeta de destino: Prueba Legal»;
+   - el contrato y la garantía van a «Prueba Legal», y el manual a «Prueba Motores»;
+   - cada fila de la cola dice su carpeta, también para TalkBack;
+   - los tres se indexan en 5 s;
+   - «Notas» va a «Prueba Pendiente» sin indexar, para K9.
+4. **Chat con ámbito:** un chat nuevo con la ruta de depuración, sin abrir la conversación del usuario, y el ámbito «Prueba Legal».
+   - **Pregunta por el plazo de preaviso:** responde citando solo el contrato (1 de 2 bloques), con el primer token a los 4,0 s y el total a los 5,1 s.
+   - **Pregunta por la presión de aceite,** que solo está en el manual de «Prueba Motores»: se niega y no cita el manual.
+   - **Con el manual como documento suelto** («Buscar en: 1 documento»): recupera un bloque y cita el manual, con el primer token a los 1,5 s.
+5. **K9:**
+   - con «Prueba Pendiente» marcada y el manual aún marcado, la ficha dice «Buscar en: Prueba Pendiente + 1 documento» (FR-014);
+   - con solo «Prueba Pendiente», sale «En este ámbito no hay documentos listos para buscar» con «Cambiar ámbito»;
+   - tras cerrar la app, la conversación vuelve con «Buscar en: Prueba Pendiente» (SC-005).
+6. **Mover:** el manual pasa de «Prueba Motores» a «Prueba Legal», con «Movido a «Prueba Legal»».
+7. **Eliminar con sus documentos:** «Prueba Pendiente» con «Eliminar también su documento», el segundo aviso «¿Eliminar 1 documento?» y «Eliminar documentos». La carpeta desaparece. El aviso «Carpeta eliminada» no se llegó a buscar: la comprobación llegó mientras se borraba.
+8. **K10:** al reabrir la conversación, sale «El ámbito vuelve a ser toda la biblioteca» y la ficha queda en «Buscar en: Toda la biblioteca». Al reabrirla otra vez, el aviso ya no sale (M8).
+9. **Eliminar sin borrar los documentos:**
+   - «Prueba Motores», vacía, se elimina sin opciones y con «Carpeta eliminada»;
+   - «Prueba Legal» se elimina con la opción por defecto, «Mover sus 3 documentos a «General»», y la raíz pasa a «General · 4 documentos» (SC-006).
+10. **Red:** el uid de la app (10628) no tiene tráfico en `dumpsys netstats detail`. Solo aparece en el mapa de primer plano.
+11. **Limpieza:**
+    - los 3 documentos de prueba, borrados uno a uno desde su ficha;
+    - la raíz vuelve a «General · 1 documento»;
+    - la conversación de prueba, borrada desde su «⋯» con «Borrar conversación», y Historial sin las preguntas de prueba;
+    - los 4 TXT, borrados de `Download/` y del índice multimedia;
+    - las salidas de `/data/local/tmp`, copiadas y borradas.
+
+**Estado final del teléfono**, como al empezar:
+- letra al 1,0;
+- giro bloqueado (`user_rotation=0`, pantalla en `ROTATION_0`);
+- modo oscuro;
+- pantalla apagada a los 30 min y `stay_on_while_plugged_in` a 0;
+- wifi y datos activos, y sin modo avión;
+- la app en `[es]`. Esta vez el idioma por app no se vació.
 
 ## 5. Revisión del inglés (T048)
 
@@ -172,5 +237,8 @@ En `MicroRAG_API32` con documentos de prueba TXT, y el inglés en `Pixel_10`. El
 
 ## 9. Pendiente
 
-- T055–T056: fase del teléfono, con el recorrido acordado antes con el usuario.
-- T057: cierre.
+- **Revisión de cierre del usuario.**
+- **Para F14:**
+  - el total p95 de la búsqueda acotada en el A063, de 198–202 ms (SC-004), frente a 206,5 ms con «Toda la biblioteca»;
+  - se suma a lo que ya traía F10: INT8 y la precarga (D-052).
+- **Para las próximas fases del teléfono:** el diálogo «Eliminar carpeta» empieza en «Mover sus documentos a «General»». Para borrar los documentos de prueba con la carpeta, hay que marcar antes «Eliminar también…».

@@ -280,12 +280,14 @@ description: "Lista de tareas de F17 — Carpetas y ámbito del chat"
 
 ## Phase 9: User Story 7 - La búsqueda acotada sigue siendo rápida (Priority: P3)
 
-- [ ] T049 [P] [US7] `…/androidTest/…/data/retrieval/RetrievalBenchmarkTest.kt`, ampliada (R11), sobre 10.000 fragmentos sintéticos:
+- [X] T049 [P] [US7] `…/androidTest/…/data/retrieval/RetrievalBenchmarkTest.kt`, ampliada (R11), sobre 10.000 fragmentos sintéticos:
   - «Toda la biblioteca», una carpeta de unos 1.000 fragmentos y 5 documentos sueltos;
   - el modo en streaming frente a top-(k + m) con el ámbito contado en m;
   - el p50 y el p95 de la búsqueda completa.
 
   Es `@RequiresModels`, así que se lanza aparte, con `-e class`, donde esté el modelo de embeddings: en el teléfono, en la última fase (T055). En el emulador solo se comprueba que compila. Se queda la variante más rápida (D-072).
+
+  **Resultado (A063):** el total p95 da 206,5 ms con «Toda la biblioteca», 202,3 ms con la carpeta y 198,4 ms con los sueltos. El streaming gana a top-(k + m) (p95 de 28,2 frente a 30,1 ms con la carpeta), así que se queda. Lo que pasa de 200 ms queda anotado para F14 (SC-004).
 - [X] T050 [P] [US7] `LibraryBenchmarkTest` (la de F08), ampliada (L7): 1.000 documentos en 20 carpetas; el tiempo hasta la lista de carpetas (SC-007) y las tandas por carpeta.
 
 ---
@@ -310,15 +312,24 @@ description: "Lista de tareas de F17 — Carpetas y ámbito del chat"
 
 ## Phase 11: Última fase — teléfono de referencia y cierre
 
-- [ ] T055 Batería instrumentada completa en el A063, con la salida en el teléfono y sin pantalla de bloqueo. Además, `RetrievalBenchmarkTest` con ámbitos, de forma explícita (SC-004, T049).
-- [ ] T056 Recorrido **acordado con el usuario antes de empezar** (quickstart §5):
+- [X] T055 Batería instrumentada completa en el A063, con la salida en el teléfono y sin pantalla de bloqueo. Además, `RetrievalBenchmarkTest` con ámbitos, de forma explícita (SC-004, T049).
+
+  **Resultado:** 909 de 909 con los APK finales, en 22,8 min. `RetrievalBenchmarkTest` pasa 1 de 1, y `LibraryBenchmarkTest` con carpetas da la lista en un p95 de 4,29 ms (SC-007).
+- [X] T056 Recorrido **acordado con el usuario antes de empezar** (quickstart §5):
   - su documento queda en «General» y su conversación con «Toda la biblioteca», sin abrirlos;
   - carpetas, documentos y conversaciones de prueba;
   - mover, importar a una carpeta y eliminar con las dos opciones;
   - el ámbito en el chat y en Historial;
   - la red y la limpieza;
   - ajustes e idioma por app restaurados.
-- [ ] T057 Cerrar `report.md` y poner F17 en `docs/roadmap/FEATURES.md` como «implementada; pendiente de la revisión de cierre». **Parada para la revisión de cierre.**
+
+  **Resultado:**
+  - **Migración:** `rag.db` 3 → 4 y el historial abren bien, y la raíz muestra «General · 1 documento».
+  - **Chat:** las respuestas citan solo lo que está en el ámbito, y fuera de él el asistente se niega. K9, K10 y SC-005 funcionan.
+  - **Carpetas:** mover y eliminar con las dos opciones.
+  - **Red:** sin tráfico.
+  - **Limpieza:** hecha, con el teléfono restaurado. El detalle está en `report.md` §4.
+- [X] T057 Cerrar `report.md` y poner F17 en `docs/roadmap/FEATURES.md` como «implementada; pendiente de la revisión de cierre». **Parada para la revisión de cierre.**
 
 ---
 
