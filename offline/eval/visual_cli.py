@@ -495,6 +495,60 @@ def visual_parity(args):
                       "reading": {k: v for k, v in result["reading"].items() if k != "rows"}}, ensure_ascii=False))
 
 
+def visual_manual(args):
+    """The judge check (30 per main variant) or, with --decisive variant=<key>, the decisive review (D-075)."""
+    from eval import visual_index, visual_manual as manual, visual_rules
+
+    decisive = "--decisive" in args
+    options = _pairs([a for a in args if a != "--decisive"], {"variant": ""})
+    rules = visual_rules.load()
+    by_id = {q.id: q for q in _questions() if q.review == "ok"}
+    runs = visual_index.VISUAL_DIR / "runs"
+    available = {key: json.loads((runs / f"answers-{key}" / "metrics.json").read_text())
+                 for key in default_variants() if (runs / f"answers-{key}" / "metrics.json").exists()}
+    if decisive:
+        if not options["variant"]:
+            raise SystemExit("visual-manual --decisive needs variant=<the chosen configuration>")
+        kind, variants, ids = manual.DECISIVE, ["texto", options["variant"]], sorted(by_id)
+    else:
+        kind, variants = manual.CHECK, manual.main_variants(available)
+        ids = manual.sample_ids(by_id, rules["judge_check_sample"], rules["seeds"]["sample"])
+    rows = []
+    for variant in variants:
+        metrics = available.get(variant)
+        if metrics is None or not metrics["complete"]:
+            raise SystemExit(f"{variant}: no complete run; run visual-generate first")
+        folder = runs / f"answers-{variant}"
+        answers = {json.loads(line)["id"]: json.loads(line) for line in (folder / "answers.jsonl").read_text().splitlines() if line.strip()}
+        rows += [manual.row(kind, variant, by_id[qid], answers[qid]["answer"], metrics["judgements"][qid], answers[qid]["sources"])
+                 for qid in ids]
+    out = manual.export(rows)
+    print(json.dumps({"sample": kind, "variants": variants, "rows": len(rows),
+                      "pending": sum(1 for r in out if r["muestra"] == kind and not r["manual"]),
+                      "agreement": manual.agreement(out)}, ensure_ascii=False))
+
+
+def visual_text_loss(args):
+    """The chosen mix on F05's test set: only the answers that change go to reports/visual-text-loss.csv (D-075)."""
+    from eval import visual_index, visual_rules, visual_testset, visual_text_loss as text_loss
+
+    options = _pairs(args, {"variant": ""})
+    if not options["variant"]:
+        raise SystemExit("visual-text-loss needs variant=<the chosen configuration>")
+    visual_rules.require_frozen(visual_rules.RULES, visual_testset.TESTSET)
+    decision = json.loads((visual_index.VISUAL_DIR / "decision-retrieval.json").read_text())
+    print(json.dumps(text_loss.run(options["variant"], decision, visual_rules.load()), ensure_ascii=False))
+
+
+def visual_report(args):
+    """Writes reports/visual-eval-report.md from the files of build/visual (contracts/visual-harness.md §5)."""
+    from eval import visual_report as report
+
+    del args
+    report.REPORT.write_text(report.build(default_variants()), encoding="utf-8")
+    print(f"wrote {report.REPORT}")
+
+
 HANDLERS = {
     "visual-raster": visual_raster,
     "visual-build": visual_build,
@@ -507,5 +561,8 @@ HANDLERS = {
     "visual-generate": visual_generate,
     "visual-device-set": visual_device_set,
     "visual-parity": visual_parity,
+    "visual-manual": visual_manual,
+    "visual-text-loss": visual_text_loss,
+    "visual-report": visual_report,
 }
 

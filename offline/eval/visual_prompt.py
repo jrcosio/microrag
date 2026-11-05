@@ -24,17 +24,19 @@ class Source:
     images: tuple = ()  # encoded images of a page source: the page, or its two tiles
 
 
-def _head_and_tail(question):
-    """v4's text before the sources (with the page rule) and after them, split at «FUENTES:»."""
-    full = build_prompt(question, [], None, TEMPLATE)
-    head, tail = full.split("FUENTES:\n", 1)
-    rules_end = head.rstrip("\n")
-    return f"{rules_end}\n{PAGE_RULE}\n\nFUENTES:\n", tail
+def _head_and_tail(question, previous=None):
+    """v4's text before the sources (the page rule after the others, then the previous turn) and after them."""
+    head, tail = build_prompt(question, [], previous, TEMPLATE).split("FUENTES:\n", 1)
+    rules_end = build_prompt(question, [], None, TEMPLATE).split("FUENTES:\n", 1)[0].rstrip("\n")
+    conversation = head[len(rules_end):].lstrip("\n")
+    return f"{rules_end}\n{PAGE_RULE}\n\n{conversation}FUENTES:\n", tail
 
 
-def build_parts(question, sources):
-    """The ordered parts of the message: text with the numbered sources, each page label before its image."""
-    head, tail = _head_and_tail(question)
+def build_parts(question, sources, previous=None):
+    """The ordered parts of the message: text with the numbered sources, each page label before its image.
+
+    [previous] is the (question, answer) of the previous turn for a follow-up, as in v4."""
+    head, tail = _head_and_tail(question, previous)
     parts, buffer = [], [head]
     for number, source in enumerate(sources, start=1):
         if source.kind == "text":

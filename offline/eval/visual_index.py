@@ -20,6 +20,9 @@ from eval import builds, corpus, raster
 
 VISUAL_DIR = builds.BUILD / "visual"
 CHUNK_PAGES = VISUAL_DIR / "chunk-pages.json"
+# F05's corpus for the text loss (research R11): only its 6 PDFs gain pages; MD and TXT stay text only.
+F05_DIR = VISUAL_DIR / "f05"
+F05_CHUNK_PAGES = F05_DIR / "chunk-pages.json"
 SNIPPET = 40
 
 
@@ -44,8 +47,8 @@ def pages_of(content, blocks, fallback=None):
     return [pages[first][0]]
 
 
-def chunk_pages(index_path, docs, docs_dir):
-    """{chunk_id: [pages]} for the text index at [index_path], written to build/visual/chunk-pages.json."""
+def chunk_pages(index_path, docs, docs_dir, out=CHUNK_PAGES):
+    """{chunk_id: [pages]} for the text index at [index_path], written to [out]."""
     from eval import index
 
     by_sha = {doc.sha256: doc for doc in docs}
@@ -62,8 +65,8 @@ def chunk_pages(index_path, docs, docs_dir):
         if sha not in blocks:
             blocks[sha] = builds.extracted(by_sha[sha], docs_dir)
         mapping[chunk_id] = pages_of(content, blocks[sha], fallback=page)
-    CHUNK_PAGES.parent.mkdir(parents=True, exist_ok=True)
-    CHUNK_PAGES.write_text(json.dumps({str(k): v for k, v in mapping.items()}), encoding="utf-8")
+    Path(out).parent.mkdir(parents=True, exist_ok=True)
+    Path(out).write_text(json.dumps({str(k): v for k, v in mapping.items()}), encoding="utf-8")
     return mapping
 
 
@@ -150,20 +153,28 @@ def embed_pages(pages, embed, path):
     return done
 
 
-def pages_path(px, tokens):
-    return VISUAL_DIR / f"pages-{px}-{tokens}.sqlite"
+def pages_path(px, tokens, corpus_name="visual"):
+    folder = VISUAL_DIR if corpus_name == "visual" else F05_DIR
+    return folder / f"pages-{px}-{tokens}.sqlite"
 
 
-def build_pages(px, tokens):
-    """Page vectors of the whole visual corpus at [px] and [tokens] (`run_eval.py visual-build`)."""
+def page_documents(corpus_name="visual"):
+    """The documents with pages: the whole visual corpus, or only the PDFs of F05's corpus."""
+    source = corpus.CORPORA[corpus_name]
+    docs = corpus.load_manifest(source.manifest)
+    return source, docs if corpus_name == "visual" else [doc for doc in docs if doc.format == "pdf"]
+
+
+def build_pages(px, tokens, corpus_name="visual"):
+    """Page vectors of a corpus at [px] and [tokens] (`run_eval.py visual-build`, and the text loss on F05)."""
     from eval import models, vision_runtime
 
-    source = corpus.CORPORA["visual"]
-    docs = corpus.load_manifest(source.manifest)
+    source, docs = page_documents(corpus_name)
     corpus.verify(docs, source.docs)
+    path = pages_path(px, tokens, corpus_name)
     engine = vision_runtime.open_image_embedder(models.verify(models.VISUAL_EMBEDDING), tokens, cache_dir=builds.BUILD / "litert-cache")
 
-    store = PageStore(pages_path(px, tokens))
+    store = PageStore(path)
     store.prune({doc.id: doc.sha256 for doc in docs})
     done = store.keys()
     store.close()
@@ -175,6 +186,6 @@ def build_pages(px, tokens):
                     yield doc.id, doc.sha256, page, page_bytes(doc, source.docs, page, px)
 
     try:
-        return embed_pages(stream(), lambda data: vision_runtime.embed_image(engine, data, tokens), pages_path(px, tokens))
+        return embed_pages(stream(), lambda data: vision_runtime.embed_image(engine, data, tokens), path)
     finally:
         engine.close()

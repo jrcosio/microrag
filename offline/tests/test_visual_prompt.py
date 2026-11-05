@@ -37,6 +37,15 @@ class PartsTest(unittest.TestCase):
         self.assertEqual(len(parts), 1)
         self.assertIn("indica la fuente entre corchetes", parts[0].text)
 
+    def test_a_follow_up_keeps_v4s_previous_turn_after_the_rules(self):
+        parts = visual_prompt.build_parts("¿Y en agosto?", [text_source("Doc", "texto", [("a", 1)])],
+                                          previous=("¿Cuánto sube en julio?", "Un 2,9 % [1]."))
+        text = parts[0].text
+        self.assertLess(text.index(visual_prompt.PAGE_RULE), text.index("CONVERSACIÓN PREVIA (solo"))
+        self.assertLess(text.index("Asistente: Un 2,9 % [1]."), text.index("FUENTES:"))
+        without = visual_prompt.build_parts("¿Y en agosto?", [text_source("Doc", "texto", [("a", 1)])])
+        self.assertNotIn("CONVERSACIÓN PREVIA (solo", without[0].text)
+
     def test_token_accounting(self):
         sources = [text_source("Doc", "x" * 455, [("a", 1)]), page_source("Doc, página 2", [("a", 2)], [b"i"])]
         parts = visual_prompt.build_parts("¿Pregunta?", sources)
