@@ -2160,8 +2160,11 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G47).
      - la pausa nueva «Esperando al modo multimodal» sale cuando solo quedan documentos con páginas;
      - el espacio de todas las páginas que faltan se comprueba antes de empezar;
      - icono nuevo `ic_image` para la etapa de páginas.
+  5. **Cierre aprobado** por el usuario el 2026-11-05, con dos arreglos del informe §6:
+     - con el modo activo, la línea de formatos de la Ingesta nombra JPG y PNG;
+     - en un documento solo Visual incluido, el subtítulo de «Incluir en respuestas» dice «Se usará cuando el chat admita páginas», no «Disponible para consultas RAG».
 - **Motivo:** cerrar F19 con las cifras reales del teléfono de referencia, como pide la constitución 1.2.0 (IV: la indexación visual se mide y se informa).
-- **Origen:** implement de F19 y fase del teléfono, aprobada por el usuario.
+- **Origen:** implement de F19, fase del teléfono y revisión de cierre, aprobadas por el usuario.
 - **Afecta:** F19 (cierre); F20, que parte de un índice ya en la 440M en el teléfono; F14, que mide cargar el motor de imagen una vez por run (hoy una vez por documento, unos 0,9 s) y los vectores de página en F32 frente a INT8.
 
 ---

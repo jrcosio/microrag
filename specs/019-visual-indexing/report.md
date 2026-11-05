@@ -1,6 +1,6 @@
 # Informe de cierre — F19 Indexación visual (modo «Multimodal» opcional)
 
-> **Estado:** implementada; pendiente de la revisión de cierre del usuario (T057).
+> **Estado:** ✅ cerrada el 2026-11-05, aprobada por el usuario en la revisión de cierre (T057), con los dos arreglos del §6.
 
 **Rama:** `019-visual-indexing`, creada desde `af2b836`.
 **Fecha:** 2026-11-05.
@@ -54,7 +54,7 @@
 
 | Prueba | Resultado |
 |---|---|
-| JVM (`testDebugUnitTest`) | 1.283 de 1.283 (119 más que al cerrar F18) |
+| JVM (`testDebugUnitTest`) | 1.285 de 1.285 (121 más que al cerrar F18, 2 de ellas con los arreglos del cierre) |
 | Lint (`lintDebug`) | 0 errores. Los 2 avisos de versiones de siempre |
 | Escritorio (Python) | 285 pruebas OK, con `schema_version == 5` |
 | Regresión del texto (`run_eval.py ablations` y `order-review`) | Mismas cifras que en F18, sin contar los segundos: `ablations.json` y `order_review.json` idénticos |
@@ -133,8 +133,8 @@ Aprobado por el usuario el 2026-11-05, con la activación real y el modo activad
 
 ## 6. Diferencias frente al wireframe
 
-- **Ingesta:** con el modo activo, la línea de formatos bajo el selector sigue diciendo «TXT · Markdown · PDF», aunque el selector ya ofrece JPG y PNG. El wireframe §5 no cambia esa línea.
-- **Detalle de un documento solo Visual:** el interruptor «Incluir en respuestas» mantiene su subtítulo «Disponible para consultas RAG», mientras la nota de debajo dice que todavía no se usa en el chat.
+- **Ingesta (arreglada en el cierre):** con el modo activo, la línea de formatos bajo el selector decía «TXT · Markdown · PDF», aunque el selector ya ofrecía JPG y PNG. El wireframe §5 no cambiaba esa línea. Ahora, con el modo activo, dice «Formatos: PDF · TXT · Markdown · JPG · PNG» (o la variante sin PDF del sistema).
+- **Detalle de un documento solo Visual (arreglado en el cierre):** el interruptor «Incluir en respuestas» mantenía su subtítulo «Disponible para consultas RAG», mientras la nota de debajo decía que todavía no se usa en el chat. Ahora, incluido y con solo páginas, dice «Se usará cuando el chat admita páginas».
 - **Barra inferior al 200 %:** «Bibliot…» se corta, como antes de F19.
 
 ## 7. Desviaciones respecto al plan
@@ -163,4 +163,4 @@ Aprobado por el usuario el 2026-11-05, con la activación real y el modo activad
   - cargar el motor de imagen una vez por run, no por documento;
   - medir los vectores de página en F32 frente a INT8;
   - las cifras con fp16 de F18.
-- **Diferencias del §6:** la línea de formatos de la Ingesta y el subtítulo de «Incluir en respuestas» de un documento solo Visual, si el usuario quiere cambiarlos.
+- **Diferencias del §6:** las dos arregladas en el cierre, con sus pruebas en `IngestScreenTest` y `DocumentScreenTest`. Queda «Bibliot…» al 200 %, como antes de F19.

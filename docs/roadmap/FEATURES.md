@@ -53,7 +53,7 @@ Al cerrar cada feature se entrega:
 | F16 | Apariencia: tema e icono de Ajustes | Producto (UI propuesta) | F12 | ✅ cerrada |
 | F17 | Carpetas y ámbito del chat | Producto (UI propuesta) | F08, F11, F13 | ✅ cerrada |
 | F18 | Viabilidad del RAG visual (fase 0 visual) | Técnica | F05, F10, F11 | ✅ cerrada |
-| F19 | Indexación visual (modo opcional) | Producto (UI propuesta) | F17, F18 | 🟨 implementada; pendiente de la revisión de cierre |
+| F19 | Indexación visual (modo opcional) | Producto (UI propuesta) | F17, F18 | ✅ cerrada |
 | F20 | Chat con páginas (modo opcional) | Producto (UI propuesta) | F19 | ⬜ |
 
 **Orden de ejecución (D-066, D-078):** F01–F13 → **F16 → F17 → F18 → F19 → F20** → F14 → F15. F19 y F20 construyen el modo «Multimodal» opcional, desactivado por defecto. F14 y F15 conservan su número porque las decisiones cerradas las citan así. Las ramas nuevas se crean con `--number` (`016-…` a `020-…`), y F14 se lanzará con `--number 14`.
@@ -922,7 +922,7 @@ Con esos datos se fijan:
 ## F19 — Indexación visual
 
 - **Tipo:** Producto, **sin mockup**. Requiere una propuesta de UI aprobada (G47, constitución VII).
-- **Estado:** 🟨 en curso en la rama `019-visual-indexing` desde el 2026-11-05. Modo opcional «Multimodal», desactivado por defecto (D-078). Clarify y wireframe aprobados el 2026-11-05, con la decisión D-079 y la constitución 1.2.0. Plan hecho el 2026-11-05, con la decisión D-080. Tareas y analyze el 2026-11-05, con la decisión D-081 y 62 tareas. Implementada el 2026-11-05 y medida en el teléfono con la activación real (D-082): de «Activar» a `ON` en 45 s, con la identidad a 1,000000; la búsqueda de texto igual con la 440M; 14,2 páginas/min y 111 KB por página. Pendiente de la revisión de cierre. Spec en `specs/019-visual-indexing/spec.md` e informe en `specs/019-visual-indexing/report.md`.
+- **Estado:** ✅ cerrada el 2026-11-05, aprobada por el usuario (rama `019-visual-indexing`). Modo opcional «Multimodal», desactivado por defecto (D-078). Clarify y wireframe aprobados el 2026-11-05, con la decisión D-079 y la constitución 1.2.0. Plan hecho el 2026-11-05, con la decisión D-080. Tareas y analyze el 2026-11-05, con la decisión D-081 y 62 tareas. Implementada el 2026-11-05 y medida en el teléfono con la activación real (D-082): de «Activar» a `ON` en 45 s, con la identidad a 1,000000; la búsqueda de texto igual con la 440M; 14,2 páginas/min y 111 KB por página. En la revisión de cierre se arreglaron la línea de formatos de la Ingesta con el modo activo y el subtítulo de «Incluir en respuestas» de un documento solo Visual. Spec en `specs/019-visual-indexing/spec.md` e informe en `specs/019-visual-indexing/report.md`.
 
 **Objetivo.**
 - **Modo «Multimodal» en Ajustes (D-078),** desactivado por defecto. Desactivado, la app se comporta exactamente como hoy.
