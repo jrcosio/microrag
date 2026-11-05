@@ -95,6 +95,9 @@ sealed interface QueueItemState {
     /** F19 (contract U10): page images, [done] of [total], at [perMinute] once it is known. */
     data class IndexingPages(val done: Int, val total: Int, val perMinute: Double? = null) : QueueItemState
 
+    /** F19 (wireframe §8): the run paused for space before the pages left, which need [missingBytes] more. */
+    data class PagesNoSpace(val missingBytes: Long) : QueueItemState
+
     /** In a paused run; the counts are known once the document is chunked. */
     data class Paused(val done: Int?, val total: Int?) : QueueItemState
     data class Failed(val error: IngestError) : QueueItemState

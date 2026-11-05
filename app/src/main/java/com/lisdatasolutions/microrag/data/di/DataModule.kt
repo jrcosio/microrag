@@ -254,6 +254,7 @@ val dataModule = module {
             scope = get<ApplicationScope>().scope,
             io = get<AppDispatchers>().io,
             logger = get(),
+            freeBytes = get<DeviceResources>()::freeBytes,
         )
     }
 

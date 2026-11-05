@@ -378,6 +378,55 @@ class IngestRunnerPagesTest {
         index.pages.getValue(original).values.forEach { assertThat(File(pagesDir, it.fileName).exists()).isTrue() }
     }
 
+
+    // T041 (FR-014, FR-016, FR-018).
+
+    private val twenty = Array(20) { "Página ${it + 1} del informe largo, con su texto." }
+
+    @Test
+    fun killedAtPage7Of20_itGoesOnFrom8_withoutDuplicates() = runBlocking<Unit> {
+        rasterizer.pages = 20
+        val id = pdf("informe.pdf", IndexMode.VISUAL, *twenty)
+        var embedded = 0
+        images.beforeEmbedding = { if (++embedded == 8) throw kotlinx.coroutines.CancellationException("killed") }
+        runCatching { runner().process(listOf(id)) { } }
+        assertThat(index.pages.getValue(id).keys).containsExactlyElementsIn(1..7)
+
+        images.beforeEmbedding = {}
+        rasterizer.rendered.clear()
+        runner().process(listOf(id)) { }
+
+        assertThat(rasterizer.rendered).containsExactlyElementsIn(8..20).inOrder()
+        assertThat(index.pages.getValue(id).keys).containsExactlyElementsIn(1..20)
+        assertThat(pagesDir.list()!!.toList()).hasSize(20)
+        assertThat(index.docs.getValue(id).status).isEqualTo(DocumentStatus.DONE)
+    }
+
+    @Test
+    fun aStrayPartFile_isIgnoredAndRedone() = runBlocking<Unit> {
+        val id = pdf("plano.pdf", IndexMode.VISUAL, *manual)
+        pagesDir.mkdirs()
+        File(pagesDir, PageFileStore.nameOf("hash-plano.pdf", 2) + ".part").writeText("a medias")
+
+        runner().process(listOf(id)) { }
+
+        assertThat(index.pages.getValue(id).keys).containsExactly(1, 2, 3)
+        assertThat(pagesDir.list()!!.filter { it.endsWith(".part") }).isEmpty()
+        assertThat(File(pagesDir, PageFileStore.nameOf("hash-plano.pdf", 2)).readText()).isEqualTo("plano.pdf-page-2")
+    }
+
+    @Test
+    fun withoutRoomForThePagesLeft_itPausesBeforeTheFirstOne() = runBlocking<Unit> {
+        val id = pdf("plano.pdf", IndexMode.VISUAL, *manual)
+
+        // Room for two pages, not for three.
+        runner(freeBytes = { ImportLimits.SPACE_MARGIN_BYTES + 2 * IngestRunner.PAGE_SPACE_BYTES }).process(listOf(id)) { }
+
+        assertThat(runStore.run.first().pauseCause).isEqualTo(RunPauseCause.NO_SPACE)
+        assertThat(index.pages[id].orEmpty()).isEmpty()
+        assertThat(images.opened).isEqualTo(0)
+    }
+
     private companion object {
         const val RAW_DIMENSIONS = 768
     }

@@ -91,6 +91,7 @@ fun QueueItemState.stateText(): String? = when (this) {
         val left = perMinute?.takeIf { it > 0 && total > done }?.let { ((total - done) * 60 / it).toLong() }
         if (left == null) text else "$text · " + remainingText(left)
     }
+    is QueueItemState.PagesNoSpace -> stringResource(R.string.ingest_pages_no_space, sizeText(missingBytes).orEmpty())
     is QueueItemState.Paused -> if (done != null && total != null) {
         stringResource(R.string.ingest_state_paused, done.grouped(), total.grouped())
     } else {

@@ -319,7 +319,7 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
 
 ### Pruebas
 
-- [ ] T041 [P] [US5] `IngestRunnerPagesTest`:
+- [X] T041 [P] [US5] `IngestRunnerPagesTest`:
   - reanudar tras un corte en la página 7 de 20 sigue por la 8, sin duplicar;
   - un `.part` suelto se ignora y se rehace;
   - sin espacio antes de una página, pausa `NO_SPACE`;
@@ -328,8 +328,8 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
 
 ### Implementación
 
-- [ ] T042 [US5] La comprobación de espacio previa (250 KB por página más el margen, R14) y las pausas por página en `IngestRunner`, y el aviso de la Ingesta. T041 pasa.
-- [ ] T043 [US5] Prueba instrumentada `…/androidTest/…/data/ingest/VisualIngestBenchmarkTest.kt` (`@RequiresModels`):
+- [X] T042 [US5] La comprobación de espacio previa (250 KB por página más el margen, R14) y las pausas por página en `IngestRunner`, y el aviso de la Ingesta. T041 pasa.
+- [X] T043 [US5] Prueba instrumentada `…/androidTest/…/data/ingest/VisualIngestBenchmarkTest.kt` (`@RequiresModels`):
   - un PDF de 200 páginas en Visual, con la 440M real;
   - mide las páginas por minuto y el espacio por página, y escribe un JSON en `files/reports`;
   - un segundo paso reanuda a mitad.

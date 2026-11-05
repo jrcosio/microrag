@@ -5,11 +5,14 @@ import com.lisdatasolutions.microrag.data.indexing.DefaultIndexingRepository
 import com.lisdatasolutions.microrag.data.indexing.FakeThermalStatusSource
 import com.lisdatasolutions.microrag.data.indexing.InMemoryIngestRunStore
 import com.lisdatasolutions.microrag.data.indexing.RunPauseCause
+import com.lisdatasolutions.microrag.data.library.DefaultLibraryRepository
+import com.lisdatasolutions.microrag.domain.ingest.ImportLimits
 import com.lisdatasolutions.microrag.domain.ingest.ImportQueue
 import com.lisdatasolutions.microrag.domain.ingest.IngestError
 import com.lisdatasolutions.microrag.domain.ingest.IngestProgress
 import com.lisdatasolutions.microrag.domain.ingest.QueueItemState
 import com.lisdatasolutions.microrag.domain.ingest.QueueKey
+import com.lisdatasolutions.microrag.domain.library.DeleteDocumentUseCase
 import com.lisdatasolutions.microrag.domain.rag.ChunkInput
 import com.lisdatasolutions.microrag.domain.rag.DocumentStatus
 import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
@@ -17,8 +20,6 @@ import com.lisdatasolutions.microrag.domain.rag.IndexMode
 import com.lisdatasolutions.microrag.domain.rag.NewDocument
 import com.lisdatasolutions.microrag.testing.FakeDocumentSource
 import com.lisdatasolutions.microrag.testing.FakeFile
-import com.lisdatasolutions.microrag.data.library.DefaultLibraryRepository
-import com.lisdatasolutions.microrag.domain.library.DeleteDocumentUseCase
 import com.lisdatasolutions.microrag.testing.FakeIngestScheduler
 import com.lisdatasolutions.microrag.testing.FakeLibraryRepository
 import com.lisdatasolutions.microrag.testing.FakePdfOpener
@@ -57,8 +58,9 @@ class DefaultImportQueueRepositoryTest {
         dir.deleteRecursively()
     }
 
-    /** F19: the multimodal mode as the importer sees it. */
+    /** F19: the multimodal mode as the importer sees it, and the free space the queue sees. */
     private var modeOn = false
+    private var free = Long.MAX_VALUE
 
     private fun TestScope.repository(deleteDocument: DeleteDocumentUseCase? = null): DefaultImportQueueRepository {
         val dispatcher = UnconfinedTestDispatcher(testScheduler)
@@ -68,6 +70,7 @@ class DefaultImportQueueRepositoryTest {
         val delete = deleteDocument ?: DeleteDocumentUseCase(DefaultLibraryRepository(index, documentFiles, runStore, indexing, dispatcher, logger) { 0L })
         return DefaultImportQueueRepository(
             importer, source, index, documentFiles, scheduler, pdf, indexing, runStore, delete, backgroundScope, dispatcher, logger,
+            freeBytes = { free },
         ) { 0L }
     }
 
@@ -518,5 +521,21 @@ class DefaultImportQueueRepositoryTest {
         advanceUntilIdle()
 
         assertThat(index.docs.values.single().folderId).isNull()
+    }
+
+    /** F19 T042 (wireframe §8): a space pause before the pages says how much to free. */
+    @Test
+    fun aSpacePauseBeforeThePages_saysHowMuchToFree() = runTest {
+        val id = index.addDocument(
+            NewDocument(displayName = "Plano.pdf", contentHash = "plano", mimeType = "application/pdf", pageCount = 40, indexMode = IndexMode.VISUAL),
+        )
+        index.updateStatus(id, DocumentStatus.EMBEDDING, chunkCount = 0)
+        runStore.edit { it.adding(listOf(id)).pausedBy(RunPauseCause.NO_SPACE) }
+        free = ImportLimits.SPACE_MARGIN_BYTES
+        val repository = repository()
+        val values = collect(repository)
+        advanceUntilIdle()
+
+        assertThat(values.last().items.single().state).isEqualTo(QueueItemState.PagesNoSpace(40 * IngestRunner.PAGE_SPACE_BYTES))
     }
 }

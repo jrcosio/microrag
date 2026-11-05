@@ -383,6 +383,8 @@ class IngestRunner(
             try {
                 val pageCount = total ?: withContext(io) { phase.rasterizer.pageCount(file) }.also { total = it }
                 logger.i(TAG) { "ingest pages id=$id stored=${stored.size} total=$pageCount" }
+                // Research R14 (FR-018): room for every page left, checked before the engine loads.
+                if (freeBytes() < ImportLimits.SPACE_MARGIN_BYTES + (pageCount - stored.size).coerceAtLeast(0) * PAGE_SPACE_BYTES) throw NoSpace()
                 progress.now(report())
                 phase.sessions.use { embedder ->
                     for (page in 1..pageCount) {

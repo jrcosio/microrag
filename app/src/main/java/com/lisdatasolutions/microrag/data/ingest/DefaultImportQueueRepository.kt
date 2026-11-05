@@ -4,8 +4,10 @@ import android.os.SystemClock
 import com.lisdatasolutions.microrag.core.logging.AppLogger
 import com.lisdatasolutions.microrag.data.indexing.IngestRun
 import com.lisdatasolutions.microrag.data.indexing.IngestRunStore
+import com.lisdatasolutions.microrag.data.indexing.RunPauseCause
 import com.lisdatasolutions.microrag.domain.indexing.IndexingRepository
 import com.lisdatasolutions.microrag.domain.ingest.DocumentFormat
+import com.lisdatasolutions.microrag.domain.ingest.ImportLimits
 import com.lisdatasolutions.microrag.domain.ingest.ImportQueue
 import com.lisdatasolutions.microrag.domain.ingest.ImportQueueRepository
 import com.lisdatasolutions.microrag.domain.ingest.IngestError
@@ -63,6 +65,8 @@ class DefaultImportQueueRepository(
     private val scope: CoroutineScope,
     private val io: CoroutineDispatcher,
     private val logger: AppLogger,
+    /** F19 (wireframe §8): the free space, for what the pages left still need. */
+    private val freeBytes: () -> Long = { Long.MAX_VALUE },
     private val clock: () -> Long = SystemClock::elapsedRealtime,
 ) : ImportQueueRepository {
 
@@ -277,6 +281,12 @@ class DefaultImportQueueRepository(
         return when (document.status) {
             DocumentStatus.ERROR -> QueueItemState.Failed(IngestError.fromCode(document.error) ?: IngestError.EXTRACTION_FAILED)
             DocumentStatus.PARSED, DocumentStatus.EMBEDDING -> when {
+                // F19 (wireframe §8): a space pause before the pages says how much is missing.
+                paused && run.pauseCause == RunPauseCause.NO_SPACE && document.indexMode.hasPages -> {
+                    val pagesLeft = ((document.pageCount ?: 0) - document.pagesStored).coerceAtLeast(0)
+                    val needed = ImportLimits.SPACE_MARGIN_BYTES + pagesLeft * IngestRunner.PAGE_SPACE_BYTES
+                    QueueItemState.PagesNoSpace((needed - freeBytes()).coerceAtLeast(0))
+                }
                 paused -> QueueItemState.Paused(stored, document.chunkCount)
                 // F19 (contract U10): the page phase counts pages, not chunks.
                 current?.stage == IngestProgress.Stage.PAGES && current.pagesTotal != null ->
