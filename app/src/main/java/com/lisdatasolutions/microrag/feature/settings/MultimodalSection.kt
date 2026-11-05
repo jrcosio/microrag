@@ -13,11 +13,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import com.lisdatasolutions.microrag.R
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataCardGroup
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataConfirmationDialog
+import com.lisdatasolutions.microrag.core.designsystem.component.LisdataDivider
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataLinearProgress
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataOutlinedButton
 import com.lisdatasolutions.microrag.core.designsystem.component.LisdataSettingsRow
@@ -40,6 +42,8 @@ data class MultimodalActions(
     val onNoticeShown: () -> Unit = {},
     /** U5: «Modo al importar PDF», only with the mode on. */
     val onImportMode: () -> Unit = {},
+    /** F20 U1: «Detalle de las páginas», only with the mode on. */
+    val onPageDetail: () -> Unit = {},
 )
 
 /**
@@ -71,6 +75,19 @@ fun MultimodalSection(state: MultimodalUiState, actions: MultimodalActions, modi
                     subtitle = stringResource(state.defaultMode.summary()),
                     onClick = actions.onImportMode,
                     modifier = Modifier.testTag("import_mode_row"),
+                )
+                LisdataDivider()
+                // F20 U1 (wireframe §1): the saved detail with its wait.
+                LisdataSettingsRow(
+                    icon = LisdataIcons.Image,
+                    title = stringResource(R.string.page_detail_title),
+                    subtitle = stringResource(
+                        R.string.page_detail_summary,
+                        stringResource(state.pageDetail.label()),
+                        waitSeconds(state.pageDetail.estimateTenthsOfSecond, LocalConfiguration.current.locales[0]),
+                    ),
+                    onClick = actions.onPageDetail,
+                    modifier = Modifier.testTag("page_detail_row"),
                 )
             }
         }

@@ -61,6 +61,8 @@ data class MultimodalState(
     val stage: MultimodalStage,
     val error: MultimodalError?,
     val defaultMode: IndexMode,
+    /** F20 (contract U1): the detail Ajustes shows under «Modo al importar PDF». */
+    val pageDetail: PageDetail = PageDetail.BALANCED,
     /** The 440M's download while [stage] is DOWNLOADING; null otherwise or before it starts. */
     val download: DownloadProgress? = null,
     val downloadPaused: Boolean = false,

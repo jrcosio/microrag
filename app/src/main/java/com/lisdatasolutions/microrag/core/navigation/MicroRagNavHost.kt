@@ -23,6 +23,7 @@ import com.lisdatasolutions.microrag.feature.onboarding.setup.SetupRoute
 import com.lisdatasolutions.microrag.feature.onboarding.welcome.WelcomeRoute
 import com.lisdatasolutions.microrag.feature.settings.ImportModeRoute
 import com.lisdatasolutions.microrag.feature.settings.LanguagesRoute
+import com.lisdatasolutions.microrag.feature.settings.PageDetailRoute
 import com.lisdatasolutions.microrag.feature.settings.SettingsRoute
 import com.lisdatasolutions.microrag.feature.settings.ThemeRoute
 
@@ -165,6 +166,7 @@ fun MicroRagNavHost(
                 onTheme = { navController.navigate(Theme) { launchSingleTop = true } },
                 onIndex = { navController.navigate(Index) { launchSingleTop = true } },
                 onImportMode = { navController.navigate(ImportMode) { launchSingleTop = true } },
+                onPageDetail = { navController.navigate(PageDetailSetting) { launchSingleTop = true } },
             )
         }
         // S7: Back and a save both return to where Idiomas was opened from, Ajustes or Home.
@@ -173,5 +175,7 @@ fun MicroRagNavHost(
         composable<Theme> { ThemeRoute(onBack = back) }
         // F19 U6: as Tema, Back and a save both return to Ajustes.
         composable<ImportMode> { ImportModeRoute(onBack = back) }
+        // F20 U2: as «Modo al importar PDF».
+        composable<PageDetailSetting> { PageDetailRoute(onBack = back) }
     }
 }

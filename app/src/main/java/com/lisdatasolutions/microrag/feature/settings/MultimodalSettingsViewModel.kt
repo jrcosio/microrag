@@ -14,6 +14,7 @@ import com.lisdatasolutions.microrag.domain.multimodal.MultimodalError
 import com.lisdatasolutions.microrag.domain.multimodal.MultimodalStage
 import com.lisdatasolutions.microrag.domain.multimodal.MultimodalState
 import com.lisdatasolutions.microrag.domain.multimodal.ObserveMultimodalUseCase
+import com.lisdatasolutions.microrag.domain.multimodal.PageDetail
 import com.lisdatasolutions.microrag.domain.multimodal.PauseMultimodalDownloadUseCase
 import com.lisdatasolutions.microrag.domain.multimodal.ResumeMultimodalDownloadUseCase
 import com.lisdatasolutions.microrag.domain.multimodal.RetryMultimodalUseCase
@@ -40,6 +41,8 @@ data class MultimodalUiState(
     val stage: MultimodalStage = MultimodalStage.OFF,
     val error: MultimodalError? = null,
     val defaultMode: IndexMode = IndexMode.BOTH,
+    /** F20 (contract U1): its row's subtitle. */
+    val pageDetail: PageDetail = PageDetail.BALANCED,
     /** The 440M's download, 0–100, once its first bytes are known. */
     val percent: Int? = null,
     val paused: Boolean = false,
@@ -104,6 +107,7 @@ class MultimodalSettingsViewModel(
         stage = stage,
         error = error,
         defaultMode = defaultMode,
+        pageDetail = pageDetail,
         percent = download?.takeIf { it.totalBytes > 0 }?.let { (it.bytesDone * 100 / it.totalBytes).toInt().coerceIn(0, 100) },
         paused = downloadPaused,
         offline = offline,

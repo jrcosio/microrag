@@ -71,6 +71,7 @@ class ObserveMultimodalUseCase(
                 stage = stored.stage,
                 error = stored.error,
                 defaultMode = stored.defaultMode,
+                pageDetail = stored.pageDetail,
                 download = progress.takeIf { downloading && it.active == ModelId.EG2_440M },
                 downloadPaused = downloading && paused,
                 downloadBytes = model.sizeBytes,
@@ -119,6 +120,19 @@ class ResumeMultimodalDownloadUseCase(private val resume: ResumeModelDownloadUse
 /** «Modo al importar PDF» (contract U6): false when the copy could not be written. */
 class SetDefaultImportModeUseCase(private val store: MultimodalStore) {
     suspend operator fun invoke(mode: IndexMode): Boolean = store.write { it.copy(defaultMode = mode) }
+}
+
+/** F20 (contract M2): saves the page detail; false keeps the previous one. */
+class SetPageDetailUseCase(private val store: MultimodalStore) {
+    suspend operator fun invoke(detail: PageDetail): Boolean = store.write { it.copy(pageDetail = detail) }
+}
+
+/** What «Detalle de las páginas» needs (contract U2): whether the mode is on, and the saved detail. */
+data class PageDetailSettings(val on: Boolean = false, val detail: PageDetail = PageDetail.BALANCED)
+
+class ObservePageDetailUseCase(private val store: MultimodalStore) {
+    operator fun invoke(): Flow<PageDetailSettings> =
+        store.state.map { PageDetailSettings(it.stage == MultimodalStage.ON, it.pageDetail) }.distinctUntilChanged()
 }
 
 /** What the Ingesta needs of the mode (contract U8): whether it is on, and Ajustes' «Modo al importar PDF». */

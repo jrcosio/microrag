@@ -82,7 +82,9 @@ import com.lisdatasolutions.microrag.domain.model.OnboardingStage
 import com.lisdatasolutions.microrag.domain.model.StartDestination
 import com.lisdatasolutions.microrag.domain.multimodal.MultimodalStage
 import com.lisdatasolutions.microrag.domain.multimodal.ObserveImportModeUseCase
+import com.lisdatasolutions.microrag.domain.multimodal.ObservePageDetailUseCase
 import com.lisdatasolutions.microrag.domain.multimodal.SetDefaultImportModeUseCase
+import com.lisdatasolutions.microrag.domain.multimodal.SetPageDetailUseCase
 import com.lisdatasolutions.microrag.domain.multimodal.StoredMultimodal
 import com.lisdatasolutions.microrag.domain.onboarding.BuildDownloadConfirmationUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.CompleteOnboardingUseCase
@@ -119,6 +121,7 @@ import com.lisdatasolutions.microrag.feature.library.LibraryViewModel
 import com.lisdatasolutions.microrag.feature.onboarding.setup.SetupViewModel
 import com.lisdatasolutions.microrag.feature.settings.ImportModeViewModel
 import com.lisdatasolutions.microrag.feature.settings.LanguagesViewModel
+import com.lisdatasolutions.microrag.feature.settings.PageDetailViewModel
 import com.lisdatasolutions.microrag.feature.settings.SettingsViewModel
 import com.lisdatasolutions.microrag.feature.settings.ThemeViewModel
 import com.lisdatasolutions.microrag.rag.runtime.CompatibilityResult
@@ -234,6 +237,7 @@ internal fun settingsViewModels(
     }
     viewModel { fakeMultimodalSettingsViewModel(savedState = get(), store = multimodal) }
     viewModel { ImportModeViewModel(ObserveImportModeUseCase(multimodal), SetDefaultImportModeUseCase(multimodal), get()) }
+    viewModel { PageDetailViewModel(ObservePageDetailUseCase(multimodal), SetPageDetailUseCase(multimodal), get()) }
     viewModel { LanguagesViewModel(ObserveLanguageSettingsUseCase(language), SaveLanguageSettingsUseCase(language, get()), get()) }
     viewModel { ThemeViewModel(ObserveThemeSettingsUseCase(themeStore), SaveThemeSettingsUseCase(themeStore, themeController, get()), get()) }
     // «Completar configuración» in a model sheet opens the Preparation (F12 S2), over the same fakes.
@@ -863,6 +867,24 @@ class NavigationTest {
 
         settingsControl(context.getString(R.string.import_mode_title))
         settingsControl(context.getString(R.string.import_mode_save))
+        assertThat(nav.currentDestination?.hasRoute(Settings::class)).isTrue()
+        assertThat(routesInBackStack()).hasSize(2)
+    }
+
+    /** F20 T034 (contract U1–U2): with the mode on, «Detalle de las páginas» opens, and Back or a save return to Ajustes. */
+    @Test
+    fun pageDetailFromSettings_backOrSave_returnToSettings() {
+        multimodal.state.value = StoredMultimodal(MultimodalStage.ON)
+        launchShell()
+        openSettings()
+
+        settingsControl(context.getString(R.string.page_detail_title))
+        assertThat(nav.currentDestination?.hasRoute(PageDetailSetting::class)).isTrue()
+        backArrow()
+        assertThat(nav.currentDestination?.hasRoute(Settings::class)).isTrue()
+
+        settingsControl(context.getString(R.string.page_detail_title))
+        settingsControl(context.getString(R.string.page_detail_save))
         assertThat(nav.currentDestination?.hasRoute(Settings::class)).isTrue()
         assertThat(routesInBackStack()).hasSize(2)
     }

@@ -13,6 +13,7 @@ import com.lisdatasolutions.microrag.domain.model.ModelId
 import com.lisdatasolutions.microrag.domain.multimodal.MultimodalError
 import com.lisdatasolutions.microrag.domain.multimodal.MultimodalStage
 import com.lisdatasolutions.microrag.domain.multimodal.MultimodalStore
+import com.lisdatasolutions.microrag.domain.multimodal.PageDetail
 import com.lisdatasolutions.microrag.domain.multimodal.StoredMultimodal
 import com.lisdatasolutions.microrag.domain.rag.IndexMode
 import com.lisdatasolutions.microrag.domain.rag.RagIndexConfig
@@ -59,6 +60,8 @@ class DataStoreMultimodalStore(
             defaultMode = IndexMode.entries.firstOrNull { it.name == prefs[DEFAULT_MODE] } ?: defaults.defaultMode,
             textEmbedder = ModelId.entries.firstOrNull { it.name == prefs[TEXT_EMBEDDER] && it in RagIndexConfig.TEXT_EMBEDDERS }
                 ?: defaults.textEmbedder,
+            // F20 (contract M1): an unknown value reads as the default, Balanced.
+            pageDetail = PageDetail.entries.firstOrNull { it.name == prefs[PAGE_DETAIL] } ?: defaults.pageDetail,
         )
     }
 
@@ -67,6 +70,7 @@ class DataStoreMultimodalStore(
         value.error?.let { prefs[ERROR] = it.name } ?: prefs.remove(ERROR)
         prefs[DEFAULT_MODE] = value.defaultMode.name
         prefs[TEXT_EMBEDDER] = value.textEmbedder.name
+        prefs[PAGE_DETAIL] = value.pageDetail.name
     }
 
     companion object {
@@ -75,6 +79,7 @@ class DataStoreMultimodalStore(
         private val ERROR = stringPreferencesKey("error")
         private val DEFAULT_MODE = stringPreferencesKey("default_mode")
         private val TEXT_EMBEDDER = stringPreferencesKey("text_embedder")
+        private val PAGE_DETAIL = stringPreferencesKey("page_detail")
 
         /** The store over `noBackupFilesDir/datastore/multimodal.preferences_pb`: private and never backed up. */
         fun create(noBackupDir: File, scope: CoroutineScope, logger: AppLogger): DataStoreMultimodalStore =

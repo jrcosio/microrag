@@ -29,6 +29,7 @@ import com.lisdatasolutions.microrag.domain.model.ModelId
 import com.lisdatasolutions.microrag.domain.model.ModelSetupStatus
 import com.lisdatasolutions.microrag.domain.multimodal.MultimodalError
 import com.lisdatasolutions.microrag.domain.multimodal.MultimodalStage
+import com.lisdatasolutions.microrag.domain.multimodal.PageDetail
 import com.lisdatasolutions.microrag.domain.rag.RagParameters
 import com.lisdatasolutions.microrag.domain.settings.AppLanguage
 import com.lisdatasolutions.microrag.domain.settings.ModelOverview
@@ -79,6 +80,7 @@ class SettingsScreenTest {
         onDismissDialog = { calls += "dismissDialog" },
         onAction = { calls += "action:$it" },
         onNoticeShown = { calls += "noticeShown" },
+        onPageDetail = { calls += "pageDetail" },
     )
 
     private fun show(state: SettingsUiState, multimodal: MultimodalUiState = MultimodalUiState()) {
@@ -379,5 +381,23 @@ class SettingsScreenTest {
         scrollTo("English")
 
         compose.onNodeWithText("English", useUnmergedTree = true).assertExists()
+    }
+
+    /** F20 T032 (wireframe §1, contract U1): the detail row, only with the mode on, with its wait. */
+    @Test
+    fun thePageDetailRow_onlyWithTheModeOn_saysTheDetailAndItsWait() {
+        show(SettingsUiState(models = listOf(gemmaGpu, embeddingCpu)))
+        compose.onNodeWithText("Detalle de las páginas", useUnmergedTree = true).assertDoesNotExist()
+    }
+
+    @Test
+    fun thePageDetailRow_opensTheDetail() {
+        show(SettingsUiState(models = listOf(gemmaGpu, embeddingCpu)), MultimodalUiState(stage = MultimodalStage.ON, pageDetail = PageDetail.DETAILED))
+        scrollTo("Detalle de las páginas")
+
+        compose.onNodeWithText("Detallado · unos 14,5 s", useUnmergedTree = true).assertExists()
+        compose.onNodeWithText("Detalle de las páginas", useUnmergedTree = true).performClick()
+
+        assertThat(calls).contains("pageDetail")
     }
 }

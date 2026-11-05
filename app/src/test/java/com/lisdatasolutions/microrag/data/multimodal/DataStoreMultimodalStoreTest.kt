@@ -8,6 +8,7 @@ import com.google.common.truth.Truth.assertThat
 import com.lisdatasolutions.microrag.domain.model.ModelId
 import com.lisdatasolutions.microrag.domain.multimodal.MultimodalError
 import com.lisdatasolutions.microrag.domain.multimodal.MultimodalStage
+import com.lisdatasolutions.microrag.domain.multimodal.PageDetail
 import com.lisdatasolutions.microrag.domain.multimodal.StoredMultimodal
 import com.lisdatasolutions.microrag.domain.rag.IndexMode
 import com.lisdatasolutions.microrag.testing.RecordingLogger
@@ -77,6 +78,8 @@ class DataStoreMultimodalStoreTest {
                     it[stringPreferencesKey("default_mode")] = "SEPIA"
                     // Gemma is never a text embedder.
                     it[stringPreferencesKey("text_embedder")] = ModelId.GEMMA4_E2B.name
+                    // F20 T031 (contract M1): an unknown detail reads as Balanced.
+                    it[stringPreferencesKey("page_detail")] = "ULTRA"
                 }
             }
         } finally {
@@ -112,5 +115,15 @@ class DataStoreMultimodalStoreTest {
         override val data: Flow<Preferences> = flow { throw IOException("disk") }
 
         override suspend fun updateData(transform: suspend (t: Preferences) -> Preferences): Preferences = throw IOException("disk")
+    }
+
+    /** F20 T031 (contract M1, D-083): Balanced by default, and the detail written survives reopening. */
+    @Test
+    fun thePageDetail_isBalancedByDefault_andSurvivesReopening() {
+        withStore { store ->
+            assertThat(store.state.first().pageDetail).isEqualTo(PageDetail.BALANCED)
+            assertThat(store.write { it.copy(pageDetail = PageDetail.DETAILED) }).isTrue()
+        }
+        withStore { store -> assertThat(store.state.first().pageDetail).isEqualTo(PageDetail.DETAILED) }
     }
 }

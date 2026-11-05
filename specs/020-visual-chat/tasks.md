@@ -274,7 +274,7 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
   - con `pagesUsable = false`, lo mismo;
   - con el modo `ON` y sin páginas, el motor recibe un `AnswerPrompt.Text` y usa la clave de hoy (I1);
   - la línea del registro solo gana los campos de S8 (`page=0`, `page_tokens`, `page_dropped` y `pages_ms`), y los demás no cambian (analyze I8).
-- [ ] T029 [P] [US3] Regresión del escritorio (FR-023): `run_eval.py ablations` y `order-review`, comparados con los de F19 (quickstart §2). Si cambian, se para y se investiga.
+- [X] T029 [P] [US3] Regresión del escritorio (FR-023): `run_eval.py ablations` y `order-review`, comparados con los de F19 (quickstart §2). Si cambian, se para y se investiga. (Hecho: idénticos salvo los tiempos.)
 
 ### Implementación
 
@@ -292,8 +292,8 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
 
 ### Pruebas
 
-- [ ] T031 [P] [US4] `…/test/…/data/multimodal/DataStoreMultimodalStoreTest.kt` (M1): `page_detail` por defecto en `BALANCED`, un valor desconocido se lee como `BALANCED`, y la escritura que falla conserva el anterior.
-- [ ] T032 [P] [US4] `…/test/…/feature/settings/PageDetailViewModelTest.kt`, `PageDetailScreenTest.kt` y `SettingsScreenTest` (U1, U2, M2):
+- [X] T031 [P] [US4] `…/test/…/data/multimodal/DataStoreMultimodalStoreTest.kt` (M1): `page_detail` por defecto en `BALANCED`, un valor desconocido se lee como `BALANCED`, y la escritura que falla conserva el anterior.
+- [X] T032 [P] [US4] `…/test/…/feature/settings/PageDetailViewModelTest.kt`, `PageDetailScreenTest.kt` y `SettingsScreenTest` (U1, U2, M2):
   - la fila solo con `ON`, con su subtítulo;
   - tres radios con su espera;
   - guardar;
@@ -302,8 +302,8 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
 
 ### Implementación
 
-- [ ] T033 [US4] Almacén y caso de uso: `page_detail` en `…/microrag/data/multimodal/DataStoreMultimodalStore.kt`, y `SetPageDetailUseCase` en `…/microrag/domain/multimodal/MultimodalUseCases.kt`, con Koin. T031 pasa.
-- [ ] T034 [US4] Pantalla y fila:
+- [X] T033 [US4] Almacén y caso de uso: `page_detail` en `…/microrag/data/multimodal/DataStoreMultimodalStore.kt`, y `SetPageDetailUseCase` en `…/microrag/domain/multimodal/MultimodalUseCases.kt`, con Koin. T031 pasa.
+- [X] T034 [US4] Pantalla y fila:
   - `…/microrag/feature/settings/{PageDetailScreen,PageDetailViewModel}.kt`;
   - la fila en `MultimodalSection.kt`;
   - el destino `PageDetailSetting` en `…/microrag/core/navigation/{Destinations,MicroRagNavHost}.kt`, con `PageDetailRoute` como su composable, igual que `ImportMode` e `ImportModeRoute` (analyze I11);

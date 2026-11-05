@@ -15,6 +15,7 @@ import com.lisdatasolutions.microrag.feature.onboarding.welcome.WelcomeViewModel
 import com.lisdatasolutions.microrag.feature.settings.ImportModeViewModel
 import com.lisdatasolutions.microrag.feature.settings.LanguagesViewModel
 import com.lisdatasolutions.microrag.feature.settings.MultimodalSettingsViewModel
+import com.lisdatasolutions.microrag.feature.settings.PageDetailViewModel
 import com.lisdatasolutions.microrag.feature.settings.SettingsViewModel
 import com.lisdatasolutions.microrag.feature.settings.ThemeViewModel
 import org.koin.core.module.dsl.viewModel
@@ -45,5 +46,6 @@ val featureModule = module {
     viewModelOf(::LanguagesViewModel)
     viewModelOf(::ThemeViewModel)
     viewModelOf(::ImportModeViewModel)
+    viewModelOf(::PageDetailViewModel)
     viewModel { HistoryViewModel(get(), get(), get(), get()) }
 }

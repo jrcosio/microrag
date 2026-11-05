@@ -63,3 +63,7 @@ data object Theme
 /** F19: «Modo al importar PDF», opened from Ajustes with the multimodal mode on (contract U5). */
 @Serializable
 data object ImportMode
+
+/** F20: «Detalle de las páginas», opened from Ajustes with the multimodal mode on (contract U1). */
+@Serializable
+data object PageDetailSetting
