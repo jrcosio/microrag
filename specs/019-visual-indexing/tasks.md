@@ -405,9 +405,9 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
 
 ## Phase 11: Última fase — teléfono de referencia y cierre
 
-- [ ] T055 **Pedir permiso al usuario** para la fase del teléfono, con el recorrido: los ajustes que se anotan, la instalación, la activación real (**que borra la 270M del teléfono**), los documentos de prueba, la batería y la limpieza.
+- [X] T055 **Pedir permiso al usuario** para la fase del teléfono, con el recorrido: los ajustes que se anotan, la instalación, la activación real (**que borra la 270M del teléfono**), los documentos de prueba, la batería y la limpieza.
 - [X] T062 [P] Golden con el embedder activo (analyze, H5): `EmbeddingGoldenTest` e `InstalledEmbeddingModel` usan el embedder de texto activo (la 270M o la 440M) contra los mismos vectores de referencia de `offline/golden`, que valen para los dos por la identidad. Así la 440M queda con golden cuando la 270M ya no existe.
-- [ ] T056 Fase del teléfono (quickstart §5):
+- [X] T056 Fase del teléfono (quickstart §5):
   - **antes de activar el modo:** la batería completa, `IdentityValidatorDeviceTest` (T059) y el golden con la 270M (analyze, H5);
   - activar el modo y medir cada paso;
   - después, el golden con la 440M (T062);
@@ -416,7 +416,7 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
   - un escaneado, un JPG y un PNG de prueba;
   - las cifras, a `report.md` §4;
   - la limpieza y los ajustes restaurados.
-- [ ] T057 Cierre:
+- [X] T057 Cierre:
   - `report.md` cerrado;
   - DECISIONS con las cifras medidas;
   - FEATURES con F19 «implementada; pendiente de la revisión de cierre».

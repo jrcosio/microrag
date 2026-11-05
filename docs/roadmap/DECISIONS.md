@@ -2138,6 +2138,34 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G47).
 
 ---
 
+## D-082 — Resultado de F19: el modo multimodal, medido en el teléfono
+
+- **Fecha:** 2026-11-05
+- **Decisión:** el modo «Multimodal» queda implementado como opción desactivada por defecto. Con el modo apagado, las cifras de texto no cambian: `ablations` y `order-review` dan lo mismo que en F18. En el A063, con permiso del usuario, se activó de verdad y se deja **activado**, como pidió. Cifras, todas informativas, sin regla de sí o no (D-078):
+  1. **Activación, de «Activar» a `ON`, en 45 s:**
+     - descarga y huella de la 440M, 32,6 s;
+     - preparación, 1,3 s;
+     - identidad de los vectores de texto, 11,0 s con 20 textos, mínimo 1,000000;
+     - cambio y borrado de la 270M, 0,07 s.
+  2. **Búsqueda igual con la 440M:**
+     - golden CPU 1,000000 y GPU 0,992993, iguales a los de la 270M;
+     - `RetrievalParityTest` 0,816 frente a 0,837, igual que desde F10;
+     - consulta p95 de 136,6 ms con 10.000 fragmentos.
+  3. **Indexación por páginas:**
+     - 14,2 páginas/min (4,2 s por página) y 111 KB por página en 200 páginas generadas, con la reanudación a mitad sin duplicar;
+     - un JPG de 4,7 MB en 4,6 s y un escaneado de 2 páginas en 7,7 s.
+  4. **Decisiones de implementación** (informe, §7):
+     - `ModelRequirements` separa lo que responde (`core`), lo que se descarga y prepara (`files`) y las filas (`shown`);
+     - los ficheros de página se leen antes de cada borrado y se escriben con su fila bajo un mismo cerrojo;
+     - la pausa nueva «Esperando al modo multimodal» sale cuando solo quedan documentos con páginas;
+     - el espacio de todas las páginas que faltan se comprueba antes de empezar;
+     - icono nuevo `ic_image` para la etapa de páginas.
+- **Motivo:** cerrar F19 con las cifras reales del teléfono de referencia, como pide la constitución 1.2.0 (IV: la indexación visual se mide y se informa).
+- **Origen:** implement de F19 y fase del teléfono, aprobada por el usuario.
+- **Afecta:** F19 (cierre); F20, que parte de un índice ya en la 440M en el teléfono; F14, que mide cargar el motor de imagen una vez por run (hoy una vez por documento, unos 0,9 s) y los vectores de página en F32 frente a INT8.
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.

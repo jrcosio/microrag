@@ -1,6 +1,6 @@
 # Informe de cierre — F19 Indexación visual (modo «Multimodal» opcional)
 
-> **Estado:** borrador (T054). Falta la fase del teléfono (T055–T056), que espera el permiso del usuario.
+> **Estado:** implementada; pendiente de la revisión de cierre del usuario (T057).
 
 **Rama:** `019-visual-indexing`, creada desde `af2b836`.
 **Fecha:** 2026-11-05.
@@ -65,7 +65,16 @@
 
 ## 3. Validación por criterio
 
-Pendiente de la fase del teléfono.
+| Criterio | Resultado |
+|---|---|
+| SC-001: con el modo desactivado, nada cambia | ✅ `ablations.json` y `order_review.json` idénticos a los de F18; la 440M no se descarga sin activar el modo (`ModelRequirementsTest`, `DefaultMultimodalControllerTest`); la batería del teléfono antes de activar, 998 de 998 |
+| SC-002: activar sin que la búsqueda falle ni cambie | ✅ En el A063, del «Activar» a `ON` en 45 s, con la identidad a 1,000000. `RetrievalParityTest` da con la 440M exactamente lo mismo que con la 270M desde F10: 0,816 frente a 0,837 del escritorio, con el mismo cambio (q0147) y la misma evidencia sin extraer (q0167). El golden de la 440M es idéntico al de la 270M. Los cortes en cada paso, en `DefaultMultimodalControllerTest` y `MultimodalSwitchTest` |
+| SC-003: 200 páginas en Visual sin intervención, y reanudar sin duplicar | ✅ `VisualIngestBenchmarkTest` en el A063: parada a las 100 páginas y reanudación desde la 101, 200 de 200 páginas. 14,2 páginas/min y 111 KB por página (informativo). En JVM, el corte en la página 7 de 20 |
+| SC-004: escaneado, JPG y PNG en Visual con el modo activo; rechazados o «Sin texto» sin él | ✅ En el A063, un escaneado de 2 páginas, un JPG de 4,7 MB y un PNG, indexados en Visual. Sin el modo, en JVM: `IMAGE_NEEDS_MULTIMODAL` y `NO_TEXT` (`DocumentImporterTest`, `IngestRunnerPagesTest`) |
+| SC-005: sin huérfanos al eliminar, quitar y reindexar | ✅ `PageFilesCleanupTest` con ficheros reales; en el A063, eliminar los 4 documentos de prueba dejó `pages/` vacía |
+| SC-006: espacio comprobado antes y durante, con la cantidad que falta | ✅ `IngestRunnerPagesTest` (antes de cargar el motor, y antes de cada página) y `DefaultImportQueueRepositoryTest` («Falta espacio para las páginas: libera …») |
+| SC-007: el LLM descargado y nunca dos engines en GPU | ✅ `PageEmbeddingSession` y `IdentityValidator` liberan antes; `IngestRunnerPagesTest` comprueba que los motores de texto y de imagen nunca coinciden; la visión va siempre en CPU |
+| SC-008: wireframe aprobado, TalkBack, 200 % y textos | ✅ Wireframe aprobado (D-079, D-081). `MultimodalAccessibilityTest`: 44 de 44 en `Pixel_10`. Recorrido al 200 % y en oscuro. `StringsParityTest` en verde |
 
 ## 4. Cifras medidas
 
@@ -89,7 +98,38 @@ En `MicroRAG_API32` (2 GB de RAM y 4,9 GB libres), con la 270M copiada a la carp
 
 ### Teléfono A063 (T055–T056)
 
-Pendiente, con el permiso del usuario.
+Aprobado por el usuario el 2026-11-05, con la activación real y el modo activado al final. Ajustes anotados al empezar y sin cambios al terminar: rotación 0/0, letra 1.0, modo oscuro, apagado de pantalla 1.800.000 ms e idioma de la app [es]. Salida en `/data/local/tmp`. Ni los documentos ni las conversaciones del usuario se abrieron, volcaron o capturaron: en las pantallas que podían mostrarlos solo se buscaron etiquetas concretas, y el volcado de la interfaz se borraba al leerlo.
+
+1. **Antes de activar, con la 270M:**
+   - batería instrumentada completa, sin `@RequiresNetwork`: **998 de 998** en 64,9 min. Se saltan, como en F18, las que piden la 440M o modelos del diagnóstico, y `IdentityValidatorDeviceTest`, porque la 440M aún no está;
+   - golden de la 270M: CPU con mínimo de 1,000000 y GPU con mínimo de 0,992993 (50 pares).
+2. **Activación desde Ajustes:**
+
+   | Paso | Tiempo |
+   |---|---|
+   | Descarga de la 440M (388 MB) y verificación de la huella | 32,6 s |
+   | Preparación del backend (CPU) | 1,3 s |
+   | Identidad: 20 textos como documento y como consulta, la 270M y después la 440M en CPU | 11,0 s (5,0 + 5,0). Mínimo **1,000000** |
+   | Cambio de `rag_meta`, espejo y borrado de la 270M | 0,07 s |
+   | **Total, de «Activar» a `ON`** | **45 s** |
+
+   La fila del embedder pasa a la 440M y aparece «Modo al importar PDF: Ambos (texto y páginas)».
+3. **Después, con la 440M:**
+   - golden: CPU con mínimo de 1,000000 y GPU con mínimo de 0,992993, idéntico al de la 270M;
+   - `RetrievalParityTest`: 0,816 frente a 0,837, igual que con la 270M desde F10;
+   - `RetrievalBenchmarkTest` (10.000 fragmentos): embedding de la consulta p95 de 136,6 ms, vectorial p95 de 55,2 ms y texto p95 de 120 ms. El embedding de la 440M no es más lento que el de la 270M en F17;
+   - `VisualIngestBenchmarkTest`: 200 páginas generadas en Visual, la primera mitad en 399 s, la reanudación de la otra mitad en 422 s: **14,2 páginas/min** (4,2 s por página) y **111 KB por página**. Sin pausas por calor (de 32 °C a 38 °C).
+4. **Documentos de prueba públicos,** importados desde la Ingesta y borrados al terminar:
+
+   | Documento | Modo | Resultado |
+   |---|---|---|
+   | `panel-letur.jpg` (4,7 MB) | Visual | 1 página en 4,6 s |
+   | `gazeta-1797-03-07`, 2 páginas escaneadas | Visual | 2 páginas en 7,7 s; «Solo páginas. Todavía no se usa en el chat» |
+   | `captura.png` | Visual | 1 página en 4,9 s |
+   | `boe-facturacion`, 3 páginas | Ambos | 6 fragmentos y 3 páginas en 11,0 s |
+
+   El motor de imagen se carga en cada documento (unos 0,9 s): queda para F14.
+5. **Limpieza:** los 4 documentos eliminados desde su detalle (`pages/` vacía), los ficheros de `Download`, las salidas de `/data/local/tmp` y el informe de `files/reports` borrados. El modo queda **activado**, como pidió el usuario, con la 440M y Gemma; la 270M ya no está.
 
 ## 6. Diferencias frente al wireframe
 
@@ -118,5 +158,9 @@ Pendiente, con el permiso del usuario.
 
 ## 9. Pendiente
 
-- Fase del teléfono (T055–T056), con permiso del usuario: la activación real borra la 270M del teléfono.
-- Golden con el embedder activo (T062).
+- **F20:** el chat con páginas, el detalle de las páginas («Rápido / Equilibrado / Detallado») y las citas a página. Hasta entonces, los documentos solo Visual no se usan en el chat.
+- **F14:**
+  - cargar el motor de imagen una vez por run, no por documento;
+  - medir los vectores de página en F32 frente a INT8;
+  - las cifras con fp16 de F18.
+- **Diferencias del §6:** la línea de formatos de la Ingesta y el subtítulo de «Incluir en respuestas» de un documento solo Visual, si el usuario quiere cambiarlos.
