@@ -72,7 +72,7 @@ class SqliteChatRepositoryTest {
         RagConnection.open(dbFile, extensionPath = null).use { db ->
             assertThat(db.tableNames())
                 .containsAtLeast("chat_meta", "conversations", "turns", "sources", "conversation_scope", "last_scope")
-            assertThat(db.queryOne("SELECT value FROM chat_meta WHERE key = 'schema_version'") { it.getText(0) }).isEqualTo("2")
+            assertThat(db.queryOne("SELECT value FROM chat_meta WHERE key = 'schema_version'") { it.getText(0) }).isEqualTo(ChatSchema.VERSION.toString())
         }
     }
 

@@ -383,7 +383,7 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
   - 48 dp;
   - grupo de radios;
   - al 200 %, nada se sale del ancho.
-- [ ] T047 [US7] Revisión del wireframe frente a las pantallas, con los PNG de las pruebas de pantalla. Las diferencias se anotan para el informe.
+- [X] T047 [US7] Revisión del wireframe frente a las pantallas, con los PNG de las pruebas de pantalla. Las diferencias se anotan para el informe.
 
 ---
 
@@ -407,15 +407,15 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
   - el coste de la primera respuesta con página tras una sin ella, que recarga Gemma (R5);
   - el p50 y el p95 del primer token, el prefill, la decodificación y el pico de RSS, en `visual-chat-benchmark` y en `filesDir/reports/visual-chat-*.json`;
   - sin umbral.
-- [ ] T053 Batería sin dispositivo (quickstart §1): JVM, lint y Python en verde. Las cifras van al informe.
-- [ ] T054 Instrumentadas en `Pixel_10` y `MicroRAG_API33` (quickstart §3), con `adb -s` y sin `@RequiresNetwork`. Se esperan los 4 fallos previos de Atrás en API 33.
-- [ ] T055 Recorrido en el emulador (quickstart §4), con capturas solo de datos de prueba. Se deja el emulador como estaba.
-- [ ] T056 [P] Verificación de release en `specs/020-visual-chat/checklists/release-verification.md`, como la de F19:
+- [X] T053 Batería sin dispositivo (quickstart §1): JVM, lint y Python en verde. Las cifras van al informe. (JVM 1.354/1.354, lint 0 errores y 2 avisos de versiones, Python 288 y golden al día.)
+- [X] T054 Instrumentadas en `Pixel_10` y `MicroRAG_API33` (quickstart §3), con `adb -s` y sin `@RequiresNetwork`. Se esperan los 4 fallos previos de Atrás en API 33.
+- [X] T055 Recorrido en el emulador (quickstart §4), con capturas solo de datos de prueba. Se deja el emulador como estaba.
+- [X] T056 [P] Verificación de release en `specs/020-visual-chat/checklists/release-verification.md`, como la de F19:
   - los mismos 9 permisos;
   - sin el diagnóstico de búsqueda ni el de F18;
   - `LiteRtTextGenerator` con visión en el APK;
   - el manifiesto y el build sin cambios.
-- [ ] T057 Borrador del informe `specs/020-visual-chat/report.md`, con la estructura de F19: implementado, build y tests, validación por criterio, cifras, diferencias frente al wireframe, desviaciones, fallos y pendiente.
+- [X] T057 Borrador del informe `specs/020-visual-chat/report.md`, con la estructura de F19: implementado, build y tests, validación por criterio, cifras, diferencias frente al wireframe, desviaciones, fallos y pendiente.
 - [ ] T058 **Fase del teléfono, con permiso del usuario** (quickstart §5):
   - se anotan los ajustes;
   - la batería completa con `GemmaVisionSmokeTest`;

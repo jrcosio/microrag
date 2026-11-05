@@ -240,7 +240,8 @@ class RagIndexPagesTest {
         doc("Pendiente.pdf", IndexMode.VISUAL, DocumentStatus.PENDING)
 
         assertThat(index.chatLibraryState())
-            .isEqualTo(ChatLibraryState(documents = 5, searchable = 2, pendingIncluded = 1, visualOnly = 2))
+            // F20 (research R5): withPages counts the searchable documents with any page, Plano.pdf here.
+            .isEqualTo(ChatLibraryState(documents = 5, searchable = 2, pendingIncluded = 1, visualOnly = 2, withPages = 1))
         // Pages are never in the text searches.
         assertThat(index.vectorSearch(unitVector(1), k = 10).map { it.id }).hasSize(2)
     }
