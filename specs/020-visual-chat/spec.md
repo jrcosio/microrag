@@ -54,6 +54,15 @@
 - **Primer token de extremo a extremo:** `ChatBenchmarkTest` lo mide en el teléfono con las 50 preguntas de paridad, y lo informa sin fallar.
 - **Registros:** en release no se escribe nada. Las pruebas comprueban que el chat, la recuperación y el índice registran solo cifras.
 
+## Clarifications
+
+### Session 2026-11-05
+
+- Q: Con el modo activo, ¿cuándo entra una página en la respuesta? → A: Siempre que haya páginas en el ámbito, la mejor de la lista, sin umbral de parecido. Para respuestas rápidas sobre texto, la persona acota el ámbito a carpetas sin páginas (FR-004).
+- Q: ¿Qué detalle de las páginas viene por defecto? → A: Equilibrado, 1 página a 140 tokens, los mismos con que se indexan las páginas (FR-012).
+- Q: ¿Cómo se ve y se amplía la página citada en el detalle? → A: La página a lo ancho en lugar del fragmento resaltado; al tocarla se abre a pantalla completa, con pellizco y doble toque para ampliar y un botón para cerrar (FR-016).
+- Q: ¿Apruebas el wireframe? → A: Sí, tal como está en [wireframe.md](wireframe.md) (FR-024, G47). Sin enmienda de la constitución: la 1.2.0 ya cubre F20.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Preguntar sobre un escaneado o una imagen (Priority: P1)
@@ -133,7 +142,7 @@ La persona pulsa la página en «Fuentes consultadas». Se abre el detalle del d
 **Acceptance Scenarios**:
 
 1. **Given** una cita a página, **When** se pulsa, **Then** se abre el detalle del documento con la imagen de esa página y su número.
-2. **Given** la imagen, **When** la persona la amplía, **Then** puede leer la página.
+2. **Given** la imagen, **When** la persona la toca, **Then** se abre a pantalla completa y puede ampliarla con pellizco o doble toque para leer la página.
 3. **Given** el detalle abierto desde el chat, **When** vuelve atrás, **Then** sigue en la conversación, como con las citas de texto.
 
 ---
@@ -213,9 +222,10 @@ En la build de depuración, el diagnóstico de búsqueda muestra las tres listas
 - **FR-001**: Con el modo apagado, el chat MUST comportarse exactamente como sin esta feature: misma recuperación, mismo prompt, mismas fuentes y misma disponibilidad. Las páginas guardadas MUST NOT usarse.
 - **FR-002**: Con el modo activo, la recuperación de texto MUST seguir igual (D-034). Además, las páginas MUST buscarse en su propia lista: el mismo vector de la consulta frente a los vectores de página. Esa lista MUST NOT fusionarse con la de texto (D-076).
 - **FR-003**: La lista de páginas MUST respetar el ámbito de la conversación (F17) y el filtro de buscables: solo páginas de documentos indexados e incluidos.
-- **FR-004**: Con el modo activo y alguna página en el ámbito, el contexto MUST ser los bloques de texto de D-034, sin tocar, más **1 página**, la primera de la lista de páginas, con el detalle elegido. MUST NOT quitarse ningún bloque por estar en esa página (D-078).
+- **FR-004**: Con el modo activo y alguna página en el ámbito, el contexto MUST ser los bloques de texto de D-034, sin tocar, más **1 página**, la primera de la lista de páginas, con el detalle elegido. La página MUST entrar siempre que haya alguna en el ámbito, sin umbral de parecido. MUST NOT quitarse ningún bloque por estar en esa página (D-078).
 - **FR-005**: Sin ninguna página en el ámbito, o si el espacio de páginas del índice no coincide, el contexto y el prompt MUST ser los de hoy.
 - **FR-006**: Con el modo activo, los documentos solo con páginas MUST contar como buscables para la disponibilidad del chat. Una pregunta sin bloques de texto pero con una página MUST responderse con la página. Sin bloques ni páginas, MUST darse la negativa sin llamar a Gemma, como hoy.
+- **FR-006b**: Con el modo activo, el detalle de un documento solo con páginas MUST dejar de decir que no se usa en el chat, y su interruptor «Incluir en respuestas» MUST decir lo mismo que el de un documento de texto. Con el modo apagado, MUST decir que se usará al activar el modo (wireframe §7).
 
 **Prompt y motor**
 
@@ -243,7 +253,7 @@ En la build de depuración, el diagnóstico de búsqueda muestra las tres listas
 
 - **FR-014**: Toda cita a página MUST corresponder a un documento real y a una página real indexada de ese documento. Un `[n]` fuera de rango MUST descartarse, como hoy.
 - **FR-015**: «Fuentes consultadas» MUST mostrar cada página citada con el nombre del documento, el número de página y una miniatura de la página, en el orden de las citas, como las fuentes de texto. El contador de fuentes de la respuesta MUST contarla.
-- **FR-016**: Pulsar una cita a página MUST abrir el detalle del documento con la imagen de esa página y su número. La imagen MUST poder ampliarse para leerla. Volver MUST dejar a la persona en la conversación.
+- **FR-016**: Pulsar una cita a página MUST abrir el detalle del documento con la imagen de esa página a lo ancho y su número, en lugar del fragmento resaltado. Tocar la imagen MUST abrirla a pantalla completa, con pellizco y doble toque para ampliar y un botón para cerrar. Volver MUST dejar a la persona en la conversación.
 - **FR-017**: El Historial MUST guardar y restaurar las citas a página, con el tipo de fuente, el documento, el número de página y el nombre. Las conversaciones existentes MUST seguir abriéndose igual tras la actualización.
 - **FR-018**: Si el documento citado ya no existe, la cita MUST decir «Fuente ya no disponible» y no poder pulsarse. Si el documento existe pero la página no, pulsarla MUST abrir el documento y avisar de que la página citada ya no está.
 - **FR-019**: Las citas a página guardadas MUST seguir viéndose y abriéndose con el modo apagado, mientras la página exista.

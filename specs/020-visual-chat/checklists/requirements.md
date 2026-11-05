@@ -38,8 +38,8 @@
   - la ventana de 8.192 tokens;
   - la plantilla v5-visual.
 - **«Verificado al redactar»** nombra piezas del código para fijar el punto de partida, como en F19. Los requisitos no dependen de ellas.
-- **Para el clarify:**
-  - cuándo entra la página: siempre que haya páginas en el ámbito, o solo si se parece lo bastante a la consulta;
-  - el detalle por defecto;
-  - cómo se amplía la página en el detalle;
-  - el wireframe G47.
+- **Resuelto en el clarify (2026-11-05):**
+  - la página entra siempre que haya páginas en el ámbito, sin umbral (FR-004);
+  - Equilibrado es el detalle por defecto (FR-012);
+  - la página citada se amplía en un visor a pantalla completa (FR-016).
+- **Aprobado por el usuario el 2026-11-05:** el wireframe G47. La constitución 1.2.0 ya cubre F20, así que no hay enmienda.

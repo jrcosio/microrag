@@ -2169,6 +2169,34 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G47).
 
 ---
 
+## D-083 — Chat con páginas: decisiones del clarify de F20
+
+- **Fecha:** 2026-11-05
+- **Decisión** (respuestas del usuario en el clarify de F20):
+  1. **La página entra siempre** que haya páginas en el ámbito: la mejor de la lista de páginas, sin umbral de parecido. Para respuestas rápidas sobre texto, se acota el ámbito a carpetas sin páginas.
+  2. **El detalle por defecto es Equilibrado:** 1 página a 140 tokens, los mismos con que se indexan las páginas.
+  3. **La página citada se ve en un visor a pantalla completa:** en el detalle, la página a lo ancho sustituye al fragmento resaltado; al tocarla se abre el visor, con pellizco y doble toque para ampliar.
+  4. **Wireframe G47 aprobado** (`specs/020-visual-chat/wireframe.md`):
+     - «Detalle de las páginas» en Ajustes, como «Modo al importar PDF»;
+     - el estado «Leyendo 1 página · unos 11,5 s…» en el chat;
+     - la miniatura de la página en «Fuentes consultadas», con un hueco nuevo en `LisdataSourceCitation`;
+     - la página en el detalle y el visor, la única pieza nueva;
+     - las notas de F19 que cambian y el diagnóstico de búsqueda en debug.
+  5. **Sin enmienda de la constitución:** la 1.2.0 ya admite las citas a página (III) y el primer token propio de las respuestas con páginas (IV).
+- **Motivo:**
+  - un umbral sin calibrar puede dejar fuera los escaneados que sí responden, y D-078 no prevé pruebas comparativas para fijarlo;
+  - Equilibrado lee con el mismo detalle con que se buscó la página;
+  - una página de 768 px no se lee en el móvil sin ampliarla.
+- **Alternativas descartadas:**
+  - un umbral de parecido;
+  - un control «Con páginas» en el compositor;
+  - Rápido o Detallado por defecto;
+  - la página sin zoom, o con zoom dentro de su tarjeta.
+- **Origen:** usuario (clarify de F20).
+- **Afecta:** F20: spec (FR-004, FR-012, FR-016 y FR-006b), wireframe y plan; G47.
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.
