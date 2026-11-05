@@ -1,6 +1,6 @@
 # Informe de cierre — F17 Carpetas y ámbito del chat
 
-> **Estado:** implementada; pendiente de la revisión de cierre del usuario.
+> **Estado:** aprobada por el usuario el 2026-11-05.
 
 **Rama:** `017-folders-chat-scope`, creada desde `62f6ff2`.
 **Fecha:** 2026-11-04 y 2026-11-05.
@@ -237,7 +237,6 @@ Recorrido aprobado por el usuario el 2026-11-05.
 
 ## 9. Pendiente
 
-- **Revisión de cierre del usuario.**
 - **Para F14:**
   - el total p95 de la búsqueda acotada en el A063, de 198–202 ms (SC-004), frente a 206,5 ms con «Toda la biblioteca»;
   - se suma a lo que ya traía F10: INT8 y la precarga (D-052).
