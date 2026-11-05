@@ -36,8 +36,10 @@
   - Los nombres de modelos, ficheros, métricas (coseno, p95, Recall@k) y del rasterizador fijado son el objeto de la medida, no detalles de implementación. Vienen del roadmap y de la constitución.
   - Cómo se mide (clases, comandos, malla exacta de resoluciones y corpus concreto) queda para el plan.
 - **Comprobado antes de escribir:** el fichero de Gemma de la app admite como mucho 280 tokens por imagen, y la visión de Gemma y de la 440M solo corre en CPU (`ModelInfo` en el escritorio). La spec mide hasta 280 y evalúa la página partida en trozos como alternativa.
-- **Sin marcas pendientes.** Los puntos abiertos tienen un valor por defecto, y el clarify los confirma o los cambia:
-  - la regla de sí o no de calidad para F19–F20 (FR-025);
-  - el límite de primer token con páginas (SC-004);
-  - quién revisa el conjunto de prueba (FR-021: el asistente, por D-033);
-  - el origen de las imágenes sueltas de prueba (FR-019).
+- **Clarify (2026-11-05):** cuatro respuestas integradas.
+  - Regla de sí o no: +15 puntos en las visuales y −2 como mucho en los controles de texto (FR-025, SC-008).
+  - Primer token con páginas: p95 ≤ 8 s con al menos 1 página (FR-025, SC-004).
+  - Revisión del conjunto de prueba: el asistente (D-033, FR-021).
+  - Imágenes sueltas: públicas más fotos simuladas a partir del corpus (FR-019).
+
+  No quedan puntos abiertos.
