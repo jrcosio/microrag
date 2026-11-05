@@ -5,6 +5,10 @@ an image (duplicate rule), plus the first pages of F05's 6 PDFs by the page list
 no pages. Follow-ups see this run's previous answer, as in F05. An answer equal to the v4 one keeps its manual
 verdict (D-056); the others are judged by hand in reports/visual-text-loss.csv, whose verdicts stay between runs.
 The loss is v4's manual correct answers minus the mix's, in points, over the 323 answerable questions.
+
+Gemma keeps the Mac GPU's default fp16 activations here, as F05's v4 answers were generated: in F05's corpus they
+do not corrupt figures (with FP32, 239 of 426 answers change their wording and the rule judge gives 72.2 % against
+72.4 %), so only the pages change what the review has to judge.
 """
 
 import csv
@@ -121,7 +125,7 @@ def run(variant, decision, rules):
                 raise SystemExit(f"{q.id}: {out_path} was generated with another message; delete it and run again")
             if record is None:
                 if engine is None:
-                    engine = stack.enter_context(_closing(vision_runtime.open_gemma(models.verify("GEMMA4_E2B"), max_num_images=6)))
+                    engine = stack.enter_context(_closing(vision_runtime.open_gemma(models.verify("GEMMA4_E2B"), max_num_images=6, fp32=False)))
                 result = vision_runtime.generate(engine, parts, budget, max_output_tokens=config.max_output_tokens)
                 relevant = frozenset((chunk_doc[c], p) for c in row["relevant"] for p in chunk_pages.get(c, []))
                 j = visual_judge.judge(judge_type(q.type), result["answer"], q.key_facts, sources, relevant)
