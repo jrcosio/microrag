@@ -62,5 +62,23 @@ object RagMigrations {
                 "CREATE INDEX IF NOT EXISTS idx_documents_folder ON documents(folder_id, created_at_ms, id)",
             ),
         ),
+        // F19 (research R8): every document stays in Text; the pages table starts empty. The UNIQUE key is its index.
+        RagMigration(
+            from = 4,
+            statements = listOf(
+                "ALTER TABLE documents ADD COLUMN index_mode TEXT NOT NULL DEFAULT 'text' CHECK (index_mode IN ('text','visual','both'))",
+                "CREATE TABLE IF NOT EXISTS pages (\n" +
+                    "    id              INTEGER PRIMARY KEY,\n" +
+                    "    document_id     INTEGER NOT NULL REFERENCES documents(id) ON DELETE CASCADE,\n" +
+                    "    page            INTEGER NOT NULL,\n" +
+                    "    file_name       TEXT NOT NULL,\n" +
+                    "    width_px        INTEGER NOT NULL,\n" +
+                    "    height_px       INTEGER NOT NULL,\n" +
+                    "    size_bytes      INTEGER NOT NULL,\n" +
+                    "    embedding       BLOB NOT NULL,\n" +
+                    "    UNIQUE (document_id, page)\n" +
+                    ")",
+            ),
+        ),
     )
 }

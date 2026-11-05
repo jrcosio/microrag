@@ -4,6 +4,8 @@ import com.google.common.truth.Truth.assertThat
 import com.lisdatasolutions.microrag.domain.rag.CompatibilityDecision.Compatible
 import com.lisdatasolutions.microrag.domain.rag.CompatibilityDecision.Incompatible
 import com.lisdatasolutions.microrag.domain.rag.CompatibilityDecision.NeedsMigration
+import com.lisdatasolutions.microrag.domain.model.ModelCatalog
+import com.lisdatasolutions.microrag.domain.model.ModelId
 import org.junit.Test
 
 /** F04 research R7: decision taken when an existing index is opened. */
@@ -32,6 +34,25 @@ class IndexCompatibilityCheckerTest {
         cases.forEach { (key, found) ->
             assertThat(check(meta + (key to found))).isEqualTo(Incompatible(key, meta.getValue(key), found))
         }
+    }
+
+    /** F19 research R2 (constitution 1.2.0, III): the 440M reproduces the 270M's text vectors, so either may be recorded. */
+    @Test
+    fun eitherTextEmbedder_isCompatible() {
+        val with440 = meta + (RagMetaKeys.EMBEDDING_MODEL_SHA256 to ModelCatalog.byId(ModelId.EG2_440M).sha256)
+        val with270 = meta + (RagMetaKeys.EMBEDDING_MODEL_SHA256 to ModelCatalog.byId(ModelId.EG2_270M).sha256)
+
+        assertThat(check(with440)).isEqualTo(Compatible)
+        assertThat(check(with270)).isEqualTo(Compatible)
+        assertThat(check(meta + (RagMetaKeys.EMBEDDING_MODEL_SHA256 to ModelCatalog.byId(ModelId.EG2_740M).sha256)))
+            .isInstanceOf(Incompatible::class.java)
+    }
+
+    @Test
+    fun pageSpaceKeys_doNotDecideTheOpening() {
+        val pages = PageSpace.CURRENT.toMeta().mapValues { "other" }
+
+        assertThat(check(meta + pages)).isEqualTo(Compatible)
     }
 
     @Test

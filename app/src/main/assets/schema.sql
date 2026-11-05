@@ -1,8 +1,9 @@
--- MicroRAG index schema, version 4 (rag_meta.schema_version).
+-- MicroRAG index schema, version 5 (rag_meta.schema_version).
 -- Shared by the app and the offline Python tools. It is the RAG report schema (§Esquema SQLite)
 -- plus the document columns and states of INVENTARIO G27 (F04, D-030), skipped_pages (F06, D-038),
 -- the Library columns name_norm and replaces_id with their indexes (F08, research R1) and the
--- folders with documents.folder_id (F17, research R1: a document with no folder is in «General»).
+-- folders with documents.folder_id (F17, research R1: a document with no folder is in «General») and the
+-- multimodal mode's documents.index_mode and pages table (F19, research R8: one image and one 256D vector per page).
 -- Always the latest version, with IF NOT EXISTS; older files are upgraded by RagMigrations.
 
 PRAGMA foreign_keys = ON;
@@ -40,7 +41,8 @@ CREATE TABLE IF NOT EXISTS documents (
     updated_at_ms   INTEGER NOT NULL,
     name_norm       TEXT,
     replaces_id     INTEGER REFERENCES documents(id) ON DELETE CASCADE,
-    folder_id       INTEGER REFERENCES folders(id) ON DELETE SET NULL
+    folder_id       INTEGER REFERENCES folders(id) ON DELETE SET NULL,
+    index_mode      TEXT NOT NULL DEFAULT 'text' CHECK (index_mode IN ('text','visual','both'))
 );
 
 CREATE INDEX IF NOT EXISTS idx_documents_created ON documents(created_at_ms, id);
@@ -89,3 +91,15 @@ CREATE TRIGGER IF NOT EXISTS chunks_au AFTER UPDATE OF title_norm, body_norm ON 
     INSERT INTO chunks_fts(rowid, title_norm, body_norm)
     VALUES (new.id, new.title_norm, new.body_norm);
 END;
+
+CREATE TABLE IF NOT EXISTS pages (
+    id              INTEGER PRIMARY KEY,
+    document_id     INTEGER NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+    page            INTEGER NOT NULL,
+    file_name       TEXT NOT NULL,
+    width_px        INTEGER NOT NULL,
+    height_px       INTEGER NOT NULL,
+    size_bytes      INTEGER NOT NULL,
+    embedding       BLOB NOT NULL,
+    UNIQUE (document_id, page)
+);

@@ -12,7 +12,7 @@ class RagSchemaTest {
     private val sql = File("src/main/assets/schema.sql").readText()
 
     @Test
-    fun split_givesTheThirteenStatementsInOrderWithWholeTriggers() {
+    fun split_givesTheFourteenStatementsInOrderWithWholeTriggers() {
         val statements = RagSchema.split(sql)
 
         assertThat(statements.map { it.substringBefore(" IF NOT EXISTS").substringBefore(" =") }).containsExactly(
@@ -30,6 +30,8 @@ class RagSchemaTest {
             "CREATE TRIGGER",
             "CREATE TRIGGER",
             "CREATE TRIGGER",
+            // F19 (research R8): the pages of the multimodal mode.
+            "CREATE TABLE",
         ).inOrder()
         statements.filter { it.startsWith("CREATE TRIGGER") }.forEach { trigger ->
             assertThat(trigger).contains(" BEGIN")
@@ -52,7 +54,7 @@ class RagSchemaTest {
 
         assertThat(from).isInStrictOrder()
         assertThat(from.all { it in 0 until RagIndexConfig.SCHEMA_VERSION }).isTrue()
-        // Every released version has its step up to the current one (F06: 1 -> 2, D-038; F08: 2 -> 3, R1; F17: 3 -> 4, R1).
+        // Every released version has its step up to the current one (F06: 1 -> 2, D-038; F08: 2 -> 3, R1; F17: 3 -> 4, R1; F19: 4 -> 5, R8).
         assertThat(from).containsExactlyElementsIn(1 until RagIndexConfig.SCHEMA_VERSION).inOrder()
     }
 
@@ -77,7 +79,19 @@ class RagSchemaTest {
         assertThat(statements[0]).isEqualTo(schema.single { it.startsWith("CREATE TABLE IF NOT EXISTS folders") })
         assertThat(statements[1]).isEqualTo("ALTER TABLE documents ADD COLUMN folder_id INTEGER REFERENCES folders(id) ON DELETE SET NULL")
         assertThat(statements[2]).isEqualTo("CREATE INDEX IF NOT EXISTS idx_documents_folder ON documents(folder_id, created_at_ms, id)")
-        assertThat(RagIndexConfig.SCHEMA_VERSION).isEqualTo(4)
+    }
+
+    @Test
+    fun migrationFromFour_addsTheIndexModeAndThePagesTable() {
+        val statements = RagMigrations.all.single { it.from == 4 }.statements
+        val schema = RagSchema.split(sql)
+
+        assertThat(statements).hasSize(2)
+        assertThat(statements[0]).isEqualTo(
+            "ALTER TABLE documents ADD COLUMN index_mode TEXT NOT NULL DEFAULT 'text' CHECK (index_mode IN ('text','visual','both'))",
+        )
+        assertThat(statements[1]).isEqualTo(schema.single { it.startsWith("CREATE TABLE IF NOT EXISTS pages") })
+        assertThat(RagIndexConfig.SCHEMA_VERSION).isEqualTo(5)
     }
 
     @Test

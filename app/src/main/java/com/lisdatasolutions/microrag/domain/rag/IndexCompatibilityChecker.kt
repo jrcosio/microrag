@@ -29,7 +29,10 @@ object IndexCompatibilityChecker {
             return CompatibilityDecision.Incompatible(RagMetaKeys.SCHEMA_VERSION, config.schemaVersion.toString(), found)
         }
 
-        RagMetaKeys.VALIDATED.drop(1).firstOrNull { meta[it] != expected[it] }?.let { key ->
+        // F19 research R2: the model may be any accepted text embedder; every other key must be equal.
+        RagMetaKeys.VALIDATED.drop(1).firstOrNull { key ->
+            if (key == RagMetaKeys.EMBEDDING_MODEL_SHA256) meta[key] !in config.acceptedEmbeddingModels else meta[key] != expected[key]
+        }?.let { key ->
             return CompatibilityDecision.Incompatible(key, expected.getValue(key), meta[key])
         }
 
