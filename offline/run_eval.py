@@ -18,7 +18,7 @@ COMMANDS = [
 # F18 visual evaluation (specs/018-visual-rag-feasibility/contracts/visual-harness.md §3), in eval/visual_cli.py.
 VISUAL_COMMANDS = [
     "visual-raster", "visual-build", "visual-validate", "visual-review-sheet", "visual-review-apply", "visual-freeze",
-    "visual-retrieve", "visual-decide",
+    "visual-retrieve", "visual-decide", "visual-generate", "visual-device-set", "visual-parity",
 ]
 COMMANDS += VISUAL_COMMANDS
 
