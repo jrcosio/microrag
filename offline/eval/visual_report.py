@@ -77,7 +77,8 @@ def answers_section(metrics, manual_rows):
     if not metrics:
         return lines + ["Pendiente: `run_eval.py visual-generate`.", ""]
     lines += ["Juez automático de F05 con citas a página (R11), sobre las preguntas aceptadas. Tokens: medianas del texto estimado y "
-              "de los visuales; el primer token es la mediana en el escritorio.", "",
+              "de los visuales; el primer token es la mediana en el escritorio. Gemma corre en la GPU del Mac con activaciones FP32: "
+              "con las fp16 por defecto deformaba cifras («20000» por 2020), y esa tanda queda aparte en `build/visual/runs-fp16`.", "",
               "| Variante | Completa | Visuales | " + " | ".join(TYPE_NAMES[t] for t in ANSWER_TYPES) +
               " | Negativa correcta | Negativas indebidas | Citas | Tokens de texto | Tokens visuales | Primer token |",
               "|---|---|---|" + "---|" * len(ANSWER_TYPES) + "---|---|---|---|---|---|"]
@@ -116,13 +117,36 @@ def phone_section(parity):
     return lines + [""]
 
 
-def decision_section(final):
+def decision_section(final, candidates=None, metrics=None):
     lines = ["## 5. Regla de sí o no y parámetros", ""]
     if final is None:
         return lines + ["Pendiente: `run_eval.py visual-decide <informe.json>` tras el teléfono y la revisión decisiva.", ""]
-    lines.append("```json")
-    lines += json.dumps(final, ensure_ascii=False, indent=1).splitlines()
-    return lines + ["```", ""]
+    retrieval = final.get("retrieval") or {}
+    lines += [f"Parámetros de recuperación elegidos antes de las respuestas: {retrieval.get('px')} px, {retrieval.get('tokens')} tokens por "
+              f"imagen y {retrieval.get('dim')} dimensiones (R12, D-076).", ""]
+    if candidates:
+        lines += ["Candidatas de la etapa A (primer token compuesto ≤ 8.800 ms): " + ", ".join(f"`{c}`" for c in candidates["candidates"]) + ".", ""]
+    names = {"visual_gain": "+15 puntos en las visuales", "text_loss": "−2 puntos como mucho en F05",
+             "first_token": "p95 compuesto ≤ 8 s con al menos 1 página", "embedder": "440M: golden ≥ 0,99 e identidad ≥ 0,9999"}
+    lines += ["| Condición | Cifra | Cumple |", "|---|---|---|"]
+    for key, label in names.items():
+        c = final["conditions"][key]
+        if key == "embedder":
+            value = f"golden {num(c['golden_min'], 5)}, identidad {num(c['identity_min'], 5)}"
+        elif key == "first_token":
+            value = "ninguna configuración cabe" if c["e2e_ms"] is None else f"{num(c['e2e_ms'], 0)} ms"
+        else:
+            value = "sin revisión decisiva" if c["points"] is None else f"{c['points']} puntos"
+        lines.append(f"| {label} | {value} | {'sí' if c['ok'] else 'no'} |")
+    verdict = "**sí**" if final["go"] else "**no**"
+    lines += ["", f"Resultado de la regla: {verdict}" + ("; decide el usuario (D-073)." if final["needs_user"] else "."), ""]
+    if final.get("decisive") is None and candidates and metrics:
+        def visual(key):
+            return pct(metrics[key]["summary"]["visual"]["correct"]) if key in metrics else "—"
+        lines += ["Sin una configuración que cumpla el primer token no hay configuración elegida que revisar a mano. Con el juez "
+                  "automático, las candidatas dan " + ", ".join(f"{visual(c)} (`{c}`)" for c in candidates["candidates"]) +
+                  f" en las visuales, frente a {visual('texto')} de «Texto»: ninguna se acerca a los +15 puntos.", ""]
+    return lines
 
 
 def durations_section(metrics):
@@ -163,6 +187,7 @@ def build(variants):
                                _read(visual_index.VISUAL_DIR / "decision-retrieval.json"))
     lines += answers_section(metrics, visual_manual.load())
     lines += phone_section(_read(visual_index.VISUAL_DIR / "parity.json"))
-    lines += decision_section(_read(visual_index.VISUAL_DIR / "decision-final.json"))
+    lines += decision_section(_read(visual_index.VISUAL_DIR / "decision-final.json"),
+                              _read(visual_index.VISUAL_DIR / "decision-candidates.json"), metrics)
     lines += durations_section(metrics)
     return "\n".join(lines).rstrip("\n") + "\n"

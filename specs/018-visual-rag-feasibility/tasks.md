@@ -190,12 +190,12 @@ description: "Lista de tareas de F18 — Viabilidad del RAG visual"
   - juez: citas a página y a bloque con páginas, y negativas.
 - [X] T030 [US5] Plantilla en `offline/eval/visual_prompt.py`, y juez en `offline/eval/visual_judge.py` (R11). Hacen pasar T029.
 - [X] T031 [US5] Generación con imágenes: el subcomando `visual-generate`, que se reanuda, guarda la huella por ejecución (`LATE_FIELDS`) y marca las tandas parciales.
-- [ ] T032 [US5] Ejecutar las ablaciones de respuesta de R11 con los parámetros de recuperación de T028:
+- [X] T032 [US5] Ejecutar las ablaciones de respuesta de R11 con los parámetros de recuperación de T028:
   - «Texto»;
   - «Páginas», con 1–3 páginas × 70/140/280 y con trozos a 280;
   - «Mezcla», con las mismas variantes.
 
-  Anotar la duración de cada tanda.
+  Anotar la duración de cada tanda. *Hecho con FP32, en el informe §3 y §6. La primera tanda, con fp16, deformaba cifras y queda aparte en `build/visual/runs-fp16`.*
 - [X] T033 [US5] Comprobación del juez (`visual-manual`): 30 respuestas de cada variante principal («Texto» y la mejor de «Páginas» y de «Mezcla» según el juez), revisadas según D-033, en `offline/reports/visual-manual-judgement.csv`. La revisión decisiva va en T058. *Hecho con FP32: la regla coincide con la revisión en 30 de 30 («Texto»), 30 de 30 («Páginas», 3 páginas) y 28 de 30 («Mezcla», 3 páginas en mitades).*
 - [X] T034 [US5] Regresión del texto (FR-024, SC-010): `run_eval.py ablations` con la configuración de D-034 da las mismas cifras que el informe de F05 y F10. *Hecho: las 17 variantes de recuperación y las 6 de `order-review` dan las mismas cifras; solo cambian los segundos y el campo `answer_language` de F12.*
 - [X] T035 [P] [US5] Pruebas en `offline/tests/test_visual_parity.py`: el manifiesto del conjunto del dispositivo, los cosenos por imagen y el juez de la lectura del teléfono.
@@ -206,7 +206,7 @@ description: "Lista de tareas de F18 — Viabilidad del RAG visual"
   - `contexts.json`, con 20 preguntas: el contexto de texto de D-034, sus páginas y sus trozos, en el orden de la plantilla v5-visual;
   - `decode/`: las dos fotos de 12 MP, un PNG con transparencia, un JPEG girado por EXIF y un JPEG en CMYK (hallazgo M5);
   - `manifest.json`.
-- [ ] T037 [US5] Informe en `offline/eval/visual_report.py` y el subcomando `visual-report`, que genera `offline/reports/visual-eval-report.md` con sus secciones 1–3 y 6. La 4 y la 5 llegan con el teléfono.
+- [X] T037 [US5] Informe en `offline/eval/visual_report.py` y el subcomando `visual-report`, que genera `offline/reports/visual-eval-report.md` con sus secciones 1–3 y 6. La 4 y la 5 llegan con el teléfono.
 
 **Checkpoint:** el escritorio ha fijado sus parámetros con la regla congelada y tiene el conjunto del dispositivo listo.
 
@@ -312,49 +312,49 @@ description: "Lista de tareas de F18 — Viabilidad del RAG visual"
   - con el conjunto del dispositivo copiado, lo marca como verificado;
   - los bloques que necesitan modelos quedan desactivados con su motivo;
   - `RASTER` e `IMAGE_DECODE` corren y escriben el informe. *Hecho en `Pixel_10` al 200 % y en oscuro. Los bloques desactivados no decían por qué; ahora cada uno dice lo que le falta («Necesita Gemma 4 E2B»).*
-- [ ] T054 Borrador de `specs/018-visual-rag-feasibility/report.md`:
+- [X] T054 Borrador de `specs/018-visual-rag-feasibility/report.md`:
   - lo implementado;
   - build, lint y pruebas;
   - la evaluación del escritorio;
   - las desviaciones del plan.
 
-  Avance de tareas en este fichero.
+  Avance de tareas en este fichero. *Hecho: `report.md`.*
 
 ---
 
 ## Phase 10: Última fase — teléfono de referencia, decisión y cierre
 
 - [X] T055 **Pedir permiso al usuario** para la fase del teléfono, con el plan: ajustes que se anotan, la 440M que se copia, el conjunto del dispositivo, las pruebas, las dos etapas y la limpieza. *Hecho: el usuario dio permiso el 2026-11-05 («tienes el teléfono conectado, cuando quieras puedes usarlo»); el recorrido se le contó antes de empezar.*
-- [ ] T056 Fase del teléfono, parte 1 (quickstart §5), con la salida en el teléfono y sin pantalla de bloqueo:
+- [X] T056 Fase del teléfono, parte 1 (quickstart §5), con la salida en el teléfono y sin pantalla de bloqueo:
   - importar la 440M con el procedimiento de F02;
   - copiar el conjunto del dispositivo;
   - `EmbeddingVariantGoldenTest`;
   - `VisualFeasibilityBenchmarkTest` con todos los bloques, con `GEMMA_PAGES` en la etapa A;
   - la batería completa;
-  - copiar los informes a `offline/build/visual/`.
-- [ ] T057 [US6] Etapa B:
+  - copiar los informes a `offline/build/visual/`. *Hecho: 931 de 931 en la batería; golden e identidad de la 440M en verde; etapa A completa.*
+- [X] T057 [US6] Etapa B:
   - `visual-decide --stage candidates` con el informe de la etapa A;
   - en el teléfono, `GEMMA_PAGES` con `-e candidates`;
   - copiar el informe y volcar las cifras en `specs/018-visual-rag-feasibility/benchmarks.md`, con la cifra de extremo a extremo marcada como compuesta;
-  - limpieza y ajustes restaurados.
-- [ ] T058 [US6] Revisión decisiva y regla:
+  - limpieza y ajustes restaurados. *Hecho: ninguna candidata baja de 8 s (la mejor, 9,8 s). La 440M, `dev-visual`, las cachés de visión, los informes y las salidas de `/data/local/tmp` se borraron; los ajustes no cambiaron.*
+- [X] T058 [US6] Revisión decisiva y regla:
   - `visual-parity`;
   - `visual-manual --decisive`: revisión a mano, según D-033, de «Texto» y de la configuración elegida en el conjunto visual;
   - `visual-text-loss`: la configuración elegida sobre las 323 respondibles de F05, juzgando a mano solo las que cambian;
   - `visual-decide`, y las secciones 4 y 5 de `visual-eval-report.md`.
 
-  **Si el primer token con 1 página pasa de 8 s de p95, o la 440M no cumple SC-002, se para y se pregunta al usuario** (D-073).
-- [ ] T059 [US6] Decisiones en `docs/roadmap/DECISIONS.md` (FR-028):
+  **Si el primer token con 1 página pasa de 8 s de p95, o la 440M no cumple SC-002, se para y se pregunta al usuario** (D-073). *Hecho: `visual-parity` y `visual-decide`. El primer token no cumple y se preguntó al usuario, que eligió el «no» sin revisión decisiva ni pérdida en texto (D-077).*
+- [X] T059 [US6] Decisiones en `docs/roadmap/DECISIONS.md` (FR-028):
   - los parámetros con su cifra;
   - el cambio de la 270M a la 440M (sustituye a D-025, o se explica por qué no);
   - el sí o el no a F19–F20.
 
-  Si sale el sí, se redacta la propuesta de enmienda de la constitución (FR-029): página citable, 440M, dimensión de página, formatos visuales y el presupuesto de primer token de las respuestas con páginas (IV). Se aplica en F19.
+  Si sale el sí, se redacta la propuesta de enmienda de la constitución (FR-029): página citable, 440M, dimensión de página, formatos visuales y el presupuesto de primer token de las respuestas con páginas (IV). Se aplica en F19. *Hecho: D-077, con el «no»; sin enmienda.*
 - [ ] T060 [US6] Cierre:
   - `report.md` cerrado, con las cifras del teléfono y del escritorio;
   - `docs/roadmap/FEATURES.md` con F18 «implementada; pendiente de la revisión de cierre» y F19–F20 con los parámetros decididos, o descartadas (FR-030).
 
-  **Parada para la revisión de cierre.**
+  **Parada para la revisión de cierre.** *`report.md` y FEATURES listos; pendiente de la revisión del usuario.*
 
 ---
 

@@ -1944,9 +1944,57 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G47).
 
 ---
 
+## D-077 — Resultado de F18: «no» al RAG visual, que pasa al backlog
+
+- **Fecha:** 2026-11-05
+- **Decisión** (respuesta del usuario tras aplicar la regla de D-073):
+  1. **«No» a F19–F20.** Pasan al backlog, con las condiciones para volver a intentarlo de la sección 4. No se redacta la enmienda de la constitución (FR-029 solo la pide con el «sí»).
+  2. **La 270M se queda** (D-025 sigue). La 440M cumple el golden y la identidad, pero sin páginas no aporta nada y pesa 230 MB más.
+  3. **Sin revisión decisiva ni pérdida en texto en F05.** Ninguna configuración cumple el primer token, así que no hay configuración elegida que revisar, y esas cifras no cambiarían el resultado. Es una desviación de D-075 que aprobó el usuario.
+  4. **Parámetros que quedan medidos**, para un intento futuro:
+     - página a 768 px, 140 tokens por imagen y vectores de 256 dimensiones (elegidos con la regla congelada, D-076);
+     - JPEG a calidad 85 hacia los modelos, porque LiteRT-LM 0.18.1 no decodifica WebP;
+     - las páginas de la respuesta salen de la lista de páginas (D-076);
+     - Gemma con páginas necesita una ventana de 8.192 tokens;
+     - la regla de duplicados (si entra la página, salen sus fragmentos) empeora el texto.
+- **Motivo:** la regla da «no» y pide decidir con el usuario, porque ninguna configuración con páginas cumple el primer token.
+
+  | Condición (D-073) | Cifra | Cumple |
+  |---|---|---|
+  | p95 compuesto ≤ 8 s con al menos 1 página | la mejor candidata de la etapa B (`mezcla-p1-b70-t0`, 20 preguntas) da 9,8 s. Con 1 página a 280 son 14,5 s en la etapa A | no |
+  | +15 puntos en las visuales | sin revisión decisiva. Con el juez automático (comprobado a mano en 90 respuestas, 88 coincidencias), las tres candidatas dan 18,9 %, 14,7 % y 13,7 %, frente al 18,9 % de «Texto». La mejor variante de todas, 3 páginas en mitades, da 27,4 % (+8,5), pero tarda 70 s en el teléfono | no |
+  | −2 puntos como mucho en F05 | sin medir. En el conjunto visual, todas las mezclas bajan los controles de texto del 85,7 % a un 11–57 % | — |
+  | 440M: golden ≥ 0,99 e identidad ≥ 0,9999 | golden en CPU 1,00000 y en GPU 0,99299; identidad 1,00000; consulta con p95 de 121,1 ms | sí |
+
+  El cuello de botella es el codificador de visión de Gemma, que el fichero solo declara en CPU: 1 página a 70 tokens añade unos 2 s al primer token, a 140 unos 4 s y a 280 unos 11 s. Cifras en `specs/018-visual-rag-feasibility/benchmarks.md` y `offline/reports/visual-eval-report.md`.
+- **Condiciones para retomar F19–F20:**
+  - un codificador de visión en GPU o NPU (otro LiteRT-LM u otro fichero de Gemma), o un teléfono de referencia más rápido, que deje 1 página a 280 tokens por debajo de 8 s;
+  - una mezcla que no quite el texto de la página que entra como imagen;
+  - una página entera leída a 280 tokens no basta para la letra pequeña: hay que partirla en trozos, y eso multiplica el primer token.
+- **Hallazgos para otras features:**
+  - **Cifras deformadas con fp16 (F14, y afecta al chat de hoy).** Con las activaciones fp16 por defecto, Gemma deforma cifras en contextos llenos de números: «2020» sale como «20000» y «36,4» como «366,4». En el Mac pasaba en muchas respuestas, y con FP32 desaparece. En el teléfono salió en 2 de 60 respuestas de la etapa B («septiembre de 20206»). En el corpus de F05, de leyes y guías, no se ve: con FP32 cambian 239 de 426 respuestas, pero solo de redacción, y la regla da lo mismo (72,4 % frente a 72,2 %). FP32 en el teléfono cuesta casi 3 s de primer token (D-023: 7,36 s frente a 4,53 s).
+  - **Estimación de tokens (F14).** En texto lleno de cifras, los 4,554 caracteres por token de D-034 se quedan cortos: los bloques de D-034 del corpus visual gastan unas 2,2 veces lo estimado (3.471 tokens reales frente a 1.542 estimados).
+  - **RRF de tres listas.** Premia las páginas que aparecen en varias listas, así que entierra las que no tienen texto: los escaneados se quedaron con un Recall@5 de 0 (D-076).
+  - **Lo que sí funciona en el teléfono:**
+    - `PdfRenderer` convierte una página en 28–67 ms en JPEG, también un PDF con contraseña de propietario;
+    - la decodificación de imágenes funciona con transparencia, con giro EXIF y con CMYK;
+    - la paridad de vectores con el escritorio da un coseno medio de 0,99931 (1 de 40 por debajo de 0,99).
+- **Alternativas descartadas:**
+  - una excepción de primer token y la revisión decisiva de la candidata más rápida: según el juez, pierde 4 puntos en las visuales;
+  - descartar F19–F20 del todo, sin dejarlas en el backlog.
+- **Origen:** usuario (pregunta de T058, tras aplicar la regla) y mediciones de F18.
+- **Afecta:**
+  - F18: cierre, `benchmarks.md`, `report.md` e informe de evaluación;
+  - F19 y F20: pasan al backlog, y G47 queda aplazado;
+  - F14: pierde lo que venía de F19–F20 y gana los hallazgos de fp16 y de la estimación de tokens;
+  - F15: depende de F01–F18;
+  - D-025 y D-066.
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.
 
-- **Huecos G del inventario:** queda abierto G47 (UI del modo visual, F19–F20), añadido con D-066. G45 (selector de tema) se resolvió en D-067 y G46 (carpetas y ámbito) en D-070. Su UI se propone y se aprueba en el clarify de su feature. Los anteriores se resolvieron en sus features; el estado de cada uno está en `INVENTARIO.md` §6.
+- **Huecos G del inventario:** G47 (UI del modo visual, F19–F20, añadido con D-066) queda aplazado con F19–F20 en el backlog (D-077). G45 (selector de tema) se resolvió en D-067 y G46 (carpetas y ámbito) en D-070. Su UI se propone y se aprueba en el clarify de su feature. Los anteriores se resolvieron en sus features; el estado de cada uno está en `INVENTARIO.md` §6.
 - **Documentos en otro idioma** — Cerrado en D-062 (medida entre idiomas de F12). Las mejoras de la búsqueda entre idiomas están en la ficha de F14.
