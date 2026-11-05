@@ -16,6 +16,7 @@ import com.lisdatasolutions.microrag.domain.library.LoadPreviewUseCase
 import com.lisdatasolutions.microrag.domain.library.MoveDocumentUseCase
 import com.lisdatasolutions.microrag.domain.library.ObserveDocumentUseCase
 import com.lisdatasolutions.microrag.domain.library.ObserveFoldersUseCase
+import com.lisdatasolutions.microrag.domain.library.PageExistsUseCase
 import com.lisdatasolutions.microrag.domain.library.ReindexDocumentUseCase
 import com.lisdatasolutions.microrag.domain.library.ReindexState
 import com.lisdatasolutions.microrag.domain.library.RemoveFromIndexUseCase
@@ -63,6 +64,8 @@ class DocumentViewModel(
     backgroundDispatcher: CoroutineDispatcher = Dispatchers.Default,
     /** F19 (contracts U12–U14): null for screens built without the mode, which then behave as before. */
     observeMode: ObserveImportModeUseCase? = null,
+    /** F20 (contract U9): whether the cited page is still stored; null for screens built without pages. */
+    private val pageExists: PageExistsUseCase? = null,
 ) : ViewModel() {
 
     private val route = savedState.toRoute<Document>()
@@ -80,6 +83,9 @@ class DocumentViewModel(
     )
 
     private val local = MutableStateFlow(Local())
+
+    /** F20: the route's page was looked for and is no longer stored. */
+    private val pageMissing = MutableStateFlow(false)
     private val eventChannel = Channel<DocumentEvent>(Channel.BUFFERED)
     private var left = false
 
@@ -102,10 +108,19 @@ class DocumentViewModel(
         .map { it.detail.previewKey() }
         .distinctUntilChanged()
         .mapLatest { key ->
-            if (key.state != DocumentDetailState.Indexed) {
-                PreviewContent.None
-            } else {
-                loadPreview(documentId, route.chunkId)?.let { PreviewContent.Shown(it) } ?: PreviewContent.None
+            val page = route.page
+            when {
+                key.state != DocumentDetailState.Indexed -> PreviewContent.None
+                // F20 (contract U9): the cited page, while it is stored; else the usual preview with its notice.
+                page != null && pageExists?.invoke(documentId, page) == true -> {
+                    pageMissing.value = false
+                    val loaded = detail.value as? DetailResult.Loaded
+                    PreviewContent.Page(documentId, page, loaded?.detail?.displayName.orEmpty(), loaded?.detail?.format?.isImage == true)
+                }
+                else -> {
+                    pageMissing.value = page != null
+                    loadPreview(documentId, route.chunkId)?.let { PreviewContent.Shown(it) } ?: PreviewContent.None
+                }
             }
         }
         .flowOn(backgroundDispatcher)
@@ -129,7 +144,10 @@ class DocumentViewModel(
         .flowOn(backgroundDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    val state: StateFlow<DocumentUiState> = combine(detail, preview, local, folders, modeOn) { detail, preview, local, folders, modeOn ->
+    /** The mode, and F20's missing cited page: one source, as combine takes five. */
+    private val flags = combine(modeOn, pageMissing) { on, missing -> on to missing }
+
+    val state: StateFlow<DocumentUiState> = combine(detail, preview, local, folders, flags) { detail, preview, local, folders, (modeOn, missing) ->
         val loaded = (detail as? DetailResult.Loaded)?.detail
         DocumentUiState(
             content = when (detail) {
@@ -148,6 +166,7 @@ class DocumentViewModel(
             moveMessage = local.moveMessage,
             multimodalOn = modeOn,
             choosingReindexMode = local.choosingReindexMode && modeOn && loaded != null,
+            citedPageMissing = missing,
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, DocumentUiState())
 

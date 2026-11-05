@@ -1,5 +1,6 @@
 package com.lisdatasolutions.microrag.feature.document
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -33,6 +35,8 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
@@ -94,6 +98,7 @@ import com.lisdatasolutions.microrag.feature.library.grouped
 import com.lisdatasolutions.microrag.feature.library.modeLabel
 import kotlin.math.max
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 
 /** What the stateless screen can ask for. */
 data class DocumentActions(
@@ -119,6 +124,9 @@ data class DocumentActions(
     val onReindexModeSelect: (IndexMode) -> Unit = {},
     val onDismissReindexMode: () -> Unit = {},
     val onReindexAsPages: () -> Unit = {},
+    /** F20 (contract U9): the cited page's image, and the viewer it opens. */
+    val loadPage: suspend (documentId: Long, page: Int) -> ImageBitmap? = { _, _ -> null },
+    val onOpenPage: (PreviewContent.Page) -> Unit = {},
 )
 
 @Composable
@@ -127,8 +135,11 @@ fun DocumentRoute(
     onGone: () -> Unit,
     onDeleted: () -> Unit,
     onOpenIndex: () -> Unit,
+    /** F20 (contract U9): the full-screen viewer of a cited page. */
+    onOpenPage: (PreviewContent.Page) -> Unit = {},
     viewModel: DocumentViewModel = koinViewModel(),
     foldersViewModel: FoldersViewModel = koinViewModel(),
+    pageImages: PageImageLoader = koinInject(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val folders by foldersViewModel.state.collectAsStateWithLifecycle()
@@ -163,6 +174,8 @@ fun DocumentRoute(
             onReindexModeSelect = viewModel::onReindexModeSelect,
             onDismissReindexMode = viewModel::onDismissReindexMode,
             onReindexAsPages = viewModel::onReindexAsPages,
+            loadPage = pageImages::page,
+            onOpenPage = onOpenPage,
         ),
         onMoveMessageShown = viewModel::onMoveMessageShown,
     )
@@ -240,6 +253,10 @@ fun DocumentScreen(
                     text = stringResource(R.string.document_preview_header),
                     modifier = Modifier.padding(top = spacing.space3),
                 )
+                if (state.citedPageMissing) {
+                    // F20 (contract U9): as D7 for a fragment.
+                    LisdataInfoCard(icon = LisdataIcons.Info, title = stringResource(R.string.document_citation_page_missing), modifier = Modifier.fillMaxWidth())
+                }
                 Preview(state.content.detail, state.preview, actions)
                 Actions(state, state.content.detail, actions)
                 // K5: the folder, or «General»; under the actions, so PNG 07 keeps them in sight.
@@ -429,6 +446,62 @@ private fun TextLink(text: String, onClick: () -> Unit) {
 private fun progressOf(done: Int, total: Int?): ProgressValue =
     total?.takeIf { it > 0 }?.let { ProgressValue.Determinate((done.toFloat() / it).coerceIn(0f, 1f)) } ?: ProgressValue.Indeterminate
 
+/** What a page image is while it loads (wireframe §10): loading, shown, or not readable. */
+internal sealed interface PageImageState {
+    data object Loading : PageImageState
+    class Shown(val bitmap: ImageBitmap) : PageImageState
+    data object Missing : PageImageState
+}
+
+/** F20 (contract U9–U10, wireframe §5 and §10): the cited page instead of the fragment; tapping it opens the viewer. */
+@Composable
+private fun PagePreviewCard(page: PreviewContent.Page, actions: DocumentActions) {
+    val colors = LisdataTheme.colors
+    val spacing = LisdataTheme.spacing
+    val image by produceState<PageImageState>(PageImageState.Loading, page.documentId, page.page) {
+        value = actions.loadPage(page.documentId, page.page)?.let { PageImageState.Shown(it) } ?: PageImageState.Missing
+    }
+    if (image == PageImageState.Missing) {
+        LisdataInfoCard(icon = LisdataIcons.Info, title = stringResource(R.string.document_citation_page_missing), modifier = Modifier.fillMaxWidth())
+        return
+    }
+    val description = if (page.image) stringResource(R.string.image_preview_description, page.documentName)
+    else stringResource(R.string.page_preview_description, page.page, page.documentName)
+    // As the cited fragment (F11 research R13): into view once per opening.
+    val requester = remember { BringIntoViewRequester() }
+    var broughtIntoView by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(requester) {
+        if (broughtIntoView) return@LaunchedEffect
+        withFrameNanos { }
+        requester.bringIntoView()
+        broughtIntoView = true
+    }
+    LisdataCard(
+        modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requester),
+        onClick = { actions.onOpenPage(page) },
+        onClickLabel = stringResource(R.string.page_viewer_zoom_in),
+    ) {
+        Column(
+            modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = description },
+            verticalArrangement = Arrangement.spacedBy(spacing.space3),
+        ) {
+            LisdataCountChip(if (page.image) stringResource(R.string.citation_image) else stringResource(R.string.citation_page, page.page))
+            when (val shown = image) {
+                is PageImageState.Shown -> Image(
+                    bitmap = shown.bitmap,
+                    contentDescription = null,
+                    contentScale = ContentScale.FillWidth,
+                    modifier = Modifier.fillMaxWidth().clip(LisdataTheme.shapes.material.extraSmall),
+                )
+                else -> Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
+                    LisdataProgressRing(progress = ProgressValue.Indeterminate, label = stringResource(R.string.state_loading), size = 48.dp)
+                }
+            }
+            Text(text = stringResource(R.string.page_preview_hint), style = LisdataTheme.typography.material.bodyMedium, color = colors.textSecondary)
+        }
+    }
+}
+
 /** The preview of an indexed document, or the card of its state (D1–D4). */
 @Composable
 private fun Preview(detail: DocumentDetail, preview: PreviewContent, actions: DocumentActions) {
@@ -437,6 +510,7 @@ private fun Preview(detail: DocumentDetail, preview: PreviewContent, actions: Do
         DocumentDetailState.Indexed -> when (preview) {
             PreviewContent.Loading -> LisdataSkeletonRow(lines = 3)
             PreviewContent.None -> LisdataInfoCard(icon = LisdataIcons.Info, title = stringResource(R.string.document_no_preview), modifier = wide)
+            is PreviewContent.Page -> PagePreviewCard(preview, actions)
             is PreviewContent.Shown -> {
                 if (preview.preview.citedChunkMissing) {
                     // D7.

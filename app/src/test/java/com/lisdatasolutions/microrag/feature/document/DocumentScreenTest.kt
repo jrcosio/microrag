@@ -1,6 +1,7 @@
 package com.lisdatasolutions.microrag.feature.document
 
 import android.app.Application
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.SemanticsActions
@@ -23,6 +24,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.text.TextLayoutResult
@@ -535,5 +537,57 @@ class DocumentScreenTest {
         compose.onNodeWithText("Visual").performClick()
 
         assertThat(chosen).isEqualTo(IndexMode.VISUAL)
+    }
+
+    // F20 T036 (contract U9–U10, wireframe §5 and §10).
+
+    private val citedPage = PreviewContent.Page(7, 4, "Manual de procesos.pdf", image = false)
+
+    private fun showPage(preview: PreviewContent.Page, load: suspend (Long, Int) -> ImageBitmap?, opened: MutableList<PreviewContent.Page> = mutableListOf()) {
+        val state = DocumentUiState(content = DocumentContent.Loaded(DocumentPreviewData.manual), preview = preview)
+        compose.setContent { LisdataTheme { DocumentScreen(state, actions.copy(loadPage = load, onOpenPage = { opened += it })) } }
+    }
+
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    fun aCitedPage_showsItsImageChipAndHint_andOpensTheViewer() {
+        val opened = mutableListOf<PreviewContent.Page>()
+        showPage(citedPage, { _, _ -> ImageBitmap(30, 42) }, opened)
+        compose.waitForIdle()
+
+        exists("Página 4")
+        exists("Toca para ampliar")
+        compose.onNodeWithContentDescription("Página 4 de Manual de procesos.pdf").performScrollTo().performClick()
+
+        assertThat(opened).containsExactly(citedPage)
+    }
+
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    fun aLooseImage_isCalledImage_withoutAPageNumber() {
+        showPage(citedPage.copy(page = 1, documentName = "cartel.jpg", image = true), { _, _ -> ImageBitmap(30, 42) })
+        compose.waitForIdle()
+
+        compose.onNodeWithContentDescription("Imagen cartel.jpg").assertExists()
+        absent("Página 1")
+    }
+
+    @Test
+    fun whileTheImageLoads_theCardWaits_andAnUnreadableOneSaysThePageIsGone() {
+        val gate = kotlinx.coroutines.CompletableDeferred<ImageBitmap?>()
+        showPage(citedPage, { _, _ -> gate.await() })
+        exists("Toca para ampliar")
+        absent("La página citada ya no está en este documento.")
+
+        gate.complete(null)
+        compose.waitForIdle()
+        exists("La página citada ya no está en este documento.")
+    }
+
+    @Test
+    fun aCitedPageNoLongerStored_saysSo_overTheUsualPreview() {
+        show(loaded(DocumentPreviewData.manual).copy(citedPageMissing = true))
+
+        exists("La página citada ya no está en este documento.")
     }
 }

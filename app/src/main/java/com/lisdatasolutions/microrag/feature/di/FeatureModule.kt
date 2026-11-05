@@ -36,7 +36,7 @@ val featureModule = module {
     viewModel { params -> LibraryViewModel(get(), get(), get(), folder = params.getOrNull()) }
     viewModel { FoldersViewModel(get(), get(), get(), get(), get()) }
     viewModel { HomeViewModel(get(), get(), get(), get(), get()) }
-    viewModel { DocumentViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), observeMode = get()) }
+    viewModel { DocumentViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), observeMode = get(), pageExists = get()) }
     viewModel {
         ChatViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get())
     }

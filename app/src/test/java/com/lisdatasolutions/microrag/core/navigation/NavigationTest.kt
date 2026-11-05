@@ -871,6 +871,22 @@ class NavigationTest {
         assertThat(routesInBackStack()).hasSize(2)
     }
 
+    /** F20 T037 (contract U12): the viewer of a cited page closes back to where it was opened. */
+    @Test
+    fun thePageViewer_closesBackToTheDetail() {
+        launchShell()
+        compose.runOnUiThread { nav.navigate(Document(documentId = 7)) }
+        compose.waitForIdle()
+        compose.runOnUiThread { nav.navigate(PageViewer(7, 4, "Manual.pdf", image = false)) }
+        compose.waitForIdle()
+        assertThat(nav.currentDestination?.hasRoute(PageViewer::class)).isTrue()
+
+        compose.onNodeWithContentDescription(context.getString(R.string.page_viewer_close)).performClick()
+        compose.waitForIdle()
+
+        assertThat(nav.currentDestination?.hasRoute(Document::class)).isTrue()
+    }
+
     /** F20 T034 (contract U1–U2): with the mode on, «Detalle de las páginas» opens, and Back or a save return to Ajustes. */
     @Test
     fun pageDetailFromSettings_backOrSave_returnToSettings() {

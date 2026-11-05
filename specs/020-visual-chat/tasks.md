@@ -323,26 +323,26 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
 
 ### Pruebas
 
-- [ ] T035 [P] [US5] `…/test/…/feature/document/ZoomStateTest.kt` (U13, U14):
+- [X] T035 [P] [US5] `…/test/…/feature/document/ZoomStateTest.kt` (U13, U14):
   - la escala entre 1× y 4×;
   - el doble toque entre 1× y 2×;
   - el desplazamiento limitado a los bordes;
   - «Ampliar», «Reducir» y «Restablecer»;
   - volver a 1× al girar.
-- [ ] T036 [P] [US5] `…/test/…/feature/document/DocumentViewModelTest.kt` y `DocumentScreenTest` (U9, U10):
+- [X] T036 [P] [US5] `…/test/…/feature/document/DocumentViewModelTest.kt` y `DocumentScreenTest` (U9, U10):
   - con `page`, la vista previa es la página, con su chip y la pista, y «Imagen» en una imagen suelta (wireframe §10);
   - el hueco con el anillo mientras carga (analyze C3);
   - pulsarla abre `PageViewer`;
   - la descripción para TalkBack;
   - con `PAGE_GONE`, el aviso y la vista previa normal.
-- [ ] T037 [P] [US5] `…/test/…/feature/document/PageViewerScreenTest.kt` (U12–U15): el título (solo el nombre en una imagen suelta), «Cerrar», el anillo mientras carga, las acciones de accesibilidad, la página que falta y la ruta en `NavigationTest`. Desde una cita, volver deja al usuario en el chat.
+- [X] T037 [P] [US5] `…/test/…/feature/document/PageViewerScreenTest.kt` (U12–U15): el título (solo el nombre en una imagen suelta), «Cerrar», el anillo mientras carga, las acciones de accesibilidad, la página que falta y la ruta en `NavigationTest`. Desde una cita, volver deja al usuario en el chat.
 
 ### Implementación
 
-- [ ] T038 [US5] `PageViewer` en `…/microrag/core/navigation/{Destinations,MicroRagNavHost}.kt`. `Document.page` ya viene de T023.
-- [ ] T039 [US5] Vista previa de página: `PreviewContent.Page` en `…/microrag/feature/document/{DocumentUiState,DocumentViewModel,DocumentScreen}.kt`, con `PageImageLoader` y el desplazamiento a la vista una vez. T036 pasa.
-- [ ] T040 [US5] `…/microrag/feature/document/{ZoomState,PageViewerScreen}.kt` (R15). T035 y T037 pasan.
-- [ ] T041 [P] [US5] `EXTRA_PAGE` en `…/debug/…/debug/DebugRouting.kt`, para la ruta `document` del recorrido en el emulador.
+- [X] T038 [US5] `PageViewer` en `…/microrag/core/navigation/{Destinations,MicroRagNavHost}.kt`. `Document.page` ya viene de T023.
+- [X] T039 [US5] Vista previa de página: `PreviewContent.Page` en `…/microrag/feature/document/{DocumentUiState,DocumentViewModel,DocumentScreen}.kt`, con `PageImageLoader` y el desplazamiento a la vista una vez. T036 pasa.
+- [X] T040 [US5] `…/microrag/feature/document/{ZoomState,PageViewerScreen}.kt` (R15). T035 y T037 pasan.
+- [X] T041 [P] [US5] `EXTRA_PAGE` en `…/debug/…/debug/DebugRouting.kt`, para la ruta `document` del recorrido en el emulador.
 
 **Checkpoint:** la página citada se abre, se amplía y se vuelve al chat.
 

@@ -23,10 +23,14 @@ object DebugRouting {
     /** F08: opens the document detail as a citation would (F11), with this chunk highlighted. */
     const val EXTRA_CHUNK_ID = "com.lisdatasolutions.microrag.debug.EXTRA_CHUNK_ID"
 
+    /** F20 (quickstart §4): opens the document detail as a cited page would, with this page shown. */
+    const val EXTRA_PAGE = "com.lisdatasolutions.microrag.debug.EXTRA_PAGE"
+
     fun initialRoute(intent: Intent?): Any? {
         val name = intent?.getStringExtra(EXTRA_ROUTE) ?: return null
         val id = intent.takeIf { it.hasExtra(EXTRA_ID) }?.getLongExtra(EXTRA_ID, 0L)
         val chunkId = intent.takeIf { it.hasExtra(EXTRA_CHUNK_ID) }?.getLongExtra(EXTRA_CHUNK_ID, 0L)
+        val page = intent.takeIf { it.hasExtra(EXTRA_PAGE) }?.getIntExtra(EXTRA_PAGE, 1)
         return when (name) {
             "welcome" -> Welcome
             "setup" -> Setup
@@ -37,7 +41,7 @@ object DebugRouting {
             "library" -> Library
             // F17: the folder with this id, or «General» without one.
             "library-folder" -> LibraryFolder(folderId = id)
-            "document" -> Document(documentId = id ?: -1L, chunkId = chunkId)
+            "document" -> Document(documentId = id ?: -1L, chunkId = chunkId, page = page)
             "index" -> Index
             "settings" -> Settings
             "languages" -> Languages

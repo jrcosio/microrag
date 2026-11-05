@@ -13,6 +13,7 @@ import androidx.navigation.toRoute
 import com.lisdatasolutions.microrag.domain.rag.LibraryFolderFilter
 import com.lisdatasolutions.microrag.feature.chat.ChatRoute
 import com.lisdatasolutions.microrag.feature.document.DocumentRoute
+import com.lisdatasolutions.microrag.feature.document.PageViewerRoute
 import com.lisdatasolutions.microrag.feature.history.HistoryRoute
 import com.lisdatasolutions.microrag.feature.home.HomeRoute
 import com.lisdatasolutions.microrag.feature.indexing.IndexRoute
@@ -154,7 +155,13 @@ fun MicroRagNavHost(
                 onGone = { leave(LibraryMessage.DOCUMENT_GONE) },
                 onDeleted = { leave(LibraryMessage.DOCUMENT_DELETED) },
                 onOpenIndex = { navController.navigate(Index) },
+                onOpenPage = { page -> navController.navigate(PageViewer(page.documentId, page.page, page.documentName, page.image)) },
             )
+        }
+        // F20 U12: Back and «✕» return to the detail.
+        composable<PageViewer> { entry ->
+            val viewer = entry.toRoute<PageViewer>()
+            PageViewerRoute(viewer.documentId, viewer.page, viewer.documentName, viewer.image, onClose = back)
         }
         composable<Index> { IndexRoute(onBack = back, onPrepareModels = { navController.navigate(Setup) }) }
         composable<Settings> {

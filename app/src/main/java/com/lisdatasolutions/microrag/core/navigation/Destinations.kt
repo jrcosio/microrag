@@ -64,6 +64,10 @@ data object Theme
 @Serializable
 data object ImportMode
 
+/** F20 (research R15): a cited page at full screen, from the document detail; [image] is a loose JPG or PNG. */
+@Serializable
+data class PageViewer(val documentId: Long, val page: Int, val documentName: String, val image: Boolean)
+
 /** F20: «Detalle de las páginas», opened from Ajustes with the multimodal mode on (contract U1). */
 @Serializable
 data object PageDetailSetting

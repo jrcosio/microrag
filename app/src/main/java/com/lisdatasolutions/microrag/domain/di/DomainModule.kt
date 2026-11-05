@@ -45,6 +45,7 @@ import com.lisdatasolutions.microrag.domain.library.ObserveDocumentUseCase
 import com.lisdatasolutions.microrag.domain.library.ObserveFoldersUseCase
 import com.lisdatasolutions.microrag.domain.library.ObserveLibrarySummaryUseCase
 import com.lisdatasolutions.microrag.domain.library.ObserveLibraryUseCase
+import com.lisdatasolutions.microrag.domain.library.PageExistsUseCase
 import com.lisdatasolutions.microrag.domain.library.ReindexDocumentUseCase
 import com.lisdatasolutions.microrag.domain.library.RemoveFromIndexUseCase
 import com.lisdatasolutions.microrag.domain.library.RenameFolderUseCase
@@ -106,6 +107,7 @@ val domainModule = module {
     factoryOf(::ResumeMultimodalDownloadUseCase)
     factoryOf(::SetDefaultImportModeUseCase)
     factoryOf(::SetPageDetailUseCase)
+    factoryOf(::PageExistsUseCase)
     factoryOf(::ObservePageDetailUseCase)
     factoryOf(::DismissMultimodalErrorUseCase)
     factoryOf(::ObserveImportModeUseCase)

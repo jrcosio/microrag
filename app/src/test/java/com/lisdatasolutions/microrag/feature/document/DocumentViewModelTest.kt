@@ -19,6 +19,7 @@ import com.lisdatasolutions.microrag.domain.library.LoadPreviewUseCase
 import com.lisdatasolutions.microrag.domain.library.MoveDocumentUseCase
 import com.lisdatasolutions.microrag.domain.library.ObserveDocumentUseCase
 import com.lisdatasolutions.microrag.domain.library.ObserveFoldersUseCase
+import com.lisdatasolutions.microrag.domain.library.PageExistsUseCase
 import com.lisdatasolutions.microrag.domain.library.ReindexDocumentUseCase
 import com.lisdatasolutions.microrag.domain.library.ReindexState
 import com.lisdatasolutions.microrag.domain.library.RemoveFromIndexUseCase
@@ -27,8 +28,11 @@ import com.lisdatasolutions.microrag.domain.multimodal.MultimodalStage
 import com.lisdatasolutions.microrag.domain.multimodal.ObserveImportModeUseCase
 import com.lisdatasolutions.microrag.domain.multimodal.StoredMultimodal
 import com.lisdatasolutions.microrag.domain.rag.IndexMode
+import com.lisdatasolutions.microrag.domain.rag.NewDocument
+import com.lisdatasolutions.microrag.domain.rag.PageInput
 import com.lisdatasolutions.microrag.testing.FakeLibraryRepository
 import com.lisdatasolutions.microrag.testing.FakeMultimodalStore
+import com.lisdatasolutions.microrag.testing.FakeRagIndex
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -76,8 +80,11 @@ class DocumentViewModelTest {
     /** F19: the mode's copy, as Ajustes leaves it. */
     private val mode = FakeMultimodalStore()
 
-    private fun viewModel(documentId: Long = 7, chunkId: Long? = null) = DocumentViewModel(
-        SavedStateHandle(mapOf("documentId" to documentId, "chunkId" to chunkId)),
+    /** F20: the pages the index still stores, for [PageExistsUseCase]. */
+    private val pagesIndex = FakeRagIndex()
+
+    private fun viewModel(documentId: Long = 7, chunkId: Long? = null, page: Int? = null) = DocumentViewModel(
+        SavedStateHandle(mapOf("documentId" to documentId, "chunkId" to chunkId, "page" to page)),
         ObserveDocumentUseCase(repository),
         LoadPreviewUseCase(repository),
         SetIncludedUseCase(repository),
@@ -90,6 +97,7 @@ class DocumentViewModelTest {
         MoveDocumentUseCase(repository),
         dispatcher,
         ObserveImportModeUseCase(mode),
+        PageExistsUseCase(pagesIndex),
     )
 
     private fun detail(
@@ -434,5 +442,38 @@ class DocumentViewModelTest {
         vm.onReindexAsPages()
         advanceUntilIdle()
         assertThat(repository.calls).containsExactly("reindex 7 VISUAL")
+    }
+
+    // F20 T036 (contract U9, research R10, R15).
+
+    private suspend fun storePage(page: Int) {
+        while (pagesIndex.docs.size < 7) pagesIndex.addDocument(NewDocument(displayName = "d", contentHash = "d${pagesIndex.docs.size}"))
+        pagesIndex.insertPage(7, PageInput(page, "7-$page.jpg", 10, 10, 1, FloatArray(256)))
+    }
+
+    @Test
+    fun aCitedPage_isThePreview_whileItIsStored() = runTest(dispatcher) {
+        show(DetailResult.Loaded(detail()))
+        storePage(4)
+
+        val vm = viewModel(page = 4)
+        advanceUntilIdle()
+
+        assertThat(vm.state.value.preview).isEqualTo(PreviewContent.Page(7, 4, "Manual de procesos.pdf", image = false))
+        assertThat(vm.state.value.citedPageMissing).isFalse()
+        assertThat(repository.previewRequests).isEmpty()
+    }
+
+    @Test
+    fun aCitedPageNoLongerStored_showsTheUsualPreview_withItsNotice() = runTest(dispatcher) {
+        show(DetailResult.Loaded(detail()))
+        val first = DocumentPreview(1, null, "Primer fragmento.", null, false, false)
+        repository.previews[7L to null] = first
+
+        val vm = viewModel(page = 4)
+        advanceUntilIdle()
+
+        assertThat(vm.state.value.preview).isEqualTo(PreviewContent.Shown(first))
+        assertThat(vm.state.value.citedPageMissing).isTrue()
     }
 }

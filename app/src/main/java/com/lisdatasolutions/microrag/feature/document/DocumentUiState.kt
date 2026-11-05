@@ -30,6 +30,8 @@ data class DocumentUiState(
     val multimodalOn: Boolean = false,
     /** The open mode sheet of «Reindexar documento». */
     val choosingReindexMode: Boolean = false,
+    /** F20 (contract U9, research R10): opened from a cited page that is no longer stored. */
+    val citedPageMissing: Boolean = false,
 ) {
     private val detail: DocumentDetail? get() = (content as? DocumentContent.Loaded)?.detail
 
@@ -72,6 +74,9 @@ sealed interface PreviewContent {
     data object None : PreviewContent
 
     data class Shown(val preview: DocumentPreview) : PreviewContent
+
+    /** F20 (contract U9): the cited page, instead of the fragment; [image] is a loose JPG or PNG, with no page number. */
+    data class Page(val documentId: Long, val page: Int, val documentName: String, val image: Boolean) : PreviewContent
 }
 
 /** D8: the confirmations. */
