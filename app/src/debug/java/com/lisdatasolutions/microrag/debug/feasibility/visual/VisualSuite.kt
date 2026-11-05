@@ -413,14 +413,14 @@ class VisualSuite(
         }
         images.forEach { (name, image) ->
             VisualProtocol.RESOLUTIONS.forEach { px ->
-                val run = ScenarioRun(VisualKind.IMAGE_DECODE, null, null, VisualParams(px = px, format = ImageFormat.WEBP, document = name))
+                val run = ScenarioRun(VisualKind.IMAGE_DECODE, null, null, VisualParams(px = px, format = ImageFormat.JPEG, document = name))
                 scenario(session, run) {
                     if (!coolDown(confirmHot)) return@scenario finish(VisualStatus.CANCELLED, "thermal")
                     withContext(dispatchers.io) {
                         var last: EncodedImage? = null
                         val sizes = mutableListOf<Double>()
                         val times = measureLoop(this@scenario, "DECODE", VisualProtocol.EMBEDDING) {
-                            last = rasterizer.scaleImage(image, px, ImageFormat.WEBP, VisualProtocol.QUALITY).also { sizes += it.bytes.size.toDouble() }
+                            last = rasterizer.scaleImage(image, px, ImageFormat.JPEG, VisualProtocol.QUALITY).also { sizes += it.bytes.size.toDouble() }
                         }
                         val scaled = checkNotNull(last)
                         finish(VisualStatus.COMPLETED, metrics = VisualMetrics(samples = times.size, p50Ms = p(times, P50), p95Ms = p(times, P95),
@@ -435,8 +435,9 @@ class VisualSuite(
         val set = session.deviceSet
         val tokens = set.chosenTokens ?: VisualProtocol.EMBEDDER_TOKENS.last()
         val px = set.parityPx ?: VisualProtocol.RESOLUTIONS[1]
+        // JPEG: LiteRT-LM does not decode WebP input images (research R6).
         val run = ScenarioRun(VisualKind.PROJECTION, ModelId.EG2_440M, ComputeBackend.CPU,
-            VisualParams(tokensPerImage = tokens, px = px, format = ImageFormat.WEBP))
+            VisualParams(tokensPerImage = tokens, px = px, format = ImageFormat.JPEG))
         val path = repository.pathOf(ModelId.EG2_440M) ?: return skip(session, run, VisualStatus.NOT_AVAILABLE, "model not verified")
         val pdfs = set.pdfs.filter { it.role == "text" || it.role == "scanned" }.ifEmpty { set.pdfs }
         if (pdfs.isEmpty()) return skip(session, run, VisualStatus.NOT_AVAILABLE, "device set has no PDF")
@@ -455,7 +456,7 @@ class VisualSuite(
                     if (i == VisualProtocol.PROJECTION_PAGES / 2) middle = thermal.level()
                     val (pdf, page) = pages[i % pages.size]
                     val start = nanoTime()
-                    val image = withContext(dispatchers.io) { rasterizer.renderPage(pdf, page, px, ImageFormat.WEBP, VisualProtocol.QUALITY) }
+                    val image = withContext(dispatchers.io) { rasterizer.renderPage(pdf, page, px, ImageFormat.JPEG, VisualProtocol.QUALITY) }
                     withContext(dispatchers.embeddings) { embedder.embedImage(image.bytes) }
                     (nanoTime() - start) / NANOS_PER_MILLI_D
                 }
