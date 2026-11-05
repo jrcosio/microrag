@@ -86,6 +86,7 @@ manifest.json        {"version": 1, "files": [{"path", "sha256", "kind": "image|
 images/*.png|jpg|webp
 pdfs/*.pdf
 reading.json         [{"id", "image", "question", "key_facts", "expected_answer"}]
+contexts.json        [{"id", "question", "blocks": ["[1] …", …], "page_image"}]   # contexto de D-034 + 1 página (R4)
 vectors.json         {"<image sha>": {"70": [768 floats], "140": [768 floats]}}
 ```
 
