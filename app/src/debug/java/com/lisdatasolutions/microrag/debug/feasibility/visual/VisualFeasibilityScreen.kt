@@ -17,6 +17,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
@@ -150,7 +151,7 @@ private fun LazyListScope.deviceSetSection(state: VisualFeasibilityUiState, acti
             )
         } else {
             LisdataCard {
-                BodyText(stringResource(R.string.visual_set_verified, set.verified))
+                BodyText(pluralStringResource(R.plurals.visual_set_verified, set.verified, set.verified))
                 if (set.rejected.isNotEmpty()) {
                     BodyText(stringResource(R.string.visual_set_rejected, set.rejected.joinToString()), secondary = true)
                 }
@@ -241,10 +242,10 @@ private fun ResultCard(result: VisualScenario) {
 @Composable
 private fun MetricLines(m: VisualMetrics) {
     if (m.p50Ms != null && m.p95Ms != null) {
-        BodyText(stringResource(R.string.visual_metric_time, num(m.p50Ms), num(m.p95Ms), m.samples ?: 0))
+        BodyText(pluralStringResource(R.plurals.visual_metric_time, m.samples ?: 0, num(m.p50Ms), num(m.p95Ms), m.samples ?: 0))
     }
     m.initColdMs?.let { BodyText(stringResource(R.string.visual_metric_load, it, m.initWarmMs?.toString() ?: "—"), secondary = true) }
-    m.prefillTokens?.let { BodyText(stringResource(R.string.visual_metric_prefill, it), secondary = true) }
+    m.prefillTokens?.let { BodyText(pluralStringResource(R.plurals.visual_metric_prefill, it, it), secondary = true) }
     m.bytesP50?.let { BodyText(stringResource(R.string.visual_metric_size, it / BYTES_PER_KB), secondary = true) }
     m.projectedP50S?.let { BodyText(stringResource(R.string.visual_metric_projection, num(it)), secondary = true) }
 }

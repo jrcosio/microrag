@@ -76,7 +76,10 @@
     <string name="visual_section_set" translatable="false">Conjunto del dispositivo</string>
     <string name="visual_set_absent_title" translatable="false">Sin conjunto del dispositivo</string>
     <string name="visual_set_absent_body" translatable="false">Copia offline/build/visual/device-set con adb a la carpeta dev-visual de la app y pulsa «Volver a leer el conjunto» (quickstart §5).</string>
-    <string name="visual_set_verified" translatable="false">%1$d ficheros verificados</string>
+    <plurals name="visual_set_verified" translatable="false">
+        <item quantity="one">%1$d fichero verificado</item>
+        <item quantity="other">%1$d ficheros verificados</item>
+    </plurals>
     <string name="visual_set_rejected" translatable="false">Rechazados por su huella: %1$s</string>
     <string name="visual_action_reload" translatable="false">Volver a leer el conjunto</string>
     <string name="visual_section_tests" translatable="false">Pruebas</string>
@@ -97,11 +100,17 @@
     <string name="visual_status_not_supported" translatable="false">No admitida</string>
     <string name="visual_status_not_available" translatable="false">No disponible</string>
     <string name="visual_status_failed" translatable="false">Fallida</string>
-    <string name="visual_metric_time" translatable="false">p50 %1$s ms · p95 %2$s ms · %3$d muestras</string>
+    <plurals name="visual_metric_time" translatable="false">
+        <item quantity="one">p50 %1$s ms · p95 %2$s ms · %3$d muestra</item>
+        <item quantity="other">p50 %1$s ms · p95 %2$s ms · %3$d muestras</item>
+    </plurals>
     <string name="visual_metric_context" translatable="false">RSS pico %1$s MB · térmico %2$s → %3$s</string>
     <string name="visual_metric_reason" translatable="false">Motivo: %1$s</string>
     <string name="visual_metric_load" translatable="false">Carga %1$d / %2$s ms</string>
-    <string name="visual_metric_prefill" translatable="false">Prefill de %1$d tokens</string>
+    <plurals name="visual_metric_prefill" translatable="false">
+        <item quantity="one">Prefill de %1$d token</item>
+        <item quantity="other">Prefill de %1$d tokens</item>
+    </plurals>
     <string name="visual_metric_size" translatable="false">%1$d KB</string>
     <string name="visual_metric_projection" translatable="false">200 páginas ≈ %1$s s (proyección)</string>
     <string name="visual_report_path" translatable="false">Informe: %1$s</string>

@@ -7,6 +7,7 @@ import android.graphics.ImageDecoder
 import android.graphics.Matrix
 import android.graphics.pdf.PdfRenderer
 import android.os.ParcelFileDescriptor
+import androidx.core.graphics.createBitmap
 import com.lisdatasolutions.microrag.debug.feasibility.visual.EncodedImage
 import com.lisdatasolutions.microrag.debug.feasibility.visual.ImageFormat
 import com.lisdatasolutions.microrag.debug.feasibility.visual.PageRasterizer
@@ -31,7 +32,7 @@ class DebugPageRasterizer : PageRasterizer {
                 val scale = longSidePx.toFloat() / max(pdfPage.width, pdfPage.height)
                 val width = (pdfPage.width * scale).roundToInt().coerceAtLeast(1)
                 val height = (pdfPage.height * scale).roundToInt().coerceAtLeast(1)
-                val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+                val bitmap = createBitmap(width, height)
                 try {
                     // PdfRenderer draws only the page's own content: the white paper comes first.
                     bitmap.eraseColor(Color.WHITE)
@@ -55,7 +56,7 @@ class DebugPageRasterizer : PageRasterizer {
                 )
             }
         }
-        val onWhite = Bitmap.createBitmap(decoded.width, decoded.height, Bitmap.Config.ARGB_8888)
+        val onWhite = createBitmap(decoded.width, decoded.height)
         try {
             Canvas(onWhite).apply {
                 drawColor(Color.WHITE)
