@@ -32,6 +32,8 @@ def decode_text(data):
 
 
 def extract(path, fmt):
+    if fmt in ("png", "jpg"):
+        return []  # F18: a loose image has no text layer; only the visual index sees it
     if fmt == "md":
         return extract_markdown(decode_text(path.read_bytes()))
     if fmt == "txt":

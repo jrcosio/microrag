@@ -1,6 +1,7 @@
 """Evaluation index variants and how each one is built (F05 data-model §3, research R4–R5).
 
-`en` indexes the English corpus of F12 with the chunking of the app (contracts/eval-language.md L9).
+`en` indexes the English corpus of F12 with the chunking of the app (contracts/eval-language.md L9), and `visual-text`
+the text of the visual corpus of F18 the same way.
 """
 
 import hashlib
@@ -33,6 +34,10 @@ VARIANTS = {
     "fts_raw": {"derive": "fts", "fts": "raw"},
     "fts_stop": {"derive": "fts", "fts": "stop"},
     "en": {"tokens": 350, "header": True, "corpus": "en"},
+    # F18: the text of the visual corpus, with the app's chunking (research R10). Dense tables of figures need
+    # more D-036 cuts than the app's 12 (where that document would fail to index): the evaluation keeps them,
+    # which makes «Texto» stronger, never weaker, and counts them in `beyond_app_cuts`.
+    "visual-text": {"tokens": 350, "header": True, "corpus": "visual", "overflow_attempts": 40},
 }
 
 
@@ -120,7 +125,7 @@ class Embedder:
     model accepts it. Only the embedded text is cut, never the stored chunk. [truncated] counts the cuts.
     """
 
-    def __init__(self):
+    def __init__(self, attempts=OVERFLOW_ATTEMPTS):
         from litert_lm import Backend, EmbeddingEngine, EmbeddingOptions
 
         cache = BUILD / "litert-cache"
@@ -128,21 +133,24 @@ class Embedder:
         self.engine = EmbeddingEngine(str(models.verify(models.EMBEDDING)), backend=Backend.CPU(), cache_dir=str(cache),
                                       max_input_length=MAX_INPUT_TOKENS)
         self.options = EmbeddingOptions(normalize=False)
+        self.attempts = attempts
         self.truncated = 0
+        self.beyond_app = 0
 
     def __call__(self, text):
-        for attempt in range(OVERFLOW_ATTEMPTS):
+        for attempt in range(self.attempts):
             try:
                 vector = self.engine.compute_embedding(text, self.options).embedding
                 self.truncated += attempt > 0
+                self.beyond_app += attempt >= OVERFLOW_ATTEMPTS
                 return vector
             except RuntimeError:
                 text = overflow_cut(text)
         raise RuntimeError("embedding input still too long after truncation")
 
 
-def embedder():
-    model = Embedder()
+def embedder(attempts=OVERFLOW_ATTEMPTS):
+    model = Embedder(attempts)
     return model.engine, model
 
 
@@ -174,7 +182,7 @@ def build(variant):
         pages = max((b.page for b in blocks if b.page), default=None)
         documents.append(index.IndexDocument(doc.id, doc.title, doc.sha256, doc.mime_type,
                                              (source.docs / doc.file_name).stat().st_size, pages, blocks))
-    engine, embed = embedder()
+    engine, embed = embedder(spec.get("overflow_attempts", OVERFLOW_ATTEMPTS))
     started = time.time()
     try:
         info = index.build_index(
@@ -191,7 +199,8 @@ def build(variant):
     info["seconds"] = round(time.time() - started, 1)
     info["truncated_inputs"] = embed.truncated
     db = index.connect(target)
-    index._write_build(db, {**index.build_info(db), "seconds": info["seconds"], "truncated_inputs": embed.truncated})  # noqa: SLF001
+    index._write_build(db, {**index.build_info(db), "seconds": info["seconds"], "truncated_inputs": embed.truncated,  # noqa: SLF001
+                            "beyond_app_cuts": embed.beyond_app})
     db.commit()
     db.close()
     return info
