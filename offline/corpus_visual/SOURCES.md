@@ -191,8 +191,8 @@ No forman parte de la app y no se distribuyen con ella.
 - **Licencia:** BNE: dominio público
 - **Atribución:** Fondos de la Biblioteca Nacional de España (Biblioteca Digital Hispánica), vía Wikimedia Commons
 - **Actualización del original:** 1931; descargado el 2026-11-05
-- **Transformaciones:** páginas 11–70 del original, un escaneado sin capa de texto
-- **SHA-256:** `a49f5fc66f574d16c593125047b8a4f825e08194be4707fbba1453b4f346a408`
+- **Transformaciones:** páginas 11–70 rasterizadas a 200 ppp en gris (JPEG, calidad 60) y reunidas en un PDF solo de imagen, sin la capa OCR del original
+- **SHA-256:** `4e2261ede56c6c30f44039b4b092e21b26571dce8683375b2a48a1b8fd62b886`
 
 ## Temperatura media anual de España en 1981-2010
 
@@ -442,4 +442,4 @@ No forman parte de la app y no se distribuyen con ella.
 - **Atribución:** Fondos de la Biblioteca Nacional de España (Biblioteca Digital Hispánica), vía Wikimedia Commons; foto simulada por MicroRAG
 - **Actualización del original:** 1931; descargado el 2026-11-05
 - **Transformaciones:** página 2 de `bne-constitucion-1931` convertida en foto simulada (receta v1, semilla 20261115: giro, perspectiva, sombra, ruido y JPEG)
-- **SHA-256:** `1713504f66208ee6ae3cbf2828f552c52d9f01c4246622c8e3c02a6e0f1dc0bd`
+- **SHA-256:** `bba15af6ff2e5bb8713b75f4edcc4f1e5cbca72ac7f0d45b5b0bd397e7272026`
