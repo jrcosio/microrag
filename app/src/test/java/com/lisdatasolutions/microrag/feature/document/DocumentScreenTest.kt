@@ -6,6 +6,7 @@ import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.filterToOne
 import androidx.compose.ui.test.getBoundsInRoot
@@ -16,7 +17,6 @@ import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isDialog
 import androidx.compose.ui.test.isToggleable
-import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -29,6 +29,10 @@ import androidx.compose.ui.text.TextLayoutResult
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
+import com.lisdatasolutions.microrag.domain.ingest.IngestError
+import com.lisdatasolutions.microrag.domain.library.DocumentDetail
+import com.lisdatasolutions.microrag.domain.library.DocumentDetailState
+import com.lisdatasolutions.microrag.domain.rag.IndexMode
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -464,5 +468,67 @@ class DocumentScreenTest {
 
         assertThat(shown.value.moveMessage).isNull()
         compose.onNodeWithText("Movido a «Motores»").assertExists()
+    }
+
+
+    // F19 T038 and T045 (contracts U12–U14, wireframe §6).
+
+    private fun loaded(detail: DocumentDetail, multimodalOn: Boolean = false) =
+        DocumentUiState(content = DocumentContent.Loaded(detail), preview = PreviewContent.None, included = detail.included, multimodalOn = multimodalOn)
+
+    @Test
+    fun aTextDocumentWithTheModeOff_looksAsBefore() {
+        show(loaded(DocumentPreviewData.manual))
+
+        absent("Modo de indexación")
+    }
+
+    @Test
+    fun aDocumentWithPages_saysItsModeAndPages() {
+        show(loaded(DocumentPreviewData.manual.copy(indexMode = IndexMode.BOTH, pagesStored = 48), multimodalOn = true))
+
+        exists("Modo de indexación")
+        exists("Ambos")
+        exists("48 páginas")
+        absent("Solo páginas. Todavía no se usa en el chat")
+    }
+
+    @Test
+    fun aVisualOnlyDocument_saysItIsNotInTheChatYet() {
+        show(loaded(DocumentPreviewData.manual.copy(indexMode = IndexMode.VISUAL, pagesStored = 48, chunks = 0), multimodalOn = true))
+
+        exists("Solo páginas. Todavía no se usa en el chat")
+    }
+
+    /** T045: with the mode off and pages stored. */
+    @Test
+    fun withTheModeOff_itsPagesNeedTheMode() {
+        show(loaded(DocumentPreviewData.manual.copy(indexMode = IndexMode.VISUAL, pagesStored = 48, chunks = 0)))
+
+        exists("Sus páginas necesitan el modo multimodal")
+    }
+
+    @Test
+    fun aPdfWithoutText_offersToBeIndexedAsPages_withTheModeOn() {
+        val noText = DocumentPreviewData.manual.copy(state = DocumentDetailState.Failed(IngestError.NO_TEXT), chunks = null)
+        var asPages = 0
+        compose.setContent {
+            LisdataTheme { DocumentScreen(loaded(noText, multimodalOn = true), actions.copy(onReindexAsPages = { asPages++ })) }
+        }
+
+        click("Reindexar como páginas")
+
+        assertThat(asPages).isEqualTo(1)
+    }
+
+    @Test
+    fun theReindexSheet_isTheModesRadioGroup() {
+        val state = loaded(DocumentPreviewData.manual, multimodalOn = true).copy(choosingReindexMode = true)
+        var chosen: IndexMode? = null
+        compose.setContent { LisdataTheme { DocumentScreen(state, actions.copy(onReindexModeSelect = { chosen = it })) } }
+
+        compose.onNodeWithText("Visual").performClick()
+
+        assertThat(chosen).isEqualTo(IndexMode.VISUAL)
     }
 }

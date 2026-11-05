@@ -4,29 +4,32 @@ import com.google.common.truth.Truth.assertThat
 import com.lisdatasolutions.microrag.data.indexing.DefaultIndexingRepository
 import com.lisdatasolutions.microrag.data.indexing.FakeThermalStatusSource
 import com.lisdatasolutions.microrag.data.indexing.InMemoryIngestRunStore
+import com.lisdatasolutions.microrag.data.indexing.RunPauseCause
 import com.lisdatasolutions.microrag.data.ingest.DocumentFileStore
 import com.lisdatasolutions.microrag.data.ingest.DocumentFiles
-import com.lisdatasolutions.microrag.domain.ingest.DocumentFormat
-import com.lisdatasolutions.microrag.data.indexing.RunPauseCause
+import com.lisdatasolutions.microrag.data.ingest.PageFileStore
 import com.lisdatasolutions.microrag.domain.indexing.PauseReason
+import com.lisdatasolutions.microrag.domain.ingest.DocumentFormat
 import com.lisdatasolutions.microrag.domain.ingest.IngestError
 import com.lisdatasolutions.microrag.domain.library.DetailResult
 import com.lisdatasolutions.microrag.domain.library.DocumentDetail
 import com.lisdatasolutions.microrag.domain.library.DocumentDetailState
 import com.lisdatasolutions.microrag.domain.library.DocumentPreview
-import com.lisdatasolutions.microrag.domain.library.ReindexState
 import com.lisdatasolutions.microrag.domain.library.LibraryDocument
 import com.lisdatasolutions.microrag.domain.library.LibraryDocumentState
 import com.lisdatasolutions.microrag.domain.library.LibraryFilter
 import com.lisdatasolutions.microrag.domain.library.LibraryQuery
 import com.lisdatasolutions.microrag.domain.library.LibraryResult
 import com.lisdatasolutions.microrag.domain.library.ReindexRow
+import com.lisdatasolutions.microrag.domain.library.ReindexState
 import com.lisdatasolutions.microrag.domain.library.SummaryResult
 import com.lisdatasolutions.microrag.domain.rag.ChunkInput
 import com.lisdatasolutions.microrag.domain.rag.DocumentStatus
 import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
+import com.lisdatasolutions.microrag.domain.rag.IndexMode
 import com.lisdatasolutions.microrag.domain.rag.LibrarySummary
 import com.lisdatasolutions.microrag.domain.rag.NewDocument
+import com.lisdatasolutions.microrag.domain.rag.PageInput
 import com.lisdatasolutions.microrag.testing.FakeIngestScheduler
 import com.lisdatasolutions.microrag.testing.FakeRagIndex
 import com.lisdatasolutions.microrag.testing.RecordingLogger
@@ -701,5 +704,120 @@ class DefaultLibraryRepositoryTest {
         val row = (page() as LibraryResult.Loaded).page.documents.single()
 
         assertThat(row.createdAtMs).isEqualTo(index.docs.getValue(done).createdAtMs)
+    }
+
+    // F19 T037 (contracts P4–P8, research R11, analyze H4 and M6).
+
+    private val pagesDir = File(dir, "pages")
+    private val pages = PageFileStore(pagesDir, kotlinx.coroutines.Dispatchers.Unconfined)
+
+    private fun TestScope.pagesRepository(): DefaultLibraryRepository {
+        val dispatcher = UnconfinedTestDispatcher(testScheduler)
+        val indexing = DefaultIndexingRepository(index, scheduler, runStore, FakeThermalStatusSource(), dispatcher, logger)
+        return DefaultLibraryRepository(index, DocumentFiles(store, index, dispatcher, logger), runStore, indexing, dispatcher, logger, pages) { 0L }
+    }
+
+    /** Stores [count] pages of [id], with their images in the pages folder. */
+    private suspend fun withPages(id: Long, count: Int, prefix: String = "d$id"): List<String> = (1..count).map { page ->
+        val name = "$prefix-p$page.jpg"
+        pages.write(name, byteArrayOf(page.toByte())) { index.insertPage(id, PageInput(page, name, 10, 10, 1, FloatArray(256))) }
+        name
+    }
+
+    private fun images(): List<String> = pagesDir.list().orEmpty().sorted()
+
+    @Test
+    fun reindexingInAnotherMode_givesTheShadowThatMode() = runTest {
+        val id = doc("Manual.pdf", chunks = 3)
+
+        pagesRepository().reindex(id, IndexMode.BOTH)
+
+        val shadow = index.shadowOf(id)!!
+        assertThat(shadow.indexMode).isEqualTo(IndexMode.BOTH)
+        assertThat(index.document(id)!!.indexMode).isEqualTo(IndexMode.TEXT)
+    }
+
+    @Test
+    fun anErroredOrOutOfIndexDocument_changesModeWithoutAShadow() = runTest {
+        val scanned = doc("Escaneado.pdf", DocumentStatus.ERROR, error = IngestError.NO_TEXT)
+        val out = doc("Fuera.pdf", DocumentStatus.OUT_OF_INDEX)
+        val repository = pagesRepository()
+
+        repository.reindex(scanned, IndexMode.VISUAL)
+        repository.reindex(out, IndexMode.BOTH)
+
+        listOf(scanned to IndexMode.VISUAL, out to IndexMode.BOTH).forEach { (id, mode) ->
+            val document = index.document(id)!!
+            assertThat(document.indexMode).isEqualTo(mode)
+            assertThat(document.status).isEqualTo(DocumentStatus.PENDING)
+            assertThat(document.error).isNull()
+            assertThat(index.shadowOf(id)).isNull()
+        }
+        assertThat(runStore.run.first().documentIds).containsAtLeast(scanned, out)
+    }
+
+    @Test
+    fun anImage_isAlwaysReindexedAsPages() = runTest {
+        val photo = doc("Foto.jpg", DocumentStatus.OUT_OF_INDEX, mime = "image/jpeg")
+        index.setIndexMode(photo, IndexMode.VISUAL)
+
+        pagesRepository().reindex(photo, IndexMode.TEXT)
+
+        assertThat(index.document(photo)!!.indexMode).isEqualTo(IndexMode.VISUAL)
+    }
+
+    @Test
+    fun deleting_takesTheImagesOfTheDocumentAndOfItsShadow() = runTest {
+        val id = doc("Plano.pdf")
+        withPages(id, 2)
+        val shadow = index.addReindexShadow(id)
+        withPages(shadow, 1)
+        assertThat(images()).hasSize(3)
+
+        pagesRepository().delete(id)
+
+        assertThat(images()).isEmpty()
+    }
+
+    @Test
+    fun removingFromTheIndex_takesItsImages() = runTest {
+        val id = doc("Plano.pdf", chunks = 1)
+        withPages(id, 2)
+
+        pagesRepository().removeFromIndex(id)
+
+        assertThat(images()).isEmpty()
+        assertThat(index.storedPages(id)).isEmpty()
+    }
+
+    @Test
+    fun discardingAFailedReindex_takesOnlyTheShadowsImages() = runTest {
+        val id = doc("Plano.pdf")
+        val kept = withPages(id, 2)
+        val shadow = index.addReindexShadow(id)
+        withPages(shadow, 2)
+        index.updateStatus(shadow, DocumentStatus.ERROR, error = IngestError.EMBEDDING_FAILED.code)
+
+        pagesRepository().discardReindex(id)
+
+        assertThat(images()).containsExactlyElementsIn(kept)
+    }
+
+    @Test
+    fun theSweep_takesImagesNoRowNames_onceAndUnderTheWritersLock() = runTest {
+        val id = doc("Plano.pdf")
+        val kept = withPages(id, 1)
+        pagesDir.resolve("huerfana-p1.jpg").writeText("x")
+        pagesDir.resolve("a-medias-p2.jpg.part").writeText("x")
+
+        val values = mutableListOf<LibraryResult>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { pagesRepository().page(LibraryQuery()).toList(values) }
+        advanceUntilIdle()
+
+        assertThat(images()).containsExactlyElementsIn(kept)
+        // A closed index cannot say which images are named: nothing goes.
+        pagesDir.resolve("otra-p1.jpg").writeText("x")
+        assertThat(PageFileStore(pagesDir, kotlinx.coroutines.Dispatchers.Unconfined).sweep { null }).isEqualTo(0)
+        assertThat(images()).contains("otra-p1.jpg")
     }
 }

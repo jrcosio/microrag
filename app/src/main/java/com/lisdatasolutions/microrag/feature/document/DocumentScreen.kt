@@ -35,6 +35,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
@@ -78,15 +80,18 @@ import com.lisdatasolutions.microrag.domain.library.DocumentDetail
 import com.lisdatasolutions.microrag.domain.library.DocumentDetailState
 import com.lisdatasolutions.microrag.domain.library.DocumentPreview
 import com.lisdatasolutions.microrag.domain.library.ReindexState
+import com.lisdatasolutions.microrag.domain.rag.IndexMode
 import com.lisdatasolutions.microrag.feature.folders.FolderChoiceActions
 import com.lisdatasolutions.microrag.feature.folders.FolderChoiceSheet
 import com.lisdatasolutions.microrag.feature.folders.FolderDialogs
 import com.lisdatasolutions.microrag.feature.folders.FoldersViewModel
 import com.lisdatasolutions.microrag.feature.folders.dialogActions
+import com.lisdatasolutions.microrag.feature.ingest.IndexModeSheet
 import com.lisdatasolutions.microrag.feature.ingest.chipText
 import com.lisdatasolutions.microrag.feature.ingest.detailText
 import com.lisdatasolutions.microrag.feature.ingest.sizeText
 import com.lisdatasolutions.microrag.feature.library.grouped
+import com.lisdatasolutions.microrag.feature.library.modeLabel
 import kotlin.math.max
 import org.koin.androidx.compose.koinViewModel
 
@@ -110,6 +115,10 @@ data class DocumentActions(
     val onConfirmMove: () -> Unit = {},
     val onDismissMove: () -> Unit = {},
     val onNewFolder: () -> Unit = {},
+    /** F19 (U13, U14): the mode sheet of «Reindexar», and «Reindexar como páginas». */
+    val onReindexModeSelect: (IndexMode) -> Unit = {},
+    val onDismissReindexMode: () -> Unit = {},
+    val onReindexAsPages: () -> Unit = {},
 )
 
 @Composable
@@ -151,6 +160,9 @@ fun DocumentRoute(
             onConfirmMove = viewModel::onConfirmMove,
             onDismissMove = viewModel::onDismissMove,
             onNewFolder = foldersViewModel::onNewFolder,
+            onReindexModeSelect = viewModel::onReindexModeSelect,
+            onDismissReindexMode = viewModel::onDismissReindexMode,
+            onReindexAsPages = viewModel::onReindexAsPages,
         ),
         onMoveMessageShown = viewModel::onMoveMessageShown,
     )
@@ -205,6 +217,7 @@ fun DocumentScreen(
                 Spacer(Modifier.height(spacing.space1))
                 Hero(state.content.detail)
                 Stats(state.content.detail)
+                Mode(state, state.content.detail)
                 LisdataSwitchRow(
                     title = stringResource(R.string.document_include_title),
                     subtitle = includeSubtitle(state.content.detail, state.included),
@@ -243,6 +256,10 @@ fun DocumentScreen(
     }
     Announcement(state)
     if (detail != null) Dialog(state.dialog, detail, actions)
+    // U13: the three modes, starting on the document's own.
+    if (detail != null && state.choosingReindexMode) {
+        IndexModeSheet(selected = detail.indexMode, onSelect = actions.onReindexModeSelect, onDismiss = actions.onDismissReindexMode)
+    }
     val folders = state.folders
     if (state.move != null && folders != null) {
         FolderChoiceSheet(
@@ -327,6 +344,37 @@ private fun Stats(detail: DocumentDetail) {
                     )
                 }
             }
+        }
+    }
+}
+
+/**
+ * F19 (contract U12, wireframe §6): the mode and the stored pages of a document indexed with pages, or of any
+ * document once the mode is on; and why its pages are not in the chat, if they are not.
+ */
+@Composable
+private fun Mode(state: DocumentUiState, detail: DocumentDetail) {
+    if (detail.indexMode == IndexMode.TEXT && !state.multimodalOn) return
+    Column(verticalArrangement = Arrangement.spacedBy(LisdataTheme.spacing.space2)) {
+        LisdataFactRow(
+            label = stringResource(R.string.document_mode_label),
+            value = stringResource(detail.indexMode.modeLabel()),
+            modifier = Modifier.fillMaxWidth().testTag("document_index_mode"),
+        )
+        if (detail.indexMode != IndexMode.TEXT) {
+            LisdataFactRow(
+                label = stringResource(R.string.document_pages_label),
+                value = pluralStringResource(R.plurals.document_pages, detail.pagesStored, detail.pagesStored.grouped()),
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+        val note = when {
+            state.pagesNeedMultimodal -> R.string.document_pages_need_multimodal
+            detail.pagesOnly -> R.string.document_visual_only_note
+            else -> null
+        }
+        note?.let {
+            LisdataInfoCard(icon = LisdataIcons.Info, title = stringResource(it), modifier = Modifier.fillMaxWidth())
         }
     }
 }
@@ -499,6 +547,10 @@ private fun Actions(state: DocumentUiState, detail: DocumentDetail, actions: Doc
     val enabled = !state.busy && !state.deleting
     val primary: (@Composable () -> Unit)? = when {
         detail.copyMissing -> null
+        // F19 (U14): a PDF without text can still be indexed as pages, with the mode on.
+        state.canReindexAsPages -> {
+            { LisdataGradientButton(text = stringResource(R.string.document_reindex_as_pages), onClick = actions.onReindexAsPages, enabled = enabled, compact = true) }
+        }
         detail.state is DocumentDetailState.Failed -> if ((detail.state as DocumentDetailState.Failed).error.retryable) {
             { LisdataGradientButton(text = stringResource(R.string.document_retry), onClick = actions.onRetry, enabled = enabled, compact = true) }
         } else {

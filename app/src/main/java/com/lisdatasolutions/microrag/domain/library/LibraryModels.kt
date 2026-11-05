@@ -3,6 +3,7 @@ package com.lisdatasolutions.microrag.domain.library
 import com.lisdatasolutions.microrag.domain.indexing.PauseReason
 import com.lisdatasolutions.microrag.domain.ingest.DocumentFormat
 import com.lisdatasolutions.microrag.domain.ingest.IngestError
+import com.lisdatasolutions.microrag.domain.rag.IndexMode
 import com.lisdatasolutions.microrag.domain.rag.LibraryFolderFilter
 
 /** The Library filter chips (G16): no «Errores»; «Pendientes» is everything not indexed, each with its chip. */
@@ -38,6 +39,9 @@ data class LibraryDocument(
     val folderName: String? = null,
     /** F17: with [id], what a chat scope keeps of it (D-065). */
     val createdAtMs: Long = 0,
+    /** F19 (contract U11): its mode, and its pages for the data line of Visual and Both. */
+    val indexMode: IndexMode = IndexMode.TEXT,
+    val pages: Int? = null,
 ) {
     /** Inclusion only means something for indexed documents (FR-008). */
     val canChangeInclusion: Boolean get() = state is LibraryDocumentState.Indexed
@@ -77,8 +81,14 @@ data class DocumentDetail(
     /** F17: null is «General» (L6). */
     val folderId: Long? = null,
     val folderName: String? = null,
+    /** F19 (contract U12): its mode and the page images stored. */
+    val indexMode: IndexMode = IndexMode.TEXT,
+    val pagesStored: Int = 0,
 ) {
     val canChangeInclusion: Boolean get() = state == DocumentDetailState.Indexed
+
+    /** «Solo páginas. Todavía no se usa en el chat» (research R13). */
+    val pagesOnly: Boolean get() = indexMode != IndexMode.TEXT && state == DocumentDetailState.Indexed && (chunks ?: 0) == 0
 }
 
 sealed interface DocumentDetailState {

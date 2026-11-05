@@ -8,6 +8,7 @@ import com.lisdatasolutions.microrag.domain.indexing.IndexingRepository
 import com.lisdatasolutions.microrag.domain.indexing.IndexingState
 import com.lisdatasolutions.microrag.domain.indexing.RetryIndexingUseCase
 import com.lisdatasolutions.microrag.domain.ingest.DocumentFormat
+import com.lisdatasolutions.microrag.domain.ingest.IngestError
 import com.lisdatasolutions.microrag.domain.library.DeleteDocumentUseCase
 import com.lisdatasolutions.microrag.domain.library.DetailResult
 import com.lisdatasolutions.microrag.domain.library.DiscardReindexUseCase
@@ -16,14 +17,18 @@ import com.lisdatasolutions.microrag.domain.library.DocumentDetailState
 import com.lisdatasolutions.microrag.domain.library.DocumentPreview
 import com.lisdatasolutions.microrag.domain.library.LoadPreviewUseCase
 import com.lisdatasolutions.microrag.domain.library.MoveDocumentUseCase
-import com.lisdatasolutions.microrag.domain.library.ObserveFoldersUseCase
 import com.lisdatasolutions.microrag.domain.library.ObserveDocumentUseCase
+import com.lisdatasolutions.microrag.domain.library.ObserveFoldersUseCase
 import com.lisdatasolutions.microrag.domain.library.ReindexDocumentUseCase
 import com.lisdatasolutions.microrag.domain.library.ReindexState
 import com.lisdatasolutions.microrag.domain.library.RemoveFromIndexUseCase
 import com.lisdatasolutions.microrag.domain.library.SetIncludedUseCase
+import com.lisdatasolutions.microrag.domain.multimodal.MultimodalStage
+import com.lisdatasolutions.microrag.domain.multimodal.ObserveImportModeUseCase
+import com.lisdatasolutions.microrag.domain.multimodal.StoredMultimodal
+import com.lisdatasolutions.microrag.domain.rag.IndexMode
 import com.lisdatasolutions.microrag.testing.FakeLibraryRepository
-import com.lisdatasolutions.microrag.domain.ingest.IngestError
+import com.lisdatasolutions.microrag.testing.FakeMultimodalStore
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -68,6 +73,9 @@ class DocumentViewModelTest {
     @After
     fun tearDown() = Dispatchers.resetMain()
 
+    /** F19: the mode's copy, as Ajustes leaves it. */
+    private val mode = FakeMultimodalStore()
+
     private fun viewModel(documentId: Long = 7, chunkId: Long? = null) = DocumentViewModel(
         SavedStateHandle(mapOf("documentId" to documentId, "chunkId" to chunkId)),
         ObserveDocumentUseCase(repository),
@@ -81,6 +89,7 @@ class DocumentViewModelTest {
         ObserveFoldersUseCase(repository),
         MoveDocumentUseCase(repository),
         dispatcher,
+        ObserveImportModeUseCase(mode),
     )
 
     private fun detail(
@@ -375,5 +384,55 @@ class DocumentViewModelTest {
 
         assertThat(repository.calls).containsExactly("move 7 3")
         assertThat(vm.state.value.moveMessage).isEqualTo(MoveMessage.Moved("Contratos"))
+    }
+
+
+    // F19 T038 (contracts U13–U14).
+
+    @Test
+    fun withTheModeOn_reindexAsksForTheMode_andUsesTheChosenOne() = runTest(dispatcher) {
+        mode.state.value = StoredMultimodal(MultimodalStage.ON)
+        show(DetailResult.Loaded(detail()))
+        val vm = viewModel()
+        advanceUntilIdle()
+
+        vm.onReindex()
+        advanceUntilIdle()
+        assertThat(vm.state.value.choosingReindexMode).isTrue()
+        assertThat(repository.calls).isEmpty()
+
+        vm.onReindexModeSelect(IndexMode.BOTH)
+        advanceUntilIdle()
+        assertThat(vm.state.value.choosingReindexMode).isFalse()
+        assertThat(repository.calls).containsExactly("reindex 7 BOTH")
+    }
+
+    @Test
+    fun withTheModeOff_aDocumentWithPages_isReindexedInText() = runTest(dispatcher) {
+        show(DetailResult.Loaded(detail().copy(indexMode = IndexMode.VISUAL, pagesStored = 48)))
+        val vm = viewModel()
+        advanceUntilIdle()
+
+        vm.onReindex()
+        advanceUntilIdle()
+
+        assertThat(vm.state.value.choosingReindexMode).isFalse()
+        assertThat(repository.calls).containsExactly("reindex 7 TEXT")
+        assertThat(vm.state.value.pagesNeedMultimodal).isTrue()
+    }
+
+    @Test
+    fun aPdfWithoutText_canBeReindexedAsPages_onlyWithTheModeOn() = runTest(dispatcher) {
+        show(DetailResult.Loaded(detail(DocumentDetailState.Failed(IngestError.NO_TEXT), chunks = null)))
+        val vm = viewModel()
+        advanceUntilIdle()
+        assertThat(vm.state.value.canReindexAsPages).isFalse()
+
+        mode.state.value = StoredMultimodal(MultimodalStage.ON)
+        advanceUntilIdle()
+        assertThat(vm.state.value.canReindexAsPages).isTrue()
+        vm.onReindexAsPages()
+        advanceUntilIdle()
+        assertThat(repository.calls).containsExactly("reindex 7 VISUAL")
     }
 }

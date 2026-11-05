@@ -288,13 +288,13 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
 
 ### Pruebas
 
-- [ ] T037 [P] [US4] `…/test/…/data/library/DefaultLibraryRepositoryTest.kt` (R11):
+- [X] T037 [P] [US4] `…/test/…/data/library/DefaultLibraryRepositoryTest.kt` (R11):
   - reindexar con modo crea la sombra con ese modo;
   - al publicar se borran los ficheros de páginas del original;
   - quitar y eliminar borran los ficheros, también los de la sombra en `discardReindex`, `deleteDocument` y `removeFromIndex` (analyze, M6);
   - un documento en error o fuera del índice cambia de modo sin sombra (analyze, H4);
   - el barrido de huérfanos, que comparte cerrojo con la escritura de páginas.
-- [ ] T038 [P] [US4] `LibraryScreenTest`, `DocumentViewModelTest` y `DocumentScreenTest` (U11–U14):
+- [X] T038 [P] [US4] `LibraryScreenTest`, `DocumentViewModelTest` y `DocumentScreenTest` (U11–U14):
   - el subtítulo con el modo y las páginas;
   - los datos del detalle;
   - la nota de solo Visual;
@@ -303,9 +303,9 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
 
 ### Implementación
 
-- [ ] T039 [US4] `…/microrag/data/library/DefaultLibraryRepository.kt`: reindexar con modo (P5 y P8 ampliados), la limpieza de ficheros de página (P4–P6) y el barrido de huérfanos al arrancar (I7), con su cerrojo. T037 pasa.
-- [ ] T060 [P] [US4] Prueba instrumentada `…/androidTest/…/data/library/PageFilesCleanupTest.kt` (SC-005, analyze, L8): con ficheros reales en `TempRagIndex` y `PageFileStore`, eliminar, quitar, reindexar, descartar una reindexación y el barrido no dejan ficheros ni filas huérfanas.
-- [ ] T040 [US4] Biblioteca y detalle, según el wireframe §6: `LibraryScreen`, `DocumentScreen` y `DocumentViewModel`, que reutilizan `IndexModeSheet`. T038 pasa.
+- [X] T039 [US4] `…/microrag/data/library/DefaultLibraryRepository.kt`: reindexar con modo (P5 y P8 ampliados), la limpieza de ficheros de página (P4–P6) y el barrido de huérfanos al arrancar (I7), con su cerrojo. T037 pasa.
+- [X] T060 [P] [US4] Prueba instrumentada `…/androidTest/…/data/library/PageFilesCleanupTest.kt` (SC-005, analyze, L8): con ficheros reales en `TempRagIndex` y `PageFileStore`, eliminar, quitar, reindexar, descartar una reindexación y el barrido no dejan ficheros ni filas huérfanas.
+- [X] T040 [US4] Biblioteca y detalle, según el wireframe §6: `LibraryScreen`, `DocumentScreen` y `DocumentViewModel`, que reutilizan `IndexModeSheet`. T038 pasa.
 
 **Checkpoint:** el modo se ve y se cambia, y no quedan páginas huérfanas.
 
@@ -355,7 +355,7 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
   - activar no reindexa nada por sí solo (FR-008b, analyze, L8);
   - una indexación visual en curso se detiene al desactivar y se reanuda al reactivar;
   - la Ingesta vuelve a solo Texto.
-- [ ] T045 [P] [US6] `DocumentScreenTest`: con el modo apagado y páginas guardadas, «Sus páginas necesitan el modo multimodal».
+- [X] T045 [P] [US6] `DocumentScreenTest`: con el modo apagado y páginas guardadas, «Sus páginas necesitan el modo multimodal».
 
 ### Implementación
 

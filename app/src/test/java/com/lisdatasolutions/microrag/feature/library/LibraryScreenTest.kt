@@ -1,14 +1,16 @@
 package com.lisdatasolutions.microrag.feature.library
 
 import android.app.Application
+import androidx.compose.foundation.layout.Column
+import androidx.compose.material3.Text
 import androidx.compose.ui.test.assertCountEquals
-import androidx.compose.ui.test.assertIsOn
-import androidx.compose.ui.test.isNotEnabled
-import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isNotEnabled
+import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
@@ -19,8 +21,12 @@ import androidx.compose.ui.test.performScrollToNode
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import com.lisdatasolutions.microrag.core.designsystem.theme.LisdataTheme
+import com.lisdatasolutions.microrag.domain.ingest.DocumentFormat
+import com.lisdatasolutions.microrag.domain.library.LibraryDocument
+import com.lisdatasolutions.microrag.domain.library.LibraryDocumentState
 import com.lisdatasolutions.microrag.domain.library.LibraryFilter
 import com.lisdatasolutions.microrag.domain.rag.FolderList
+import com.lisdatasolutions.microrag.domain.rag.IndexMode
 import com.lisdatasolutions.microrag.domain.rag.LibraryFolderFilter
 import com.lisdatasolutions.microrag.feature.folders.FoldersUiState
 import org.junit.Rule
@@ -311,5 +317,21 @@ class LibraryScreenTest {
         exists("Esta carpeta está vacía")
         compose.onNodeWithText("Importar a Motores").performClick()
         assertThat(calls).containsExactly("import")
+    }
+
+
+    /** F19 T038 (contract U11): type · mode · pages (Visual and Both) · chunks (Text and Both); Text rows as before. */
+    @Test
+    fun aRowWithPages_saysTypeModePagesAndChunks() {
+        val both = LibraryDocument(1, "Informe.pdf", DocumentFormat.PDF, LibraryDocumentState.Indexed(860, null), true, indexMode = IndexMode.BOTH, pages = 40)
+        val visual = LibraryDocument(2, "Plano.pdf", DocumentFormat.PDF, LibraryDocumentState.Indexed(0, null), true, indexMode = IndexMode.VISUAL, pages = 12)
+        val pending = LibraryDocument(3, "Foto.jpg", DocumentFormat.JPEG, LibraryDocumentState.Pending, true, indexMode = IndexMode.VISUAL, pages = 1)
+        val text = LibraryDocument(4, "Notas.pdf", DocumentFormat.PDF, LibraryDocumentState.Indexed(5, null), true)
+        compose.setContent { LisdataTheme { Column { listOf(both, visual, pending, text).forEach { Text(it.metaText()) } } } }
+
+        exists("PDF · Ambos · 40 páginas · 860 fragmentos")
+        exists("PDF · Visual · 12 páginas")
+        exists("Imagen · Visual · Pendiente")
+        exists("PDF · 5 fragmentos")
     }
 }

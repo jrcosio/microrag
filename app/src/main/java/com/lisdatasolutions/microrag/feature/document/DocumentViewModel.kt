@@ -9,17 +9,19 @@ import com.lisdatasolutions.microrag.domain.indexing.RetryIndexingUseCase
 import com.lisdatasolutions.microrag.domain.library.DeleteDocumentUseCase
 import com.lisdatasolutions.microrag.domain.library.DetailResult
 import com.lisdatasolutions.microrag.domain.library.DiscardReindexUseCase
-import com.lisdatasolutions.microrag.domain.library.FoldersResult
-import com.lisdatasolutions.microrag.domain.library.MoveDocumentUseCase
-import com.lisdatasolutions.microrag.domain.library.ObserveFoldersUseCase
 import com.lisdatasolutions.microrag.domain.library.DocumentDetail
 import com.lisdatasolutions.microrag.domain.library.DocumentDetailState
+import com.lisdatasolutions.microrag.domain.library.FoldersResult
 import com.lisdatasolutions.microrag.domain.library.LoadPreviewUseCase
+import com.lisdatasolutions.microrag.domain.library.MoveDocumentUseCase
 import com.lisdatasolutions.microrag.domain.library.ObserveDocumentUseCase
+import com.lisdatasolutions.microrag.domain.library.ObserveFoldersUseCase
 import com.lisdatasolutions.microrag.domain.library.ReindexDocumentUseCase
 import com.lisdatasolutions.microrag.domain.library.ReindexState
 import com.lisdatasolutions.microrag.domain.library.RemoveFromIndexUseCase
 import com.lisdatasolutions.microrag.domain.library.SetIncludedUseCase
+import com.lisdatasolutions.microrag.domain.multimodal.ObserveImportModeUseCase
+import com.lisdatasolutions.microrag.domain.rag.IndexMode
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -33,6 +35,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
@@ -58,6 +61,8 @@ class DocumentViewModel(
     observeFolders: ObserveFoldersUseCase,
     private val moveDocument: MoveDocumentUseCase,
     backgroundDispatcher: CoroutineDispatcher = Dispatchers.Default,
+    /** F19 (contracts U12–U14): null for screens built without the mode, which then behave as before. */
+    observeMode: ObserveImportModeUseCase? = null,
 ) : ViewModel() {
 
     private val route = savedState.toRoute<Document>()
@@ -71,6 +76,7 @@ class DocumentViewModel(
         val announcement: DocumentAnnouncement? = null,
         val move: MoveSheet? = null,
         val moveMessage: MoveMessage? = null,
+        val choosingReindexMode: Boolean = false,
     )
 
     private val local = MutableStateFlow(Local())
@@ -115,7 +121,15 @@ class DocumentViewModel(
         .flowOn(backgroundDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val state: StateFlow<DocumentUiState> = combine(detail, preview, local, folders) { detail, preview, local, folders ->
+    private val modeOn: StateFlow<Boolean> = (observeMode?.invoke()?.map { it.on } ?: flowOf(false))
+        .catch { error ->
+            if (error is CancellationException) throw error
+            emit(false)
+        }
+        .flowOn(backgroundDispatcher)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    val state: StateFlow<DocumentUiState> = combine(detail, preview, local, folders, modeOn) { detail, preview, local, folders, modeOn ->
         val loaded = (detail as? DetailResult.Loaded)?.detail
         DocumentUiState(
             content = when (detail) {
@@ -132,6 +146,8 @@ class DocumentViewModel(
             folders = folders,
             move = local.move.takeIf { loaded != null && folders != null },
             moveMessage = local.moveMessage,
+            multimodalOn = modeOn,
+            choosingReindexMode = local.choosingReindexMode && modeOn && loaded != null,
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, DocumentUiState())
 
@@ -193,8 +209,32 @@ class DocumentViewModel(
         }
     }
 
-    /** Rule L6: indexed or out of the index; the repository decides what it means for each state. */
-    fun onReindex() = act(DocumentAnnouncement.REINDEXING) { reindexDocument(documentId) }
+    /**
+     * Rule L6: indexed or out of the index; the repository decides what it means for each state. F19 (U13): with
+     * the mode on, the mode sheet comes first; without it, the document is indexed again in Text.
+     */
+    fun onReindex() {
+        val detail = (state.value.content as? DocumentContent.Loaded)?.detail
+        when {
+            modeOn.value && detail?.format?.isImage != true -> local.value = local.value.copy(choosingReindexMode = true)
+            // An image is always pages: the repository keeps it so.
+            detail?.format?.isImage == true -> act(DocumentAnnouncement.REINDEXING) { reindexDocument(documentId) }
+            // A Text document keeps its mode, as before F19.
+            else -> act(DocumentAnnouncement.REINDEXING) { reindexDocument(documentId, IndexMode.TEXT.takeIf { detail?.indexMode != IndexMode.TEXT }) }
+        }
+    }
+
+    fun onReindexModeSelect(mode: IndexMode) {
+        local.value = local.value.copy(choosingReindexMode = false)
+        act(DocumentAnnouncement.REINDEXING) { reindexDocument(documentId, mode) }
+    }
+
+    fun onDismissReindexMode() {
+        local.value = local.value.copy(choosingReindexMode = false)
+    }
+
+    /** U14: a PDF without text, indexed again in Visual. */
+    fun onReindexAsPages() = act(DocumentAnnouncement.REINDEXING) { reindexDocument(documentId, IndexMode.VISUAL) }
 
     /** D3 retries the document; D6 its failed reindex shadow (F07's retry). */
     fun onRetry() {

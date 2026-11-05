@@ -1,9 +1,10 @@
 package com.lisdatasolutions.microrag.domain.library
 
-import kotlinx.coroutines.flow.Flow
 import com.lisdatasolutions.microrag.domain.rag.DocumentRef
 import com.lisdatasolutions.microrag.domain.rag.FolderList
+import com.lisdatasolutions.microrag.domain.rag.IndexMode
 import com.lisdatasolutions.microrag.domain.rag.LibrarySummary
+import kotlinx.coroutines.flow.Flow
 
 /** The Library and the document detail (F08 contracts/library-api.md). */
 interface LibraryRepository {
@@ -28,8 +29,12 @@ interface LibraryRepository {
     /** «Quitar del índice» of an indexed document (rule L5). */
     suspend fun removeFromIndex(documentId: Long)
 
-    /** «Reindexar documento», by state (rule L6). */
-    suspend fun reindex(documentId: Long)
+    /**
+     * «Reindexar documento», by state (rule L6). F19 (contract P8, research R11): [mode] is the one chosen in the
+     * sheet, null to keep it; an image is always Visual. A failed or out-of-index document changes mode without a
+     * shadow and is indexed again, which is how «Reindexar como páginas» works for a PDF without text.
+     */
+    suspend fun reindex(documentId: Long, mode: IndexMode? = null)
 
     /** Drops a failed reindex shadow, keeping the original as it is (rule L8). */
     suspend fun discardReindex(documentId: Long)

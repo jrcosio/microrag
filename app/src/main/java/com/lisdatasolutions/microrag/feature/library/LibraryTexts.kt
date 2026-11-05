@@ -1,5 +1,6 @@
 package com.lisdatasolutions.microrag.feature.library
 
+import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -9,6 +10,7 @@ import com.lisdatasolutions.microrag.domain.ingest.DocumentFormat
 import com.lisdatasolutions.microrag.domain.library.LibraryDocument
 import com.lisdatasolutions.microrag.domain.library.LibraryDocumentState
 import com.lisdatasolutions.microrag.domain.library.ReindexRow
+import com.lisdatasolutions.microrag.domain.rag.IndexMode
 import java.text.NumberFormat
 
 // Library rows → texts of contracts/library-ui.md and research R10. Pure mapping: no state.
@@ -28,18 +30,38 @@ fun DocumentFormat?.label(): String = stringResource(
     },
 )
 
-/** «PDF · 860 fragmentos», «PDF · Pendiente»…; an error row shows only the format, its reason goes to the chip. */
+/**
+ * «PDF · 860 fragmentos», «PDF · Pendiente»…; an error row shows only the format, its reason goes to the chip.
+ * F19 (contract U11): type · mode · pages (Visual and Both) · chunks (Text and Both), «PDF · Ambos · 40 páginas ·
+ * 860 fragmentos»; a Text row is as it was.
+ */
 @Composable
 fun LibraryDocument.metaText(): String {
     val format = format.label()
+    val mode = indexMode.takeIf { it != IndexMode.TEXT }?.let { stringResource(it.modeLabel()) }
     val state = when (val state = state) {
-        is LibraryDocumentState.Indexed -> pluralStringResource(R.plurals.library_chunks, state.chunks, state.chunks.grouped())
+        is LibraryDocumentState.Indexed -> listOfNotNull(
+            pages?.takeIf { indexMode.hasPages }?.let { pluralStringResource(R.plurals.document_pages, it, it.grouped()) },
+            pluralStringResource(R.plurals.library_chunks, state.chunks, state.chunks.grouped()).takeIf { indexMode.hasText },
+        ).joinToString(SEPARATOR).ifEmpty { null }
         LibraryDocumentState.Pending -> stringResource(R.string.library_state_pending)
         LibraryDocumentState.Indexing -> stringResource(R.string.library_state_indexing)
         LibraryDocumentState.OutOfIndex -> stringResource(R.string.library_state_out_of_index)
-        is LibraryDocumentState.Failed -> return format
+        is LibraryDocumentState.Failed -> null
     }
-    return stringResource(R.string.library_meta, format, state)
+    if (state == null && this.state is LibraryDocumentState.Failed) return format
+    val head = mode?.let { stringResource(R.string.library_meta, format, it) } ?: format
+    return state?.let { stringResource(R.string.library_meta, head, it) } ?: head
+}
+
+/** The separator of [R.string.library_meta] between the counts of one row. */
+private const val SEPARATOR = " · "
+
+@StringRes
+fun IndexMode.modeLabel(): Int = when (this) {
+    IndexMode.TEXT -> R.string.document_mode_text
+    IndexMode.VISUAL -> R.string.document_mode_visual
+    IndexMode.BOTH -> R.string.document_mode_both
 }
 
 /** B7: «Reindexando» ends the meta in brand blue while the shadow runs. */

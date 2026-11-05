@@ -266,6 +266,7 @@ val dataModule = module {
             indexing = get(),
             io = get<AppDispatchers>().io,
             logger = get(),
+            pageFiles = get(),
         )
     }
 

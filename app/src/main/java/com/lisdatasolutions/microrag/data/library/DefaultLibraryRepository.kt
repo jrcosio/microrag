@@ -4,6 +4,7 @@ import android.os.SystemClock
 import com.lisdatasolutions.microrag.core.logging.AppLogger
 import com.lisdatasolutions.microrag.data.indexing.IngestRunStore
 import com.lisdatasolutions.microrag.data.ingest.DocumentFiles
+import com.lisdatasolutions.microrag.data.ingest.PageFileStore
 import com.lisdatasolutions.microrag.domain.indexing.IndexingRepository
 import com.lisdatasolutions.microrag.domain.indexing.IndexingState
 import com.lisdatasolutions.microrag.domain.indexing.PauseReason
@@ -28,9 +29,11 @@ import com.lisdatasolutions.microrag.domain.library.SummaryResult
 import com.lisdatasolutions.microrag.domain.rag.DocumentRef
 import com.lisdatasolutions.microrag.domain.rag.DocumentStatus
 import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
+import com.lisdatasolutions.microrag.domain.rag.IndexMode
 import com.lisdatasolutions.microrag.domain.rag.IndexUnavailableException
 import com.lisdatasolutions.microrag.domain.rag.LibraryEntry
 import com.lisdatasolutions.microrag.domain.rag.RagIndex
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -43,7 +46,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.withContext
-import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * The Library and the document detail (F08 contracts/library-api.md) on the index, the indexing run
@@ -57,6 +59,8 @@ class DefaultLibraryRepository(
     private val indexing: IndexingRepository,
     private val io: CoroutineDispatcher,
     private val logger: AppLogger,
+    /** F19 (research R11): the page images; null where a test has none. */
+    private val pageFiles: PageFileStore? = null,
     private val clock: () -> Long = SystemClock::elapsedRealtime,
 ) : LibraryRepository {
 
@@ -66,8 +70,9 @@ class DefaultLibraryRepository(
             emit(LibraryResult.Unavailable)
             return@flow
         }
-        // Rule R6: a copy left behind by a delete interrupted earlier goes now.
+        // Rule R6: a copy left behind by a delete interrupted earlier goes now; F19 (I7): the page images too.
         files.cleanOrphansOnce()
+        pageFiles?.sweepOnce { index.allPageFiles() }?.takeIf { it > 0 }?.let { logger.i(TAG) { "library page orphans removed=$it" } }
         emitAll(index.documentChanges.mapLatest { load(query) })
     }.catch { error ->
         if (error is IndexUnavailableException) emit(LibraryResult.Unavailable) else throw error
@@ -149,6 +154,8 @@ class DefaultLibraryRepository(
                 reindex = reindex,
                 folderId = document.folderId,
                 folderName = document.folderName,
+                indexMode = document.indexMode,
+                pagesStored = document.pagesStored,
             ),
         )
     }
@@ -200,7 +207,10 @@ class DefaultLibraryRepository(
         val document = index.document(documentId) ?: return@writing
         val shadow = index.shadowOf(documentId)
         val started = clock()
+        // F19 research R11: its images and its shadow's, read before the rows go and deleted after.
+        val images = index.pageFiles(documentId)
         index.deleteDocument(documentId)
+        pageFiles?.delete(images)
         runStore.edit { it.without(listOfNotNull(documentId, shadow?.id)) }
         // A shadow shares its original's copy.
         if (document.replacesId == null && !files.delete(document.localPath)) {
@@ -213,15 +223,20 @@ class DefaultLibraryRepository(
     override suspend fun removeFromIndex(documentId: Long) = writing {
         val shadow = index.shadowOf(documentId)
         val started = clock()
+        val images = index.pageFiles(documentId)
         val removed = index.removeFromIndex(documentId) ?: return@writing
+        pageFiles?.delete(images)
         runStore.edit { it.without(listOfNotNull(documentId, shadow?.id)) }
         logger.i(TAG) { "library out-of-index id=$documentId chunks=$removed in ${clock() - started} ms" }
     }
 
-    /** Rule L6, by state; nothing without the private copy (D10). */
-    override suspend fun reindex(documentId: Long) = writing {
+    /** Rule L6, by state; nothing without the private copy (D10). F19: in [mode], when one is given. */
+    override suspend fun reindex(documentId: Long, mode: IndexMode?) = writing {
         val document = index.document(documentId)?.takeIf { it.replacesId == null } ?: return@writing
         if (!files.exists(document.localPath)) return@writing
+        // Research R10: an image is always pages.
+        val target = (if (DocumentFormat.fromMime(document.mimeType)?.isImage == true) IndexMode.VISUAL else mode)
+            ?.takeIf { it != document.indexMode }
         when (document.status) {
             DocumentStatus.DONE -> {
                 if (index.shadowOf(documentId) != null) return@writing
@@ -231,14 +246,24 @@ class DefaultLibraryRepository(
                 } catch (e: IllegalStateException) {
                     return@writing
                 }
+                target?.let { index.setIndexMode(shadow, it) }
                 indexing.add(shadow)
-                logger.i(TAG) { "library reindex id=$documentId shadow=$shadow" }
+                logger.i(TAG) { "library reindex id=$documentId shadow=$shadow" + (target?.let { " mode=$it" } ?: "") }
             }
-            DocumentStatus.ERROR -> indexing.retry(documentId)
-            DocumentStatus.OUT_OF_INDEX -> {
+            // Analyze H4: no shadow, so the document itself changes mode and goes back to pending.
+            DocumentStatus.ERROR -> if (target == null) {
+                indexing.retry(documentId)
+            } else {
+                index.setIndexMode(documentId, target)
                 index.updateStatus(documentId, DocumentStatus.PENDING)
                 indexing.add(documentId)
-                logger.i(TAG) { "library reindex id=$documentId" }
+                logger.i(TAG) { "library reindex id=$documentId mode=$target" }
+            }
+            DocumentStatus.OUT_OF_INDEX -> {
+                target?.let { index.setIndexMode(documentId, it) }
+                index.updateStatus(documentId, DocumentStatus.PENDING)
+                indexing.add(documentId)
+                logger.i(TAG) { "library reindex id=$documentId" + (target?.let { " mode=$it" } ?: "") }
             }
             else -> Unit
         }
@@ -247,7 +272,9 @@ class DefaultLibraryRepository(
     /** Rule L8: only a failed shadow goes; the original and its copy stay as they are. */
     override suspend fun discardReindex(documentId: Long) = writing {
         val shadow = index.shadowOf(documentId)?.takeIf { it.status == DocumentStatus.ERROR } ?: return@writing
+        val images = index.pageFiles(shadow.id)
         index.deleteDocument(shadow.id)
+        pageFiles?.delete(images)
         runStore.edit { it.without(listOf(shadow.id)) }
         logger.i(TAG) { "library reindex discarded id=$documentId shadow=${shadow.id}" }
     }
@@ -349,6 +376,8 @@ class DefaultLibraryRepository(
         folderId = document.folderId,
         folderName = document.folderName,
         createdAtMs = document.createdAtMs,
+        indexMode = document.indexMode,
+        pages = document.pageCount?.takeIf { document.indexMode.hasPages },
     )
 
     private fun String?.toIngestError(): IngestError = IngestError.fromCode(this) ?: IngestError.EXTRACTION_FAILED

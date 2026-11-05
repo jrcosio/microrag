@@ -1,8 +1,12 @@
 package com.lisdatasolutions.microrag.feature.document
 
+import com.lisdatasolutions.microrag.domain.ingest.DocumentFormat
+import com.lisdatasolutions.microrag.domain.ingest.IngestError
 import com.lisdatasolutions.microrag.domain.library.DocumentDetail
+import com.lisdatasolutions.microrag.domain.library.DocumentDetailState
 import com.lisdatasolutions.microrag.domain.library.DocumentPreview
 import com.lisdatasolutions.microrag.domain.rag.FolderList
+import com.lisdatasolutions.microrag.domain.rag.IndexMode
 
 /** P07 state (F08 contracts/library-ui.md): the document, its preview and what the user is doing with it. */
 data class DocumentUiState(
@@ -22,7 +26,22 @@ data class DocumentUiState(
     /** The open «Mover a carpeta» sheet and the folder chosen in it (null: «General»). */
     val move: MoveSheet? = null,
     val moveMessage: MoveMessage? = null,
-)
+    /** F19 (contracts U12–U14): the multimodal mode is on, so «Reindexar» asks for the mode first. */
+    val multimodalOn: Boolean = false,
+    /** The open mode sheet of «Reindexar documento». */
+    val choosingReindexMode: Boolean = false,
+) {
+    private val detail: DocumentDetail? get() = (content as? DocumentContent.Loaded)?.detail
+
+    /** U12: its pages wait for the mode, which is off. */
+    val pagesNeedMultimodal: Boolean get() = !multimodalOn && (detail?.let { it.indexMode != IndexMode.TEXT && it.pagesStored > 0 } == true)
+
+    /** U14: a PDF without text can be indexed as pages, only with the mode on. */
+    val canReindexAsPages: Boolean
+        get() = multimodalOn && detail?.let {
+            !it.copyMissing && it.format == DocumentFormat.PDF && (it.state as? DocumentDetailState.Failed)?.error == IngestError.NO_TEXT
+        } == true
+}
 
 data class MoveSheet(val selected: Long?)
 

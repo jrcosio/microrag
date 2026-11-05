@@ -217,8 +217,8 @@ class FakeLibraryRepository : LibraryRepository {
         calls += "remove $documentId"
     }
 
-    override suspend fun reindex(documentId: Long) {
-        calls += "reindex $documentId"
+    override suspend fun reindex(documentId: Long, mode: com.lisdatasolutions.microrag.domain.rag.IndexMode?) {
+        calls += if (mode == null) "reindex $documentId" else "reindex $documentId $mode"
     }
 
     override suspend fun discardReindex(documentId: Long) {

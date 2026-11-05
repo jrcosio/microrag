@@ -8,9 +8,12 @@ import androidx.work.ExperimentalConfigurationApi
 import com.lisdatasolutions.microrag.core.di.ApplicationScope
 import com.lisdatasolutions.microrag.core.di.appModules
 import com.lisdatasolutions.microrag.core.locale.AppLocale
+import com.lisdatasolutions.microrag.data.ingest.PageFileStore
 import com.lisdatasolutions.microrag.debug.DebugStrictMode
 import com.lisdatasolutions.microrag.debug.debugModules
 import com.lisdatasolutions.microrag.domain.multimodal.MultimodalController
+import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
+import com.lisdatasolutions.microrag.domain.rag.RagIndex
 import com.lisdatasolutions.microrag.domain.settings.ReconcileThemeUseCase
 import com.lisdatasolutions.microrag.rag.runtime.EngineCoordinator
 import com.lisdatasolutions.microrag.rag.runtime.EngineMemoryCallbacks
@@ -60,6 +63,11 @@ class MicroRagApplication : Application(), Configuration.Provider {
         get<ApplicationScope>().scope.launch { getKoin().get<ReconcileThemeUseCase>()() }
         // F19 research R1: the multimodal mode's activation goes on from its saved stage, also after a closed app.
         get<ApplicationScope>().scope.launch { getKoin().get<MultimodalController>().start() }
+        // F19 contract I7: page images no row names any more (a delete stopped halfway) go at start.
+        get<ApplicationScope>().scope.launch {
+            val index = getKoin().get<RagIndex>()
+            getKoin().get<PageFileStore>().sweepAtStart { if (index.open() == IndexCompatibility.Compatible) index.allPageFiles() else null }
+        }
         // Constitution IV: release engines when the UI is hidden (TRIM_MEMORY_UI_HIDDEN or above), after the
         // listeners (the chat, F11 R8) have stopped what used them.
         registerComponentCallbacks(

@@ -1,5 +1,6 @@
 package com.lisdatasolutions.microrag.domain.library
 
+import com.lisdatasolutions.microrag.domain.rag.IndexMode
 import kotlinx.coroutines.flow.Flow
 
 // The two screens' only way to the Library (F08 contracts/library-api.md), thin like those of F06 and F07.
@@ -35,7 +36,7 @@ class RemoveFromIndexUseCase(private val repository: LibraryRepository) {
 }
 
 class ReindexDocumentUseCase(private val repository: LibraryRepository) {
-    suspend operator fun invoke(documentId: Long) = repository.reindex(documentId)
+    suspend operator fun invoke(documentId: Long, mode: IndexMode? = null) = repository.reindex(documentId, mode)
 }
 
 class DiscardReindexUseCase(private val repository: LibraryRepository) {
