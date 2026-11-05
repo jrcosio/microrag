@@ -52,6 +52,10 @@ data class MultimodalState(
     val downloadPaused: Boolean = false,
     /** The 440M's size, formatted the same way as the model rows (analyze M7). */
     val downloadBytes: Long,
+    /** Downloading without a network: it goes on by itself once online (wireframe §2). */
+    val offline: Boolean = false,
+    /** With [MultimodalError.NO_SPACE]: what is left to free for the rest of the download and the margin. */
+    val missingBytes: Long? = null,
 )
 
 /** The on-device check of research R3: [passed] when [minCosine] reaches the constitution's 0.9999. */

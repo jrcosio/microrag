@@ -113,6 +113,7 @@ import com.lisdatasolutions.microrag.feature.library.LibraryViewModel
 import com.lisdatasolutions.microrag.feature.onboarding.setup.SetupViewModel
 import com.lisdatasolutions.microrag.feature.settings.LanguagesViewModel
 import com.lisdatasolutions.microrag.feature.settings.SettingsViewModel
+import com.lisdatasolutions.microrag.testing.fakeMultimodalSettingsViewModel
 import com.lisdatasolutions.microrag.feature.settings.ThemeViewModel
 import com.lisdatasolutions.microrag.rag.runtime.CompatibilityResult
 import com.lisdatasolutions.microrag.testing.ChatTestGraph
@@ -221,6 +222,7 @@ internal fun settingsViewModels(
             Dispatchers.Unconfined,
         )
     }
+    viewModel { fakeMultimodalSettingsViewModel(savedState = get()) }
     viewModel { LanguagesViewModel(ObserveLanguageSettingsUseCase(language), SaveLanguageSettingsUseCase(language, get()), get()) }
     viewModel { ThemeViewModel(ObserveThemeSettingsUseCase(themeStore), SaveThemeSettingsUseCase(themeStore, themeController, get()), get()) }
     // «Completar configuración» in a model sheet opens the Preparation (F12 S2), over the same fakes.

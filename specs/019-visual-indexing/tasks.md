@@ -168,7 +168,7 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
 ### Pruebas
 
 - [X] T018 [P] [US1] `…/test/…/data/multimodal/DataStoreMultimodalStoreTest.kt`: los valores por defecto (`OFF`, sin error, `BOTH`), la escritura, el fichero corrupto y `write()` que falla.
-- [ ] T019 [P] [US1] `…/test/…/data/multimodal/DefaultMultimodalControllerTest.kt` (M2–M4), con descarga, índice y validador falsos:
+- [X] T019 [P] [US1] `…/test/…/data/multimodal/DefaultMultimodalControllerTest.kt` (M2–M4), con descarga, índice y validador falsos:
   - cada transición de R1;
   - el fallo de identidad borra la 440M y deja la 270M;
   - sin espacio, `NO_SPACE`;
@@ -176,8 +176,8 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
   - un corte en `SWITCHING` antes o después de la transacción se reconcilia al arrancar;
   - reactivar es directo si el índice ya está en la 440M;
   - la ingesta se pausa con `MODEL_SWITCH` y se reanuda.
-- [ ] T020 [P] [US1] `…/test/…/data/multimodal/IdentityValidatorTest.kt` (M5): con embedders falsos, 0,99999 pasa y 0,9998 no; los dos modelos se usan en CPU y uno detrás de otro; el log solo lleva la cifra.
-- [ ] T021 [P] [US1] `…/test/…/feature/settings/MultimodalSettingsViewModelTest.kt` y `SettingsScreenTest` (U1–U4, U7):
+- [X] T020 [P] [US1] `…/test/…/data/multimodal/IdentityValidatorTest.kt` (M5): con embedders falsos, 0,99999 pasa y 0,9998 no; los dos modelos se usan en CPU y uno detrás de otro; el log solo lleva la cifra.
+- [X] T021 [P] [US1] `…/test/…/feature/settings/MultimodalSettingsViewModelTest.kt` y `SettingsScreenTest` (U1–U4, U7):
   - el interruptor en cada etapa;
   - los diálogos;
   - los botones de pausar, reanudar, cancelar y reintentar;
@@ -189,22 +189,22 @@ description: "Lista de tareas de F19 — Indexación visual, modo «Multimodal»
 ### Implementación
 
 - [X] T022 [US1] Almacén y modelos: `…/microrag/domain/multimodal/MultimodalModels.kt` y `…/microrag/data/multimodal/DataStoreMultimodalStore.kt` (`multimodal.preferences_pb`), cableados en `DataModule`. T018 pasa.
-- [ ] T023 [US1] `…/microrag/data/multimodal/IdentityValidator.kt`, con la muestra de T003, y `ValidateIdentityUseCase`. T020 pasa.
-- [ ] T024 [US1] Controlador y casos de uso:
+- [X] T023 [US1] `…/microrag/data/multimodal/IdentityValidator.kt`, con la muestra de T003, y `ValidateIdentityUseCase`. T020 pasa.
+- [X] T024 [US1] Controlador y casos de uso:
   - `…/microrag/data/multimodal/DefaultMultimodalController.kt`, con `start()` llamado desde `MicroRagApplication.onCreate`;
   - `…/microrag/domain/multimodal/MultimodalUseCases.kt`: `Observe`, `Enable`, `Disable`, `Pause`, `Resume`, `CancelDownload` y `SetDefaultImportMode`;
   - Koin en `DomainModule` y `DataModule`;
   - `AppModulesTest` se actualiza.
 
   T019 pasa.
-- [ ] T025 [US1] Ajustes, según el wireframe §1–§3:
+- [X] T025 [US1] Ajustes, según el wireframe §1–§3:
   - `…/microrag/feature/settings/MultimodalSection.kt` y `MultimodalSettingsViewModel.kt`;
   - `SettingsScreen`, con la sección y las filas de modelos del embedder activo;
   - los diálogos.
 
   T021 pasa.
-- [ ] T059 [P] [US1] Prueba instrumentada `…/androidTest/…/data/multimodal/IdentityValidatorDeviceTest.kt` (`@RequiresModels`, analyze, M8): la validación con la 270M y la 440M reales da ≥ 0,9999. Un corte en `VALIDATING` repite la validación al arrancar. Se ejecuta en el emulador con los modelos de desarrollo, si los hay, y en el teléfono **antes** de activar el modo.
-- [ ] T026 [US1] Prueba instrumentada `…/androidTest/…/data/multimodal/MultimodalSwitchTest.kt`:
+- [X] T059 [P] [US1] Prueba instrumentada `…/androidTest/…/data/multimodal/IdentityValidatorDeviceTest.kt` (`@RequiresModels`, analyze, M8): la validación con la 270M y la 440M reales da ≥ 0,9999. Un corte en `VALIDATING` repite la validación al arrancar. Se ejecuta en el emulador con los modelos de desarrollo, si los hay, y en el teléfono **antes** de activar el modo.
+- [X] T026 [US1] Prueba instrumentada `…/androidTest/…/data/multimodal/MultimodalSwitchTest.kt`:
   - con un `TempRagIndex` de la 270M y los ficheros de modelo falsos, el cambio de `rag_meta` y el borrado de la 270M;
   - un proceso matado entre los pasos 2 y 4 (simulado) deja el índice abriéndose y buscando;
   - las búsquedas dan los mismos ids antes y después (SC-002).

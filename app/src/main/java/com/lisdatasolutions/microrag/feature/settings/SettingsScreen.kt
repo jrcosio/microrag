@@ -66,6 +66,8 @@ fun SettingsScreen(
     actions: SettingsActions,
     modifier: Modifier = Modifier,
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
+    multimodal: MultimodalUiState = MultimodalUiState(),
+    multimodalActions: MultimodalActions = MultimodalActions(),
 ) {
     val colors = LisdataTheme.colors
     val spacing = LisdataTheme.spacing
@@ -81,7 +83,11 @@ fun SettingsScreen(
                 verticalArrangement = Arrangement.spacedBy(spacing.space4),
             ) {
                 Headline()
-                Section(stringResource(R.string.settings_section_ai)) {
+                Section(
+                    stringResource(R.string.settings_section_ai),
+                    // F19 (wireframe §1): the multimodal mode, under the models it changes.
+                    below = { MultimodalSection(multimodal, multimodalActions) },
+                ) {
                     ModelRow(ModelId.GEMMA4_E2B, state.models, actions.onOpenModel)
                     LisdataDivider()
                     // F19 (contract U1): the text embedder the index uses, the 270M or the 440M.
@@ -137,6 +143,8 @@ fun SettingsScreen(
     }
     state.confirmClear?.let { ClearHistoryDialog(it, actions) }
     Notices(state.message, snackbarHostState, actions.onMessageShown)
+    MultimodalDialogs(multimodal, multimodalActions)
+    MultimodalNotice(multimodal.enabledNotice, snackbarHostState, multimodalActions.onNoticeShown)
     val sheet = state.openSheet?.let { id -> state.models.firstOrNull { it.id == id } }
     if (sheet != null) {
         ModelSheet(
@@ -208,10 +216,11 @@ private fun Headline() {
 }
 
 @Composable
-private fun Section(title: String, content: @Composable () -> Unit) {
+private fun Section(title: String, below: (@Composable () -> Unit)? = null, content: @Composable () -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(LisdataTheme.spacing.space2)) {
         LisdataSectionHeader(text = title)
         LisdataCardGroup { content() }
+        below?.invoke()
     }
 }
 

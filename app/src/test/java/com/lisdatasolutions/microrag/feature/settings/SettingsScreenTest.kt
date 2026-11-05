@@ -6,10 +6,15 @@ import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertIsOff
+import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
@@ -22,6 +27,8 @@ import com.lisdatasolutions.microrag.domain.model.ComputeBackend
 import com.lisdatasolutions.microrag.domain.model.ModelCatalog
 import com.lisdatasolutions.microrag.domain.model.ModelId
 import com.lisdatasolutions.microrag.domain.model.ModelSetupStatus
+import com.lisdatasolutions.microrag.domain.multimodal.MultimodalError
+import com.lisdatasolutions.microrag.domain.multimodal.MultimodalStage
 import com.lisdatasolutions.microrag.domain.rag.RagParameters
 import com.lisdatasolutions.microrag.domain.settings.AppLanguage
 import com.lisdatasolutions.microrag.domain.settings.ModelOverview
@@ -65,8 +72,19 @@ class SettingsScreenTest {
     private val gemmaGpu = overview(ModelId.GEMMA4_E2B, ModelSetupStatus.Ready(ComputeBackend.GPU, ModelCatalog.byId(ModelId.GEMMA4_E2B).sizeBytes))
     private val embeddingCpu = overview(ModelId.EG2_270M, ModelSetupStatus.Ready(ComputeBackend.CPU, ModelCatalog.byId(ModelId.EG2_270M).sizeBytes))
 
-    private fun show(state: SettingsUiState) {
-        compose.setContent { LisdataTheme { SettingsScreen(state = state, actions = actions) } }
+    private val multimodalActions = MultimodalActions(
+        onToggle = { calls += "toggle:$it" },
+        onConfirmEnable = { calls += "enable" },
+        onConfirmDisable = { calls += "disable" },
+        onDismissDialog = { calls += "dismissDialog" },
+        onAction = { calls += "action:$it" },
+        onNoticeShown = { calls += "noticeShown" },
+    )
+
+    private fun show(state: SettingsUiState, multimodal: MultimodalUiState = MultimodalUiState()) {
+        compose.setContent {
+            LisdataTheme { SettingsScreen(state = state, actions = actions, multimodal = multimodal, multimodalActions = multimodalActions) }
+        }
     }
 
     private fun showSheet(model: ModelOverview) {
@@ -75,6 +93,97 @@ class SettingsScreenTest {
 
     private fun scrollTo(text: String) {
         compose.onNode(hasScrollAction()).performScrollToNode(hasText(text, substring = true))
+    }
+
+    /** F19 T021 (contract U1): the 440M's row replaces the 270M's once the mode switched to it. */
+    @Test
+    fun the440MRow_replacesThe270M() {
+        val embedding440 = overview(ModelId.EG2_440M, ModelSetupStatus.Ready(ComputeBackend.CPU, ModelCatalog.byId(ModelId.EG2_440M).sizeBytes))
+        show(SettingsUiState(models = listOf(gemmaGpu, embedding440)), MultimodalUiState(stage = MultimodalStage.ON))
+
+        compose.onNodeWithText("Modelo de embeddings", useUnmergedTree = true).performClick()
+
+        assertThat(calls).containsExactly("open:EG2_440M")
+    }
+
+    /** F19 T021 (wireframe §1, contract U2): off, the switch under the models with its subtitle. */
+    @Test
+    fun off_theSwitchAsksToTurnItOn() {
+        show(SettingsUiState(models = listOf(gemmaGpu, embeddingCpu)))
+        scrollTo("Modo multimodal")
+
+        compose.onNode(isToggleable()).assertIsOff().assertIsEnabled()
+        compose.onNodeWithText("Lee también páginas e imágenes. Respuestas más lentas.", useUnmergedTree = true).assertExists()
+        compose.onNode(isToggleable()).performClick()
+
+        assertThat(calls).containsExactly("toggle:true")
+    }
+
+    /** F19 T021 (wireframe §2): the stage is the switch's subtitle, with the real bar and its buttons. */
+    @Test
+    fun downloading_showsThePercentAndItsButtons_andLocksTheSwitch() {
+        show(
+            SettingsUiState(models = listOf(gemmaGpu, embeddingCpu)),
+            MultimodalUiState(stage = MultimodalStage.DOWNLOADING, percent = 45),
+        )
+        scrollTo("Cancelar")
+
+        compose.onNode(isToggleable()).assertIsOn().assertIsNotEnabled()
+        compose.onNodeWithText("Descargando el modelo · 45 %", useUnmergedTree = true).assertExists()
+        compose.onNodeWithText("Pausar").performClick()
+        compose.onNodeWithText("Cancelar").performClick()
+
+        assertThat(calls).containsExactly("action:PAUSE", "action:CANCEL").inOrder()
+    }
+
+    @Test
+    fun aFailedCheck_saysWhy_withAceptar() {
+        show(
+            SettingsUiState(models = listOf(gemmaGpu, embeddingCpu)),
+            MultimodalUiState(stage = MultimodalStage.OFF, error = MultimodalError.IDENTITY_MISMATCH),
+        )
+        scrollTo("Aceptar")
+
+        compose.onNodeWithText("Este modelo no es compatible con tu teléfono", useUnmergedTree = true).assertExists()
+        compose.onNode(isToggleable()).assertIsOff()
+        compose.onNodeWithText("Aceptar").performClick()
+
+        assertThat(calls).containsExactly("action:OK")
+    }
+
+    /** F19 T021 (contract U3): not destructive, with the four points and the 440M's size. */
+    @Test
+    fun theEnableDialog_listsWhatChanges() {
+        show(SettingsUiState(models = listOf(gemmaGpu, embeddingCpu)), MultimodalUiState(dialog = MultimodalDialog.ENABLE))
+
+        compose.onNodeWithText("¿Activar el modo multimodal?").assertExists()
+        for (text in listOf("• Descarga un modelo de", "• Cada página tarda unos 3 s", "• Las respuestas que miran páginas", "• Tus documentos de texto")) {
+            compose.onNodeWithText(text, substring = true).assertExists()
+        }
+        compose.onNodeWithText("Activar").performClick()
+
+        assertThat(calls).containsExactly("enable")
+    }
+
+    /** F19 T021 (contract U4): pages and models stay. */
+    @Test
+    fun theDisableDialog_saysEverythingStays() {
+        show(SettingsUiState(models = listOf(gemmaGpu, embeddingCpu)), MultimodalUiState(stage = MultimodalStage.ON, dialog = MultimodalDialog.DISABLE))
+
+        compose.onNodeWithText("¿Desactivar el modo multimodal?").assertExists()
+        compose.onNodeWithText("se conservan", substring = true).assertExists()
+        compose.onNodeWithText("Desactivar").performClick()
+
+        assertThat(calls).containsExactly("disable")
+    }
+
+    /** F19 T021 (contract U7): once, then consumed. */
+    @Test
+    fun reachingOn_isAnnounced() {
+        show(SettingsUiState(models = listOf(gemmaGpu, embeddingCpu)), MultimodalUiState(stage = MultimodalStage.ON, enabledNotice = true))
+
+        compose.onNodeWithText("Modo multimodal activado").assertExists()
+        assertThat(calls).containsExactly("noticeShown")
     }
 
     @Test

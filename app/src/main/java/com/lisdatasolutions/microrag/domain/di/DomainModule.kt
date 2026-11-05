@@ -49,8 +49,18 @@ import com.lisdatasolutions.microrag.domain.library.ReindexDocumentUseCase
 import com.lisdatasolutions.microrag.domain.library.RemoveFromIndexUseCase
 import com.lisdatasolutions.microrag.domain.library.RenameFolderUseCase
 import com.lisdatasolutions.microrag.domain.library.SetIncludedUseCase
+import com.lisdatasolutions.microrag.domain.multimodal.CancelMultimodalDownloadUseCase
 import com.lisdatasolutions.microrag.domain.multimodal.DefaultModelRequirements
+import com.lisdatasolutions.microrag.domain.multimodal.DisableMultimodalUseCase
+import com.lisdatasolutions.microrag.domain.multimodal.DismissMultimodalErrorUseCase
+import com.lisdatasolutions.microrag.domain.multimodal.EnableMultimodalUseCase
 import com.lisdatasolutions.microrag.domain.multimodal.ModelRequirements
+import com.lisdatasolutions.microrag.domain.multimodal.ObserveMultimodalUseCase
+import com.lisdatasolutions.microrag.domain.multimodal.PauseMultimodalDownloadUseCase
+import com.lisdatasolutions.microrag.domain.multimodal.ResumeMultimodalDownloadUseCase
+import com.lisdatasolutions.microrag.domain.multimodal.RetryMultimodalUseCase
+import com.lisdatasolutions.microrag.domain.multimodal.SetDefaultImportModeUseCase
+import com.lisdatasolutions.microrag.domain.multimodal.ValidateIdentityUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.BuildDownloadConfirmationUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.CompleteOnboardingUseCase
 import com.lisdatasolutions.microrag.domain.onboarding.ImportModelFileUseCase
@@ -83,6 +93,17 @@ val domainModule = module {
     singleOf(::LocalModelWorkTracker)
     // F19 research R5: the models required now, from the index's text embedder and the mode's stage.
     single<ModelRequirements> { DefaultModelRequirements(get(), get()) }
+    // F19: the multimodal mode in Ajustes (contract M1–M5).
+    factoryOf(::ObserveMultimodalUseCase)
+    factoryOf(::EnableMultimodalUseCase)
+    factoryOf(::DisableMultimodalUseCase)
+    factoryOf(::RetryMultimodalUseCase)
+    factoryOf(::CancelMultimodalDownloadUseCase)
+    factoryOf(::PauseMultimodalDownloadUseCase)
+    factoryOf(::ResumeMultimodalDownloadUseCase)
+    factoryOf(::SetDefaultImportModeUseCase)
+    factoryOf(::DismissMultimodalErrorUseCase)
+    factoryOf(::ValidateIdentityUseCase)
     factoryOf(::ResolveStartDestinationUseCase)
     factoryOf(::StartOnboardingUseCase)
     factoryOf(::ObserveModelSetupUseCase)

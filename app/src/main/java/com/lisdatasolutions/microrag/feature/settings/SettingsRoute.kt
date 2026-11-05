@@ -16,8 +16,10 @@ fun SettingsRoute(
     onTheme: () -> Unit,
     onIndex: () -> Unit,
     viewModel: SettingsViewModel = koinViewModel(),
+    multimodalViewModel: MultimodalSettingsViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val multimodal by multimodalViewModel.state.collectAsStateWithLifecycle()
     // Back to the screen, or to the app: a model file may have changed meanwhile (P13).
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.onResume() }
     SettingsScreen(
@@ -34,6 +36,15 @@ fun SettingsRoute(
             onConfirmClear = viewModel::onConfirmClear,
             onDismissClear = viewModel::onDismissClear,
             onMessageShown = viewModel::onMessageShown,
+        ),
+        multimodal = multimodal,
+        multimodalActions = MultimodalActions(
+            onToggle = multimodalViewModel::onToggle,
+            onConfirmEnable = multimodalViewModel::onConfirmEnable,
+            onConfirmDisable = multimodalViewModel::onConfirmDisable,
+            onDismissDialog = multimodalViewModel::onDismissDialog,
+            onAction = multimodalViewModel::onAction,
+            onNoticeShown = multimodalViewModel::onNoticeShown,
         ),
     )
 }

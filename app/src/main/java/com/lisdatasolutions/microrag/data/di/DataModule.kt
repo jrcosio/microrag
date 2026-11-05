@@ -42,6 +42,8 @@ import com.lisdatasolutions.microrag.data.models.ContentResolverModelFileSource
 import com.lisdatasolutions.microrag.data.models.DefaultModelFileRepository
 import com.lisdatasolutions.microrag.data.models.ModelFileRepository
 import com.lisdatasolutions.microrag.data.multimodal.DataStoreMultimodalStore
+import com.lisdatasolutions.microrag.data.multimodal.DefaultMultimodalController
+import com.lisdatasolutions.microrag.data.multimodal.IdentityValidator
 import com.lisdatasolutions.microrag.data.onboarding.DataStoreOnboardingStore
 import com.lisdatasolutions.microrag.data.rag.DefaultRagIndex
 import com.lisdatasolutions.microrag.data.rag.RagSchema
@@ -59,7 +61,9 @@ import com.lisdatasolutions.microrag.domain.ingest.ImportQueueRepository
 import com.lisdatasolutions.microrag.domain.library.LibraryRepository
 import com.lisdatasolutions.microrag.domain.model.ModelId
 import com.lisdatasolutions.microrag.domain.model.NetworkKind
+import com.lisdatasolutions.microrag.domain.multimodal.IdentityChecker
 import com.lisdatasolutions.microrag.domain.multimodal.ModelRequirements
+import com.lisdatasolutions.microrag.domain.multimodal.MultimodalController
 import com.lisdatasolutions.microrag.domain.multimodal.MultimodalStore
 import com.lisdatasolutions.microrag.domain.onboarding.DeviceResources
 import com.lisdatasolutions.microrag.domain.onboarding.ModelDownloadController
@@ -75,6 +79,8 @@ import com.lisdatasolutions.microrag.rag.runtime.MemoryTrimListener
 import java.io.File
 import kotlinx.coroutines.flow.first
 import org.koin.android.ext.koin.androidContext
+import org.koin.core.module.dsl.bind
+import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.binds
 import org.koin.dsl.module
 
@@ -96,6 +102,12 @@ val dataModule = module {
     single<AppThemeStore> { DataStoreAppThemeStore.create(androidContext().noBackupFilesDir, get<ApplicationScope>().scope, get()) }
     // F19: the multimodal mode's copy, with the mirror of the index's text embedder (data-model §3).
     single<MultimodalStore> { DataStoreMultimodalStore.create(androidContext().noBackupFilesDir, get<ApplicationScope>().scope, get()) }
+    // F19 research R1, R3: the mode's activation, one for the app, and the identity check before the switch.
+    single<IdentityChecker> {
+        val assets = androidContext().assets
+        IdentityValidator(coordinator = get(), factory = get(), models = get(), texts = { IdentityValidator.load(assets) }, logger = get())
+    }
+    singleOf(::DefaultMultimodalController) { bind<MultimodalController>() }
     single<DeviceResources> { AndroidDeviceResources(androidContext(), get(), androidContext().noBackupFilesDir) }
     single<ModelFileSource> { ContentResolverModelFileSource(androidContext().contentResolver) }
 
