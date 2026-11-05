@@ -29,7 +29,13 @@ fun sizeText(bytes: Long?): String? = bytes?.let { Formatter.formatShortFileSize
 fun QueueItem.pagesEstimate(): String? {
     val pages = pageCount?.takeIf { it > 0 && indexMode.hasPages } ?: return null
     if (state !is QueueItemState.Ready && state !is QueueItemState.Queued && state !is QueueItemState.Prepared) return null
-    val time = stringResource(R.string.ingest_pages_estimate_time, durationText((pages * PAGE_SECONDS).toLong()))
+    val seconds = (pages * PAGE_SECONDS).toLong()
+    // «menos de 1 min» needs no «unos» in front.
+    val time = if (seconds < 60) {
+        stringResource(R.string.index_duration_less_than_a_minute)
+    } else {
+        stringResource(R.string.ingest_pages_estimate_time, durationText(seconds))
+    }
     val size = sizeText(pages * PAGE_BYTES).orEmpty()
     return pluralStringResource(R.plurals.ingest_pages_estimate, pages, pages.grouped(), time, size)
 }
@@ -196,7 +202,11 @@ fun QueueItem.accessibilityText(): String {
     val percent = (state.progress() as? ProgressValue.Determinate)
         ?.takeIf { state is QueueItemState.Importing }
         ?.let { stringResource(R.string.ingest_progress_percent, it.percent) }
-    // F17 K6: and where it goes.
+    // F17 K6: and where it goes. F19 (contract §4): and its mode and pages, as the row shows them.
     val folder = folderName ?: stringResource(R.string.library_folder_general)
-    return stringResource(R.string.ingest_row_description, displayName, listOfNotNull(detail, percent, folder).joinToString(", "))
+    return stringResource(
+        R.string.ingest_row_description,
+        displayName,
+        listOfNotNull(detail, percent, folder, modeChip(), pagesEstimate()).joinToString(", "),
+    )
 }

@@ -118,6 +118,25 @@ class IngestScreenTest {
         compose.onAllNodesWithText("Texto", useUnmergedTree = true).assertCountEquals(0)
     }
 
+    /** Found in the emulator walkthrough: TalkBack reads the mode and the estimate, and a short one has no «unos». */
+    @Test
+    fun aRowWithPages_isReadWithItsModeAndEstimate() {
+        show(
+            IngestPreviewData.png.copy(
+                multimodalOn = true,
+                queue = ImportQueue(
+                    items = listOf(
+                        QueueItem(QueueKey.Document(1), "foto.png", 151, DocumentFormat.PNG, QueueItemState.Ready, indexMode = IndexMode.VISUAL, pageCount = 1),
+                    ),
+                    readyCount = 1, pdfSupported = true, indexAvailable = true, canStart = true,
+                ),
+            ),
+        )
+
+        compose.onNode(hasContentDescription("Visual", substring = true) and hasContentDescription("1 página · menos de 1 min", substring = true))
+            .assertExists()
+    }
+
     @Test
     fun anImageWithTheModeOff_saysWhy() {
         show(
