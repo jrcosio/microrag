@@ -10,6 +10,7 @@ import com.lisdatasolutions.microrag.domain.onboarding.ObserveLocalAiUseCase
 import com.lisdatasolutions.microrag.domain.rag.ChatLibraryState
 import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
 import com.lisdatasolutions.microrag.domain.rag.IndexUnavailableException
+import com.lisdatasolutions.microrag.domain.rag.PageKey
 import com.lisdatasolutions.microrag.domain.rag.RagIndex
 import com.lisdatasolutions.microrag.domain.rag.SearchScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -253,16 +254,23 @@ class ResolveSourcesUseCase(private val index: RagIndex) {
             .catch { error -> if (error is IndexUnavailableException) emit(sources.associateWith { SourceAvailability.AVAILABLE }) else throw error }
             .distinctUntilChanged()
 
-    /** By cited source, not by chunk: the same chunk id may be two documents' at two times (Q15). */
+    /**
+     * By cited source, not by chunk: the same chunk id may be two documents' at two times (Q15). F20 (contract H3,
+     * H4): a page or an image is looked for in the stored pages, whatever the mode.
+     */
     private suspend fun resolve(cited: List<CitedSource>): Map<CitedSource, SourceAvailability> {
         if (index.open() != IndexCompatibility.Compatible) return cited.associateWith { SourceAvailability.AVAILABLE }
         val created = cited.map { it.source.documentId }.distinct().associateWith { index.document(it)?.createdAtMs }
-        val chunks = index.loadChunks(cited.map { it.source.chunkId })
+        val (fragments, pages) = cited.partition { it.source.kind == SourceKind.FRAGMENT }
+        val chunks = if (fragments.isEmpty()) emptyMap() else index.loadChunks(fragments.map { it.source.chunkId })
+        val stored = if (pages.isEmpty()) emptySet() else index.existingPages(pages.map { PageKey(it.source.documentId, it.source.page ?: 0) })
         return cited.associateWith { (source, citedAt) ->
             val documentCreated = created[source.documentId]
             when {
                 // F13 Q15: rag.db reuses the id of a deleted last document; one created after the answer is another.
                 documentCreated == null || documentCreated > citedAt -> SourceAvailability.DOCUMENT_GONE
+                source.kind != SourceKind.FRAGMENT ->
+                    if (PageKey(source.documentId, source.page ?: 0) in stored) SourceAvailability.AVAILABLE else SourceAvailability.PAGE_GONE
                 chunks[source.chunkId]?.documentId != source.documentId -> SourceAvailability.FRAGMENT_GONE
                 else -> SourceAvailability.AVAILABLE
             }

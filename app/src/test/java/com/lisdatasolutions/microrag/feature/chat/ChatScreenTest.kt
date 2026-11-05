@@ -18,6 +18,7 @@ import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertHasNoClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsFocused
@@ -809,5 +810,24 @@ class ChatScreenTest {
         show(readingPage)
 
         exists("Reading 1 page · about 11.5 s…")
+    }
+
+    // F20 T044 (contract U5): a page of a deleted document is inert and grey, without its thumbnail.
+
+    @Test
+    fun aPageOfADeletedDocument_isUnavailable_andAsksForNoThumbnail() {
+        val gone = ChatPreviewData.reportPage.copy(citation = ChatPreviewData.reportPage.citation.copy(available = false))
+        val asked = mutableListOf<SourceTarget>()
+        compose.setContent {
+            LisdataTheme {
+                ChatScreen(
+                    withPages.copy(turns = listOf(withPages.turns.single().copy(sources = listOf(gone), chipTargets = listOf(null)))),
+                    actions.copy(loadThumbnail = { asked += it; null }),
+                )
+            }
+        }
+
+        row("Fuente 2: informe-ine.pdf, Fuente ya no disponible").assertExists().assertHasNoClickAction()
+        assertThat(asked).isEmpty()
     }
 }

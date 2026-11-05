@@ -5,6 +5,7 @@ import com.lisdatasolutions.microrag.domain.rag.ChunkInput
 import com.lisdatasolutions.microrag.domain.rag.DocumentStatus
 import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
 import com.lisdatasolutions.microrag.domain.rag.NewDocument
+import com.lisdatasolutions.microrag.domain.rag.PageInput
 import com.lisdatasolutions.microrag.testing.FakeRagIndex
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.toList
@@ -92,5 +93,45 @@ class ResolveSourcesUseCaseTest {
 
         assertThat(resolve(listOf(source(id, chunk, citedAt = 4_000L))).first().values.single()).isEqualTo(SourceAvailability.DOCUMENT_GONE)
         assertThat(resolve(listOf(source(id, chunk, citedAt = 6_000L))).first().values.single()).isEqualTo(SourceAvailability.AVAILABLE)
+    }
+
+    // F20 T042 (contract H3, H4; research R10).
+
+    private suspend fun withPages(name: String, vararg pages: Int, mime: String = "application/pdf"): Long {
+        val id = index.addDocument(NewDocument(displayName = name, contentHash = name, mimeType = mime))
+        pages.forEach { index.insertPage(id, PageInput(it, "$id-$it.jpg", 10, 10, 1, FloatArray(256))) }
+        index.updateStatus(id, DocumentStatus.DONE, null, 0, null)
+        return id
+    }
+
+    private fun pageSource(documentId: Long, page: Int, kind: SourceKind = SourceKind.PAGE, citedAt: Long = 9_999L) =
+        CitedSource(AnswerSource(1, 2, documentId, 0, 0, 0, "Informe.pdf", page, kind), citedAt)
+
+    @Test
+    fun aCitedPage_isAvailable_gone_orItsDocumentGone() = runTest {
+        val kept = withPages("Informe.pdf", 1, 4)
+        val deleted = withPages("Viejo.pdf", 2)
+        val poster = withPages("cartel.jpg", 1, mime = "image/jpeg")
+        val sources = listOf(
+            pageSource(kept, 4), pageSource(kept, 9), pageSource(deleted, 2), pageSource(poster, 1, SourceKind.IMAGE),
+            source(kept, 12345L),
+        )
+        index.deleteDocument(deleted)
+
+        assertThat(resolve(sources).first()).containsExactly(
+            sources[0], SourceAvailability.AVAILABLE,
+            sources[1], SourceAvailability.PAGE_GONE,
+            sources[2], SourceAvailability.DOCUMENT_GONE,
+            sources[3], SourceAvailability.AVAILABLE,
+            sources[4], SourceAvailability.FRAGMENT_GONE,
+        )
+    }
+
+    @Test
+    fun aPageOfADocumentCreatedAfterTheAnswer_isNotItsSource() = runTest {
+        index.now = 5_000L
+        val id = withPages("Informe.pdf", 4)
+
+        assertThat(resolve(listOf(pageSource(id, 4, citedAt = 4_000L))).first().values.single()).isEqualTo(SourceAvailability.DOCUMENT_GONE)
     }
 }

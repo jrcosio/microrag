@@ -356,17 +356,17 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
 
 ### Pruebas
 
-- [ ] T042 [P] [US6] `…/test/…/domain/chat/ResolveSourcesUseCaseTest.kt` (H3, H4):
+- [X] T042 [P] [US6] `…/test/…/domain/chat/ResolveSourcesUseCaseTest.kt` (H3, H4):
   - una página o una imagen de un documento borrado da `DOCUMENT_GONE`;
   - un documento creado después de la respuesta, también;
   - una página que ya no está da `PAGE_GONE`;
   - con el modo apagado, una página existente sigue `AVAILABLE`.
-- [ ] T043 [P] [US6] `…/androidTest/…/data/chat/SqliteChatRepositoryTest.kt` (H1, H2): ida y vuelta de las fuentes de página y de `page_tokens`, el orden mezclado y las conversaciones de antes de la v3.
-- [ ] T044 [P] [US6] `ChatScreenTest` (U5): una tarjeta de página con `DOCUMENT_GONE` en gris y sin poder pulsarse; con `PAGE_GONE`, se puede pulsar.
+- [X] T043 [P] [US6] `…/androidTest/…/data/chat/SqliteChatRepositoryTest.kt` (H1, H2): ida y vuelta de las fuentes de página y de `page_tokens`, el orden mezclado y las conversaciones de antes de la v3.
+- [X] T044 [P] [US6] `ChatScreenTest` (U5): una tarjeta de página con `DOCUMENT_GONE` en gris y sin poder pulsarse; con `PAGE_GONE`, se puede pulsar.
 
 ### Implementación
 
-- [ ] T045 [US6] `ResolveSourcesUseCase` con `existingPages` en `…/microrag/domain/chat/ChatUseCases.kt`, y `PAGE_GONE` en la UI del chat y en la navegación al detalle. T042 a T044 pasan.
+- [X] T045 [US6] `ResolveSourcesUseCase` con `existingPages` en `…/microrag/domain/chat/ChatUseCases.kt`, y `PAGE_GONE` en la UI del chat y en la navegación al detalle. T042 a T044 pasan.
 
 **Checkpoint:** el Historial conserva las citas a página y dice si ya no están.
 
