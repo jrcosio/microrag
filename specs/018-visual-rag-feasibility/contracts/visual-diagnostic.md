@@ -59,7 +59,7 @@ data class EncodedImage(val bytes: ByteArray, val widthPx: Int, val heightPx: In
 ```
 
 - **Generación:** `VisionGenerator.generate` fija `ExperimentalFlags.visualTokenBudget` y lo restaura en `finally`, en la cola del LLM. Con `null`, deja el valor por defecto del fichero.
-- **Motor:** la implementación crea `EngineConfig(path, backend = GPU, visionBackend = CPU, audioBackend = null, maxNumTokens = 4096, maxNumImages = …, cacheDir)`.
+- **Motor:** la implementación crea `EngineConfig(path, backend = GPU, visionBackend = CPU, audioBackend = null, maxNumTokens = 8192, maxNumImages = …, cacheDir)`. La ventana es de 8.192 y no de 4.096: el texto de D-034 del corpus visual, lleno de cifras, cuesta unas 2,2 veces su estimación, y tres páginas en trozos suman 1.680 tokens. El escritorio usa la misma.
 - **Embedder:** `EmbeddingEngineConfig(path, backend = CPU, visionBackend = CPU, …, visionTokensPerImage = …)`, con `EmbeddingOptions(normalize = false, visionTokensPerImage = …)`.
 - **Errores:** como en `FeasibilitySuite.scenario` de F02, un error en GPU queda como `NOT_AVAILABLE` y cualquier otro como `FAILED`. Una combinación que el fichero no admite, por ejemplo un presupuesto mayor que su máximo, se marca `NOT_SUPPORTED` sin cargar nada.
 - **Coordinación:** cada engine se usa con `EngineCoordinator.withEngine(EngineKey(model, backend)) { … }`, así que nunca hay dos en GPU (FR-016).

@@ -18,13 +18,13 @@ import com.google.ai.edge.litertlm.Modality
 import com.google.ai.edge.litertlm.ModelInfo
 import com.google.ai.edge.litertlm.SamplerConfig
 import com.lisdatasolutions.microrag.core.dispatchers.AppDispatchers
-import com.lisdatasolutions.microrag.debug.feasibility.MeasurementProtocol
 import com.lisdatasolutions.microrag.debug.feasibility.visual.ImageEmbedder
 import com.lisdatasolutions.microrag.debug.feasibility.visual.VisionEngineFactory
 import com.lisdatasolutions.microrag.debug.feasibility.visual.VisionGeneration
 import com.lisdatasolutions.microrag.debug.feasibility.visual.VisionGenerator
 import com.lisdatasolutions.microrag.debug.feasibility.visual.VisionModelInfo
 import com.lisdatasolutions.microrag.debug.feasibility.visual.VisionPart
+import com.lisdatasolutions.microrag.debug.feasibility.visual.VisualProtocol
 import com.lisdatasolutions.microrag.domain.model.ComputeBackend
 import com.lisdatasolutions.microrag.domain.model.ModelFile
 import com.lisdatasolutions.microrag.domain.model.ModelId
@@ -98,7 +98,7 @@ internal class LiteRtVisionGenerator(
                 modelPath = modelPath.path,
                 backend = backend.toLiteRt(),
                 visionBackend = visionBackend.toLiteRt(),
-                maxNumTokens = MeasurementProtocol.GENERATION_MAX_NUM_TOKENS,
+                maxNumTokens = VisualProtocol.MAX_NUM_TOKENS,
                 maxNumImages = maxNumImages,
                 cacheDir = cacheDir.path,
             ),

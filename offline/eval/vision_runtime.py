@@ -11,12 +11,15 @@ import ctypes
 import time
 from dataclasses import dataclass
 
-from eval.generate import GREEDY, MAX_NUM_TOKENS
+from eval.generate import GREEDY
 
 # Vision signatures of gemma-4-E2B-it.litertlm (ModelInfo, research R2); 280 is its maximum.
 GEMMA_BUDGETS = (70, 140, 280)
 # Vision signatures of embeddinggemma-2-text-vision-440m.litertlm.
 EMBEDDER_TOKENS = (70, 140)
+# Gemma's window with pages: the visual corpus is full of figures, so its D-034 text costs about 2.2 times its
+# estimate (3,471 real tokens for 1,542), and three pages in tiles add 1,680. The text path keeps 4,096.
+MAX_NUM_TOKENS = 8192
 
 _current_budget = None
 

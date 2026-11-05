@@ -57,6 +57,12 @@ object VisualProtocol {
     /** Three pages split in two tiles. */
     const val MAX_NUM_IMAGES = 6
 
+    /**
+     * Gemma's window with pages: the visual corpus is full of figures, so its D-034 text costs about 2.2 times
+     * its estimate (3,471 real tokens for 1,542), and three pages in tiles add 1,680. The text path keeps 4,096.
+     */
+    const val MAX_NUM_TOKENS = 8192
+
     val GENERATION = MeasurementProtocol(warmup = 1, measured = 3, maxOutputTokens = 64)
     val EMBEDDING = MeasurementProtocol.EMBEDDING
     const val STAGE_B_QUESTIONS = 20
