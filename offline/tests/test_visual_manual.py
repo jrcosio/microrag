@@ -100,8 +100,8 @@ class ReportTest(unittest.TestCase):
         self.assertIn("Pendiente", "\n".join(visual_report.retrieval_section(None, None)))
 
     def test_parity_lines(self):
-        parity = {"same_bytes": {"n": 20, "min": 0.9951, "mean": 0.998, "threshold": 0.99, "below": []},
-                  "rendered_pages": {"n": 10, "min": 0.97, "mean": 0.985},
+        parity = {"vectors": {"same_bytes": {"n": 20, "min": 0.9951, "mean": 0.998, "threshold": 0.99, "below": []},
+                              "rendered_pages": {"n": 10, "min": 0.97, "mean": 0.985}},
                   "reading": {"n": 12, "phone_correct": 9, "desktop_correct": 10, "same_verdict": 11}}
         text = "\n".join(visual_report.phone_section(parity))
         self.assertIn("coseno mínimo 0.9951", text)

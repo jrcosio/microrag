@@ -104,7 +104,8 @@ def phone_section(parity):
     lines = ["## 4. Paridad con el teléfono y prueba de lectura", ""]
     if parity is None:
         return lines + ["Pendiente de la fase del teléfono (T056).", ""]
-    same, rendered, reading = parity["same_bytes"], parity["rendered_pages"], parity.get("reading")
+    vectors = parity["vectors"]
+    same, rendered, reading = vectors["same_bytes"], vectors["rendered_pages"], parity.get("reading")
     lines += [f"- Mismos bytes: {same['n']} vectores, coseno mínimo {num(same['min'], 4)} y medio {num(same['mean'], 4)} "
               f"(umbral {same['threshold']}); por debajo: {', '.join(same['below']) or 'ninguno'}.",
               f"- Páginas rasterizadas en cada lado: {rendered['n']} vectores, coseno mínimo {num(rendered['min'], 4)} y medio "

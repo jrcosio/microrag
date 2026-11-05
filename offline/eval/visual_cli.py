@@ -188,14 +188,15 @@ def visual_decide(args):
         print(json.dumps({"candidates": chosen, "stage_a_e2e_ms": {k: round(visual_rules.e2e_ms(rules, v, *queries), 1)
                                                                     for k, v in stage_a.items()}}))
         return
-    options = _pairs(args[1:], {"golden": "", "manual": ""}) if args and not args[0].startswith("--") else None
+    options = _pairs(args[1:], {"golden": "", "queries": ""}) if args and not args[0].startswith("--") else None
     if options is None or not options["golden"]:
         raise SystemExit("visual-decide: use --stage retrieval, --stage candidates <stage-A report> or "
-                         "<report.json> golden=<variant-golden.json>")
+                         "<stage-B report> golden=<variant-golden.json> [queries=<report with EMBED_TEXT>]")
     from eval import visual_manual, visual_text_loss
 
     report = json.loads(Path(args[0]).read_text())
-    queries = visual_rules.phone_queries(report)
+    # Stage B runs GEMMA_PAGES alone: the query p95 of both embedders comes from the stage-A report.
+    queries = visual_rules.phone_queries(json.loads(Path(options["queries"]).read_text()) if options["queries"] else report)
     final = visual_rules.choose_final(answers, visual_rules.phone_stage(report, "B"), queries, rules)
     golden = visual_rules.golden_from(json.loads(Path(options["golden"]).read_text()))
     decisive = None

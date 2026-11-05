@@ -196,10 +196,10 @@ description: "Lista de tareas de F18 — Viabilidad del RAG visual"
   - «Mezcla», con las mismas variantes.
 
   Anotar la duración de cada tanda.
-- [ ] T033 [US5] Comprobación del juez (`visual-manual`): 30 respuestas de cada variante principal («Texto» y la mejor de «Páginas» y de «Mezcla» según el juez), revisadas según D-033, en `offline/reports/visual-manual-judgement.csv`. La revisión decisiva va en T058.
+- [X] T033 [US5] Comprobación del juez (`visual-manual`): 30 respuestas de cada variante principal («Texto» y la mejor de «Páginas» y de «Mezcla» según el juez), revisadas según D-033, en `offline/reports/visual-manual-judgement.csv`. La revisión decisiva va en T058. *Hecho con FP32: la regla coincide con la revisión en 30 de 30 («Texto»), 30 de 30 («Páginas», 3 páginas) y 28 de 30 («Mezcla», 3 páginas en mitades).*
 - [X] T034 [US5] Regresión del texto (FR-024, SC-010): `run_eval.py ablations` con la configuración de D-034 da las mismas cifras que el informe de F05 y F10. *Hecho: las 17 variantes de recuperación y las 6 de `order-review` dan las mismas cifras; solo cambian los segundos y el campo `answer_language` de F12.*
 - [X] T035 [P] [US5] Pruebas en `offline/tests/test_visual_parity.py`: el manifiesto del conjunto del dispositivo, los cosenos por imagen y el juez de la lectura del teléfono.
-- [ ] T036 [US5] Conjunto del dispositivo en `offline/eval/visual_parity.py` y el subcomando `visual-device-set` (R13, data-model §1.6):
+- [X] T036 [US5] Conjunto del dispositivo en `offline/eval/visual_parity.py` y el subcomando `visual-device-set` (R13, data-model §1.6):
   - 20 imágenes y sus vectores a 70 y 140;
   - los 10 PDF de origen;
   - las 10–15 páginas de lectura, con su pregunta y sus `key_facts`;
@@ -324,7 +324,7 @@ description: "Lista de tareas de F18 — Viabilidad del RAG visual"
 
 ## Phase 10: Última fase — teléfono de referencia, decisión y cierre
 
-- [ ] T055 **Pedir permiso al usuario** para la fase del teléfono, con el plan: ajustes que se anotan, la 440M que se copia, el conjunto del dispositivo, las pruebas, las dos etapas y la limpieza.
+- [X] T055 **Pedir permiso al usuario** para la fase del teléfono, con el plan: ajustes que se anotan, la 440M que se copia, el conjunto del dispositivo, las pruebas, las dos etapas y la limpieza. *Hecho: el usuario dio permiso el 2026-11-05 («tienes el teléfono conectado, cuando quieras puedes usarlo»); el recorrido se le contó antes de empezar.*
 - [ ] T056 Fase del teléfono, parte 1 (quickstart §5), con la salida en el teléfono y sin pantalla de bloqueo:
   - importar la 440M con el procedimiento de F02;
   - copiar el conjunto del dispositivo;
