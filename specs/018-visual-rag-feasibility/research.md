@@ -358,7 +358,7 @@ Es un primer indicio de que la letra pequeña será el límite. La evaluación l
    - **resolución y tokens del embedder:** la combinación con mejor Recall@5 visual en «Ambos». Si hay otra a menos de 0,02 que cuesta menos (menos píxeles o menos tokens), se elige esa;
    - **dimensión de página:** 256, salvo que 512 dé al menos 0,03 más de Recall@5 visual;
    - **páginas, presupuesto y trozos:** la variante con más respuestas correctas visuales entre las que cumplen el primer token en el teléfono. Si hay otra a menos de 1 punto con menor primer token, se elige esa;
-   - **mezcla o solo páginas:** la mezcla, salvo que pierda más de 2 puntos en los controles de texto.
+   - **mezcla o solo páginas:** «Ambos» es siempre una variante de la mezcla. En F20, los documentos de solo texto no tienen páginas, así que una respuesta solo con páginas los dejaría sin contexto. «Páginas» queda como ablación que informa del valor de las imágenes, y la pérdida en texto de la mezcla la mide la regla en F05.
 3. **El protocolo:** las semillas, las versiones, las huellas, y las 20 preguntas de la etapa B.
 
 **Cómo se hace cumplir** (hallazgo M10):

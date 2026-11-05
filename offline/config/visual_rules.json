@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "note": "F18 go rule and parameter choice (D-073, D-075, research R12). Committed before any ablation; the ablations refuse to run if this file differs from HEAD or the test set's hash does not match.",
+  "testset_sha256": null,
+  "go_rule": {
+    "visual_gain_points": 15,
+    "text_loss_points": 2,
+    "text_loss_set": "f05_answerable",
+    "e2e_p95_ms": 8000,
+    "min_pages": 1,
+    "golden_min_cosine": 0.99,
+    "identity_min_cosine": 0.9999,
+    "decisive_judge": "manual"
+  },
+  "e2e_formula": {
+    "retrieval_p95_ms": 206.5,
+    "page_search_bound_ms": 53.0,
+    "adds": ["max(0, query_440m_p95_ms - query_270m_p95_ms)", "stage_b_ttft_p95_ms"],
+    "label": "compuesta"
+  },
+  "stage_a": {"repetitions": 3, "margin": 1.10},
+  "stage_b": {"questions": 20, "max_candidates": 3},
+  "judge_check_sample": 30,
+  "selection": {
+    "retrieval": {"mode": "ambos", "metric": "visual_recall@5", "cheaper_within": 0.02, "cost_order": ["px", "tokens"]},
+    "dimension": {"default": 256, "alternative": 512, "min_gain": 0.03},
+    "answer": {"family": "mezcla", "metric": "visual_correct", "cheaper_within_points": 1.0}
+  },
+  "seeds": {"photos": 20261105, "sample": 20261105}
+}
