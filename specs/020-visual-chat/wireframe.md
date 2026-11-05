@@ -8,6 +8,7 @@ Las páginas en el chat, el detalle de las páginas y el visor no tienen PNG. To
 - **Sin cambios:** `LisdataSettingsRow`, `LisdataRadioRow`, `LisdataCardGroup`, `LisdataGradientButton`, `LisdataAnswerCard`, `LisdataCountChip`, `LisdataCard` y `LisdataTopBar`.
 - **Una pieza que cambia:** `LisdataSourceCitation` gana un hueco opcional para una miniatura en lugar del icono de documento. Sin miniatura, se ve como hoy.
 - **Una pieza nueva:** el visor de página a pantalla completa (§6), que hoy no existe. Usa los tokens, una barra superior con «Cerrar» y nada más.
+- **La miniatura de §4** va como pieza del design system, `LisdataPageThumbnail` (analyze C4).
 
 Los textos van entre «» en español; la versión inglesa está al final. Los dibujos son de un teléfono en vertical de unos 390 dp de ancho, sin escala.
 
@@ -204,3 +205,43 @@ Muestra identificadores y cifras, nunca textos ni imágenes, como hoy.
 | Ampliar / Reducir / Restablecer | Zoom in / Zoom out / Reset |
 | La página citada ya no está en este documento. | The cited page is no longer in this document. |
 | Se usará al activar el modo multimodal | It will be used once multimodal mode is on |
+
+## 10. Anexo del analyze: imágenes sueltas, carga y anuncio
+
+Aprobado por el usuario el 2026-11-05, en la revisión del analyze. Completa §3–§6 con lo que el wireframe no definía (analyze U1, U3 y C3).
+
+**Imagen suelta (JPG o PNG):** no tiene número de página, así que nunca se dice «Página 1».
+
+| Sitio | PDF (como en §4–§6) | Imagen suelta |
+|---|---|---|
+| Tarjeta, segunda línea | «Página 4 · Imagen de la página» | «Imagen» |
+| Tarjeta, TalkBack | «Fuente 2: informe-ine.pdf, página 4, imagen de la página» | «Fuente 2: cartel.jpg, imagen» |
+| Vista previa, chip | «Página 4» | «Imagen» |
+| Vista previa y visor, TalkBack | «Página 4 de informe-ine.pdf» | «Imagen cartel.jpg» |
+| Visor, título | «informe-ine.pdf · Página 4» | «cartel.jpg» |
+| Copiar respuesta | «[2] informe-ine.pdf, página 4» | «[2] cartel.jpg» |
+
+**Cargando la imagen:**
+
+```
+│ ┌─────────────────────────────────┐ │
+│ │ [Página 4]                      │ │
+│ │ ┌─────────────────────────────┐ │ │
+│ │ │                             │ │ │ ← hueco de 200 dp de alto,
+│ │ │            ◌                │ │ │   con LisdataProgressRing indeterminado
+│ │ │                             │ │ │
+│ │ └─────────────────────────────┘ │ │
+│ └─────────────────────────────────┘ │
+```
+
+- En el visor: el mismo anillo, centrado, sobre el fondo del tema.
+- En la miniatura: el icono de documento de hoy, hasta que llega la imagen (§4).
+- Si la imagen no se puede leer: el aviso de §5 en la vista previa, y el de U15 en el visor.
+
+**Anuncio de TalkBack:** cuando la respuesta empieza a leer la página, TalkBack anuncia «Leyendo 1 página», sin la espera, en lugar de «Generando respuesta».
+
+| Español | English |
+|---|---|
+| Fuente 2: cartel.jpg, imagen | Source 2: cartel.jpg, image |
+| Imagen cartel.jpg | Image cartel.jpg |
+| Leyendo 1 página | Reading 1 page |

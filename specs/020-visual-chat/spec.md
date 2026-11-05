@@ -63,6 +63,12 @@
 - Q: ¿Cómo se ve y se amplía la página citada en el detalle? → A: La página a lo ancho en lugar del fragmento resaltado; al tocarla se abre a pantalla completa, con pellizco y doble toque para ampliar y un botón para cerrar (FR-016).
 - Q: ¿Apruebas el wireframe? → A: Sí, tal como está en [wireframe.md](wireframe.md) (FR-024, G47). Sin enmienda de la constitución: la 1.2.0 ya cubre F20.
 
+### Session 2026-11-05 (analyze)
+
+- **I1:** Gemma se carga con la visión solo cuando entra una página. Sin páginas, la respuesta es la de hoy en prompt, motor, espera y memoria (FR-001, FR-005, FR-009). Lo decidió el usuario.
+- **§10 del wireframe:** los textos de las imágenes sueltas, la carga de la vista previa y del visor, y el anuncio «Leyendo 1 página». Aprobado por el usuario.
+- **I5:** una página que ya no está, en un documento que sigue, se puede pulsar y abre el documento con su aviso (FR-018), como un fragmento que ya no está. Solo un documento borrado dice «Fuente ya no disponible».
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Preguntar sobre un escaneado o una imagen (Priority: P1)
@@ -202,7 +208,7 @@ En la build de depuración, el diagnóstico de búsqueda muestra las tres listas
 - **Documentos indexándose:** solo entran páginas de documentos indexados e incluidos. Un documento que se reindexa sigue usando sus páginas anteriores hasta que se publica la versión nueva.
 - **Documentos excluidos de las respuestas o fuera del ámbito:** sus páginas no entran.
 - **El modo se apaga a mitad de una conversación:** las respuestas siguientes no usan páginas, y las citas anteriores se mantienen.
-- **Pregunta de seguimiento:** entra el turno anterior como hoy, sin su página. La página se elige de nuevo para la pregunta nueva.
+- **Pregunta de seguimiento:** entra el turno anterior como hoy, sin su página. La página se elige de nuevo para la pregunta nueva, con la misma consulta que el texto: en un seguimiento, también la pregunta anterior (la regla de F10).
 - **Gemma cita la página con un número que no existe, o confunde la página del documento con el `[n]`:** se descarta lo que no exista. Solo se muestra una cita si su `[n]` corresponde a una fuente real.
 - **Gemma no cita la página que recibió:** no se muestra. Solo aparecen las fuentes citadas, como hoy.
 - **Cancelar mientras Gemma lee la página:** se detiene como hoy, en cuanto el motor lo permite, y la respuesta queda cancelada.
@@ -263,7 +269,7 @@ En la build de depuración, el diagnóstico de búsqueda muestra las tres listas
 - **FR-020**: Las miniaturas y las imágenes de página MUST tener una descripción para TalkBack con el documento y el número de página.
 - **FR-021**: Los prompts, las respuestas, las imágenes y los nombres de documento MUST NOT aparecer en los registros de release. En debug, el chat MUST registrar solo cifras, también con páginas (constitución I).
 - **FR-022**: En debug, el diagnóstico de búsqueda MUST mostrar por separado la lista de vectores, la de palabras, la fusionada y la de páginas, y el contexto final. En release MUST NOT existir.
-- **FR-023**: Con el modo apagado, el harness del escritorio MUST dar las mismas cifras que al cerrar F19, y la batería de pruebas MUST pasar igual.
+- **FR-023**: Con el modo apagado, el harness del escritorio MUST dar las mismas cifras que al cerrar F19, y la batería de pruebas MUST pasar igual, salvo las pruebas de F19 que FR-006b sustituye a propósito.
 - **FR-024**: Los cambios de pantalla MUST seguir el wireframe aprobado (G47), con TalkBack, la letra al 200 % y los textos en español y en inglés.
 
 ### Key Entities
@@ -280,7 +286,7 @@ En la build de depuración, el diagnóstico de búsqueda muestra las tres listas
 - **SC-001**: Con el modo apagado, o con el modo activo y un ámbito sin páginas, nada cambia:
   - el harness da las mismas cifras que al cerrar F19;
   - el prompt y las fuentes son idénticos (prueba automática);
-  - la batería de pruebas pasa como al cerrar F19.
+  - la batería de pruebas pasa como al cerrar F19, salvo las pruebas de F19 que FR-006b sustituye a propósito.
 - **SC-002**: Ninguna cita sale sin un documento y una página o un fragmento reales, y un `[n]` fuera de rango se descarta (pruebas automáticas).
 - **SC-003**: En el teléfono de referencia se mide, como cifra informativa, el primer token de extremo a extremo con cada detalle (p50 y p95, con al menos 20 preguntas), junto con el pico de memoria. También se mide con el modo activo sin páginas. No hay umbral (D-078).
 - **SC-004**: En el teléfono de referencia, una pregunta sobre un escaneado o una imagen recibe una respuesta que cita su página, y la cita abre la imagen de esa página.

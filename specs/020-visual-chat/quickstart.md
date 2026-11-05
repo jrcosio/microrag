@@ -2,7 +2,7 @@
 
 **Requisitos:**
 - `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"` para Gradle y `apkanalyzer`;
-- los emuladores `Pixel_10` (API 37) y `MicroRAG_API33`;
+- los emuladores `Pixel_10` (API 37) y `MicroRAG_API33`, y `MicroRAG_API32` para el recorrido con el modo activo (el procedimiento de F19);
 - el teléfono A063 solo en la última fase, con permiso del usuario. Ya está en la 440M con el modo activado (D-082) y no tiene la 270M.
 
 ## 1. Batería sin dispositivo

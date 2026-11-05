@@ -15,7 +15,8 @@ F20 completa el modo «Multimodal» (D-078): con el modo activo, el chat respond
   - los bloques sin tocar más la primera página, siempre que haya alguna en el ámbito (D-083);
   - la plantilla v5-visual de F18, portada a `PromptBuilder.buildVisual`, con una golden del escritorio.
 - **Motor** (R5–R7):
-  - con el modo activo, Gemma se carga con la visión en CPU, una ventana de 8.192 tokens y 1 imagen;
+  - cuando entra una página, Gemma se carga con la visión en CPU, una ventana de 8.192 tokens y 1 imagen; sin página, como hoy (decisión del usuario en el analyze);
+  - nunca dos Gemma cargadas, en GPU o en CPU;
   - el generador de F18 pasa de debug a `LiteRtTextGenerator`;
   - la imagen es el JPEG de F19.
 - **Citas a página** (R8–R10):
@@ -45,9 +46,9 @@ F20 completa el modo «Multimodal» (D-078): con el modo activo, el chat respond
 - `rag.db` sigue en la v5 y solo se lee.
 
 **Testing**:
-- **JVM:** la golden v5-visual, la sesión de chat, el retriever, la disponibilidad, las fuentes, `ZoomState`, los ViewModels y las pantallas con Robolectric, más las pruebas de capas, textos y navegación.
+- **JVM:** la golden v5-visual, la sesión de chat, el retriever, la disponibilidad, las fuentes, el coordinador, `ZoomState`, los ViewModels y las pantallas con Robolectric, más las pruebas de capas, textos y navegación.
 - **Instrumentadas:**
-  - la migración 2 → 3, `pageSearch`, el repositorio del chat y el coordinador;
+  - la migración 2 → 3, `pageSearch` y el repositorio del chat;
   - ATF;
   - Gemma con visión (`@RequiresModels`).
 - **Python:** la golden v5-visual.
@@ -86,11 +87,11 @@ F20 completa el modo «Multimodal» (D-078): con el modo activo, el chat respond
 | I. On-device y privacidad | Sin red. Las imágenes se leen de `noBackupFilesDir/pages/`. Los registros solo llevan cifras: páginas, tokens, tiempos y si faltó la imagen (R18). Nada de prompts, respuestas, imágenes, nombres ni rutas en release (FR-021) | ✅ |
 | II. Stack y arquitectura | `Screen → ViewModel → casos de uso → RagIndex / ChatRepository / MultimodalStore / PageImageRepository / AnswerEngine`. El SDK, solo en `LiteRtTextGenerator`, y `LayeringTest` lo vigila. Sin dependencias nuevas | ✅ |
 | III. RAG según el informe (1.2.0) | La búsqueda de texto, la RRF, el selector de D-034 y la v4 no cambian. La página sale de su propia lista (D-076) y entra solo si el espacio de páginas coincide. Las citas son a un `chunkId` o a una página real, comprobadas con `existingPages`. Los parámetros nuevos (1 página, 8.192 tokens y la plantilla) vienen de D-078 y F18 | ✅ |
-| IV. Rendimiento (1.2.0) | La visión en CPU, una sola clave de Gemma por modo y nunca dos en GPU. El codificador se libera con Gemma. El primer token con páginas se mide con cada detalle y se avisa en Ajustes y en el chat | ✅ |
+| IV. Rendimiento (1.2.0) | La visión en CPU, solo cuando entra una página. Nunca dos Gemma cargadas ni dos engines en GPU. El codificador se libera con Gemma. Las respuestas sin página siguen con los 5 s de siempre. El primer token con páginas se mide con cada detalle y se avisa en Ajustes y en el chat | ✅ |
 | V. Veracidad del estado | «Leyendo 1 página» con la espera medida. `PAGE_GONE` y `DOCUMENT_GONE` dicen lo que pasa. Una imagen que falta no se inventa: la respuesta sigue sin ella | ✅ |
 | VI. Calidad y pruebas | La golden v5-visual, la migración instrumentada, `pageSearch` con ámbito, el coordinador, los ViewModels con fakes y ATF (R21) | ✅ |
-| VII. UI fiel y accesible | Wireframe G47 aprobado (D-083). Una pieza nueva (el visor) y un hueco nuevo en `LisdataSourceCitation`, los dos en el wireframe. TalkBack con documento y página, acciones de zoom, letra al 200 % y textos ES/EN con paridad | ✅ |
-| VIII. Proceso | D-083 (clarify) y D-084 (plan). Ciclo automático; el teléfono, al final y con permiso | ✅ |
+| VII. UI fiel y accesible | Wireframe G47 aprobado (D-083). Dos piezas nuevas (el visor y `LisdataPageThumbnail`) y un hueco nuevo en `LisdataSourceCitation`, todo en el wireframe. TalkBack con documento y página, acciones de zoom, letra al 200 % y textos ES/EN con paridad | ✅ |
+| VIII. Proceso | D-083 (clarify), D-084 (plan) y D-085 (analyze, con la parada y las decisiones del usuario). Ciclo automático; el teléfono, al final y con permiso | ✅ |
 
 **Re-check post-diseño:** sin violaciones.
 - El hueco `leading` de `LisdataSourceCitation` mantiene el sistema de componentes único.
@@ -132,12 +133,13 @@ app/src/main/java/com/lisdatasolutions/microrag/
 ├── data/multimodal/DataStoreMultimodalStore.kt                    # page_detail
 ├── data/library/DefaultPageImageRepository.kt                     # nuevo
 ├── rag/answer/{PromptBuilder,AnswerReading}.kt                    # buildVisual
-├── rag/runtime/{TextGenerator,ManagedEngine}.kt                   # GenerationPrompt, VISION_GENERATOR
+├── rag/runtime/{TextGenerator,ManagedEngine,EngineCoordinator}.kt # GenerationPrompt, VISION_GENERATOR, una sola Gemma
 ├── rag/runtime/litert/LiteRtTextGenerator.kt                      # visión, desde el diagnóstico de F18
-├── core/designsystem/component/Rows.kt                            # LisdataSourceCitation.leading
-├── core/navigation/{Destinations,MicroRagNavHost}.kt              # Document.page, PageViewer, PageDetailRoute
+├── core/designsystem/component/Rows.kt                            # LisdataSourceCitation.leading, LisdataPageThumbnail
+├── core/designsystem/model/CitationUi.kt                          # kind
+├── core/navigation/{Destinations,MicroRagNavHost}.kt              # Document.page, PageViewer, PageDetailSetting
 ├── feature/settings/{MultimodalSection,PageDetailScreen,PageDetailViewModel}.kt
-├── feature/chat/{ChatScreen,ChatViewModel,ChatUiState,PageThumbnail}.kt
+├── feature/chat/{ChatScreen,ChatViewModel,ChatUiState}.kt
 └── feature/document/{DocumentScreen,DocumentViewModel,DocumentUiState,PageImageLoader,PageViewerScreen,ZoomState}.kt
 app/src/main/res/values{,-en}/strings_visual_chat.xml
 app/src/debug/…/rag/runtime/litert/LiteRtVisionEngines.kt          # sin el generador; VisualSuite usa el de main

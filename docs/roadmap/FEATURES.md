@@ -984,7 +984,7 @@ Con esos datos se fijan:
 ## F20 — Chat con páginas
 
 - **Tipo:** Producto, **sin mockup**. Requiere una propuesta de UI aprobada (G47, constitución VII).
-- **Estado:** 🟨 en curso en la rama `020-visual-chat` desde el 2026-11-05. Modo opcional «Multimodal», con F19 (D-078). Clarify y wireframe aprobados el 2026-11-05, con la decisión D-083: la página entra siempre que haya páginas en el ámbito, Equilibrado por defecto y un visor a pantalla completa. Sin enmienda de la constitución. Plan hecho el 2026-11-05, con la decisión D-084. Spec en `specs/020-visual-chat/spec.md`.
+- **Estado:** 🟨 en curso en la rama `020-visual-chat` desde el 2026-11-05. Modo opcional «Multimodal», con F19 (D-078). Clarify y wireframe aprobados el 2026-11-05, con la decisión D-083: la página entra siempre que haya páginas en el ámbito, Equilibrado por defecto y un visor a pantalla completa. Sin enmienda de la constitución. Plan hecho el 2026-11-05, con la decisión D-084. Tareas y analyze el 2026-11-05, con la decisión D-085: Gemma con visión solo cuando entra una página, y el anexo §10 del wireframe aprobado. Spec en `specs/020-visual-chat/spec.md`.
 
 **Objetivo.**
 - **Recuperación (D-076, D-078):**
@@ -1001,7 +1001,7 @@ Con esos datos se fijan:
   - cada `[n]` corresponde a un documento y una página reales;
   - la ficha abre el detalle con la imagen de la página;
   - «Fuentes consultadas» muestra la página;
-  - Historial restaura las citas a página. Si la página ya no existe, muestra «Fuente ya no disponible».
+  - Historial restaura las citas a página. Si el documento ya no existe, muestra «Fuente ya no disponible»; si solo falta la página, abre el documento con un aviso, como un fragmento que ya no está (D-085).
 - **Diagnóstico de búsqueda en debug,** con las tres listas.
 
 **Pantallas y mockups.** `04-chat.png` y `07-detalle-documento.png` como base, con la propuesta G47.

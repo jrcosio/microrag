@@ -42,6 +42,10 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
 
 **Commits**: atómicos, en inglés, uno por tarea o grupo lógico (constitución VIII).
 
+**Analyze** (2026-11-05): 30 hallazgos de una revisión independiente, con 1 CRITICAL, 4 HIGH, 11 MEDIUM y 14 LOW. Se recogen en estas tareas (D-085). El CRITICAL (C1) era la parada tras el analyze. En ella, el usuario decidió:
+- I1: Gemma se carga con la visión solo cuando entra una página;
+- aprobar el anexo §10 del wireframe.
+
 ## Format: `[ID] [P?] [Story] Description`
 
 - **[P]**: ejecutable en paralelo (ficheros distintos, sin dependencias pendientes).
@@ -63,7 +67,8 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
   - la tarjeta de página y su descripción para TalkBack;
   - la vista previa, el visor y sus acciones;
   - `document_citation_page_missing`;
-  - `document_include_subtitle_needs_multimodal`.
+  - `document_include_subtitle_needs_multimodal`;
+  - las variantes de las imágenes sueltas y el anuncio «Leyendo 1 página» del wireframe §10.
 
   `StringsParityTest` pasa.
 - [ ] T003 [P] Golden de la v5-visual (R4):
@@ -92,20 +97,23 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
   - vacío con `pagesUsable = false`;
   - `ScoredPage.image` en un PNG;
   - `existingPages` tras borrar un documento y tras reindexarlo en Texto;
-  - `pageFile`.
+  - `pageFile`;
+  - un documento que se reindexa con una sombra con páginas: salen las de la versión publicada hasta que se publica la nueva (analyze G2);
+  - `chatLibraryState.withPages`.
 - [ ] T005 [P] Migración de `chat.db` 2 → 3:
-  - `…/androidTest/…/data/chat/ChatMigrationTest.kt`, con un recurso nuevo `app/src/androidTest/assets/schema/chat_schema_v2.sql`: un `chat.db` v2 con turnos y fuentes migra con todo intacto, las fuentes como `chunk` y `page_tokens` nulo. Un fallo deja el fichero v2;
-  - `…/test/…/data/chat/ChatSchemaTest.kt` (si existe, si no se crea): la versión 3 y la regla «termina donde `chat_schema.sql`».
+  - en `…/androidTest/…/data/chat/SqliteChatRepositoryTest.kt`, donde ya se prueban las migraciones de `chat.db` (analyze P2): un `chat.db` v2 con turnos y fuentes migra con todo intacto, las fuentes como `chunk` y `page_tokens` nulo. Un fallo deja el fichero v2;
+  - en `…/test/…/data/chat/ChatSchemaTest.kt`: la versión 3, y la regla «termina donde `chat_schema.sql`» cambia a la de `RagSchemaTest`. Un `ALTER TABLE t ADD COLUMN <def>` aparece idéntico como columna del `CREATE TABLE t`, y un `CREATE`, entero (analyze I4).
 - [ ] T006 [P] `…/test/…/rag/answer/VisualPromptGoldenTest.kt` y casos en `PromptBuilderTest` (B1–B3):
   - las partes de `buildVisual` coinciden con la golden de T003;
   - la página lleva el número `k + 1`;
   - con 0 bloques, la página es la `[1]`;
   - `estimatedTokens` solo sobre el texto;
   - `build` (la v4) no cambia (`AnswerGoldenTest` en verde).
-- [ ] T007 [P] `…/test/…/data/chat/EngineAnswerEngineTest.kt` y `…/test/…/rag/runtime/EngineCoordinatorTest.kt` (G1, G2, G4 y G5), con una fábrica falsa:
-  - con el modo apagado, la clave y la configuración de hoy;
-  - con el modo `ON`, `VISION_GENERATOR` con `visionBackend = CPU`, 8.192 tokens y 1 imagen;
-  - cambiar de modo carga la otra clave y cierra la anterior, sin dos en GPU;
+- [ ] T007 [P] `…/test/…/data/chat/EngineAnswerEngineTest.kt` (nuevo, si no existe) y `…/test/…/rag/runtime/EngineCoordinatorTest.kt` (JVM; G1–G5 y M4), con una fábrica falsa:
+  - un `AnswerPrompt.Text` usa la clave y la configuración de hoy, con el modo activo o no;
+  - un `AnswerPrompt.Visual` usa `VISION_GENERATOR` con `visionBackend = CPU`, 8.192 tokens y 1 imagen, y pasa sus partes y sus tokens a `GenerationPrompt.Parts` (analyze G1);
+  - alternar los dos tipos cierra la Gemma anterior, en GPU **y en CPU** («Modo CPU»): nunca hay dos Gemma cargadas (analyze I2);
+  - `warmUp(visual)` carga la que toca;
   - `releaseGenerators()` y `releaseUnheld()` cierran también la de visión.
 
 ### Implementación
@@ -114,14 +122,15 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
   - `PageDetail` y `StoredMultimodal.pageDetail` en `…/microrag/domain/multimodal/MultimodalModels.kt`;
   - `ScoredPage`, `PageKey` y las constantes de `RagParameters` en `…/microrag/domain/rag/{RagModels,RagParameters}.kt`;
   - `withPages`, `pages`, `lists` y `pagesMs` en `…/microrag/domain/retrieval/RetrievalModels.kt`;
-  - `SourceKind`, `PAGE_GONE`, `AnswerPrompt`, `PromptPart`, `ActiveAnswer.pageTokens` y `ChatTurn.pageTokens` en `…/microrag/domain/chat/ChatModels.kt`;
+  - `SourceKind` (`FRAGMENT`, `PAGE` e `IMAGE`), `PAGE_GONE`, `AnswerPrompt`, `PromptPart`, `ActiveAnswer.pageTokens`, `ChatTurn.pageTokens` y `ChatLibraryState.withPages` en `…/microrag/domain/chat/ChatModels.kt` y `…/microrag/domain/rag/RagModels.kt`;
   - `PageImageRepository` en `…/microrag/domain/library/PageImageRepository.kt`.
 
   Se actualizan los usos y los fakes (`FakeRagIndex`, `FakeAnswerEngine`, `InMemoryChatRepository`), sin cambiar el comportamiento: la batería JVM sigue en verde.
 - [ ] T009 Índice (P1–P3) en `…/microrag/domain/rag/RagIndex.kt` y `…/microrag/data/rag/DefaultRagIndex.kt`:
   - `pageSearch`, con el SQL de R2 junto a `scopedVectorSearchSql`;
   - `existingPages`;
-  - `pageFile`.
+  - `pageFile`;
+  - `withPages` en `chatLibraryState`.
 
   `FakeRagIndex` los implementa. T004 pasa.
 - [ ] T010 `chat.db` v3 (R9):
@@ -131,19 +140,19 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
 
   T005 pasa.
 - [ ] T011 Gemma con visión (R5, R6):
-  - `GenerationConfig.visionBackend`/`maxNumImages`, `GenerationPrompt` y `EngineKind.VISION_GENERATOR` en `…/microrag/rag/runtime/{TextGenerator,ManagedEngine}.kt`;
+  - `GenerationConfig.visionBackend`/`maxNumImages`, `GenerationPrompt` (con `visualTokens: Int?`, analyze I7) y `EngineKind.VISION_GENERATOR` en `…/microrag/rag/runtime/{TextGenerator,ManagedEngine}.kt`;
+  - `…/microrag/rag/runtime/EngineCoordinator.kt`: al cargar un engine de la familia LLM, cierra antes cualquier otro de esa familia, sea cual sea su backend (analyze I2);
   - `…/microrag/rag/runtime/litert/LiteRtTextGenerator.kt`: `EngineConfig` con visión cuando la hay, `Contents.of` con `Content.Text`/`Content.ImageBytes`, y `visualTokenBudget` fijado y restaurado (G3). La cancelación, como hoy (G6);
   - el diagnóstico de F18 pasa a usarlo: `…/debug/…/rag/runtime/litert/LiteRtVisionEngines.kt` se queda sin el generador, y se actualizan `…/debug/…/debug/feasibility/visual/{VisualContracts,VisualSuite,VisualFeasibilityModule}.kt`.
 
   `VisualSuiteTest` sigue en verde, y `LayeringTest` también.
 - [ ] T012 `PromptBuilder.buildVisual` en `…/microrag/rag/answer/PromptBuilder.kt` (B2, B3), con `PAGE_RULE` y la etiqueta de R4. T006 pasa.
-- [ ] T013 `AnswerEngine.generate(AnswerPrompt)` en `…/microrag/domain/chat/` y `…/microrag/data/chat/EngineAnswerEngine.kt` (G1, G2, G4):
-  - la clave y la configuración salen del modo (`MultimodalStore.state`);
-  - `warmUp()` carga la que toca;
+- [ ] T013 `AnswerEngine.generate(AnswerPrompt)` y `warmUp(visual)` en `…/microrag/domain/chat/` y `…/microrag/data/chat/EngineAnswerEngine.kt` (G1–G4):
+  - la clave y la configuración salen del tipo de prompt, nunca del modo leído aparte (analyze I3);
   - Koin en `DataModule`.
 
   T007 pasa.
-- [ ] T014 [P] `…/microrag/data/library/DefaultPageImageRepository.kt` (I1, I2), con `PageFileStore.read(name)` si no existe, y Koin. Prueba en `…/test/…/data/library/DefaultPageImageRepositoryTest.kt`: la fila o el fichero que faltan dan null, y el registro no lleva nombres.
+- [ ] T014 `…/microrag/data/library/DefaultPageImageRepository.kt` (I1, I2), después de T009 porque usa `pageFile` (analyze I6). Lee con `PageFileStore.file(name)` (no hay `read`, analyze P3), y va en Koin. Prueba en `…/test/…/data/library/DefaultPageImageRepositoryTest.kt`: la fila o el fichero que faltan dan null, y el registro no lleva nombres.
 
 **Checkpoint:**
 - el índice busca páginas;
@@ -167,16 +176,19 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
   - las páginas no entran en la RRF;
   - con páginas y sin bloques, `Blocks([], pages)`;
   - `NoResults` sin nada;
-  - `lists` lleva las dos listas.
+  - `lists` lleva las dos listas;
+  - en un seguimiento, la página se busca con el mismo vector que el texto, que lleva la pregunta anterior (analyze G4).
 - [ ] T016 [P] [US1] `…/test/…/data/chat/DefaultChatSessionTest.kt` (S1, S3–S7), con índice, motor e imágenes falsos y el modo `ON`:
   - una pregunta sin bloques y con página genera con la página como `[1]`;
   - la fuente citada es de tipo `PAGE`, con su número de página;
   - una imagen que falta o no es JPEG lleva a la negativa sin llamar a Gemma;
   - `[2]` fuera de rango se descarta;
   - la negativa no guarda fuentes;
-  - el turno guarda `page_tokens`.
+  - el turno guarda `page_tokens`;
+  - `AnswerPrompt.Visual.visualTokens` es 70, 140 o 280 según el detalle (analyze G1);
+  - una imagen suelta da una fuente `IMAGE`.
 - [ ] T017 [P] [US1] `…/test/…/domain/chat/ObserveChatAvailabilityUseCaseTest.kt` (M3): con el modo `ON` y `pagesUsable`, una biblioteca solo con páginas está `Ready`. Con el modo apagado o `pagesUsable = false`, `NothingReady`, como hoy. Lo mismo con un ámbito.
-- [ ] T018 [P] [US1] `…/test/…/feature/chat/ChatScreenTest.kt` y `…/test/…/core/designsystem/component/RowsTest.kt` (U4–U8):
+- [ ] T018 [P] [US1] `…/test/…/feature/chat/ChatScreenTest.kt` y un fichero nuevo, `…/test/…/core/designsystem/component/SourceCitationTest.kt` (U4–U8):
   - la tarjeta con miniatura, «Página 4 · Imagen de la página» y la de una imagen suelta, «Imagen»;
   - sin `leading`, la tarjeta es la de hoy;
   - el icono de documento mientras carga;
@@ -197,11 +209,16 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
   - `page_tokens`.
 
   T016 pasa.
-- [ ] T022 [US1] `…/microrag/domain/chat/ChatUseCases.kt` (M3), con `ObserveChatAvailabilityUseCase` combinando el modo y `pagesUsable`, y Koin. T017 pasa.
+- [ ] T022 [US1] `…/microrag/domain/chat/ChatUseCases.kt` (M3 y M4), con Koin:
+  - `ObserveChatAvailabilityUseCase` combina el modo y `pagesUsable`;
+  - `WarmUpAnswerEngineUseCase` precarga la Gemma con visión cuando tocará.
+
+  T017 pasa, con un caso de M4.
 - [ ] T023 [US1] UI de la fuente de página:
-  - `LisdataSourceCitation.leading` en `…/microrag/core/designsystem/component/Rows.kt`, con su preview;
+  - en `…/microrag/core/designsystem/component/Rows.kt`, con sus previews: `LisdataSourceCitation.leading`, que se ignora si la fuente no está disponible, y `LisdataPageThumbnail` (analyze C4);
+  - `CitationUi.kind` en `…/microrag/core/designsystem/model/CitationUi.kt` (analyze U4);
   - `…/microrag/feature/document/PageImageLoader.kt` (R14: `BitmapFactory` con `inSampleSize`, LRU de 24, fuera del hilo principal);
-  - `…/microrag/feature/chat/PageThumbnail.kt`;
+  - `Document.page` en `…/microrag/core/navigation/{Destinations,MicroRagNavHost}.kt`. Va aquí y no en US5, porque la tarjeta y la marca `[n]` ya navegan con ella (analyze I6). Hasta T039, el detalle la ignora;
   - `ChatScreen`, `ChatViewModel` y `ChatUiState`, con las filas, los chips y el texto de copiar;
   - Koin del cargador.
 
@@ -225,16 +242,19 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
   - un bloque de la misma página se mantiene (sin regla de duplicados);
   - el límite de 2.000 tokens se aplica solo al texto;
   - las citas mezclan los dos tipos en el orden en que se citan;
-  - cancelar durante el prefill termina en `CANCELLED` con lo que llegó.
+  - cancelar durante el prefill termina en `CANCELLED` con lo que llegó;
+  - el bucle del límite corre sobre la v4, y con un prompt justo en el límite entran los mismos bloques con página que sin ella (analyze A1);
+  - con bloques y la imagen que falta, sigue con la v4 y `page_dropped=1` (analyze G3).
 - [ ] T026 [P] [US2] `…/test/…/feature/chat/ChatViewModelTest.kt` y `ChatScreenTest` (U3, R13):
   - `READING_PAGE` mientras no hay texto y hay `pageTokens`;
   - «Leyendo 1 página · unos 11,5 s…» con Equilibrado, «11.5» en inglés;
   - «Generando respuesta…» sin página;
-  - el contador «N fuentes» cuenta la página.
+  - el contador «N fuentes» cuenta la página;
+  - TalkBack anuncia «Leyendo 1 página» (`ChatAnnouncement.READING_PAGE`) en lugar de «Generando respuesta» (analyze U3).
 
 ### Implementación
 
-- [ ] T027 [US2] El estado de la respuesta: `TurnStatus.READING_PAGE` y su texto en `…/microrag/feature/chat/{ChatUiState,ChatViewModel,ChatScreen}.kt`, con la espera de `PageDetail` formateada con la configuración regional. T025 y T026 pasan.
+- [ ] T027 [US2] El estado de la respuesta: `TurnStatus.READING_PAGE`, `ChatAnnouncement.READING_PAGE` y sus textos en `…/microrag/feature/chat/{ChatUiState,ChatViewModel,ChatScreen}.kt`, con la espera de `PageDetail` formateada con la configuración regional. T025 y T026 pasan.
 
 **Checkpoint:** las respuestas con texto y página citan los dos y avisan de la espera.
 
@@ -252,7 +272,8 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
   - con el modo apagado y documentos con páginas, el prompt es `AnswerPrompt.Text`, idéntico byte a byte al de antes de F20;
   - con el modo `ON` y un ámbito sin páginas, lo mismo;
   - con `pagesUsable = false`, lo mismo;
-  - el registro no cambia salvo `page=0`.
+  - con el modo `ON` y sin páginas, el motor recibe un `AnswerPrompt.Text` y usa la clave de hoy (I1);
+  - la línea del registro solo gana los campos de S8 (`page=0`, `page_tokens`, `page_dropped` y `pages_ms`), y los demás no cambian (analyze I8).
 - [ ] T029 [P] [US3] Regresión del escritorio (FR-023): `run_eval.py ablations` y `order-review`, comparados con los de F19 (quickstart §2). Si cambian, se para y se investiga.
 
 ### Implementación
@@ -277,7 +298,7 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
   - tres radios con su espera;
   - guardar;
   - el fallo con `PreferencesSaveFailure`;
-  - con el modo apagado, la ruta vuelve atrás.
+  - con el modo apagado, el destino vuelve atrás.
 
 ### Implementación
 
@@ -285,7 +306,7 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
 - [ ] T034 [US4] Pantalla y fila:
   - `…/microrag/feature/settings/{PageDetailScreen,PageDetailViewModel}.kt`;
   - la fila en `MultimodalSection.kt`;
-  - `PageDetailRoute` en `…/microrag/core/navigation/{Destinations,MicroRagNavHost}.kt`;
+  - el destino `PageDetailSetting` en `…/microrag/core/navigation/{Destinations,MicroRagNavHost}.kt`, con `PageDetailRoute` como su composable, igual que `ImportMode` e `ImportModeRoute` (analyze I11);
   - `NavigationTest` y `AppModulesTest` se actualizan.
 
   T032 pasa.
@@ -309,15 +330,16 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
   - «Ampliar», «Reducir» y «Restablecer»;
   - volver a 1× al girar.
 - [ ] T036 [P] [US5] `…/test/…/feature/document/DocumentViewModelTest.kt` y `DocumentScreenTest` (U9, U10):
-  - con `page`, la vista previa es la página, con su chip y la pista;
+  - con `page`, la vista previa es la página, con su chip y la pista, y «Imagen» en una imagen suelta (wireframe §10);
+  - el hueco con el anillo mientras carga (analyze C3);
   - pulsarla abre `PageViewer`;
   - la descripción para TalkBack;
   - con `PAGE_GONE`, el aviso y la vista previa normal.
-- [ ] T037 [P] [US5] `…/test/…/feature/document/PageViewerScreenTest.kt` (U12–U15): el título, «Cerrar», las acciones de accesibilidad, la página que falta y la ruta en `NavigationTest`. Desde una cita, volver deja al usuario en el chat.
+- [ ] T037 [P] [US5] `…/test/…/feature/document/PageViewerScreenTest.kt` (U12–U15): el título (solo el nombre en una imagen suelta), «Cerrar», el anillo mientras carga, las acciones de accesibilidad, la página que falta y la ruta en `NavigationTest`. Desde una cita, volver deja al usuario en el chat.
 
 ### Implementación
 
-- [ ] T038 [US5] `Document.page` y `PageViewer` en `…/microrag/core/navigation/{Destinations,MicroRagNavHost}.kt`. La cita a página navega con `page`.
+- [ ] T038 [US5] `PageViewer` en `…/microrag/core/navigation/{Destinations,MicroRagNavHost}.kt`. `Document.page` ya viene de T023.
 - [ ] T039 [US5] Vista previa de página: `PreviewContent.Page` en `…/microrag/feature/document/{DocumentUiState,DocumentViewModel,DocumentScreen}.kt`, con `PageImageLoader` y el desplazamiento a la vista una vez. T036 pasa.
 - [ ] T040 [US5] `…/microrag/feature/document/{ZoomState,PageViewerScreen}.kt` (R15). T035 y T037 pasan.
 - [ ] T041 [P] [US5] `EXTRA_PAGE` en `…/debug/…/debug/DebugRouting.kt`, para la ruta `document` del recorrido en el emulador.
@@ -335,7 +357,7 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
 ### Pruebas
 
 - [ ] T042 [P] [US6] `…/test/…/domain/chat/ResolveSourcesUseCaseTest.kt` (H3, H4):
-  - una página de un documento borrado da `DOCUMENT_GONE`;
+  - una página o una imagen de un documento borrado da `DOCUMENT_GONE`;
   - un documento creado después de la respuesta, también;
   - una página que ya no está da `PAGE_GONE`;
   - con el modo apagado, una página existente sigue `AVAILABLE`.
@@ -369,7 +391,7 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
 
 **Goal:** las tres listas y el contexto en debug (FR-022).
 
-- [ ] T048 [P] [US8] `…/test/…/debug/retrieval/RetrievalDiagnosticViewModelTest.kt`: las cinco secciones de R17 y la de páginas solo con el modo activo.
+- [ ] T048 [P] [US8] `app/src/testDebug/java/com/lisdatasolutions/microrag/debug/retrieval/RetrievalDiagnosticViewModelTest.kt`, donde ya existe (analyze P1): las cinco secciones de R17 y la de páginas solo con el modo activo.
 - [ ] T049 [US8] `…/debug/…/debug/retrieval/{RetrievalDiagnosticScreen,RetrievalDiagnosticViewModel}.kt`, con `RetrievalResult.lists` y las páginas. La verificación de release comprueba que no está en el APK. T048 pasa.
 
 ---
@@ -381,7 +403,8 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
 - [ ] T052 [P] `…/androidTest/…/data/chat/VisualChatBenchmarkTest.kt` (`@RequiresModels`, R19, SC-003):
   - un índice temporal con la 440M;
   - un PDF generado de 12 páginas en Ambos;
-  - 20 preguntas por detalle, más 20 con el modo activo y sin páginas;
+  - 20 preguntas por detalle, más 20 con el modo activo y sin páginas, que usan la Gemma de hoy;
+  - el coste de la primera respuesta con página tras una sin ella, que recarga Gemma (R5);
   - el p50 y el p95 del primer token, el prefill, la decodificación y el pico de RSS, en `visual-chat-benchmark` y en `filesDir/reports/visual-chat-*.json`;
   - sin umbral.
 - [ ] T053 Batería sin dispositivo (quickstart §1): JVM, lint y Python en verde. Las cifras van al informe.
@@ -400,10 +423,10 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
   - SC-004 con un escaneado y una imagen de prueba;
   - limpieza y ajustes restaurados.
 
-  Si las esperas medidas difieren de las de F18, se corrigen `PageDetail` y los textos, con su entrada en DECISIONS.
+  Si las esperas medidas difieren de las de F18, se corrigen `PageDetail` y los textos, con su entrada en DECISIONS. La nota «Las respuestas sin páginas no cambian» se comprueba con la cifra sin páginas (analyze C2).
 - [ ] T059 Cierre, con la revisión del usuario:
   - el informe final;
-  - D-085 con el resultado;
+  - la siguiente decisión libre de DECISIONS, con el resultado (analyze I14);
   - FEATURES en ✅;
   - la memoria del cierre;
   - integración en `main` y push, solo con su aprobación.
@@ -415,7 +438,7 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
 - **Setup (T001–T003)** → **Foundational (T004–T014)**, que bloquea todo.
 - **US1 (T015–T024)** es el MVP. **US2 (T025–T027)** y **US3 (T028–T030)** dependen de T021.
 - **US4 (T031–T034)** depende de T008. T027 usa `PageDetail`, pero no la pantalla.
-- **US5 (T035–T041)** depende de T023 (el cargador) y de T038.
+- **US5 (T035–T041)** depende de T023 (el cargador y `Document.page`) y de T038.
 - **US6 (T042–T045)** depende de T010 y de T021.
 - **US7 (T046–T047)** va después de US1, US4 y US5.
 - **US8 (T048–T049)** depende de T020.
@@ -423,7 +446,7 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
 
 ## Parallel Execution Examples
 
-- **Foundational:** T004, T005, T006 y T007 a la vez. Después, T009, T010, T012 y T014 a la vez (ficheros distintos), y T011 antes de T013.
+- **Foundational:** T004, T005, T006 y T007 a la vez. Después, T009, T010 y T012 a la vez (ficheros distintos), T014 después de T009, y T011 antes de T013.
 - **US1:** T015 a T019 a la vez. Después, T020 → T021, con T022, T023 y T024 en paralelo.
 - **US4 y US5** en paralelo, una vez cerrada US1.
 

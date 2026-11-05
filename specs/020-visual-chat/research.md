@@ -34,6 +34,7 @@ La sesión de chat lo decide **al empezar cada respuesta**, junto con el ámbito
   - las demás son para el diagnóstico de debug.
 - **Dónde se busca:** `HybridRetriever` lanza la búsqueda de páginas después del embedding, en paralelo con la de vectores de texto, solo si la petición lo pide (`RetrievalRequest.withPages`). Su tiempo va en `RetrievalTimings.pagesMs`.
 - **Sin fusión:** la lista de páginas no entra en la RRF (D-076).
+- **Seguimientos:** el vector es el de la búsqueda de fragmentos, que en un seguimiento embebe también la pregunta anterior (la regla de F10). La página se elige de nuevo en cada pregunta, con ese mismo vector (analyze G4).
 
 **Verificado:**
 - la tabla `pages` tiene su `vector_init` en cada conexión (F19, R8), con 256D y `normalized=1`;
@@ -62,7 +63,7 @@ La sesión de chat lo decide **al empezar cada respuesta**, junto con el ámbito
 ## R4. El contexto y la plantilla v5-visual
 
 **Decisión:**
-- **Bloques:** los de D-034, sin tocar, con el mismo límite de 2.000 tokens estimados **sobre el texto**. Si se pasa, caen como hoy: primero el peor bloque y después el turno anterior.
+- **Bloques:** los de D-034, sin tocar. El bucle del límite de 2.000 tokens corre **sobre el prompt de la v4**, exactamente como hoy (primero cae el peor bloque y después el turno anterior). Con los bloques y el turno que quedan se construye después la v5-visual, así que la regla de la página y su etiqueta nunca hacen caer un bloque (analyze A1).
 - **Página:** la primera de la lista, después de los bloques, con el número `[k + 1]`.
 - **Etiqueta:**
   - un PDF: «Nombre, página p»;
@@ -88,20 +89,25 @@ La sesión de chat lo decide **al empezar cada respuesta**, junto con el ámbito
 - poner la página primero: F18 la evaluó al final, y los bloques conservan sus números de la v4;
 - contar los tokens visuales dentro del límite de 2.000: cambiaría los bloques que entran, en contra de D-078 (bloques «sin tocar»).
 
-## R5. Gemma con visión en el modo activo
+## R5. Gemma con visión solo cuando entra una página
 
-**Decisión:**
-- **Con el modo `ON`,** Gemma se crea siempre con visión, haya página o no en la respuesta:
-  - `visionBackend = CPU`;
-  - `maxNumTokens = LLM_VISUAL_MAX_NUM_TOKENS = 8192`;
-  - `maxNumImages = 1`;
-  - el backend de texto, el que preparó F03.
-- **Con el modo apagado,** Gemma se crea como hoy: 4.096 tokens y sin visión.
-- **`EngineKey`:** la clave de Gemma con visión lleva `EngineKind.VISION_GENERATOR`, así que nunca se confunde con la de texto. Cargar una en GPU cierra la otra (la regla de siempre del coordinador).
-- **`GenerationConfig`** gana `visionBackend: ComputeBackend?` y `maxNumImages: Int`, ambos sin valor por defecto en el modo apagado.
+**Decisión** (usuario, en la revisión del analyze, I1):
+- **La clave sale del prompt** (analyze I3):
+  - un `AnswerPrompt.Text` usa la Gemma de hoy, `EngineKey(GEMMA, backend)`, con 4.096 tokens y sin visión, esté el modo activo o no;
+  - un `AnswerPrompt.Visual` usa `EngineKey(GEMMA, backend, EngineKind.VISION_GENERATOR)`, con `visionBackend = CPU`, `maxNumTokens = LLM_VISUAL_MAX_NUM_TOKENS = 8192`, `maxNumImages = 1` y el backend de texto que preparó F03.
+
+  Así, una respuesta sin página es idéntica a la de hoy en prompt, motor, espera y memoria (FR-001, FR-005, SC-001). Y un `Visual` nunca llega a un motor sin visión, aunque el modo cambie entre la recuperación y la generación.
+- **Nunca dos Gemma cargadas** (analyze I2): el coordinador, al cargar un engine de la familia LLM, cierra antes cualquier otro de esa familia, sea cual sea su backend. Hasta ahora solo lo hacía en GPU, y en «Modo CPU» quedarían dos Gemma en RAM.
+- **Precarga:**
+  - `WarmUpAnswerEngineUseCase` precarga la Gemma con visión si el modo está en `ON`, `pagesUsable` y la biblioteca tiene documentos buscables con páginas (`ChatLibraryState.withPages > 0`);
+  - si no, precarga la de hoy;
+  - si al final la respuesta necesita la otra, se recarga y el tiempo cuenta en su primer token.
+- **`GenerationConfig`** gana `visionBackend: ComputeBackend? = null` y `maxNumImages: Int = 0`.
 - **`TextGenerator.generate(prompt: GenerationPrompt)`:**
   - `GenerationPrompt.Text(String)`, que es lo de hoy;
-  - `GenerationPrompt.Parts(parts, visualTokens)`, que se envía con `sendMessageAsync(Contents.of(...))`, con `Content.Text` y `Content.ImageBytes`.
+  - `GenerationPrompt.Parts(parts, visualTokens: Int?)`, que se envía con `sendMessageAsync(Contents.of(...))`, con `Content.Text` y `Content.ImageBytes`.
+
+  `visualTokens` admite null (deja el valor del fichero), como el diagnóstico de F18 (analyze I7).
 - **Presupuesto de tokens por imagen:** `ExperimentalFlags.visualTokenBudget`, que es de todo el proceso, se fija antes de enviar y se restaura en un `finally`. Va dentro del uso exclusivo del LLM que da el coordinador, como en F18.
 - **Liberación:**
   - el codificador de visión vive dentro del `Engine` de Gemma, así que `close()` lo libera con él (FR-010);
@@ -111,17 +117,16 @@ La sesión de chat lo decide **al empezar cada respuesta**, junto con el ámbito
 **Verificado:**
 - `LiteRtTextGenerator` crea el `EngineConfig` sin visión (F11);
 - el diagnóstico de F18 (`LiteRtVisionEngines.kt`, en debug) ya generaba con imágenes con este mismo esquema;
-- el fichero de Gemma solo declara la visión en CPU (F18, `report.md`).
+- el fichero de Gemma solo declara la visión en CPU (F18, `report.md`);
+- `EngineCoordinator.load()` solo cerraba los otros engines en GPU (`EngineCoordinator.kt:150`).
 
 **Motivo:**
-- una sola configuración por modo evita recargar Gemma (varios segundos) cada vez que una respuesta lleva o no página. Con D-083 (la página entra siempre que haya páginas en el ámbito), lo normal con el modo activo es que la lleve;
-- FR-009: con el modo apagado, Gemma no cambia.
+- la spec aprobada promete que, sin páginas, todo queda igual, también la espera (US3);
+- con D-083, una conversación con páginas en su ámbito las lleva siempre, así que la recarga solo ocurre al cambiar a un ámbito con o sin páginas.
 
 **Alternativas:**
-- cargar Gemma con visión solo cuando entra una página: recargas al cambiar de ámbito, y dos caminos de memoria;
+- Gemma con visión siempre que el modo esté activo (el primer plan): sin recargas, pero cambia la espera y la memoria de las respuestas de texto. Descartada por el usuario;
 - un generador separado para la visión: duplicaría el ciclo de vida, la cancelación y las estadísticas.
-
-**Riesgo:** con el modo activo y sin páginas, la ventana de 8.192 tokens y la visión cargada podrían cambiar el primer token o el pico de memoria. Se mide (SC-003).
 
 ## R6. El generador de F18 pasa a main
 
@@ -138,7 +143,7 @@ La sesión de chat lo decide **al empezar cada respuesta**, junto con el ámbito
 ## R7. La imagen que recibe Gemma
 
 **Decisión:**
-- es el JPEG de la página guardado por F19 (768 px, calidad 85), leído de `noBackupFilesDir/pages/` con `PageFileStore.read(name)`, en el dispatcher de E/S;
+- es el JPEG de la página guardado por F19 (768 px, calidad 85), leído de `noBackupFilesDir/pages/` con `PageFileStore.file(name).readBytes()`, en el dispatcher de E/S (`PageFileStore` no tiene `read`, analyze P3);
 - se comprueba antes de generar que el fichero existe y empieza por la marca JPEG (`FF D8`). Si no, la página se quita y la respuesta sigue sin ella, con la v4 y el recuento en el registro (caso límite de la spec);
 - si con la página quitada no queda ningún bloque, la respuesta es la negativa, sin llamar a Gemma.
 
@@ -152,8 +157,8 @@ La sesión de chat lo decide **al empezar cada respuesta**, junto con el ámbito
 
 **Decisión:**
 - **Modelo:**
-  - `AnswerSource` y `PromptBlockRef` ganan `kind: SourceKind` (`FRAGMENT` o `PAGE`);
-  - para una página, `page` es su número, `chunkId` es `0` y los ordinales también son `0`. Los ids de `chunks` empiezan en 1, así que 0 nunca es un fragmento real;
+  - `AnswerSource` y `PromptBlockRef` ganan `kind: SourceKind`: `FRAGMENT`, `PAGE` (una página de un PDF) o `IMAGE` (un JPG o PNG suelto, que es su página 1). Así, el Historial sabe sin leer el índice si una cita dice «Página p» o «Imagen» (analyze U2);
+  - para una página o una imagen, `page` es su número, `chunkId` es `0` y los ordinales también son `0`. Los ids de `chunks` empiezan en 1, así que 0 nunca es un fragmento real;
   - todo lo que usa `chunkId` comprueba antes `kind`.
 - **Citas:** `AnswerReading.citedOrder(text, refs.size)` ya admite el número `k + 1`, y un `[n]` fuera de rango se descarta igual.
 - **Copiar:** la línea de una página es «[n] Nombre, página p», con las cadenas de hoy (`chat_copy_source`). Una imagen suelta usa la variante sin página.
@@ -171,7 +176,7 @@ La sesión de chat lo decide **al empezar cada respuesta**, junto con el ámbito
 **Decisión:** la migración 2 → 3, dentro de la transacción de apertura, como la de F17:
 
 ```sql
-ALTER TABLE sources ADD COLUMN kind TEXT NOT NULL DEFAULT 'chunk' CHECK (kind IN ('chunk','page'));
+ALTER TABLE sources ADD COLUMN kind TEXT NOT NULL DEFAULT 'chunk' CHECK (kind IN ('chunk','page','image'));
 ALTER TABLE turns ADD COLUMN page_tokens INTEGER;
 ```
 
@@ -180,6 +185,8 @@ ALTER TABLE turns ADD COLUMN page_tokens INTEGER;
 - `chat_schema.sql` pasa a la v3, con las dos columnas, para las instalaciones nuevas.
 
 **Verificado:** `ChatMigrations` ya aplica una migración por versión dentro de la transacción (F17). SQLite admite `ADD COLUMN` con `NOT NULL`, un valor por defecto y `CHECK`.
+
+**Regla de `ChatSchemaTest`** (analyze I4): como la de `RagSchemaTest` para `documents`. Un `ALTER TABLE t ADD COLUMN <def>` tiene que aparecer como columna, idéntica, en el `CREATE TABLE t` de `chat_schema.sql`, y un `CREATE` tiene que estar entero.
 
 **Alternativas:**
 - reconstruir `sources` con `chunk_id` nulo: más riesgo, y nada que ganar con R8;
@@ -212,6 +219,8 @@ Con el modo apagado, la regla es la de hoy (FR-001).
 
 **Verificado:** `chatLibraryState` ya cuenta `visualOnly` aparte, por ámbito, y nadie lo lee (F19).
 
+`ChatLibraryState` gana también `withPages`, los documentos buscables con alguna página, para la precarga de R5.
+
 ## R12. «Detalle de las páginas»
 
 **Decisión:**
@@ -230,7 +239,7 @@ Con el modo apagado, la regla es la de hoy (FR-001).
 - **`ActiveAnswer`** gana `pageTokens: Int?`, que es el detalle de la página que entró.
 - **`TurnStatus.READING_PAGE`:** mientras `state == GENERATING`, `pageTokens != null` y todavía no hay texto.
 - **El texto** es «Leyendo 1 página · unos %s s…», con la espera de `PageDetail`, formateada con la configuración regional (11,5 en español y 11.5 en inglés).
-- **TalkBack:** lo anuncia la región viva de hoy de `LisdataAnswerCard`.
+- **TalkBack:** `ChatAnnouncement` gana `READING_PAGE`, «Leyendo 1 página», que sustituye a «Generando respuesta» cuando entra una página (analyze U3, wireframe §10).
 
 **Motivo:** la constitución IV (1.2.0) pide avisar de la espera de las respuestas con páginas.
 
@@ -243,7 +252,10 @@ Con el modo apagado, la regla es la de hoy (FR-001).
   - para las miniaturas usa `inSampleSize` (una de 40 × 56 dp viene de un JPEG de 768 px);
   - guarda hasta 24 miniaturas en una caché LRU;
   - la imagen grande del detalle y del visor no se guarda en caché.
-- **Componente:** `LisdataSourceCitation` gana un parámetro opcional `leading: (@Composable () -> Unit)?`. Si es null, muestra el icono de hoy. El chat le pasa `PageThumbnail`.
+- **Componentes:**
+  - `LisdataSourceCitation` gana un parámetro opcional `leading: (@Composable () -> Unit)?`. Si es null, o con la fuente no disponible, muestra el icono de hoy;
+  - `CitationUi` gana `kind` (fragmento, página o imagen), para componer «Página p · Imagen de la página» o «Imagen» (analyze U4);
+  - `LisdataPageThumbnail(image: ImageBitmap?)` en `core/designsystem` (40 × 56 dp, esquinas y borde con los tokens), que muestra el icono de documento mientras `image` es null (analyze C4). El chat le pasa la imagen que carga `PageImageLoader`.
 
 **Motivo:**
 - la constitución II: la UI no lee SQLite ni ficheros del índice, sino que pasa por un repositorio;
@@ -260,7 +272,8 @@ Con el modo apagado, la regla es la de hoy (FR-001).
 - **Navegación:**
   - `Document(documentId, chunkId, page)` gana `page: Int?`, la página citada;
   - una ruta nueva, `PageViewer(documentId, page)`, para el visor a pantalla completa.
-- **`DocumentViewModel`:** con `page`, la vista previa es `PreviewContent.Page(page, available)` en lugar del fragmento. Si la página ya no está, sale el aviso de R10 y la vista previa normal.
+- **`DocumentViewModel`:** con `page`, la vista previa es `PreviewContent.Page(documentId, page, documentName, image)` en lugar del fragmento (el data-model §5). Si la página ya no está, sale el aviso de R10 y la vista previa normal.
+- **Carga** (analyze C3, wireframe §10): mientras se decodifica, un hueco de 200 dp con `LisdataProgressRing` indeterminado en la vista previa, y el mismo anillo centrado en el visor.
 - **Visor (`PageViewerScreen`):**
   - `Image` con `graphicsLayer` (escala y desplazamiento);
   - zoom entre 1× y 4×, con `detectTransformGestures` para el pellizco y el arrastre, y `detectTapGestures(onDoubleTap)` para alternar entre 1× y 2×;
@@ -343,12 +356,11 @@ Las pruebas de hoy (`theLogHasOneLineOfNumbers_andNoText` y `oneLogLinePerRetrie
   - `PageDetailViewModelTest` y el almacén con `page_detail`;
   - pantallas con Robolectric: la tarjeta con miniatura, la vista previa de página, el visor y sus acciones, Ajustes y las notas de F19;
   - `NavigationTest`, `StringsParityTest` y `LayeringTest`;
-  - `EngineAnswerEngineTest`: la clave y la configuración según el modo.
+  - `EngineAnswerEngineTest`: la clave y la configuración según el tipo de prompt, y el paso de `AnswerPrompt` a `GenerationPrompt`;
+  - `EngineCoordinatorTest` (JVM): nunca dos Gemma, ni en GPU ni en CPU (analyze I10).
 - **Instrumentadas:**
-  - `ChatMigrationTest` 2 → 3, con las fuentes de antes como `chunk`;
-  - `RagIndexPageSearchTest`: ámbito, buscables, `pagesUsable` y orden;
-  - `SqliteChatRepositoryTest` con fuentes de página;
-  - el coordinador sin dos engines en GPU con la clave de visión;
+  - `SqliteChatRepositoryTest`: la migración 2 → 3 (las fuentes de antes como `chunk`) y las fuentes de página, donde ya se prueban las migraciones de `chat.db` (analyze P2);
+  - `RagIndexPageSearchTest`: ámbito, buscables, `pagesUsable`, orden y la sombra de un reindexado;
   - ATF de las pantallas nuevas (`VisualChatAccessibilityTest`);
   - `GemmaVisionSmokeTest` y `VisualChatBenchmarkTest` (`@RequiresModels`).
 - **Python:** `test_visual_prompt_golden.py`.

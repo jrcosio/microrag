@@ -9,20 +9,19 @@
 ### 1.1 Migración 2 → 3
 
 ```sql
-ALTER TABLE sources ADD COLUMN kind TEXT NOT NULL DEFAULT 'chunk'
-    CHECK (kind IN ('chunk','page'));
+ALTER TABLE sources ADD COLUMN kind TEXT NOT NULL DEFAULT 'chunk' CHECK (kind IN ('chunk','page','image'));
 ALTER TABLE turns ADD COLUMN page_tokens INTEGER;   -- 70, 140 o 280; NULL sin página
 ```
 
 - **`ChatSchema.VERSION`** pasa a 3, y `ChatMigrations` gana la migración `from = 2`.
-- **`chat_schema.sql`** recoge las dos columnas en su forma final, con la cabecera «schema version 3».
+- **`chat_schema.sql`** recoge las dos columnas en su forma final, con la cabecera «schema version 3». Cada `ADD COLUMN` aparece idéntico como columna de su `CREATE TABLE` (la regla de `ChatSchemaTest`, R9).
 - **Conversaciones existentes:** sus fuentes quedan como `chunk` y sus turnos con `page_tokens = NULL`. Se abren igual (FR-017).
 
 ### 1.2 Una fuente de página en `sources`
 
-| Columna | Fragmento (como hoy) | Página |
+| Columna | Fragmento (como hoy) | Página o imagen |
 |---|---|---|
-| `kind` | `'chunk'` | `'page'` |
+| `kind` | `'chunk'` | `'page'` (PDF) o `'image'` (JPG o PNG) |
 | `position` | número con que se muestra (D-053) | igual |
 | `prompt_number` | su `[n]` en el prompt | `k + 1`, tras los `k` bloques |
 | `document_id` | documento | documento |
@@ -31,7 +30,7 @@ ALTER TABLE turns ADD COLUMN page_tokens INTEGER;   -- 70, 140 o 280; NULL sin p
 | `document_name` | nombre al responder | igual |
 | `page` | página del bloque, o NULL | **número de página citada**, empezando en 1 |
 
-Una imagen suelta (JPG o PNG) es la página 1 de su documento. Su formato se lee del documento al mostrarla, y la UI no enseña el número (wireframe §4).
+Una imagen suelta (JPG o PNG) es la página 1 de su documento, con `kind = 'image'`. La UI no enseña su número (wireframe §4 y §10).
 
 ## 2. `multimodal.preferences_pb` (R12)
 
@@ -100,7 +99,7 @@ val pagesMs: Double? = null
 ### 3.3 `domain/chat`
 
 ```kotlin
-enum class SourceKind { FRAGMENT, PAGE }
+enum class SourceKind { FRAGMENT, PAGE, IMAGE }
 
 // AnswerSource y PromptBlockRef ganan:
 val kind: SourceKind = SourceKind.FRAGMENT
@@ -126,6 +125,10 @@ sealed interface PromptPart {
 
 `ChatTurn` gana `pageTokens: Int?`, leído de `turns.page_tokens`.
 
+`ChatLibraryState` gana `withPages: Int`, los documentos buscables con alguna página (precarga, R5).
+
+`ChatAnnouncement` (UI) gana `READING_PAGE`.
+
 ### 3.4 `rag/runtime`
 
 ```kotlin
@@ -145,7 +148,7 @@ fun generate(prompt: GenerationPrompt): Flow<GenerationEvent>
 
 sealed interface GenerationPrompt {
     data class Text(val text: String) : GenerationPrompt
-    data class Parts(val parts: List<PromptPart>, val visualTokens: Int) : GenerationPrompt
+    data class Parts(val parts: List<PromptPart>, val visualTokens: Int?) : GenerationPrompt   // null: el valor del fichero
 }
 ```
 
@@ -164,10 +167,10 @@ interface PageImageRepository {
 |---|---|---|
 | `Document` | `documentId`, `chunkId?` y **`page?`** (nuevo) | una cita de fragmento (`chunkId`) o de página (`page`) |
 | `PageViewer` (nueva) | `documentId`, `page` | el detalle, al tocar la página |
-| `PageDetailRoute` (nueva) | ninguno | Ajustes, fila «Detalle de las páginas» |
+| `PageDetailSetting` (nueva; su composable, `PageDetailRoute`, como `ImportMode` e `ImportModeRoute`) | ninguno | Ajustes, fila «Detalle de las páginas» |
 
 ## 5. Estados
 
 **Estado de un turno en la UI (`TurnStatus`):** `SEARCHING` → (`READING_PAGE` si `pageTokens != null` y no hay texto) o `GENERATING` → texto. `READING_PAGE` termina con el primer token.
 
-**Vista previa del detalle (`PreviewContent`):** gana `Page(documentId, page, documentName)`. Si la página ya no está, se muestra `Shown` o `None`, como sin cita, con el aviso `document_citation_page_missing`.
+**Vista previa del detalle (`PreviewContent`):** gana `Page(documentId, page, documentName, image: Boolean)`. La imagen se carga en la pantalla, con su estado de carga (wireframe §10). Si la página ya no está, se muestra `Shown` o `None`, como sin cita, con el aviso `document_citation_page_missing`.

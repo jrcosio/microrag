@@ -2233,6 +2233,38 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G47).
 
 ---
 
+## D-085 — Chat con páginas: decisiones del analyze de F20
+
+- **Fecha:** 2026-11-05
+- **Decisión** (revisión del usuario tras un analyze independiente con 30 hallazgos: 1 CRITICAL, 4 HIGH, 11 MEDIUM y 14 LOW):
+  1. **Gemma se carga con la visión solo cuando entra una página** (I1, decisión del usuario):
+     - sin página, la respuesta usa la Gemma de hoy, con 4.096 tokens y sin visión, esté el modo activo o no. Así se cumple la promesa de la spec: sin páginas, mismo prompt, motor, espera y memoria;
+     - la clave del motor sale del tipo de prompt (I3);
+     - pasar de una respuesta sin página a una con página recarga Gemma, y se mide.
+  2. **Anexo §10 del wireframe aprobado** (U1, U3 y C3):
+     - las imágenes sueltas dicen «Imagen», nunca «Página 1»;
+     - un anillo indeterminado mientras carga la página en la vista previa y en el visor;
+     - TalkBack anuncia «Leyendo 1 página».
+  3. **Correcciones técnicas,** sin decisión del usuario:
+     - nunca dos Gemma cargadas, también en «Modo CPU» (I2);
+     - el límite de 2.000 tokens se aplica sobre la v4 (A1);
+     - `visualTokens` admite null (I7);
+     - las fuentes de tipo `image` (U2);
+     - `LisdataPageThumbnail` como pieza del design system (C4);
+     - la regla de `ChatSchemaTest` para `ADD COLUMN` (I4);
+     - `Document.page` en US1 (I6);
+     - pruebas nuevas para el presupuesto de tokens, la sombra, la imagen que falta y los seguimientos (G1–G4);
+     - rutas y nombres (P1–P3, I10–I14).
+  4. **Una página que ya no está** (I5), en un documento que sigue, abre el documento con un aviso, como un fragmento que ya no está. Solo un documento borrado dice «Fuente ya no disponible». FEATURES §F20 se actualiza.
+- **Motivo:**
+  - la spec aprobada promete que sin páginas todo queda igual, también la espera;
+  - los estados nuevos de la UI se aprueban antes de implementarlos (constitución VII).
+- **Alternativas descartadas:** Gemma con visión siempre que el modo esté activo, que obligaba a rebajar la promesa de la spec.
+- **Origen:** analyze de F20, con la parada de la constitución VIII.
+- **Afecta:** F20: spec (Clarifications, FR-023 y SC-001), wireframe §10, research (R2, R4, R5, R7–R9, R11, R13–R15 y R21), data-model, contratos, quickstart y tareas.
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.
