@@ -55,7 +55,7 @@ description: "Lista de tareas de F18 — Viabilidad del RAG visual"
   - instalarlas en `offline/.venv`;
   - registrar `EG2_440M` en `offline/eval/models.py`, con su SHA-256 y tamaño de `ModelCatalog.kt`;
   - enlazar `offline/models/embeddinggemma-2-text-vision-440m.litertlm`.
-- [ ] T002 [P] Ampliar `offline/tests/test_appconfig.py`: la 440M de `ModelCatalog.kt` coincide con `models.py`. Ejecutar toda la batería de Python como línea base (181 pruebas).
+- [ ] T002 [P] En `offline/tests/test_appconfig.py`, comprobar que `models.verify("EG2_440M")` resuelve el fichero enlazado con la huella de `ModelCatalog.kt`. `models.py` ya lee el catálogo, así que no se duplica nada. Ejecutar toda la batería de Python como línea base (181 pruebas).
 - [ ] T003 [P] Línea base de la app: `./gradlew :app:testDebugUnitTest :app:lintDebug` en verde (1.128 pruebas JVM) antes de tocar nada.
 
 ---
@@ -69,14 +69,15 @@ description: "Lista de tareas de F18 — Viabilidad del RAG visual"
   - una regla nueva: ni `src/main` ni `src/release` contienen `debug.feasibility.visual`, y `VisualFeasibilityScreen.kt` existe en debug.
 - [ ] T005 [P] Interfaces y tipos en `…/debug/debug/feasibility/visual/VisualContracts.kt`: `VisionGenerator`, `VisionGeneration`, `ImageEmbedder`, `VisionModelInfo`, `VisionEngineFactory`, `PageRasterizer`, `ImageFormat` y `EncodedImage` (contrato del diagnóstico §1). Sin imports de LiteRT-LM ni de la API de PDF.
 - [ ] T006 [P] Protocolo en `…/debug/debug/feasibility/visual/VisualProtocol.kt`:
-  - la matriz de R4: páginas 1–3, presupuestos 70/140/280, trozos y contexto + 1 página;
+  - la etapa A de R4, con 25 combinaciones: páginas solas y mezcla con el contexto de D-034, 1–3 páginas × 70/140/280, trozos a 280 y la base sin imagen, con 3 repeticiones;
+  - la etapa B: candidatas recibidas como parámetro, con las 20 preguntas de `contexts.json`;
   - repeticiones: generación 1 + 3 con 64 tokens de salida; embeddings y conversión 3 + 30;
   - resoluciones 768/1.024/1.536, calidad 85 y la tanda de 50 páginas de R14.
 - [ ] T007 [P] Pruebas JVM del informe en `…/testDebug/debug/feasibility/visual/VisualReportTest.kt`:
   - esquema v1;
   - escritura atómica en JSON y Markdown;
-  - sin texto de respuestas en el Markdown, salvo en `READING`;
-  - vectores solo en el JSON.
+  - el texto de las respuestas (`GEMMA_PAGES` y `READING`) y los vectores, solo en el JSON, nunca en el Markdown;
+  - `charging` en cada escenario.
 - [ ] T008 Informe en `…/debug/debug/feasibility/visual/report/VisualReport.kt` y `VisualReportWriter.kt` (data-model §2.2), siguiendo `ReportWriter` de F02 (`filesDir/reports/visual-<ts>.{json,md}`). Hace pasar T007.
 - [ ] T009 [P] Pruebas JVM del conjunto del dispositivo en `…/testDebug/debug/feasibility/visual/DeviceSetLoaderTest.kt`:
   - manifiesto válido;
@@ -90,7 +91,13 @@ description: "Lista de tareas de F18 — Viabilidad del RAG visual"
   - un error en GPU da `NOT_AVAILABLE` y cualquier otro `FAILED`;
   - cancelar da `CANCELLED` y libera;
   - el informe se reescribe tras cada resultado;
-  - un bloque sin sus ficheros verificados no corre y queda con su motivo.
+  - un bloque sin sus ficheros verificados no corre y queda con su motivo;
+  - cada escenario usa una sola configuración de engine, entre dos `releaseAll()` (hallazgo M6).
+
+  Además, `…/testDebug/debug/feasibility/visual/VisualFeasibilityViewModelTest.kt`, antes de T015 (hallazgo M8):
+  - estado de los modelos y del conjunto;
+  - lanzar y cancelar;
+  - `onStop` cancela, espera y libera.
 - [ ] T012 Núcleo de la suite en `…/debug/debug/feasibility/visual/VisualSuite.kt`: `run(blocks, confirmHot)`, el ejecutor de escenarios y el mapa de estados (contrato §2). Hace pasar T011. Los bloques se rellenan en sus historias.
 - [ ] T013 [P] Adaptadores de LiteRT-LM en `…/debug/rag/runtime/litert/LiteRtVisionEngines.kt` (R1, contrato §1):
   - `LiteRtVisionGenerator`: `EngineConfig` con `visionBackend = CPU` y `maxNumImages`; fija y restaura `ExperimentalFlags.visualTokenBudget` en la cola del LLM; `sendMessageAsync(Contents.of(ImageBytes…, Text))`, con el primer token y `BenchmarkInfo`;
@@ -106,7 +113,7 @@ description: "Lista de tareas de F18 — Viabilidad del RAG visual"
   - `…/debug/debug/feasibility/visual/VisualFeasibility{Screen,ViewModel,UiState,Module}.kt`, con componentes `Lisdata*`, un botón por bloque, el estado de los modelos y del conjunto del dispositivo, el progreso y «Cancelar». Al pasar a segundo plano, cancela y libera, como F02;
   - textos en `app/src/debug/res/values/strings_feasibility.xml`;
   - entrada «Viabilidad visual» en `…/debug/debug/DebugEntries.kt` y el módulo en `DebugModules.kt`;
-  - ampliar `…/test/…/DebugModulesTest` (verificación de Koin).
+  - ampliar `app/src/testDebug/java/com/lisdatasolutions/microrag/debug/DebugModulesTest.kt` (verificación de Koin).
 
   Hace pasar T004.
 
@@ -118,9 +125,20 @@ description: "Lista de tareas de F18 — Viabilidad del RAG visual"
   - **rasterizado:** píxeles por lado largo, fondo blanco, formatos, trozos con un 10 % de solape y caché;
   - **fotos simuladas:** misma semilla, mismos bytes, y recetas dentro de límites.
 - [ ] T017 Módulos `offline/eval/vision_runtime.py`, `raster.py` y `photos.py` (contrato del harness §2, R1, R7). Hacen pasar T016.
-- [ ] T018 Regla congelada, parte 1: `offline/config/visual_rules.json` con los umbrales de D-073, las reglas de elección de R12 y las semillas, con `testset_sha256: null`. Más `offline/eval/visual_rules.py` y `offline/tests/test_visual_rules.py`:
-  - las ablaciones se niegan sin huella;
+- [ ] T018 Regla congelada, parte 1: `offline/config/visual_rules.json`, con `testset_sha256: null` y todas las claves de data-model §1.5:
+  - los umbrales de D-073 y D-075;
+  - la fórmula compuesta y sus constantes (206,5 y 53,0 ms);
+  - la etapa B;
+  - el juez decisivo manual;
+  - las reglas de elección de R12;
+  - las semillas.
+
+  Más `offline/eval/visual_rules.py` y `offline/tests/test_visual_rules.py`:
+  - las ablaciones se niegan sin huella o si el fichero difiere de `HEAD`;
+  - cada ejecución guarda el hash git;
+  - la fórmula compuesta;
   - la regla de sí o no;
+  - las tres etapas de `visual-decide`;
   - las reglas de elección con empates.
 
   **Commit propio antes de cualquier ablación** (FR-025).
@@ -140,7 +158,7 @@ description: "Lista de tareas de F18 — Viabilidad del RAG visual"
   - `simulated_from`;
   - la reconstrucción de los escaneados como PDF solo de imagen, con bytes deterministas;
   - `SOURCES.md` generado.
-- [ ] T020 [US5] Corpus en `offline/eval/visual_corpus.py` y `offline/eval/corpus.py`, con el manifiesto `offline/corpus/visual/manifest.json` de los 18 documentos y 15 imágenes de R8, con su URL, licencia, atribución y `fetch.pages`.
+- [ ] T020 [US5] Corpus en `offline/eval/visual_corpus.py` y `offline/eval/corpus.py`, con el manifiesto `offline/corpus_visual/manifest.json`, fuera de `offline/corpus` (R8) de los 18 documentos y 15 imágenes de R8, con su URL, licencia, atribución y `fetch.pages`.
   - Ejecutar `fetch-corpus corpus=visual --record`, `visual-photos` y `sources corpus=visual`.
   - Comprobar que el total queda por debajo de 40 MB y que hay al menos 300 páginas.
   - Las imágenes dudosas de R8 se revisan, y se sustituyen si hace falta.
@@ -149,7 +167,11 @@ description: "Lista de tareas de F18 — Viabilidad del RAG visual"
   - de fragmento a página con solape y con páginas sin texto;
   - vectores de página truncados a 256 y 512 y normalizados (`fake_embedding`);
   - el índice de texto del corpus visual usa los parámetros de D-034.
-- [ ] T022 [US5] Índices en `offline/eval/visual_index.py` y el subcomando `visual-build`: `visual-text.db`, `visual-chunk-pages.json` y `visual-pages-<px>-<tokens>.db` (R10). Ejecutar `visual-raster` y `visual-build` para 768/1.024/1.536 × 70/140.
+- [ ] T022 [US5] Índices en `offline/eval/visual_index.py` y el subcomando `visual-build` (R10), registrando la variante en `offline/eval/builds.py` si hace falta:
+  - `visual-text.db`, `visual-chunk-pages.json` y `visual-pages-<px>-<tokens>.db`;
+  - también el índice de páginas de los 6 PDF de F05, para la pérdida en texto (R11).
+
+  Ejecutar `visual-raster` y `visual-build` para 768/1.024/1.536 × 70/140.
 - [ ] T023 [P] [US5] Pruebas en `offline/tests/test_visual_testset.py`: reglas V1–V8, hoja de revisión, aplicación de veredictos y `visual-freeze`, que se niega a cambiar una huella ya escrita.
 - [ ] T024 [US5] Conjunto de prueba en `offline/eval/visual_testset.py`, con los subcomandos `visual-validate`, `visual-review-sheet`, `visual-review-apply` y `visual-freeze`.
 - [ ] T025 [US5] Redacción del conjunto (R9, D-073), en `offline/testset/visual/questions.jsonl` con `review: pendiente`:
@@ -160,7 +182,7 @@ description: "Lista de tareas de F18 — Viabilidad del RAG visual"
   - Ejecutar `visual-review-apply` y `visual-validate`: ≥ 100 aceptadas y ≥ 60 % visuales.
   - Ejecutar `visual-freeze` y hacer **commit** del conjunto y de `visual_rules.json` con su huella, **antes** de T028 y T032.
 - [ ] T027 [P] [US5] Pruebas en `offline/tests/test_visual_retrieval.py`: listas por página con la mejor posición, RRF de 2 y 3 listas con k = 60, empates, y Recall@1/3/5/10, MRR y nDCG@10 por página y por tipo.
-- [ ] T028 [US5] Recuperación en `offline/eval/visual_retrieval.py` y el subcomando `visual-retrieve`. Ejecutar las ablaciones de R10: modo × px × tokens × dimensión.
+- [ ] T028 [US5] Recuperación en `offline/eval/visual_retrieval.py` y el subcomando `visual-retrieve`. Ejecutar las ablaciones de R10 (modo × px × tokens × dimensión), y después `visual-decide --stage retrieval`, que fija la resolución, los tokens y la dimensión antes de las respuestas (hallazgo M9).
 - [ ] T029 [P] [US5] Pruebas en `offline/tests/test_visual_prompt.py` y `test_visual_judge.py`:
   - plantilla v5-visual: numeración, etiqueta antes de cada imagen y trozos;
   - mezcla con la regla de duplicados y relleno con los bloques siguientes;
@@ -168,20 +190,21 @@ description: "Lista de tareas de F18 — Viabilidad del RAG visual"
   - juez: citas a página y a bloque con páginas, y negativas.
 - [ ] T030 [US5] Plantilla en `offline/eval/visual_prompt.py`, y juez en `offline/eval/visual_judge.py` (R11). Hacen pasar T029.
 - [ ] T031 [US5] Generación con imágenes: el subcomando `visual-generate`, que se reanuda, guarda la huella por ejecución (`LATE_FIELDS`) y marca las tandas parciales.
-- [ ] T032 [US5] Ejecutar las ablaciones de respuesta de R11 con los parámetros de recuperación elegidos por la regla:
+- [ ] T032 [US5] Ejecutar las ablaciones de respuesta de R11 con los parámetros de recuperación de T028:
   - «Texto»;
-  - «Páginas» con 1–3 páginas × 70/140/280 y con trozos;
-  - «Mezcla».
+  - «Páginas», con 1–3 páginas × 70/140/280 y con trozos a 280;
+  - «Mezcla», con las mismas variantes.
 
   Anotar la duración de cada tanda.
-- [ ] T033 [US5] Muestra manual (`visual-manual`): 30 respuestas por variante principal, revisadas según D-033, en `offline/reports/visual-manual-judgement.csv`.
+- [ ] T033 [US5] Comprobación del juez (`visual-manual`): 30 respuestas de cada variante principal («Texto» y la mejor de «Páginas» y de «Mezcla» según el juez), revisadas según D-033, en `offline/reports/visual-manual-judgement.csv`. La revisión decisiva va en T058.
 - [ ] T034 [US5] Regresión del texto (FR-024, SC-010): `run_eval.py ablations` con la configuración de D-034 da las mismas cifras que el informe de F05 y F10.
 - [ ] T035 [P] [US5] Pruebas en `offline/tests/test_visual_parity.py`: el manifiesto del conjunto del dispositivo, los cosenos por imagen y el juez de la lectura del teléfono.
 - [ ] T036 [US5] Conjunto del dispositivo en `offline/eval/visual_parity.py` y el subcomando `visual-device-set` (R13, data-model §1.6):
   - 20 imágenes y sus vectores a 70 y 140;
   - los 10 PDF de origen;
   - las 10–15 páginas de lectura, con su pregunta y sus `key_facts`;
-  - `contexts.json`, con el contexto de texto de D-034 para la combinación de texto + 1 página;
+  - `contexts.json`, con 20 preguntas: el contexto de texto de D-034, sus páginas y sus trozos, en el orden de la plantilla v5-visual;
+  - `decode/`: las dos fotos de 12 MP, un PNG con transparencia, un JPEG girado por EXIF y un JPEG en CMYK (hallazgo M5);
   - `manifest.json`.
 - [ ] T037 [US5] Informe en `offline/eval/visual_report.py` y el subcomando `visual-report`, que genera `offline/reports/visual-eval-report.md` con sus secciones 1–3 y 6. La 4 y la 5 llegan con el teléfono.
 
@@ -197,9 +220,12 @@ description: "Lista de tareas de F18 — Viabilidad del RAG visual"
 
 - [ ] T038 [P] [US1] Pruebas JVM en `VisualSuiteTest`:
   - `GEMMA_INFO` informa las modalidades y los backends;
-  - `GEMMA_PAGES` recorre la matriz de R4 y añade el mismo prompt sin imagen como base;
+  - **`GEMMA_PAGES`:**
+    - recorre las 25 combinaciones de la etapa A, en el orden de v5-visual (etiqueta, imagen y texto);
+    - con `candidates`, corre la etapa B con las 20 preguntas;
+    - la visión en GPU se pide una vez y queda `NOT_AVAILABLE` si el fake la rechaza (FR-007);
   - un presupuesto mayor que el máximo del fichero da `NOT_SUPPORTED` sin cargar nada;
-  - `READING` guarda las respuestas en el informe y no en el registro.
+  - `GEMMA_PAGES` y `READING` guardan las respuestas solo en el JSON del informe, y nunca en el registro.
 - [ ] T039 [US1] Bloques `GEMMA_INFO`, `GEMMA_PAGES` y `READING` en `VisualSuite.kt`, con las páginas y el contexto del conjunto del dispositivo. Hacen pasar T038.
 
 ---
@@ -212,10 +238,12 @@ description: "Lista de tareas de F18 — Viabilidad del RAG visual"
 
 - [ ] T040 [P] [US2] Prueba instrumentada `…/androidTest/rag/runtime/EmbeddingVariantGoldenTest.kt` (`@RequiresModels`, R5):
   - la 440M frente a `embedding_golden.jsonl` en CPU y en GPU (la GPU, omitida en el emulador), sin comprobar la huella del golden;
-  - la identidad con la 270M en CPU.
+  - la identidad con la 270M en CPU;
+  - antes de medir, las huellas de las dos variantes contra `ModelCatalog` (hallazgo M2);
+  - sus cifras, en `filesDir/reports/variant-golden-<ts>.json` (hallazgo M3).
 
   Ampliar `testing/InstalledModels` si hace falta para la 440M.
-- [ ] T041 [P] [US2] Pruebas JVM en `VisualSuiteTest` de `EMBED_TEXT`: consulta y fragmento con las dos variantes, 3 + 30, y los p50 y p95 de cada una.
+- [ ] T041 [P] [US2] Pruebas JVM en `VisualSuiteTest` de `EMBED_TEXT`: la carga en frío, la consulta y el fragmento con las dos variantes, con 3 + 30, los p50 y p95 de cada una, y el pico de memoria (FR-010).
 - [ ] T042 [US2] Bloque `EMBED_TEXT` en `VisualSuite.kt`, con el `EngineFactory` de `main` (`LiteRtTextEmbedder`) y el fichero de cada variante. Hace pasar T041.
 
 ---
@@ -242,7 +270,7 @@ description: "Lista de tareas de F18 — Viabilidad del RAG visual"
 - [ ] T045 [P] [US4] Prueba instrumentada `…/androidTest/data/ingest/DebugPageRasterizerTest.kt`, sin modelos:
   - con los PDF de fixtures de F06 (`androidTest/assets/pdf`): páginas a 768 px por el lado largo, fondo blanco y WebP o JPEG decodificables;
   - con una imagen JPEG con EXIF girado y un PNG con transparencia, generados con `offline/gen_pdf_fixtures.py` (o un script hermano): quedan derechos y sobre blanco;
-  - con un PDF cifrado solo con contraseña de propietario, generado igual: se abre o queda registrado (R8).
+  - con `restricted.pdf` de las fixtures de F06, cifrado solo con contraseña de propietario: se abre o queda registrado (R8).
 - [ ] T046 [P] [US4] Pruebas JVM en `VisualSuiteTest`:
   - `RASTER` cubre resolución × formato × orientación;
   - `IMAGE_DECODE` cubre las tres resoluciones;
@@ -257,9 +285,8 @@ description: "Lista de tareas de F18 — Viabilidad del RAG visual"
 
 **Independent Test**: las pruebas JVM y `LayeringTest` en verde, y `apkanalyzer` sin rastro de F18 en release.
 
-- [ ] T048 [P] [US7] Pruebas JVM en `VisualSuiteTest` y `VisualFeasibilityViewModelTest`:
+- [ ] T048 [P] [US7] Pruebas JVM en `VisualSuiteTest`:
   - `EMBED_IMAGE` seguido de `GEMMA_PAGES` libera el embedder antes de cargar Gemma (`EngineCoordinator` real con fakes);
-  - `ON_STOP` cancela, espera y libera;
   - la cancelación llega en menos de 1 s fuera de la carga.
 - [ ] T049 [US7] Prueba instrumentada `…/androidTest/debug/feasibility/visual/VisualFeasibilityBenchmarkTest.kt` (`@RequiresModels`, contrato §4):
   - lee `-e blocks`, responde `confirmHot = { false }` y escribe el informe;
@@ -297,23 +324,33 @@ description: "Lista de tareas de F18 — Viabilidad del RAG visual"
 
 ## Phase 10: Última fase — teléfono de referencia, decisión y cierre
 
-- [ ] T055 **Pedir permiso al usuario** para la fase del teléfono, con el plan: ajustes que se anotan, la 440M que se copia, el conjunto del dispositivo, las pruebas y la limpieza.
-- [ ] T056 Fase del teléfono (quickstart §5), con la salida en el teléfono y sin pantalla de bloqueo:
+- [ ] T055 **Pedir permiso al usuario** para la fase del teléfono, con el plan: ajustes que se anotan, la 440M que se copia, el conjunto del dispositivo, las pruebas, las dos etapas y la limpieza.
+- [ ] T056 Fase del teléfono, parte 1 (quickstart §5), con la salida en el teléfono y sin pantalla de bloqueo:
   - importar la 440M con el procedimiento de F02;
   - copiar el conjunto del dispositivo;
   - `EmbeddingVariantGoldenTest`;
-  - `VisualFeasibilityBenchmarkTest` con todos los bloques;
+  - `VisualFeasibilityBenchmarkTest` con todos los bloques, con `GEMMA_PAGES` en la etapa A;
   - la batería completa;
-  - copiar el informe a `offline/build/visual/phone-report.json` y a `specs/018-visual-rag-feasibility/benchmarks.md`;
+  - copiar los informes a `offline/build/visual/`.
+- [ ] T057 [US6] Etapa B:
+  - `visual-decide --stage candidates` con el informe de la etapa A;
+  - en el teléfono, `GEMMA_PAGES` con `-e candidates`;
+  - copiar el informe y volcar las cifras en `specs/018-visual-rag-feasibility/benchmarks.md`, con la cifra de extremo a extremo marcada como compuesta;
   - limpieza y ajustes restaurados.
-- [ ] T057 [US6] Paridad y decisión: `visual-parity` y `visual-decide` con el informe del teléfono, y las secciones 4 y 5 de `visual-eval-report.md`. **Si el primer token con 1 página pasa de 8 s de p95, o la 440M no cumple SC-002, se para y se pregunta al usuario** (D-073).
-- [ ] T058 [US6] Decisiones en `docs/roadmap/DECISIONS.md` (FR-028):
+- [ ] T058 [US6] Revisión decisiva y regla:
+  - `visual-parity`;
+  - `visual-manual --decisive`: revisión a mano, según D-033, de «Texto» y de la configuración elegida en el conjunto visual;
+  - `visual-text-loss`: la configuración elegida sobre las 323 respondibles de F05, juzgando a mano solo las que cambian;
+  - `visual-decide`, y las secciones 4 y 5 de `visual-eval-report.md`.
+
+  **Si el primer token con 1 página pasa de 8 s de p95, o la 440M no cumple SC-002, se para y se pregunta al usuario** (D-073).
+- [ ] T059 [US6] Decisiones en `docs/roadmap/DECISIONS.md` (FR-028):
   - los parámetros con su cifra;
   - el cambio de la 270M a la 440M (sustituye a D-025, o se explica por qué no);
   - el sí o el no a F19–F20.
 
-  Si sale el sí, se redacta la propuesta de enmienda de la constitución (FR-029): página citable, 440M, dimensión de página y formatos visuales. Se aplica en F19.
-- [ ] T059 [US6] Cierre:
+  Si sale el sí, se redacta la propuesta de enmienda de la constitución (FR-029): página citable, 440M, dimensión de página, formatos visuales y el presupuesto de primer token de las respuestas con páginas (IV). Se aplica en F19.
+- [ ] T060 [US6] Cierre:
   - `report.md` cerrado, con las cifras del teléfono y del escritorio;
   - `docs/roadmap/FEATURES.md` con F18 «implementada; pendiente de la revisión de cierre» y F19–F20 con los parámetros decididos, o descartadas (FR-030).
 
@@ -336,22 +373,22 @@ description: "Lista de tareas de F18 — Viabilidad del RAG visual"
 - **US1, US2, US3, US4 (fases 4–7):** dependen de T012–T015. El código y sus pruebas JVM no necesitan a US5; solo sus medidas en el teléfono.
 - **US7 (fase 8):** depende de las fases 4–7.
 - **Polish (fase 9):** depende de todo lo anterior.
-- **Última fase (10):** depende de todo y del permiso del usuario (T055). US6 (T057–T059) depende de las cifras del teléfono.
+- **Última fase (10):** depende de todo y del permiso del usuario (T055). US6 (T057–T060) depende de las cifras del teléfono.
 
 ### Within Each User Story
 
 - Las pruebas primero, y deben fallar.
 - Contratos antes que la suite; la suite antes que la pantalla.
 - **Paradas de consulta:**
-  - la del analyze, si deja decisiones;
+  - la del analyze (hecha: pérdida en texto, juez y primer token, D-075);
   - T055, el permiso para el teléfono;
-  - T057, si el primer token o la 440M no cumplen;
-  - T059, la revisión de cierre.
+  - T058, si el primer token o la 440M no cumplen;
+  - T060, la revisión de cierre.
 
 ### Parallel Opportunities
 
 - **Fase 1:** T002 y T003.
-- **Fase 2:** T005, T006, T007, T009, T013, T014 y T016.
+- **Fase 2:** T005, T006, T007, T009, T013, T014 y T016. `VisualFeasibilityViewModelTest` (T011) antes que T015.
 - **US5:** T019, T021, T023, T027, T029 y T035.
 - **US1–US4:** T038, T040, T041, T043, T045 y T046.
 - **US7:** T048.

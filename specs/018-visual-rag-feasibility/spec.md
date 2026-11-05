@@ -59,6 +59,17 @@
   - **fotos simuladas:** páginas del corpus convertidas en «foto» (giro, perspectiva, sombra, ruido y compresión JPEG), cuyo contenido y relevancia se conocen (FR-019).
 - Q: ¿Se aprueba la spec con estas respuestas, y se sigue el ciclo en automático hasta la implementación? → A: Sí (revisión del clarify, 2026-11-05). La fase del teléfono y el cierre se preguntan antes. Queda en D-073.
 
+### Session 2026-11-05 (analyze)
+
+- Q: ¿Dónde se mide que el modo visual no empeora las respuestas de texto? → A: En el conjunto de prueba de texto de F05: sus 323 preguntas respondibles, con la configuración elegida, en la que los 6 PDF de F05 ganan sus páginas. Solo se juzgan a mano las respuestas que cambian, y las demás conservan su veredicto, como en la revisión de plantilla de F11. Así, 2 puntos son unas 6 preguntas (FR-025).
+- Q: ¿Qué juez da las cifras que deciden? → A: Una revisión manual:
+  - el juez automático de F05 sirve para recorrer la malla y elegir los parámetros;
+  - las dos variantes que deciden («Texto» y la configuración elegida, unas 200 respuestas) las revisa a mano el asistente, como en D-035 (FR-025).
+- Q: ¿Cómo se mide el primer token que decide? → A: En dos etapas:
+  1. la matriz completa con 3 repeticiones, para descartar;
+  2. las configuraciones candidatas con 20 preguntas distintas, en frío y en caliente. Ese p95 es el que decide (FR-005, FR-025).
+- Q: ¿Se aprueban los demás arreglos del analyze y se sigue con la implementación? → A: Sí (revisión del analyze, 2026-11-05). Queda en D-075.
+
 ## User Scenarios & Testing *(mandatory)*
 
 Quien usa estas historias es quien desarrolla MicroRAG. Mide en el teléfono de referencia y evalúa en el escritorio para decidir, con cifras, si se construyen F19 y F20 y con qué parámetros.
@@ -181,7 +192,7 @@ Con ellos ejecuta las ablaciones de recuperación y de respuesta, y obtiene un i
 
 1. **Given** el corpus visual, **When** se genera su ficha de fuentes, **Then** cada documento tiene su origen, licencia, atribución, fecha, transformaciones y SHA-256, como el corpus de F05.
 2. **Given** el conjunto de prueba, **When** se revisa, **Then** tiene al menos 100 preguntas aceptadas. De cada una consta:
-   - su tipo: tabla, gráfico, escaneado, imagen suelta, control de texto o sin respuesta;
+   - su tipo: tabla, gráfico, escaneado, imagen suelta, mixta, control de texto o sin respuesta;
    - sus páginas relevantes;
    - la respuesta esperada;
    - el veredicto de la revisión.
@@ -288,7 +299,9 @@ Mientras se mide, nunca hay dos engines en GPU, la interfaz responde y las prueb
   - la memoria pico;
   - el texto generado.
 
-  Usa el protocolo de F02: calentamiento descartado y repeticiones medidas. Mide también el contexto de texto habitual (D-034) más 1 página, el caso real de «Ambos».
+  Lo mide en dos etapas (clarify del analyze):
+  - **etapa A, para descartar:** toda la matriz con el protocolo de F02 (calentamiento descartado y 3 repeticiones). La matriz incluye las páginas solas y el contexto de texto habitual (D-034) más 1, 2 y 3 páginas, que es el caso real de «Ambos», con y sin trozos;
+  - **etapa B, la que decide:** cada configuración candidata con 20 preguntas distintas, en frío y en caliente.
 - **FR-006**: El diagnóstico MUST ejecutar una prueba de lectura: entre 10 y 15 páginas con tablas, cifras, texto pequeño y escaneados, cada una con su pregunta y su respuesta esperada. Registra el acierto de cada una y lo compara con la respuesta del escritorio para la misma página.
 - **FR-007**: La visión de Gemma MUST correr en el backend que declara el fichero (CPU), y su parte de texto en GPU (D-023). Si el fichero ofreciera la visión en GPU, también se mide, sin tener nunca dos engines en GPU.
 
@@ -365,17 +378,21 @@ Mientras se mide, nunca hay dos engines en GPU, la interfaz responde y las prueb
 
   Métricas: respuestas correctas, negativas y citas a la página correcta, por tipo de pregunta, con el juez automático y una muestra manual, como en F05. El prompt con páginas numeradas `[n]` es una propuesta que solo se evalúa; la app no cambia.
 - **FR-024**: Con «Texto», el conjunto de prueba de F05 MUST dar las mismas cifras que hoy (D-034, D-051). El corpus visual no toca el de texto.
-- **FR-025**: Antes de ejecutar la evaluación, MUST quedar fijados por escrito los umbrales, la regla para elegir cada parámetro y la **regla de sí o no** (clarify), que pide las tres condiciones:
+- **FR-025**: Antes de ejecutar la evaluación, MUST quedar fijados por escrito los umbrales, la regla para elegir cada parámetro y la **regla de sí o no** (clarify y analyze).
+
+  **«Ambos»** es la configuración que elige la regla de parámetros: recuperación con las tres listas, y respuesta con páginas o con la mezcla. La regla pide las tres condiciones:
   1. **Calidad visual:** en las preguntas visuales (tabla, gráfico, escaneado e imagen suelta), «Ambos» da al menos 15 puntos más de respuestas correctas que «Texto».
-  2. **Sin pérdida en texto:** en los controles de texto, «Ambos» no pierde más de 2 puntos frente a «Texto».
+  2. **Sin pérdida en texto:** en las 323 preguntas respondibles del conjunto de F05, «Ambos» no pierde más de 2 puntos de respuestas correctas frente a «Texto».
   3. **Primer token:** con la configuración elegida, el p95 en el teléfono de referencia es ≤ 8 s de extremo a extremo, con al menos 1 página.
-     - De extremo a extremo es como en D-026: el embedding de la consulta, la búsqueda y el primer token de la generación.
+     - El p95 sale de la etapa B de FR-005: 20 preguntas distintas.
+     - De extremo a extremo es como en D-026: el embedding de la consulta, la búsqueda y el primer token de la generación. La fórmula y sus constantes se fijan en la regla (research R12), y la cifra se marca como compuesta.
      - Entran las páginas que quepan en ese límite.
      - Si no cabe ni una, se decide con el usuario si se sigue con una excepción o se para.
 
-  Además, la 440M tiene que pasar SC-002, o el usuario decide qué hacer.
-
-  El conjunto de prueba no cambia después de ver resultados (como D-057: «regla fijada antes de evaluar»).
+  Además:
+  - la 440M tiene que pasar SC-002, o el usuario decide qué hacer;
+  - las cifras de calidad que deciden salen de una revisión manual de las dos variantes («Texto» y «Ambos»), hecha por el asistente según D-033. El juez automático solo recorre la malla y elige los parámetros;
+  - ni el fichero de la regla ni el conjunto de prueba cambian después de ver resultados (como D-057: «regla fijada antes de evaluar»).
 - **FR-026**: La evaluación MUST poder repetirse desde la línea de comandos, con semillas fijadas. Sus resultados van a `offline/reports/`, y su código lleva pruebas en `offline/tests`.
 
 **Resultados y decisiones**
@@ -390,11 +407,12 @@ Mientras se mide, nunca hay dos engines en GPU, la interfaz responde y las prueb
   - la regla de fusión y de duplicados: si entra una página, no entran también sus fragmentos;
   - el cambio de la 270M a la 440M (sustituye a D-025, o se documenta por qué no);
   - el sí o el no a F19–F20.
-- **FR-029**: Si sale el sí, MUST quedar redactada la propuesta de enmienda de la constitución, en III y en Restricciones técnicas:
+- **FR-029**: Si sale el sí, MUST quedar redactada la propuesta de enmienda de la constitución, en III, en IV y en Restricciones técnicas:
   - la página como unidad citable, trazable a un documento y una página reales;
   - la 440M;
   - la dimensión de los vectores de página;
-  - los formatos visuales.
+  - los formatos visuales;
+  - el presupuesto de primer token de las respuestas con páginas, distinto del de 5 s de las de texto (IV).
 
   Se aplica en F19 (D-066).
 - **FR-030**: `docs/roadmap/FEATURES.md` MUST reflejar el resultado: F18 cerrada, y F19–F20 con los parámetros decididos, o descartadas.
@@ -418,11 +436,20 @@ Mientras se mide, nunca hay dos engines en GPU, la interfaz responde y las prueb
   - la conversión de páginas e imágenes a cada resolución candidata.
 - **SC-002**: La 440M pasa el `embedding_golden` en el teléfono (≥ 0,99 en cada par), y su coseno mínimo frente a la 270M es ≥ 0,9999. Si no, queda una decisión documentada y aprobada por el usuario.
 - **SC-003**: La consulta con la 440M en CPU da un p95 < 150 ms en el teléfono de referencia.
-- **SC-004**: Se conoce el primer token con 1, 2 y 3 páginas, y con el contexto de texto más 1 página, en el teléfono de referencia. El límite es un p95 ≤ 8 s de extremo a extremo con al menos 1 página (FR-025). Si no se cumple ni con 1 página, la decisión del usuario queda registrada.
+- **SC-004**: Se conoce el primer token en el teléfono de referencia:
+  - con 1, 2 y 3 páginas, y con el contexto de texto más 1, 2 y 3 páginas (etapa A);
+  - con 20 preguntas distintas para cada configuración candidata (etapa B).
+
+  El límite es un p95 ≤ 8 s de extremo a extremo con al menos 1 página (FR-025). Si no se cumple ni con 1 página, la decisión del usuario queda registrada.
 - **SC-005**: Con los mismos bytes, cada imagen de prueba da un coseno ≥ 0,99 entre el teléfono y el escritorio. Si no, se documenta y los parámetros del escritorio se validan en el teléfono.
 - **SC-006**: El conjunto de prueba tiene al menos 100 preguntas aceptadas, al menos el 60 % de ellas visuales (tabla, gráfico, escaneado o imagen suelta), todas con sus páginas relevantes y su veredicto.
 - **SC-007**: El informe de evaluación tiene las ablaciones de recuperación y de respuesta por tipo de pregunta, y cada parámetro de FR-028 lleva la cifra que lo justifica.
-- **SC-008**: El sí o el no a F19–F20 queda en DECISIONS, aplicando la regla de FR-025 (+15 puntos en las visuales, −2 como mucho en los controles de texto y un p95 ≤ 8 s con al menos 1 página), fijada antes de evaluar.
+- **SC-008**: El sí o el no a F19–F20 queda en DECISIONS, aplicando la regla de FR-025, fijada antes de evaluar:
+  - +15 puntos en las visuales;
+  - −2 como mucho en el conjunto de F05;
+  - un p95 ≤ 8 s con al menos 1 página.
+
+  Las cifras de calidad salen de la revisión manual.
 - **SC-009**: En ningún momento hay dos engines en GPU (prueba automática y registros). La build de publicación no tiene el diagnóstico, y sus permisos y su uso de la red son los de F17.
 - **SC-010**: Con «Texto» se reproducen las cifras de F05 y F10, y la batería de pruebas de la app pasa igual que al cerrar F17.
 
@@ -437,9 +464,9 @@ Mientras se mide, nunca hay dos engines en GPU, la interfaz responde y las prueb
 - **Resoluciones candidatas:** el plan fija la malla (por ejemplo, 768, 1.024 y 1.536 px en el lado largo) y la calidad de WebP y JPEG.
 - **Corpus visual:**
   - fuentes públicas en español que permitan la reutilización: INE, AEAT, AEMET y BOE (con la Gazeta histórica), y Wikimedia Commons para las imágenes. El Banco de España queda fuera porque se reserva los derechos (research R8);
-  - entre 15 y 25 documentos y al menos 300 páginas, más las fotos simuladas;
+  - 18 PDF y 15 imágenes, con al menos 300 páginas, más las fotos simuladas;
   - la lista y las licencias están en research R8.
-- **Puntos de la regla de sí o no:** son puntos porcentuales de respuestas correctas, juzgadas como en F05 (juez automático y muestra manual), sobre las mismas preguntas en las dos variantes.
+- **Puntos de la regla de sí o no:** son puntos porcentuales de respuestas correctas, juzgadas a mano sobre las mismas preguntas en las dos variantes. En el conjunto de F05, las respuestas que no cambian conservan su veredicto.
 - **Revisión del conjunto de prueba:** la hace el asistente (D-033, confirmado en el clarify), con las preguntas redactadas por agentes separados.
 - **Juez:** el automático de F05 más una muestra manual, revisada según D-033.
 - **Dónde se mide cada cosa:** la calidad, en el escritorio, con los mismos ficheros y `litert-lm-api` 0.18.1. Las latencias y la memoria, solo en el teléfono. La prueba de lectura del teléfono (FR-006) comprueba que su lectura coincide con la del escritorio.

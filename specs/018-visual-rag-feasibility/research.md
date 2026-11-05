@@ -74,9 +74,11 @@ Comprobaciones hechas el 2026-11-05 en el ordenador de desarrollo (macOS, Apple 
     - `rag/runtime/litert/LiteRtVisionEngines.kt`: Gemma con visión, el embedder de imágenes y `ModelInfo`;
     - `data/ingest/DebugPageRasterizer.kt`: `PdfRenderer` e `ImageDecoder`.
 - **`LayeringTest`:**
-  - sus tres reglas de paquete admiten también la ruta equivalente en `src/debug/java`;
+  - sus dos reglas de paquete (LiteRT-LM y la API de PDF) admiten también la ruta equivalente en `src/debug/java`;
   - una regla nueva comprueba que ni `main` ni `release` nombran `debug.feasibility.visual`, como ya se hace con `debug.retrieval`.
 - **Engines:** pasan por el `EngineCoordinator` de `main`, con su `EngineKey(model, backend)`, así que la regla de un solo engine en GPU se cumple igual que en F02.
+  - El coordinador guarda un engine por clave. La 440M de texto y la de imágenes, los dos presupuestos de la 440M, y Gemma con y sin visión comparten clave.
+  - Por eso **cada escenario usa una sola configuración de engine**, y la suite llama a `releaseAll()` antes y después de cada uno. Una prueba JVM lo comprueba (hallazgo M6 del analyze).
 - **Acceso:** una entrada nueva en `DebugEntries` («Viabilidad visual») y una prueba instrumentada que lanza los bloques sin tocar la pantalla (R15).
 
 **Motivo:** hoy `LayeringTest` solo admite LiteRT-LM en `src/main/java/…/rag/runtime/litert` y la API de PDF en `src/main/java/…/data/ingest`, también para el código de debug. Ampliarlo a los mismos paquetes de debug mantiene la regla (el SDK sigue detrás de sus adaptadores) sin meter en release código que solo usa el diagnóstico (FR-001, FR-031).
@@ -91,10 +93,13 @@ Comprobaciones hechas el 2026-11-05 en el ordenador de desarrollo (macOS, Apple 
 
 **Decisión:**
 - **Protocolo:** el de F02 para la generación: 1 de calentamiento y 3 medidas, espera térmica de R6, y `maxOutputTokens = 64`, porque las respuestas de lectura son cortas.
-- **Matriz** (FR-005):
-  - 1, 2 y 3 páginas × 70, 140 y 280 tokens por página;
-  - 1 y 2 páginas partidas en 2 trozos, a 280 por trozo;
-  - el contexto de texto de D-034 más 1 página a 140 y a 280.
+- **Etapa A, para descartar** (FR-005; analyze, D-075), con 3 repeticiones por combinación:
+  - **solo páginas:** 1, 2 y 3 páginas × 70, 140 y 280 tokens por página, y 1, 2 y 3 páginas partidas en 2 trozos a 280 por trozo;
+  - **mezcla:** el contexto de texto de D-034 más las mismas 12 variantes de páginas;
+  - **base:** el contexto de texto solo, sin imagen.
+
+  En total son 25 combinaciones. Con ellas la regla sabe qué candidatas pueden caber en 8 s.
+- **Etapa B, la que decide:** cada configuración candidata (como mucho 3, elegidas por la regla con la calidad del escritorio y la etapa A) con 20 preguntas distintas de `contexts.json`. Va una en frío y las demás seguidas, con la espera térmica antes de empezar. El p95 de esas 20 es el que decide, como los 50 de D-057.
 - **Por combinación se mide:**
   - la carga en frío con `visionBackend`, frente a la carga sin él (la de F02);
   - el primer token del primer fragmento recibido;
@@ -102,12 +107,14 @@ Comprobaciones hechas el 2026-11-05 en el ordenador de desarrollo (macOS, Apple 
   - el pico de memoria (`VmHWM`, R5 de F02);
   - el texto generado, que va al informe del dispositivo y nunca a logcat.
 - **Coste del codificador de visión:** el primer token con la imagen menos el del mismo prompt sin ella. Se informa junto a `BenchmarkInfo`.
-- **De extremo a extremo** (D-026, FR-025), la suma de:
-  - el p95 de la recuperación completa de F17 en el teléfono, que ya incluye el embedding de la consulta y la búsqueda (198–206 ms);
+- **De extremo a extremo** (D-026, FR-025): una cifra **compuesta**, que se marca como tal en `benchmarks.md`. Es la suma de:
+  - **206,5 ms:** el p95 de la recuperación completa de F17 en el A063, con toda la biblioteca y 10.000 fragmentos. Ya incluye el embedding de la consulta y las dos búsquedas;
+  - **53,0 ms:** cota de la tercera lista, la de páginas. Es el p95 de la búsqueda vectorial de F17 sobre 10.000 fragmentos; una biblioteca tiene menos páginas que fragmentos;
   - la diferencia entre el p95 de la consulta con la 440M y con la 270M (R5);
-  - el p95 del primer token.
+  - el p95 del primer token de la etapa B.
 
-  Sumar los p95 es conservador y no necesita montar el chat completo.
+  Sumar los p95 es conservador y no necesita montar el chat completo. Las dos constantes van en la regla congelada (R12).
+- **Texto generado:** va solo al JSON del informe, nunca al Markdown ni a logcat (hallazgo M4).
 
 **Motivo:** reutiliza el protocolo y las herramientas de F02, que ya están probados en el teléfono, y da el número que pide la regla de D-073 sin construir F20.
 
@@ -121,9 +128,12 @@ Comprobaciones hechas el 2026-11-05 en el ordenador de desarrollo (macOS, Apple 
 
 **Decisión:**
 - **Texto:** con el adaptador de `main` (`LiteRtTextEmbedder`), que no cambia; solo cambia el fichero. Se miden la consulta y el fragmento de unos 350 tokens en CPU, con el protocolo de F02 (3 + 30), y al lado la 270M.
-- **Golden e identidad**, en una prueba instrumentada (`EmbeddingVariantGoldenTest`), porque los golden viven en los assets de las pruebas:
-  - **golden:** cada vector de la 440M frente al `embedding_golden.jsonl`, que se generó con la 270M, en CPU y en GPU, con coseno ≥ 0,99 por par. La prueba de hoy comprueba que la huella del fichero coincide con la del golden; la nueva prueba lo omite a propósito, porque mide precisamente otro fichero;
-  - **identidad:** los mismos textos con la 270M y con la 440M en el teléfono, con un coseno mínimo ≥ 0,9999 (SC-002).
+- **Golden e identidad**, en una prueba instrumentada (`EmbeddingVariantGoldenTest`), porque los golden viven en los assets de las pruebas.
+  - Antes de medir, comprueba el SHA-256 de la 270M y de la 440M contra `ModelCatalog` (hallazgo M2). Es la comprobación de integridad que la prueba de hoy hace con la huella del golden.
+  - Escribe sus cifras en `filesDir/reports/variant-golden-<ts>.json`, para que lleguen a la regla y a `benchmarks.md` (hallazgo M3).
+  - Mide:
+    - **golden:** cada vector de la 440M frente al `embedding_golden.jsonl`, que se generó con la 270M, en CPU y en GPU, con coseno ≥ 0,99 por par. La prueba de hoy comprueba que la huella del fichero coincide con la del golden; la nueva prueba lo omite a propósito, porque mide precisamente otro fichero;
+    - **identidad:** los mismos textos con la 270M y con la 440M en el teléfono, con un coseno mínimo ≥ 0,9999 (SC-002).
 - **Imágenes:** con el adaptador nuevo de debug, en CPU, con `visionTokensPerImage` fijado en la configuración y en las opciones (70 o 140).
   - Se guarda el vector completo de 768 y se informan 256 y 512 tras truncar y normalizar con `EmbeddingMath`.
   - La GPU se pide y queda como «no disponible» si el runtime la rechaza (FR-011).
@@ -182,6 +192,8 @@ Comprobaciones hechas el 2026-11-05 en el ordenador de desarrollo (macOS, Apple 
 ## R8. Corpus visual
 
 **Decisión:** 18 documentos y 15 imágenes públicas, más unas 10 fotos simuladas. En total, unas 314 páginas, con las licencias comprobadas en el aviso legal de cada fuente (investigación del 2026-11-05).
+
+**Carpeta:** `offline/corpus_visual/`, fuera de `offline/corpus/`. `app/build.gradle.kts` añade `offline/corpus` a los assets de las pruebas instrumentadas, para la paridad de F10, y el corpus visual, de hasta 40 MB, inflaría el APK de pruebas (hallazgo M11).
 
 **Fuentes aptas** (modalidad general del RD 1495/2011 o licencia abierta; admiten copias derivadas en un repositorio de evaluación con atribución):
 
@@ -302,15 +314,19 @@ Comprobaciones hechas el 2026-11-05 en el ordenador de desarrollo (macOS, Apple 
 **Decisión:**
 - **Variantes de respuesta,** sobre las mismas preguntas:
   - **«Texto»:** el contexto de D-034 (4 bloques, como mucho 3 por documento, 1.719 tokens) con la plantilla v4;
-  - **«Páginas»:** las *P* primeras páginas de «Ambos» (*P* = 1, 2 o 3) como imágenes, con un presupuesto *B* de 70, 140 o 280 tokens. Variante de **trozos:** cada página partida en 2 mitades con un 10 % de solape, a 280 por trozo;
+  - **«Páginas»:** las *P* primeras páginas de «Ambos» (*P* = 1, 2 o 3) como imágenes, con un presupuesto *B* de 70, 140 o 280 tokens. Variante de **trozos:** cada página partida en 2 mitades con un 10 % de solape, solo a 280 por trozo, como en el teléfono (hallazgo H1);
   - **«Mezcla»:** los bloques de texto de D-034 más *P* páginas, con la **regla de duplicados:** si una página entra como imagen, sus fragmentos salen del texto, y los huecos los ocupan los siguientes bloques.
 - **Plantilla v5-visual** (solo se evalúa, la app no cambia):
   - la v4, con cada fuente numerada `[n]`;
   - una fuente de página va como su etiqueta («[n] Documento, página p») seguida de su imagen en el mismo mensaje (`Contents` intercalado);
   - las instrucciones de citar y de negarse no cambian.
-- **Juez:** el de F05 por reglas.
+- **Juez automático:** el de F05 por reglas, que recorre la malla y elige los parámetros.
   - Una cita `[n]` es correcta si su fuente es una página relevante, o un bloque de texto cuyas páginas incluyen una relevante.
-  - Hay una muestra manual de 30 respuestas por variante principal, revisada según D-033, para comprobar el juez, como en F05.
+  - Una muestra manual de 30 respuestas por variante principal, revisada según D-033, comprueba el juez. Las variantes principales son «Texto» y la mejor de «Páginas» y de «Mezcla» según el juez.
+- **Revisión decisiva** (D-075): las cifras de la regla salen de una revisión manual, hecha por el asistente según D-033, de las dos variantes que deciden: «Texto» y la configuración elegida. Son unas 200 respuestas del conjunto visual, como hizo D-035 con F05.
+- **Pérdida en texto** (D-075): la configuración elegida también responde las 323 preguntas respondibles de F05.
+  - Sus 6 PDF ganan páginas rasterizadas y su índice de páginas; los documentos MD y TXT siguen solo con texto.
+  - Las respuestas idénticas a las de «Texto» conservan su veredicto de `offline/reports/manual-judgement.csv`, como `template_review.merged_rows` de F11. Solo se juzgan a mano las que cambian.
 - **Coste:** se informan los tokens de texto, los visuales (*P* × *B* × trozos) y el total. El límite de 2.000 tokens estimados de D-034 sigue valiendo para la parte de texto. La parte visual la limita el primer token (R12).
 
 **Motivo:** son las tres preguntas de F18: si leer la página da mejores respuestas que su texto, cuántas páginas caben y con qué presupuesto, y si mezclar empeora el texto. La plantilla v5 es la mínima que hace citable una página.
@@ -333,15 +349,26 @@ Es un primer indicio de que la letra pequeña será el límite. La evaluación l
 
 1. **La regla de sí o no de D-073:**
    - en las preguntas visuales, «Ambos» da al menos 15 puntos más de respuestas correctas que «Texto»;
-   - en los controles de texto, como mucho 2 puntos menos;
-   - p95 de extremo a extremo ≤ 8 s con al menos 1 página;
-   - y la 440M pasa SC-002.
+   - en las 323 respondibles de F05, como mucho 2 puntos menos;
+   - p95 de extremo a extremo ≤ 8 s con al menos 1 página, con la fórmula compuesta de R4 y sus constantes (206,5 ms y 53,0 ms) y el p95 de la etapa B;
+   - y la 440M pasa SC-002 (golden ≥ 0,99 e identidad ≥ 0,9999).
+
+   Las cifras de calidad salen de la revisión decisiva de R11. «Ambos» es la configuración que eligen las reglas del punto 2.
 2. **La regla para elegir los parámetros:**
    - **resolución y tokens del embedder:** la combinación con mejor Recall@5 visual en «Ambos». Si hay otra a menos de 0,02 que cuesta menos (menos píxeles o menos tokens), se elige esa;
    - **dimensión de página:** 256, salvo que 512 dé al menos 0,03 más de Recall@5 visual;
    - **páginas, presupuesto y trozos:** la variante con más respuestas correctas visuales entre las que cumplen el primer token en el teléfono. Si hay otra a menos de 1 punto con menor primer token, se elige esa;
    - **mezcla o solo páginas:** la mezcla, salvo que pierda más de 2 puntos en los controles de texto.
-3. **El protocolo:** las semillas, las versiones y las huellas.
+3. **El protocolo:** las semillas, las versiones, las huellas, y las 20 preguntas de la etapa B.
+
+**Cómo se hace cumplir** (hallazgo M10):
+- los subcomandos de ablación se niegan a correr si `visual_rules.json` difiere de su versión en `HEAD`, o si falta la huella del conjunto;
+- cada ejecución guarda el hash git del fichero de la regla.
+
+**Orden de la decisión** (hallazgo M9):
+1. `visual-decide --stage retrieval`, con solo las cifras del escritorio, fija la resolución, los tokens y la dimensión, antes de las ablaciones de respuesta;
+2. `visual-decide --stage candidates` propone las candidatas para la etapa B del teléfono;
+3. `visual-decide` aplica la regla completa con el informe del teléfono y la revisión decisiva.
 
 **Motivo:** D-073 y FR-025 piden fijar la regla antes de ver resultados, como en D-057. El commit con fecha lo hace comprobable.
 
@@ -356,9 +383,16 @@ Es un primer indicio de que la letra pequeña será el límite. La evaluación l
   - 20 imágenes: 10 páginas rasterizadas en el escritorio, 5 imágenes públicas y 5 fotos simuladas, en sus bytes codificados;
   - los 10 PDF de origen de esas páginas;
   - las páginas de la prueba de lectura (FR-006), con su pregunta y sus `key_facts`;
+  - `contexts.json`, con 20 preguntas del conjunto visual: el contexto de texto de D-034, las páginas y los trozos de cada una, en el orden de la plantilla v5-visual;
+  - **`decode/`**, para `IMAGE_DECODE` (hallazgo M5):
+    - las dos fotos de 12 MP del corpus (el panel de sendero y el cartel de precios);
+    - un PNG con transparencia;
+    - un JPEG girado por EXIF;
+    - un JPEG en CMYK, generado con Pillow a partir de una página del corpus;
   - los vectores completos del escritorio, a 70 y a 140 tokens;
   - un `manifest.json` con el SHA-256 de cada fichero.
 - **En el teléfono:** el conjunto llega por `adb push` a `files/dev-visual/`, y el diagnóstico lo verifica con el manifiesto antes de usarlo.
+  - Gemma recibe las partes en el mismo orden que en el escritorio: etiqueta, imagen y texto, como en la plantilla v5-visual. Así la prueba de lectura compara lo mismo en los dos lados (hallazgo M7).
   - Embebe los mismos bytes y rasteriza las mismas páginas con `PdfRenderer`.
   - Su informe lleva los vectores, en JSON fuera de logcat.
 - **De vuelta en el escritorio:** `run_eval.py visual-parity <informe>` calcula:
@@ -389,7 +423,8 @@ Es un primer indicio de que la letra pequeña será el límite. La evaluación l
 
 **Decisión:**
 - **JVM** (`testDebugUnitTest`):
-  - `VisualSuite` con fakes, siguiendo `SuiteFixture` de F02: matriz, combinación no admitida, cancelación, liberación de engines, informe y espera térmica;
+  - `VisualSuite` con fakes, siguiendo `SuiteFixture` de F02: matriz de las dos etapas, combinación no admitida, cancelación, liberación de engines, una configuración de engine por escenario, informe y espera térmica;
+  - `VisualFeasibilityViewModel`, antes de la pantalla (hallazgo M8);
   - el manifiesto de `dev-visual`;
   - el informe visual;
   - `LayeringTest`, con las reglas de R3.

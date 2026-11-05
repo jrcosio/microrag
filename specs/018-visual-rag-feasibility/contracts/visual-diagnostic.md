@@ -9,8 +9,13 @@ Están en `debug/feasibility/visual/` y no importan LiteRT-LM ni la API de PDF.
 ```kotlin
 /** Gemma with images. Implemented in rag/runtime/litert (debug). */
 interface VisionGenerator : ManagedEngine {
-    /** Streams the answer to [images] (encoded bytes, in order) followed by [prompt]. */
-    suspend fun generate(images: List<ByteArray>, prompt: String, visualTokenBudget: Int?, maxOutputTokens: Int): VisionGeneration
+    /** Streams the answer to [parts] in order (labels, images and text, as in the v5-visual layout). */
+    suspend fun generate(parts: List<VisionPart>, visualTokenBudget: Int?, maxOutputTokens: Int): VisionGeneration
+}
+
+sealed interface VisionPart {
+    data class Text(val text: String) : VisionPart
+    class Image(val bytes: ByteArray) : VisionPart
 }
 
 data class VisionGeneration(
@@ -58,6 +63,7 @@ data class EncodedImage(val bytes: ByteArray, val widthPx: Int, val heightPx: In
 - **Embedder:** `EmbeddingEngineConfig(path, backend = CPU, visionBackend = CPU, …, visionTokensPerImage = …)`, con `EmbeddingOptions(normalize = false, visionTokensPerImage = …)`.
 - **Errores:** como en `FeasibilitySuite.scenario` de F02, un error en GPU queda como `NOT_AVAILABLE` y cualquier otro como `FAILED`. Una combinación que el fichero no admite, por ejemplo un presupuesto mayor que su máximo, se marca `NOT_SUPPORTED` sin cargar nada.
 - **Coordinación:** cada engine se usa con `EngineCoordinator.withEngine(EngineKey(model, backend)) { … }`, así que nunca hay dos en GPU (FR-016).
+- **Una configuración por escenario:** el coordinador guarda un engine por clave, y varias configuraciones comparten clave (texto e imágenes de la 440M, sus dos presupuestos, Gemma con y sin visión). Cada escenario usa una sola configuración, entre dos `releaseAll()`.
 
 ## 2. Suite
 
@@ -72,13 +78,13 @@ class VisualSuite(/* coordinator, engines, visionEngines, rasterizer, models, de
 | Bloque | Qué mide | Necesita |
 |---|---|---|
 | `GEMMA_INFO` | `VisionModelInfo` de Gemma y de la 440M (FR-004) | Ficheros verificados |
-| `GEMMA_PAGES` | Matriz de R4: 1–3 páginas × 70/140/280, trozos, y texto de D-034 + 1 página. Más el mismo prompt sin imagen, como base | Gemma, conjunto del dispositivo |
+| `GEMMA_PAGES` | **Etapa A** de R4: las 25 combinaciones (páginas solas y mezcla con el contexto de D-034, 1–3 páginas × 70/140/280, trozos a 280, y la base sin imagen), con 3 repeticiones. **Etapa B:** las candidatas de `-e candidates`, con las 20 preguntas de `contexts.json`. La visión en GPU se pide una vez y queda `NOT_AVAILABLE` si el runtime la rechaza (FR-007) | Gemma, conjunto del dispositivo |
 | `READING` | Las páginas de lectura con su pregunta; guarda las respuestas (FR-006) | Gemma, `reading.json` |
-| `EMBED_TEXT` | Consulta y fragmento con la 440M y con la 270M en CPU, 3 + 30 (FR-010) | Las dos variantes |
+| `EMBED_TEXT` | Carga en frío, consulta y fragmento con la 440M y con la 270M en CPU, 3 + 30, y el pico de memoria (FR-010) | Las dos variantes |
 | `EMBED_IMAGE` | Página a 70 y 140 tokens en CPU, y GPU pedida, 3 + 30; dimensión y norma a 256 y 512 (FR-011) | 440M, conjunto del dispositivo |
 | `PARITY` | Vectores de los 20 bytes del conjunto, y de las 10 páginas rasterizadas con `PdfRenderer` (FR-012) | 440M, conjunto del dispositivo |
 | `RASTER` | Páginas de PDF de texto y escaneados a 768, 1.024 y 1.536 px, en WebP y JPEG, vertical y apaisado (FR-013) | PDF del conjunto |
-| `IMAGE_DECODE` | JPG y PNG grandes, con transparencia y con EXIF, a las tres resoluciones (FR-014) | Imágenes del conjunto |
+| `IMAGE_DECODE` | Las imágenes de `decode/` (12 MP, transparencia, EXIF y CMYK) a las tres resoluciones (FR-014) | `decode/` del conjunto |
 | `PROJECTION` | 50 páginas seguidas: rasterizado, codificación y embedding, con su estado térmico; proyección a 200 (R14) | 440M, PDF del conjunto |
 
 **Reglas de la suite** (las de F02):
@@ -108,13 +114,15 @@ class DeviceSetLoader(dir: File) {
   - un botón por bloque, el estado del conjunto del dispositivo y de los modelos, el progreso y «Cancelar»;
   - al pasar a segundo plano, cancela y libera (`ON_STOP`), como F02.
 - **`VisualFeasibilityBenchmarkTest`** (`androidTest`, `@RequiresModels`):
-  - toma la suite de Koin y lee `-e blocks GEMMA_PAGES,EMBED_IMAGE,…`;
+  - toma la suite de Koin y lee `-e blocks GEMMA_PAGES,EMBED_IMAGE,…` y, para la etapa B, `-e candidates <json>`;
   - responde `confirmHot = { false }`;
   - escribe el informe y registra en logcat solo una línea de cifras por escenario, con la etiqueta `MicroRAG`: `visual-benchmark kind=… params=… p50=… p95=… ttft=…`.
 
 ## 5. Prueba de variantes de embedding
 
 **`EmbeddingVariantGoldenTest`** (`androidTest`, `@RequiresModels`):
+- **integridad:** antes de medir, el SHA-256 de la 270M y de la 440M contra `ModelCatalog`;
+- **informe:** sus cifras van a `filesDir/reports/variant-golden-<ts>.json` (data-model §2.3);
 - **golden:** la 440M frente a `embedding_golden.jsonl`, en CPU y en GPU (omitida en el emulador), con coseno ≥ 0,99 por par. No comprueba la huella del golden, porque mide otro fichero a propósito (R5);
 - **identidad:** los mismos textos con la 270M y con la 440M en CPU; informa el mínimo y el medio, y exige un mínimo ≥ 0,9999 (SC-002).
 

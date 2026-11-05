@@ -1875,6 +1875,46 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G47).
 
 ---
 
+## D-075 — Ajustes del analyze de F18
+
+- **Fecha:** 2026-11-05
+- **Decisión** (respuestas del usuario en la revisión del analyze):
+  1. **Pérdida en texto:** se mide en las 323 preguntas respondibles del conjunto de F05, con la configuración elegida. Sus 6 PDF ganan páginas.
+     - Solo se juzgan a mano las respuestas que cambian; las demás conservan su veredicto, como en la revisión de plantilla de F11.
+     - −2 puntos son unas 6 preguntas, frente a menos de 1 con los 20 controles del conjunto visual.
+  2. **Juez:** las cifras que deciden salen de una revisión manual del asistente (D-033) de «Texto» y de la configuración elegida, unas 200 respuestas, como D-035 en F05. El juez automático recorre la malla y elige los parámetros.
+  3. **Primer token, en dos etapas:**
+     - **A:** la matriz completa con 3 repeticiones, para descartar. Son 25 combinaciones: páginas solas y mezcla con el contexto de D-034, 1–3 páginas × 70/140/280, trozos a 280 y la base;
+     - **B:** las candidatas, como mucho 3, con 20 preguntas distintas en frío y en caliente. Su p95 decide.
+  4. **Arreglos aprobados:**
+     - **«Ambos»** es la configuración que elige la regla de parámetros;
+     - **fórmula de extremo a extremo** compuesta, con sus constantes de F17 en el A063: 206,5 ms de recuperación y 53,0 ms de cota para la lista de páginas. Se marca como compuesta;
+     - **la regla congelada** también lleva los umbrales de coseno (0,99 y 0,9999). Las ablaciones se niegan a correr si el fichero difiere de `HEAD`, y cada ejecución guarda su hash git;
+     - **la decisión en tres pasos:** recuperación, candidatas y regla completa;
+     - **la propuesta de enmienda** incluye también IV: un presupuesto de primer token propio para las respuestas con páginas;
+     - **la prueba de variantes** comprueba las huellas contra `ModelCatalog` y escribe un JSON;
+     - **un engine por escenario:** cada escenario usa una sola configuración de engine;
+     - **Gemma recibe las partes en el orden de v5-visual** en los dos lados;
+     - **el conjunto del dispositivo** gana `decode/` y 20 preguntas en `contexts.json`;
+     - **el texto generado** va solo al JSON;
+     - **el corpus** va en `offline/corpus_visual/`, fuera de los assets de las pruebas;
+     - **las pruebas del ViewModel**, antes de la pantalla;
+     - y correcciones menores en rutas, recuentos y textos.
+- **Motivo:** la revisión independiente encontró 29 hallazgos:
+  - 1 crítico: la parada tras el analyze, que se ha hecho;
+  - 5 altos: la etapa B, la muestra del p95, el significado de «Ambos» y el juez, los 2 puntos sobre 20 preguntas, y el principio IV;
+  - 11 medios y 12 bajos.
+- **Alternativas descartadas:**
+  - 40 controles visuales, o 20 sin ninguna pérdida;
+  - decidir con el juez automático;
+  - toda la matriz con 20 preguntas (más de 1 h de teléfono y con calor).
+- **Origen:** usuario (revisión del analyze de F18) y analyze de F18.
+- **Afecta:**
+  - F18: spec (FR-005, FR-025, FR-029, SC-004, SC-008 y US5), research (R3, R4, R5, R8, R11, R12, R13 y R15), data-model, contratos, quickstart y tareas (60);
+  - D-073, en cómo se miden sus tres condiciones.
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.

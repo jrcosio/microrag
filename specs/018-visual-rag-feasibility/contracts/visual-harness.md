@@ -37,8 +37,8 @@ pillow==12.3.0
 
 | Subcomando | Qué hace |
 |---|---|
-| `fetch-corpus corpus=visual [--record]` | Descarga y recorta el corpus visual, y registra o verifica su SHA-256 |
-| `sources corpus=visual` | Genera `corpus/visual/SOURCES.md` |
+| `fetch-corpus corpus=visual [--record]` | Descarga y recorta el corpus visual en `offline/corpus_visual/`, y registra o verifica su SHA-256 |
+| `sources corpus=visual` | Genera `corpus_visual/SOURCES.md` |
 | `visual-photos` | Genera las fotos simuladas a partir del manifiesto (`simulated_from`) |
 | `visual-raster px=768,1024,1536` | Rasteriza y codifica todas las páginas |
 | `visual-build px=… tokens=70,140` | Índice de texto, índice de páginas y de fragmento a página |
@@ -46,18 +46,21 @@ pillow==12.3.0
 | `visual-review-sheet` / `visual-review-apply` | Hoja de revisión y aplicación de veredictos (D-033) |
 | `visual-freeze` | Escribe `testset_sha256` en `config/visual_rules.json` y se niega a cambiarlo después |
 | `visual-retrieve mode=texto,visual,ambos px=… tokens=… dim=256,512` | Ablaciones de recuperación |
-| `visual-generate answer=texto,paginas,mezcla pages=1,2,3 budget=70,140,280 tiles=no,si` | Ablaciones de respuesta, que se reanudan |
-| `visual-manual` | Exporta la muestra manual (30 por variante principal) |
+| `visual-generate answer=texto,paginas,mezcla pages=1,2,3 budget=70,140,280 tiles=no,si` | Ablaciones de respuesta, que se reanudan. Los trozos, solo a 280 |
+| `visual-text-loss` | La configuración elegida sobre las 323 respondibles de F05: genera solo las respuestas que cambian y exporta `reports/visual-text-loss.csv` para juzgarlas a mano |
+| `visual-manual [--decisive]` | Exporta la muestra de comprobación del juez (30 por variante principal) o, con `--decisive`, todas las respuestas de «Texto» y de la configuración elegida |
 | `visual-device-set` | Exporta `build/visual/device-set/` |
 | `visual-parity <informe.json>` | Cosenos teléfono ↔ escritorio y juez de la prueba de lectura |
-| `visual-decide <informe.json>` | Aplica `visual_rules.json` a las cifras del escritorio y del teléfono, y escribe el resultado |
+| `visual-decide --stage retrieval` | Elige resolución, tokens y dimensión con las cifras del escritorio, antes de las ablaciones de respuesta |
+| `visual-decide --stage candidates <informe-etapa-A.json>` | Propone las candidatas (como mucho 3) para la etapa B del teléfono, con la calidad del escritorio y el primer token de la etapa A |
+| `visual-decide <informe.json>` | Aplica la regla completa con el informe del teléfono, el de variantes y la revisión decisiva, y escribe el resultado |
 | `visual-report` | Genera el informe |
 
 Todos son deterministas: semillas fijas y decodificación greedy (`top_k = 1`, `seed = 0`), como en F05.
 
 ## 4. Reglas de las ablaciones
 
-- **Antes de `visual-retrieve` y `visual-generate`:** `visual_rules.json` ha de existir, con `testset_sha256` igual al del conjunto. Si no, el comando se niega (FR-025).
+- **Antes de `visual-retrieve`, `visual-generate` y `visual-text-loss`:** `visual_rules.json` ha de existir, con `testset_sha256` igual al del conjunto, y ser idéntico a su versión en `HEAD`. Si no, el comando se niega (FR-025). Cada ejecución guarda el hash git del fichero.
 - **Huellas:** cada ejecución guarda su huella como en F05, y los campos nuevos van en `LATE_FIELDS`, para no invalidar ejecuciones anteriores.
 - **Tandas parciales:** una tanda que no cubre todo el conjunto queda marcada como parcial y `visual-decide` no la usa.
 
@@ -83,5 +86,6 @@ Todos son deterministas: semillas fijas y decodificación greedy (`top_k = 1`, `
 | `test_visual_judge.py` | Citas a página y a bloque con páginas |
 | `test_visual_parity.py` | Manifiesto, cosenos y lectura |
 | `test_vision_runtime.py` | Presupuesto por `ctypes` con una librería falsa, y `Contents` |
-| `test_visual_rules.py` | Huella congelada, regla de sí o no y reglas de elección |
-| `test_appconfig.py` | Amplía la comprobación: la 440M de `ModelCatalog.kt` coincide con `models.py` |
+| `test_visual_rules.py` | Huella congelada, fichero igual a `HEAD`, fórmula compuesta, regla de sí o no, etapas de `visual-decide` y reglas de elección |
+| `test_visual_corpus.py` | Corpus `visual`, formatos, `simulated_from`, escaneados reconstruidos y `SOURCES.md` |
+| `test_appconfig.py` | Comprueba que `models.verify("EG2_440M")` resuelve el fichero enlazado con la huella de `ModelCatalog.kt` |

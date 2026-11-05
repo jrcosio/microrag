@@ -18,14 +18,14 @@ Guía para comprobar F18 de extremo a extremo. Los detalles están en [research.
 cd offline
 .venv/bin/python -I run_eval.py fetch-corpus corpus=visual        # verifica el SHA-256 de cada documento
 .venv/bin/python -I run_eval.py visual-photos                     # fotos simuladas, deterministas
-.venv/bin/python -I run_eval.py sources corpus=visual             # corpus/visual/SOURCES.md
+.venv/bin/python -I run_eval.py sources corpus=visual             # corpus_visual/SOURCES.md
 .venv/bin/python -I run_eval.py visual-raster px=768,1024,1536
 .venv/bin/python -I run_eval.py visual-build px=768,1024,1536 tokens=70,140
 .venv/bin/python -I run_eval.py visual-validate                   # V1–V8: ≥ 100 aceptadas, ≥ 60 % visuales
 ```
 
 **Esperado:**
-- el corpus visual tiene entre 15 y 25 documentos, al menos 300 páginas, y las imágenes y fotos simuladas, cada uno con su licencia en `SOURCES.md`;
+- el corpus visual, en `offline/corpus_visual/`, tiene 18 PDF y 15 imágenes con al menos 300 páginas, más las fotos simuladas, cada uno con su licencia en `SOURCES.md`;
 - la validación pasa.
 
 ## 2. Escritorio: regla congelada y ablaciones
@@ -34,8 +34,9 @@ cd offline
 .venv/bin/python -I run_eval.py visual-freeze                      # testset_sha256 en config/visual_rules.json
 git add offline/config/visual_rules.json && git commit …           # antes de evaluar (FR-025)
 .venv/bin/python -I run_eval.py visual-retrieve mode=texto,visual,ambos px=768,1024,1536 tokens=70,140 dim=256,512
+.venv/bin/python -I run_eval.py visual-decide --stage retrieval     # resolución, tokens y dimensión
 .venv/bin/python -I run_eval.py visual-generate answer=texto,paginas,mezcla pages=1,2,3 budget=70,140,280 tiles=no,si
-.venv/bin/python -I run_eval.py visual-manual
+.venv/bin/python -I run_eval.py visual-manual                      # comprobación del juez
 .venv/bin/python -I run_eval.py visual-report
 ```
 
@@ -89,11 +90,18 @@ Antes de empezar:
    am instrument -w -e class com.lisdatasolutions.microrag.rag.runtime.EmbeddingVariantGoldenTest …
    ```
 
-   **Esperado:** ≥ 0,99 por par, y un mínimo ≥ 0,9999 frente a la 270M.
+   **Esperado:** las huellas comprobadas, ≥ 0,99 por par y un mínimo ≥ 0,9999 frente a la 270M, en `files/reports/variant-golden-<ts>.json`.
 4. **Bloques visuales:**
 
    ```sh
    am instrument -e class …VisualFeasibilityBenchmarkTest -e blocks GEMMA_INFO,EMBED_TEXT,EMBED_IMAGE,PARITY,RASTER,IMAGE_DECODE,PROJECTION,GEMMA_PAGES,READING …
+   ```
+
+   Después, la etapa B: copiar el informe de la etapa A, calcular las candidatas en el escritorio y lanzarlas.
+
+   ```sh
+   offline/.venv/bin/python -I offline/run_eval.py visual-decide --stage candidates offline/build/visual/phone-report.json
+   am instrument -e class …VisualFeasibilityBenchmarkTest -e blocks GEMMA_PAGES -e candidates <json> …
    ```
 5. **Batería completa** de la app, como en cada fase del teléfono.
 6. **Informe:**
@@ -112,6 +120,8 @@ Antes de empezar:
 
 ```sh
 .venv/bin/python -I run_eval.py visual-parity build/visual/phone-report.json
+.venv/bin/python -I run_eval.py visual-manual --decisive            # revisión decisiva (D-075)
+.venv/bin/python -I run_eval.py visual-text-loss                    # 323 de F05, solo las que cambian
 .venv/bin/python -I run_eval.py visual-decide build/visual/phone-report.json
 .venv/bin/python -I run_eval.py visual-report
 ```

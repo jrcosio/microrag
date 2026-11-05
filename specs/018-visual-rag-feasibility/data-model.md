@@ -6,7 +6,7 @@ F18 no cambia `rag.db`, `chat.db` ni ningún dato de la app (FR-031). Los datos 
 
 ### 1.1 Documento del corpus visual
 
-Se guarda en `offline/corpus/visual/manifest.json` y sigue los campos de F05 (`eval/corpus.py`, `FIELDS`), con estos cambios:
+Se guarda en `offline/corpus_visual/manifest.json` y sigue los campos de F05 (`eval/corpus.py`, `FIELDS`), con estos cambios:
 
 | Campo | Cambio |
 |---|---|
@@ -20,8 +20,9 @@ Se guarda en `offline/corpus/visual/manifest.json` y sigue los campos de F05 (`e
   - `sha256` registrado y verificado en cada construcción, como en F05;
   - una imagen suelta es un documento de 1 página;
   - las fotos simuladas se generan con `run_eval.py visual-photos` y se guardan en el corpus con su `sha256`, igual que las demás.
-- **Ficha:** `offline/corpus/visual/SOURCES.md`, generada (`run_eval.py sources corpus=visual`).
+- **Ficha:** `offline/corpus_visual/SOURCES.md`, generada (`run_eval.py sources corpus=visual`).
 - **Tamaño:** como mucho unos 40 MB en git. Los PDF escaneados se recortan a extractos.
+- **Carpeta:** `offline/corpus_visual/`, fuera de `offline/corpus/`, que se empaqueta en el APK de pruebas (research R8).
 
 ### 1.2 Página rasterizada
 
@@ -68,14 +69,20 @@ En `offline/testset/visual/questions.jsonl` (R9).
 
 - **`offline/config/visual_rules.json`:**
   - `testset_sha256`;
-  - umbrales: `visual_gain_points: 15`, `text_loss_points: 2`, `ttft_p95_ms: 8000` y `min_pages: 1`;
+  - umbrales: `visual_gain_points: 15`, `text_loss_points: 2` (sobre las 323 respondibles de F05), `e2e_p95_ms: 8000`, `min_pages: 1`, `golden_min_cosine: 0.99` e `identity_min_cosine: 0.9999`;
+  - fórmula de extremo a extremo: `retrieval_p95_ms: 206.5` y `page_search_bound_ms: 53.0` (F17 en el A063), más la diferencia de la consulta 440M − 270M y el p95 del primer token de la etapa B (R4);
+  - etapa B: `stage_b_questions: 20` y `stage_b_max_candidates: 3`;
+  - juez: `decisive_judge: "manual"` (D-075) y `judge_check_sample: 30`;
   - reglas de elección de R12;
   - semillas.
 
   Se hace commit **antes** de ejecutar las ablaciones.
 - **Ejecución:** `offline/build/visual/runs/<huella>/`, con `config.json`, `retrieval.jsonl`, `metrics.json`, `answers.jsonl` y `metrics_answers.json`. La huella sigue el criterio de F05: configuración, índice, conjunto de prueba y modelos.
 - **Informe:** `offline/reports/visual-eval-report.md`, generado.
-- **Muestra manual:** `offline/reports/visual-manual-judgement.csv`.
+- **Revisión manual:**
+  - `offline/reports/visual-manual-judgement.csv`: la muestra de comprobación del juez y la revisión decisiva del conjunto visual;
+  - `offline/reports/visual-text-loss.csv`: las respuestas de F05 que cambian con la configuración elegida, con su veredicto, más las que conservan el de `manual-judgement.csv`.
+- **Hash de la regla:** cada ejecución guarda el hash git de `visual_rules.json`, y las ablaciones se niegan a correr si el fichero difiere de `HEAD` (R12).
 
 ### 1.6 Conjunto del dispositivo
 
@@ -86,7 +93,8 @@ manifest.json        {"version": 1, "files": [{"path", "sha256", "kind": "image|
 images/*.png|jpg|webp
 pdfs/*.pdf
 reading.json         [{"id", "image", "question", "key_facts", "expected_answer"}]
-contexts.json        [{"id", "question", "blocks": ["[1] …", …], "page_image"}]   # contexto de D-034 + 1 página (R4)
+contexts.json        [{"id", "question", "blocks": ["[1] …", …], "pages": ["…"], "tiles": ["…"]}]   # 20 preguntas: contexto de D-034 + páginas, en el orden de v5-visual (R4)
+decode/*.jpg|png     # IMAGE_DECODE: 2 fotos de 12 MP, PNG con transparencia, JPEG con EXIF girado y JPEG en CMYK (R13)
 vectors.json         {"<image sha>": {"70": [768 floats], "140": [768 floats]}}
 ```
 
@@ -110,14 +118,21 @@ En `filesDir/reports/visual-<yyyyMMdd-HHmmss>.{json,md}`. Se escribe de forma at
   - `model`, `backend` y `params` (páginas, presupuesto, trozos, tokens por imagen, px y formato);
   - `status`: `COMPLETED`, `CANCELLED`, `NOT_SUPPORTED`, `NOT_AVAILABLE` o `FAILED`, con su `reason`;
   - `metrics`: carga en frío, p50 y p95, primer token, tokens y velocidad del prefill, decodificación, pico de memoria, bytes, dimensión y norma;
-  - `thermalStart` y `thermalEnd`;
-  - solo en `READING`: `answers` (id y texto);
+  - `thermalStart`, `thermalEnd` y `charging`;
+  - en `GEMMA_PAGES` y `READING`: `answers` (id y texto), solo en el JSON;
   - solo en `PARITY`: `vectors` (sha y vector de 768).
 - **`gemmaInfo`:** modalidades, presupuesto máximo, firmas y backends por modalidad.
 
-El texto de las respuestas y los vectores van **solo** en este informe, en almacenamiento privado, y nunca en logcat (FR-018).
+El texto de las respuestas y los vectores van **solo** en el JSON de este informe, en almacenamiento privado. Nunca van en el Markdown ni en logcat (FR-018).
 
-### 2.3 Estados de una prueba
+### 2.3 Informe de la prueba de variantes
+
+`EmbeddingVariantGoldenTest` escribe `filesDir/reports/variant-golden-<yyyyMMdd-HHmmss>.json` con:
+- las huellas de la 270M y la 440M, comprobadas contra `ModelCatalog`;
+- el coseno mínimo y el medio frente al golden, por backend;
+- el mínimo y el medio de la identidad con la 270M (R5).
+
+### 2.4 Estados de una prueba
 
 ```text
 PENDIENTE → EN CURSO → COMPLETADA

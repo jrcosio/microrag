@@ -52,7 +52,7 @@ Al cerrar cada feature se entrega:
 | F15 | Pulido y release | Producto | F01–F20 | ⬜ |
 | F16 | Apariencia: tema e icono de Ajustes | Producto (UI propuesta) | F12 | ✅ cerrada |
 | F17 | Carpetas y ámbito del chat | Producto (UI propuesta) | F08, F11, F13 | ✅ cerrada |
-| F18 | Viabilidad del RAG visual (fase 0 visual) | Técnica | F05, F10, F11 | 🟨 en curso (plan) |
+| F18 | Viabilidad del RAG visual (fase 0 visual) | Técnica | F05, F10, F11 | 🟨 en curso (implement) |
 | F19 | Indexación visual | Producto (UI propuesta) | F17, F18 | ⬜ |
 | F20 | Chat con páginas | Producto (UI propuesta) | F19 | ⬜ |
 
@@ -860,7 +860,7 @@ Opciones a evaluar: normalizar la búsqueda por palabras según el idioma del do
 ## F18 — Viabilidad del RAG visual (fase 0 visual)
 
 - **Tipo:** Técnica. Diagnóstico interno solo en debug, y harness en el escritorio.
-- **Estado:** 🟨 en curso en la rama `018-visual-rag-feasibility`. Specify y clarify aprobados el 2026-11-05, con la decisión D-073: se sigue con F19–F20 si «Ambos» da al menos 15 puntos más de respuestas correctas en las preguntas visuales, no pierde más de 2 en las de texto y el primer token con al menos 1 página queda en un p95 ≤ 8 s en el teléfono. El conjunto de prueba lo revisa el asistente (D-033), y las imágenes sueltas son públicas y fotos simuladas. La sonda de `ModelInfo` mostró que el fichero de Gemma admite como mucho 280 tokens por imagen, no 560. Plan hecho el 2026-11-05, con la decisión D-074: diagnóstico «Viabilidad visual» solo en debug, la 440M frente al golden de la 270M, corpus visual de INE, AEAT, AEMET, BOE y Wikimedia Commons, recuperación por página con RRF de tres listas, y la regla congelada en git antes de evaluar. Spec en `specs/018-visual-rag-feasibility/spec.md`.
+- **Estado:** 🟨 en curso en la rama `018-visual-rag-feasibility`. Specify y clarify aprobados el 2026-11-05, con la decisión D-073: se sigue con F19–F20 si «Ambos» da al menos 15 puntos más de respuestas correctas en las preguntas visuales, no pierde más de 2 en las de texto y el primer token con al menos 1 página queda en un p95 ≤ 8 s en el teléfono. El conjunto de prueba lo revisa el asistente (D-033), y las imágenes sueltas son públicas y fotos simuladas. La sonda de `ModelInfo` mostró que el fichero de Gemma admite como mucho 280 tokens por imagen, no 560. Plan hecho el 2026-11-05, con la decisión D-074: diagnóstico «Viabilidad visual» solo en debug, la 440M frente al golden de la 270M, corpus visual de INE, AEAT, AEMET, BOE y Wikimedia Commons, recuperación por página con RRF de tres listas, y la regla congelada en git antes de evaluar. Tareas y analyze aprobados el 2026-11-05, con la decisión D-075: la pérdida en texto se mide en las 323 respondibles de F05, las cifras que deciden salen de una revisión manual, y el primer token se mide en dos etapas, con 20 preguntas en la que decide. Spec en `specs/018-visual-rag-feasibility/spec.md`.
 
 **Objetivo.** Demostrar en el teléfono de referencia que el RAG visual es viable y fijar en el escritorio sus parámetros, antes de construirlo. LiteRT-LM 0.18.1 ya trae la API (verificado en el AAR):
 - en los embeddings, `InputData.Image` y `visionTokensPerImage`;
@@ -869,7 +869,7 @@ Opciones a evaluar: normalizar la búsqueda por palabras según el idioma del do
 En el teléfono:
 - **Gemma:**
   - `ModelInfo` de `gemma-4-E2B-it.litertlm`: si admite visión y su presupuesto visual máximo;
-  - con `visionBackend` y `Content.ImageBytes`: primer token con 1, 2 y 3 páginas a 280 y 560 tokens visuales, carga del codificador de visión y RSS pico;
+  - con `visionBackend` y `Content.ImageBytes`: primer token con 1, 2 y 3 páginas a 70, 140 y 280 tokens visuales (280 es el máximo del fichero, D-074) y con páginas partidas en trozos, carga del codificador de visión y RSS pico;
   - si lee tablas, cifras y texto pequeño.
 - **EmbeddingGemma 2 de 440M:**
   - `embedding_golden` con coseno ≥ 0,99, y vectores de texto idénticos a los de la 270M;
