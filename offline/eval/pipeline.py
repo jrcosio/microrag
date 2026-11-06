@@ -740,11 +740,15 @@ def language_review():
 CROSSLANG_REVIEW_DIR = builds.BUILD / "crosslang-review"
 
 
-def crosslang_review(english_answers="auto"):
+def crosslang_review(english_answers="auto", mode="hybrid"):
     """Each combination of document and question language (contracts/eval-language.md L11–L14).
 
     A combination runs when its set and its index exist. Every answer goes to reports/crosslang-review.csv
     to be judged by hand; a verdict carries over between runs only while its answer stays the same.
+
+    F14 (research R12, D-088): with [mode] = "vector", the search by meaning alone, the most weight any reweighting
+    can give it, for the combinations whose languages differ. Its answers go to crosslang-review-vector.csv, keeping
+    F12's verdict of an answer that did not change; EN·EN keeps F12's run as the reference of EN·ES.
     """
     import csv
 
@@ -756,17 +760,23 @@ def crosslang_review(english_answers="auto"):
         raise SystemExit("english_answers must be auto or es")
     base_config, _, _, base_rows = _active_template_base()
     v4_by_id = {r["id"]: r for r in base_rows}
-    review_path = report.MANUAL.parent / "crosslang-review.csv"
+    review_path = report.MANUAL.parent / ("crosslang-review.csv" if mode == "hybrid" else f"crosslang-review-{mode}.csv")
     existing = {}
     if review_path.exists():
         existing = {cl.review_key(r): r for r in csv.DictReader(review_path.open(encoding="utf-8-sig"))}
+    if mode != "hybrid":
+        f12_path = report.MANUAL.parent / "crosslang-review.csv"
+        if f12_path.exists():
+            for r in csv.DictReader(f12_path.open(encoding="utf-8-sig")):
+                existing.setdefault(cl.review_key(r), r)
     rows_out, results, skipped = [], {}, set()
-    for combo in cl.COMBINATIONS:
+    combinations = cl.COMBINATIONS if mode == "hybrid" else [c for c in cl.COMBINATIONS if c.key != "EN·EN"]
+    for combo in combinations:
         path = cl.set_path(combo.set_name)
         if not path.exists() or not builds.index_path(combo.build).exists():
             skipped.add(combo.key)
             continue
-        config = dataclasses.replace(base_config, build=combo.build,
+        config = dataclasses.replace(base_config, build=combo.build, mode=mode,
                                      answer_language=cl.answer_language(combo, english_answers))
         ctx = load_context(combo.build)
         result = generate(config, questions_path=path)
@@ -802,11 +812,14 @@ def crosslang_review(english_answers="auto"):
         results["ES·EN"]["reference"] = cl.reference_correct(v4_by_id, results["ES·EN"]["sources"])
     if "EN·ES" in results and results.get("EN·EN", {}).get("manual"):
         results["EN·ES"]["reference"] = results["EN·EN"]["manual"]["answer_correct"]
+    elif "EN·ES" in results and mode != "hybrid":
+        f12 = json.loads((CROSSLANG_REVIEW_DIR / "result.json").read_text(encoding="utf-8"))
+        results["EN·ES"]["reference"] = f12["combinations"]["EN·EN"]["manual"]["answer_correct"]
     for key, result in results.items():
         reference = result.get("reference")
         result["ok"] = None if result["manual"] is None else cl.combination_ok(result["manual"], reference)
         del result["sources"]
-    complete = len(results) == len(cl.COMBINATIONS) and all(r["manual"] for r in results.values())
+    complete = len(results) == len(combinations) and all(r["manual"] for r in results.values())
     summary = {
         "english_answers": english_answers, "combinations": results, "skipped": sorted(skipped),
         "keeps_card_text": cl.keeps_card_text({k: (r["manual"], r.get("reference")) for k, r in results.items()})
@@ -819,7 +832,8 @@ def crosslang_review(english_answers="auto"):
         writer.writeheader()
         writer.writerows(sorted(kept_rows + rows_out, key=lambda r: (r["combinacion"], r["id"])))
     CROSSLANG_REVIEW_DIR.mkdir(parents=True, exist_ok=True)
-    (CROSSLANG_REVIEW_DIR / "result.json").write_text(json.dumps(summary, ensure_ascii=False, indent=1))
+    (CROSSLANG_REVIEW_DIR / ("result.json" if mode == "hybrid" else f"result-{mode}.json")).write_text(
+        json.dumps(summary, ensure_ascii=False, indent=1))
     return summary
 
 

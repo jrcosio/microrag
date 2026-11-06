@@ -342,13 +342,16 @@ def crosslang_review(args):
     """F12 (D-058, D-060): documents and questions in different languages, judged by hand."""
     from eval import pipeline
 
-    english_answers = "auto"
+    english_answers, mode = "auto", "hybrid"
     for pair in args:
         key, _, raw = pair.partition("=")
-        if key != "english_answers":
-            raise SystemExit(f"unknown parameter {key}; use english_answers=auto|es")
-        english_answers = raw
-    r = pipeline.crosslang_review(english_answers)
+        if key == "english_answers":
+            english_answers = raw
+        elif key == "mode":
+            mode = raw  # F14 (R12): vector, the search by meaning alone between languages
+        else:
+            raise SystemExit(f"unknown parameter {key}; use english_answers=auto|es mode=hybrid|vector")
+    r = pipeline.crosslang_review(english_answers, mode)
     for key, c in r["combinations"].items():
         print(f"{key}: answers={c['answer_language']} questions={c['questions']} pending={c['pending']} "
               f"blocks_hit={c['blocks_hit']} reference={c.get('reference')} ok={c['ok']}")
