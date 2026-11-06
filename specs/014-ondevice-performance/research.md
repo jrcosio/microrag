@@ -247,6 +247,7 @@ Nada se ha medido aún en el teléfono. Las cifras del Mac son orientativas.
 - **En el teléfono:** 4, 6 y 8 bloques se miden por el primer token (R5).
 - **Calidad:** la de 6 y 8 ya está en F05 (D-034: ±1 punto). La de 3 bloques se evalúa en el harness (`ablations` con `MAX_BLOCKS = 3`) con la regla de FR-017, como la única variante que puede bajar el primer token unos 0,8 s.
 - **Decisión:** la que cumpla la regla. Si ninguna, se quedan 4 bloques (D-034).
+- **Resultado (T031):** con 3 bloques cambian 224 respuestas, juzgadas a mano. Las correctas bajan de 81,1 % a 79,7 % (−1,35 puntos; la regla admite 1), con negativas 94,6 % y citas 92,7 %. No cumple: se quedan 4 bloques, y en el teléfono solo se miden 4, 6 y 8 para el informe.
 
 ## R14. Informe y entregables (FR-033–FR-035)
 

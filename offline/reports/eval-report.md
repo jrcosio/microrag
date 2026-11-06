@@ -205,6 +205,17 @@ Regla de adopción (clarify de F11, D-053): al menos 2 puntos más de respuestas
 
 Decisión: se adopta «v4»; la app y el escritorio pasan a usar esa plantilla.
 
+## Tres bloques de contexto (F14)
+
+El único número de bloques que puede bajar el primer token en el teléfono (unos 0,8 s, research R13): `v4` con 3 bloques en lugar de 4, con LiteRT-LM 0.19.1. Cambian 320 prompts y 224 respuestas, juzgadas a mano (`reports/f14-review.csv`, variante `blocks-3`); las demás heredan el juicio de `v4`. Regla de `config/f14_rules.json` (fijada antes de generar): correctas a no más de 1 punto de `v4`, negativas ≥ 85 % y citas ≥ 90 %.
+
+| Variante | Correctas | Negativas | Citas | Negativas indebidas |
+|---|---|---|---|---|
+| v4, 4 bloques | 81.1 % | 91.1 % | 94.3 % | 23 |
+| 3 bloques | 79.7 % | 94.6 % | 92.7 % | 20 |
+
+Decisión: no cumple, porque baja 1,35 puntos. La app se queda con 4 bloques (D-034). Con 3 bloques, el modelo cita a veces bloques que no existen.
+
 ## Idiomas (F12)
 
 ### «Automático» con las preguntas en español

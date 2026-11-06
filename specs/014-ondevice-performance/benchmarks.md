@@ -2,8 +2,8 @@
 
 Cifras reales del Nothing Phone (1) A063 (QTI SM7325, Adreno 642L, 12 GB, Android 15) y del escritorio (macOS en Apple Silicon), con LiteRT-LM 0.19.1 y SQLite-Vector 1.2.0, adoptados en T005 (research R1). Sustituyen los presupuestos de `docs/RAG_Movil/informe-rag-movil-v2.md` («Latencia (presupuesto, no medición)» y «Benchmarks en el dispositivo»).
 
-- **Escritorio:** las secciones 1–5 se escriben a mano a partir de los informes de `offline/build/f14/`.
-- **Teléfono:** las tablas de la sección 6 las escribe `run_eval.py device-report` a partir de los JSON de `files/reports`. Las respuestas y los textos solo van en esos JSON, que no van a git.
+- **Escritorio:** las secciones 1–6 se escriben a mano a partir de los informes de `offline/build/f14/`.
+- **Teléfono:** las tablas de la sección 7 las escribe `run_eval.py device-report` a partir de los JSON de `files/reports`. Las respuestas y los textos solo van en esos JSON, que no van a git.
 
 ## 1. Runtimes (R1, T003–T005)
 
@@ -69,7 +69,18 @@ La búsqueda por significado sola es el máximo peso que puede darle cualquier r
 
 Siguen a 19,3 y 14 puntos de su referencia, y la regla de D-062 pide 10 como mucho: no cumple, y la búsqueda entre idiomas no cambia.
 
-## 6. Teléfono
+## 6. Tres bloques de contexto (R13, T031)
+
+`v4` con 3 bloques en lugar de 4, en la GPU del Mac con 0.19.1: cambian 224 respuestas, juzgadas a mano (`offline/reports/f14-review.csv`).
+
+| Bloques | Correctas | Negativas | Citas |
+|---|---:|---:|---:|
+| 4 (`v4`) | 81,1 % | 91,1 % | 94,3 % |
+| 3 | 79,7 % | 94,6 % | 92,7 % |
+
+Baja 1,35 puntos, y la regla de `f14_rules.json` admite 1: se quedan 4 bloques.
+
+## 7. Teléfono
 
 <!-- device-report:start -->
 

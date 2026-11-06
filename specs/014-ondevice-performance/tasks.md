@@ -209,8 +209,8 @@ description: "Lista de tareas de F14 — Rendimiento en dispositivo y decisión 
   - `SpeculativeDecodingConfig(ADAPTIVE)` con `speculative`;
   - pruebas JVM del generador con un fake de motor si la API lo permite; si no, se cubre con T027
 - [X] T030 [US4] Variantes `prefix`, `mtp` y `fp32` en `GenerationBenchmarkTest` (con el modo alterno de T023) y en la configuración por argumento de `SustainedChatBenchmarkTest`. `not-available` si no hay drafter o falla el clon
-- [ ] T031 [P] [US4] Escritorio:
-  - `run_eval.py ablations --base max_blocks=3` (R13), con las respuestas que cambian juzgadas a mano (contrato H6), frente a la regla de `f14_rules.json`, y la sección en `offline/reports/eval-report.md`;
+- [X] T031 [P] [US4] Escritorio:
+  - `run_eval.py ablations --base max_blocks=3` (R13), con las respuestas que cambian juzgadas a mano (contrato H6), frente a la regla de `f14_rules.json`, y la sección en `offline/reports/eval-report.md`. Hecho con `f14-review variant=blocks-3`: 224 respuestas juzgadas; 79,7 % frente a 81,1 %, no cumple y se quedan 4 bloques;
   - si T002 eligió el camino 2 (rol de sistema), también `template-review` con el rol de sistema;
   - la `v4-corta` solo si el prefijo reutilizado queda `not-available` (si no se adopta tras T055, se evalúa entonces; D-090)
 
