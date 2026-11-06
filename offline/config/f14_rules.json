@@ -1,0 +1,21 @@
+{
+  "_source": "F14 rules fixed before evaluating (D-088 clarify, D-090 analyze); specs/014-ondevice-performance/contracts/harness-f14.md H3",
+  "first_token_lever": {
+    "decided_by": "short-bench-20-alternating",
+    "confirmed_by": "sustained-final",
+    "min_p95_gain_s": 0.3,
+    "max_correct_drop_points": 1.0,
+    "reference": "v4 regenerated with the adopted runtime",
+    "min_refusal": 0.85,
+    "min_citations": 0.90
+  },
+  "fp32": { "max_p95_rise_s": 0.5 },
+  "numeric_template": { "max_deformed_ratio_vs_v4": 0.5, "quality": "first_token_lever" },
+  "token_estimate": { "max_p95_real_over_estimated_numeric": 1.0, "quality": "first_token_lever" },
+  "speculative": { "min_decode_gain": 0.20, "max_p95_rise_s": 0.3, "greedy_identical": true },
+  "prewarm_by_scope": { "min_first_answer_gain_s": 0.3, "max_rss_peak_rise_mb": 200 },
+  "page_follow_up": { "min_switch_hit": 0.90, "max_follow_drop_points": 5, "min_text_followup_recall20": 0.98 },
+  "crosslang": { "max_gap_points": 10 },
+  "order": { "min_recall_blocks_gain_points": 2.0 },
+  "int8": { "min_recall20": 0.97, "vector_alone_p95_ms": 20 }
+}
