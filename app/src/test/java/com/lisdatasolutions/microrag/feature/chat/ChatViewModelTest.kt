@@ -960,7 +960,7 @@ class ChatViewModelTest {
 
         val reading = vm.state.value.turns.last()
         assertThat(reading.status).isEqualTo(TurnStatus.READING_PAGE)
-        assertThat(reading.pageWaitTenths).isEqualTo(115)
+        assertThat(reading.pageWaitTenths).isEqualTo(85)
 
         graph.session.active.value = asked.copy(state = TurnState.GENERATING, text = "La tabla [1]", blocks = listOf(page), pageTokens = 140)
         advanceUntilIdle()

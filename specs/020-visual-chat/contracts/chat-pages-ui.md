@@ -11,7 +11,7 @@
 
 | Elemento | Regla |
 |---|---|
-| Fila «Detalle de las páginas» | **U1:** solo en `ON`, debajo de «Modo al importar PDF». Su subtítulo es el detalle guardado con su espera: «Equilibrado · unos 11,5 s». Abre el destino `PageDetailSetting` |
+| Fila «Detalle de las páginas» | **U1:** solo en `ON`, debajo de «Modo al importar PDF». Su subtítulo es el detalle guardado con su espera: «Equilibrado · unos 8,5 s». Abre el destino `PageDetailSetting` |
 | `PageDetailRoute` (destino `PageDetailSetting`) | **U2:** como «Modo al importar PDF»: la introducción, tres `LisdataRadioRow` con su descripción y su espera, la nota y «Guardar». Si guardar falla, `PreferencesSaveFailure`. Con el modo apagado, la ruta vuelve atrás |
 
 ## 2. Chat (`feature/chat`)

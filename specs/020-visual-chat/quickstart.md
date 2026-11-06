@@ -47,7 +47,7 @@ adb -s emulator-5554 shell am instrument -w -r \
 Sin Gemma, el chat no responde. El recorrido cubre lo que no necesita el modelo:
 1. **Ajustes:**
    - con el modo apagado, no se ve «Detalle de las páginas»;
-   - con el modo activo (el procedimiento de F19 en el API 32), se ve con «Equilibrado · unos 11,5 s»;
+   - con el modo activo (el procedimiento de F19 en el API 32), se ve con «Equilibrado · unos 8,5 s»;
    - en la pantalla de detalle, cambiar y guardar.
 2. **La página en el detalle y el visor,** sobre un PNG indexado, con la ruta de depuración `document` y un `EXTRA_PAGE` nuevo:
    - la vista previa de la página;

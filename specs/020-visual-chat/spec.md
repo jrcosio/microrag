@@ -125,7 +125,7 @@ Quien no activa el modo, o lo tiene activo con documentos solo de texto, usa el 
 
 En Ajustes, debajo del modo multimodal, la persona elige «Detalle de las páginas»: Rápido, Equilibrado o Detallado. Cada opción dice cuánto tarda aproximadamente la respuesta.
 
-**Why this priority**: el detalle cambia la espera de 10 a 15 s, y D-078 deja que lo elija el usuario.
+**Why this priority**: el detalle cambia la espera de unos 6,5 a 14,5 s, y D-078 deja que lo elija el usuario.
 
 **Independent Test**: cambiar el detalle y comprobar que se guarda, que la siguiente respuesta con página usa ese detalle y que la opción solo se ve con el modo activo.
 
@@ -251,7 +251,7 @@ En la build de depuración, el diagnóstico de búsqueda muestra las tres listas
   - **Equilibrado:** 1 página a 140 tokens;
   - **Detallado:** 1 página a 280 tokens.
 
-  Cada opción MUST decir su espera aproximada en el teléfono de referencia: unos 10, 11,5 y 14,5 s. Con el modo apagado, MUST NOT verse.
+  Cada opción MUST decir su espera aproximada en el teléfono de referencia: unos 6,5 s, 8,5 s y 14,5 s, medidos por F20 (D-086). Con el modo apagado, MUST NOT verse.
 - **FR-012**: El detalle MUST guardarse como las demás preferencias, sin copia de seguridad. Si guardar falla, MUST avisarse y mantenerse el valor anterior. El valor por defecto MUST ser Equilibrado.
 - **FR-013**: Mientras se espera el primer token de una respuesta con página, el chat MUST indicar que está leyendo una página, con la espera aproximada del detalle elegido (constitución IV).
 
@@ -308,7 +308,7 @@ En la build de depuración, el diagnóstico de búsqueda muestra las tres listas
   - una ventana de 8.192 tokens en este modo.
 
   No se repiten pruebas comparativas ni hay regla de sí o no.
-- **Las esperas de cada detalle** (unos 10, 11,5 y 14,5 s) son los p95 que midió F18 en el A063 con 1 página y la regla de duplicados. Sin esa regla entra algo más de texto, así que F20 las vuelve a medir y, si cambian, se corrigen los textos con las cifras nuevas.
+- **Las esperas de cada detalle** (unos 10, 11,5 y 14,5 s) son los p95 que midió F18 en el A063 con 1 página y la regla de duplicados. Sin esa regla entra algo más de texto, así que F20 las vuelve a medir y, si cambian, se corrigen los textos con las cifras nuevas. **Medidas en F20 (T058, D-086):** p95 de 6,7 s, 8,4 s y 14,4 s, así que los textos dicen unos 6,5 s, 8,5 s y 14,5 s.
 - **La misma consulta** sirve para fragmentos y páginas: con el modo activo, la 440M embebe las dos cosas en el mismo espacio.
 - **El generador con imágenes** del diagnóstico de F18 pasa de debug a `main` como adaptador, como hizo F19 con el embedder de imagen.
 - **El A063 ya tiene el modo activado,** con la 440M y sin la 270M (D-082). Las pruebas que necesiten la 270M se preguntan antes.

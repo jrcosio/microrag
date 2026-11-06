@@ -247,7 +247,7 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
   - con bloques y la imagen que falta, sigue con la v4 y `page_dropped=1` (analyze G3).
 - [X] T026 [P] [US2] `…/test/…/feature/chat/ChatViewModelTest.kt` y `ChatScreenTest` (U3, R13):
   - `READING_PAGE` mientras no hay texto y hay `pageTokens`;
-  - «Leyendo 1 página · unos 11,5 s…» con Equilibrado, «11.5» en inglés;
+  - «Leyendo 1 página · unos 8,5 s…» con Equilibrado, «8.5» en inglés;
   - «Generando respuesta…» sin página;
   - el contador «N fuentes» cuenta la página;
   - TalkBack anuncia «Leyendo 1 página» (`ChatAnnouncement.READING_PAGE`) en lugar de «Generando respuesta» (analyze U3).

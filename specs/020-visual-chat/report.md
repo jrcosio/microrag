@@ -34,8 +34,8 @@
 - En el Historial, una página que ya no está es `PAGE_GONE`: se puede pulsar y abre el documento con el aviso. Un documento borrado sigue diciendo «Fuente ya no disponible». Con el modo apagado, las páginas guardadas se siguen viendo.
 
 **Pantallas** (wireframe §1–§10):
-- **Ajustes:** «Detalle de las páginas · Equilibrado · unos 11,5 s» bajo «Modo al importar PDF», con su pantalla de tres opciones y sus esperas. Las esperas se escriben como el idioma escribe los números.
-- **Chat:** «Leyendo 1 página · unos 11,5 s…» hasta el primer token, con TalkBack anunciando «Leyendo 1 página». Las fuentes de página llevan miniatura (`LisdataPageThumbnail`) y dicen «Página 4 · Imagen de la página», o «Imagen» una imagen suelta. La marca `[n]` y la tarjeta abren la página.
+- **Ajustes:** «Detalle de las páginas · Equilibrado · unos 8,5 s» bajo «Modo al importar PDF», con su pantalla de tres opciones y sus esperas. Las esperas se escriben como el idioma escribe los números.
+- **Chat:** «Leyendo 1 página · unos 8,5 s…» hasta el primer token, con TalkBack anunciando «Leyendo 1 página». Las fuentes de página llevan miniatura (`LisdataPageThumbnail`) y dicen «Página 4 · Imagen de la página», o «Imagen» una imagen suelta. La marca `[n]` y la tarjeta abren la página.
 - **Detalle:** la página citada sustituye al fragmento resaltado, con su chip, un anillo mientras carga y «Toca para ampliar».
 - **Visor a pantalla completa:** zoom de 1× a 4× con pellizco, doble toque y arrastre sin salirse de los bordes, y las acciones «Ampliar», «Reducir» y «Restablecer» para TalkBack.
 - **Notas de F19:** con el modo activo, un documento solo con páginas ya es «Disponible para consultas RAG».
@@ -59,7 +59,7 @@
 |---|---|
 | SC-001: sin modo o sin páginas, nada cambia | ✅ `ablations.json` y `order_review.json` idénticos a los de F19. `DefaultChatSessionTest`: el prompt es `AnswerPrompt.Text` idéntico con el modo apagado, con el modo activo sin páginas y con `pagesUsable = false`; el motor usa la clave de hoy (`EngineAnswerEngineTest`) |
 | SC-002: ninguna cita sin fuente real | ✅ `DefaultChatSessionTest` (`[n]` fuera de rango, tipos de fuente), `ResolveSourcesUseCaseTest` (`PAGE_GONE`, `DOCUMENT_GONE`) y `RagIndexPageSearchTest` |
-| SC-003: primer token por detalle, medido | Pendiente del teléfono (T058) |
+| SC-003: primer token por detalle, medido | ✅ En el A063 con 20 preguntas por variante: p95 de 6,7 s, 8,4 s y 14,4 s, y 5,0 s sin página (§4). Los textos de la app pasan a esas cifras (D-086) |
 | SC-004: un escaneado y una imagen, respondidos con su página | Pendiente del teléfono (T058) |
 | SC-005: el Historial restaura las citas a página | ✅ `SqliteChatRepositoryTest` (migración 2 → 3 y fuentes de página), `ResolveSourcesUseCaseTest` y las pantallas |
 | SC-006: nunca dos engines en GPU; la visión se libera con Gemma | ✅ `EngineCoordinatorTest` (nunca dos Gemma, en GPU ni en CPU) y `EngineAnswerEngineTest` (las liberaciones) |
@@ -68,7 +68,20 @@
 
 ## 4. Cifras medidas
 
-Pendiente del teléfono (T058): el primer token con cada detalle y sin página, la recarga de Gemma con visión y el pico de RSS.
+`VisualChatBenchmarkTest` en el A063, con 20 preguntas del corpus de evaluación por variante. Mide de `ask()` al primer token, con la búsqueda incluida, y cancela cada respuesta en su primer token. Las páginas son 12 tablas generadas e indexadas en Visual con la 440M. Gemma de texto está en GPU; la visión, en CPU.
+
+| Variante | Primer token, p50 | p95 | Lo que dice la app |
+|---|---|---|---|
+| Modo activo, sin página (la Gemma de hoy) | 4.044 ms | 5.029 ms | — |
+| Rápido (70 tokens) | 5.386 ms | 6.653 ms | unos 6,5 s |
+| Equilibrado (140) | 7.654 ms | 8.392 ms | unos 8,5 s |
+| Detallado (280) | 14.050 ms | 14.430 ms | unos 14,5 s |
+
+- **La primera respuesta con página después de una sin ella** recarga Gemma con la visión: 14.180 ms hasta el primer token, unos 8,8 s más que una con Rápido ya cargada.
+- **Pico de RSS:** 4.620 MB, con la 440M, Gemma y el codificador de visión cargados. F18 había medido 3,5–3,9 GB.
+- **Frente a F18,** Rápido y Equilibrado salen bastante más rápidos (F18 midió un p95 de 9,8 s y 11,5 s, con la regla de duplicados y otras preguntas). Detallado queda igual. Los textos se corrigen con las cifras nuevas (D-086).
+- **Sin página,** el p95 es de 5,0 s, frente a los 5,2 s que midió F11 (D-057). La nota «Las respuestas sin páginas no cambian» se mantiene.
+- **Indexación visual,** de paso (`VisualIngestBenchmarkTest` de F19): 200 páginas a 14,1 por minuto, con 111 KB por página, igual que en F19.
 
 ## 5. Recorrido
 

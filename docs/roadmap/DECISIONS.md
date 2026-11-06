@@ -2265,6 +2265,34 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G47).
 
 ---
 
+## D-086 — Las esperas del detalle de las páginas, medidas por F20
+
+- **Fecha:** 2026-11-06
+- **Decisión:** Ajustes y el chat dicen las esperas que midió F20 en el A063, y no las de F18:
+
+  | Detalle | p50 | p95 | Texto |
+  |---|---|---|---|
+  | Rápido (70) | 5,4 s | 6,7 s | unos 6,5 s |
+  | Equilibrado (140) | 7,7 s | 8,4 s | unos 8,5 s |
+  | Detallado (280) | 14,1 s | 14,4 s | unos 14,5 s |
+  | Sin página | 4,0 s | 5,0 s | (la nota «Las respuestas sin páginas no cambian») |
+
+  - `PageDetail` pasa a 65, 85 y 145 décimas de segundo: el p95 redondeado al medio segundo, como hacía F18.
+  - Con el modo activo, sin página, el p95 es de 5,0 s, frente a los 5,2 s que midió F11 para el chat de hoy. La nota se mantiene.
+- **Medida:** `VisualChatBenchmarkTest` en el A063, con 20 preguntas por variante. Va de `ask()` al primer token, con la búsqueda incluida, y cada respuesta se cancela en su primer token. El texto es el corpus de evaluación, y las páginas son 12 tablas generadas.
+- **Además, informativo:**
+  - la primera respuesta con página después de una sin página recarga Gemma con la visión: 14,2 s hasta el primer token;
+  - el pico de RSS es de 4.620 MB, frente a los 3,5–3,9 GB de F18.
+- **Motivo:**
+  - la spec (supuestos) pedía corregir los textos si F20 medía otras esperas;
+  - F18 había medido 9,8 s, 11,5 s y 14,5 s, con la regla de duplicados y otras preguntas.
+- **Origen:** fase del teléfono de F20 (T058).
+- **Afecta:**
+  - F20: `PageDetail`, spec (FR-011 y supuestos), wireframe §1, §2, §3 y §9, contrato U1, research R13, quickstart, tareas e informe;
+  - F14, que parte de estas cifras.
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.

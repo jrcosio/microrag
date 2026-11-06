@@ -25,7 +25,7 @@ Con el modo activo, debajo de «Modo al importar PDF» (F19). Con el modo apagad
 │ │ Ambos (texto y páginas)       › │ │
 │ ├─────────────────────────────────┤ │
 │ │ Detalle de las páginas          │ │ ← LisdataSettingsRow + chevron, nuevo
-│ │ Equilibrado · unos 11,5 s     › │ │   abre la pantalla §2
+│ │ Equilibrado · unos 8,5 s      › │ │   abre la pantalla §2
 │ └─────────────────────────────────┘ │
 ```
 
@@ -42,12 +42,12 @@ Una pantalla propia, como «Modo al importar PDF»: `LisdataRadioRow` y «Guarda
 │ ┌─────────────────────────────────┐ │
 │ │ ( ) Rápido                      │ │
 │ │     Menos detalle.              │ │
-│ │     Unos 10 s por respuesta.    │ │
+│ │     Unos 6,5 s por respuesta.   │ │
 │ ├─────────────────────────────────┤ │
 │ │ (●) Equilibrado                 │ │ ← por defecto
 │ │     El detalle con que se       │ │
 │ │     indexan las páginas.        │ │
-│ │     Unos 11,5 s por respuesta.  │ │
+│ │     Unos 8,5 s por respuesta.   │ │
 │ ├─────────────────────────────────┤ │
 │ │ ( ) Detallado                   │ │
 │ │     Para letra pequeña y        │ │
@@ -76,7 +76,7 @@ La línea de estado de la tarjeta de respuesta (`LisdataAnswerCard`, la de hoy) 
                  ↓
 │ ┌─────────────────────────────────┐ │
 │ │ ✦ LISDATA                       │ │
-│ │ Leyendo 1 página · unos 11,5 s… │ │ ← nuevo; con la espera del detalle
+│ │ Leyendo 1 página · unos 8,5 s…  │ │ ← nuevo; con la espera del detalle
 │ └─────────────────────────────────┘ │
                  ↓
 │   el texto llega como hoy           │
@@ -192,10 +192,10 @@ Muestra identificadores y cifras, nunca textos ni imágenes, como hoy.
 | Menos detalle. | Less detail. |
 | El detalle con que se indexan las páginas. | The detail pages are indexed with. |
 | Para letra pequeña y tablas densas. | For small print and dense tables. |
-| Unos 10 s por respuesta. | About 10 s per answer. |
-| Equilibrado · unos 11,5 s | Balanced · about 11.5 s |
+| Unos 6,5 s por respuesta. | About 6.5 s per answer. |
+| Equilibrado · unos 8,5 s | Balanced · about 8.5 s |
 | Tiempos medidos en el teléfono de referencia. Las respuestas sin páginas no cambian. | Times measured on the reference phone. Answers without pages don't change. |
-| Leyendo 1 página · unos 11,5 s… | Reading 1 page · about 11.5 s… |
+| Leyendo 1 página · unos 8,5 s… | Reading 1 page · about 8.5 s… |
 | Imagen de la página | Page image |
 | Imagen | Image |
 | Fuente 2: informe-ine.pdf, página 4, imagen de la página | Source 2: informe-ine.pdf, page 4, page image |

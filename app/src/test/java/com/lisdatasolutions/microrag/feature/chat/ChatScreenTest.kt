@@ -785,13 +785,13 @@ class ChatScreenTest {
         assertThat(copiedTexts.single()).doesNotContain("cartel.jpg, página")
     }
 
-    // F20 T026 (contract U3): «Leyendo 1 página · unos 11,5 s…», with the locale's decimal mark.
+    // F20 T026 (contract U3): «Leyendo 1 página · unos 8,5 s…», with the locale's decimal mark.
 
     private val readingPage = ChatPreviewData.png.copy(
         turns = listOf(
             ChatPreviewData.completedTurn.copy(
                 state = AnswerState.Streaming, status = TurnStatus.READING_PAGE, content = AnswerContent.Empty,
-                sources = emptyList(), chipTargets = emptyList(), pageWaitTenths = 115,
+                sources = emptyList(), chipTargets = emptyList(), pageWaitTenths = 85,
             ),
         ),
     )
@@ -800,7 +800,7 @@ class ChatScreenTest {
     fun readingAPage_saysItWithItsWait() {
         show(readingPage)
 
-        exists("Leyendo 1 página · unos 11,5 s…")
+        exists("Leyendo 1 página · unos 8,5 s…")
         absent("Generando respuesta…")
     }
 
@@ -809,7 +809,7 @@ class ChatScreenTest {
     fun readingAPage_inEnglish() {
         show(readingPage)
 
-        exists("Reading 1 page · about 11.5 s…")
+        exists("Reading 1 page · about 8.5 s…")
     }
 
     // F20 T044 (contract U5): a page of a deleted document is inert and grey, without its thumbnail.

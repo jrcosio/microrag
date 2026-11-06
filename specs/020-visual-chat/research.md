@@ -238,7 +238,7 @@ Con el modo apagado, la regla es la de hoy (FR-001).
 **Decisión:**
 - **`ActiveAnswer`** gana `pageTokens: Int?`, que es el detalle de la página que entró.
 - **`TurnStatus.READING_PAGE`:** mientras `state == GENERATING`, `pageTokens != null` y todavía no hay texto.
-- **El texto** es «Leyendo 1 página · unos %s s…», con la espera de `PageDetail`, formateada con la configuración regional (11,5 en español y 11.5 en inglés).
+- **El texto** es «Leyendo 1 página · unos %s s…», con la espera de `PageDetail`, formateada con la configuración regional (8,5 en español y 8.5 en inglés).
 - **TalkBack:** `ChatAnnouncement` gana `READING_PAGE`, «Leyendo 1 página», que sustituye a «Generando respuesta» cuando entra una página (analyze U3, wireframe §10).
 
 **Motivo:** la constitución IV (1.2.0) pide avisar de la espera de las respuestas con páginas.

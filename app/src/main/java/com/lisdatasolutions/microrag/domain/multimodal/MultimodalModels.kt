@@ -28,11 +28,12 @@ enum class MultimodalError {
 
 /**
  * How much of the page Gemma reads in an answer (F20 research R12, D-078): its visual tokens, and the first-token
- * wait F18 measured on the reference phone with 1 page, in tenths of a second, for Settings and the chat.
+ * wait F20 measured on the reference phone with 1 page (p95, to the half second), in tenths of a second, for Settings
+ * and the chat.
  */
 enum class PageDetail(val visualTokens: Int, val estimateTenthsOfSecond: Int) {
-    FAST(70, 100),
-    BALANCED(140, 115),
+    FAST(70, 65),
+    BALANCED(140, 85),
     DETAILED(280, 145),
 }
 
