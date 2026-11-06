@@ -230,6 +230,17 @@ Todas las respuestas en español y juzgadas a mano (`reports/crosslang-review.cs
 
 Decisión: el texto de la tarjeta del PNG no se sostiene con estas cifras y cambia (S10).
 
+### Búsqueda solo por significado entre idiomas (F14)
+
+El máximo peso que puede dar a la búsqueda por significado cualquier reordenación (R12): las mismas preguntas con la búsqueda solo vectorial. Un filtro previo descartó el normalizador inglés, porque solo cambia la búsqueda por palabras, que entre idiomas distintos no encuentra nada. Las respuestas que cambian se juzgaron a mano (`reports/crosslang-review-vector.csv`), y las demás heredan el juicio de la híbrida. La regla es la de arriba.
+
+| Combinación | Búsqueda | Correctas | Referencia | Negativas | Citas | Negativas indebidas | Cumple |
+|---|---|---|---|---|---|---|---|
+| ES·EN | 78.9 % | 63.2 % | 82.5 % | 93.3 % | 91.5 % | 7 | no |
+| EN·ES | 84.0 % | 66.0 % | 80.0 % | 100.0 % | 90.3 % | 6 | no |
+
+Decisión: sube 12,3 puntos en ES·EN y 2 en EN·ES, pero sigue a 19,3 y 14 puntos de su referencia. Ninguna reordenación puede cumplir la regla, así que la tarjeta no vuelve a prometer la consulta entre idiomas.
+
 ## Limitaciones
 
 - Las preguntas se redactaron leyendo fragmentos concretos, así que la recuperación sale optimista: un usuario real no conoce las palabras del documento.

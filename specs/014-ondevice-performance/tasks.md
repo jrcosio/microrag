@@ -279,11 +279,10 @@ description: "Lista de tareas de F14 — Rendimiento en dispositivo y decisión 
 
 **Goal**: la búsqueda entre idiomas evaluada, solo en el escritorio (D-088). La reordenación α = 0,5 se repite después del teléfono (T057).
 
-- [ ] T044 [P] [US8]
-  - `offline/eval/english_text.py`, con `offline/tests/test_english_text.py` primero;
-  - las variantes `lang-normalizer` y `lang-normalizer-weighted` en `crosslang-review`;
-  - las respuestas que cambian juzgadas a mano (H6);
-  - el resultado frente a la regla de 10 puntos, en `eval-report.md`
+- [X] T044 [P] [US8]
+  - ~~`offline/eval/english_text.py` y las variantes `lang-normalizer` y `lang-normalizer-weighted`~~: el filtro previo (`crosslang-screen`, research R12) las sustituye por su techo, `crosslang-review mode=vector`;
+  - las respuestas que cambian juzgadas a mano (H6): 81 en `reports/crosslang-review-vector.csv`;
+  - el resultado frente a la regla de 10 puntos, en `eval-report.md`: ES·EN 63,2 % (referencia 82,5 %) y EN·ES 66,0 % (80,0 %), no cumple
 
 ---
 

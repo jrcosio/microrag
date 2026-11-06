@@ -240,6 +240,8 @@ Nada se ha medido aún en el teléfono. Las cifras del Mac son orientativas.
 
   **Filtro previo (T044):** la variante 1 solo cambia la búsqueda por palabras, que entre idiomas distintos no encuentra nada en ningún caso, así que no puede cerrar la brecha. El techo de la variante 2 es la búsqueda solo por significado: sube el Recall@bloques de ES·EN de 0,579 a 0,789 (ES·ES: 0,889) y el de EN·ES de 0,780 a 0,840 (EN·EN: 0,900). Como se acerca, sus respuestas se generan y se juzgan (`crosslang-review mode=vector`) para compararlas con la regla de 10 puntos. Las respuestas que cambian se juzgan a mano (D-033), y la regla es la de D-062 (no más de 10 puntos por debajo de su referencia). El resultado va a DECISIONS y, si pasa, a una ficha nueva del backlog.
 
+  **Resultado (T044):** 81 respuestas juzgadas a mano. Las correctas suben en ES·EN de 50,9 % a 63,2 % (referencia 82,5 %) y en EN·ES de 64,0 % a 66,0 % (EN·EN 80,0 %), con negativas del 93,3 % y 100 %, y citas del 91,5 % y 90,3 %. Siguen a 19,3 y 14 puntos de la referencia, así que ninguna reordenación cumple la regla de 10 puntos: no hay ficha nueva, y la tarjeta sigue sin prometer la consulta entre idiomas.
+
 ## R13. Número de bloques (FR-017)
 
 - **En el teléfono:** 4, 6 y 8 bloques se miden por el primer token (R5).

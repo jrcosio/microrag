@@ -60,7 +60,14 @@ Recall@bloques (preguntas con un fragmento con la evidencia en el contexto):
 | ES·EN (preguntas en inglés sobre documentos en español) | 0,579 | 0,789 | ES·ES 0,889 |
 | EN·ES (preguntas en español sobre documentos en inglés) | 0,780 | 0,840 | EN·EN 0,900 |
 
-La búsqueda por significado sola es el máximo peso que puede darle cualquier reordenación. Sus respuestas se juzgan para comparar con la regla de 10 puntos (D-062).
+La búsqueda por significado sola es el máximo peso que puede darle cualquier reordenación. Respuestas juzgadas a mano (`offline/reports/crosslang-review-vector.csv`, D-033):
+
+| Combinación | Correctas, híbrida | Correctas, solo por significado | Referencia | Negativas | Citas |
+|---|---:|---:|---:|---:|---:|
+| ES·EN | 50,9 % | 63,2 % | 82,5 % | 93,3 % | 91,5 % |
+| EN·ES | 64,0 % | 66,0 % | EN·EN 80,0 % | 100,0 % | 90,3 % |
+
+Siguen a 19,3 y 14 puntos de su referencia, y la regla de D-062 pide 10 como mucho: no cumple, y la búsqueda entre idiomas no cambia.
 
 ## 6. Teléfono
 

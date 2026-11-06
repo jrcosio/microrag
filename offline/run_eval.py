@@ -357,7 +357,7 @@ def crosslang_review(args):
               f"blocks_hit={c['blocks_hit']} reference={c.get('reference')} ok={c['ok']}")
         print(f"  manual: {c['manual']}")
     print(f"skipped={r['skipped']} keeps_card_text={r['keeps_card_text']}")
-    print(f"wrote {pipeline.CROSSLANG_REVIEW_DIR / 'result.json'}")
+    print(f"wrote {pipeline.CROSSLANG_REVIEW_DIR / ('result.json' if mode == 'hybrid' else f'result-{mode}.json')}")
 
 
 def f14_review(args):
