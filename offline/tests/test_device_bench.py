@@ -32,8 +32,8 @@ class DeviceBenchTest(unittest.TestCase):
         self.assertIn("### search-scale · 2026-11-07 10:00", table)
         self.assertIn("LiteRT-LM 0.19.1 · SQLite-Vector 1.2.0 · EG2_440M (CPU, por defecto)", table)
         self.assertIn("Térmico NONE → LIGHT · batería 80 → 76 % · sin cargar · pico de RSS 812 MB · estado **completed**", table)
-        self.assertIn("| int8-rerank | vector | 4,2 | 6,5 | 9,0 | 740 | recallAt20=0.981 |", table)
-        self.assertIn("| int8-rerank | hybrid | 150,0 | 1.180,5 | 1.300,0 | 740 |  |", table)
+        self.assertIn("| int8-rerank (bank=10000) | vector | 4,2 | 6,5 | 9,0 | 740 | recallAt20=0.981 |", table)
+        self.assertIn("| int8-rerank (bank=10000) | hybrid | 150,0 | 1.180,5 | 1.300,0 | 740 |  |", table)
 
     def test_the_generated_part_is_replaced_and_the_rest_kept(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -49,7 +49,7 @@ class DeviceBenchTest(unittest.TestCase):
         self.assertIn("Texto a mano.", text)
         self.assertIn("Final.", text)
         self.assertNotIn("viejo", text)
-        self.assertIn("| int8-rerank | vector |", text)
+        self.assertIn("| int8-rerank (bank=10000) | vector |", text)
 
 
 if __name__ == "__main__":

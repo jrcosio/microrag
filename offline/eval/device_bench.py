@@ -31,8 +31,22 @@ def _conditions(report):
     return thermal, f"{battery} · {charging}", f"{peak} MB" if peak is not None else "—"
 
 
+def _value(v):
+    if isinstance(v, bool) or not isinstance(v, (int, float)):
+        return str(v).lower() if isinstance(v, bool) else str(v)
+    if isinstance(v, float):
+        return f"{v:.1f}" if abs(v) >= 10 else f"{v:.3f}"
+    return str(v)
+
+
 def _extra(extra):
-    return " · ".join(f"{k}={v}" for k, v in extra.items()) if extra else ""
+    """Numbers only: the answers a bench keeps for the desktop are not shown."""
+    return " · ".join(f"{k}={_value(v)}" for k, v in extra.items() if not isinstance(v, (list, dict))) if extra else ""
+
+
+def _label(variant):
+    parameters = variant.get("parameters") or {}
+    return variant["name"] + (f" ({', '.join(f'{k}={v}' for k, v in parameters.items())})" if parameters else "")
 
 
 def table(report):
@@ -55,9 +69,9 @@ def table(report):
         summary = variant.get("summary", {})
         extra = _extra(variant.get("extra", {}))
         if not summary:
-            lines.append(f"| {variant['name']} | — | — | — | — | 0 | {extra} |")
+            lines.append(f"| {_label(variant)} | — | — | — | — | 0 | {extra} |")
         for i, (phase, figures) in enumerate(summary.items()):
-            lines.append(f"| {variant['name']} | {phase} | {_ms(figures['p50'])} | {_ms(figures['p95'])} | {_ms(figures['p99'])} | "
+            lines.append(f"| {_label(variant)} | {phase} | {_ms(figures['p50'])} | {_ms(figures['p95'])} | {_ms(figures['p99'])} | "
                          f"{int(figures['n'])} | {extra if i == 0 else ''} |")
     return "\n".join(lines)
 

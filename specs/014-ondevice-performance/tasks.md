@@ -155,7 +155,7 @@ description: "Lista de tareas de F14 — Rendimiento en dispositivo y decisión 
   - la vectorial F32 sola también con subconjuntos de 1k, 2,5k y 5k del banco de 10k;
   - tiempos de cuantizar y precargar, la espera que causan a una búsqueda, memoria, tamaño del `.db` y Recall@20;
   - estado `no-space` si no cabe
-- [ ] T021 [US1] Prueba corta en el emulador con el banco de 10k, para validar el informe JSON y `device-report`
+- [X] T021 [US1] Prueba corta en el emulador con el banco de 10k, para validar el informe JSON y `device-report`
 
 **Checkpoint**: banco de búsqueda listo para el teléfono.
 
