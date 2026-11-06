@@ -276,6 +276,7 @@ class DefaultChatSession(
             val retrieval = retrieve(question, previous?.question, search, withPages = detail != null)
             log.retrievalMs = now() - started
             log.pagesMs = retrieval.timings.pagesMs
+            log.embedMs = retrieval.timings.embeddingMs
             val blocks = when (val outcome = retrieval.outcome) {
                 is RetrievalOutcome.Blocks -> outcome
                 RetrievalOutcome.NoResults -> return finishRefusalWithoutBlocks(turnId, log, started)
@@ -286,6 +287,7 @@ class DefaultChatSession(
             val image = page?.let { pageImage(it.documentId, it.page) }?.takeIf(::isJpeg)
             if (page != null && image == null) log.pageDropped = true
             if (blocks.blocks.isEmpty() && image == null) return finishRefusalWithoutBlocks(turnId, log, started)
+            val promptStarted = now()
             val prompt = prompt(question, blocks, previous, log)
             refs = prompt.blocks.mapIndexed { i, block -> block.ref(i + 1) }
             val pageTokens = if (image != null) checkNotNull(detail).visualTokens else null
@@ -300,15 +302,20 @@ class DefaultChatSession(
             }
             log.blocks = prompt.blocks.size
             log.pageTokens = pageTokens
+            log.promptMs = now() - promptStarted
             current.update { it?.copy(state = TurnState.GENERATING, blocks = refs, pageTokens = pageTokens) }
             save(turnId) {
                 repository.updateTurn(turnId, TurnUpdate(state = TurnState.GENERATING, promptBlocks = refs.size, pageTokens = pageTokens))
             }
             var lastCheckpoint = now()
+            val generateStarted = now()
             engine.generate(answerPrompt).collect { event ->
                 when (event) {
                     is AnswerEvent.Token -> {
-                        if (text.isEmpty()) log.ttftMs = now() - started
+                        if (text.isEmpty()) {
+                            log.ttftMs = now() - started
+                            log.engineTtftMs = now() - generateStarted
+                        }
                         text.append(event.delta)
                         current.update { it?.copy(text = text.toString()) }
                         if (now() - lastCheckpoint >= ChatLimits.CHECKPOINT_MS) {
@@ -461,6 +468,12 @@ class DefaultChatSession(
         var droppedPrevious = false
         var retrievalMs = 0L
         var ttftMs: Long? = null
+
+        /** F14 (contract G9): what the first token is made of, besides [retrievalMs]: the query embedding inside it,
+         *  building the prompt with its limit, and the engine's own wait from the request to the first token. */
+        var embedMs: Double? = null
+        var promptMs: Long? = null
+        var engineTtftMs: Long? = null
         var decodeTokensPerSecond: Double? = null
         var pageTokens: Int? = null
         var pageDropped = false
@@ -470,7 +483,8 @@ class DefaultChatSession(
             val line = "chat answer outcome=${state.name.lowercase()}${failure?.let { "/${it.name.lowercase()}" }.orEmpty()} " +
                 "follow_up=$followUp blocks=$blocks cited=$cited refusal=$refusal prompt_tokens_est=$promptTokens " +
                 "dropped_blocks=$droppedBlocks dropped_previous=$droppedPrevious retrieval_ms=$retrievalMs " +
-                "ttft_ms=${ttftMs ?: "-"} total_ms=$totalMs decode_tok_s=${decodeTokensPerSecond?.let { String.format(Locale.ROOT, "%.1f", it) } ?: "-"}" +
+                "ttft_ms=${ttftMs ?: "-"} embed_ms=${embedMs?.let { String.format(Locale.ROOT, "%.1f", it) } ?: "-"} " +
+                "prompt_ms=${promptMs ?: "-"} engine_ttft_ms=${engineTtftMs ?: "-"} total_ms=$totalMs decode_tok_s=${decodeTokensPerSecond?.let { String.format(Locale.ROOT, "%.1f", it) } ?: "-"}" +
                 // F20 (contract S8): numbers only.
                 " page=${if (pageTokens != null) 1 else 0} page_tokens=${pageTokens ?: "-"} page_dropped=$pageDropped " +
                 "pages_ms=${pagesMs?.let { String.format(Locale.ROOT, "%.1f", it) } ?: "-"}" +

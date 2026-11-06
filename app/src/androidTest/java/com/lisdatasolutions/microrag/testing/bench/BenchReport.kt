@@ -21,7 +21,7 @@ import kotlinx.serialization.json.put
 class BenchReport(
     private val context: Context,
     val bench: String,
-    private val sqliteVector: String,
+    var sqliteVector: String,
 ) {
     /** One measured sample: [phase] is what was timed (embed, vector, fts, hybrid, ttft…), [ms] how long it took. */
     data class Sample(
@@ -31,6 +31,10 @@ class BenchReport(
         val thermal: String? = null,
         val tokens: Int? = null,
         val estimated: Int? = null,
+        /** Seconds since the bench started, for the 5-minute stretches of a sustained session. */
+        val at: Double? = null,
+        /** Battery level when the sample was taken, for a sustained session. */
+        val battery: Int? = null,
     )
 
     inner class Variant(val name: String, val parameters: Map<String, String>) {
@@ -97,6 +101,8 @@ class BenchReport(
                                 s.thermal?.let { put("thermal", it) }
                                 s.tokens?.let { put("tokens", it) }
                                 s.estimated?.let { put("estimated", it) }
+                                s.at?.let { put("t", it) }
+                                s.battery?.let { put("battery", it) }
                             })
                         }
                     })

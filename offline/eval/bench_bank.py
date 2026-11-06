@@ -130,7 +130,7 @@ def sha256(path):
     return digest.hexdigest()
 
 
-def build_bank(n, sources, embed, questions, out_dir, model, model_sha256, seed=SEED, progress=None):
+def build_bank(n, sources, embed, questions, out_dir, model, model_sha256, seed=SEED, progress=None, compress=True):
     """Writes chunks.jsonl.gz, vectors.f32, questions.jsonl, queries.f32 and manifest.json for a bank of [n] chunks.
 
     [questions] are (id, question, previous question or None); their query vectors serve the benches without a
@@ -142,7 +142,10 @@ def build_bank(n, sources, embed, questions, out_dir, model, model_sha256, seed=
     out.mkdir(parents=True, exist_ok=True)
     documents = n // CHUNKS_PER_DOCUMENT
     excluded = 0
-    with gzip.open(out / "chunks.jsonl.gz", "wt", encoding="utf-8") as chunks_file, (out / "vectors.f32").open("wb") as vectors:
+    # Uncompressed for an Android asset: the packaging decompresses .gz assets and drops the suffix.
+    chunks_name = "chunks.jsonl.gz" if compress else "chunks.jsonl"
+    opener = (lambda: gzip.open(out / chunks_name, "wt", encoding="utf-8")) if compress else (lambda: (out / chunks_name).open("w", encoding="utf-8"))
+    with opener() as chunks_file, (out / "vectors.f32").open("wb") as vectors:
         for i in range(documents):
             doc = document(i, sources, seed)
             excluded += doc["excluded"]
@@ -158,7 +161,7 @@ def build_bank(n, sources, embed, questions, out_dir, model, model_sha256, seed=
             q_file.write(json.dumps({"id": qid, "question": question, "previous": previous}, ensure_ascii=False) + "\n")
             vector = truncate_and_normalize(embed(query_input(question)), DIMENSIONS)
             q_vectors.write(struct.pack(f"<{DIMENSIONS}f", *vector))
-    files = {name: sha256(out / name) for name in ("chunks.jsonl.gz", "vectors.f32", "questions.jsonl", "queries.f32")}
+    files = {name: sha256(out / name) for name in (chunks_name, "vectors.f32", "questions.jsonl", "queries.f32")}
     manifest = {"n": n, "seed": seed, "dims": DIMENSIONS, "model": model, "model_sha256": model_sha256,
                 "documents": documents, "chunks_per_document": CHUNKS_PER_DOCUMENT, "folders": FOLDERS,
                 "excluded_documents": excluded, "excluded_fraction": EXCLUDED_FRACTION,

@@ -78,7 +78,7 @@ description: "Lista de tareas de F14 — Rendimiento en dispositivo y decisión 
   - regenerar las respuestas de `v4` con 0.19.1 y juzgar a mano las que cambian (D-033). Es la base de las palancas (D-090).
 
   Si algo no cuadra, volver a 0.18.1 y 1.1.2 y anotarlo en `research.md` R1
-- [ ] T004 JVM (`testDebugUnitTest`), lint (`lintDebug`: desaparecen los avisos de versión de LiteRT-LM y SQLite-Vector) y la batería instrumentada sin modelos en `MicroRAG_API33` y `Pixel_10`, con los runtimes nuevos
+- [X] T004 JVM (`testDebugUnitTest`), lint (`lintDebug`: desaparecen los avisos de versión de LiteRT-LM y SQLite-Vector) y la batería instrumentada sin modelos en `MicroRAG_API33` y `Pixel_10`, con los runtimes nuevos
 - [ ] T005 **Sesión corta en el A063** (preguntar antes, D-090): instalar los APK con `adb -s` y pasar el `embedding_golden` y las goldens de respuesta con 0.19.1, sin abrir la app ni tocar datos del usuario (unos 15 minutos). Si fallan: volver a 0.18.1 y 1.1.2 (deshacer T001 y T003), anotarlo, y las palancas de la 0.19 pasan a `not-available`. Dejar el teléfono como estaba
 
 ---
@@ -135,7 +135,7 @@ description: "Lista de tareas de F14 — Rendimiento en dispositivo y decisión 
   - `…/microrag/MicroRagApplication.kt` (`STARTUP`).
 
   Se amplían las pruebas JVM que ya existen de esos componentes para comprobar cada petición
-- [ ] T018 [US2] Verde: JVM y `RagIndexInt8Test` en `MicroRAG_API33` y `Pixel_10`
+- [X] T018 [US2] Verde: JVM y `RagIndexInt8Test` en `MicroRAG_API33` y `Pixel_10`
 
 **Checkpoint**: INT8 funciona, nunca se usa desfasado y no actúa bajo el umbral.
 
@@ -167,7 +167,7 @@ description: "Lista de tareas de F14 — Rendimiento en dispositivo y decisión 
 
 **Independent Test**: los bancos en el teléfono (T048, T050 y T052). En los emuladores se saltan, porque no hay modelos.
 
-- [ ] T022 [US3] Desglose de tiempos (contrato G9) en el `log` de `…/microrag/data/chat/DefaultChatSession.kt`: embedding, búsqueda, prompt y primer token, solo números. Se amplía `…/test/data/chat/DefaultChatSessionTest.kt` antes
+- [X] T022 [US3] Desglose de tiempos (contrato G9) en el `log` de `…/microrag/data/chat/DefaultChatSession.kt`: embedding, búsqueda, prompt y primer token, solo números. Se amplía `…/test/data/chat/DefaultChatSessionTest.kt` antes
 - [ ] T023 [US3] `…/androidTest/data/chat/GenerationBenchmarkTest.kt`, variante `base`:
   - 4, 6 y 8 bloques con el selector de D-034 ampliado solo en la prueba;
   - tokens reales (`BenchmarkInfo`, con `enableBenchmark` solo aquí) y estimados;

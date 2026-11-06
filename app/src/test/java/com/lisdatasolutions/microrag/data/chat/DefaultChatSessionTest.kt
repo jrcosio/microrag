@@ -212,6 +212,8 @@ class DefaultChatSessionTest {
         assertThat(answers).hasSize(1)
         assertThat(answers.single()).contains("outcome=completed")
         assertThat(answers.single()).contains("blocks=1 cited=1 refusal=false")
+        // F14 (contract G9): the first token's breakdown, numbers only.
+        assertThat(answers.single()).containsMatch("embed_ms=[0-9.]+ prompt_ms=[0-9]+ engine_ttft_ms=[0-9]+ ")
         logger.lines.forEach { assertThat(it).doesNotContain("SECRETO") }
     }
 

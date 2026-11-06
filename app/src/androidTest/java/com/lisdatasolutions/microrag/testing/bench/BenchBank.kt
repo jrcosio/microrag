@@ -92,7 +92,10 @@ class BenchBank(private val context: Context, val dir: File) {
                 index.updateStatus(documentId, DocumentStatus.DONE, chunkCount = CHUNKS_PER_DOCUMENT)
                 if (excluded) index.setIncluded(documentId, false)
             }
-            GZIPInputStream(File(dir, "chunks.jsonl.gz").inputStream()).bufferedReader().useLines { lines ->
+            // Gzipped from the desktop; plain in the androidTest asset, which the packaging decompresses.
+            val gz = File(dir, "chunks.jsonl.gz")
+            val input = if (gz.isFile) GZIPInputStream(gz.inputStream()) else File(dir, "chunks.jsonl").inputStream()
+            input.bufferedReader().useLines { lines ->
                 var row = 0
                 for (line in lines) {
                     if (row >= limit) break
@@ -153,6 +156,12 @@ class BenchBank(private val context: Context, val dir: File) {
         fun <T> raw(block: (RagConnection) -> T): T = RagConnection.open(dbFile, TempRagIndex.defaultExtensionPath()).use(block)
 
         fun chunkCount(): Long = raw { db -> db.queryOne("SELECT COUNT(*) FROM chunks") { it.getLong(0) } ?: 0L }
+
+        /** SQLite-Vector's version, for the reports. */
+        fun vectorVersion(): String = raw { db -> db.queryOne("SELECT vector_version()") { it.getText(0) } ?: "?" }
+
+        /** The file with its WAL, in bytes. */
+        fun bytes(): Long = listOf(dbFile, File(dbFile.path + "-wal")).filter { it.isFile }.sumOf { it.length() }
 
         override fun close() {
             runBlocking { index.close() }

@@ -60,6 +60,9 @@ data class DeviceConditions(
             )
         }
 
+        /** Only the thermal status, cheap enough for every sample. */
+        fun thermalNow(context: Context): String = thermalName(context.getSystemService(PowerManager::class.java).currentThermalStatus)
+
         /** PowerManager's status as a name; `SEVERE` and above stop a sustained session (research R5). */
         fun thermalName(status: Int): String = when (status) {
             PowerManager.THERMAL_STATUS_NONE -> "NONE"
