@@ -1,9 +1,15 @@
 package com.lisdatasolutions.microrag.feature.document
 
 import android.app.Application
+import android.graphics.Bitmap
+import android.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.getOrNull
+import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -71,5 +77,23 @@ class PageViewerScreenTest {
             assertThat(actions[0].action()).isTrue()
             assertThat(actions[1].action()).isTrue()
         }
+    }
+
+    /** T058, found on the reference phone: zoomed in, the page stays below the top bar, and «✕» still closes. */
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    fun zoomedIn_thePageStaysBelowTheTopBar_andCloseStillCloses() {
+        val red = Bitmap.createBitmap(60, 84, Bitmap.Config.ARGB_8888).apply { eraseColor(Color.RED) }
+        show(PageImageState.Shown(red.asImageBitmap()))
+
+        val node = compose.onNodeWithContentDescription("Página 4 de informe-ine.pdf")
+        val zoomIn = node.fetchSemanticsNode().config.getOrNull(SemanticsActions.CustomActions).orEmpty().first()
+        compose.runOnIdle { repeat(3) { zoomIn.action() } }
+
+        val title = compose.onNodeWithText("informe-ine.pdf · Página 4").captureToImage().toPixelMap()
+        val redPixels = (0 until title.width).sumOf { x -> (0 until title.height).count { y -> title[x, y].toArgb() == Color.RED } }
+        assertThat(redPixels).isEqualTo(0)
+        compose.onNodeWithContentDescription("Cerrar").performClick()
+        assertThat(closed).isEqualTo(1)
     }
 }

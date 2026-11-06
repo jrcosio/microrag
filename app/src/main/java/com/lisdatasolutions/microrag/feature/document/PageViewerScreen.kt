@@ -24,6 +24,7 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -95,8 +96,9 @@ internal fun PageViewerScreen(page: Int, documentName: String, image: Boolean, s
                 modifier = Modifier.weight(1f).padding(horizontal = spacing.space2).semantics { heading() },
             )
         }
+        // Clipped, so a zoomed page never covers the title and «✕» (found on the reference phone, T058).
         Box(
-            modifier = Modifier.weight(1f).fillMaxWidth().windowInsetsPadding(WindowInsets.safeDrawing),
+            modifier = Modifier.weight(1f).fillMaxWidth().windowInsetsPadding(WindowInsets.safeDrawing).clipToBounds(),
             contentAlignment = Alignment.Center,
         ) {
             when (state) {
