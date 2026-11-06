@@ -19,6 +19,16 @@ object RagParameters {
     /** Characters per Gemma token measured over the evaluation corpus; tokens ≈ ceil(chars / this). */
     const val CHARS_PER_TOKEN = 4.554
 
+    /**
+     * F14 (research R9, T036): characters per token of letters, digits and the rest, for the prompt limit only (D-090).
+     * Fitted on Gemma's tokenizer over the 426 prompts and 1,913 chunks of the evaluation set, digits and the rest made
+     * safe on the texts full of figures (p95 of real/estimated from 2.18 to 1.00); the quality review left v4's figures.
+     */
+    val TOKEN_ESTIMATE = Triple(TOKEN_CHARS_LETTERS, TOKEN_CHARS_DIGITS, TOKEN_CHARS_REST)
+    const val TOKEN_CHARS_LETTERS = 4.5644
+    const val TOKEN_CHARS_DIGITS = 0.5242
+    const val TOKEN_CHARS_REST = 4.4305
+
     /** When the embedding model rejects an input, the embedded text is cut to this share, at a space (D-036). */
     const val EMBEDDING_OVERFLOW_CUT = 0.9
 

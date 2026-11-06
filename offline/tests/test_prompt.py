@@ -121,6 +121,15 @@ class PromptLimitTest(unittest.TestCase):
         self.assertEqual(previous, ("p", "r"))
         self.assertEqual(prompt, build_prompt("¿Plazo?", self.BLOCKS, ("p", "r"), "v4"))
 
+    def test_the_figures_template_is_v4_with_its_line_before_the_question(self):
+        # F14 (research R8): the same expectation as PromptBuilderTest.theFiguresTemplate_isV4WithItsLineBeforeTheQuestion.
+        blocks = [ContextBlock("Presupuestos", None, 3, 1, 0, 0, "El gasto fue de 9.453 millones en 2020.", 10)]
+        v4 = build_prompt("¿Cuánto fue el gasto?", blocks, None, "v4")
+        figures = build_prompt("¿Cuánto fue el gasto?", blocks, None, "v4-cifras")
+        self.assertEqual(figures, v4.removesuffix("\nPREGUNTA: ¿Cuánto fue el gasto?")
+                         + "\nAntes de responder: copia cada cifra, fecha, importe y porcentaje dígito a dígito, tal como aparece en la fuente."
+                         + "\nPREGUNTA: ¿Cuánto fue el gasto?")
+
     def test_the_worst_ranked_block_goes_first_wherever_it_is(self):
         limit = self.limit_after(self.BLOCKS[:3])
         _, blocks, _ = within_limit("¿Plazo?", self.BLOCKS, [3, 9, 1, 2], None, "v4", limit, 4.554)

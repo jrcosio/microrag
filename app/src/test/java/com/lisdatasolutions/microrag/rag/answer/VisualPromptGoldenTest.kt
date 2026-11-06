@@ -24,6 +24,8 @@ class VisualPromptGoldenTest {
         val blocks: List<GoldenPromptBlock>,
         val page: Page,
         val parts: List<Part>,
+        /** F14: v4-cifras cases name it; the others are v4. */
+        val template: String = "v4",
     )
 
     @Serializable
@@ -37,7 +39,8 @@ class VisualPromptGoldenTest {
 
     @Test
     fun everyCase_matchesTheDesktopPartByPart() {
-        assertThat(cases).hasSize(12)
+        assertThat(cases).hasSize(15)
+        assertThat(cases.map { it.template }.toSet()).containsExactly("v4", "v4-cifras")
         cases.forEach { case ->
             val parts = PromptBuilder.buildVisual(
                 question = case.question,
@@ -45,6 +48,7 @@ class VisualPromptGoldenTest {
                 page = PromptBuilder.PageSource(case.page.documentName, case.page.page),
                 image = case.page.image.toByteArray(Charsets.US_ASCII),
                 previous = case.previous?.let { it[0] to it[1] },
+                template = case.template,
             )
             val actual = parts.map { part ->
                 when (part) {

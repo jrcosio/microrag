@@ -193,3 +193,85 @@ def runtime_review(pipeline):
         return build_prompt(q.question, blocks, previous, "v4"), blocks, f"runtime {ORIGINAL_RUNTIME} → {runtime}"
 
     return review(pipeline, runtime_name(runtime), prompt_of, regenerate_all=True)
+
+
+TOKEN_REVIEW = REVIEW_DIR / "token-review.json"
+ANSWER_GOLDEN = builds.OFFLINE / "golden" / "answer_golden.jsonl"
+NUMERIC_SHARE = 0.10
+
+
+def token_review(pipeline):
+    """F14 (research R9): the estimate against Gemma's tokenizer over the app's prompts and the corpus chunks.
+
+    Fits (a, b, c), makes it safe on the texts full of figures (p95 of real/estimated at most 1.0, the rule of
+    f14_rules.json), and writes the old and new errors per kind of text. The prompts it changes go to f14-review
+    (variant token-estimate) with the quality rule.
+    """
+    import sqlite3
+
+    from eval import token_estimate as te
+
+    from types import SimpleNamespace
+
+    golden = [json.loads(line) for line in ANSWER_GOLDEN.read_text(encoding="utf-8").splitlines() if line.strip()]
+    # The golden keeps the whole text of a few prompts only; the others are rebuilt from their blocks, as the app does.
+    prompts = [c.get("prompt") or build_prompt(c["question"], [SimpleNamespace(**b) for b in c["blocks"]], tuple(c["previous"]) if c.get("previous") else None,
+                                               c["template"]) for c in golden]
+    db = sqlite3.connect(str(builds.index_path("ref")))
+    try:
+        chunks = [row[0] for row in db.execute("SELECT content FROM chunks ORDER BY id")]
+    finally:
+        db.close()
+    with open_engine(models.verify(models.LLMS["E2B"]), "cpu", builds.BUILD / "litert-cache") as engine:
+        samples = {
+            "prompts": [(t, len(engine.tokenize(t))) for t in prompts],
+            "chunks": [(t, len(engine.tokenize(t))) for t in chunks],
+        }
+    samples["numeric"] = [s for s in samples["prompts"] + samples["chunks"] if te.digit_share(s[0]) >= NUMERIC_SHARE]
+    params = json.loads(report.PARAMETERS.read_text(encoding="utf-8"))
+    old = (params["chars_per_token"],) * 3
+    fitted = te.fit(samples["prompts"] + samples["chunks"])
+    rule = json.loads(RULES.read_text(encoding="utf-8"))["token_estimate"]
+    safe = te.safe(samples["numeric"], *fitted, ratio=rule["max_p95_real_over_estimated_numeric"]) if samples["numeric"] else fitted
+    result = {
+        "numeric_share": NUMERIC_SHARE, "old": old, "fitted": [round(x, 4) for x in fitted], "safe": [round(x, 4) for x in safe],
+        "errors": {kind: {"old": te.summary(te.ratios(s, *old)), "safe": te.summary(te.ratios(s, *safe))}
+                   for kind, s in samples.items() if s},
+    }
+    result["passes_ratio"] = result["errors"].get("numeric", {}).get("safe", {}).get("p95", 0) <= rule["max_p95_real_over_estimated_numeric"]
+    REVIEW_DIR.mkdir(parents=True, exist_ok=True)
+    TOKEN_REVIEW.write_text(json.dumps(result, ensure_ascii=False, indent=1))
+    return result
+
+
+def token_estimate_review(pipeline):
+    """F14 (research R9): the app's prompt limit of 2,000 with the fitted estimate; the prompts it changes are
+    generated and the answers that change judged by hand, against v4 (the quality half of the rule)."""
+    from eval import token_estimate as te
+
+    fit_result = json.loads(TOKEN_REVIEW.read_text(encoding="utf-8")) if TOKEN_REVIEW.exists() else None
+    if fit_result is None:
+        raise SystemExit("run `f14-review variant=token-estimate-fit` first")
+    a, b, c = fit_result["safe"]
+    params = json.loads(report.PARAMETERS.read_text(encoding="utf-8"))
+    limit = params["prompt_limit_tokens"]
+    config = pipeline._active_template_base()[0]
+    ctx = pipeline.load_context(config.build)
+
+    def prompt_of(q, row, blocks, previous):
+        kept, ranks, turn = list(blocks), list(pipeline._block_ranks(ctx, row)), previous
+        prompt = build_prompt(q.question, kept, turn, "v4")
+        while te.estimate(prompt, a, b, c) > limit:
+            if len(kept) > 1:
+                worst = ranks.index(max(ranks))
+                del kept[worst], ranks[worst]
+            elif turn is not None:
+                turn = None
+            else:
+                break
+            prompt = build_prompt(q.question, kept, turn, "v4")
+        dropped = len(blocks) - len(kept)
+        return prompt, kept, f"estimador nuevo: {dropped} bloques fuera" + (" y el turno anterior" if previous and turn is None else "")
+
+    return review(pipeline, "token-estimate", prompt_of)
+

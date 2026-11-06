@@ -24,19 +24,20 @@ class Source:
     images: tuple = ()  # encoded images of a page source: the page, or its two tiles
 
 
-def _head_and_tail(question, previous=None):
-    """v4's text before the sources (the page rule after the others, then the previous turn) and after them."""
-    head, tail = build_prompt(question, [], previous, TEMPLATE).split("FUENTES:\n", 1)
-    rules_end = build_prompt(question, [], None, TEMPLATE).split("FUENTES:\n", 1)[0].rstrip("\n")
+def _head_and_tail(question, previous=None, template=TEMPLATE):
+    """[template]'s text before the sources (the page rule after the others, then the previous turn) and after them."""
+    head, tail = build_prompt(question, [], previous, template).split("FUENTES:\n", 1)
+    rules_end = build_prompt(question, [], None, template).split("FUENTES:\n", 1)[0].rstrip("\n")
     conversation = head[len(rules_end):].lstrip("\n")
     return f"{rules_end}\n{PAGE_RULE}\n\n{conversation}FUENTES:\n", tail
 
 
-def build_parts(question, sources, previous=None):
+def build_parts(question, sources, previous=None, template=TEMPLATE):
     """The ordered parts of the message: text with the numbered sources, each page label before its image.
 
-    [previous] is the (question, answer) of the previous turn for a follow-up, as in v4."""
-    head, tail = _head_and_tail(question, previous)
+    [previous] is the (question, answer) of the previous turn for a follow-up, as in v4. F14: [template] is v4 or
+    v4-cifras, whose figures line goes after the page, just before the PREGUNTA."""
+    head, tail = _head_and_tail(question, previous, template)
     parts, buffer = [], [head]
     for number, source in enumerate(sources, start=1):
         if source.kind == "text":

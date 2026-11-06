@@ -22,9 +22,10 @@ class VisualPromptGoldenTest(unittest.TestCase):
         self.assertEqual(gen_visual_prompt_golden.GOLDEN.read_text(encoding="utf-8"), gen_visual_prompt_golden.render())
 
     def test_fields_and_one_image_per_case(self):
-        self.assertEqual(len(self.rows), 12)
+        # F20's 12 cases, and F14's 3 of v4-cifras, which name their template.
+        self.assertEqual(len(self.rows), 15)
         for row in self.rows:
-            self.assertEqual(set(row), FIELDS, row["id"])
+            self.assertEqual(set(row) - {"template"}, FIELDS, row["id"])
             images = [p for p in row["parts"] if "image" in p]
             self.assertEqual(images, [{"image": row["page"]["image"]}], row["id"])
 
@@ -34,6 +35,8 @@ class VisualPromptGoldenTest(unittest.TestCase):
             self.assertIn(visual_prompt.PAGE_RULE, text, row["id"])
             self.assertIn(f"[{len(row['blocks']) + 1}] {gen_visual_prompt_golden.page_label(row['page'])}\n", text, row["id"])
             self.assertTrue(text.endswith("PREGUNTA: " + row["question"].strip()), row["id"])
+            if row.get("template") == "v4-cifras":
+                self.assertIn("dígito a dígito", text.split("PREGUNTA: ")[-2], row["id"])
 
 
 if __name__ == "__main__":

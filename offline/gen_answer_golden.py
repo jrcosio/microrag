@@ -20,8 +20,9 @@ OFFLINE = Path(__file__).resolve().parent
 sys.path.insert(0, str(OFFLINE))  # -I leaves the script directory out of sys.path
 
 from eval import judge  # noqa: E402
-from eval.pipeline import _blocks_of, decided_config, fingerprints, live_questions, load_context  # noqa: E402
-from eval.prompt import build_prompt  # noqa: E402
+from eval import token_estimate  # noqa: E402
+from eval.pipeline import _block_ranks, _retrieval_rows, decided_config, fingerprints, live_questions, load_context  # noqa: E402
+from eval.prompt import build_prompt, within_limit  # noqa: E402
 from eval.retrieval import PARAMETERS  # noqa: E402
 from eval.runs import EvalConfig, run_dir  # noqa: E402
 from eval.selector import ContextBlock  # noqa: E402
@@ -48,16 +49,29 @@ def build(ctx, template):
     if not answers_path.exists():
         raise SystemExit(f"no answers for template {template}: run run_eval.py template-review or generate first")
     answers = {json.loads(line)["id"]: json.loads(line)["answer"] for line in answers_path.read_text(encoding="utf-8").splitlines()}
-    blocks = _blocks_of(ctx, config)
+    retrieval = _retrieval_rows(ctx, config)
     questions = sorted(live_questions(), key=lambda q: q.id)
     by_id = {q.id: q for q in questions}
+    params = json.loads(PARAMETERS.read_text(encoding="utf-8"))
+    ratios = (params["token_chars_letters"], params["token_chars_digits"], params["token_chars_rest"])
+    limited = _limited_answers()
     rows = []
     for q in questions:
-        context = [ContextBlock(**b) for b in blocks[q.id]]
+        row = retrieval[q.id]
+        context = [ContextBlock(**b) for b in row["blocks"]]
         # G1: the previous turn of pipeline.generate, the previous question and its generated answer.
         previous = (by_id[q.previous].question, answers[q.previous]) if q.previous in by_id else None
-        prompt = build_prompt(q.question, context, previous, template)
+        # F14 (T036): the app's limit with its estimate by classes; the prompts it changes answer as f14-review generated.
+        prompt, context, previous = within_limit(q.question, context, _block_ranks(ctx, row), previous, template,
+                                                 params["prompt_limit_tokens"], params["chars_per_token"],
+                                                 estimate=lambda text: token_estimate.estimate(text, *ratios))
         answer = answers[q.id]
+        if prompt != build_prompt(q.question, [ContextBlock(**b) for b in row["blocks"]],
+                                  (by_id[q.previous].question, answers[q.previous]) if q.previous in by_id else None, template):
+            record = limited.get(q.id)
+            if record is None or record["prompt_sha256"] != hashlib.sha256(prompt.encode("utf-8")).hexdigest():
+                raise SystemExit(f"{q.id}: its limited prompt has no answer; run run_eval.py f14-review variant=token-estimate")
+            answer = record["answer"]
         citations = judge.citations(answer)
         rows.append({
             "id": q.id, "template": template, "question": q.question, "previous": list(previous) if previous else None,
@@ -71,6 +85,14 @@ def build(ctx, template):
         if row["id"] not in keep:
             row["prompt"] = None
     return rows
+
+
+def _limited_answers():
+    """The answers f14-review generated for the prompts the estimate by classes changes (T036)."""
+    path = OFFLINE / "build" / "f14" / "token-estimate" / "answers.jsonl"
+    if not path.exists():
+        return {}
+    return {json.loads(line)["id"]: json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()}
 
 
 def full_prompt_ids(rows):

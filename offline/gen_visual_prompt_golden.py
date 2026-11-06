@@ -52,6 +52,12 @@ CASES = [
     {"id": "v11-unicode", "question": "¿Qué significa «año» en el título?", "previous": None,
      "blocks": [{"document_name": "glosario.txt", "heading_path": "Ñ", "page": None, "text": "Año: periodo de 365 días."}], "page": PDF_PAGE},
     {"id": "v12-empty-previous-answer", "question": "¿Seguro?", "previous": ["¿Hay tablas?", ""], "blocks": BLOCKS[:1], "page": PDF_PAGE},
+    # F14 (research R8, D-090): v4-cifras, with its figures line after the page.
+    {"id": "v13-figures-one-block", "question": "¿Cuál es la tasa de paro?", "previous": None, "blocks": BLOCKS[:1], "page": PDF_PAGE,
+     "template": "v4-cifras"},
+    {"id": "v14-figures-follow-up", "question": "¿Y en el segundo?", "previous": ["¿Cuál fue la tasa de paro en el tercer trimestre?", "Fue del 11,2 % [1]."],
+     "blocks": BLOCKS[:2], "page": PDF_PAGE, "template": "v4-cifras"},
+    {"id": "v15-figures-page-only", "question": "¿Qué dice el cartel?", "previous": None, "blocks": [], "page": IMAGE_PAGE, "template": "v4-cifras"},
 ]
 
 
@@ -72,7 +78,7 @@ def parts_of(case):
     page = case["page"]
     sources.append(visual_prompt.Source("page", page_label(page), frozenset(), images=(page["image"].encode("ascii"),)))
     previous = tuple(case["previous"]) if case["previous"] is not None else None
-    parts = visual_prompt.build_parts(case["question"], sources, previous)
+    parts = visual_prompt.build_parts(case["question"], sources, previous, case.get("template", visual_prompt.TEMPLATE))
     return [{"text": p.text} if isinstance(p, Text) else {"image": p.data.decode("ascii")} for p in parts
             if isinstance(p, (Text, Image))]
 

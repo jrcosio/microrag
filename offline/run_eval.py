@@ -367,9 +367,15 @@ def f14_review(args):
         if key != "variant":
             raise SystemExit(f"unknown parameter {key}; use variant=runtime")
         variant = raw
-    if variant != "runtime":
-        raise SystemExit("use variant=runtime")
-    r = module.runtime_review(pipeline)
+    if variant == "token-estimate-fit":
+        r = module.token_review(pipeline)
+        print(json.dumps(r, indent=1))
+        print(f"wrote {module.TOKEN_REVIEW}")
+        return
+    reviews = {"runtime": module.runtime_review, "token-estimate": module.token_estimate_review}
+    if variant not in reviews:
+        raise SystemExit(f"use variant={'|'.join(sorted(reviews))} or variant=token-estimate-fit")
+    r = reviews[variant](pipeline)
     print(f"{r['variant']}: changed_prompts={r['changed_prompts']} changed_answers={r['changed_answers']} "
           f"pending={r['pending']} passes={r['passes']}")
     print(f"  base: {r['base']}")

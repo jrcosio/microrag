@@ -120,10 +120,29 @@ class PromptBuilderTest {
         assertThat(PromptBuilder.REFUSAL).isEqualTo("No encuentro esa información en los documentos disponibles.")
     }
 
+    /** F14 T036 (research R9): ⌈letters/4.5644 + digits/0.5242 + rest/4.4305⌉ by code points; a digit weighs most. */
     @Test
-    fun estimatedTokensRoundUpCodePointsOverCharsPerToken() {
-        assertThat(PromptBuilder.estimatedTokens("a".repeat(4554))).isEqualTo(1000)
-        assertThat(PromptBuilder.estimatedTokens("a".repeat(4555))).isEqualTo(1001)
+    fun estimatedTokensRoundUpTheClassesOverTheirRatios() {
+        assertThat(PromptBuilder.estimatedTokens("a".repeat(4564))).isEqualTo(1000)
+        assertThat(PromptBuilder.estimatedTokens("a".repeat(4565))).isEqualTo(1001)
+        assertThat(PromptBuilder.estimatedTokens("1".repeat(100))).isEqualTo(191)
         assertThat(PromptBuilder.estimatedTokens("😀".repeat(5))).isEqualTo(2)
+    }
+
+    /** F14 T033 (research R8): v4-cifras is v4 with its figures line just before the PREGUNTA, as `prompt.CLOSING`. */
+    @Test
+    fun theFiguresTemplate_isV4WithItsLineBeforeTheQuestion() {
+        val blocks = listOf(Block("Presupuestos", null, 3, "El gasto fue de 9.453 millones en 2020."))
+
+        val v4 = PromptBuilder.build("¿Cuánto fue el gasto?", blocks, null, template = "v4")
+        val figures = PromptBuilder.build("¿Cuánto fue el gasto?", blocks, null, template = "v4-cifras")
+
+        assertThat(figures).isEqualTo(
+            v4.removeSuffix("\nPREGUNTA: ¿Cuánto fue el gasto?") +
+                "\nAntes de responder: copia cada cifra, fecha, importe y porcentaje dígito a dígito, tal como aparece en la fuente." +
+                "\nPREGUNTA: ¿Cuánto fue el gasto?",
+        )
+        assertThat(PromptBuilder.buildSplit("¿Cuánto fue el gasto?", blocks, null, template = "v4-cifras").prefix)
+            .isEqualTo(PromptBuilder.buildSplit("¿Cuánto fue el gasto?", blocks, null, template = "v4").prefix)
     }
 }

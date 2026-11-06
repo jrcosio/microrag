@@ -232,13 +232,13 @@ description: "Lista de tareas de F14 — Rendimiento en dispositivo y decisión 
 
   Las respuestas que cambian se juzgan a mano (H6)
 - [ ] T034 [US5] `…/androidTest/data/chat/NumericFidelityBenchmarkTest.kt`: las 60 preguntas desde `dev-bench`, con las variantes `default`, `fp32` y `v4-cifras`. Las respuestas van al JSON para la revisión en el escritorio
-- [ ] T035 [US5] Estimador (R9, contrato G6):
+- [X] T035 [US5] Estimador (R9, contrato G6):
   - pruebas primero: `…/test/rag/answer/TokenEstimateTest.kt` y `offline/tests/test_token_estimate.py`, con la paridad de textos fijos y con a = b = c = 4,554 igual al de hoy;
   - después:
     - `offline/eval/token_estimate.py` y `token-review` (ajuste e informe);
     - el estimador en `PromptBuilder.estimatedTokens`, que solo usa el límite de 2.000 (alcance de D-090);
     - `TOKEN_ESTIMATE` en `RagParameters.kt` y en `offline/config/rag_parameters.json`, con los valores de hoy hasta decidir
-- [ ] T036 [US5] Decidir el estimador con su regla (p95 real/estimado ≤ 1,0 en texto con cifras y la regla de calidad): juzgar a mano las respuestas que cambian en `token-review` (H6). Si se adopta, fijar a, b y c en los dos lados; si no, se quedan los de hoy. Anotarlo en `eval-report.md`
+- [X] T036 [US5] Decidir el estimador con su regla (p95 real/estimado ≤ 1,0 en texto con cifras y la regla de calidad): juzgar a mano las respuestas que cambian en `token-review` (H6). Si se adopta, fijar a, b y c en los dos lados; si no, se quedan los de hoy. Anotarlo en `eval-report.md`
 
 ---
 
@@ -248,10 +248,10 @@ description: "Lista de tareas de F14 — Rendimiento en dispositivo y decisión 
 
 **Independent Test**: `visual-followup-review` en el escritorio; `ChatViewModelTest`, `ChatUseCasesTest` y `HybridRetrieverTest` en la JVM; los bancos en el teléfono (T049 y T053).
 
-- [ ] T037 [P] [US6] Bancos de páginas (`bench-pages m=1000/5000/10000`) y `…/androidTest/data/retrieval/PageSearchBenchmarkTest.kt` (`f32`, e `int8-rerank` con SQL directo sobre la base del banco, contrato B2)
-- [ ] T038 [P] [US6] `…/androidTest/rag/runtime/EmbedderComparisonBenchmarkTest.kt`: la 440M y la 270M (desde `dev-models`), consulta p50 y p95 y RSS, en orden alterno
-- [ ] T039 [US6] `…/androidTest/data/chat/VisualChatBenchmarkTest.kt`: modos nuevos `sostenido` (25 min con Equilibrado) y `recarga` (primera respuesta tras cambiar de ámbito, con y sin precarga, con el pico de memoria)
-- [ ] T040 [US6] Precarga por ámbito (contrato G7):
+- [X] T037 [P] [US6] Bancos de páginas (`bench-pages m=1000/5000/10000`) y `…/androidTest/data/retrieval/PageSearchBenchmarkTest.kt` (`f32`, e `int8-rerank` con SQL directo sobre la base del banco, contrato B2)
+- [X] T038 [P] [US6] `…/androidTest/rag/runtime/EmbedderComparisonBenchmarkTest.kt`: la 440M y la 270M (desde `dev-models`), consulta p50 y p95 y RSS, en orden alterno
+- [X] T039 [US6] `…/androidTest/data/chat/VisualChatBenchmarkTest.kt`: modos nuevos `sostenido` (25 min con Equilibrado) y `recarga` (primera respuesta tras cambiar de ámbito, con y sin precarga, con el pico de memoria)
+- [X] T040 [US6] Precarga por ámbito (contrato G7):
   - pruebas primero en `…/test/feature/chat/ChatViewModelTest.kt` y en las de `WarmUpAnswerEngineUseCase`;
   - en `…/microrag/domain/chat/ChatUseCases.kt`, que `WarmUpAnswerEngineUseCase` reciba el ámbito y use el predicado de hoy (modo, `pagesUsable` y `withPages` del ámbito);
   - `PREWARM_BY_SCOPE` en `RagParameters.kt` (en `false`);
@@ -260,7 +260,7 @@ description: "Lista de tareas de F14 — Rendimiento en dispositivo y decisión 
   - `offline/testset/visual/followups.jsonl`, con ~40 pares revisados (`switch` y `follow`);
   - las variantes de `visual-followup-review` en `offline/eval/visual_retrieval.py`, con `offline/tests/test_visual_followup.py` primero;
   - la ejecución frente a la regla de `f14_rules.json` y la sección en `eval-report.md`
-- [ ] T042 [US6] App:
+- [X] T042 [US6] App:
   - `PAGE_FOLLOW_UP` en `RagParameters.kt` y en `offline/config/rag_parameters.json`, con el valor que gane T041;
   - las variantes en `…/microrag/data/retrieval/HybridRetriever.kt`, con el embedding extra solo con `request.withPages`;
   - `…/test/data/retrieval/HybridRetrieverTest.kt` primero (contrato G8), con casos con el modo apagado y sin páginas
@@ -271,7 +271,7 @@ description: "Lista de tareas de F14 — Rendimiento en dispositivo y decisión 
 
 **Goal**: E4B medido con el mismo método que E2B (R11).
 
-- [ ] T043 [US7] Variante `e4b` en `GenerationBenchmarkTest`: carga E4B desde `dev-models` con `DevFiles` (SHA-256 en la prueba, sin catálogo), mide con el embedder cargado, y da `does-not-fit` o `not-available` con el error si no carga
+- [X] T043 [US7] Variante `e4b` en `GenerationBenchmarkTest`: carga E4B desde `dev-models` con `DevFiles` (SHA-256 en la prueba, sin catálogo), mide con el embedder cargado, y da `does-not-fit` o `not-available` con el error si no carga
 
 ---
 

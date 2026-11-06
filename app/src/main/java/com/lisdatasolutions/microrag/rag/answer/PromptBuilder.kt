@@ -48,7 +48,12 @@ object PromptBuilder {
         "- Si hay CONVERSACIÓN PREVIA, la PREGUNTA la continúa: búscala en las FUENTES con ese contexto antes de responder " +
             "con la frase anterior.",
     )
-    private val EXTRA_RULES = mapOf("informe" to emptyList(), "v2" to V2_RULES, "v3" to V3_RULES, "v4" to V4_RULES)
+    /**
+     * F14 (research R8, D-088, D-090): v4 with a line just before the PREGUNTA, against the figures fp16 deforms on a
+     * GPU (`prompt.CLOSING`). The rules stay v4's, so the prompt starts as v4's and shares its prefilled prefix.
+     */
+    private val CLOSING = mapOf("v4-cifras" to "Antes de responder: copia cada cifra, fecha, importe y porcentaje dígito a dígito, tal como aparece en la fuente.")
+    private val EXTRA_RULES = mapOf("informe" to emptyList(), "v2" to V2_RULES, "v3" to V3_RULES, "v4" to V4_RULES, "v4-cifras" to V4_RULES)
 
     val TEMPLATES: List<String> = EXTRA_RULES.keys.toList()
 
@@ -111,6 +116,7 @@ object PromptBuilder {
             lines += PyText.strip(block.text)
             lines += ""
         }
+        CLOSING[template]?.let { lines += it }
         return lines.joinToString("\n") + "\nPREGUNTA: " + PyText.strip(question)
     }
 
@@ -127,8 +133,9 @@ object PromptBuilder {
         image: ByteArray,
         previous: Pair<String, String>?,
         language: PromptLanguage = PromptLanguage.SPANISH,
+        /** F14 (D-090): v4-cifras applies to the answers with a page too. */
+        template: String = RagParameters.PROMPT_TEMPLATE,
     ): List<PromptPart> {
-        val template = RagParameters.PROMPT_TEMPLATE
         val (head, tail) = build(question, emptyList(), previous, template, language).split(SOURCES, limit = 2)
         val rulesEnd = build(question, emptyList(), null, template, language).substringBefore(SOURCES).trimEnd('\n')
         val conversation = head.substring(rulesEnd.length).trimStart('\n')
@@ -145,9 +152,34 @@ object PromptBuilder {
         return where + page?.let { " (p. $it)" }.orEmpty()
     }
 
-    /** ⌈code points / CHARS_PER_TOKEN⌉, the estimate of the context budget (research R10). */
-    fun estimatedTokens(prompt: String): Int =
-        ceil(prompt.codePointCount(0, prompt.length) / RagParameters.CHARS_PER_TOKEN).toInt()
+    /**
+     * The estimate of the prompt limit: ⌈letters/a + digits/b + rest/c⌉ by code points, with (a, b, c) of
+     * [RagParameters.TOKEN_ESTIMATE] (F14 research R9, `offline/eval/token_estimate.py`). With a = b = c it is F11's
+     * ⌈code points / CHARS_PER_TOKEN⌉ (research R10).
+     */
+    fun estimatedTokens(prompt: String): Int {
+        val (letters, digits, rest) = tokenClasses(prompt)
+        val (a, b, c) = RagParameters.TOKEN_ESTIMATE
+        return ceil(letters / a + digits / b + rest / c).toInt()
+    }
+
+    /** (letters, digits, rest) of [text] by code points, as `token_estimate.classes`. */
+    fun tokenClasses(text: String): Triple<Int, Int, Int> {
+        var letters = 0
+        var digits = 0
+        var rest = 0
+        var i = 0
+        while (i < text.length) {
+            val cp = text.codePointAt(i)
+            when {
+                Character.isLetter(cp) -> letters++
+                Character.isDigit(cp) -> digits++
+                else -> rest++
+            }
+            i += Character.charCount(cp)
+        }
+        return Triple(letters, digits, rest)
+    }
 
     /** The first [count] code points, as a Python slice; never splits a surrogate pair. */
     private fun String.takeCodePoints(count: Int): String =
