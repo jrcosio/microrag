@@ -16,7 +16,8 @@ COMMANDS = [
     "retrieve", "generate", "ablations", "report", "chunker-golden", "calibrate", "rejudge", "device-extraction",
     "order-review", "template-review", "limit-review", "language-review", "crosslang-review",
     # F14 (specs/014-ondevice-performance/contracts/harness-f14.md): reviews against v4 on the installed runtime.
-    "f14-review", "bench-bank", "bench-pages", "device-report",
+    "f14-review", "bench-bank", "bench-pages", "device-report", "visual-followup-review", "numeric-review",
+    "crosslang-screen",
 ]
 # F18 visual evaluation (specs/018-visual-rag-feasibility/contracts/visual-harness.md §3), in eval/visual_cli.py.
 VISUAL_COMMANDS = [
@@ -372,7 +373,7 @@ def f14_review(args):
         print(json.dumps(r, indent=1))
         print(f"wrote {module.TOKEN_REVIEW}")
         return
-    reviews = {"runtime": module.runtime_review, "token-estimate": module.token_estimate_review}
+    reviews = {"runtime": module.runtime_review, "token-estimate": module.token_estimate_review, "blocks-3": module.blocks_review}
     if variant not in reviews:
         raise SystemExit(f"use variant={'|'.join(sorted(reviews))} or variant=token-estimate-fit")
     r = reviews[variant](pipeline)
@@ -380,6 +381,7 @@ def f14_review(args):
           f"pending={r['pending']} passes={r['passes']}")
     print(f"  base: {r['base']}")
     print(f"  manual: {r['manual']}")
+    print(f"  auto_correct: {r.get('auto_correct')}")
     print(f"wrote {module.REVIEW_CSV}")
 
 
@@ -451,6 +453,41 @@ def bench_pages(args):
     print(json.dumps({k: v for k, v in manifest.items() if k != "files"}, indent=1))
 
 
+def visual_followup_review(args):
+    """F14 (R10, SC-007): the page of a follow-up with each variant of the rule, against f14_rules.json."""
+    from eval import f14_review, visual_followup
+
+    rule = json.loads(f14_review.RULES.read_text(encoding="utf-8"))["page_follow_up"]
+    r = visual_followup.run(rule)
+    for variant, figures in r["summary"].items():
+        print(f"{variant}: switch_hit={figures['switch_hit']:.3f} follow_hit={figures['follow_hit']:.3f}")
+    print(f"passing={r['passing']} winner={r['winner']}")
+    print(f"wrote {visual_followup.RESULT}")
+
+
+def numeric_review(args):
+    """F14 (R8): the figures each answer of testset/numeric deforms, by template and precision, on the Mac's GPU."""
+    from eval import numeric
+
+    values = _key_values(args, ("variant", "precision", "device"))
+    if "device" in values:
+        # device=<f14-numeric-*.json copied from the phone>: its answers through the same detector.
+        r = numeric.device_review(values["device"])
+        print(json.dumps({k: v for k, v in r.items() if k != "rows"}, ensure_ascii=False))
+        return
+    r = numeric.review(values.get("variant", "v4"), values.get("precision", "default") == "fp32", HERE / "build" / "f14" / "numeric")
+    print(json.dumps(r, ensure_ascii=False))
+
+
+def crosslang_screen(args):
+    """F14 (R12): the search between languages with the vector search alone, the bound of any reweighting."""
+    from eval import crosslang_screen as module
+    from eval import pipeline
+
+    print(json.dumps(module.run(pipeline), ensure_ascii=False, indent=1))
+    print(f"wrote {module.RESULT}")
+
+
 def device_report(args):
     """F14 (R4, R14): the phone's JSON reports as the generated tables of benchmarks.md."""
     from eval import device_bench
@@ -474,7 +511,8 @@ HANDLERS = {
     "device-extraction": device_extraction, "order-review": order_review,
     "template-review": template_review, "limit-review": limit_review, "language-review": language_review,
     "crosslang-review": crosslang_review, "f14-review": f14_review, "bench-bank": bench_bank, "bench-pages": bench_pages,
-    "device-report": device_report,
+    "device-report": device_report, "visual-followup-review": visual_followup_review,
+    "numeric-review": numeric_review, "crosslang-screen": crosslang_screen,
 }
 
 

@@ -164,13 +164,17 @@ def review(pipeline, variant, prompt_of, regenerate_all=False):
 
     reviewed = {r["id"]: {"manual": r["manual"], "manual_citas": r["manual_citas"]} for r in review_rows if r["manual"]}
     merged = tr.merged_rows(base_rows, answers, rules, reviewed)
+    # The automatic rule of F05 on the answered questions, as a screen: a lever far below v4 is not judged by hand.
+    answered = [r["id"] for r in base_rows if r["tipo"] in ("answerable", "followup")]
+    auto = {"base": sum(base_rules[qid] == "correcta" for qid in answered) / len(answered),
+            "variant": sum(rules[qid] == "correcta" for qid in answered) / len(answered)}
     rule = json.loads(RULES.read_text(encoding="utf-8"))["first_token_lever"] if RULES.exists() else None
     base_figures = figures(base_rows)
     variant_figures = figures(merged) if merged is not None else None
     result = {
         "variant": variant, "runtime": runtime, "questions": len(answers), "changed_prompts": changed_prompts,
         "changed_answers": len(review_rows), "pending": sum(1 for r in review_rows if not r["manual"]),
-        "base": base_figures, "manual": variant_figures,
+        "base": base_figures, "manual": variant_figures, "auto_correct": auto,
         "passes": None if variant_figures is None or rule is None else passes(base_figures, variant_figures, rule),
     }
     kept_rows = [r for (qid, name), r in existing.items() if name != variant]
@@ -274,4 +278,19 @@ def token_estimate_review(pipeline):
         return prompt, kept, f"estimador nuevo: {dropped} bloques fuera" + (" y el turno anterior" if previous and turn is None else "")
 
     return review(pipeline, "token-estimate", prompt_of)
+
+
+def blocks_review(pipeline, blocks=3):
+    """F14 (research R13): v4 with [blocks] blocks instead of D-034's 4, the same selector otherwise."""
+    config = pipeline._active_template_base()[0]
+    variant_config = dataclasses.replace(config, max_blocks=blocks, llm=None)
+    ctx = pipeline.load_context(config.build)
+    pipeline.retrieve(variant_config, ctx)
+    rows = pipeline._retrieval_rows(ctx, variant_config)
+
+    def prompt_of(q, row, base_blocks, previous):
+        kept = [ContextBlock(**b) for b in rows[q.id]["blocks"]]
+        return build_prompt(q.question, kept, previous, "v4"), kept, f"{len(kept)} bloques en lugar de {len(base_blocks)}"
+
+    return review(pipeline, f"blocks-{blocks}", prompt_of)
 
