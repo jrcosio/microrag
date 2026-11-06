@@ -4,6 +4,7 @@
 """
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
@@ -14,6 +15,8 @@ COMMANDS = [
     "fetch-corpus", "sources", "build", "validate-testset", "review-sheet", "review-apply", "sample",
     "retrieve", "generate", "ablations", "report", "chunker-golden", "calibrate", "rejudge", "device-extraction",
     "order-review", "template-review", "limit-review", "language-review", "crosslang-review",
+    # F14 (specs/014-ondevice-performance/contracts/harness-f14.md): reviews against v4 on the installed runtime.
+    "f14-review", "bench-bank", "bench-pages",
 ]
 # F18 visual evaluation (specs/018-visual-rag-feasibility/contracts/visual-harness.md §3), in eval/visual_cli.py.
 VISUAL_COMMANDS = [
@@ -353,6 +356,77 @@ def crosslang_review(args):
     print(f"wrote {pipeline.CROSSLANG_REVIEW_DIR / 'result.json'}")
 
 
+def f14_review(args):
+    """F14 (D-088, D-090): v4 on the installed runtime, then each lever that changes the prompt or the context."""
+    from eval import f14_review as module
+    from eval import pipeline
+
+    variant = None
+    for pair in args:
+        key, _, raw = pair.partition("=")
+        if key != "variant":
+            raise SystemExit(f"unknown parameter {key}; use variant=runtime")
+        variant = raw
+    if variant != "runtime":
+        raise SystemExit("use variant=runtime")
+    r = module.runtime_review(pipeline)
+    print(f"{r['variant']}: changed_prompts={r['changed_prompts']} changed_answers={r['changed_answers']} "
+          f"pending={r['pending']} passes={r['passes']}")
+    print(f"  base: {r['base']}")
+    print(f"  manual: {r['manual']}")
+    print(f"wrote {module.REVIEW_CSV}")
+
+
+def _key_values(args, allowed):
+    values = {}
+    for pair in args:
+        key, _, raw = pair.partition("=")
+        if key not in allowed:
+            raise SystemExit(f"unknown parameter {key}; use {', '.join(f'{k}=' for k in allowed)}")
+        values[key] = raw
+    return values
+
+
+def bench_bank(args):
+    """F14 (R2): a bank of n chunks of the F05 corpus, embedded with the 270M, for the phone's search benches."""
+    import time
+
+    from eval import bench_bank as module
+    from eval import builds, models, pipeline
+
+    values = _key_values(args, ("n", "seed"))
+    n, seed = int(values["n"]), int(values.get("seed", module.SEED))
+    sources = module.sentences_by_document(builds.index_path("ref"))
+    questions = [(q.id, q.question, next((p.question for p in pipeline.live_questions() if p.id == q.previous), None))
+                 for q in pipeline.live_questions()]
+    module.BENCH_DIR.mkdir(parents=True, exist_ok=True)
+    cache = module.EmbeddingCache(module.BENCH_DIR / "embed-cache.db", builds.Embedder())
+    started = time.time()
+
+    def progress(done, total):
+        print(f"{done}/{total} documents, {time.time() - started:.0f} s", flush=True)
+
+    spec = models.spec(models.EMBEDDING)
+    try:
+        manifest = module.build_bank(n, sources, cache, questions, module.BENCH_DIR / f"bank-{n}", spec.file_name, spec.sha256,
+                                     seed=seed, progress=progress)
+    finally:
+        cache.close()
+    print(json.dumps({k: v for k, v in manifest.items() if k != "files"}, indent=1))
+
+
+def bench_pages(args):
+    """F14 (R10): a bank of m page vectors from the F18 visual corpus (768 px, 140 tokens, the app's)."""
+    from eval import bench_bank as module
+    from eval import visual_index
+
+    values = _key_values(args, ("m", "sigma"))
+    m, sigma = int(values["m"]), float(values.get("sigma", "0.02"))
+    pages = [row.vector for row in visual_index.load_pages(visual_index.pages_path(768, 140), 256)]
+    manifest = module.build_pages(m, pages, module.BENCH_DIR / f"pages-{m}", sigma)
+    print(json.dumps({k: v for k, v in manifest.items() if k != "files"}, indent=1))
+
+
 def report(args):
     from eval import report as report_module
 
@@ -365,7 +439,7 @@ HANDLERS = {
     "retrieve": retrieve, "generate": generate, "ablations": ablations, "report": report, "calibrate": calibrate, "chunker-golden": chunker_golden, "rejudge": rejudge,
     "device-extraction": device_extraction, "order-review": order_review,
     "template-review": template_review, "limit-review": limit_review, "language-review": language_review,
-    "crosslang-review": crosslang_review,
+    "crosslang-review": crosslang_review, "f14-review": f14_review, "bench-bank": bench_bank, "bench-pages": bench_pages,
 }
 
 
