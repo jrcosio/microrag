@@ -127,7 +127,12 @@ Nada se ha medido aún en el teléfono. Las cifras del Mac son orientativas.
 
      La secuencia de tokens es la misma que hoy, así que no es un cambio de prompt. La prueba de igualdad: con muestreo greedy, las respuestas de las goldens deben salir idénticas por los dos caminos.
 
-     **A verificar en la implementación (T del setup):** que `Session` en 0.19.1 permite decodificar en streaming y clonar después del prefill, y cuál es la plantilla exacta (los tokens del turno se leen del fichero con `ModelInfo` o de la plantilla Jinja que lleva).
+     **Verificado en T002** (`javap` del AAR 0.19.1 y la plantilla Jinja del fichero de Gemma):
+     - `Session` tiene `runPrefill`, `generateContentStream(…, ResponseCallback)` y `clone()`, pero no aplica la plantilla ni tiene límite de tokens de salida;
+     - `ConversationConfig` acepta una **plantilla de chat propia** (`chatTemplate`), además de `systemInstruction`, `prefillPrefaceOnInit` y `speculativeDecodingConfig`; `Conversation` tiene `clone()`, y `sendMessageAsync` lleva su límite de salida;
+     - la plantilla de Gemma 4 del fichero pinta un turno de usuario como `<bos><|turn>user\n` + contenido (con `trim`) + `<turn|>\n`, y la petición de respuesta como `<|turn>model\n`.
+
+     **Camino 1 elegido:** `Conversation` con una plantilla propia que pinta la instrucción de sistema (el prefijo, sin `trim`) **dentro** del turno de usuario: `<bos><|turn>user\n` + prefijo, y el mensaje de usuario (el resto) + `<turn|>\n` + `<|turn>model\n`. Con `prefillPrefaceOnInit = true`, la base hace el prefill de `<bos><|turn>user\n` + prefijo una vez; cada respuesta clona la base y envía el resto. La cadena es la misma que hoy (el prompt entero ya empieza y acaba sin espacios, así que el `trim` de hoy no cambia nada). Así se conservan el flujo de mensajes, el límite de salida y `BenchmarkInfo`. Antes del teléfono se comprueba en el escritorio con `litert-lm-api` 0.19.1, si su API expone la plantilla y `clone()`: respuestas greedy en CPU con y sin prefijo.
   2. **Con rol de sistema:** `ConversationConfig(systemInstruction = reglas, prefillPrefaceOnInit = true)`, con `clone()` por pregunta. Cambia el prompt, así que pasa por el harness (`template-review`, con `litert-lm-api` 0.19.1 y el mismo rol de sistema) con la regla de FR-017.
 - **Memoria:** el clon copia la caché KV de la base, y eso se mide (RSS pico). Se libera con el motor (`onTrimMemory`, ingesta), y la base se vuelve a preparar en el `warmUp`.
 - **Alcance:** las respuestas de texto. Las de páginas comparten las reglas `v4` más `PAGE_RULE`; se mide si el mismo mecanismo vale con imágenes, y si no, quedan fuera.
@@ -138,7 +143,7 @@ Nada se ha medido aún en el teléfono. Las cifras del Mac son orientativas.
 
 ## R7. Decodificación especulativa (MTP)
 
-- **Qué hay:** el fichero genérico de Gemma 4 E2B trae un drafter (`tf_lite_mtp_drafter`). La ficha de Hugging Face avisa de que las copias anteriores al 5 de mayo de 2026 no lo tienen. La de la app es de octubre de 2026, y se comprueba en el teléfono con `ModelInfo…hasSpeculativeDecodingSupport()`.
+- **Qué hay:** el fichero genérico de Gemma 4 E2B trae un drafter (`tf_lite_mtp_drafter`). La ficha de Hugging Face avisa de que las copias anteriores al 5 de mayo de 2026 no lo tienen. **Verificado en T002:** la copia fijada (`gemma-4-E2B-it.litertlm`, la del escritorio y la app) tiene la sección `tf_lite_mtp_drafter`. En el teléfono, el banco lo confirma con `ModelInfo.from(ruta)` (`ModelInfo.Llm.hasSpeculativeDecodingSupport()`) antes de medir.
 - **Modo:** `SpeculativeDecodingMode.ADAPTIVE`, que solo especula mientras mide que va más rápido.
 - **Qué acelera:** solo la decodificación; el prefill, no. En el S26 Ultra con GPU, la ficha da de 51,5 a 66–92 tokens/s.
 - **Encaje con la regla:** no baja el primer token, así que no cumple la regla de FR-017, que es sobre el primer token. Pero acorta la respuesta completa y, con greedy, no debería cambiar el texto.

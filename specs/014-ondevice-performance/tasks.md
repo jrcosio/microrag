@@ -64,8 +64,8 @@ description: "Lista de tareas de F14 — Rendimiento en dispositivo y decisión 
 
 **Purpose**: subir los runtimes al empezar y validarlos en el A063 antes de construir nada que dependa de ellos (D-088, D-090).
 
-- [ ] T001 Subir `litertlm` a 0.19.1 y `sqliteVector` a 1.2.0 en `gradle/libs.versions.toml`. Pasar `enableSpeculativeDecoding` (obsoleto) a `SpeculativeDecodingConfig(OFF)` en `…/microrag/rag/runtime/litert/LiteRtTextGenerator.kt`, y compilar sin avisos nuevos
-- [ ] T002 Comprobar con `javap` sobre el AAR 0.19.1 lo que R6 y R7 dejan «a verificar»:
+- [X] T001 Subir `litertlm` a 0.19.1 y `sqliteVector` a 1.2.0 en `gradle/libs.versions.toml`. Pasar `enableSpeculativeDecoding` (obsoleto) a `SpeculativeDecodingConfig(OFF)` en `…/microrag/rag/runtime/litert/LiteRtTextGenerator.kt`, y compilar sin avisos nuevos
+- [X] T002 Comprobar con `javap` sobre el AAR 0.19.1 lo que R6 y R7 dejan «a verificar»:
   - si `Session` decodifica en streaming y se puede clonar tras el prefill;
   - cómo se leen los tokens de la plantilla de chat de Gemma 4 (`ModelInfo` o la plantilla del fichero, en el escritorio con `litert-lm-api`);
   - la función de `ModelInfo` que dice si hay drafter.

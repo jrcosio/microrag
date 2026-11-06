@@ -34,11 +34,11 @@ fun buildSplit(question, blocks, previous, template, language): SplitPrompt
 
 ## G3. `LiteRtTextGenerator` con `prefixCache`
 
-- **Camino 1 (sin cambiar el prompt, R6):**
-  1. En `initialize()`, o en el primer uso con un prefijo nuevo, abre una `Session` y hace el prefill de `<inicio del turno de usuario> + prefix`, con los tokens de la plantilla de Gemma 4 leídos del fichero.
-  2. Por respuesta: `base.clone()`, prefill de `rest + <fin del turno de usuario> + <inicio del turno del modelo>` y decodificación en streaming.
-  3. Cierra el clon al terminar o al cancelar.
-  4. La base se rehace si cambia el prefijo (otra plantilla o idioma) y se libera con el motor.
+- **Camino 1 (sin cambiar el prompt, R6, verificado en T002):**
+  1. La base es una `Conversation` con `chatTemplate = PREFIX_TEMPLATE`, `systemInstruction = Contents.of(prefix)` y `prefillPrefaceOnInit = true`. Se crea al primer uso con un prefijo, y se rehace si cambia el prefijo (otra plantilla o idioma).
+  2. `PREFIX_TEMPLATE` pinta el mensaje de sistema como `<bos><|turn>user\n` + prefijo (sin `trim`), y el de usuario como resto + `<turn|>\n`, más `<|turn>model\n` con `add_generation_prompt`. Es la cadena que la plantilla de Gemma 4 del fichero da hoy para un único mensaje de usuario con el prompt entero.
+  3. Por respuesta: `base.clone()`, `sendMessageAsync(rest, maxOutputTokens)` y cerrar el clon al terminar o al cancelar. `cancel()` cancela solo el clon.
+  4. La base se libera con el motor (`close()`), y por tanto con `onTrimMemory` y la ingesta.
 - **Camino 2 (si el 1 no es posible con la API):** `Conversation` base con `systemInstruction = prefix` y `prefillPrefaceOnInit = true`, con `clone()` por respuesta. Cambia el prompt: solo se adopta con la regla de calidad de D-088.
 - **`ExperimentalFlags.enableBenchmark`:** solo en las pruebas. `BenchmarkInfo` da los tokens del prefill.
 - **Prueba `PrefixCacheGoldenTest`** (teléfono, greedy): las respuestas de las goldens deben salir idénticas con y sin `prefixCache`, para el camino 1. Si alguna cambia (un prefill partido en GPU puede divergir en algún token), la prueba informa las diferencias en lugar de fallar, y las respuestas que cambian se juzgan con la regla de calidad de FR-017 antes de adoptar la palanca.
