@@ -54,7 +54,7 @@ Al cerrar cada feature se entrega:
 | F17 | Carpetas y ámbito del chat | Producto (UI propuesta) | F08, F11, F13 | ✅ cerrada |
 | F18 | Viabilidad del RAG visual (fase 0 visual) | Técnica | F05, F10, F11 | ✅ cerrada |
 | F19 | Indexación visual (modo opcional) | Producto (UI propuesta) | F17, F18 | ✅ cerrada |
-| F20 | Chat con páginas (modo opcional) | Producto (UI propuesta) | F19 | 🟨 en curso |
+| F20 | Chat con páginas (modo opcional) | Producto (UI propuesta) | F19 | ✅ cerrada |
 
 **Orden de ejecución (D-066, D-078):** F01–F13 → **F16 → F17 → F18 → F19 → F20** → F14 → F15. F19 y F20 construyen el modo «Multimodal» opcional, desactivado por defecto. F14 y F15 conservan su número porque las decisiones cerradas las citan así. Las ramas nuevas se crean con `--number` (`016-…` a `020-…`), y F14 se lanzará con `--number 14`.
 
@@ -675,7 +675,8 @@ También se introduce `EngineCoordinator`, que garantiza que nunca haya dos engi
 - palancas para bajar el primer token por debajo de 5 s (D-026): decodificación especulativa y plantilla más corta;
 - lo que añaden F16–F20 (D-066, D-077, D-078):
   - búsqueda acotada por ámbito (F17);
-  - el modo multimodal (F19–F20): vectores de página en F32 frente a INT8, primer token con cada detalle de página y consulta con la 440M;
+  - el modo multimodal (F19–F20): vectores de página en F32 frente a INT8, primer token con cada detalle de página (p95 de 6,7 s, 8,4 s y 14,4 s, D-086), la recarga de Gemma con visión (14,2 s), el pico de RSS de 4,6 GB y la consulta con la 440M;
+  - **la regla de seguimiento con páginas** (F20, D-087): una pregunta corta sobre otro documento se busca con la anterior y arrastra su página, porque entra una sola. Por ejemplo, buscar las páginas solo con la pregunta nueva;
   - **cifras deformadas con fp16** (F18): Gemma en GPU con las activaciones por defecto deforma cifras en contextos llenos de números (2 de 60 respuestas en el teléfono). Hay que medir si FP32 cabe en el presupuesto (D-023: 7,36 s frente a 4,53 s) o buscar otra salida;
   - **estimación de tokens** (F18): en texto lleno de cifras, la estimación de D-034 se queda corta, unas 2,2 veces menos de lo real.
 
@@ -984,7 +985,7 @@ Con esos datos se fijan:
 ## F20 — Chat con páginas
 
 - **Tipo:** Producto, **sin mockup**. Requiere una propuesta de UI aprobada (G47, constitución VII).
-- **Estado:** 🟨 en curso en la rama `020-visual-chat` desde el 2026-11-05. Modo opcional «Multimodal», con F19 (D-078). Clarify y wireframe aprobados el 2026-11-05, con la decisión D-083: la página entra siempre que haya páginas en el ámbito, Equilibrado por defecto y un visor a pantalla completa. Sin enmienda de la constitución. Plan hecho el 2026-11-05, con la decisión D-084. Tareas y analyze el 2026-11-05, con la decisión D-085: Gemma con visión solo cuando entra una página, y el anexo §10 del wireframe aprobado. Implementada el 2026-11-05. Fase del teléfono el 2026-11-06, con la decisión D-086: primer token p95 de 6,7 s, 8,4 s y 14,4 s según el detalle, y 5,0 s sin página; la app dice unos 6,5 s, 8,5 s y 14,5 s. SC-004 cumplido con un escaneado y un cartel de prueba. Pendiente la revisión de cierre. Spec en `specs/020-visual-chat/spec.md`.
+- **Estado:** ✅ cerrada el 2026-11-06, aprobada por el usuario (rama `020-visual-chat`). Modo opcional «Multimodal», con F19 (D-078). Clarify y wireframe aprobados el 2026-11-05, con la decisión D-083: la página entra siempre que haya páginas en el ámbito, Equilibrado por defecto y un visor a pantalla completa. Sin enmienda de la constitución. Plan hecho el 2026-11-05, con la decisión D-084. Tareas y analyze el 2026-11-05, con la decisión D-085: Gemma con visión solo cuando entra una página, y el anexo §10 del wireframe aprobado. Implementada el 2026-11-05. Fase del teléfono el 2026-11-06, con la decisión D-086: primer token p95 de 6,7 s, 8,4 s y 14,4 s según el detalle, y 5,0 s sin página; la app dice unos 6,5 s, 8,5 s y 14,5 s. SC-004 cumplido con un escaneado y un cartel de prueba. **Resultado (D-087):** el modo multimodal opcional queda completo; con el modo apagado o sin páginas, el chat no cambia. A F14 pasan el primer token con páginas, la recarga de Gemma con visión (14,2 s), el pico de RSS (4,6 GB) y la regla de seguimiento de F10 con páginas. Informe en `specs/020-visual-chat/report.md`. Spec en `specs/020-visual-chat/spec.md`.
 
 **Objetivo.**
 - **Recuperación (D-076, D-078):**

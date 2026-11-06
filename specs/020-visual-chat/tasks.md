@@ -424,7 +424,7 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
   - limpieza y ajustes restaurados.
 
   Si las esperas medidas difieren de las de F18, se corrigen `PageDetail` y los textos, con su entrada en DECISIONS. La nota «Las respuestas sin páginas no cambian» se comprueba con la cifra sin páginas (analyze C2).
-- [ ] T059 Cierre, con la revisión del usuario:
+- [X] T059 Cierre, con la revisión del usuario:
   - el informe final;
   - la siguiente decisión libre de DECISIONS, con el resultado (analyze I14);
   - FEATURES en ✅;

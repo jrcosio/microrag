@@ -1,6 +1,6 @@
 # Informe de cierre — F20 Chat con páginas (modo «Multimodal» opcional)
 
-> **Estado:** fase del teléfono hecha (T058); falta la revisión de cierre del usuario (T059).
+> **Estado:** ✅ aprobada por el usuario el 2026-11-06 (D-087), con la fase del teléfono hecha (T058) y sin cambios en la revisión de cierre (T059).
 
 **Rama:** `020-visual-chat`, creada desde `4bb1d3f`.
 **Fecha:** 2026-11-05 (teléfono, 2026-11-06).

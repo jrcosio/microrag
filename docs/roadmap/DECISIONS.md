@@ -2293,6 +2293,26 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G47).
 
 ---
 
+## D-087 — Resultado de F20: el chat con páginas, medido en el teléfono
+
+- **Fecha:** 2026-11-06
+- **Decisión:** el chat con páginas queda implementado dentro del modo «Multimodal», y con él el modo opcional de D-078 está completo. Con el modo apagado, o sin páginas en el ámbito, el chat no cambia: `ablations` y `order-review` dan lo mismo que en F19, y el prompt y el motor son los de hoy. En el A063, con permiso del usuario, sin regla de sí o no (D-078):
+  1. **Primer token** (D-086): con página, p95 de 6,7 s, 8,4 s y 14,4 s según el detalle, y 5,0 s sin página. Recargar Gemma con la visión, 14,2 s. Pico de RSS, 4.620 MB.
+  2. **SC-004:** un PDF escaneado y un cartel en JPG, generados para la prueba, se responden citando su página («Página 1 · Imagen de la página» e «Imagen»), y la cita abre el detalle y el visor. Al borrar los documentos, las fuentes pasan a «Fuente ya no disponible».
+  3. **Batería instrumentada:** 708 de 710 al repetir las clases de pantalla, después de que el teléfono se bloqueara durante los benchmarks. Las 2 que quedaban eran de F19: `ReadyModelsRule` no preparaba la 440M que pide la app con el modo activo. Se corrigieron.
+  4. **Arreglo de la fase del teléfono:** con zoom, la página del visor tapaba la barra superior con el título y el «✕». La caja de la página ahora recorta.
+  5. **Cierre aprobado** por el usuario el 2026-11-06, sin cambios en el informe.
+- **Motivo:** cerrar F20 con las cifras reales del teléfono de referencia, como pide la constitución 1.2.0 (IV: el primer token de las respuestas con páginas se mide y se avisa).
+- **Origen:** implement de F20, fase del teléfono y revisión de cierre, aprobadas por el usuario.
+- **Afecta:**
+  - F20 (cierre);
+  - F14, que recibe:
+    - el primer token con páginas y la recarga de Gemma con visión;
+    - el pico de RSS de 4,6 GB;
+    - la regla de seguimiento de F10 con páginas: una pregunta corta sobre otro documento arrastra la página de la anterior, porque se busca con la pregunta previa y entra una sola página.
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.
