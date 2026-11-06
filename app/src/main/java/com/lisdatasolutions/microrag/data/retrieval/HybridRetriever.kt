@@ -4,6 +4,7 @@ import com.lisdatasolutions.microrag.core.logging.AppLogger
 import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
 import com.lisdatasolutions.microrag.domain.rag.IndexUnavailableException
 import com.lisdatasolutions.microrag.domain.rag.RagIndex
+import com.lisdatasolutions.microrag.domain.rag.PageFollowUp
 import com.lisdatasolutions.microrag.domain.rag.RagParameters
 import com.lisdatasolutions.microrag.domain.rag.ScoredChunk
 import com.lisdatasolutions.microrag.domain.rag.ScoredPage
@@ -41,6 +42,8 @@ class HybridRetriever(
     private val logger: AppLogger,
     private val clock: () -> Long = System::nanoTime,
     private val selector: ContextSelector = ContextSelector(),
+    /** F14 (research R10, contract G8): the vector of a follow-up's page search. */
+    private val pageFollowUp: PageFollowUp = RagParameters.PAGE_FOLLOW_UP,
 ) : ContextRetriever {
 
     override suspend fun retrieve(request: RetrievalRequest): RetrievalResult {
@@ -122,7 +125,7 @@ class HybridRetriever(
                 throw EmbeddingFailure(e)
             }
         }
-        val pages = if (withPages) async { timed { index.pageSearch(embedding.value.vector, RagParameters.PAGE_CANDIDATES, scope) } } else null
+        val pages = if (withPages) async { timed { pageSearch(question, previous, embedding.value.vector, scope) } } else null
         val vector = timed { index.vectorSearch(embedding.value.vector, RagParameters.CANDIDATES, scope) }
         val lexical = text.await()
         val pageHits = pages?.await()
@@ -133,6 +136,20 @@ class HybridRetriever(
             outcome = selection.value, embeddingMs = embedding.ms, vectorMs = vector.ms, textMs = lexical.ms, selectionMs = selection.ms,
             pageHits = pageHits?.value?.size, pagesMs = pageHits?.ms, lists = RetrievalLists(vector.value, lexical.value),
         )
+    }
+
+    /**
+     * F14 (research R10, contract G8): a follow-up's page search. Only when the follow-up joined the previous question
+     * ([previous] not null) and the lever is not [PageFollowUp.JOINED] does it embed the new question alone, once more.
+     */
+    private suspend fun pageSearch(question: String, previous: String?, joined: FloatArray, scope: SearchScope): List<ScoredPage> {
+        val k = RagParameters.PAGE_CANDIDATES
+        if (previous == null || pageFollowUp == PageFollowUp.JOINED) return index.pageSearch(joined, k, scope)
+        val alone = embedder.embed(question, null).vector
+        if (pageFollowUp == PageFollowUp.NEW_ONLY) return index.pageSearch(alone, k, scope)
+        return (index.pageSearch(joined, k, scope) + index.pageSearch(alone, k, scope))
+            .groupBy { it.documentId to it.page }.values.map { same -> same.minBy { it.distance } }
+            .sortedBy { it.distance }.take(k)
     }
 
     /** The first FUSED_LIMIT candidates, loaded only if still searchable, and the selector (FR-015); [pages] go apart. */

@@ -8,6 +8,7 @@ import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
 import com.lisdatasolutions.microrag.domain.rag.IndexMode
 import com.lisdatasolutions.microrag.domain.rag.IndexUnavailableException
 import com.lisdatasolutions.microrag.domain.rag.NewDocument
+import com.lisdatasolutions.microrag.domain.rag.PageFollowUp
 import com.lisdatasolutions.microrag.domain.rag.RagParameters
 import com.lisdatasolutions.microrag.domain.rag.ScoredChunk
 import com.lisdatasolutions.microrag.domain.rag.ScoredPage
@@ -480,5 +481,49 @@ class HybridRetrieverTest {
 
         assertThat(embedder.engine.embedded).containsExactly(EmbeddingPrefixes.query("$PREVIOUS ¿Y el aceite?"))
         assertThat(index.calls.count { it.startsWith("pages:") }).isEqualTo(1)
+    }
+
+    /** F14 T042 (contract G8): the new question alone searches the pages of a follow-up; the text keeps both. */
+    @Test
+    fun withNewOnly_aFollowUpSearchesThePagesWithTheNewQuestion() = runTest {
+        program(emptyList(), emptyList())
+        val pages = pagesOf("Plano.pdf", 1)
+        index.pageResults = { pages }
+        val retriever = HybridRetriever(index, embedder, logger, pageFollowUp = PageFollowUp.NEW_ONLY)
+
+        retriever.retrieve(RetrievalRequest("¿Y el aceite?", previousQuestion = PREVIOUS, withPages = true))
+
+        assertThat(embedder.engine.embedded).containsExactly(
+            EmbeddingPrefixes.query("$PREVIOUS ¿Y el aceite?"), EmbeddingPrefixes.query("¿Y el aceite?"),
+        ).inOrder()
+        assertThat(index.calls.count { it.startsWith("pages:") }).isEqualTo(1)
+    }
+
+    /** F14 T042: with both, each page keeps its closest distance of the two searches. */
+    @Test
+    fun withBestOfBoth_eachPageKeepsItsClosestDistance() = runTest {
+        program(emptyList(), emptyList())
+        val near = pagesOf("Plano.pdf", 1, 2)
+        var call = 0
+        index.pageResults = { if (call++ == 0) near.map { it.copy(distance = 0.6) } else near.take(1).map { it.copy(distance = 0.2) } }
+        val retriever = HybridRetriever(index, embedder, logger, pageFollowUp = PageFollowUp.BEST_OF_BOTH)
+
+        val pages = (retriever.retrieve(RetrievalRequest("¿Y el aceite?", previousQuestion = PREVIOUS, withPages = true)).outcome as RetrievalOutcome.Blocks).pages
+
+        assertThat(pages.map { it.page to it.distance }).containsExactly(near[0].page to 0.2, near[1].page to 0.6).inOrder()
+    }
+
+    /** F14 T042 (FR-027): without pages, or without a follow-up, there is no second embedding whatever the lever. */
+    @Test
+    fun withoutPagesOrFollowUp_theLeverEmbedsOnce() = runTest {
+        program(emptyList(), emptyList())
+        val pages = pagesOf("Plano.pdf", 1)
+        index.pageResults = { pages }
+        val retriever = HybridRetriever(index, embedder, logger, pageFollowUp = PageFollowUp.BEST_OF_BOTH)
+
+        retriever.retrieve(RetrievalRequest("¿Y el aceite?", previousQuestion = PREVIOUS, withPages = false))
+        retriever.retrieve(RetrievalRequest(QUESTION, withPages = true))
+
+        assertThat(embedder.engine.embedded).hasSize(2)
     }
 }

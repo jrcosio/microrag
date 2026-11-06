@@ -78,4 +78,13 @@ object RagParameters {
 
     /** F14 (research R10, contract G7): load Gemma with or without vision on a change of scope, before the question. */
     const val PREWARM_BY_SCOPE = false
+
+    /** F14 (research R10, contract G8): how a follow-up searches the pages; `visual-followup-review` decides it. */
+    val PAGE_FOLLOW_UP = PageFollowUp.JOINED
 }
+
+/**
+ * F14 (research R10): the vector a follow-up searches the pages with. [JOINED] is F20's, the previous question with the
+ * new one; [NEW_ONLY] is the new question alone; [BEST_OF_BOTH] searches with both and keeps each page's closest.
+ */
+enum class PageFollowUp { JOINED, NEW_ONLY, BEST_OF_BOTH }
