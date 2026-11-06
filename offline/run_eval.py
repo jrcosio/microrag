@@ -16,7 +16,7 @@ COMMANDS = [
     "retrieve", "generate", "ablations", "report", "chunker-golden", "calibrate", "rejudge", "device-extraction",
     "order-review", "template-review", "limit-review", "language-review", "crosslang-review",
     # F14 (specs/014-ondevice-performance/contracts/harness-f14.md): reviews against v4 on the installed runtime.
-    "f14-review", "bench-bank", "bench-pages",
+    "f14-review", "bench-bank", "bench-pages", "device-report",
 ]
 # F18 visual evaluation (specs/018-visual-rag-feasibility/contracts/visual-harness.md §3), in eval/visual_cli.py.
 VISUAL_COMMANDS = [
@@ -394,13 +394,30 @@ def bench_bank(args):
     from eval import bench_bank as module
     from eval import builds, models, pipeline
 
-    values = _key_values(args, ("n", "seed"))
-    n, seed = int(values["n"]), int(values.get("seed", module.SEED))
+    values = _key_values(args, ("n", "seed", "warm", "cache", "merge"))
+    seed = int(values.get("seed", module.SEED))
     sources = module.sentences_by_document(builds.index_path("ref"))
+    module.BENCH_DIR.mkdir(parents=True, exist_ok=True)
+    cache_path = Path(values.get("cache", module.BENCH_DIR / "embed-cache.db"))
+    if "merge" in values:
+        # merge=a.db,b.db: the caches of the warm-up processes into the main one.
+        module.merge_caches(cache_path, [Path(p) for p in values["merge"].split(",")])
+        print(f"merged into {cache_path}")
+        return
+    if "warm" in values:
+        # warm=start:end embeds those documents only, into [cache], so several processes share the 100k embeddings.
+        start, end = (int(x) for x in values["warm"].split(":"))
+        cache = module.EmbeddingCache(cache_path, builds.Embedder())
+        try:
+            module.warm_cache(start, end, sources, cache, seed)
+        finally:
+            cache.close()
+        print(f"warmed documents {start}-{end} into {cache_path}")
+        return
+    n = int(values["n"])
     questions = [(q.id, q.question, next((p.question for p in pipeline.live_questions() if p.id == q.previous), None))
                  for q in pipeline.live_questions()]
-    module.BENCH_DIR.mkdir(parents=True, exist_ok=True)
-    cache = module.EmbeddingCache(module.BENCH_DIR / "embed-cache.db", builds.Embedder())
+    cache = module.EmbeddingCache(cache_path, builds.Embedder())
     started = time.time()
 
     def progress(done, total):
@@ -427,6 +444,16 @@ def bench_pages(args):
     print(json.dumps({k: v for k, v in manifest.items() if k != "files"}, indent=1))
 
 
+def device_report(args):
+    """F14 (R4, R14): the phone's JSON reports as the generated tables of benchmarks.md."""
+    from eval import device_bench
+
+    values = _key_values(args, ("in", "out"))
+    folder = Path(values.get("in", HERE / "build" / "device"))
+    out = Path(values.get("out", HERE.parent / "specs" / "014-ondevice-performance" / "benchmarks.md"))
+    print(f"wrote {device_bench.write(folder, out)} from {len(device_bench.load(folder))} reports")
+
+
 def report(args):
     from eval import report as report_module
 
@@ -440,6 +467,7 @@ HANDLERS = {
     "device-extraction": device_extraction, "order-review": order_review,
     "template-review": template_review, "limit-review": limit_review, "language-review": language_review,
     "crosslang-review": crosslang_review, "f14-review": f14_review, "bench-bank": bench_bank, "bench-pages": bench_pages,
+    "device-report": device_report,
 }
 
 

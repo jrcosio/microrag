@@ -102,6 +102,26 @@ class EmbeddingCache:
         self.db.close()
 
 
+def warm_cache(start, end, sources, embed, seed=SEED):
+    """Embeds the chunks of documents [start, end) into [embed]'s cache, so several processes can share the work."""
+    for i in range(start, end):
+        doc = document(i, sources, seed)
+        for chunk in doc["chunks"]:
+            embed(document_input(chunk["text"], header(doc, chunk)))
+
+
+def merge_caches(target, sources):
+    """Copies the vectors of the [sources] cache files into [target]."""
+    db = sqlite3.connect(str(target))
+    db.execute("CREATE TABLE IF NOT EXISTS v (key TEXT PRIMARY KEY, vector BLOB NOT NULL)")
+    for source in sources:
+        db.execute("ATTACH DATABASE ? AS other", (str(source),))
+        db.execute("INSERT OR IGNORE INTO v SELECT key, vector FROM other.v")
+        db.commit()
+        db.execute("DETACH DATABASE other")
+    db.close()
+
+
 def sha256(path):
     digest = hashlib.sha256()
     with Path(path).open("rb") as file:

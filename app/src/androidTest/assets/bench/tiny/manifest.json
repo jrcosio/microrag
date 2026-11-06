@@ -1,0 +1,21 @@
+{
+ "n": 50,
+ "seed": 2026,
+ "dims": 256,
+ "model": "fake",
+ "model_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+ "documents": 2,
+ "chunks_per_document": 25,
+ "folders": 20,
+ "excluded_documents": 0,
+ "excluded_fraction": 0.3,
+ "target_chars": 1594,
+ "max_chars": 2113,
+ "questions": 2,
+ "files": {
+  "chunks.jsonl.gz": "a6711e0b41cd340f565e2d5c9fda463f32b85bcd6d1c723dcdcdfb2c7c42417c",
+  "vectors.f32": "3de76981d4bbc5ee7576889dc3397c899b31a5ecbb41a663e5d85db6b5188c1c",
+  "questions.jsonl": "53d7dc2cdc4a5a1c4043e65a77e8a5a24d93335dbd29437a91abb9abdfc9baa4",
+  "queries.f32": "f367bea0a808696ee0b6d13becab60c4d02f93d327bb645fab35e4b9de36b81f"
+ }
+}

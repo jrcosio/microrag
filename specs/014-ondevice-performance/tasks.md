@@ -71,7 +71,7 @@ description: "Lista de tareas de F14 — Rendimiento en dispositivo y decisión 
   - la función de `ModelInfo` que dice si hay drafter.
 
   Anotar el resultado y el camino elegido (1 o 2) en `research.md` R6 y R7
-- [ ] T003 [P] Escritorio:
+- [X] T003 [P] Escritorio:
   - subir `litert-lm-api` a 0.19.1 y `sqliteai-vector` a 1.2.0, y añadir `snowballstemmer==3.1.1` en `offline/requirements.txt`;
   - pasar `pytest`;
   - comprobar que la recuperación de `ablations` da las mismas cifras que en F20 (FR-038);
@@ -87,7 +87,7 @@ description: "Lista de tareas de F14 — Rendimiento en dispositivo y decisión 
 
 **Purpose**: lo que usan todos los bancos. Ninguna historia de medida empieza sin esto.
 
-- [ ] T006 Congelar las reglas: `offline/config/f14_rules.json`, exactamente el del contrato H3 (D-088 y D-090), en un **commit propio antes de cualquier evaluación**
+- [X] T006 Congelar las reglas: `offline/config/f14_rules.json`, exactamente el del contrato H3 (D-088 y D-090), en un **commit propio antes de cualquier evaluación**
 - [ ] T007 [P] Kit de medida en `…/androidTest/testing/bench/`: `DeviceConditions.kt`, `Percentiles.kt` y `BenchReport.kt` (contrato B1, data-model §4). `…/androidTest/testing/bench/BenchReportTest.kt`, sin modelos, comprueba en el emulador el JSON, los percentiles y las condiciones; se escribe antes y falla primero
 - [ ] T008 [P] `offline/eval/bench_bank.py`, con `bench-bank` y `bench-pages` en `offline/run_eval.py` (R2, R10, contrato H2 y H4). Además de lo de data-model §3, el banco lleva `queries.f32`: los vectores de las 370 preguntas, embebidos con la 270M del escritorio, para medir la búsqueda sin modelo. `offline/tests/test_bench_bank.py` va primero
 - [ ] T009 [P] En `…/androidTest/testing/bench/`:
@@ -96,7 +96,7 @@ description: "Lista de tareas de F14 — Rendimiento en dispositivo y decisión 
   - `BenchDirsTest.kt`: crea `dev-bench` y `dev-models` sin abrir la app.
 
   `…/androidTest/testing/bench/BenchBankTest.kt`, con un banco diminuto en los assets de `androidTest`, corre en el emulador
-- [ ] T010 [P] `offline/eval/device_bench.py` y `device-report` en `offline/run_eval.py` (contrato H2). `offline/tests/test_device_bench.py` va primero, con un JSON de ejemplo
+- [X] T010 [P] `offline/eval/device_bench.py` y `device-report` en `offline/run_eval.py` (contrato H2). `offline/tests/test_device_bench.py` va primero, con un JSON de ejemplo
 - [ ] T011 [P] `…/androidTest/testing/bench/BenchCleanupTest.kt` (contrato B2): borra `cacheDir/bench`, `dev-bench`, la 270M y E4B de `dev-models`, y los informes `f14-*` y `visual-chat-*`. Se prueba en el emulador con ficheros simulados
 
 **Checkpoint**: kit y bancos listos; las historias pueden empezar.
