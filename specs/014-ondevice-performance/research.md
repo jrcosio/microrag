@@ -12,9 +12,10 @@ Nada se ha medido aún en el teléfono. Las cifras del Mac son orientativas.
 
 - **Decisión:** al empezar la implementación se suben LiteRT-LM a **0.19.1** (Android) y `litert-lm-api` a **0.19.1** (escritorio), y SQLite-Vector a **1.2.0**. El orden es:
   1. compilación, JVM, lint y emuladores en la implementación;
-  2. en el A063, al abrir la fase del teléfono y antes de medir: `embedding_golden`, las goldens de respuesta y la batería.
+  2. en el A063, en una **sesión corta justo después** y antes de construir las palancas (D-090): `embedding_golden` y las goldens de respuesta, unos 15 minutos y sin datos del usuario. Así, si fallan, se vuelve a 0.18.1 y 1.1.2 antes de que exista código que dependa de 0.19 (`clone()` y la especulativa);
+  3. la batería completa del teléfono va al final, con las medidas.
 
-  Si algo falla en el teléfono, se vuelve a 0.18.1 y 1.1.2 y se mide con ellas.
+  En el escritorio también suben `litert-lm-api` a 0.19.1 y `sqliteai-vector` a 1.2.0. Las 426 respuestas de `v4` se regeneran con 0.19.1 y las que cambian se juzgan a mano: esa es la base de las palancas (D-090).
 - **LiteRT-LM 0.19.x frente a 0.18.1:**
   - el `classes.jar` de 0.19.0 y el de 0.19.1 son idénticos; solo cambia el `.so` nativo;
   - **nuevo:** `Conversation.clone()` y `Session.clone()`, que copian historial, caché KV y configuración (R6);
@@ -28,7 +29,8 @@ Nada se ha medido aún en el teléfono. Las cifras del Mac son orientativas.
   - el AAR tiene las mismas ABIs, el mismo `vector.so`, el mismo punto de entrada y alineación de 16 KB, así que D-031 sigue valiendo;
   - `vector_as_*(blob, dim)` exige ahora la dimensión, pero la app usa la forma de un argumento;
   - si `vector_quantize` falla, deja el contexto como estaba.
-- **Constitución:** «Restricciones técnicas» fija «LiteRT-LM 0.18.x» y «`litert-lm-api` 0.18.x». Adoptar 0.19.1 exige una enmienda PATCH (1.2.0 → 1.2.1) que solo cambia esas versiones. Se presenta en la parada del analyze y se aplica con `/speckit-constitution` cuando las goldens pasen en el teléfono. La constitución II ya pide el `embedding_golden` en cada cambio de versión de LiteRT-LM.
+- **Nativos:** el AAR 0.19.1 trae `jni/arm64-v8a/liblitertlm_jni.so` (22,7 MB) y `jni/x86_64/liblitertlm_jni.so` (26,9 MB), como 0.18.1 (22,2 y 26,4 MB). SQLite-Vector 1.2.0 sigue con `vector.so` para arm64-v8a, armeabi-v7a y x86_64.
+- **Constitución:** «Restricciones técnicas» fija «LiteRT-LM 0.18.x» y «`litert-lm-api` 0.18.x». Adoptar 0.19.1 exige una enmienda **PATCH (1.2.0 → 1.2.1)**, aprobada en la parada del analyze (D-090). Es PATCH porque solo cambia el número de versión de una restricción técnica, sin tocar ningún principio, y la II ya exige las goldens en cada cambio de versión. Se aplica con `/speckit-constitution` cuando las goldens pasen en el teléfono. La constitución II ya pide el `embedding_golden` en cada cambio de versión de LiteRT-LM.
 - **Alternativas descartadas:** probarlos al final como palanca, o no tocarlos (D-088).
 
 ## R2. Bancos de 10k, 50k y 100k fragmentos (FR-001–FR-003)
@@ -71,18 +73,19 @@ Nada se ha medido aún en el teléfono. Las cifras del Mac son orientativas.
     - una clave nueva `pages_quant_dirty` para las páginas, que solo se usa si R10 lo decide.
 
     Se ponen a 1 en cada cambio (hoy ya lo hacen `insertChunks`, `deleteDocument`, `publishReindex`, `removeFromIndex` y `deleteChunks`; se añaden las páginas). Pasan a 0 solo tras un `vector_quantize` completo.
-  - **Precarga:** marca de memoria `int8Preloaded` en `DefaultRagIndex`, que se pierde con la conexión. La búsqueda usa INT8 solo si `quant_dirty = 0` y `int8Preloaded`; si no, usa la exacta.
+  - **Precarga:** marca de memoria `int8Preloaded` en `DefaultRagIndex`, que se pierde con la conexión. Se pone a falso en `markQuantDirty` y al empezar `refreshQuantized`, para que una precarga fallida nunca deje en uso una instantánea anterior. La búsqueda usa INT8 solo si `quant_dirty = 0` y `int8Preloaded`; si no, usa la exacta.
   - **Mantenimiento** (componente nuevo `QuantizedIndexMaintainer`, en `data/rag`):
     - **disparadores:**
       - el fin de una tanda de ingesta (`IngestRunner.finishRun`);
-      - las operaciones de la Biblioteca que borran o cambian fragmentos (borrar, quitar del índice, reindexar y descartar, `DefaultLibraryRepository`);
-      - el borrado desde la cola de importación;
+      - las operaciones de la Biblioteca que borran o cambian fragmentos (borrar, quitar del índice, reindexar y descartar, `DefaultLibraryRepository`). «Quitar de la cola» un documento ya pasa por `DeleteDocumentUseCase` y `delete`;
       - el arranque de la app (`MicroRagApplication.onCreate`, junto a los trabajos que ya abren el índice);
     - **acción:** si `quant_dirty = 1`, no hay tanda activa y hay al menos `INT8_MIN_CHUNKS` fragmentos buscables, reconstruye y precarga. Si está al día, solo precarga;
     - **coalescencia:** varios disparadores seguidos dan una sola reconstrucción (espera de 2 s);
     - **ejecución:** en el hilo de la base, como toda escritura (constitución IV). Bloquea las búsquedas lo que dure `vector_quantize`, que se mide (R3, FR-007; en el Mac, 97 ms con 100k);
     - **ante un fallo:** muerte del proceso, falta de espacio o error. `quant_dirty` sigue a 1, la búsqueda sigue con la exacta y se reintenta en el siguiente disparador (constitución V).
-  - **`INT8_MIN_CHUNKS`:** sale del banco. Es el tamaño a partir del cual el p95 F32 pasa de 20 ms, redondeado hacia abajo; por debajo, la app se queda en F32. D-052 da 52 ms con 10k dentro de la híbrida y F04 23,1 ms sola, así que el umbral quedará por debajo de 10k. Hasta medirlo es 0: INT8 siempre que haya fragmentos.
+  - **Criterio de 20 ms (D-090):** sobre la búsqueda vectorial **sola**, como F04 (23,1 ms con 10k). Dentro de la híbrida (52 ms en D-052) espera en cola detrás de la léxica, y también se informa.
+  - **`INT8_MIN_CHUNKS`:** sale del banco. Es el tamaño a partir del cual el p95 F32 solo pasa de 20 ms, redondeado hacia abajo; por debajo, la app se queda en F32 (constitución IV: «solo si»). Se mide con subconjuntos de 1k, 2,5k y 5k del banco de 10k. **Hasta medirlo es 10.000**, donde F04 ya pasa de 20 ms. Además, así la biblioteca del usuario del A063 queda por debajo y las pruebas instrumentadas, que arrancan la `Application`, no la cambian (SC-010).
+  - **Espera de las búsquedas:** la reconstrucción y la precarga ocupan el hilo único de la base. El banco mide cuánto espera una búsqueda que llega durante ellas (FR-009, FR-011).
   - **Detalle técnico:** `tableNames()` solo se usa para detectar ficheros vacíos, así que las tablas `vector0_*` no lo afectan. Una prueba lo fija.
 - **Alternativas descartadas:**
   - INT8 sin reordenar: recall por debajo de 0,97 a 100k en el Mac;
@@ -113,7 +116,7 @@ Nada se ha medido aún en el teléfono. Las cifras del Mac son orientativas.
   - **Con reposo:** 30 s entre preguntas, 25 minutos.
 
   Por pregunta: primer token, total, tokens, estado térmico y batería. Se resume en tramos de 5 minutos, y la batería por cada 10 minutos. Si el estado térmico llega a `SEVERE`, la sesión para y queda registrado.
-- **Base de la comparación:** la sesión sin reposo con las versiones adoptadas (R1) y sin palancas. Es la que decide las palancas (FR-017).
+- **Qué decide las palancas (D-090):** el banco corto de `GenerationBenchmarkTest`, 20 preguntas alternando la base y la palanca, pregunta a pregunta, en las mismas condiciones térmicas. Una sesión sostenida por palanca serían unas 3 horas más de teléfono. La sesión sostenida sin reposo con la base, y la final con todas las adoptadas, confirman SC-004.
 
 ## R6. Reutilizar el prefijo fijo del prompt (FR-017)
 
@@ -128,6 +131,8 @@ Nada se ha medido aún en el teléfono. Las cifras del Mac son orientativas.
   2. **Con rol de sistema:** `ConversationConfig(systemInstruction = reglas, prefillPrefaceOnInit = true)`, con `clone()` por pregunta. Cambia el prompt, así que pasa por el harness (`template-review`, con `litert-lm-api` 0.19.1 y el mismo rol de sistema) con la regla de FR-017.
 - **Memoria:** el clon copia la caché KV de la base, y eso se mide (RSS pico). Se libera con el motor (`onTrimMemory`, ingesta), y la base se vuelve a preparar en el `warmUp`.
 - **Alcance:** las respuestas de texto. Las de páginas comparten las reglas `v4` más `PAGE_RULE`; se mide si el mismo mecanismo vale con imágenes, y si no, quedan fuera.
+- **Igualdad:** con el camino 1, las respuestas greedy deben salir idénticas. Si alguna cambia (un prefill partido en GPU puede divergir en algún token), `PrefixCacheGoldenTest` informa las diferencias, y las que cambian se juzgan con la regla de calidad de FR-017 antes de adoptar.
+- **Plantilla más corta (D-090):** con el prefijo reutilizado, las reglas ya no cuestan prefill. La `v4-corta` solo se evalúa si el prefijo no está disponible o no se adopta; si no, se descarta con ese motivo.
 - **Interruptor:** `GenerationConfig.prefixCache`, con su valor por defecto en `RagParameters` según el resultado de la fase del teléfono.
 - **Alternativas descartadas:** `CachedSession` o `PrefixCache` de C++, que no están expuestos en Kotlin.
 
@@ -137,7 +142,7 @@ Nada se ha medido aún en el teléfono. Las cifras del Mac son orientativas.
 - **Modo:** `SpeculativeDecodingMode.ADAPTIVE`, que solo especula mientras mide que va más rápido.
 - **Qué acelera:** solo la decodificación; el prefill, no. En el S26 Ultra con GPU, la ficha da de 51,5 a 66–92 tokens/s.
 - **Encaje con la regla:** no baja el primer token, así que no cumple la regla de FR-017, que es sobre el primer token. Pero acorta la respuesta completa y, con greedy, no debería cambiar el texto.
-- **Propuesta para la parada del analyze:** un criterio propio. Se adopta si sube la decodificación al menos un 20 %, no empeora el p95 del primer token más de 0,3 s y las respuestas greedy de las goldens no cambian.
+- **Criterio aprobado (D-090):** se adopta si sube la decodificación al menos un 20 %, no empeora el p95 del primer token más de 0,3 s y las respuestas greedy de las goldens no cambian.
 - **Interruptor:** `GenerationConfig.speculative` (OFF o ADAPTIVE).
 
 ## R8. fp16 y FP32 (FR-020, FR-021)
@@ -149,8 +154,9 @@ Nada se ha medido aún en el teléfono. Las cifras del Mac son orientativas.
   - **escritorio:** la GPU del Mac con fp16 reproduce el fallo «a menudo» (F18), así que sirve para afinar el conjunto y la instrucción sin el teléfono;
   - **teléfono:** decide la tasa real y el primer token, con las dos precisiones sobre las mismas 60 preguntas.
 - **Regla (D-088):**
-  - FP32 se adopta si el p95 del primer token en la sesión sostenida sube ≤ 0,5 s. La sesión con FP32 se hace con las palancas ya adoptadas: R6 podría compensar parte del coste.
-  - Si no, se evalúa una instrucción más fuerte. `v4` ya tiene «Copia cifras, plazos, importes y números de artículo tal como aparecen en la fuente que citas.», y los 2 fallos de 60 ocurrieron con ella. La variante candidata (`v4-cifras`) mueve la regla al final, junto a la PREGUNTA, y pide copiar cada cifra «dígito a dígito». Pasa por el harness con la regla de FR-017 y se mide en el teléfono con el conjunto de cifras.
+  - FP32 se adopta si el p95 del primer token sube ≤ 0,5 s en el banco corto, con las palancas ya adoptadas (R6 podría compensar parte del coste), y la sesión sostenida final lo confirma.
+  - Si no, se evalúa una instrucción más fuerte. `v4` ya tiene «Copia cifras, plazos, importes y números de artículo tal como aparecen en la fuente que citas.», y los 2 fallos de 60 ocurrieron con ella. La variante candidata (`v4-cifras`) mueve la regla al final, junto a la PREGUNTA, y pide copiar cada cifra «dígito a dígito». Se adopta si da como mucho la mitad de respuestas con cifras deformadas que `v4` en el teléfono y cumple la regla de calidad de FR-017 en el harness (D-090).
+  - **Alcance (D-090):** texto y páginas. `buildVisual` toma la plantilla de `PROMPT_TEMPLATE`, así que la v5-visual cambia con ella. Se actualizan `visual_prompt.py` y `VisualPromptGoldenTest`, y las respuestas con páginas se miden en el teléfono, sin regla de calidad visual (D-078).
 
 ## R9. La estimación de tokens (FR-022)
 
@@ -160,6 +166,8 @@ Nada se ha medido aún en el teléfono. Las cifras del Mac son orientativas.
   tokens ≈ ⌈letras / a + dígitos / b + resto / c⌉
 
   con a, b y c ajustados por mínimos cuadrados frente al tokenizador real (`engine.tokenize` del harness) sobre los fragmentos de F05 y los textos con cifras, y redondeados hacia el lado seguro (el p95 del cociente real/estimado ≤ 1). Vive en `RagParameters` y en `offline/config/rag_parameters.json`, y la prueba de paridad que ya existe los mantiene iguales.
+- **Regla (D-090):** el p95 de tokens reales entre estimados ≤ 1,0 en texto con cifras, más la regla de calidad de FR-017.
+- **Alcance (D-090):** solo el límite de 2.000 tokens del prompt. La estimación guardada de cada fragmento, el presupuesto de contexto de D-034 (1.719) y sus pares del harness no cambian, y no hay que reindexar.
 - **Calidad:** cambia qué bloques entran en los prompts con cifras. `run_eval.py token-review` informa el error (medio, p95 y peor, por tipo de texto) de la estimación vieja y de la nueva, y los prompts y respuestas que cambian. Las respuestas que cambian se juzgan a mano (D-033) con la regla de FR-017.
 - **Comprobación en el teléfono:** la prueba de generación compara la estimación con `lastPrefillTokenCount`.
 - **Alternativa descartada:** el tokenizador en la app. Exigiría un motor cargado para contar, o una copia del vocabulario de Gemma.
@@ -169,12 +177,14 @@ Nada se ha medido aún en el teléfono. Las cifras del Mac son orientativas.
 - **Páginas:**
   - bancos de 1.000, 5.000 y 10.000 páginas, hechos de los vectores reales de las páginas del corpus visual de F18 (unas 300, embebidos con la 440M) perturbados con ruido gaussiano y renormalizados, con semilla fija;
   - no hay 10.000 páginas reales distintas, y una biblioteca con el modo activo rara vez pasa de unos pocos miles;
-  - se mide F32 frente a INT8 con el criterio de 20 ms. Si las páginas no lo pasan, se quedan en F32 y `pages_quant_dirty` no se usa.
+  - se mide F32 frente a INT8 con el criterio de 20 ms. La variante INT8 del banco usa SQL directo sobre la base del banco; la ruta INT8 de páginas de la app solo se implementa si las cifras la piden. Si no, las páginas se quedan en F32 y `pages_quant_dirty` no se usa.
 - **Consulta con la 440M frente a la 270M:** la 270M se copia a `dev-models` (D-088). Se mide el p50 y p95 de la consulta y el RSS de las dos, alternando el orden.
 - **Primer token con páginas en sesión sostenida:** `VisualChatBenchmarkTest` gana un modo sostenido (25 min sin reposo, con Equilibrado) además de sus 20 preguntas por detalle.
 - **Recarga de Gemma con visión (14,2 s):**
   - con D-083 la página entra siempre que el ámbito tenga páginas, así que la recarga ocurre al pasar de un ámbito sin páginas a uno con páginas (o al revés);
-  - **palanca:** precargar en segundo plano el motor que pedirá la siguiente respuesta (`warmUp(visual = ámbito con páginas)`) al cambiar el ámbito o al abrir el chat, no al preguntar;
+  - hoy `WarmUpAnswerEngineUseCase` decide la visión con la biblioteca entera (`chatLibraryState()`), no con el ámbito;
+  - **palanca:** el caso de uso recibe el ámbito y usa el mismo predicado que hoy (modo activo, `pagesUsable` y `withPages` del ámbito), y `ChatViewModel` lo vuelve a llamar al cambiar el ámbito. Así se carga el motor que pedirá la siguiente respuesta antes de preguntar;
+  - **regla (D-090):** se adopta si baja al menos 0,3 s la primera respuesta tras cambiar de ámbito, sin subir el pico de memoria más de 200 MB;
   - nunca hay dos engines en GPU: el coordinador libera uno antes de cargar el otro;
   - se mide la espera de la primera respuesta tras cambiar de ámbito, con y sin precarga, y la memoria.
 - **Regla de seguimiento con páginas** (`offline/testset/visual/followups.jsonl`, nuevo): unos 40 pares sobre el corpus visual:
@@ -188,12 +198,14 @@ Nada se ha medido aún en el teléfono. Las cifras del Mac son orientativas.
 
   Las variantes 2 y 3 cuestan un embedding más (unos 120 ms) solo cuando se aplica la regla de seguimiento.
 
-  **Regla** (SC-007, fijada antes de evaluar): la página del documento nuevo en ≥ 90 % de los cambios de documento; sin bajar el Recall@20 de los seguimientos de texto de 0,98. Entre las que cumplen, se elige la que más páginas correctas da en los seguimientos reales.
+  **Regla** (SC-007 y D-090, fijada antes de evaluar): la página del documento nuevo en ≥ 90 % de los cambios de documento; en los seguimientos reales, no más de 5 puntos por debajo de hoy; sin bajar el Recall@20 de los seguimientos de texto de 0,98. Entre las que cumplen, se elige la que más páginas correctas da en los seguimientos reales.
+
+  El embedding extra de las variantes 2 y 3 solo se hace cuando la respuesta puede llevar página (`request.withPages`): con el modo apagado o sin páginas, nada cambia (FR-027).
 - **Con el modo apagado:** nada de esto se ejecuta. `pageSearch` ya devuelve vacío sin `pagesUsable`.
 
 ## R11. E4B y la 270M en el teléfono (FR-024, FR-028, FR-029)
 
-- **Decisión:** se copian con `adb` a `getExternalFilesDir("dev-models")` y se instalan verificados con `DevModelImporter.installVerified` (F02, F18). Los SHA-256 son los del escritorio (`offline/models/`).
+- **Decisión (D-090):** se copian con `adb` a `getExternalFilesDir("dev-models")`, y las pruebas los verifican por SHA-256 (los del escritorio, `offline/models/`) y los cargan **directamente** desde allí con `EngineFactory`. No se usa `DevModelImporter.installVerified`, que los movería a `models/` y a `verification.json`, ni se añaden a `ModelCatalog`: E4B sería descargable desde la app (constitución I), y la 270M volvería a aparecer como modelo instalado con el modo activo.
 - **E4B:** el banco de generación corre con el contexto de D-034 y el embedder cargado. Mide la carga en frío y con caché, el primer token, el prefill, la decodificación y el pico de memoria.
 - **Si no carga** (memoria o GPU): «no cabe» o «no carga», con el error.
 - **Limpieza:** una prueba de limpieza borra los ficheros y sus entradas de `verification.json` (lecciones de F18).
@@ -201,9 +213,9 @@ Nada se ha medido aún en el teléfono. Las cifras del Mac son orientativas.
 
 ## R12. Palancas de calidad (FR-030–FR-032)
 
-- **Reordenación α = 0,5:** `order-review` ya existe. Se repite con la regla de F10 (+2 puntos de Recall@bloques sin pasar el presupuesto), después de las palancas adoptadas que cambian el contexto (estimador y bloques), porque son las que pueden cambiar su resultado.
+- **Reordenación α = 0,5:** `order-review` ya existe. Se repite con la regla de F10 (+2 puntos de Recall@bloques sin pasar el presupuesto), **después de decidir en el teléfono** las palancas que cambian el contexto (estimador y bloques), porque son las que pueden cambiar su resultado.
   - **Sin cambios en el contexto,** el resultado es el de D-051 (+1,4 puntos), y no se adopta.
-  - **Coste en el teléfono:** solo se mide si se adopta (es aritmética sobre 20 candidatos que ya están en memoria). Se corrige FR-030 en el analyze para decirlo.
+  - **Coste en el teléfono:** solo se mide si se adopta (es aritmética sobre 20 candidatos que ya están en memoria). FR-030 se corrigió en el analyze (D-090).
 - **Búsqueda entre idiomas (solo se evalúa, D-088):** `crosslang-review` gana dos variantes:
   1. **por idioma del documento:** normalizador inglés (palabras vacías y raíces Snowball del inglés, con `snowballstemmer`, que es puro Python) para los documentos del índice `en`, y la pregunta normalizada con los dos normalizadores (OR en FTS);
   2. la anterior más **peso en la búsqueda por significado:** RRF con peso 2 en la lista vectorial cuando los idiomas de la pregunta y del documento no coinciden.
@@ -221,7 +233,8 @@ Nada se ha medido aún en el teléfono. Las cifras del Mac son orientativas.
 - **`benchmarks.md`:** una sección por bloque de la tabla del informe:
   - sesión y versiones;
   - modelos;
-  - arranque;
+  - arranque: carga en frío y con caché de Gemma (texto y visión), la 440M y la 270M (`StartupBenchmarkTest`);
+  - ingesta: el ritmo con los runtimes adoptados (`IndexingBenchmarkTest` y `VisualIngestBenchmarkTest`, sin cambios);
   - embedding;
   - búsqueda a 10k, 50k y 100k;
   - INT8;
@@ -242,8 +255,9 @@ Nada se ha medido aún en el teléfono. Las cifras del Mac son orientativas.
 
 ## R15. Orden de la fase del teléfono
 
+0. **Sesión corta al principio** (D-090), con permiso: goldens con los runtimes nuevos (R1). Si fallan, se vuelve atrás antes de construir las palancas.
 1. Ajustes anotados, pantalla despierta y bloqueo descartado.
-2. Goldens con los runtimes nuevos (R1). Si fallan, se vuelve atrás.
+2. `PrefixCacheGoldenTest`, con las palancas ya construidas.
 3. Bancos de búsqueda (10k, 50k y 100k) e INT8.
 4. Generación (4, 6 y 8 bloques), extremo a extremo, palancas una a una (R6–R8) y la sesión sostenida base.
 5. Modo multimodal, la 270M y E4B.

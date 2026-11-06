@@ -8,7 +8,7 @@
 | `pages_quant_dirty` | `rag_meta` (nueva, solo si las páginas usan INT8, R10) | igual | Igual para `pages`: `insertPage`, borrado de páginas. Si falta, se lee como `'1'` |
 | `vector0_chunks_embedding` | tabla de SQLite-Vector | datos INT8 | La crea y la sustituye `vector_quantize`. Es reconstruible (constitución III). No la escribe la app |
 | `vector0_pages_embedding` | igual | igual | Solo si las páginas usan INT8 |
-| `int8Preloaded` | memoria de `DefaultRagIndex` | sí / no | Se pone a sí tras `vector_quantize_preload` en la conexión abierta; se pierde al cerrarla o al morir el proceso |
+| `int8Preloaded` | memoria de `DefaultRagIndex` | sí / no | Se pone a sí tras `vector_quantize_preload` en la conexión abierta; a no en `markQuantDirty` y al empezar `refreshQuantized`; se pierde al cerrarla o al morir el proceso |
 
 **Cuándo la búsqueda usa INT8:** `quant_dirty = '0'` **y** `int8Preloaded`. Si no, usa la exacta (F32), como hoy.
 
@@ -37,7 +37,7 @@ DESFASADO ──(mantenedor: sin tanda activa, ≥ INT8_MIN_CHUNKS)──► REC
 | Parámetro | Valor inicial | Se decide en |
 |---|---|---|
 | `INT8_CANDIDATES` | 100 | banco de búsqueda (Recall@20 con reordenación ≥ 0,97) |
-| `INT8_MIN_CHUNKS` | 0 | banco de búsqueda (tamaño donde F32 pasa de 20 ms) |
+| `INT8_MIN_CHUNKS` | 10.000 (F04 ya pasa de 20 ms ahí) | banco de búsqueda, con subconjuntos de 1k, 2,5k y 5k (tamaño donde la vectorial F32 sola pasa de 20 ms) |
 | `INT8_MAX_MEMORY_MB` | 64 | fijo: 100k × 264 B = 26,4 MB, con margen |
 | `QUANT_REBUILD_DEBOUNCE_MS` | 2.000 | fijo |
 | `TOKEN_ESTIMATE` (a, b, c) | (4,554; 4,554; 4,554): equivale al de hoy | `token-review` (R9) |
@@ -47,7 +47,7 @@ DESFASADO ──(mantenedor: sin tanda activa, ≥ INT8_MIN_CHUNKS)──► REC
 | `PROMPT_TEMPLATE` | `v4` | `v4-cifras` solo si se adopta (R8) |
 | `MAX_BLOCKS` | 4 | R13 |
 | `PAGE_FOLLOW_UP` | `JOINED` (hoy) | `visual-followup-review` (R10) |
-| `PREWARM_BY_SCOPE` | `false` | fase del teléfono (R10) |
+| `PREWARM_BY_SCOPE` | `false` | fase del teléfono (R10: ≥ 0,3 s menos y ≤ 200 MB más) |
 
 La prueba de paridad que ya existe (Kotlin ↔ JSON) cubre los parámetros que tienen pareja en el harness (estimador, plantilla, bloques y regla de páginas).
 

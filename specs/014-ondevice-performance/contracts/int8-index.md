@@ -11,6 +11,7 @@ interface RagIndex {
 
     /**
      * Rebuilds the INT8 copy when it is stale and there are at least [minChunks] searchable chunks, then preloads it.
+     * Clears the preloaded mark first, so a failed preload never leaves an older snapshot in use.
      * Preloads only, when it is current. Never throws for a failed rebuild: the index stays stale and the search
      * stays exact (constitution V). Returns the state after the attempt.
      */
@@ -41,7 +42,7 @@ data class QuantizedState(val current: Boolean, val preloaded: Boolean, val sear
 
 | Operación | Hoy | F14 |
 |---|---|---|
-| `insertChunks`, `deleteDocument`, `publishReindex`, `removeFromIndex`, `deleteChunks` | `markQuantDirty` | igual |
+| `insertChunks`, `deleteDocument`, `publishReindex`, `removeFromIndex`, `deleteChunks` | `markQuantDirty` | igual, y además `int8Preloaded = false` |
 | `insertPage`, borrado de páginas | — | `markPagesQuantDirty`, solo si las páginas usan INT8 |
 | `setIncluded`, `setIndexMode` | — | no cambian vectores: el filtro `SEARCHABLE` se aplica después del scan |
 
@@ -56,16 +57,17 @@ class QuantizedIndexMaintainer(
 ) {
     /** Asks for a refresh; several requests within [RagParameters.QUANT_REBUILD_DEBOUNCE_MS] run once. */
     fun request(reason: Reason)
-    enum class Reason { STARTUP, INGEST_FINISHED, LIBRARY_CHANGED, QUEUE_CHANGED }
+    enum class Reason { STARTUP, INGEST_FINISHED, LIBRARY_CHANGED }
 }
 ```
 
 - **Llamadores:**
   - `MicroRagApplication.onCreate` (`STARTUP`);
   - `IngestRunner.finishRun` (`INGEST_FINISHED`);
-  - `DefaultLibraryRepository` en `delete`, `removeFromIndex`, `reindex` y `discardReindex` (`LIBRARY_CHANGED`);
-  - `DefaultImportQueueRepository` al borrar fragmentos (`QUEUE_CHANGED`).
+  - `DefaultLibraryRepository` en `delete`, `removeFromIndex`, `reindex` y `discardReindex` (`LIBRARY_CHANGED`). «Quitar de la cola» un documento ya pasa por `DeleteDocumentUseCase` → `delete`, así que no necesita disparador propio.
 - **Con una tanda activa:** no hace nada. `INGEST_FINISHED` llega al final.
+- **Umbral:** por debajo de `INT8_MIN_CHUNKS` fragmentos buscables no reconstruye. Así, en las pruebas instrumentadas sobre el teléfono (que arrancan la `Application`), la biblioteca del usuario no cambia (SC-010).
+- **Espera de las búsquedas:** la reconstrucción y la precarga ocupan el hilo único de la base; su duración se registra en el log (solo números) y la miden los bancos (FR-009, FR-011).
 - **Errores:** registra el tipo de error en el log (sin contenido) y no relanza.
 - **Koin:** `single` en `DataModule`.
 
@@ -85,4 +87,6 @@ class QuantizedIndexMaintainer(
   5. Fallo simulado (por ejemplo, `max_memory` demasiado bajo): `quant_dirty` sigue a 1, la búsqueda es exacta y no hay excepción.
   6. Ámbito y exclusiones: el mismo resultado con INT8 que con la exacta.
   7. `tableNames()` y la detección de ficheros vacíos no cambian con las tablas `vector0_*`.
+  8. Reconstrucción correcta seguida de una precarga que falla: `int8Preloaded` sigue a falso y la búsqueda es exacta (nunca usa una precarga anterior).
+  9. Bajo `INT8_MIN_CHUNKS`: `refreshQuantized` no crea `vector0_*` ni cambia `quant_dirty`.
 - **Banco (`SearchScaleBenchmarkTest`):** el Recall@20 con y sin reordenación frente a F32, los tiempos de cuantizar y precargar, y la memoria.

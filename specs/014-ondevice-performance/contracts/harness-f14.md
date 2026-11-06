@@ -2,10 +2,11 @@
 
 ## H1. Dependencias
 
-- **`litert-lm-api==0.19.1`** (R1). Al subirla se comprueba:
+- **`litert-lm-api==0.19.1`** y **`sqliteai-vector==1.2.0`** (R1, a la par que la app). Al subirlas se comprueba:
   - que `embedding_golden` y el resto de pruebas de `offline/tests` pasan;
-  - que `ablations` con el modo apagado da las mismas cifras de F20 (FR-038). Si no, se vuelve a 0.18.1 y se registra.
-- **`snowballstemmer`** (nueva), solo para la variante inglesa (R12).
+  - que la recuperación de `ablations` da las mismas cifras de F20 (FR-038). Si no, se vuelve a 0.18.1 y 1.1.2 y se registra.
+- **`v4` de referencia regenerada (D-090):** las 426 respuestas de `v4` se generan otra vez con 0.19.1, y las que cambian se juzgan a mano (D-033). Esa es la base de las palancas, para no mezclar el efecto del runtime con el de cada una.
+- **`snowballstemmer==3.1.1`** (nueva, puro Python, comprobada en PyPI), solo para la variante inglesa (R12).
 
 ## H2. Subcomandos nuevos de `run_eval.py`
 
@@ -19,26 +20,30 @@
 | `visual-followup-review variant=<joined\|new-only\|best-of-both>` | La regla de seguimiento con páginas sobre `followups.jsonl` | sección del informe |
 | `crosslang-review variant=<lang-normalizer\|lang-normalizer-weighted>` (amplía) | Las variantes de R12 | sección del informe y CSV de revisión |
 | `order-review` (sin cambios) | Se repite tras las palancas que cambian el contexto | sección del informe |
-| `ablations max_blocks=3` (amplía) | La variante de 3 bloques (R13) | sección del informe |
-| `template-review template=v4-cifras` (amplía) | La plantilla de cifras con la regla de D-088 | sección del informe |
+| `ablations --base max_blocks=3` (amplía) | La variante de 3 bloques (R13) | sección del informe |
+| `template-review variants=v4,v4-cifras` (amplía) | La plantilla de cifras con la regla de D-088; con `v4-corta` solo si el prefijo reutilizado no se adopta (D-090) | sección del informe |
 | `device-report in=offline/build/device/` | Lee los JSON del teléfono y escribe las tablas de `benchmarks.md` | `specs/014-ondevice-performance/benchmarks.md` (secciones generadas) |
 
 ## H3. Reglas (`offline/config/f14_rules.json`, en git antes de evaluar)
 
 ```json
 {
-  "first_token_lever": { "min_p95_gain_s": 0.3, "max_correct_drop_points": 1.0, "reference": "v4", "reference_correct": 81.1,
-                          "refusal_and_citations": "report thresholds" },
+  "first_token_lever": { "decided_by": "short-bench-20-alternating", "confirmed_by": "sustained-final",
+                          "min_p95_gain_s": 0.3, "max_correct_drop_points": 1.0, "reference": "v4 regenerated with the adopted runtime",
+                          "min_refusal": 0.85, "min_citations": 0.90 },
   "fp32": { "max_p95_rise_s": 0.5 },
+  "numeric_template": { "max_deformed_ratio_vs_v4": 0.5, "quality": "first_token_lever" },
+  "token_estimate": { "max_p95_real_over_estimated_numeric": 1.0, "quality": "first_token_lever" },
   "speculative": { "min_decode_gain": 0.20, "max_p95_rise_s": 0.3, "greedy_identical": true },
-  "page_follow_up": { "min_switch_hit": 0.90, "min_text_followup_recall20": 0.98 },
+  "prewarm_by_scope": { "min_first_answer_gain_s": 0.3, "max_rss_peak_rise_mb": 200 },
+  "page_follow_up": { "min_switch_hit": 0.90, "max_follow_drop_points": 5, "min_text_followup_recall20": 0.98 },
   "crosslang": { "max_gap_points": 10 },
   "order": { "min_recall_blocks_gain_points": 2.0 },
-  "int8": { "min_recall20": 0.97, "vector_p95_ms": 20 }
+  "int8": { "min_recall20": 0.97, "vector_alone_p95_ms": 20 }
 }
 ```
 
-- La regla de la especulativa es la propuesta de R7: se confirma en la parada del analyze antes de congelar el fichero.
+- Reglas aprobadas por el usuario en el clarify (D-088) y en la parada del analyze (D-090).
 
 ## H4. Módulos
 
@@ -62,4 +67,4 @@
 
 ## H6. Juicio
 
-- Las respuestas que cambian en `token-review`, `template-review v4-cifras`, `ablations max_blocks=3` y `crosslang-review` se juzgan a mano por el asistente (D-033), con veredictos en CSV. Las que no cambian conservan su veredicto, como en F11 y F12.
+- Las respuestas que cambian en `token-review`, `template-review variants=v4,v4-cifras`, `ablations --base max_blocks=3` y `crosslang-review` se juzgan a mano por el asistente (D-033), con veredictos en CSV. Las que no cambian conservan su veredicto, como en F11 y F12.

@@ -36,8 +36,8 @@ F14 sustituye los presupuestos del informe por cifras medidas en el A063 y toma 
 **Language/Version**: Kotlin 2.4.21, con Java 17 de bytecode y JBR 21, sin cambios. Python 3.12 en `offline/`.
 
 **Primary Dependencies**:
-- **Android:** `litertlm-android` 0.18.1 → **0.19.1**; `ai.sqlite:vector` 1.1.2 → **1.2.0** (R1). Ninguna nueva.
-- **Python:** `litert-lm-api` 0.18.1 → **0.19.1**; `snowballstemmer` (nueva, puro Python, solo para la variante inglesa de `crosslang-review`, R12).
+- **Android:** `litertlm-android` 0.18.1 → **0.19.1**, con `jni/arm64-v8a/liblitertlm_jni.so` (22,7 MB) y `jni/x86_64/liblitertlm_jni.so`; `ai.sqlite:vector` 1.1.2 → **1.2.0**, con el mismo `vector.so` y punto de entrada (R1, verificado en los AAR). Ninguna nueva.
+- **Python:** `litert-lm-api` 0.18.1 → **0.19.1**; `sqliteai-vector` 1.1.2 → **1.2.0**, a la par que la app; `snowballstemmer==3.1.1` (nueva, puro Python, comprobada en PyPI, solo para la variante inglesa de `crosslang-review`, R12).
 
 **Storage**:
 - **`rag.db`:**
@@ -122,7 +122,7 @@ F14 sustituye los presupuestos del informe por cifras medidas en el A063 y toma 
 | V. Veracidad del estado | INT8 solo con `quant_dirty = 0` y precargado en la conexión; un fallo deja el índice desfasado y la búsqueda en la exacta. Las medidas que no se pueden hacer se registran como «no disponible», «no cabe» o «sin espacio», nunca con cifras inventadas | ✅ |
 | VI. Calidad y pruebas | Pruebas de INT8 con SQLite-Vector real, goldens de respuesta con y sin prefijo, paridad del estimador, `benchmarks.md` con cifras medidas que sustituyen los presupuestos | ✅ |
 | VII. UI fiel y accesible | Sin UI nueva. Si una palanca cambia una espera anunciada, solo se ajusta el texto existente a la cifra medida | ✅ |
-| VIII. Proceso | D-088 (clarify), D-089 (plan) y D-090 (analyze). Ciclo automático pedido por el usuario, con paradas tras el clarify (hecha), tras el analyze si hay algo que decidir (la enmienda PATCH y el criterio de MTP, R1 y R7), antes del teléfono y en el cierre | ✅ |
+| VIII. Proceso | D-088 (clarify), D-089 (plan) y D-090 (analyze). Ciclo automático pedido por el usuario, con la parada obligatoria tras el clarify (hecha) y tras el analyze (hecha: el usuario decidió la enmienda PATCH, el criterio de MTP, la sesión corta de goldens, el banco corto, la plantilla corta, `v4-cifras` con páginas y las reglas que faltaban). Se pregunta otra vez antes de la sesión corta, antes de la fase del teléfono y en el cierre | ✅ |
 
 **Re-check post-diseño:** sin violaciones. La enmienda de las versiones es la vía que pide la gobernanza, no una excepción: se aplica con `/speckit-constitution` si las goldens pasan.
 
@@ -158,8 +158,8 @@ app/src/main/java/com/lisdatasolutions/microrag/
 │   ├── DefaultRagIndex.kt                                  # ruta INT8 + reordenación, rebuild, preload
 │   ├── RagConnection.kt                                    # vector_quantize*, lectura de blobs
 │   └── QuantizedIndexMaintainer.kt                         # nuevo
-├── data/ingest/IngestRunner.kt, data/library/DefaultLibraryRepository.kt,
-│   data/ingest/DefaultImportQueueRepository.kt             # disparadores
+├── data/ingest/IngestRunner.kt, data/library/DefaultLibraryRepository.kt   # disparadores
+├── domain/chat/{ChatModels,ChatUseCases}.kt                # AnswerPrompt con prefijo; WarmUp con el ámbito
 ├── data/retrieval/HybridRetriever.kt                       # regla de páginas (si se adopta)
 ├── data/chat/{EngineAnswerEngine,DefaultChatSession}.kt     # prefijo, interruptores, desglose de tiempos
 ├── rag/answer/PromptBuilder.kt                             # prefijo y resto, estimador, v4-cifras
@@ -170,19 +170,19 @@ app/src/main/java/com/lisdatasolutions/microrag/
 └── data/di/DataModule.kt                                   # Koin
 app/src/test/java/…                                          # pruebas JVM (Testing)
 app/src/androidTest/java/com/lisdatasolutions/microrag/
-├── testing/bench/{DeviceConditions,BenchReport,BenchBank,DevFiles}.kt
+├── testing/bench/{DeviceConditions,Percentiles,BenchReport,BenchBank,DevFiles,BenchDirsTest,BenchCleanupTest}.kt
 ├── data/rag/RagIndexInt8Test.kt
 ├── data/retrieval/SearchScaleBenchmarkTest.kt, PageSearchBenchmarkTest.kt
 ├── data/chat/{GenerationBenchmarkTest,SustainedChatBenchmarkTest,NumericFidelityBenchmarkTest,
 │             PrefixCacheGoldenTest}.kt, VisualChatBenchmarkTest.kt (modo sostenido)
-├── rag/runtime/EmbedderComparisonBenchmarkTest.kt
-└── testing/bench/BenchCleanupTest.kt
+├── rag/runtime/{EmbedderComparisonBenchmarkTest,StartupBenchmarkTest}.kt
+└── rag/answer/VisualPromptGoldenTest.kt                    # golden con v4 y v4-cifras
 
 offline/
 ├── requirements.txt                                        # litert-lm-api 0.19.1, snowballstemmer
 ├── run_eval.py                                             # bench-bank, numeric-*, token-review, visual-followup-review
 ├── eval/{bench_bank,numeric,token_estimate,english_text,device_bench}.py
-├── eval/{retrieval,pipeline,visual_retrieval}.py           # variantes nuevas
+├── eval/{retrieval,pipeline,visual_retrieval,visual_prompt}.py   # variantes nuevas; v4-cifras también en la visual
 ├── testset/numeric/{questions.jsonl,review.csv}, testset/visual/followups.jsonl
 ├── config/{rag_parameters.json,f14_rules.json}             # estimador; reglas fijadas antes de medir
 ├── reports/eval-report.md                                  # sección «Rendimiento (F14)»
@@ -205,3 +205,4 @@ docs/roadmap/{DECISIONS.md, FEATURES.md}
 | Enmienda PATCH 1.2.0 → 1.2.1 (versiones del runtime en «Restricciones técnicas») | El usuario decidió probar 0.19.1 al empezar (D-088); `clone()` y la especulativa solo existen ahí (R1, R6, R7) | Quedarse en 0.18.1 deja sin palancas el primer token; cambiar de versión sin enmienda contradiría la constitución |
 | La reordenación exacta lee los blobs F32 de 100 candidatos en Kotlin | SQLite-Vector no tiene función escalar de distancia, y `vector_full_scan` no filtra por rowid (R3) | INT8 sin reordenar da un recall por debajo de 0,97 a 100k en el Mac |
 | Interruptores de palancas en `GenerationConfig` y `RagParameters` | Las palancas se deciden con las cifras del teléfono, que se miden al final (R15), y las pruebas deben cubrir las dos posiciones | Implementar solo las adoptadas obligaría a otra vuelta de implementación después de medir |
+| Sesión corta en el teléfono al principio (goldens con los runtimes nuevos), excepción a «el teléfono, solo en la última fase» | Si las goldens fallaran al final, volver a 0.18.1 rompería el código de `clone()` y de la especulativa (D-090) | Todo al final obligaría a quitar ese código si fallan; aprobada por el usuario en la parada del analyze |

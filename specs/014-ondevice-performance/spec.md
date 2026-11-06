@@ -57,6 +57,25 @@
 - Q: ¿Cuándo se prueban los runtimes nuevos (LiteRT-LM 0.19.1 y SQLite-Vector 1.2.0)? → A: **Al empezar.** Si pasan el `embedding_golden`, las goldens de respuesta y la batería de pruebas, todo F14 se mide con ellos y no hay que medir dos veces. Si no, se quedan las versiones actuales y se registra el motivo (FR-019).
 - Q: ¿Se aprueba la spec con estas respuestas, y se sigue el ciclo en automático hasta la implementación? → A: Sí (revisión del clarify, 2026-11-06). La fase del teléfono y el cierre se preguntan antes. Queda en D-088.
 
+### Session 2026-11-06 (analyze)
+
+Revisión del usuario tras un analyze independiente con 33 hallazgos: 2 CRITICAL, 12 HIGH, 14 MEDIUM y 5 LOW. Queda en D-090.
+- Q: ¿Cómo se enmienda la constitución si se adoptan los runtimes nuevos? → A: PATCH 1.2.1: solo cambia «0.18.x» por «0.19.x» en «Restricciones técnicas», para Android y Python (FR-019).
+- Q: ¿Con qué criterio se adopta la decodificación especulativa, que no baja el primer token? → A: Si sube la decodificación al menos un 20 %, no empeora el p95 del primer token más de 0,3 s y las respuestas greedy de las goldens no cambian (FR-017).
+- Q: ¿Cuándo se pasan las goldens con los runtimes nuevos en el A063? → A: En una **sesión corta al principio**, justo después de subirlos y antes de construir las palancas: unos 15 minutos con el `embedding_golden` y las goldens de respuesta, sin datos del usuario. Es una excepción aprobada a «el teléfono, solo en la última fase». La batería completa y las medidas siguen al final (FR-019).
+- Q: ¿Qué decide cada palanca, si una sesión sostenida por palanca son unas 3 horas más de teléfono? → A: **El banco corto:** 20 preguntas, alternando la base y la palanca en las mismas condiciones térmicas. La sesión sostenida final, con todas las adoptadas, confirma SC-004 (FR-017).
+- Q: ¿Se evalúa la plantilla más corta? → A: Solo si el prefijo reutilizado no está disponible o no se adopta. Con el prefijo, las reglas ya no cuestan prefill, y se descarta con ese motivo (FR-017).
+- Q: ¿La plantilla `v4-cifras` se aplica también a las respuestas con páginas? → A: Sí, a texto y páginas (v5-visual), con su golden y el harness visual actualizados. Las respuestas con páginas se miden en el teléfono, sin regla de calidad visual (D-078) (FR-021).
+- Q: ¿Qué reglas tienen las palancas que no las tenían? → A:
+  - en la regla de calidad, negativa ≥ 85 % y citas ≥ 90 % (umbrales del informe);
+  - `v4-cifras`: como mucho la mitad de respuestas con cifras deformadas que `v4` en el teléfono, más la regla de calidad;
+  - el estimador: el p95 de tokens reales entre estimados ≤ 1,0 en texto con cifras, más la regla de calidad;
+  - la precarga por ámbito: baja al menos 0,3 s la primera respuesta tras cambiar de ámbito, sin subir el pico de memoria más de 200 MB;
+  - el seguimiento con páginas: en los seguimientos reales, no más de 5 puntos por debajo de hoy.
+
+  Todas van en `offline/config/f14_rules.json`, en un commit propio antes de evaluar (FR-017, FR-021, FR-022, FR-025, FR-026).
+- Q: ¿Se aplican las demás correcciones técnicas y se sigue con la implementación? → A: Sí. Antes de la sesión corta de goldens, de la fase del teléfono y del cierre se pregunta otra vez.
+
 ## User Scenarios & Testing *(mandatory)*
 
 Quien usa estas historias es quien desarrolla MicroRAG. Mide en el teléfono de referencia y evalúa en el escritorio para sustituir los presupuestos del informe por cifras reales y tomar las decisiones pendientes. Quien usa la app nota el resultado en las palancas que se adopten: búsquedas más rápidas con bibliotecas grandes, un primer token más corto y respuestas más fiables con cifras.
@@ -103,7 +122,7 @@ Con la biblioteca del usuario, la búsqueda vectorial usa el índice INT8 precar
 **Acceptance Scenarios**:
 
 1. **Given** una biblioteca con el índice INT8 al día y precargado, **When** se busca, **Then** la parte vectorial usa INT8, y su p95 con 10k fragmentos queda por debajo de 20 ms en el teléfono de referencia.
-2. **Given** una indexación que termina, o un documento que se borra, se reindexa o pasa a otro modo de índice, **When** cambian los fragmentos, **Then** el índice INT8 queda marcado como desfasado, las búsquedas usan la exacta y el índice se reconstruye en segundo plano sin bloquear la búsqueda ni la indexación.
+2. **Given** una indexación que termina, o un documento que se borra, se quita del índice o se reindexa, **When** cambian los fragmentos, **Then** el índice INT8 queda marcado como desfasado, las búsquedas usan la exacta y el índice se reconstruye en segundo plano, fuera de la tanda de indexación. La espera de las búsquedas durante la reconstrucción se mide.
 3. **Given** que el proceso muere, **When** la app vuelve a arrancar, **Then** la primera búsqueda funciona con la exacta, y el índice INT8, si estaba al día, se precarga en segundo plano.
 4. **Given** una reconstrucción interrumpida (muerte del proceso, falta de espacio o un error), **When** se vuelve a abrir el índice, **Then** sigue marcado como desfasado y la búsqueda sigue con la exacta: nunca usa un índice INT8 a medias.
 5. **Given** que el Recall@20 de INT8 frente a F32 queda por debajo de 0,97, **When** se decide, **Then** la app usa INT8 para preseleccionar candidatos y los reordena con la exacta, o se queda en F32, y la decisión queda registrada con las cifras.
@@ -154,7 +173,7 @@ Cada palanca que cumple la regla se adopta en la app; las demás quedan registra
 **Acceptance Scenarios**:
 
 1. **Given** una palanca que el runtime no ofrece en la versión usada, **When** se evalúa, **Then** queda como «no disponible», con la versión y el motivo.
-2. **Given** una palanca que no cambia el texto del prompt (reutilizar el prefijo, la decodificación especulativa), **When** se mide, **Then** se informa el primer token con y sin ella sobre las mismas preguntas, y se adopta si baja el p95 sostenido al menos 0,3 s y las respuestas no cambian de forma apreciable.
+2. **Given** una palanca que no cambia el texto del prompt (reutilizar el prefijo), **When** se mide, **Then** se informa el primer token con y sin ella sobre las mismas preguntas, alternando, y se adopta si baja el p95 al menos 0,3 s. Las respuestas greedy deben salir idénticas; si alguna cambia, las que cambian se juzgan con la regla de calidad.
 3. **Given** una palanca que cambia el prompt o el contexto (plantilla, bloques), **When** se evalúa, **Then** pasa por el harness del escritorio con la regla fijada antes de medir, y se informan su calidad y su primer token proyectado y medido.
 4. **Given** las palancas adoptadas, **When** se repite la sesión sostenida, **Then** se informa el primer token resultante frente a los 5 s, y se decide si la excepción D-057 se cierra o se actualiza.
 
@@ -270,12 +289,12 @@ Quien desarrolla vuelve a evaluar, con las cifras de F14, dos palancas de calida
 
 **Búsqueda e INT8**
 
-- **FR-006**: Para cada tamaño de banco, el sistema MUST medir el embedding de la consulta (solo y dentro de la búsqueda), la vectorial F32, la vectorial INT8 (precargada y sin precargar), la léxica, la híbrida total y la acotada por un ámbito pequeño, con p50, p95 y p99.
+- **FR-006**: Para cada tamaño de banco, el sistema MUST medir el embedding de la consulta (solo y dentro de la búsqueda), la vectorial F32, la vectorial INT8 (precargada y sin precargar), la léxica, la híbrida total y la acotada por un ámbito pequeño, con p50, p95 y p99. La vectorial se informa sola y dentro de la híbrida. Además, la vectorial F32 se mide con subconjuntos de 1k, 2,5k y 5k del banco de 10k, para fijar desde qué tamaño hace falta INT8.
 - **FR-007**: Para cada tamaño, el sistema MUST medir el tiempo de construir y de precargar el índice INT8, la memoria de la precarga y el tamaño de la base de datos, y el Recall@20 de INT8 frente a F32.
-- **FR-008**: Si el p95 vectorial F32 con 10k fragmentos pasa de 20 ms (constitución IV), la app MUST usar INT8 con precarga para la búsqueda vectorial de fragmentos, con un Recall@20 frente a F32 ≥ 0,97. Si no se alcanza, MUST usar INT8 para preseleccionar candidatos y reordenarlos con la exacta, o quedarse en F32 con la decisión documentada.
-- **FR-009**: El índice INT8 MUST marcarse como desfasado cuando cambian los fragmentos (fin de una indexación, borrado, reindexado o cambio de modo de índice) y MUST reconstruirse en segundo plano, sin bloquear la búsqueda ni la indexación.
+- **FR-008**: Si el p95 de la búsqueda vectorial F32 **sola** (sin la léxica en paralelo, como F04) pasa de 20 ms (constitución IV), la app MUST usar INT8 con precarga para la búsqueda vectorial de fragmentos, a partir del tamaño de biblioteca en que se pasa ese límite, con un Recall@20 frente a F32 ≥ 0,97. Si no se alcanza, MUST usar INT8 para preseleccionar candidatos y reordenarlos con la exacta, o quedarse en F32 con la decisión documentada.
+- **FR-009**: El índice INT8 MUST marcarse como desfasado cuando cambian los fragmentos (fin de una indexación, borrado, quitar del índice o reindexado) y MUST reconstruirse en segundo plano, fuera de una tanda de indexación. Como la base tiene una sola conexión, las búsquedas esperan mientras dura la reconstrucción: esa espera MUST medirse (FR-007) e informarse.
 - **FR-010**: Mientras el índice INT8 esté desfasado, se esté reconstruyendo o no esté precargado, la búsqueda MUST usar la exacta. Nunca se usa un índice INT8 parcial o viejo (constitución V).
-- **FR-011**: Tras la muerte del proceso, el índice INT8 al día MUST precargarse en segundo plano en el siguiente arranque, sin retrasar la primera búsqueda.
+- **FR-011**: Tras la muerte del proceso, el índice INT8 al día MUST precargarse en segundo plano en el siguiente arranque. Una búsqueda anterior a la precarga usa la exacta, y la espera que la precarga pueda añadir a la primera búsqueda MUST medirse.
 - **FR-012**: La búsqueda con INT8 MUST respetar los ámbitos de F17 y las exclusiones igual que la exacta.
 - **FR-013**: El total de la recuperación híbrida con 10k fragmentos MUST medirse otra vez frente a 200 ms con INT8. Si sigue por encima, MUST quedar una decisión con el desglose por partes.
 
@@ -284,38 +303,45 @@ Quien desarrolla vuelve a evaluar, con las cifras de F14, dos palancas de calida
 - **FR-014**: El sistema MUST medir, con prompts reales de 4, 6 y 8 bloques, el primer token, el prefill, la decodificación, los tokens del prompt (reales y estimados) y el pico de memoria.
 - **FR-015**: El sistema MUST medir de extremo a extremo (de enviar la pregunta al primer token y a la respuesta completa), con el desglose por embedding, búsqueda, construcción del prompt y prefill.
 - **FR-016**: El sistema MUST medir una sesión sostenida de 20 a 30 minutos sin reposo y otra con reposo entre preguntas, con el primer token y el estado térmico por pregunta, los percentiles por tramos de 5 minutos y la batería por cada 10 minutos.
-- **FR-017**: Las palancas del primer token (prefijo reutilizado, plantilla más corta, decodificación especulativa y número de bloques) MUST evaluarse con esta regla, fijada antes de medir: se adopta la que baja el p95 del primer token en la sesión sostenida al menos 0,3 s. Si cambia el prompt o el contexto, MUST pasar además por el harness del escritorio con las respuestas correctas a no más de 1 punto de `v4` (81,1 %) y las negativas y las citas en los umbrales del informe.
+- **FR-017**: Las palancas del primer token (prefijo reutilizado, plantilla más corta, decodificación especulativa y número de bloques) MUST evaluarse con esta regla, fijada antes de medir: se adopta la que baja el p95 del primer token al menos 0,3 s en el banco corto (20 preguntas, alternando la base y la palanca en las mismas condiciones térmicas). Si cambia el prompt o el contexto, MUST pasar además por el harness del escritorio con las respuestas correctas a no más de 1 punto de `v4` (81,1 %), la negativa ≥ 85 % y las citas ≥ 90 % (umbrales del informe). La sesión sostenida final, con todas las adoptadas, confirma SC-004.
+  - **Decodificación especulativa:** no baja el primer token. Se adopta si sube la decodificación al menos un 20 %, no empeora el p95 del primer token más de 0,3 s y las respuestas greedy de las goldens no cambian.
+  - **Plantilla más corta:** se evalúa solo si el prefijo reutilizado no está disponible o no se adopta.
+  - **`v4` de referencia:** se regenera con el runtime adoptado (FR-019) antes de evaluar palancas, para no mezclar el efecto del runtime con el de cada palanca.
 - **FR-018**: Las palancas adoptadas MUST implementarse en la app y medirse otra vez en sesión sostenida. El resultado MUST cerrar o actualizar la excepción D-057 frente a los 5 s (constitución IV).
-- **FR-019**: Las versiones nuevas de los runtimes (LiteRT-LM 0.19.1 y SQLite-Vector 1.2.0) MUST probarse al empezar, antes de las medidas. Se adoptan si pasan el `embedding_golden`, las goldens de respuesta y la batería de pruebas, y entonces todas las medidas de F14 se hacen con ellas. Si no, se quedan las actuales y el motivo queda en DECISIONS.
+- **FR-019**: Las versiones nuevas de los runtimes (LiteRT-LM 0.19.1 y SQLite-Vector 1.2.0) MUST probarse al empezar, antes de construir las palancas:
+  - compilación, JVM, lint y la batería sin modelos en los emuladores;
+  - el `embedding_golden` y las goldens de respuesta en el A063, en una sesión corta aprobada (D-090).
+
+  Si pasan, todas las medidas de F14 se hacen con ellas, la batería completa del teléfono va al final, y la constitución se enmienda a 1.2.1. Si no, se quedan las actuales y el motivo queda en DECISIONS.
 
 **Fiabilidad de las cifras**
 
 - **FR-020**: El sistema MUST medir en el teléfono, con un conjunto de preguntas sobre contextos llenos de cifras, cuántas respuestas deforman alguna cifra con las activaciones por defecto y con FP32, y el primer token de cada precisión.
-- **FR-021**: Con esas cifras MUST registrarse una salida para el riesgo de fp16. FP32 se adopta si el p95 del primer token en la sesión sostenida sube ≤ 0,5 s. Si no, se quedan las activaciones por defecto con una instrucción en el prompt para copiar las cifras tal cual, evaluada en el harness con la regla de FR-017 y medida otra vez en el teléfono; el riesgo que quede se documenta.
-- **FR-022**: El sistema MUST comparar la estimación de tokens con la cuenta real sobre el corpus de evaluación y sobre textos llenos de cifras. Si se queda corta, la estimación MUST corregirse para que el límite de 2.000 tokens del prompt se cumpla con la cuenta real, y el cambio MUST pasar por el harness si altera qué bloques entran.
+- **FR-021**: Con esas cifras MUST registrarse una salida para el riesgo de fp16. FP32 se adopta si el p95 del primer token sube ≤ 0,5 s (banco corto, confirmado en la sesión sostenida). Si no, se evalúa la plantilla `v4-cifras` (la instrucción de copiar las cifras tal cual, reforzada). Se adopta si da como mucho la mitad de respuestas con cifras deformadas que `v4` en el teléfono y cumple la regla de calidad de FR-017. Si se adopta, vale para texto y para páginas (v5-visual, sin regla de calidad visual, D-078). El riesgo que quede se documenta.
+- **FR-022**: El sistema MUST comparar la estimación de tokens con la cuenta real sobre el corpus de evaluación y sobre textos llenos de cifras. Si se queda corta, la estimación MUST corregirse para que el p95 de tokens reales entre estimados sea ≤ 1,0 en texto con cifras, con la regla de calidad de FR-017 si altera qué bloques entran. **Alcance:** el límite de 2.000 tokens del prompt; el presupuesto de contexto de D-034 (1.719) y la estimación guardada de cada fragmento no cambian, y no hay que reindexar.
 
 **Modo multimodal**
 
 - **FR-023**: Con el modo activo, el sistema MUST medir la búsqueda de páginas en F32 y en INT8 con bancos de páginas de distintos tamaños, y aplicar a las páginas el mismo criterio de 20 ms que a los fragmentos.
 - **FR-024**: El sistema MUST medir la consulta con la 440M (p50 y p95) frente a los 150 ms y frente a la 270M.
-- **FR-025**: El sistema MUST medir el primer token con cada detalle de página en sesión sostenida, la recarga de Gemma con visión y el pico de memoria, y MUST evaluar al menos una palanca para la recarga con su coste en memoria.
-- **FR-026**: La regla de seguimiento MUST revisarse para las páginas: una pregunta corta sobre otro documento no debe arrastrar la página de la anterior. La variante adoptada MUST evaluarse con pares de preguntas que cambian de documento y MUST conservar el Recall@20 de los seguimientos de texto de D-034.
+- **FR-025**: El sistema MUST medir el primer token con cada detalle de página en sesión sostenida, la recarga de Gemma con visión y el pico de memoria. MUST evaluar al menos una palanca para la recarga (la precarga del motor al cambiar de ámbito), que se adopta si baja al menos 0,3 s la primera respuesta tras cambiar de ámbito sin subir el pico de memoria más de 200 MB.
+- **FR-026**: La regla de seguimiento MUST revisarse para las páginas: una pregunta corta sobre otro documento no debe arrastrar la página de la anterior. La variante adoptada MUST evaluarse con pares de preguntas que cambian de documento y con seguimientos reales. MUST conservar el Recall@20 de los seguimientos de texto de D-034, y en los seguimientos reales no puede quedar más de 5 puntos por debajo de hoy. Su embedding extra solo se hace cuando la respuesta puede llevar página.
 - **FR-027**: Con el modo apagado, nada de lo que añade esta sección MUST cambiar el comportamiento de la app.
 
 **Perfil de modelo**
 
-- **FR-028**: El sistema MUST medir Gemma 4 E4B en el teléfono con el mismo método que E2B (carga, primer token, prefill, decodificación y pico de memoria, con el embedder cargado). El fichero se copia con `adb` desde el escritorio a una carpeta de pruebas, MUST verificarse por SHA-256 y borrarse al terminar. La 270M sigue el mismo camino para FR-024.
+- **FR-028**: El sistema MUST medir Gemma 4 E4B en el teléfono con el mismo método que E2B (carga, primer token, prefill, decodificación y pico de memoria, con el embedder cargado). El fichero se copia con `adb` desde el escritorio a una carpeta de pruebas, MUST verificarse por SHA-256 en la propia prueba y borrarse al terminar. La prueba lo carga directamente desde esa carpeta: E4B no entra en el catálogo de modelos de la app, que lo haría descargable (constitución I). La 270M sigue el mismo camino para FR-024, sin instalarse como modelo de la app.
 - **FR-029**: MUST quedar registrada una recomendación de perfil de modelo con esas cifras y la calidad de F05. Un cambio de modelo en la app queda fuera de F14 (D-035).
 
 **Palancas de calidad**
 
-- **FR-030**: La reordenación α = 0,5 (D-051) MUST evaluarse otra vez con su regla de adopción y su coste medido en el teléfono.
+- **FR-030**: La reordenación α = 0,5 (D-051) MUST evaluarse otra vez con su regla de adopción, después de decidir las palancas que cambian el contexto. Su coste en el teléfono se mide solo si se adopta: es aritmética sobre 20 candidatos que ya están en memoria.
 - **FR-031**: La búsqueda entre idiomas MUST evaluarse en el escritorio con `crosslang-review`, con al menos las variantes de D-062 (palabras vacías y raíces según el idioma del documento, y más peso a la búsqueda por significado cuando los idiomas no coinciden), y su resultado MUST quedar en DECISIONS frente a la regla de 10 puntos. F14 no la implementa en la app ni cambia la tarjeta «Búsqueda multilingüe»: si pasa la regla, va en otra feature.
 - **FR-032**: La reordenación, si se adopta, MUST conservar las cifras de `ablations` con documentos y preguntas en español.
 
 **Entregables y límites**
 
-- **FR-033**: `specs/014-ondevice-performance/benchmarks.md` MUST recoger las cifras reales de todos los bloques de la tabla «Benchmarks en el dispositivo» del informe, con dispositivo y versiones. Cada celda que no se mida MUST decir por qué.
+- **FR-033**: `specs/014-ondevice-performance/benchmarks.md` MUST recoger las cifras reales de todos los bloques de la tabla «Benchmarks en el dispositivo» del informe, con dispositivo y versiones, incluidos el arranque (la carga en frío y con caché de Gemma, la 440M y la 270M) y el ritmo de la ingesta con los runtimes adoptados. Cada celda que no se mida MUST decir por qué.
 - **FR-034**: El informe del RAG móvil MUST remitir a esas cifras donde hoy da presupuestos (latencia del motor vectorial y objetivo del primer token).
 - **FR-035**: Cada decisión (INT8, bloques, perfil de modelo, primer token, fp16, estimación de tokens, regla de seguimiento con páginas, recarga con visión, cada palanca) MUST quedar en DECISIONS con sus cifras.
 - **FR-036**: Los diagnósticos y bancos MUST existir solo en debug y en las pruebas instrumentadas. La app de release no los incluye, no usa la red y no escribe en los logs prompts, respuestas, textos de documentos ni imágenes.
@@ -336,20 +362,20 @@ Quien desarrolla vuelve a evaluar, con las cifras de F14, dos palancas de calida
 ### Measurable Outcomes
 
 - **SC-001**: `benchmarks.md` tiene cifras medidas en el teléfono de referencia para todos los bloques del informe (arranque, embedding, búsqueda a 10k, 50k y 100k, generación con 4, 6 y 8 bloques, extremo a extremo, recursos y sesión sostenida), con dispositivo y versiones. Ninguna celda queda como presupuesto sin explicación.
-- **SC-002**: Con INT8 adoptado, la búsqueda vectorial de fragmentos con 10k da un p95 ≤ 20 ms en el teléfono de referencia y un Recall@20 frente a F32 ≥ 0,97; o la decisión de quedarse en F32 queda documentada con las cifras.
-- **SC-003**: La recuperación híbrida completa con 10k fragmentos da un p95 ≤ 200 ms en el teléfono de referencia, o queda una decisión con el desglose por partes.
+- **SC-002**: Con INT8 adoptado, la búsqueda vectorial de fragmentos sola con 10k da un p95 ≤ 20 ms en el teléfono de referencia y un Recall@20 frente a F32 ≥ 0,97; o la decisión de quedarse en F32 queda documentada con las cifras.
+- **SC-003**: La recuperación híbrida completa con 10k fragmentos y la 270M (el modo por defecto) da un p95 ≤ 200 ms en el teléfono de referencia, o queda una decisión con el desglose por partes. La cifra con la 440M se informa.
 - **SC-004**: En la sesión sostenida de 20 a 30 minutos, el primer token de extremo a extremo del chat de texto da un p95 ≤ 5 s, o la excepción D-057 queda actualizada con las cifras nuevas y la decisión del usuario.
 - **SC-005**: Tras matar el proceso, la primera búsqueda responde igual que antes (con la exacta), y el índice INT8 al día vuelve a estar precargado en segundo plano; ninguna búsqueda usa un índice INT8 desfasado en las pruebas de indexación, borrado y reindexado.
 - **SC-006**: Cada palanca evaluada (rendimiento y calidad) tiene su regla escrita antes de medir, sus cifras y su resultado en DECISIONS. Las adoptadas cumplen su regla de calidad en el harness del escritorio.
-- **SC-007**: Con el modo multimodal activo, en el conjunto de pares que cambian de documento, la variante adoptada de la regla de seguimiento cita la página del documento nuevo en al menos el 90 % de los pares, y el Recall@20 de los seguimientos de texto no baja de 0,98 (D-034).
+- **SC-007**: Con el modo multimodal activo, en el conjunto de pares que cambian de documento, la variante adoptada de la regla de seguimiento cita la página del documento nuevo en al menos el 90 % de los pares. En los seguimientos reales no queda más de 5 puntos por debajo de hoy, y el Recall@20 de los seguimientos de texto no baja de 0,98 (D-034).
 - **SC-008**: La tasa de respuestas con cifras deformadas, con cada precisión, y la estimación de tokens frente a la cuenta real quedan medidas, con una decisión registrada para cada una.
 - **SC-009**: Con el modo apagado y sin palancas adoptadas, `run_eval.py ablations` da las mismas cifras que en F20, y la batería de pruebas pasa.
-- **SC-010**: Ningún banco ni diagnóstico existe en la app de release, y al terminar el teléfono no conserva bancos, modelos de prueba ni datos de prueba; el documento, el índice y la conversación del usuario siguen intactos.
+- **SC-010**: Ningún banco ni diagnóstico existe en la app de release, y al terminar el teléfono no conserva bancos, modelos de prueba, informes ni datos de prueba. El contenido del documento, del índice y de la conversación del usuario no cambia. El índice INT8 es comportamiento del producto y solo se crea por encima del umbral de FR-008, que la biblioteca del usuario no alcanza.
 
 ## Assumptions
 
 - **Teléfono:** las medidas se hacen en el A063, con el modo «Multimodal» activado (440M). Los vectores de texto de la 440M son idénticos a los de la 270M (D-078), así que las cifras de búsqueda y de generación de texto valen para los dos modos; solo cambian el embedding de la consulta y la memoria, que se informan aparte.
-- **Modelos de prueba:** la 270M (157 MB) y Gemma 4 E4B (3,66 GB) no están en el teléfono. Se copian con `adb` desde el escritorio a una carpeta de pruebas de la app de depuración, se verifican por SHA-256 y se borran al terminar (clarify). No pasan por la red ni sustituyen a los modelos de la app.
+- **Modelos de prueba:** la 270M (157 MB) y Gemma 4 E4B (3,66 GB) no están en el teléfono. Se copian con `adb` desde el escritorio a una carpeta de pruebas de la app de depuración (`dev-models`), y las pruebas los verifican por SHA-256 y los cargan desde allí. Se borran al terminar (clarify, D-090). No pasan por la red, no se instalan como modelos de la app y no entran en su catálogo.
 - **Bancos:** se construyen en el escritorio a partir del corpus real de F05 (textos y vectores reales, replicados y variados hasta el tamaño pedido), y se cargan con `adb` en el almacenamiento privado de la app de depuración, aparte del índice del usuario. El banco de 100k ocupa del orden de 0,5 GB.
 - **Calidad:** se evalúa en el harness de `offline/` con los mismos ficheros de modelo. Las variantes que deciden se revisan a mano por el asistente (D-033), como en D-035 y D-057, y la regla de cada palanca se fija antes de medir.
 - **Pantallas:** F14 no añade pantallas de producto ni cambia textos. Si una palanca adoptada cambiara una espera que la app anuncia (por ejemplo, las del detalle de las páginas, D-086), el texto se ajusta a la cifra nueva.

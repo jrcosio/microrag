@@ -2376,6 +2376,52 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G47).
 
 ---
 
+## D-090 — Rendimiento en dispositivo: decisiones del analyze de F14
+
+- **Fecha:** 2026-11-06
+- **Decisión** (revisión del usuario tras un analyze independiente con 33 hallazgos: 2 CRITICAL, 12 HIGH, 14 MEDIUM y 5 LOW):
+  1. **Enmienda PATCH 1.2.1** si LiteRT-LM 0.19.1 pasa las goldens: solo cambia «0.18.x» por «0.19.x» en «Restricciones técnicas», para Android y Python.
+  2. **Decodificación especulativa:** se adopta si sube la decodificación al menos un 20 %, no empeora el p95 del primer token más de 0,3 s y las respuestas greedy de las goldens no cambian.
+  3. **Sesión corta en el A063 al principio:** el `embedding_golden` y las goldens de respuesta con los runtimes nuevos, antes de construir las palancas (unos 15 minutos, sin datos del usuario). Es una excepción a «el teléfono, solo en la última fase».
+  4. **El banco corto decide cada palanca:** 20 preguntas, alternando la base y la palanca en las mismas condiciones térmicas. La sesión sostenida final, con todas las adoptadas, confirma SC-004.
+  5. **Plantilla más corta:** solo se evalúa si el prefijo reutilizado no está disponible o no se adopta.
+  6. **`v4-cifras`,** si se adopta, vale para texto y para páginas (v5-visual), sin regla de calidad visual (D-078).
+  7. **Reglas que faltaban**, congeladas en `offline/config/f14_rules.json`:
+     - negativa ≥ 85 % y citas ≥ 90 % en la regla de calidad;
+     - `v4-cifras`: como mucho la mitad de respuestas con cifras deformadas que `v4`;
+     - estimador: p95 de tokens reales entre estimados ≤ 1,0 en texto con cifras;
+     - precarga por ámbito: ≥ 0,3 s menos en la primera respuesta tras cambiar de ámbito y ≤ 200 MB más de pico;
+     - seguimiento con páginas: no más de 5 puntos por debajo de hoy en los seguimientos reales.
+  8. **Correcciones técnicas,** sin decisión del usuario:
+     - el criterio de 20 ms es sobre la búsqueda vectorial sola (A1), y SC-003 lo decide la 270M (A2);
+     - `INT8_MIN_CHUNKS` empieza en 10.000 y se fija con subconjuntos de 1k, 2,5k y 5k (U3). Así la biblioteca del usuario no cambia en las pruebas (I2, SC-010);
+     - la reconstrucción y la precarga bloquean la base el tiempo que se mide (I1, FR-009 y FR-011);
+     - la precarga se invalida al desfasar y al reconstruir (U9);
+     - la 270M y E4B se cargan desde `dev-models` en las pruebas, sin entrar en el catálogo (G2);
+     - se miden el arranque y la ingesta (G3);
+     - `v4` se regenera con 0.19.1 antes de evaluar palancas (U8);
+     - el estimador solo cambia el límite de 2.000 (U4);
+     - la precarga por ámbito reutiliza `WarmUpAnswerEngineUseCase` (D1);
+     - el embedding extra de páginas, solo con páginas (U5);
+     - `order-review` va tras las decisiones del teléfono (O2), y FR-030 mide su coste solo si se adopta (U11);
+     - versiones y nativos en el plan (K2);
+     - la parada tras el analyze es obligatoria (K1);
+     - rutas, nombres y la sintaxis del harness (L1–L5, I3, I5, I6, O1, O3, U2, U6, U7, U10, G1, G4).
+- **Motivo:**
+  - con la parada de la constitución VIII, el usuario decide lo que cambia el alcance o las reglas;
+  - las correcciones técnicas evitan contradicciones entre spec, plan y tareas, y cambios en el teléfono del usuario.
+- **Alternativas descartadas:**
+  - una enmienda sin versión fija;
+  - solo medir MTP;
+  - todas las goldens al final con un plan B;
+  - una sesión sostenida por palanca;
+  - evaluar siempre la plantilla corta, o descartarla;
+  - `v4-cifras` solo para texto.
+- **Origen:** analyze de F14, con la parada de la constitución VIII.
+- **Afecta:** F14: spec (Clarifications, FR-006, FR-008, FR-009, FR-011, FR-017, FR-019, FR-021, FR-022, FR-025, FR-026, FR-028, FR-030, FR-033, SC-002, SC-003, SC-007 y SC-010), plan, research, data-model, contratos, quickstart y tareas; la constitución (1.2.1, si se adoptan los runtimes).
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.

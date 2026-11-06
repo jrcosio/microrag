@@ -7,7 +7,7 @@
 | `DeviceConditions` | Estado térmico, margen, batería, temperatura, carga, RSS actual y pico (`VmRSS` y `VmHWM`), heap y tamaño de un fichero. Una foto por muestra y al principio y al final |
 | `BenchReport` | Construye y escribe el JSON de data-model §4 en `filesDir/reports/f14-<banco>-<fecha>.json`, y un resumen numérico en `Log.i("MicroRAG", "f14 …")` |
 | `BenchBank` | Verifica `dev-bench/<nombre>/manifest.json` (SHA-256), construye o reutiliza `cacheDir/bench/<nombre>.db` con `DefaultRagIndex` en su propio dispatcher, y da las preguntas |
-| `DevFiles` | Rutas de `dev-bench` y `dev-models`, e instalación verificada de la 270M y E4B con `DevModelImporter` |
+| `DevFiles` | Rutas de `dev-bench` y `dev-models`; verificación por SHA-256 en la prueba de la 270M y E4B, que se cargan directamente desde `dev-models` con `EngineFactory`, sin instalarse como modelos de la app ni entrar en `ModelCatalog` (D-090) |
 | `Percentiles` | Nearest-rank, como los bancos de F10 y F11 |
 
 - **Ausencias:** todos los bancos se saltan con `assumeTrue` si falta su banco o su modelo, como `@RequiresModels`. En los emuladores no corren.
@@ -16,15 +16,18 @@
 
 | Prueba | Mide | Variantes |
 |---|---|---|
-| `SearchScaleBenchmarkTest` | Por banco de 10k, 50k y 100k: embedding solo y dentro de la búsqueda, vectorial, léxica, híbrida total, acotada y con excluidos (p50, p95 y p99); cuantizar, precargar, memoria, tamaño del `.db` y Recall@20 | `f32`, `int8`, `int8-rerank`, `int8-nopreload` |
-| `PageSearchBenchmarkTest` | Búsqueda de páginas con 1k, 5k y 10k páginas | `f32`, `int8-rerank` |
+| `SearchScaleBenchmarkTest` | Por banco de 10k, 50k y 100k: embedding solo y dentro de la búsqueda, vectorial sola y dentro de la híbrida, léxica, híbrida total, acotada y con excluidos (p50, p95 y p99); cuantizar, precargar, la espera que causan a una búsqueda, memoria, tamaño del `.db` y Recall@20. La vectorial F32 sola, también con subconjuntos de 1k, 2,5k y 5k del banco de 10k | `f32`, `int8`, `int8-rerank`, `int8-nopreload`; embedder `440m` (el instalado) y `270m` (desde `dev-models`, para SC-003) |
+| `PageSearchBenchmarkTest` | Búsqueda de páginas con 1k, 5k y 10k páginas. La variante INT8 usa SQL directo sobre la base del banco (`vector_quantize` y `vector_quantize_scan` de `pages`), porque la ruta INT8 de páginas de la app solo se implementa si estas cifras la piden | `f32`, `int8-rerank` |
 | `EmbedderComparisonBenchmarkTest` | Consulta (p50 y p95) y RSS de la 440M y la 270M, en orden alterno | `440m`, `270m` |
 | `GenerationBenchmarkTest` | Con 4, 6 y 8 bloques: primer token, prefill, decodificación, tokens reales y estimados, y RSS pico, con 20 preguntas | `base`, `prefix`, `mtp`, `fp32`, `v4-cifras`, `e4b` |
 | `SustainedChatBenchmarkTest` | `DefaultChatSession.ask` con respuestas completas durante 25 min, con el desglose (G9), el estado térmico y la batería por pregunta | `sin-reposo`, `con-reposo` (30 s); configuración por argumento de instrumentación |
 | `NumericFidelityBenchmarkTest` | Las 60 preguntas de cifras, con sus respuestas | `default`, `fp32`, `v4-cifras` |
 | `VisualChatBenchmarkTest` (amplía) | El primer token por detalle y, nuevo, una sesión sostenida con Equilibrado y la recarga con y sin precarga por ámbito | `detalles`, `sostenido`, `recarga` |
-| `PrefixCacheGoldenTest` | Las respuestas greedy de las goldens, idénticas con y sin prefijo | — |
-| `BenchCleanupTest` | Borra `cacheDir/bench`, `dev-bench`, los modelos de `dev-models` y sus entradas de verificación, y los informes `f14-*` ya copiados | — |
+| `PrefixCacheGoldenTest` | Las respuestas greedy de las goldens con y sin prefijo; informa las diferencias | — |
+| `StartupBenchmarkTest` | Arranque: carga en frío (sin la caché de LiteRT-LM de la prueba) y con caché de Gemma (texto y visión), la 440M y la 270M | — |
+| `IndexingBenchmarkTest` y `VisualIngestBenchmarkTest` (sin cambios) | El ritmo de la ingesta con los runtimes adoptados | — |
+| `BenchDirsTest` | Crea `dev-bench` desde la instrumentación, sin abrir la UI, antes del `adb push` | — |
+| `BenchCleanupTest` | Borra `cacheDir/bench`, `dev-bench`, los modelos de `dev-models` y los informes `f14-*` y `visual-chat-*` ya copiados | — |
 
 - **Variantes por argumento** (`-e f14.variant …`, `-e f14.minutes …`): así la fase del teléfono lanza cada medida por separado con `am instrument`, y la salida va a `/data/local/tmp` (lecciones de F16 y F20).
 - **Estados de un informe:**
@@ -43,7 +46,7 @@
 
 | Carpeta | Contenido | La crea |
 |---|---|---|
-| `getExternalFilesDir("dev-bench")` | bancos y preguntas copiados con `adb` | la prueba, si falta (lección de F18: la carpeta la crea la app antes del `adb push`) |
-| `getExternalFilesDir("dev-models")` | la 270M y E4B | ya existe (F02 y F18) |
+| `getExternalFilesDir("dev-bench")` | bancos y preguntas copiados con `adb` | `BenchDirsTest`, antes del `adb push` (lección de F18), sin abrir la app |
+| `getExternalFilesDir("dev-models")` | la 270M y E4B, solo para las pruebas | ya existe (F02 y F18); si falta, `BenchDirsTest` |
 | `cacheDir/bench` | las bases de los bancos | `BenchBank` |
 | `filesDir/reports` | los JSON | `BenchReport` |
