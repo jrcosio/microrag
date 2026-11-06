@@ -984,7 +984,7 @@ Con esos datos se fijan:
 ## F20 — Chat con páginas
 
 - **Tipo:** Producto, **sin mockup**. Requiere una propuesta de UI aprobada (G47, constitución VII).
-- **Estado:** 🟨 en curso en la rama `020-visual-chat` desde el 2026-11-05. Modo opcional «Multimodal», con F19 (D-078). Clarify y wireframe aprobados el 2026-11-05, con la decisión D-083: la página entra siempre que haya páginas en el ámbito, Equilibrado por defecto y un visor a pantalla completa. Sin enmienda de la constitución. Plan hecho el 2026-11-05, con la decisión D-084. Tareas y analyze el 2026-11-05, con la decisión D-085: Gemma con visión solo cuando entra una página, y el anexo §10 del wireframe aprobado. Spec en `specs/020-visual-chat/spec.md`.
+- **Estado:** 🟨 en curso en la rama `020-visual-chat` desde el 2026-11-05. Modo opcional «Multimodal», con F19 (D-078). Clarify y wireframe aprobados el 2026-11-05, con la decisión D-083: la página entra siempre que haya páginas en el ámbito, Equilibrado por defecto y un visor a pantalla completa. Sin enmienda de la constitución. Plan hecho el 2026-11-05, con la decisión D-084. Tareas y analyze el 2026-11-05, con la decisión D-085: Gemma con visión solo cuando entra una página, y el anexo §10 del wireframe aprobado. Implementada el 2026-11-05. Fase del teléfono el 2026-11-06, con la decisión D-086: primer token p95 de 6,7 s, 8,4 s y 14,4 s según el detalle, y 5,0 s sin página; la app dice unos 6,5 s, 8,5 s y 14,5 s. SC-004 cumplido con un escaneado y un cartel de prueba. Pendiente la revisión de cierre. Spec en `specs/020-visual-chat/spec.md`.
 
 **Objetivo.**
 - **Recuperación (D-076, D-078):**

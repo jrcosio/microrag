@@ -416,7 +416,7 @@ description: "Lista de tareas de F20 — Chat con páginas, modo «Multimodal» 
   - `LiteRtTextGenerator` con visión en el APK;
   - el manifiesto y el build sin cambios.
 - [X] T057 Borrador del informe `specs/020-visual-chat/report.md`, con la estructura de F19: implementado, build y tests, validación por criterio, cifras, diferencias frente al wireframe, desviaciones, fallos y pendiente.
-- [ ] T058 **Fase del teléfono, con permiso del usuario** (quickstart §5):
+- [X] T058 **Fase del teléfono, con permiso del usuario** (quickstart §5):
   - se anotan los ajustes;
   - la batería completa con `GemmaVisionSmokeTest`;
   - `VisualChatBenchmarkTest`;

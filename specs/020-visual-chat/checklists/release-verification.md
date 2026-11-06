@@ -18,3 +18,5 @@
 | min/target SDK | ✅ 31 / 37 | `apkanalyzer manifest min-sdk/target-sdk` |
 | Red | ✅ F20 no descarga nada. `NetworkConfinementTest` en verde, dentro de `testDebugUnitTest` | JVM |
 | Registros sin contenido | ✅ El chat, la recuperación y las imágenes registran solo cifras (pruebas «SECRETO»), y el logger de release no escribe | JVM |
+
+**Después de la fase del teléfono (T058):** los cambios son dos cifras de `PageDetail`, un `clipToBounds` en el visor y una regla de las pruebas instrumentadas (`androidTest`). No tocan el manifiesto, el build ni las dependencias, ni añaden clases nuevas a `main`, así que las comprobaciones de arriba siguen valiendo.

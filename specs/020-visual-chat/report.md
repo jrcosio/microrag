@@ -1,9 +1,9 @@
 # Informe de cierre — F20 Chat con páginas (modo «Multimodal» opcional)
 
-> **Estado:** borrador; faltan la fase del teléfono (T058) y la revisión de cierre del usuario (T059).
+> **Estado:** fase del teléfono hecha (T058); falta la revisión de cierre del usuario (T059).
 
 **Rama:** `020-visual-chat`, creada desde `4bb1d3f`.
-**Fecha:** 2026-11-05.
+**Fecha:** 2026-11-05 (teléfono, 2026-11-06).
 **Dispositivos:**
 - emuladores `Pixel_10` (API 37) y `MicroRAG_API33` (API 33);
 - teléfono de referencia Nothing Phone (1) A063, Android 15 (API 35), en la última fase.
@@ -45,12 +45,13 @@
 
 | Prueba | Resultado |
 |---|---|
-| JVM (`testDebugUnitTest`) | 1.354 de 1.354 (69 más que al cerrar F19) |
+| JVM (`testDebugUnitTest`) | 1.355 de 1.355 (70 más que al cerrar F19), con la prueba del visor de T058 |
 | Lint (`lintDebug`) | 0 errores. Los 2 avisos de versiones de siempre |
 | Escritorio (Python) | 288 pruebas OK, con la golden de la v5-visual al día |
 | Regresión del texto (`run_eval.py ablations` y `order-review`) | Mismas cifras que en F19, sin contar los segundos |
 | `Pixel_10` (API 37), instrumentadas | 1.029 (31 más que en F19), en 22,4 min, sin `@RequiresNetwork`. Dos fallos de pruebas que no esperaban F20 (la versión 3 de `chat.db` y el recuento `withPages`), corregidos y repetidos en verde. Las que necesitan Gemma (`GemmaVisionSmokeTest`, `VisualChatBenchmarkTest`) se saltan: el emulador no la tiene |
 | `MicroRAG_API33` (API 33), instrumentadas | 1.029, en 23,1 min: los 4 fallos previos de Atrás desde la raíz y los mismos dos de `Pixel_10`, corregidos y repetidos en verde |
+| A063 (API 35), instrumentadas | 1.027, sin `@RequiresNetwork` ni las suites pesadas de F18. **Primera pasada (3 h 7 min):** 314 bien, 11 saltadas como siempre, y 702 fallos de pantalla: el teléfono se bloqueó con el PIN durante los benchmarks largos, que no tocan la pantalla («No compose hierarchies»). **Repetidas** con el teléfono desbloqueado y la pantalla encendida por USB, las 23 clases que fallaron (19 min): 708 de 710. Las 2 que quedaban (`NoTrafficInstrumentedTest` y `OnboardingNavigationTest`) son de F19: `ReadyModelsRule` no preparaba la 440M que pide la app con el modo activo. Corregida, 10 de 10 en el A063 y en `Pixel_10`. `GemmaVisionSmokeTest` y `VisualChatBenchmarkTest` pasan |
 | Release | Ver `checklists/release-verification.md`: los mismos 9 permisos, sin los diagnósticos y con el chat con páginas en `main` |
 
 ## 3. Validación por criterio
@@ -60,7 +61,7 @@
 | SC-001: sin modo o sin páginas, nada cambia | ✅ `ablations.json` y `order_review.json` idénticos a los de F19. `DefaultChatSessionTest`: el prompt es `AnswerPrompt.Text` idéntico con el modo apagado, con el modo activo sin páginas y con `pagesUsable = false`; el motor usa la clave de hoy (`EngineAnswerEngineTest`) |
 | SC-002: ninguna cita sin fuente real | ✅ `DefaultChatSessionTest` (`[n]` fuera de rango, tipos de fuente), `ResolveSourcesUseCaseTest` (`PAGE_GONE`, `DOCUMENT_GONE`) y `RagIndexPageSearchTest` |
 | SC-003: primer token por detalle, medido | ✅ En el A063 con 20 preguntas por variante: p95 de 6,7 s, 8,4 s y 14,4 s, y 5,0 s sin página (§4). Los textos de la app pasan a esas cifras (D-086) |
-| SC-004: un escaneado y una imagen, respondidos con su página | Pendiente del teléfono (T058) |
+| SC-004: un escaneado y una imagen, respondidos con su página | ✅ En el A063 (§5): un PDF escaneado de 2 páginas y un cartel en JPG, en Visual en una carpeta de prueba. Cada respuesta cita su página («Página 1 · Imagen de la página» y «Imagen»), y la cita abre el detalle y el visor |
 | SC-005: el Historial restaura las citas a página | ✅ `SqliteChatRepositoryTest` (migración 2 → 3 y fuentes de página), `ResolveSourcesUseCaseTest` y las pantallas |
 | SC-006: nunca dos engines en GPU; la visión se libera con Gemma | ✅ `EngineCoordinatorTest` (nunca dos Gemma, en GPU ni en CPU) y `EngineAnswerEngineTest` (las liberaciones) |
 | SC-007: nada privado en los registros | ✅ Las pruebas «SECRETO» del chat con página, del retriever y de las imágenes |
@@ -89,6 +90,18 @@ Los emuladores no tienen Gemma, y activar el modo en ellos supone descargar la 4
 
 En `Pixel_10`, con el modo apagado, Ajustes no muestra «Detalle de las páginas», y el resto queda como en F19. Las pantallas nuevas se recorren con las pruebas de pantalla y con `VisualChatAccessibilityTest`, que las dibuja en el dispositivo con imágenes reales, en claro, en oscuro y al 200 %.
 
+**En el A063 (SC-004, 2026-11-06),** con dos ficheros generados para la prueba, copiados a `Download` y borrados al acabar. Solo se buscaron las etiquetas de la prueba, y no se abrieron ni capturaron los documentos ni las conversaciones del usuario.
+1. **Importar:** desde la Ingesta, una carpeta nueva «Prueba F20» y los PDF en Visual. Un escaneado de 2 páginas sin capa de texto (el horario de una biblioteca) y un cartel en JPG (unas fiestas) se indexan solos, sin fallos.
+2. **Chat nuevo,** con el ámbito en «Prueba F20». Mientras espera sale «Leyendo 1 página · unos 8,5 s…».
+   - «¿A qué hora cierra la biblioteca entre semana?» → «La biblioteca municipal cierra a las 20:30 en lunes a viernes [1]», con la fuente «prueba-f20-escaneado.pdf · Página 1 · Imagen de la página». Primer token en 8,5 s, en la primera respuesta tras abrir la app, con el embedder en frío.
+   - En un chat nuevo, «¿Cuándo es el concierto principal de las fiestas?» → «El concierto principal de las fiestas es el domingo 16 a las 22:30 [1]», con la fuente «prueba-f20-cartel.jpg · Imagen». Primer token en 5,1 s.
+3. **La cita** abre el detalle con la página («Página 1 de prueba-f20-escaneado.pdf» e «Imagen prueba-f20-cartel.jpg») y «Toca para ampliar». El visor se titula «prueba-f20-escaneado.pdf · Página 1» o solo «prueba-f20-cartel.jpg», amplía con doble toque y se cierra con «✕».
+4. **Al borrar los documentos,** sus fuentes pasan a «Fuente ya no disponible». Después se borraron las dos conversaciones y la carpeta.
+
+**Lo que se vio en el teléfono:**
+- **El visor ampliado tapaba la barra superior,** con el título y el «✕» (§8). Se corrigió y se comprobó en el teléfono.
+- **La regla de seguimiento de F10 arrastra la página anterior.** En la misma conversación, «¿Cuándo es el concierto principal de las fiestas?» tiene menos de 8 palabras normalizadas. Se buscó junto con la pregunta anterior, entró otra vez la página de la biblioteca, y Gemma respondió bien «No encuentro información suficiente en tus documentos». No es una regresión: la regla es la de siempre, pero con páginas se nota más, porque entra una sola. Va a F14 (§9).
+
 ## 6. Diferencias frente al wireframe
 
 - **§5, pista de la vista previa:** «Toca para ampliar» va sin el icono «⤢», que no está entre los iconos del design system.
@@ -111,10 +124,17 @@ En `Pixel_10`, con el modo apagado, Ajustes no muestra «Detalle de las páginas
 - Con los gráficos «legacy» de Robolectric no se puede crear un `ImageBitmap`: las pruebas que lo necesitan usan `@GraphicsMode(NATIVE)`.
 - La prueba del límite de tokens con página no comprobaba nada: ahora compara las líneas de fuentes de la v4 con las de la v5-visual.
 
+**En la fase del teléfono (T058):**
+- **El visor ampliado tapaba la barra superior** con el título y el «✕», porque la caja de la página no recortaba. Ahora recorta (`66b8a6c`). La prueba nueva amplía una página roja a 4× y comprueba que la barra del título no tiene ningún píxel rojo y que «Cerrar» cierra. Comprobado también en el A063.
+- **`ReadyModelsRule` (de F19) preparaba siempre la 270M y Gemma.** Con el modo activo, la app pide la 440M, y «Continuar» no terminaba la Preparación, así que `NoTrafficInstrumentedTest` y `OnboardingNavigationTest` fallaban en el A063. Ahora prepara lo que pide `ModelRequirements` en ese momento (`3dc1812`). No había salido antes porque la batería de F19 se pasó antes de activar el modo, y los emuladores lo tienen apagado.
+- **`ChatViewModelTest` tenía escrita a mano la espera antigua (115)** y se corrigió con las cifras nuevas (D-086, `be4a728`).
+- **La batería se quedó a medias porque el teléfono se bloqueó** durante los benchmarks largos. Las repeticiones mantienen la pantalla encendida con `svc power stayon usb`, y al acabar se vuelve a 0.
+
 ## 9. Pendiente
 
-- **El teléfono (T058):** la batería completa, `GemmaVisionSmokeTest`, `VisualChatBenchmarkTest` y SC-004 con un escaneado y una imagen de prueba.
 - **F14:**
-  - el primer token con páginas (10–15 s según F18) y las palancas para bajarlo;
+  - el primer token con páginas (6,5–14,5 s medidos en F20) y las palancas para bajarlo; la recarga de Gemma con visión (14,2 s la primera respuesta con página tras una sin ella);
+  - la regla de seguimiento de F10 con páginas (§5): una pregunta corta sobre otro documento arrastra la página de la anterior. Por ejemplo, buscar las páginas solo con la pregunta nueva;
+  - el pico de RSS de 4,6 GB con la visión cargada;
   - las cifras deformadas con fp16;
   - cargar el motor de imagen una vez por run (F19).
