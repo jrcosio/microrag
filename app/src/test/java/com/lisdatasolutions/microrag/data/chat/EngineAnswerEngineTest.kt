@@ -82,6 +82,7 @@ class EngineAnswerEngineTest {
 
                 override fun generate(prompt: GenerationPrompt): Flow<GenerationEvent> = when (prompt) {
                     is GenerationPrompt.Text -> generate(prompt.text)
+                    is GenerationPrompt.Split -> generate(prompt.whole)
                     is GenerationPrompt.Parts -> {
                         check(config.visionBackend != null) { "no vision" }
                         partsPrompts += prompt

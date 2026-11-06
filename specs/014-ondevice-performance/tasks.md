@@ -168,18 +168,18 @@ description: "Lista de tareas de F14 — Rendimiento en dispositivo y decisión 
 **Independent Test**: los bancos en el teléfono (T048, T050 y T052). En los emuladores se saltan, porque no hay modelos.
 
 - [X] T022 [US3] Desglose de tiempos (contrato G9) en el `log` de `…/microrag/data/chat/DefaultChatSession.kt`: embedding, búsqueda, prompt y primer token, solo números. Se amplía `…/test/data/chat/DefaultChatSessionTest.kt` antes
-- [ ] T023 [US3] `…/androidTest/data/chat/GenerationBenchmarkTest.kt`, variante `base`:
+- [X] T023 [US3] `…/androidTest/data/chat/GenerationBenchmarkTest.kt`, variante `base`:
   - 4, 6 y 8 bloques con el selector de D-034 ampliado solo en la prueba;
   - tokens reales (`BenchmarkInfo`, con `enableBenchmark` solo aquí) y estimados;
   - primer token, prefill, decodificación y RSS pico;
   - 20 preguntas;
   - un modo que alterna la base y una variante pregunta a pregunta, para decidir las palancas (D-090)
-- [ ] T024 [US3] `…/androidTest/data/chat/SustainedChatBenchmarkTest.kt`:
+- [X] T024 [US3] `…/androidTest/data/chat/SustainedChatBenchmarkTest.kt`:
   - `sin-reposo` y `con-reposo`, y los minutos por argumento;
   - respuestas completas, con el desglose, el estado térmico y la batería por pregunta;
   - corte con `SEVERE` (`aborted-thermal`);
   - la configuración de generación por argumento, para repetirla con las palancas
-- [ ] T025 [P] [US3] `…/androidTest/rag/runtime/StartupBenchmarkTest.kt` (contrato B2): carga en frío (con una caché de LiteRT-LM propia de la prueba, vacía) y con caché de Gemma (texto y visión), la 440M y la 270M (desde `dev-models`)
+- [X] T025 [P] [US3] `…/androidTest/rag/runtime/StartupBenchmarkTest.kt` (contrato B2): carga en frío (con una caché de LiteRT-LM propia de la prueba, vacía) y con caché de Gemma (texto y visión), la 440M y la 270M (desde `dev-models`)
 
 ---
 
@@ -191,12 +191,12 @@ description: "Lista de tareas de F14 — Rendimiento en dispositivo y decisión 
 
 ### Tests for User Story 4
 
-- [ ] T026 [P] [US4] En `…/test/rag/answer/PromptBuilderTest.kt`: `buildSplit(...).whole == build(...)` para cada plantilla, idioma, con y sin turno previo, y en las goldens del prompt. Falla primero
-- [ ] T027 [P] [US4] `…/androidTest/data/chat/PrefixCacheGoldenTest.kt`: las respuestas greedy de las goldens con y sin `prefixCache`. Informa las diferencias en lugar de fallar (contrato G3). Solo en el teléfono
+- [X] T026 [P] [US4] En `…/test/rag/answer/PromptBuilderTest.kt`: `buildSplit(...).whole == build(...)` para cada plantilla, idioma, con y sin turno previo, y en las goldens del prompt. Falla primero
+- [X] T027 [P] [US4] `…/androidTest/data/chat/PrefixCacheGoldenTest.kt`: las respuestas greedy de las goldens con y sin `prefixCache`. Informa las diferencias en lugar de fallar (contrato G3). Solo en el teléfono
 
 ### Implementation for User Story 4
 
-- [ ] T028 [US4] Interruptores y prompt:
+- [X] T028 [US4] Interruptores y prompt:
   - `buildSplit` y `SplitPrompt` en `…/microrag/rag/answer/PromptBuilder.kt`;
   - el prefijo opcional de `AnswerPrompt.Text` en `…/microrag/domain/chat/ChatModels.kt`;
   - `GenerationPrompt.Split`, `prefixCache`, `speculative` y `SpeculativeMode` en `…/microrag/rag/runtime/TextGenerator.kt`;
@@ -204,11 +204,11 @@ description: "Lista de tareas de F14 — Rendimiento en dispositivo y decisión 
   - que `…/microrag/data/chat/EngineAnswerEngine.kt` y `DefaultChatSession.kt` los usen.
 
   Con los valores por defecto, el comportamiento es el de hoy, y las pruebas JVM que ya existen lo comprueban
-- [ ] T029 [US4] `…/microrag/rag/runtime/litert/LiteRtTextGenerator.kt` (contrato G3 y G4):
+- [X] T029 [US4] `…/microrag/rag/runtime/litert/LiteRtTextGenerator.kt` (contrato G3 y G4):
   - el prefijo reutilizado por el camino que fijó T002: la base por motor, un clon por respuesta, cancelar solo el clon, y rehacer y liberar la base con el motor;
   - `SpeculativeDecodingConfig(ADAPTIVE)` con `speculative`;
   - pruebas JVM del generador con un fake de motor si la API lo permite; si no, se cubre con T027
-- [ ] T030 [US4] Variantes `prefix`, `mtp` y `fp32` en `GenerationBenchmarkTest` (con el modo alterno de T023) y en la configuración por argumento de `SustainedChatBenchmarkTest`. `not-available` si no hay drafter o falla el clon
+- [X] T030 [US4] Variantes `prefix`, `mtp` y `fp32` en `GenerationBenchmarkTest` (con el modo alterno de T023) y en la configuración por argumento de `SustainedChatBenchmarkTest`. `not-available` si no hay drafter o falla el clon
 - [ ] T031 [P] [US4] Escritorio:
   - `run_eval.py ablations --base max_blocks=3` (R13), con las respuestas que cambian juzgadas a mano (contrato H6), frente a la regla de `f14_rules.json`, y la sección en `offline/reports/eval-report.md`;
   - si T002 eligió el camino 2 (rol de sistema), también `template-review` con el rol de sistema;

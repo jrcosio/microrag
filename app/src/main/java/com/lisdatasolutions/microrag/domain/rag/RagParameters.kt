@@ -67,4 +67,12 @@ object RagParameters {
 
     /** Changes closer than this make one rebuild (contract I4). */
     const val QUANT_REBUILD_DEBOUNCE_MS = 2_000L
+
+    /**
+     * F14 levers (research R6–R8, D-088, D-090), today's behaviour until the phone phase decides them with their
+     * rules: reuse the rules' prefill, multi-token prediction, and Gemma's activations (null: the file's, fp16).
+     */
+    const val PREFIX_CACHE = false
+    const val SPECULATIVE_DECODING = false
+    val ACTIVATION_PRECISION: String? = null
 }

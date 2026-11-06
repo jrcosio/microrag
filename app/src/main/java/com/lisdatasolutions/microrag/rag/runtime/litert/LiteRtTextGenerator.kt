@@ -21,6 +21,7 @@ import com.lisdatasolutions.microrag.rag.runtime.GenerationEvent
 import com.lisdatasolutions.microrag.rag.runtime.GenerationPart
 import com.lisdatasolutions.microrag.rag.runtime.GenerationPrompt
 import com.lisdatasolutions.microrag.rag.runtime.GenerationStats
+import com.lisdatasolutions.microrag.rag.runtime.SpeculativeMode
 import com.lisdatasolutions.microrag.rag.runtime.TextGenerator
 import java.io.File
 import kotlin.coroutines.cancellation.CancellationException
@@ -50,6 +51,13 @@ internal class LiteRtTextGenerator(
     @Volatile
     private var activeConversation: Conversation? = null
 
+    /**
+     * F14 (research R6, contract G3): the conversation that holds the rules already prefilled, with the [basePrefix]
+     * it was made for; each answer clones it. Touched on [dispatcher] only, closed with the engine.
+     */
+    private var base: Conversation? = null
+    private var basePrefix: String? = null
+
     override suspend fun initialize() = withContext(dispatcher) {
         if (engine != null) return@withContext
         val created = Engine(
@@ -65,6 +73,8 @@ internal class LiteRtTextGenerator(
                     ActivationPrecision.FLOAT32 -> ActivationDataType.FLOAT32
                     ActivationPrecision.FLOAT16 -> ActivationDataType.FLOAT16
                 },
+                // F14 (research R7): the drafter loads with the engine only when speculation is on.
+                speculativeDecodingConfig = speculativeConfig(),
             ),
         )
         try {
@@ -80,6 +90,9 @@ internal class LiteRtTextGenerator(
 
     override fun generate(prompt: GenerationPrompt): Flow<GenerationEvent> = when (prompt) {
         is GenerationPrompt.Text -> generate(prompt.text)
+        // F14 (research R6): the rules prefilled once and cloned; without the lever, the same text in one message.
+        is GenerationPrompt.Split ->
+            if (config.prefixCache) stream(open = { prefixBase(it, prompt.prefix).clone() }) { it.sendMessageAsync(prompt.rest) } else generate(prompt.whole)
         is GenerationPrompt.Parts -> {
             check(config.visionBackend != null) { "Generator for $model has no vision" }
             stream(visualTokens = prompt.visualTokens, withBudget = true) { conversation ->
@@ -92,13 +105,14 @@ internal class LiteRtTextGenerator(
     private fun stream(
         visualTokens: Int? = null,
         withBudget: Boolean = false,
+        open: (Engine) -> Conversation = { it.createConversation(conversationConfig()) },
         send: (Conversation) -> Flow<Message>,
     ): Flow<GenerationEvent> = flow {
         val engine = checkNotNull(engine) { "Generator for $model is not initialized" }
         val previousBudget = ExperimentalFlags.visualTokenBudget
         if (withBudget) ExperimentalFlags.visualTokenBudget = visualTokens
         val conversation = try {
-            engine.createConversation(conversationConfig())
+            open(engine)
         } catch (t: Throwable) {
             if (withBudget) ExperimentalFlags.visualTokenBudget = previousBudget
             throw t
@@ -145,6 +159,9 @@ internal class LiteRtTextGenerator(
     }
 
     override fun close() {
+        base?.close()
+        base = null
+        basePrefix = null
         engine?.close()
         engine = null
     }
@@ -152,9 +169,36 @@ internal class LiteRtTextGenerator(
     private fun conversationConfig() = ConversationConfig(
         samplerConfig = if (config.greedy) GREEDY else null,
         maxOutputToken = config.maxOutputTokens,
-        // Off until F14 measures it (research R7); 0.19 replaced the deprecated boolean with this config.
-        speculativeDecodingConfig = SpeculativeDecodingConfig(SpeculativeDecodingMode.OFF),
+        // 0.19 replaced the deprecated boolean with this config (F14 research R1).
+        speculativeDecodingConfig = speculativeConfig(),
     )
+
+    private fun speculativeConfig() = SpeculativeDecodingConfig(
+        if (config.speculative == SpeculativeMode.ADAPTIVE) SpeculativeDecodingMode.ADAPTIVE else SpeculativeDecodingMode.OFF,
+    )
+
+    /**
+     * Blocking, on [dispatcher]: the conversation with [prefix] prefilled, made once per engine and prefix. Its template
+     * draws the prefix as the start of the user's turn, so prefix + rest are the tokens of today's single message
+     * (research R6, checked on the desktop: the same greedy answers and token counts).
+     */
+    private fun prefixBase(engine: Engine, prefix: String): Conversation {
+        base?.takeIf { basePrefix == prefix }?.let { return it }
+        base?.close()
+        val created = engine.createConversation(
+            ConversationConfig(
+                systemInstruction = Contents.of(prefix),
+                samplerConfig = if (config.greedy) GREEDY else null,
+                prefillPrefaceOnInit = true,
+                maxOutputToken = config.maxOutputTokens,
+                chatTemplate = PREFIX_TEMPLATE,
+                speculativeDecodingConfig = speculativeConfig(),
+            ),
+        )
+        base = created
+        basePrefix = prefix
+        return created
+    }
 
     private fun GenerationPart.toContent(): Content = when (this) {
         is GenerationPart.Text -> Content.Text(text)
@@ -162,6 +206,21 @@ internal class LiteRtTextGenerator(
     }
 
     private companion object {
+        /**
+         * Gemma 4's turns (the template inside the model file) with the system message drawn as the start of the user's
+         * turn, without trimming it: `<bos><|turn>user\n` + rules, then the rest + `<turn|>\n` and `<|turn>model\n`.
+         */
+        const val PREFIX_TEMPLATE =
+            "{{ bos_token }}" +
+                "{%- for message in messages -%}" +
+                "{%- if message['role'] == 'system' -%}{{ '<|turn>user\\n' }}" +
+                "{%- elif message['role'] == 'model' or message['role'] == 'assistant' -%}{{ '<|turn>model\\n' }}{%- endif -%}" +
+                "{%- if message['content'] is string -%}{{ message['content'] }}" +
+                "{%- else -%}{%- for item in message['content'] -%}{%- if item['type'] == 'text' -%}{{ item['text'] }}{%- endif -%}" +
+                "{%- endfor -%}{%- endif -%}" +
+                "{%- if message['role'] != 'system' -%}{{ '<turn|>\\n' }}{%- endif -%}" +
+                "{%- endfor -%}" +
+                "{%- if add_generation_prompt -%}{{ '<|turn>model\\n' }}{%- endif -%}"
         const val NANOS_PER_MILLI = 1_000_000L
         val GREEDY = SamplerConfig(topK = 1, topP = 1.0, temperature = 0.0, seed = 0)
     }

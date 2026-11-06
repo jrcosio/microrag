@@ -22,6 +22,7 @@ import com.lisdatasolutions.microrag.rag.runtime.EngineCoordinator
 import com.lisdatasolutions.microrag.rag.runtime.GenerationConfig
 import com.lisdatasolutions.microrag.rag.runtime.GenerationEvent
 import com.lisdatasolutions.microrag.rag.runtime.GenerationPrompt
+import com.lisdatasolutions.microrag.rag.runtime.SpeculativeMode
 import com.lisdatasolutions.microrag.rag.runtime.TextGenerator
 import com.lisdatasolutions.microrag.rag.runtime.litert.LiteRtEngineFactory
 import com.lisdatasolutions.microrag.testing.CorpusIndex
@@ -90,28 +91,45 @@ class GenerationBenchmarkTest {
             CorpusIndex(temp, root, pdf).build(coordinator, factory, models.pathOf(textEmbedder)!!, textEmbedder)
             val embedder = EngineQueryEmbedder(coordinator, factory, models, textEmbedder = { textEmbedder })
             val measured = questions.take(questionCount)
-            val prompts = blockCounts.associateWith { blocks -> prompts(HybridRetriever(temp.index, embedder, temp.logger, selector = selector(blocks)), measured) }
+            val retrieved = blockCounts.associateWith { blocks -> retrieve(HybridRetriever(temp.index, embedder, temp.logger, selector = selector(blocks)), measured) }
+            val prompts = retrieved.mapValues { (_, list) -> list.map { (q, blocks) -> PromptBuilder.buildSplit(q, blocks, previous = null) } }
+            // F14 (research R8): the figures template on the same blocks, for its lever.
+            val numericPrompts = retrieved.getValue(blockCounts.first()).map { (q, blocks) -> PromptBuilder.buildSplit(q, blocks, null, template = NUMERIC_TEMPLATE) }
             coordinator.releaseAll()
 
             val backend = models.preparedBackends.value.getValue(ModelId.GEMMA4_E2B)
             report.start = DeviceConditions.snapshot(context)
             factory.benchmarkStatsEnabled = true
             if (alternate) {
-                val baseGenerator = generator(factory, "base", backend)
-                val leverGenerator = generator(factory, variant, backend)
                 val base = report.variant("base-alternating", mapOf("blocks" to "4"))
                 val lever = report.variant("$variant-alternating", mapOf("blocks" to "4"))
-                try {
-                    measured.forEachIndexed { i, q ->
-                        // One engine on the GPU at a time (constitution IV): each is initialized for its answer.
-                        answer(baseGenerator, prompts.getValue(4)[i], base, q.id)
+                if (variant in SAME_ENGINE) {
+                    // The lever is in the prompt: one engine answers both in turn, so the prefix stays prefilled.
+                    val generator = generator(factory, variant, backend)
+                    try {
+                        measured.forEachIndexed { i, q ->
+                            answer(generator, GenerationPrompt.Text(prompts.getValue(4)[i].whole), base, q.id)
+                            answer(generator, leverPrompt(prompts.getValue(4)[i], numericPrompts[i]), lever, q.id)
+                        }
+                    } finally {
+                        generator.close()
+                    }
+                } else {
+                    // The lever is in the engine: one engine on the GPU at a time (constitution IV), each loaded for
+                    // its answer; the first token is timed after the load.
+                    val baseGenerator = generator(factory, "base", backend)
+                    val leverGenerator = generator(factory, variant, backend)
+                    try {
+                        measured.forEachIndexed { i, q ->
+                            answer(baseGenerator, GenerationPrompt.Text(prompts.getValue(4)[i].whole), base, q.id)
+                            baseGenerator.close()
+                            answer(leverGenerator, GenerationPrompt.Text(prompts.getValue(4)[i].whole), lever, q.id)
+                            leverGenerator.close()
+                        }
+                    } finally {
                         baseGenerator.close()
-                        answer(leverGenerator, prompts.getValue(4)[i], lever, q.id)
                         leverGenerator.close()
                     }
-                } finally {
-                    baseGenerator.close()
-                    leverGenerator.close()
                 }
             } else {
                 val generator = generator(factory, variant, backend)
@@ -123,7 +141,10 @@ class GenerationBenchmarkTest {
                     blockCounts.forEach { blocks ->
                         val v = report.variant("$variant-$blocks", mapOf("blocks" to "$blocks", "backend" to backend.name))
                         v.extra["initMs"] = JsonPrimitive(initMs)
-                        measured.forEachIndexed { i, q -> answer(generator, prompts.getValue(blocks)[i], v, q.id) }
+                        measured.forEachIndexed { i, q ->
+                            val prompt = prompts.getValue(blocks)[i]
+                            answer(generator, if (variant in SAME_ENGINE) leverPrompt(prompt, numericPrompts[i]) else GenerationPrompt.Text(prompt.whole), v, q.id)
+                        }
                         v.extra["rssPeakMb"] = JsonPrimitive(DeviceConditions.snapshot(context).rssPeakMb ?: -1)
                     }
                 } finally {
@@ -149,13 +170,20 @@ class GenerationBenchmarkTest {
     /** D-034's selector with [blocks] blocks and a budget that lets them in (F05 measured 6 and 8 the same way). */
     private fun selector(blocks: Int) = if (blocks == RagParameters.MAX_BLOCKS) ContextSelector() else ContextSelector(maxBlocks = blocks, budgetTokens = blocks * TOKENS_PER_BLOCK)
 
-    /** The app's v4 prompt for each question, with the blocks the retrieval picked. */
-    private suspend fun prompts(retriever: HybridRetriever, measured: List<com.lisdatasolutions.microrag.rag.retrieval.ParityQuestion>): List<String> =
+    /** Each question with the blocks the retrieval picked, as the prompt shows them. */
+    private suspend fun retrieve(retriever: HybridRetriever, measured: List<com.lisdatasolutions.microrag.rag.retrieval.ParityQuestion>) =
         measured.map { q ->
             val outcome = retriever.retrieve(RetrievalRequest(q.question)).outcome
             val blocks = (outcome as? RetrievalOutcome.Blocks)?.blocks.orEmpty()
-            PromptBuilder.build(q.question, blocks.map { PromptBuilder.Block(it.documentName, it.headingPath, it.page, it.text) }, previous = null)
+            q.question to blocks.map { PromptBuilder.Block(it.documentName, it.headingPath, it.page, it.text) }
         }
+
+    /** What the lever sends: the split prompt for the prefix, the figures template for its own lever. */
+    private fun leverPrompt(prompt: PromptBuilder.SplitPrompt, numeric: PromptBuilder.SplitPrompt): GenerationPrompt = when (variant) {
+        "prefix" -> GenerationPrompt.Split(prompt.prefix, prompt.rest)
+        "v4-cifras" -> GenerationPrompt.Text(numeric.whole)
+        else -> GenerationPrompt.Text(prompt.whole)
+    }
 
     /** The engine each variant measures; E4B comes from `dev-models`, verified here and never installed (D-090). */
     private fun generator(factory: LiteRtEngineFactory, name: String, backend: ComputeBackend): TextGenerator {
@@ -164,6 +192,9 @@ class GenerationBenchmarkTest {
         return when (name) {
             "base" -> factory.generator(gemma, models.pathOf(ModelId.GEMMA4_E2B)!!, backend, config)
             "fp32" -> factory.generator(gemma, models.pathOf(ModelId.GEMMA4_E2B)!!, backend, config.copy(activationPrecision = ActivationPrecision.FLOAT32))
+            "prefix" -> factory.generator(gemma, models.pathOf(ModelId.GEMMA4_E2B)!!, backend, config.copy(prefixCache = true))
+            "mtp" -> factory.generator(gemma, models.pathOf(ModelId.GEMMA4_E2B)!!, backend, config.copy(speculative = SpeculativeMode.ADAPTIVE))
+            "v4-cifras" -> factory.generator(gemma, models.pathOf(ModelId.GEMMA4_E2B)!!, backend, config)
             "e4b" -> {
                 val file = DevFiles.verified(context, DevFiles.GEMMA4_E4B)
                     ?: throw NotAvailable(BenchReport.STATUS_NOT_AVAILABLE, "E4B is not in dev-models or its SHA-256 differs")
@@ -175,7 +206,7 @@ class GenerationBenchmarkTest {
     }
 
     /** One answer: the first token, the engine's numbers and the real tokens against the estimate. */
-    private suspend fun answer(generator: TextGenerator, prompt: String, variant: BenchReport.Variant, questionId: String) {
+    private suspend fun answer(generator: TextGenerator, prompt: GenerationPrompt, variant: BenchReport.Variant, questionId: String) {
         try {
             generator.initialize()
         } catch (e: Exception) {
@@ -184,9 +215,15 @@ class GenerationBenchmarkTest {
         }
         val thermal = DeviceConditions.thermalNow(context)
         var stats: com.lisdatasolutions.microrag.rag.runtime.GenerationStats? = null
-        generator.generate(GenerationPrompt.Text(prompt)).collect { event -> if (event is GenerationEvent.Finished) stats = event.stats }
+        generator.generate(prompt).collect { event -> if (event is GenerationEvent.Finished) stats = event.stats }
         val s = checkNotNull(stats)
-        val estimated = PromptBuilder.estimatedTokens(prompt)
+        val estimated = PromptBuilder.estimatedTokens(
+            when (prompt) {
+                is GenerationPrompt.Text -> prompt.text
+                is GenerationPrompt.Split -> prompt.whole
+                is GenerationPrompt.Parts -> ""
+            },
+        )
         variant.add(Sample("ttft", s.ttftWallMs.toDouble(), questionId, thermal, s.prefillTokens, estimated))
         variant.add(Sample("total", s.totalWallMs.toDouble(), null, thermal))
         s.prefillTokensPerSecond?.let { variant.add(Sample("prefill-tok-s", it, null, thermal)) }
@@ -197,5 +234,9 @@ class GenerationBenchmarkTest {
         const val REFERENCE_PHONE = "A063"
         const val OUTPUT_TOKENS = 128
         const val TOKENS_PER_BLOCK = 450
+        const val NUMERIC_TEMPLATE = "v4-cifras"
+
+        /** Levers in the prompt, measured on one engine; the rest are in the engine's configuration. */
+        val SAME_ENGINE = setOf("prefix", "v4-cifras")
     }
 }

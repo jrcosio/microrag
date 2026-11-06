@@ -123,7 +123,12 @@ enum class SourceAvailability { AVAILABLE, FRAGMENT_GONE, PAGE_GONE, DOCUMENT_GO
 
 /** What Gemma receives (F20 research R4): today's v4 text, or the v5-visual parts with a page. */
 sealed interface AnswerPrompt {
-    data class Text(val text: String) : AnswerPrompt
+    /** F14 (contract G2): [prefix], when set, is the start of [text] every question shares (the rules). */
+    data class Text(val text: String, val prefix: String? = null) : AnswerPrompt {
+        init {
+            require(prefix == null || text.startsWith(prefix)) { "the prefix is not the start of the prompt" }
+        }
+    }
 
     /** [visualTokens] is the page detail's (D-078). */
     data class Visual(val parts: List<PromptPart>, val visualTokens: Int) : AnswerPrompt

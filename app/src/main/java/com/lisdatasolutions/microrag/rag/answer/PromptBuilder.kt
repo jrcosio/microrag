@@ -52,16 +52,10 @@ object PromptBuilder {
 
     val TEMPLATES: List<String> = EXTRA_RULES.keys.toList()
 
-    /** [previous] is the (question, answer) of the previous turn, or null. */
-    fun build(
-        question: String,
-        blocks: List<Block>,
-        previous: Pair<String, String>?,
-        template: String = RagParameters.PROMPT_TEMPLATE,
-        language: PromptLanguage = PromptLanguage.SPANISH,
-    ): String {
+    /** The instruction and the rules of [template]: the fixed start of every prompt in [language] (F14 contract G2). */
+    private fun rules(template: String, language: PromptLanguage): List<String> {
         val extra = requireNotNull(EXTRA_RULES[template]) { "Unknown prompt template $template" }
-        val lines = mutableListOf(
+        return listOf(
             "Responde a la PREGUNTA usando únicamente las FUENTES.",
             "",
             "Reglas:",
@@ -70,8 +64,40 @@ object PromptBuilder {
             "- Si las fuentes no contienen la respuesta, responde exactamente:",
             "  \"$REFUSAL\"",
             "- No uses conocimiento propio ni inventes datos, cifras o plazos.",
-        )
-        lines += extra
+        ) + extra
+    }
+
+    /** F14 (research R6, contract G2): [build]'s prompt as the part every question shares and the rest. */
+    data class SplitPrompt(val prefix: String, val rest: String) {
+        val whole: String get() = prefix + rest
+    }
+
+    /**
+     * [build] cut after the rules and their blank line: [SplitPrompt.prefix] depends only on [template] and
+     * [language], so the engine prefills it once and reuses it (research R6). `prefix + rest` is [build]'s prompt.
+     */
+    fun buildSplit(
+        question: String,
+        blocks: List<Block>,
+        previous: Pair<String, String>?,
+        template: String = RagParameters.PROMPT_TEMPLATE,
+        language: PromptLanguage = PromptLanguage.SPANISH,
+    ): SplitPrompt {
+        val whole = build(question, blocks, previous, template, language)
+        val prefix = rules(template, language).joinToString("\n") + "\n\n"
+        check(whole.startsWith(prefix)) { "the prompt does not start with its rules" }
+        return SplitPrompt(prefix, whole.substring(prefix.length))
+    }
+
+    /** [previous] is the (question, answer) of the previous turn, or null. */
+    fun build(
+        question: String,
+        blocks: List<Block>,
+        previous: Pair<String, String>?,
+        template: String = RagParameters.PROMPT_TEMPLATE,
+        language: PromptLanguage = PromptLanguage.SPANISH,
+    ): String {
+        val lines = rules(template, language).toMutableList()
         lines += ""
         if (previous != null) {
             lines += "CONVERSACIÓN PREVIA (solo como contexto de la pregunta):"

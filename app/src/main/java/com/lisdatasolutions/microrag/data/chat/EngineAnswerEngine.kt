@@ -9,6 +9,7 @@ import com.lisdatasolutions.microrag.domain.model.ComputeBackend
 import com.lisdatasolutions.microrag.domain.model.ModelCatalog
 import com.lisdatasolutions.microrag.domain.model.ModelFileState
 import com.lisdatasolutions.microrag.domain.rag.RagParameters
+import com.lisdatasolutions.microrag.rag.runtime.ActivationPrecision
 import com.lisdatasolutions.microrag.rag.runtime.EngineCoordinator
 import com.lisdatasolutions.microrag.rag.runtime.EngineFactory
 import com.lisdatasolutions.microrag.rag.runtime.EngineKey
@@ -17,6 +18,7 @@ import com.lisdatasolutions.microrag.rag.runtime.GenerationConfig
 import com.lisdatasolutions.microrag.rag.runtime.GenerationEvent
 import com.lisdatasolutions.microrag.rag.runtime.GenerationPart
 import com.lisdatasolutions.microrag.rag.runtime.GenerationPrompt
+import com.lisdatasolutions.microrag.rag.runtime.SpeculativeMode
 import com.lisdatasolutions.microrag.rag.runtime.TextGenerator
 import com.lisdatasolutions.microrag.rag.runtime.initializeOrClose
 import java.io.File
@@ -38,15 +40,26 @@ class EngineAnswerEngine(
     private val coordinator: EngineCoordinator,
     private val factory: EngineFactory,
     private val models: ModelFileRepository,
+    /** F14 (contract G1): the benches measure each lever over the app's text configuration; the app keeps it. */
+    textOverrides: (GenerationConfig) -> GenerationConfig = { it },
 ) : AnswerEngine {
 
     private val model = ModelCatalog.byId(RagParameters.LLM_MODEL)
-    private val textConfig = GenerationConfig(
+    private val baseConfig = GenerationConfig(
         maxNumTokens = RagParameters.LLM_MAX_NUM_TOKENS,
         maxOutputTokens = RagParameters.MAX_OUTPUT_TOKENS,
         greedy = true,
     )
-    private val visualConfig = textConfig.copy(
+
+    /** F14 (research R6–R8): the levers the phone phase adopted, for the answers without a page. */
+    private val textConfig = textOverrides(
+        baseConfig.copy(
+            activationPrecision = RagParameters.ACTIVATION_PRECISION?.let(ActivationPrecision::valueOf),
+            prefixCache = RagParameters.PREFIX_CACHE,
+            speculative = if (RagParameters.SPECULATIVE_DECODING) SpeculativeMode.ADAPTIVE else SpeculativeMode.OFF,
+        ),
+    )
+    private val visualConfig = baseConfig.copy(
         maxNumTokens = RagParameters.LLM_VISUAL_MAX_NUM_TOKENS,
         visionBackend = ComputeBackend.CPU,
         maxNumImages = RagParameters.LLM_MAX_NUM_IMAGES,
@@ -98,7 +111,7 @@ class EngineAnswerEngine(
     }
 
     private fun AnswerPrompt.toGeneration(): GenerationPrompt = when (this) {
-        is AnswerPrompt.Text -> GenerationPrompt.Text(text)
+        is AnswerPrompt.Text -> prefix?.let { GenerationPrompt.Split(it, text.substring(it.length)) } ?: GenerationPrompt.Text(text)
         is AnswerPrompt.Visual -> GenerationPrompt.Parts(
             parts.map { part ->
                 when (part) {

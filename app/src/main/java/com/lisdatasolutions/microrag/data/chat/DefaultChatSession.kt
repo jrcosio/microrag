@@ -298,7 +298,7 @@ class DefaultChatSession(
                     checkNotNull(pageTokens),
                 )
             } else {
-                AnswerPrompt.Text(prompt.text)
+                AnswerPrompt.Text(prompt.text, prefix = prompt.prefix)
             }
             log.blocks = prompt.blocks.size
             log.pageTokens = pageTokens
@@ -335,8 +335,8 @@ class DefaultChatSession(
         }
     }
 
-    /** The v4 prompt within the limit, with the blocks and the previous turn it kept (A6). */
-    private class Prompt(val text: String, val blocks: List<ContextBlock>, val previous: Pair<String, String>?)
+    /** The v4 prompt within the limit, with the blocks and the previous turn it kept (A6); [prefix] is its rules (F14). */
+    private class Prompt(val text: String, val prefix: String, val blocks: List<ContextBlock>, val previous: Pair<String, String>?)
 
     /** A6 (FR-015): within the limit, dropping the worst ranked blocks first, then the previous turn, never the last block. */
     private fun prompt(question: String, outcome: RetrievalOutcome.Blocks, previous: ChatTurn?, log: AnswerLog): Prompt {
@@ -362,7 +362,8 @@ class DefaultChatSession(
             text = build()
         }
         log.promptTokens = PromptBuilder.estimatedTokens(text)
-        return Prompt(text, blocks, turn)
+        val split = PromptBuilder.buildSplit(question, blocks.map { it.forPrompt() }, turn)
+        return Prompt(text, split.prefix, blocks, turn)
     }
 
     private fun ContextBlock.forPrompt() = PromptBuilder.Block(documentName, headingPath, page, text)

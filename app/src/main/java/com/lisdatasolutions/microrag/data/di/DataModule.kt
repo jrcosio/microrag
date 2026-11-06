@@ -51,6 +51,7 @@ import com.lisdatasolutions.microrag.data.multimodal.DefaultMultimodalController
 import com.lisdatasolutions.microrag.data.multimodal.IdentityValidator
 import com.lisdatasolutions.microrag.data.onboarding.DataStoreOnboardingStore
 import com.lisdatasolutions.microrag.data.rag.DefaultRagIndex
+import com.lisdatasolutions.microrag.data.rag.IngestActivity
 import com.lisdatasolutions.microrag.data.rag.QuantizedIndexMaintainer
 import com.lisdatasolutions.microrag.data.rag.RagSchema
 import com.lisdatasolutions.microrag.data.retrieval.EngineQueryEmbedder
@@ -138,15 +139,11 @@ val dataModule = module {
     }
 
     // F14 (research R3, contract I4): the INT8 copy of the chunk vectors, refreshed after the changes and at start.
-    single {
+    single<IngestActivity> {
         val runStore = get<IngestRunStore>()
-        QuantizedIndexMaintainer(
-            index = get(),
-            ingest = { runStore.run.first().documentIds.isNotEmpty() },
-            scope = get<ApplicationScope>().scope,
-            logger = get(),
-        )
+        IngestActivity { runStore.run.first().documentIds.isNotEmpty() }
     }
+    single { QuantizedIndexMaintainer(index = get(), ingest = get(), scope = get<ApplicationScope>().scope, logger = get()) }
 
     // Chat (F11): saved conversations in their own file, Gemma for the answers and the app-wide session.
     single<ChatRepository> {

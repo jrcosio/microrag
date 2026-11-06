@@ -44,6 +44,24 @@ class AnswerGoldenTest {
         }
     }
 
+    /** F14 T026 (contract G2): the prefix the engine prefills once and the rest add up to the prompt, to the character. */
+    @Test
+    fun theSplitPrompt_isThePromptToTheCharacter_withOnePrefixPerTemplate() {
+        val prefixes = cases.map { case ->
+            val split = PromptBuilder.buildSplit(
+                question = case.question,
+                blocks = case.blocks.map { PromptBuilder.Block(it.documentName, it.headingPath, it.page, it.text) },
+                previous = case.previous?.let { it[0] to it[1] },
+                template = case.template,
+            )
+            assertWithMessage("${case.id}: prefix + rest").that(split.whole).isEqualTo(prompt(case))
+            assertWithMessage("${case.id}: the rest starts after the rules").that(split.rest).matches("(?s)(CONVERSACIÓN PREVIA|FUENTES:).*")
+            split.prefix
+        }
+        assertThat(prefixes.toSet()).hasSize(1)
+        assertThat(prefixes.first()).endsWith(".\n\n")
+    }
+
     @Test
     fun theAnswersAreReadAsTheDesktop() {
         cases.forEach { case ->

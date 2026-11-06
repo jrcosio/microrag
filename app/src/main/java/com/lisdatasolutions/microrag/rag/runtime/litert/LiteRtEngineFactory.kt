@@ -23,10 +23,12 @@ import java.io.File
 class LiteRtEngineFactory(
     private val context: Context,
     private val dispatchers: AppDispatchers,
+    /** F14 (StartupBenchmarkTest): another folder for the compiled kernels, so a cold start never empties the app's. */
+    private val cacheDirOverride: File? = null,
 ) : EngineFactory, ImageEmbedderFactory {
 
     private val compiledCacheDir: File
-        get() = File(context.cacheDir, CACHE_DIR).apply { mkdirs() }
+        get() = (cacheDirOverride ?: File(context.cacheDir, CACHE_DIR)).apply { mkdirs() }
 
     override fun embedder(file: ModelFile, path: File, backend: ComputeBackend): TextEmbedder =
         LiteRtTextEmbedder(file.id, path, backend, compiledCacheDir, dispatchers.embeddings)
