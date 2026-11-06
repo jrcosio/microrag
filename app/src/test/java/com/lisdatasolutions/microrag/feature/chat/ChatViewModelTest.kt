@@ -19,6 +19,7 @@ import com.lisdatasolutions.microrag.domain.chat.TurnState
 import com.lisdatasolutions.microrag.domain.chat.TurnUpdate
 import com.lisdatasolutions.microrag.domain.indexing.IndexingState
 import com.lisdatasolutions.microrag.domain.indexing.RunProgress
+import com.lisdatasolutions.microrag.domain.rag.DocumentRef
 import com.lisdatasolutions.microrag.domain.rag.Folder
 import com.lisdatasolutions.microrag.domain.rag.FolderRef
 import com.lisdatasolutions.microrag.domain.rag.IndexCompatibility
@@ -580,6 +581,30 @@ class ChatViewModelTest {
         vm.onStart()
         advanceUntilIdle()
         assertThat(graph.engine.warmUps).isEqualTo(2)
+    }
+
+    /** F14 T040 (contract G7): with the lever, a new scope loads again the engine its answers need; without it, nothing. */
+    @Test
+    fun aNewScope_warmsGemmaUpAgain_onlyWithTheLever() = runTest(dispatcher) {
+        val manual = graph.addDocument("Manual de procesos.pdf")
+        val created = checkNotNull(graph.index.document(manual)).createdAtMs
+        // A scope that still has a document to answer with, so the chat stays ready.
+        val oneDocument = ChatScope.Some(emptySet(), general = false, documents = setOf(DocumentRef(manual, created)))
+        val off = graph.chatViewModel(saved(newConversation = true))
+        off.onStart()
+        advanceUntilIdle()
+        off.onApplyScope(oneDocument)
+        advanceUntilIdle()
+        assertThat(graph.engine.warmUps).isEqualTo(1)
+
+        // A new chat starts on the last scope used (FR-020b): the change is back to the whole library.
+        val on = graph.chatViewModel(saved(newConversation = true), prewarmByScope = true)
+        on.onStart()
+        advanceUntilIdle()
+        val before = graph.engine.warmUps
+        on.onApplyScope(ChatScope.WholeLibrary)
+        advanceUntilIdle()
+        assertThat(graph.engine.warmUps).isEqualTo(before + 1)
     }
 
     @Test

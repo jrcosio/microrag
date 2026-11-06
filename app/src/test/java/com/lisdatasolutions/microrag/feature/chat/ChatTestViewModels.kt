@@ -21,7 +21,7 @@ import com.lisdatasolutions.microrag.domain.library.ObserveFoldersUseCase
 import com.lisdatasolutions.microrag.testing.ChatTestGraph
 
 /** A [ChatViewModel] over the fakes of [ChatTestGraph]; [sdkInt] picks who confirms a copy (research R14). */
-internal fun ChatTestGraph.chatViewModel(savedState: SavedStateHandle, sdkInt: Int = 34) = ChatViewModel(
+internal fun ChatTestGraph.chatViewModel(savedState: SavedStateHandle, sdkInt: Int = 34, prewarmByScope: Boolean = false) = ChatViewModel(
     savedState = savedState,
     observeAvailability = availability,
     observeConversation = ObserveConversationUseCase(chats, session),
@@ -42,4 +42,5 @@ internal fun ChatTestGraph.chatViewModel(savedState: SavedStateHandle, sdkInt: I
     lastScope = LastScopeUseCase(session),
     applyScope = ApplyScopeUseCase(session),
     sdkInt = sdkInt,
+    prewarmByScope = prewarmByScope,
 )

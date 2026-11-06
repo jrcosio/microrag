@@ -45,6 +45,8 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
@@ -177,6 +179,99 @@ class VisualChatBenchmarkTest {
         }
     }
 
+    /**
+     * F14 T039 (research R10, contract B2, FR-025): with `-e f14.mode reload`, the first answer with a page after one
+     * without, with and without loading Gemma with vision beforehand, as the chat would on a change of scope (the time
+     * a person takes to type is [TYPING_MS]); with `-e f14.mode sustained`, [SUSTAINED_MINUTES] of whole answers with
+     * Equilibrado. Figures to `files/reports/f14-visual-*.json`. Skipped without the argument.
+     */
+    @Test
+    fun f14ReloadAndSustained() = runBlocking<Unit> {
+        val mode = InstrumentationRegistry.getArguments().getString("f14.mode")
+        assumeTrue("only with -e f14.mode reload|sustained", mode == "reload" || mode == "sustained")
+        assumeTrue("Gemma or the 440M is not installed and prepared", models.isReady(ModelId.GEMMA4_E2B) && models.isReady(ModelId.EG2_440M))
+        assumeTrue(pdf.isAvailable)
+        val dispatchers = AppDispatchers.create()
+        val coordinator = EngineCoordinator(temp.logger)
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+        val report = com.lisdatasolutions.microrag.testing.bench.BenchReport(context, "visual-$mode", sqliteVector = "-")
+        try {
+            val factory = LiteRtEngineFactory(context, dispatchers)
+            CorpusIndex(temp, root, pdf).build(coordinator, factory, models.pathOf(ModelId.EG2_440M)!!, ModelId.EG2_440M)
+            val pages = PageFileStore(File(root, "pages"), dispatchers.io)
+            indexPages(coordinator, factory, pages, dispatchers)
+            val backend = models.preparedBackends.value.getValue(ModelId.GEMMA4_E2B)
+            val ready = ChatAvailability.Ready(cpuMode = backend == ComputeBackend.CPU, partialCoverage = false)
+            val repository = SqliteChatRepository(File(root, "chat.db"), { ChatSchema.load(context.assets) }, Dispatchers.IO, temp.logger)
+            val engine = EngineAnswerEngine(coordinator, factory, models)
+            val retrieve = RetrieveContextUseCase(
+                HybridRetriever(temp.index, EngineQueryEmbedder(coordinator, factory, models, textEmbedder = { ModelId.EG2_440M }), temp.logger),
+            )
+            fun session(detail: PageDetail?) = DefaultChatSession(
+                repository = repository, retrieve = retrieve, engine = engine,
+                availability = { flowOf(ready) }, scope = scope, logger = temp.logger,
+                pageDetail = { detail },
+                pageImage = { documentId, page ->
+                    temp.index.pageFile(documentId, page)?.let { name -> withContext(Dispatchers.IO) { pages.file(name).readBytes() } }
+                },
+            )
+            val measured = questions.take(if (Build.MODEL == REFERENCE_PHONE) PHONE_QUESTIONS else EMULATOR_QUESTIONS)
+            report.start = com.lisdatasolutions.microrag.testing.bench.DeviceConditions.snapshot(context)
+            com.lisdatasolutions.microrag.testing.bench.DeviceConditions.resetPeak()
+            if (mode == "reload") {
+                val cold = report.variant("reload-without-prewarm")
+                val warm = report.variant("reload-with-prewarm")
+                measured.take(RELOADS).forEach { q ->
+                    firstToken(session(null), q.question)
+                    cold.add(com.lisdatasolutions.microrag.testing.bench.BenchReport.Sample("ttft", firstToken(session(PageDetail.BALANCED), q.question).toDouble(), q.id))
+                    firstToken(session(null), q.question)
+                    // What the chat does on a change of scope with pages: load Gemma with vision before the question.
+                    val prewarm = scope.launch { engine.warmUp(visual = true) }
+                    delay(TYPING_MS)
+                    prewarm.join()
+                    warm.add(com.lisdatasolutions.microrag.testing.bench.BenchReport.Sample("ttft", firstToken(session(PageDetail.BALANCED), q.question).toDouble(), q.id))
+                }
+                warm.extra["typingMs"] = JsonPrimitive(TYPING_MS)
+            } else {
+                val sustained = report.variant("sustained-balanced", mapOf("minutes" to "$SUSTAINED_MINUTES"))
+                val s = session(PageDetail.BALANCED)
+                val started = SystemClock.elapsedRealtime()
+                var i = 0
+                while (SystemClock.elapsedRealtime() - started < SUSTAINED_MINUTES * 60_000L) {
+                    val conditions = com.lisdatasolutions.microrag.testing.bench.DeviceConditions.snapshot(context)
+                    if (com.lisdatasolutions.microrag.testing.bench.DeviceConditions.isSevere(conditions.thermal)) {
+                        report.status = com.lisdatasolutions.microrag.testing.bench.BenchReport.STATUS_ABORTED_THERMAL
+                        break
+                    }
+                    val q = measured[i % measured.size]
+                    val at = (SystemClock.elapsedRealtime() - started) / 1000.0
+                    sustained.add(com.lisdatasolutions.microrag.testing.bench.BenchReport.Sample("ttft", wholeAnswer(s, q.question).toDouble(), q.id, conditions.thermal, at = at, battery = conditions.batteryPercent))
+                    i++
+                }
+                sustained.extra["answers"] = JsonPrimitive(i)
+            }
+            report.end = com.lisdatasolutions.microrag.testing.bench.DeviceConditions.snapshot(context)
+            report.write()
+        } finally {
+            scope.cancel()
+            coordinator.releaseAll()
+            dispatchers.close()
+        }
+    }
+
+    /** From `ask()` to the first token of a whole answer, then its end awaited. */
+    private suspend fun wholeAnswer(session: DefaultChatSession, question: String): Long {
+        val lines = answerLines().size
+        val start = SystemClock.elapsedRealtime()
+        checkNotNull(session.ask(null, question)) { "the session did not start an answer" }
+        val ttft = withTimeout(ANSWER_TIMEOUT_MS) {
+            session.active.first { it?.text?.isNotEmpty() == true }
+            SystemClock.elapsedRealtime() - start
+        }
+        withTimeout(ANSWER_TIMEOUT_MS) { while (answerLines().size == lines) delay(POLL_MS) }
+        return ttft
+    }
+
     /** The generated PDF in Visual, with the real 440M, as F19's page phase indexes it. */
     private suspend fun indexPages(coordinator: EngineCoordinator, factory: LiteRtEngineFactory, pages: PageFileStore, dispatchers: AppDispatchers) {
         val file = generatedPdf(File(root, "tablas.pdf"))
@@ -229,5 +324,8 @@ class VisualChatBenchmarkTest {
         const val ANSWER_LINE = "chat answer"
         const val ANSWER_TIMEOUT_MS = 180_000L
         const val POLL_MS = 20L
+        const val RELOADS = 5
+        const val TYPING_MS = 5_000L
+        const val SUSTAINED_MINUTES = 25
     }
 }

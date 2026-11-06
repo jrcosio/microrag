@@ -270,4 +270,23 @@ class ObserveChatAvailabilityUseCaseTest {
         warmUp()
         assertThat(engine.visualWarmUps).isEqualTo(1)
     }
+
+    /** F14 T040 (contract G7): with a scope, the vision is for the pages of that scope only. */
+    @Test
+    fun theWarmUpOfAScope_loadsTheVision_onlyWhenTheScopeHasPages() = runTest {
+        val warmUp = WarmUpAnswerEngineUseCase(engine, observe, multimodal, index)
+        multimodal.state.value = StoredMultimodal(stage = MultimodalStage.ON)
+        val text = doc("Hecho.txt", DocumentStatus.DONE)
+        val scanned = pagesOnly("Escaneado.pdf")
+
+        warmUp(SearchScope.Only(emptySet(), general = false, documentIds = setOf(text)))
+        assertThat(engine.warmUps to engine.visualWarmUps).isEqualTo(1 to 0)
+
+        warmUp(SearchScope.Only(emptySet(), general = false, documentIds = setOf(scanned)))
+        assertThat(engine.warmUps to engine.visualWarmUps).isEqualTo(2 to 1)
+
+        index.pagesUsable.value = false
+        warmUp(SearchScope.Only(emptySet(), general = false, documentIds = setOf(scanned)))
+        assertThat(engine.visualWarmUps).isEqualTo(1)
+    }
 }

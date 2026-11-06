@@ -229,13 +229,14 @@ class WarmUpAnswerEngineUseCase(
     private val multimodal: MultimodalStore,
     private val index: RagIndex,
 ) {
-    suspend operator fun invoke() {
+    /** F14 (contract G7): with a [scope], Gemma loads with vision only when that scope has pages to answer with. */
+    suspend operator fun invoke(scope: SearchScope = SearchScope.All) {
         if (observeAvailability().first() !is ChatAvailability.Ready) return
-        engine.warmUp(visual = withPages())
+        engine.warmUp(visual = withPages(scope))
     }
 
-    private suspend fun withPages(): Boolean = try {
-        multimodal.state.first().stage == MultimodalStage.ON && index.pagesUsable.value && index.chatLibraryState().withPages > 0
+    private suspend fun withPages(scope: SearchScope): Boolean = try {
+        multimodal.state.first().stage == MultimodalStage.ON && index.pagesUsable.value && index.chatLibraryState(scope).withPages > 0
     } catch (e: IndexUnavailableException) {
         false
     }

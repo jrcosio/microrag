@@ -75,4 +75,7 @@ object RagParameters {
     const val PREFIX_CACHE = false
     const val SPECULATIVE_DECODING = false
     val ACTIVATION_PRECISION: String? = null
+
+    /** F14 (research R10, contract G7): load Gemma with or without vision on a change of scope, before the question. */
+    const val PREWARM_BY_SCOPE = false
 }

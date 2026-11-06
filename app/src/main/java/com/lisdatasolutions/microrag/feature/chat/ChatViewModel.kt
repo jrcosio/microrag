@@ -46,6 +46,8 @@ import com.lisdatasolutions.microrag.domain.chat.toSearchScope
 import com.lisdatasolutions.microrag.domain.library.FoldersResult
 import com.lisdatasolutions.microrag.domain.library.ObserveFoldersUseCase
 import com.lisdatasolutions.microrag.domain.rag.FolderList
+import com.lisdatasolutions.microrag.domain.rag.RagParameters
+import com.lisdatasolutions.microrag.domain.rag.SearchScope
 import com.lisdatasolutions.microrag.feature.chat.scope.ScopeSelection
 import com.lisdatasolutions.microrag.feature.chat.scope.ScopeSummary
 import com.lisdatasolutions.microrag.feature.settings.waitTenthsFor
@@ -98,6 +100,8 @@ class ChatViewModel(
     private val applyScope: ApplyScopeUseCase,
     /** The confirmation of a copy is the system's from Android 13 (research R14). */
     private val sdkInt: Int = Build.VERSION.SDK_INT,
+    /** F14 (research R10, contract G7): load the engine the next answer needs when the scope changes, not at the question. */
+    private val prewarmByScope: Boolean = RagParameters.PREWARM_BY_SCOPE,
 ) : ViewModel() {
 
     private val route = savedState.toRoute<Chat>()
@@ -209,9 +213,11 @@ class ChatViewModel(
         // Gemma loads whenever the chat is ready on screen: back from hidden, and when a batch ends or the
         // models get ready while it shows (found on the phone, T069). Never while hidden: it was released.
         viewModelScope.launch {
-            combine(onScreen, availability) { shown, now -> shown && now is ChatAvailability.Ready }
+            combine(onScreen, availability, scope) { shown, now, current ->
+                (shown && now is ChatAvailability.Ready) to current.takeIf { prewarmByScope }
+            }
                 .distinctUntilChanged()
-                .collect { ready -> if (ready) warmUp() }
+                .collect { (ready, current) -> if (ready) warmUp(current?.toSearchScope() ?: SearchScope.All) }
         }
     }
 
