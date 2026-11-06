@@ -48,7 +48,7 @@ Al cerrar cada feature se entrega:
 | F11 | Chat con fuentes | Producto | F08, F10 | ✅ cerrada |
 | F12 | Ajustes e Idiomas | Producto | F03, F11 | ✅ cerrada |
 | F13 | Historial de chats | Producto (UI propuesta) | F11, F12 | ✅ cerrada |
-| F14 | Rendimiento en dispositivo y decisión INT8 | Técnica | F10, F11, F17, F20 | ⬜ |
+| F14 | Rendimiento en dispositivo y decisión INT8 | Técnica | F10, F11, F17, F20 | 🟨 en curso |
 | F15 | Pulido y release | Producto | F01–F20 | ⬜ |
 | F16 | Apariencia: tema e icono de Ajustes | Producto (UI propuesta) | F12 | ✅ cerrada |
 | F17 | Carpetas y ámbito del chat | Producto (UI propuesta) | F08, F11, F13 | ✅ cerrada |
@@ -662,7 +662,7 @@ También se introduce `EngineCoordinator`, que garantiza que nunca haya dos engi
 ## F14 — Rendimiento en dispositivo y decisión INT8
 
 - **Tipo:** Técnica. Diagnóstico y benchmark internos, solo en debug.
-- **Estado:** ⬜
+- **Estado:** 🟨 en curso en la rama `014-ondevice-performance` desde el 2026-11-06. Specify y clarify aprobados el 2026-11-06, con la decisión D-088: la 270M y E4B se copian al A063 solo para medir; las palancas del primer token se adoptan si bajan el p95 sostenido al menos 0,3 s sin perder más de 1 punto de `v4`; FP32 solo si sube el p95 ≤ 0,5 s, y si no, una instrucción en el prompt; la búsqueda entre idiomas solo se evalúa; LiteRT-LM 0.19.1 y SQLite-Vector 1.2.0 se prueban al empezar. Spec en `specs/014-ondevice-performance/spec.md`.
 
 **Objetivo.** Completar la tabla de benchmarks del informe con corpus de 10k, 50k y 100k chunks:
 - búsqueda F32 frente a INT8 (p50/p95/p99), FTS e híbrida;

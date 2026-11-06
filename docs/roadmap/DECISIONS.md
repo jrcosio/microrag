@@ -2313,6 +2313,33 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G47).
 
 ---
 
+## D-088 — Rendimiento en dispositivo: decisiones del clarify de F14
+
+- **Fecha:** 2026-11-06
+- **Decisión** (respuestas del usuario en el clarify de F14):
+  1. **Modelos de prueba en el A063:** la 270M (157 MB) y Gemma 4 E4B (3,66 GB) se copian con `adb` desde el escritorio a una carpeta de pruebas de la app de depuración, solo para medir. Se verifican por SHA-256 y se borran al terminar. El modo multimodal sigue activado.
+  2. **Regla de las palancas del primer token**, fijada antes de medir: se adopta la que baja el p95 del primer token en la sesión sostenida al menos 0,3 s. Si cambia el prompt o el contexto, además las respuestas correctas no bajan más de 1 punto de `v4` (81,1 %), y las negativas y las citas cumplen los umbrales del informe.
+  3. **fp16:** FP32 se adopta si el p95 del primer token en la sesión sostenida sube ≤ 0,5 s. Si no, se quedan las activaciones por defecto con una instrucción en el prompt para copiar las cifras tal cual, evaluada con la regla anterior; el riesgo que quede se documenta.
+  4. **Búsqueda entre idiomas:** F14 solo la evalúa en el escritorio y registra el resultado frente a la regla de 10 puntos de D-062. Si pasa, se implementa en otra feature, porque necesita el idioma de cada documento y otro índice por palabras. La tarjeta «Búsqueda multilingüe» no cambia.
+  5. **Runtimes al empezar:** LiteRT-LM 0.19.1 y SQLite-Vector 1.2.0 se prueban antes de medir. Si pasan el `embedding_golden`, las goldens de respuesta y la batería, todo F14 se mide con ellos. Si no, se quedan 0.18.1 y 1.1.2 con el motivo registrado.
+  6. **Spec aprobada** y ciclo automático hasta la implementación. La fase del teléfono y el cierre se preguntan antes.
+- **Motivo:**
+  - la 270M mide el modo por defecto, que es el de casi todos, y E4B es lo que pide D-035 para recomendar un perfil de modelo;
+  - 0,3 s es una mejora que se nota frente a la variación entre sesiones, y 1 punto conserva la calidad de `v4`, que el usuario prefirió en D-057;
+  - FP32 costó +2,8 s en F02 (D-023), así que solo se adopta si alguna palanca lo compensa;
+  - la búsqueda entre idiomas cambia el índice y la ingesta, que no son de una feature de rendimiento;
+  - medir con las versiones finales evita repetir las medidas.
+- **Alternativas descartadas:**
+  - medir sin la 270M o sin E4B en el teléfono;
+  - adoptar cualquier mejora con los umbrales del informe, o solo palancas que no tocan el prompt;
+  - FP32 siempre, o solo documentar el riesgo;
+  - implementar la búsqueda entre idiomas en F14, o dejarla sin evaluar;
+  - probar los runtimes al final como palanca, o no tocarlos.
+- **Origen:** usuario (clarify de F14).
+- **Afecta:** F14: spec (FR-017, FR-019, FR-021, FR-024, FR-028 y FR-031) y plan; D-035, D-057 y D-062.
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.
