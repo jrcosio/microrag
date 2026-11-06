@@ -2340,6 +2340,42 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G47).
 
 ---
 
+## D-089 — Rendimiento en dispositivo: decisiones del plan de F14
+
+- **Fecha:** 2026-11-06
+- **Decisión** (plan de F14, `specs/014-ondevice-performance/research.md`):
+  1. **INT8 con reordenación exacta** (R3):
+     - SQLite-Vector preselecciona 100 candidatos con `vector_quantize_scan`, y la app los reordena con la distancia exacta leyendo sus vectores F32;
+     - se usa solo con `quant_dirty = 0` y el índice precargado en la conexión; si no, la búsqueda es exacta;
+     - un `QuantizedIndexMaintainer` reconstruye en segundo plano tras la ingesta, el borrado y el reindexado, y precarga al arrancar;
+     - el tamaño mínimo para usar INT8 sale del banco.
+  2. **Bancos construidos en el escritorio** (R2): fragmentos hechos con frases reales del corpus de F05 y embebidos de verdad con la 270M. Se cargan en el teléfono en bases aparte, construidas con el código de la app, y se borran al terminar. Las páginas se hacen perturbando los vectores reales del corpus visual de F18.
+  3. **Medidas en pruebas instrumentadas** con un kit común (condiciones, JSON y percentiles) y las tablas de `benchmarks.md` generadas en el escritorio (R4).
+  4. **Palancas con interruptor**, decididas tras la fase del teléfono con las reglas de D-088:
+     - el prefijo reutilizado con `clone()` de LiteRT-LM 0.19.1, primero sin cambiar el prompt (R6);
+     - la especulativa MTP (R7);
+     - FP32 o la plantilla `v4-cifras` (R8);
+     - el estimador de tokens por clases de caracteres (R9);
+     - la precarga del motor con visión al cambiar de ámbito y la regla de seguimiento con páginas (R10);
+     - 3 bloques (R13).
+  5. **Reglas congeladas** en `offline/config/f14_rules.json`, con su propio commit antes de evaluar.
+- **Motivo:**
+  - INT8 sin reordenar da un recall por debajo de 0,97 con 100k vectores en el Mac, y SQLite-Vector no tiene distancia escalar ni filtro por rowid;
+  - el recall de INT8 depende de la distribución real de los vectores, y construir con el código de la app garantiza el mismo esquema y normalizador;
+  - las palancas se deciden con cifras del teléfono, que se miden al final: con interruptores no hace falta otra vuelta de implementación.
+- **Pendiente para la parada del analyze:**
+  - la enmienda PATCH 1.2.1 de la constitución con las versiones de los runtimes (R1);
+  - el criterio propio de la especulativa (R7), que no baja el primer token.
+- **Alternativas descartadas:**
+  - INT8 sin reordenar, o reconstruir en otra conexión;
+  - vectores aleatorios en los bancos, o construir la base en Python;
+  - una pantalla de diagnóstico para los bancos;
+  - implementar solo las palancas ya adoptadas.
+- **Origen:** plan de F14.
+- **Afecta:** F14: plan, contratos y tareas; D-052, D-057 y D-088.
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.

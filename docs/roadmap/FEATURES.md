@@ -662,7 +662,7 @@ También se introduce `EngineCoordinator`, que garantiza que nunca haya dos engi
 ## F14 — Rendimiento en dispositivo y decisión INT8
 
 - **Tipo:** Técnica. Diagnóstico y benchmark internos, solo en debug.
-- **Estado:** 🟨 en curso en la rama `014-ondevice-performance` desde el 2026-11-06. Specify y clarify aprobados el 2026-11-06, con la decisión D-088: la 270M y E4B se copian al A063 solo para medir; las palancas del primer token se adoptan si bajan el p95 sostenido al menos 0,3 s sin perder más de 1 punto de `v4`; FP32 solo si sube el p95 ≤ 0,5 s, y si no, una instrucción en el prompt; la búsqueda entre idiomas solo se evalúa; LiteRT-LM 0.19.1 y SQLite-Vector 1.2.0 se prueban al empezar. Spec en `specs/014-ondevice-performance/spec.md`.
+- **Estado:** 🟨 en curso en la rama `014-ondevice-performance` desde el 2026-11-06. Specify y clarify aprobados el 2026-11-06, con la decisión D-088: la 270M y E4B se copian al A063 solo para medir; las palancas del primer token se adoptan si bajan el p95 sostenido al menos 0,3 s sin perder más de 1 punto de `v4`; FP32 solo si sube el p95 ≤ 0,5 s, y si no, una instrucción en el prompt; la búsqueda entre idiomas solo se evalúa; LiteRT-LM 0.19.1 y SQLite-Vector 1.2.0 se prueban al empezar. Plan hecho el 2026-11-06, con la decisión D-089: INT8 con reordenación exacta y un mantenedor en segundo plano; bancos construidos en el escritorio con textos y vectores reales; palancas con interruptor decididas tras la fase del teléfono. Spec en `specs/014-ondevice-performance/spec.md`.
 
 **Objetivo.** Completar la tabla de benchmarks del informe con corpus de 10k, 50k y 100k chunks:
 - búsqueda F32 frente a INT8 (p50/p95/p99), FTS e híbrida;
