@@ -79,7 +79,7 @@ description: "Lista de tareas de F14 — Rendimiento en dispositivo y decisión 
 
   Si algo no cuadra, volver a 0.18.1 y 1.1.2 y anotarlo en `research.md` R1
 - [X] T004 JVM (`testDebugUnitTest`), lint (`lintDebug`: desaparecen los avisos de versión de LiteRT-LM y SQLite-Vector) y la batería instrumentada sin modelos en `MicroRAG_API33` y `Pixel_10`, con los runtimes nuevos
-- [ ] T005 **Sesión corta en el A063** (preguntar antes, D-090): instalar los APK con `adb -s` y pasar el `embedding_golden` y las goldens de respuesta con 0.19.1, sin abrir la app ni tocar datos del usuario (unos 15 minutos). Si fallan: volver a 0.18.1 y 1.1.2 (deshacer T001 y T003), anotarlo, y las palancas de la 0.19 pasan a `not-available`. Dejar el teléfono como estaba
+- [X] T005 **Sesión corta en el A063** (preguntar antes, D-090): instalar los APK con `adb -s` y pasar el `embedding_golden` y las goldens de respuesta con 0.19.1, sin abrir la app ni tocar datos del usuario (unos 15 minutos). Si fallan: volver a 0.18.1 y 1.1.2 (deshacer T001 y T003), anotarlo, y las palancas de la 0.19 pasan a `not-available`. Dejar el teléfono como estaba
 
 ---
 

@@ -15,6 +15,11 @@ Nada se ha medido aún en el teléfono. Las cifras del Mac son orientativas.
   2. en el A063, en una **sesión corta justo después** y antes de construir las palancas (D-090): `embedding_golden` y las goldens de respuesta, unos 15 minutos y sin datos del usuario. Así, si fallan, se vuelve a 0.18.1 y 1.1.2 antes de que exista código que dependa de 0.19 (`clone()` y la especulativa);
   3. la batería completa del teléfono va al final, con las medidas.
 
+  **Resultado (T003–T005, 2026-11-06):**
+  - escritorio: los 50 vectores del golden de la 270M salen idénticos con `litert-lm-api` 0.19.1 (coseno mínimo 1,0) y las 426 respuestas de `v4` también (la base de las palancas no cambia: 81,1 % correctas, 91,1 % negativas y 94,3 % citas);
+  - emuladores: JVM 1.355/1.355, lint sin avisos de versión, la batería sin modelos sin fallos nuevos (Pixel_10 792/792; API 33 con los 4 fallos conocidos de Atrás de F13);
+  - A063: 19/19 en la sesión corta (`EmbeddingGoldenTest` con la 440M, el humo de Gemma en texto y con visión, las goldens de prompt, normalizador e ingesta, la extensión 1.2.0 y `RagIndexInt8Test`). Se adoptan los runtimes nuevos; la enmienda 1.2.1 va en el cierre.
+
   En el escritorio también suben `litert-lm-api` a 0.19.1 y `sqliteai-vector` a 1.2.0. Las 426 respuestas de `v4` se regeneran con 0.19.1 y las que cambian se juzgan a mano: esa es la base de las palancas (D-090).
 - **LiteRT-LM 0.19.x frente a 0.18.1:**
   - el `classes.jar` de 0.19.0 y el de 0.19.1 son idénticos; solo cambia el `.so` nativo;
