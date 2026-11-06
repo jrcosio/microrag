@@ -16,11 +16,14 @@ object EmbeddingMath {
 
     fun l2Norm(vector: FloatArray): Double = l2Norm(vector, vector.size)
 
-    fun cosine(a: FloatArray, b: FloatArray): Double {
+    fun cosine(a: FloatArray, b: FloatArray): Double = dot(a, b) / (l2Norm(a) * l2Norm(b))
+
+    /** The cosine of two unit vectors (F14: the exact reorder of the INT8 candidates). */
+    fun dot(a: FloatArray, b: FloatArray): Double {
         require(a.size == b.size) { "Vectors differ in size: ${a.size} vs ${b.size}" }
         var dot = 0.0
         for (i in a.indices) dot += a[i].toDouble() * b[i].toDouble()
-        return dot / (l2Norm(a) * l2Norm(b))
+        return dot
     }
 
     private fun l2Norm(vector: FloatArray, size: Int): Double {

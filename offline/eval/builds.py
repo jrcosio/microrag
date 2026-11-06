@@ -125,13 +125,14 @@ class Embedder:
     model accepts it. Only the embedded text is cut, never the stored chunk. [truncated] counts the cuts.
     """
 
-    def __init__(self, attempts=OVERFLOW_ATTEMPTS):
+    def __init__(self, attempts=OVERFLOW_ATTEMPTS, gpu=False):
         from litert_lm import Backend, EmbeddingEngine, EmbeddingOptions
 
         cache = BUILD / "litert-cache"
         cache.mkdir(parents=True, exist_ok=True)
-        self.engine = EmbeddingEngine(str(models.verify(models.EMBEDDING)), backend=Backend.CPU(), cache_dir=str(cache),
-                                      max_input_length=MAX_INPUT_TOKENS)
+        # [gpu]: only the F14 benchmark banks, as the app's ingest may embed on the GPU (D-024).
+        self.engine = EmbeddingEngine(str(models.verify(models.EMBEDDING)), backend=Backend.GPU() if gpu else Backend.CPU(),
+                                      cache_dir=str(cache), max_input_length=MAX_INPUT_TOKENS)
         self.options = EmbeddingOptions(normalize=False)
         self.attempts = attempts
         self.truncated = 0

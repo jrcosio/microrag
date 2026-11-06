@@ -30,7 +30,9 @@ import com.lisdatasolutions.microrag.domain.rag.PageKey
 import com.lisdatasolutions.microrag.domain.rag.PageSpace
 import com.lisdatasolutions.microrag.domain.rag.RagIndex
 import com.lisdatasolutions.microrag.domain.rag.RagIndexConfig
+import com.lisdatasolutions.microrag.domain.rag.QuantizedState
 import com.lisdatasolutions.microrag.domain.rag.RagMetaKeys
+import com.lisdatasolutions.microrag.domain.rag.RagParameters
 import com.lisdatasolutions.microrag.domain.rag.ScoredChunk
 import com.lisdatasolutions.microrag.domain.rag.ScoredPage
 import com.lisdatasolutions.microrag.domain.rag.SearchScope
@@ -67,7 +69,16 @@ class DefaultRagIndex(
      */
     private val newIndexEmbedder: suspend () -> ModelId = { initialTextEmbedder },
     private val pageSpace: PageSpace = PageSpace.CURRENT,
+    /** F14 (research R3): how the INT8 copy is built and loaded; tests swap it to make either step fail. */
+    private val quantization: QuantizationSql = QuantizationSql(),
 ) : RagIndex {
+
+    /** F14 (research R3, contract I2): the SQL that builds and preloads the INT8 copy of the chunk vectors. */
+    data class QuantizationSql(
+        val quantize: String =
+            "SELECT vector_quantize('chunks', 'embedding', 'qtype=INT8,max_memory=${RagParameters.INT8_MAX_MEMORY_MB}MB')",
+        val preload: String = "SELECT vector_quantize_preload('chunks', 'embedding')",
+    )
 
     private val embedder = MutableStateFlow(initialTextEmbedder)
     override val textEmbedder: StateFlow<ModelId> = embedder.asStateFlow()
@@ -84,12 +95,20 @@ class DefaultRagIndex(
     /** Open only while the index is compatible; touched on [dispatcher] only. */
     private var connection: RagConnection? = null
 
+    /**
+     * F14 (research R3): the INT8 copy is current and preloaded on [connection]. Set only by a whole refresh, cleared by
+     * every change of the chunks and with the connection, so the search never reads a stale or partial copy. Touched on
+     * [dispatcher] only.
+     */
+    private var int8Preloaded = false
+
     override suspend fun open(): IndexCompatibility = withContext(dispatcher) { ensureOpen() }
 
     override suspend fun close() {
         withContext(dispatcher) {
             connection?.close()
             connection = null
+            int8Preloaded = false
             state.value = IndexCompatibility.Closed
         }
     }
@@ -508,17 +527,73 @@ class DefaultRagIndex(
     override suspend fun vectorSearch(query: FloatArray, k: Int, scope: SearchScope): List<ScoredChunk> {
         requireUnitVector(query)
         require(k > 0) { "k must be positive" }
-        return withIndex { db ->
-            when (scope) {
-                SearchScope.All ->
-                    db.query(VECTOR_SEARCH_SQL, query.toLeBlob(), k + hiddenChunks(db), k) { ScoredChunk(it.getLong(0), it.getDouble(1)) }
-                is SearchScope.Only -> {
-                    val (condition, args) = scopeCondition(scope)
-                    db.query(scopedVectorSearchSql(condition), query.toLeBlob(), *args, k) { ScoredChunk(it.getLong(0), it.getDouble(1)) }
-                }
-            }
+        return withIndex { db -> if (int8Preloaded) quantizedSearch(db, query, k, scope) else exactSearch(db, query, k, scope) }
+    }
+
+    private fun exactSearch(db: RagConnection, query: FloatArray, k: Int, scope: SearchScope): List<ScoredChunk> = when (scope) {
+        SearchScope.All ->
+            db.query(VECTOR_SEARCH_SQL, query.toLeBlob(), k + hiddenChunks(db), k) { ScoredChunk(it.getLong(0), it.getDouble(1)) }
+        is SearchScope.Only -> {
+            val (condition, args) = scopeCondition(scope)
+            db.query(scopedVectorSearchSql(condition), query.toLeBlob(), *args, k) { ScoredChunk(it.getLong(0), it.getDouble(1)) }
         }
     }
+
+    /**
+     * F14 (research R3, contract I2): the INT8 copy preselects [RagParameters.INT8_CANDIDATES] searchable chunks with
+     * the same filters as [exactSearch], and their stored F32 vectors order them by the exact cosine distance.
+     */
+    private fun quantizedSearch(db: RagConnection, query: FloatArray, k: Int, scope: SearchScope): List<ScoredChunk> {
+        val wanted = maxOf(k, RagParameters.INT8_CANDIDATES)
+        val candidates = when (scope) {
+            SearchScope.All -> db.query(QUANTIZED_SEARCH_SQL, query.toLeBlob(), wanted + hiddenChunks(db), wanted) { it.getLong(0) }
+            is SearchScope.Only -> {
+                val (condition, args) = scopeCondition(scope)
+                db.query(scopedQuantizedSearchSql(condition), query.toLeBlob(), *args, wanted) { it.getLong(0) }
+            }
+        }
+        return candidates.chunked(MAX_KEYS_PER_QUERY).flatMap { block ->
+            db.query("SELECT id, embedding FROM chunks WHERE id IN (${block.joinToString(",") { "?" }})", *block.toTypedArray()) {
+                ScoredChunk(it.getLong(0), EXACT_COSINE_ONE - EmbeddingMath.dot(query, it.getBlob(1).toFloatArrayLe()))
+            }
+        }.sortedWith(compareBy<ScoredChunk>({ it.distance }, { it.id })).take(k)
+    }
+
+    override suspend fun quantizedState(): QuantizedState = withIndex { db ->
+        QuantizedState(current = quantCurrent(db), preloaded = int8Preloaded, searchableChunks = searchableChunks(db))
+    }
+
+    override suspend fun refreshQuantized(minChunks: Int): QuantizedState = withIndex { db ->
+        int8Preloaded = false
+        val searchable = searchableChunks(db)
+        if (searchable == 0 || searchable < minChunks) {
+            return@withIndex QuantizedState(current = quantCurrent(db), preloaded = false, searchableChunks = searchable)
+        }
+        try {
+            if (!quantCurrent(db)) {
+                val started = System.nanoTime()
+                db.queryOne(quantization.quantize) { }
+                db.exec("UPDATE rag_meta SET value = '0' WHERE key = ?", RagMetaKeys.QUANT_DIRTY)
+                logger.i(TAG) { "rag int8 rebuilt chunks=$searchable in ${elapsedMs(started)} ms" }
+            }
+            val started = System.nanoTime()
+            db.queryOne(quantization.preload) { }
+            int8Preloaded = true
+            logger.i(TAG) { "rag int8 preloaded in ${elapsedMs(started)} ms" }
+        } catch (e: IllegalArgumentException) {
+            throw e
+        } catch (e: RuntimeException) {
+            int8Preloaded = false
+            logger.w(TAG, e) { "rag int8 refresh failed; the search stays exact" }
+        }
+        QuantizedState(current = quantCurrent(db), preloaded = int8Preloaded, searchableChunks = searchable)
+    }
+
+    private fun quantCurrent(db: RagConnection): Boolean =
+        db.queryOne("SELECT value FROM rag_meta WHERE key = ?", RagMetaKeys.QUANT_DIRTY) { it.getText(0) } == "0"
+
+    private fun searchableChunks(db: RagConnection): Int =
+        count(db, "SELECT count(*) FROM chunks c JOIN documents d ON d.id = c.document_id WHERE " + SEARCHABLE)
 
     override suspend fun textSearch(userQuery: String, k: Int, scope: SearchScope): List<Long> {
         require(k > 0) { "k must be positive" }
@@ -585,9 +660,10 @@ class DefaultRagIndex(
             ?: ChatLibraryState(0, 0, 0)
     }
 
-    /** The INT8 index no longer matches the chunks (D-030); F14 rebuilds it. */
+    /** The INT8 copy no longer matches the chunks (D-030): the search is exact until the next refresh (F14 R3). */
     private fun markQuantDirty(db: RagConnection) {
         db.exec("UPDATE rag_meta SET value = '1' WHERE key = ?", RagMetaKeys.QUANT_DIRTY)
+        int8Preloaded = false
     }
 
     /** WHERE clause and arguments shared by [libraryPage] and [libraryCount]: no shadows, [statuses], the folder, the name. */
@@ -843,6 +919,12 @@ class DefaultRagIndex(
             "SELECT v.rowid, v.distance FROM v JOIN chunks c ON c.id = v.rowid JOIN documents d ON d.id = c.document_id " +
             "WHERE " + SEARCHABLE + " ORDER BY v.distance LIMIT ?"
 
+        /** F14 (research R3): [VECTOR_SEARCH_SQL] on the INT8 copy; its distances are approximate. */
+        const val QUANTIZED_SEARCH_SQL = "WITH v AS MATERIALIZED (" +
+            "SELECT rowid, distance FROM vector_quantize_scan('chunks', 'embedding', ?, ?)) " +
+            "SELECT v.rowid, v.distance FROM v JOIN chunks c ON c.id = v.rowid JOIN documents d ON d.id = c.document_id " +
+            "WHERE " + SEARCHABLE + " ORDER BY v.distance LIMIT ?"
+
         /** Arguments: the FTS query, k + m candidates and k. */
         const val TEXT_SEARCH_SQL = "WITH f AS MATERIALIZED (" +
             "SELECT rowid, bm25(chunks_fts, 3.0, 1.0) AS score FROM chunks_fts WHERE chunks_fts MATCH ? ORDER BY score LIMIT ?) " +
@@ -855,6 +937,12 @@ class DefaultRagIndex(
          */
         fun scopedVectorSearchSql(scopeCondition: String): String = "WITH v AS MATERIALIZED (" +
             "SELECT rowid, distance FROM vector_full_scan('chunks', 'embedding', ?)) " +
+            "SELECT v.rowid, v.distance FROM v JOIN chunks c ON c.id = v.rowid JOIN documents d ON d.id = c.document_id " +
+            "WHERE " + SEARCHABLE + " AND " + scopeCondition + " ORDER BY v.distance LIMIT ?"
+
+        /** F14 (research R3): [scopedVectorSearchSql] on the INT8 copy, streaming, with the scope after scoring every row. */
+        fun scopedQuantizedSearchSql(scopeCondition: String): String = "WITH v AS MATERIALIZED (" +
+            "SELECT rowid, distance FROM vector_quantize_scan('chunks', 'embedding', ?)) " +
             "SELECT v.rowid, v.distance FROM v JOIN chunks c ON c.id = v.rowid JOIN documents d ON d.id = c.document_id " +
             "WHERE " + SEARCHABLE + " AND " + scopeCondition + " ORDER BY v.distance LIMIT ?"
 
@@ -913,6 +1001,9 @@ class DefaultRagIndex(
         private const val SHADOW_STATUS_COLUMN = 20
         private const val LOAD_BLOCK = 500
         private const val UNIT_NORM_TOLERANCE = 1e-3
+
+        /** The cosine distance of unit vectors is 1 − their dot product, as SQLite-Vector computes it. */
+        private const val EXACT_COSINE_ONE = 1.0
         private const val DOCUMENT_COLUMNS = "id, display_name, content_hash, mime_type, uri, status, chunk_count, error, " +
             "included, size_bytes, page_count, local_path, created_at_ms, updated_at_ms, skipped_pages, replaces_id, " +
             "folder_id, (SELECT f.name FROM folders f WHERE f.id = documents.folder_id), index_mode, " +

@@ -63,10 +63,34 @@ class DefaultLibraryRepositoryTest {
         dir.deleteRecursively()
     }
 
+    /** F14 (contract I4): how many times a change of the chunks asked for the INT8 refresh. */
+    private var chunkChanges = 0
+
     private fun TestScope.repository(files: DocumentFiles? = null): DefaultLibraryRepository {
         val dispatcher = UnconfinedTestDispatcher(testScheduler)
         val indexing = DefaultIndexingRepository(index, scheduler, runStore, FakeThermalStatusSource(), dispatcher, logger)
-        return DefaultLibraryRepository(index, files ?: DocumentFiles(store, index, dispatcher, logger), runStore, indexing, dispatcher, logger) { 0L }
+        return DefaultLibraryRepository(
+            index, files ?: DocumentFiles(store, index, dispatcher, logger), runStore, indexing, dispatcher, logger,
+            onChunksChanged = { chunkChanges++ },
+        ) { 0L }
+    }
+
+    /** F14 T017 (contract I4): deleting, removing from the index and discarding a shadow ask for the INT8 refresh. */
+    @Test
+    fun theChangesOfTheChunks_askForTheInt8Refresh() = runTest {
+        val deleted = doc("Borrado.pdf", chunks = 2)
+        val removed = doc("Quitado.pdf", chunks = 2)
+        val reindexed = doc("Reindexado.pdf", chunks = 2)
+        val shadow = index.addReindexShadow(reindexed)
+        index.updateStatus(shadow, DocumentStatus.ERROR, error = IngestError.EMBEDDING_FAILED.code)
+        val repository = repository()
+
+        repository.delete(deleted)
+        repository.removeFromIndex(removed)
+        repository.discardReindex(reindexed)
+        repository.setIncluded(reindexed, false)
+
+        assertThat(chunkChanges).isEqualTo(3)
     }
 
     /** A document with its private copy in the store, unless [copy] is false. */

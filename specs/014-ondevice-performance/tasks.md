@@ -88,16 +88,16 @@ description: "Lista de tareas de F14 — Rendimiento en dispositivo y decisión 
 **Purpose**: lo que usan todos los bancos. Ninguna historia de medida empieza sin esto.
 
 - [X] T006 Congelar las reglas: `offline/config/f14_rules.json`, exactamente el del contrato H3 (D-088 y D-090), en un **commit propio antes de cualquier evaluación**
-- [ ] T007 [P] Kit de medida en `…/androidTest/testing/bench/`: `DeviceConditions.kt`, `Percentiles.kt` y `BenchReport.kt` (contrato B1, data-model §4). `…/androidTest/testing/bench/BenchReportTest.kt`, sin modelos, comprueba en el emulador el JSON, los percentiles y las condiciones; se escribe antes y falla primero
-- [ ] T008 [P] `offline/eval/bench_bank.py`, con `bench-bank` y `bench-pages` en `offline/run_eval.py` (R2, R10, contrato H2 y H4). Además de lo de data-model §3, el banco lleva `queries.f32`: los vectores de las 370 preguntas, embebidos con la 270M del escritorio, para medir la búsqueda sin modelo. `offline/tests/test_bench_bank.py` va primero
-- [ ] T009 [P] En `…/androidTest/testing/bench/`:
+- [X] T007 [P] Kit de medida en `…/androidTest/testing/bench/`: `DeviceConditions.kt`, `Percentiles.kt` y `BenchReport.kt` (contrato B1, data-model §4). `…/androidTest/testing/bench/BenchReportTest.kt`, sin modelos, comprueba en el emulador el JSON, los percentiles y las condiciones; se escribe antes y falla primero
+- [X] T008 [P] `offline/eval/bench_bank.py`, con `bench-bank` y `bench-pages` en `offline/run_eval.py` (R2, R10, contrato H2 y H4). Además de lo de data-model §3, el banco lleva `queries.f32`: los vectores de las 370 preguntas, embebidos con la 270M del escritorio, para medir la búsqueda sin modelo. `offline/tests/test_bench_bank.py` va primero
+- [X] T009 [P] En `…/androidTest/testing/bench/`:
   - `DevFiles.kt`: verificación por SHA-256 y carga directa de la 270M y E4B desde `dev-models` con `EngineFactory`, sin `installVerified` ni `ModelCatalog` (D-090);
   - `BenchBank.kt`: verificar el manifiesto, construir o reutilizar `cacheDir/bench/<nombre>.db` con `DefaultRagIndex` en su propio dispatcher, y dar las preguntas y sus vectores;
   - `BenchDirsTest.kt`: crea `dev-bench` y `dev-models` sin abrir la app.
 
   `…/androidTest/testing/bench/BenchBankTest.kt`, con un banco diminuto en los assets de `androidTest`, corre en el emulador
 - [X] T010 [P] `offline/eval/device_bench.py` y `device-report` en `offline/run_eval.py` (contrato H2). `offline/tests/test_device_bench.py` va primero, con un JSON de ejemplo
-- [ ] T011 [P] `…/androidTest/testing/bench/BenchCleanupTest.kt` (contrato B2): borra `cacheDir/bench`, `dev-bench`, la 270M y E4B de `dev-models`, y los informes `f14-*` y `visual-chat-*`. Se prueba en el emulador con ficheros simulados
+- [X] T011 [P] `…/androidTest/testing/bench/BenchCleanupTest.kt` (contrato B2): borra `cacheDir/bench`, `dev-bench`, la 270M y E4B de `dev-models`, y los informes `f14-*` y `visual-chat-*`. Se prueba en el emulador con ficheros simulados
 
 **Checkpoint**: kit y bancos listos; las historias pueden empezar.
 
@@ -111,16 +111,16 @@ description: "Lista de tareas de F14 — Rendimiento en dispositivo y decisión 
 
 ### Tests for User Story 2
 
-- [ ] T012 [P] [US2] `…/androidTest/data/rag/RagIndexInt8Test.kt`, con los 9 casos del contrato I5 y SQLite-Vector real. Falla primero
-- [ ] T013 [P] [US2] `…/test/data/rag/QuantizedIndexMaintainerTest.kt`: coalescencia, nada con una tanda activa, el arranque precarga, un fallo no se propaga y nada bajo el umbral (contrato I4). Falla primero
+- [X] T012 [P] [US2] `…/androidTest/data/rag/RagIndexInt8Test.kt`, con los 9 casos del contrato I5 y SQLite-Vector real. Falla primero
+- [X] T013 [P] [US2] `…/test/data/rag/QuantizedIndexMaintainerTest.kt`: coalescencia, nada con una tanda activa, el arranque precarga, un fallo no se propaga y nada bajo el umbral (contrato I4). Falla primero
 
 ### Implementation for User Story 2
 
-- [ ] T014 [US2] Dominio:
+- [X] T014 [US2] Dominio:
   - `QuantizedState`, `quantizedState()` y `refreshQuantized(minChunks)` en `…/microrag/domain/rag/RagIndex.kt`;
   - `INT8_CANDIDATES` (100), `INT8_MIN_CHUNKS` (10.000), `INT8_MAX_MEMORY_MB` (64) y `QUANT_REBUILD_DEBOUNCE_MS` (2.000) en `…/microrag/domain/rag/RagParameters.kt` (data-model §2);
   - el fake en `…/test/testing/FakeRagIndex.kt`
-- [ ] T015 [US2] Datos:
+- [X] T015 [US2] Datos:
   - `vector_quantize`, `vector_quantize_preload` y la lectura de blobs en `…/microrag/data/rag/RagConnection.kt`;
   - en `…/microrag/data/rag/DefaultRagIndex.kt`:
     - la ruta INT8 con reordenación exacta (sin ámbito, con ámbito y excluidos, contrato I2);
@@ -128,8 +128,8 @@ description: "Lista de tareas de F14 — Rendimiento en dispositivo y decisión 
     - `refreshQuantized`: reconstruye solo con `quant_dirty = 1`, sin tanda y con ≥ `INT8_MIN_CHUNKS` buscables, y pone `quant_dirty = 0` solo tras el éxito;
     - `quantizedState`;
     - el log con la duración de la reconstrucción y de la precarga (solo números)
-- [ ] T016 [US2] `…/microrag/data/rag/QuantizedIndexMaintainer.kt` y la interfaz `IngestActivity` (con su implementación sobre el estado de `IngestRunner`), y su `single` en `…/microrag/data/di/DataModule.kt`
-- [ ] T017 [US2] Disparadores (contrato I4):
+- [X] T016 [US2] `…/microrag/data/rag/QuantizedIndexMaintainer.kt` y la interfaz `IngestActivity` (con su implementación sobre el estado de `IngestRunner`), y su `single` en `…/microrag/data/di/DataModule.kt`
+- [X] T017 [US2] Disparadores (contrato I4):
   - `…/microrag/data/ingest/IngestRunner.kt` (`finishRun`);
   - `…/microrag/data/library/DefaultLibraryRepository.kt` (`delete`, `removeFromIndex`, `reindex` y `discardReindex`);
   - `…/microrag/MicroRagApplication.kt` (`STARTUP`).

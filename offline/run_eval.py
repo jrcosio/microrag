@@ -394,7 +394,8 @@ def bench_bank(args):
     from eval import bench_bank as module
     from eval import builds, models, pipeline
 
-    values = _key_values(args, ("n", "seed", "warm", "cache", "merge"))
+    values = _key_values(args, ("n", "seed", "warm", "cache", "merge", "backend"))
+    gpu = values.get("backend", "cpu") == "gpu"
     seed = int(values.get("seed", module.SEED))
     sources = module.sentences_by_document(builds.index_path("ref"))
     module.BENCH_DIR.mkdir(parents=True, exist_ok=True)
@@ -407,7 +408,7 @@ def bench_bank(args):
     if "warm" in values:
         # warm=start:end embeds those documents only, into [cache], so several processes share the 100k embeddings.
         start, end = (int(x) for x in values["warm"].split(":"))
-        cache = module.EmbeddingCache(cache_path, builds.Embedder())
+        cache = module.EmbeddingCache(cache_path, builds.Embedder(gpu=gpu))
         try:
             module.warm_cache(start, end, sources, cache, seed)
         finally:
@@ -417,7 +418,7 @@ def bench_bank(args):
     n = int(values["n"])
     questions = [(q.id, q.question, next((p.question for p in pipeline.live_questions() if p.id == q.previous), None))
                  for q in pipeline.live_questions()]
-    cache = module.EmbeddingCache(cache_path, builds.Embedder())
+    cache = module.EmbeddingCache(cache_path, builds.Embedder(gpu=gpu))
     started = time.time()
 
     def progress(done, total):

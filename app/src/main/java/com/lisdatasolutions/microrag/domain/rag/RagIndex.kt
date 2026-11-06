@@ -169,6 +169,16 @@ interface RagIndex {
      */
     suspend fun insertChunks(documentId: Long, chunks: List<ChunkInput>): Int
 
+    /** F14 (research R3, contract I1): the INT8 copy of the chunk vectors, as `rag_meta` and this connection see it. */
+    suspend fun quantizedState(): QuantizedState
+
+    /**
+     * Rebuilds the INT8 copy when it is stale and there are at least [minChunks] searchable chunks, then preloads it;
+     * preloads only, when it is current. Never throws for a failed rebuild or preload: the copy stays unused and the
+     * vector search stays exact (constitution V). Returns the state after the attempt.
+     */
+    suspend fun refreshQuantized(minChunks: Int): QuantizedState
+
     /**
      * Exact top-[k] search by cosine distance; [query] has 256 components and unit norm. Only chunks
      * of documents that are done and included are found (F07 rule N7), and only in [scope] (F17).

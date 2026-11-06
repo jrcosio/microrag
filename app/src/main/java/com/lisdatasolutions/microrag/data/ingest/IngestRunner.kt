@@ -89,6 +89,8 @@ class IngestRunner(
     private val progressIntervalMs: Long = PROGRESS_INTERVAL_MS,
     /** F19: the page phase; without it, documents with pages wait as with the mode off. */
     private val pages: PagePhase? = null,
+    /** F14 (contract I4): the run emptied; its chunks are final, so the INT8 copy is refreshed in the background. */
+    private val onRunFinished: () -> Unit = {},
 ) {
 
     /** What the page phase needs (F19 contracts I2–I6). */
@@ -510,7 +512,8 @@ class IngestRunner(
             val finished = run.documentIds.filter { id ->
                 index.document(id)?.status.let { it == null || it !in UNFINISHED }
             }.toSet()
-            runStore.edit { latest -> if (latest.documentIds.all { it in finished }) latest.without(latest.documentIds) else latest }
+            val after = runStore.edit { latest -> if (latest.documentIds.all { it in finished }) latest.without(latest.documentIds) else latest }
+            if (after.documentIds.isEmpty()) onRunFinished()
         }
     }
 

@@ -21,6 +21,7 @@ import com.lisdatasolutions.microrag.domain.rag.LibraryEntry
 import com.lisdatasolutions.microrag.domain.rag.LibraryFolderFilter
 import com.lisdatasolutions.microrag.domain.rag.LibrarySummary
 import com.lisdatasolutions.microrag.domain.rag.NewDocument
+import com.lisdatasolutions.microrag.domain.rag.QuantizedState
 import com.lisdatasolutions.microrag.domain.rag.RagIndex
 import com.lisdatasolutions.microrag.domain.rag.ScoredChunk
 import com.lisdatasolutions.microrag.domain.rag.ScoredPage
@@ -79,6 +80,31 @@ class FakeRagIndex(initial: IndexCompatibility = IndexCompatibility.Compatible) 
 
     /** `rag_meta.quant_dirty` (D-030): set by every write that changes chunks. */
     var quantDirty = false
+
+    /** F14: the minimums of every refreshQuantized call, and a switch to make the next one fail. */
+    val quantizedRefreshes = mutableListOf<Int>()
+    var failNextQuantizedRefresh = false
+    private var quantizedPreloaded = false
+
+    override suspend fun quantizedState(): QuantizedState =
+        QuantizedState(current = !quantDirty, preloaded = quantizedPreloaded && !quantDirty, searchableChunks = searchableChunkCount())
+
+    override suspend fun refreshQuantized(minChunks: Int): QuantizedState {
+        quantizedRefreshes += minChunks
+        quantizedPreloaded = false
+        if (failNextQuantizedRefresh) {
+            failNextQuantizedRefresh = false
+            throw IllegalStateException("refresh failed")
+        }
+        if (searchableChunkCount() >= minChunks && searchableChunkCount() > 0) {
+            quantDirty = false
+            quantizedPreloaded = true
+        }
+        return quantizedState()
+    }
+
+    private fun searchableChunkCount(): Int =
+        docs.values.filter { it.status == DocumentStatus.DONE && it.included }.sumOf { chunks[it.id]?.size ?: 0 }
 
     /** What vectorSearch returns, best first, before taking k (F10). */
     @Volatile

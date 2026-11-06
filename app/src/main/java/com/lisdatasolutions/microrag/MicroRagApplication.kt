@@ -9,6 +9,7 @@ import com.lisdatasolutions.microrag.core.di.ApplicationScope
 import com.lisdatasolutions.microrag.core.di.appModules
 import com.lisdatasolutions.microrag.core.locale.AppLocale
 import com.lisdatasolutions.microrag.data.ingest.PageFileStore
+import com.lisdatasolutions.microrag.data.rag.QuantizedIndexMaintainer
 import com.lisdatasolutions.microrag.debug.DebugStrictMode
 import com.lisdatasolutions.microrag.debug.debugModules
 import com.lisdatasolutions.microrag.domain.multimodal.MultimodalController
@@ -68,6 +69,8 @@ class MicroRagApplication : Application(), Configuration.Provider {
             val index = getKoin().get<RagIndex>()
             getKoin().get<PageFileStore>().sweepAtStart { if (index.open() == IndexCompatibility.Compatible) index.allPageFiles() else null }
         }
+        // F14 (contract I4): a current INT8 copy is preloaded again after a process death; a stale one is rebuilt.
+        get<QuantizedIndexMaintainer>().request(QuantizedIndexMaintainer.Reason.STARTUP)
         // Constitution IV: release engines when the UI is hidden (TRIM_MEMORY_UI_HIDDEN or above), after the
         // listeners (the chat, F11 R8) have stopped what used them.
         registerComponentCallbacks(

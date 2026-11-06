@@ -208,3 +208,11 @@ data class DocumentRef(val id: Long, val createdAtMs: Long)
 
 /** A folder as a scope keeps it; its ids are never reused, but `rag.db` could be made again (analyze L9). */
 data class FolderRef(val id: Long, val createdAtMs: Long)
+
+/**
+ * F14 (research R3, data-model §1): the INT8 copy of the chunk vectors. [current] is `quant_dirty = 0`; [preloaded]
+ * holds for this connection only. The vector search uses it only when [usable].
+ */
+data class QuantizedState(val current: Boolean, val preloaded: Boolean, val searchableChunks: Int) {
+    val usable: Boolean get() = current && preloaded
+}

@@ -210,9 +210,11 @@ class IngestRunnerTest {
 
     private val thermal = FakeThermalStatusSource()
 
+    private var runsFinished = 0
+
     private fun indexingRunner(freeBytes: () -> Long = { Long.MAX_VALUE }) = IngestRunner(
         index, DocumentExtractor(pdf), sessions, runStore, thermal, freeBytes,
-        Dispatchers.IO, logger, clock = System::currentTimeMillis, progressIntervalMs = 10,
+        Dispatchers.IO, logger, clock = System::currentTimeMillis, progressIntervalMs = 10, onRunFinished = { runsFinished++ },
     )
 
     private fun paragraphs(count: Int, tag: String = "") =
@@ -222,6 +224,19 @@ class IngestRunnerTest {
 
     /** About 170 chunks: more than two batches. */
     private val LONG = 2_200
+
+    /** F14 T017 (contract I4): the end of a run asks for the INT8 refresh, once its documents are finished. */
+    @Test
+    fun theRunEmptying_asksForTheInt8Refresh() = runBlocking<Unit> {
+        val a = document("a.txt", "text/plain", paragraphs(4, "a").toByteArray())
+        val b = document("b.txt", "text/plain", paragraphs(4, "b").toByteArray())
+        runStore.edit { it.adding(listOf(a, b)) }
+
+        indexingRunner().process(listOf(a, b)) { }
+
+        assertThat(runStore.run.first().documentIds).isEmpty()
+        assertThat(runsFinished).isEqualTo(1)
+    }
 
     @Test
     fun everyPendingDocumentIsChunkedBeforeAnyEmbedding() = runBlocking<Unit> {

@@ -32,6 +32,8 @@ class TempRagIndex(
     val dbFile: File = File(context.cacheDir, "rag-test-${UUID.randomUUID()}.db"),
     /** F19: the mode's mirror, what the index says before the file is open and what a new file records. */
     initialTextEmbedder: ModelId = ModelId.EG2_270M,
+    /** F14: how the INT8 copy is built and preloaded; tests swap it to make a step fail. */
+    quantization: DefaultRagIndex.QuantizationSql = DefaultRagIndex.QuantizationSql(),
 ) : Closeable {
     /** Value returned by the index clock; tests move it to check timestamps. */
     @Volatile
@@ -50,6 +52,7 @@ class TempRagIndex(
         migrations = migrations,
         clock = { now },
         initialTextEmbedder = initialTextEmbedder,
+        quantization = quantization,
     )
 
     /** A separate connection with the extension, to inspect or tamper with the file; the caller closes it. */

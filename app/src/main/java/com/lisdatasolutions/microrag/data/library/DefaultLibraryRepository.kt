@@ -61,6 +61,8 @@ class DefaultLibraryRepository(
     private val logger: AppLogger,
     /** F19 (research R11): the page images; null where a test has none. */
     private val pageFiles: PageFileStore? = null,
+    /** F14 (contract I4): the chunks changed, so the INT8 copy is refreshed in the background. */
+    private val onChunksChanged: () -> Unit = {},
     private val clock: () -> Long = SystemClock::elapsedRealtime,
 ) : LibraryRepository {
 
@@ -217,6 +219,7 @@ class DefaultLibraryRepository(
             logger.w(TAG) { "library delete id=$documentId copy left for the orphan cleanup" }
         }
         logger.i(TAG) { "library delete id=$documentId chunks=${document.chunkCount ?: 0} in ${clock() - started} ms" }
+        onChunksChanged()
     }
 
     /** Rule L5: only indexed documents; the run forgets the document and its shadow. */
@@ -228,6 +231,7 @@ class DefaultLibraryRepository(
         pageFiles?.delete(images)
         runStore.edit { it.without(listOfNotNull(documentId, shadow?.id)) }
         logger.i(TAG) { "library out-of-index id=$documentId chunks=$removed in ${clock() - started} ms" }
+        onChunksChanged()
     }
 
     /** Rule L6, by state; nothing without the private copy (D10). F19: in [mode], when one is given. */
@@ -277,6 +281,7 @@ class DefaultLibraryRepository(
         pageFiles?.delete(images)
         runStore.edit { it.without(listOf(shadow.id)) }
         logger.i(TAG) { "library reindex discarded id=$documentId shadow=${shadow.id}" }
+        onChunksChanged()
     }
 
     /** F17 rule F1: one aggregate query per index change, as the summary. */

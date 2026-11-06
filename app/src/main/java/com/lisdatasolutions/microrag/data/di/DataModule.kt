@@ -51,6 +51,7 @@ import com.lisdatasolutions.microrag.data.multimodal.DefaultMultimodalController
 import com.lisdatasolutions.microrag.data.multimodal.IdentityValidator
 import com.lisdatasolutions.microrag.data.onboarding.DataStoreOnboardingStore
 import com.lisdatasolutions.microrag.data.rag.DefaultRagIndex
+import com.lisdatasolutions.microrag.data.rag.QuantizedIndexMaintainer
 import com.lisdatasolutions.microrag.data.rag.RagSchema
 import com.lisdatasolutions.microrag.data.retrieval.EngineQueryEmbedder
 import com.lisdatasolutions.microrag.data.retrieval.HybridRetriever
@@ -133,6 +134,17 @@ val dataModule = module {
             logger = get(),
             // F19 (analyze H3): a file created after the switch records the 440M, the only text embedder left.
             newIndexEmbedder = { store.state.first().textEmbedder },
+        )
+    }
+
+    // F14 (research R3, contract I4): the INT8 copy of the chunk vectors, refreshed after the changes and at start.
+    single {
+        val runStore = get<IngestRunStore>()
+        QuantizedIndexMaintainer(
+            index = get(),
+            ingest = { runStore.run.first().documentIds.isNotEmpty() },
+            scope = get<ApplicationScope>().scope,
+            logger = get(),
         )
     }
 
@@ -234,6 +246,7 @@ val dataModule = module {
                 files = get(),
                 enabled = { store.state.first().stage == MultimodalStage.ON && index.pagesUsable.value },
             ),
+            onRunFinished = { get<QuantizedIndexMaintainer>().request(QuantizedIndexMaintainer.Reason.INGEST_FINISHED) },
         )
     }
     single<IndexingRepository> {
@@ -277,6 +290,7 @@ val dataModule = module {
             io = get<AppDispatchers>().io,
             logger = get(),
             pageFiles = get(),
+            onChunksChanged = { get<QuantizedIndexMaintainer>().request(QuantizedIndexMaintainer.Reason.LIBRARY_CHANGED) },
         )
     }
 

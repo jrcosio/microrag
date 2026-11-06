@@ -53,4 +53,18 @@ object RagParameters {
     /** Gemma with a page: its window, and images per prompt (D-078; F18 found 4,096 too small with a page). */
     const val LLM_VISUAL_MAX_NUM_TOKENS = 8192
     const val LLM_MAX_NUM_IMAGES = 1
+
+    /**
+     * F14 (research R3, data-model §2): the INT8 copy preselects this many candidates, which the exact distance
+     * reorders; it is used from [INT8_MIN_CHUNKS] searchable chunks on (constitution IV: only past 20 ms). The bench
+     * of the phone phase fixes both; 10,000 is where F04 already measured 23.1 ms.
+     */
+    const val INT8_CANDIDATES = 100
+    const val INT8_MIN_CHUNKS = 10_000
+
+    /** SQLite-Vector's buffer while quantizing: 100k chunks need 26.4 MB. */
+    const val INT8_MAX_MEMORY_MB = 64
+
+    /** Changes closer than this make one rebuild (contract I4). */
+    const val QUANT_REBUILD_DEBOUNCE_MS = 2_000L
 }
