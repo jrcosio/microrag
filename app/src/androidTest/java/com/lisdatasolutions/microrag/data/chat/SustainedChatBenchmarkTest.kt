@@ -20,7 +20,7 @@ import com.lisdatasolutions.microrag.rag.runtime.EngineCoordinator
 import com.lisdatasolutions.microrag.rag.runtime.GenerationConfig
 import com.lisdatasolutions.microrag.rag.runtime.SpeculativeMode
 import com.lisdatasolutions.microrag.rag.runtime.litert.LiteRtEngineFactory
-import com.lisdatasolutions.microrag.testing.CorpusIndex
+import com.lisdatasolutions.microrag.testing.bench.BenchCorpus
 import com.lisdatasolutions.microrag.testing.InstalledModels
 import com.lisdatasolutions.microrag.testing.TempRagIndex
 import com.lisdatasolutions.microrag.testing.bench.BenchReport
@@ -67,7 +67,7 @@ class SustainedChatBenchmarkTest {
     private val levers = arguments.getString("f14.levers")?.split(",")?.filter { it.isNotBlank() }.orEmpty()
     private val label = arguments.getString("f14.label") ?: levers.joinToString("+").ifEmpty { "base" }
     private val root = File(context.cacheDir, "sustained-benchmark-${UUID.randomUUID()}").apply { mkdirs() }
-    private val temp = TempRagIndex()
+    private lateinit var temp: TempRagIndex
     private val pdf = PlatformPdfOpener()
     private val models = InstalledModels(context)
     private val questions = RetrievalGoldenFiles.parity(
@@ -76,7 +76,7 @@ class SustainedChatBenchmarkTest {
 
     @After
     fun tearDown() {
-        temp.close()
+        if (::temp.isInitialized) temp.close()
         root.deleteRecursively()
     }
 
@@ -87,12 +87,12 @@ class SustainedChatBenchmarkTest {
         checkNotNull(textEmbedder)
         assumeTrue(pdf.isAvailable)
         val dispatchers = AppDispatchers.create()
-        val coordinator = EngineCoordinator(temp.logger)
+        val coordinator = EngineCoordinator(com.lisdatasolutions.microrag.testing.CapturingLogger())
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
         val report = BenchReport(context, "sustained-$label-rest$restSeconds", sqliteVector = "-")
         try {
             val factory = LiteRtEngineFactory(context, dispatchers)
-            CorpusIndex(temp, root, pdf).build(coordinator, factory, models.pathOf(textEmbedder)!!, textEmbedder)
+            temp = BenchCorpus.open(context, root, pdf, coordinator, factory, models.pathOf(textEmbedder)!!, textEmbedder)
             val backend = models.preparedBackends.value.getValue(ModelId.GEMMA4_E2B)
             report.model("GEMMA4_E2B", null, backend.name, null)
             report.model(textEmbedder.name, null, "CPU", null)

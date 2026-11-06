@@ -21,7 +21,7 @@ import com.lisdatasolutions.microrag.rag.runtime.GenerationEvent
 import com.lisdatasolutions.microrag.rag.runtime.GenerationPrompt
 import com.lisdatasolutions.microrag.rag.runtime.TextGenerator
 import com.lisdatasolutions.microrag.rag.runtime.litert.LiteRtEngineFactory
-import com.lisdatasolutions.microrag.testing.CorpusIndex
+import com.lisdatasolutions.microrag.testing.bench.BenchCorpus
 import com.lisdatasolutions.microrag.testing.InstalledModels
 import com.lisdatasolutions.microrag.testing.TempRagIndex
 import com.lisdatasolutions.microrag.testing.bench.BenchReport
@@ -49,7 +49,7 @@ class PrefixCacheGoldenTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
     private val context = instrumentation.targetContext
     private val root = File(context.cacheDir, "prefix-golden-${UUID.randomUUID()}").apply { mkdirs() }
-    private val temp = TempRagIndex()
+    private lateinit var temp: TempRagIndex
     private val pdf = PlatformPdfOpener()
     private val models = InstalledModels(context)
     private val questions = RetrievalGoldenFiles.parity(
@@ -58,7 +58,7 @@ class PrefixCacheGoldenTest {
 
     @After
     fun tearDown() {
-        temp.close()
+        if (::temp.isInitialized) temp.close()
         root.deleteRecursively()
     }
 
@@ -69,12 +69,12 @@ class PrefixCacheGoldenTest {
         checkNotNull(textEmbedder)
         assumeTrue(pdf.isAvailable)
         val dispatchers = AppDispatchers.create()
-        val coordinator = EngineCoordinator(temp.logger)
+        val coordinator = EngineCoordinator(com.lisdatasolutions.microrag.testing.CapturingLogger())
         val factory = LiteRtEngineFactory(context, dispatchers)
         val report = BenchReport(context, "prefix-golden", sqliteVector = "-")
         report.start = DeviceConditions.snapshot(context)
         try {
-            CorpusIndex(temp, root, pdf).build(coordinator, factory, models.pathOf(textEmbedder)!!, textEmbedder)
+            temp = BenchCorpus.open(context, root, pdf, coordinator, factory, models.pathOf(textEmbedder)!!, textEmbedder)
             val retriever = HybridRetriever(temp.index, EngineQueryEmbedder(coordinator, factory, models, textEmbedder = { textEmbedder }), temp.logger)
             val measured = questions.take(if (Build.MODEL == REFERENCE_PHONE) QUESTIONS else 2)
             val prompts = measured.map { q ->

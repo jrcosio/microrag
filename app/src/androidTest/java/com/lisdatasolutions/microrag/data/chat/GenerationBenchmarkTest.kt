@@ -25,7 +25,7 @@ import com.lisdatasolutions.microrag.rag.runtime.GenerationPrompt
 import com.lisdatasolutions.microrag.rag.runtime.SpeculativeMode
 import com.lisdatasolutions.microrag.rag.runtime.TextGenerator
 import com.lisdatasolutions.microrag.rag.runtime.litert.LiteRtEngineFactory
-import com.lisdatasolutions.microrag.testing.CorpusIndex
+import com.lisdatasolutions.microrag.testing.bench.BenchCorpus
 import com.lisdatasolutions.microrag.testing.InstalledModels
 import com.lisdatasolutions.microrag.testing.TempRagIndex
 import com.lisdatasolutions.microrag.testing.bench.BenchReport
@@ -64,7 +64,7 @@ class GenerationBenchmarkTest {
     private val questionCount = arguments.getString("f14.questions")?.toInt() ?: if (Build.MODEL == REFERENCE_PHONE) 20 else 2
     private val alternate = arguments.getString("f14.alternate") == "true"
     private val root = File(context.cacheDir, "generation-benchmark-${UUID.randomUUID()}").apply { mkdirs() }
-    private val temp = TempRagIndex()
+    private lateinit var temp: TempRagIndex
     private val pdf = PlatformPdfOpener()
     private val models = InstalledModels(context)
     private val questions = RetrievalGoldenFiles.parity(
@@ -73,7 +73,7 @@ class GenerationBenchmarkTest {
 
     @After
     fun tearDown() {
-        temp.close()
+        if (::temp.isInitialized) temp.close()
         root.deleteRecursively()
     }
 
@@ -84,11 +84,11 @@ class GenerationBenchmarkTest {
         checkNotNull(textEmbedder)
         assumeTrue(pdf.isAvailable)
         val dispatchers = AppDispatchers.create()
-        val coordinator = EngineCoordinator(temp.logger)
+        val coordinator = EngineCoordinator(com.lisdatasolutions.microrag.testing.CapturingLogger())
         val factory = LiteRtEngineFactory(context, dispatchers)
         val report = BenchReport(context, "generation-$variant", sqliteVector = "-")
         try {
-            CorpusIndex(temp, root, pdf).build(coordinator, factory, models.pathOf(textEmbedder)!!, textEmbedder)
+            temp = BenchCorpus.open(context, root, pdf, coordinator, factory, models.pathOf(textEmbedder)!!, textEmbedder)
             val embedder = EngineQueryEmbedder(coordinator, factory, models, textEmbedder = { textEmbedder })
             val measured = questions.take(questionCount)
             val retrieved = blockCounts.associateWith { blocks -> retrieve(HybridRetriever(temp.index, embedder, temp.logger, selector = selector(blocks)), measured) }

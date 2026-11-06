@@ -34,6 +34,8 @@ class TempRagIndex(
     initialTextEmbedder: ModelId = ModelId.EG2_270M,
     /** F14: how the INT8 copy is built and preloaded; tests swap it to make a step fail. */
     quantization: DefaultRagIndex.QuantizationSql = DefaultRagIndex.QuantizationSql(),
+    /** F14: a bench's cached database outlives the test (BenchCorpus); every other one is deleted on close. */
+    private val keepFile: Boolean = false,
 ) : Closeable {
     /** Value returned by the index clock; tests move it to check timestamps. */
     @Volatile
@@ -70,7 +72,7 @@ class TempRagIndex(
     override fun close() {
         runBlocking { index.close() }
         dispatcher.close()
-        listOf("", "-wal", "-shm", "-journal").forEach { File(dbFile.path + it).delete() }
+        if (!keepFile) listOf("", "-wal", "-shm", "-journal").forEach { File(dbFile.path + it).delete() }
     }
 
     companion object {
