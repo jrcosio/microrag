@@ -148,7 +148,7 @@ description: "Lista de tareas de F14 — Rendimiento en dispositivo y decisión 
 **Independent Test**: `SearchScaleBenchmarkTest` con el banco de 10k en el emulador (sin modelo: sin la fase de embedding), y con los tres bancos en el teléfono (T049).
 
 - [ ] T019 [P] [US1] Construir en el escritorio los bancos de 10k, 50k y 100k (`run_eval.py bench-bank`, en segundo plano por su duración) y verificar sus manifiestos
-- [ ] T020 [US1] `…/androidTest/data/retrieval/SearchScaleBenchmarkTest.kt` (contrato B2):
+- [X] T020 [US1] `…/androidTest/data/retrieval/SearchScaleBenchmarkTest.kt` (contrato B2):
   - variantes `f32`, `int8`, `int8-rerank` e `int8-nopreload`;
   - embedder: el instalado (440M) y la 270M desde `dev-models` (SC-003);
   - fases: embedding (solo y dentro de la búsqueda, si hay modelo), vectorial sola y dentro de la híbrida, léxica, híbrida, acotada y con excluidos;
@@ -222,8 +222,8 @@ description: "Lista de tareas de F14 — Rendimiento en dispositivo y decisión 
 
 **Independent Test**: `numeric-review` y `token-review` en el escritorio; `NumericFidelityBenchmarkTest` en el teléfono (T051).
 
-- [ ] T032 [P] [US5] `offline/eval/numeric.py` (extracción, normalización y detector), con `offline/tests/test_numeric.py` primero. Después, `numeric-set` y la revisión de las ~60 preguntas en `offline/testset/numeric/questions.jsonl` (data-model §5)
-- [ ] T033 [US5] Plantilla `v4-cifras`, para texto y páginas (D-090):
+- [X] T032 [P] [US5] `offline/eval/numeric.py` (extracción, normalización y detector), con `offline/tests/test_numeric.py` primero. Después, `numeric-set` y la revisión de las ~60 preguntas en `offline/testset/numeric/questions.jsonl` (data-model §5)
+- [X] T033 [US5] Plantilla `v4-cifras`, para texto y páginas (D-090):
   - en el harness (`offline/eval/`, incluido `visual_prompt.py`);
   - en `EXTRA_RULES` de `…/microrag/rag/answer/PromptBuilder.kt`, con la paridad de la golden del prompt;
   - `…/androidTest/rag/answer/VisualPromptGoldenTest.kt` con las dos plantillas;
@@ -231,7 +231,7 @@ description: "Lista de tareas de F14 — Rendimiento en dispositivo y decisión 
   - `numeric-review` en el Mac con `v4` y `v4-cifras`, en fp16 y FP32.
 
   Las respuestas que cambian se juzgan a mano (H6)
-- [ ] T034 [US5] `…/androidTest/data/chat/NumericFidelityBenchmarkTest.kt`: las 60 preguntas desde `dev-bench`, con las variantes `default`, `fp32` y `v4-cifras`. Las respuestas van al JSON para la revisión en el escritorio
+- [X] T034 [US5] `…/androidTest/data/chat/NumericFidelityBenchmarkTest.kt`: las 60 preguntas desde `dev-bench`, con las variantes `default`, `fp32` y `v4-cifras`. Las respuestas van al JSON para la revisión en el escritorio
 - [X] T035 [US5] Estimador (R9, contrato G6):
   - pruebas primero: `…/test/rag/answer/TokenEstimateTest.kt` y `offline/tests/test_token_estimate.py`, con la paridad de textos fijos y con a = b = c = 4,554 igual al de hoy;
   - después:
@@ -256,7 +256,7 @@ description: "Lista de tareas de F14 — Rendimiento en dispositivo y decisión 
   - en `…/microrag/domain/chat/ChatUseCases.kt`, que `WarmUpAnswerEngineUseCase` reciba el ámbito y use el predicado de hoy (modo, `pagesUsable` y `withPages` del ámbito);
   - `PREWARM_BY_SCOPE` en `RagParameters.kt` (en `false`);
   - en `…/microrag/feature/chat/ChatViewModel.kt`, la llamada al cambiar el ámbito
-- [ ] T041 [P] [US6] Escritorio:
+- [X] T041 [P] [US6] Escritorio:
   - `offline/testset/visual/followups.jsonl`, con ~40 pares revisados (`switch` y `follow`);
   - las variantes de `visual-followup-review` en `offline/eval/visual_retrieval.py`, con `offline/tests/test_visual_followup.py` primero;
   - la ejecución frente a la regla de `f14_rules.json` y la sección en `eval-report.md`

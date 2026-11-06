@@ -169,6 +169,7 @@ Nada se ha medido aún en el teléfono. Las cifras del Mac son orientativas.
 - **Regla (D-088):**
   - FP32 se adopta si el p95 del primer token sube ≤ 0,5 s en el banco corto, con las palancas ya adoptadas (R6 podría compensar parte del coste), y la sesión sostenida final lo confirma.
   - Si no, se evalúa una instrucción más fuerte. `v4` ya tiene «Copia cifras, plazos, importes y números de artículo tal como aparecen en la fuente que citas.», y los 2 fallos de 60 ocurrieron con ella. La variante candidata (`v4-cifras`) mueve la regla al final, junto a la PREGUNTA, y pide copiar cada cifra «dígito a dígito». Se adopta si da como mucho la mitad de respuestas con cifras deformadas que `v4` en el teléfono y cumple la regla de calidad de FR-017 en el harness (D-090).
+  - **Medido en el Mac (T033):** de 62 respuestas, `v4` deforma alguna cifra en 12 con fp16 y en 0 con FP32; `v4-cifras`, en 18 con fp16 y en 0 con FP32. La instrucción no ayuda: el fallo es de precisión. Como `v4-cifras` debe cumplir antes la regla de las deformaciones en el teléfono, su revisión de calidad (426 respuestas) solo se hace si la cumple.
   - **Alcance (D-090):** texto y páginas. `buildVisual` toma la plantilla de `PROMPT_TEMPLATE`, así que la v5-visual cambia con ella. Se actualizan `visual_prompt.py` y `VisualPromptGoldenTest`, y las respuestas con páginas se miden en el teléfono, sin regla de calidad visual (D-078).
 
 ## R9. La estimación de tokens (FR-022)
@@ -214,6 +215,8 @@ Nada se ha medido aún en el teléfono. Las cifras del Mac son orientativas.
   **Regla** (SC-007 y D-090, fijada antes de evaluar): la página del documento nuevo en ≥ 90 % de los cambios de documento; en los seguimientos reales, no más de 5 puntos por debajo de hoy; sin bajar el Recall@20 de los seguimientos de texto de 0,98. Entre las que cumplen, se elige la que más páginas correctas da en los seguimientos reales.
 
   El embedding extra de las variantes 2 y 3 solo se hace cuando la respuesta puede llevar página (`request.withPages`): con el modo apagado o sin páginas, nada cambia (FR-027).
+
+  **Resultado (T041):** 40 pares revisados (D-033). Cambios de documento acertados: 8,3 % (unida), 45,8 % (solo la nueva) y 29,2 % (la mejor de las dos); seguimientos reales: 56,2 %, 18,8 % y 56,2 %. Ninguna llega al 90 %: se queda `JOINED`. La mejor de las dos mejora los cambios sin perder seguimientos, y queda anotada.
 - **Con el modo apagado:** nada de esto se ejecuta. `pageSearch` ya devuelve vacío sin `pagesUsable`.
 
 ## R11. E4B y la 270M en el teléfono (FR-024, FR-028, FR-029)
@@ -233,7 +236,9 @@ Nada se ha medido aún en el teléfono. Las cifras del Mac son orientativas.
   1. **por idioma del documento:** normalizador inglés (palabras vacías y raíces Snowball del inglés, con `snowballstemmer`, que es puro Python) para los documentos del índice `en`, y la pregunta normalizada con los dos normalizadores (OR en FTS);
   2. la anterior más **peso en la búsqueda por significado:** RRF con peso 2 en la lista vectorial cuando los idiomas de la pregunta y del documento no coinciden.
 
-  El idioma del documento lo da el índice en el harness, sin detección. Las respuestas que cambian se juzgan a mano (D-033), y la regla es la de D-062 (no más de 10 puntos por debajo de su referencia). El resultado va a DECISIONS y, si pasa, a una ficha nueva del backlog.
+  El idioma del documento lo da el índice en el harness, sin detección.
+
+  **Filtro previo (T044):** la variante 1 solo cambia la búsqueda por palabras, que entre idiomas distintos no encuentra nada en ningún caso, así que no puede cerrar la brecha. El techo de la variante 2 es la búsqueda solo por significado: sube el Recall@bloques de ES·EN de 0,579 a 0,789 (ES·ES: 0,889) y el de EN·ES de 0,780 a 0,840 (EN·EN: 0,900). Como se acerca, sus respuestas se generan y se juzgan (`crosslang-review mode=vector`) para compararlas con la regla de 10 puntos. Las respuestas que cambian se juzgan a mano (D-033), y la regla es la de D-062 (no más de 10 puntos por debajo de su referencia). El resultado va a DECISIONS y, si pasa, a una ficha nueva del backlog.
 
 ## R13. Número de bloques (FR-017)
 
