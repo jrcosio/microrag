@@ -105,7 +105,7 @@ internal class LiteRtTextEmbedder(
         return EmbeddingMath.truncateAndNormalize(raw)
     }
 
-    /** What LiteRT-LM 0.18.1 says for an input over [MAX_INPUT_LENGTH] tokens (F07 research R6, T002). */
+    /** What LiteRT-LM says for an input over [MAX_INPUT_LENGTH] tokens, the same in 0.18.1 and 0.19.1 (F07 research R6, F14 T001). */
     private fun Exception.isInputTooLong(): Boolean =
         this is LiteRtLmJniException && message?.contains(TOO_LONG_MESSAGE) == true
 

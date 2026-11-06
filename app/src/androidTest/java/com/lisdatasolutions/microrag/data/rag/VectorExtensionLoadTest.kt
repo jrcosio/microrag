@@ -42,7 +42,7 @@ class VectorExtensionLoadTest {
                 statement.getLong(0)
             }
 
-            assertThat(version).isEqualTo("1.1.2")
+            assertThat(version).isEqualTo("1.2.0")
             assertThat(hasFts5).isEqualTo(1L)
         }
     }

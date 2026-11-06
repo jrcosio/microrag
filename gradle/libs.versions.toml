@@ -16,12 +16,12 @@ androidxTestCore = "1.7.0"
 androidxTestRunner = "1.7.0"
 androidxTestExtJunit = "1.3.0"
 espressoCore = "3.7.0"
-litertlm = "0.18.1"
+litertlm = "0.19.1"
 work = "2.12.0"
 datastore = "1.2.1"
 mockwebserver = "5.5.1"
 sqliteBundled = "2.7.1"
-sqliteVector = "1.1.2"
+sqliteVector = "1.2.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }

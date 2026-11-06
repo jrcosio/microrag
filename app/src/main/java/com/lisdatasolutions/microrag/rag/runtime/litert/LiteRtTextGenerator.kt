@@ -11,6 +11,8 @@ import com.google.ai.edge.litertlm.ExperimentalApi
 import com.google.ai.edge.litertlm.ExperimentalFlags
 import com.google.ai.edge.litertlm.Message
 import com.google.ai.edge.litertlm.SamplerConfig
+import com.google.ai.edge.litertlm.SpeculativeDecodingConfig
+import com.google.ai.edge.litertlm.SpeculativeDecodingMode
 import com.lisdatasolutions.microrag.domain.model.ComputeBackend
 import com.lisdatasolutions.microrag.domain.model.ModelId
 import com.lisdatasolutions.microrag.rag.runtime.ActivationPrecision
@@ -150,8 +152,8 @@ internal class LiteRtTextGenerator(
     private fun conversationConfig() = ConversationConfig(
         samplerConfig = if (config.greedy) GREEDY else null,
         maxOutputToken = config.maxOutputTokens,
-        // Baseline measurement; speculative decoding is a later lever (research R4).
-        enableSpeculativeDecoding = false,
+        // Off until F14 measures it (research R7); 0.19 replaced the deprecated boolean with this config.
+        speculativeDecodingConfig = SpeculativeDecodingConfig(SpeculativeDecodingMode.OFF),
     )
 
     private fun GenerationPart.toContent(): Content = when (this) {
