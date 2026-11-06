@@ -34,14 +34,14 @@ class BenchCleanupTest {
         File(folders.models, DevFiles.GEMMA4_E4B.fileName).writeText("model")
         File(folders.models, "other-model.litertlm").writeText("kept")
         folders.reports.mkdirs()
-        listOf("f14-search-1.json", "visual-chat-2.json", "feasibility-3.json").forEach { File(folders.reports, it).writeText("{}") }
+        listOf("f14-search-1.json", "visual-chat-2.json", "f19-visual-ingest-3.json", "feasibility-4.json").forEach { File(folders.reports, it).writeText("{}") }
 
         clean(folders)
 
         assertThat(File(folders.cache, "bench").exists()).isFalse()
         assertThat(folders.bench.listFiles().orEmpty()).isEmpty()
         assertThat(folders.models.list().orEmpty().toList()).containsExactly("other-model.litertlm")
-        assertThat(folders.reports.list().orEmpty().toList()).containsExactly("feasibility-3.json")
+        assertThat(folders.reports.list().orEmpty().toList()).containsExactly("feasibility-4.json")
         sandbox.deleteRecursively()
     }
 
@@ -56,7 +56,7 @@ class BenchCleanupTest {
         assertThat(folders.bench.listFiles().orEmpty()).isEmpty()
         assertThat(File(folders.models, DevFiles.EG2_270M.fileName).exists()).isFalse()
         assertThat(File(folders.models, DevFiles.GEMMA4_E4B.fileName).exists()).isFalse()
-        assertThat(folders.reports.list().orEmpty().filter { it.startsWith(BenchReport.PREFIX) || it.startsWith(VISUAL_CHAT) }).isEmpty()
+        assertThat(folders.reports.list().orEmpty().filter(::isBenchReport)).isEmpty()
     }
 
     private data class Folders(val cache: File, val bench: File, val models: File, val reports: File) {
@@ -70,11 +70,15 @@ class BenchCleanupTest {
         File(folders.cache, BenchBank.CACHE).deleteRecursively()
         folders.bench.listFiles()?.forEach { it.deleteRecursively() }
         listOf(DevFiles.EG2_270M, DevFiles.GEMMA4_E4B).forEach { File(folders.models, it.fileName).delete() }
-        folders.reports.listFiles { f -> f.name.startsWith(BenchReport.PREFIX) || f.name.startsWith(VISUAL_CHAT) }?.forEach { it.delete() }
+        folders.reports.listFiles { f -> isBenchReport(f.name) }?.forEach { it.delete() }
     }
+
+    /** The reports the F14 phase leaves: its own, the visual chat bench's and the visual ingest bench's (T048). */
+    private fun isBenchReport(name: String) = listOf(BenchReport.PREFIX, VISUAL_CHAT, VISUAL_INGEST).any(name::startsWith)
 
     private companion object {
         const val ARGUMENT = "f14.cleanup"
         const val VISUAL_CHAT = "visual-chat-"
+        const val VISUAL_INGEST = "f19-visual-ingest-"
     }
 }

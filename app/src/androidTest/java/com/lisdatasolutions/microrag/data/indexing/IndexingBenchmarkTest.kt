@@ -30,12 +30,16 @@ import com.lisdatasolutions.microrag.rag.runtime.initializeOrClose
 import com.lisdatasolutions.microrag.rag.runtime.litert.LiteRtEngineFactory
 import com.lisdatasolutions.microrag.testing.CapturingLogger
 import com.lisdatasolutions.microrag.testing.TempRagIndex
+import com.lisdatasolutions.microrag.testing.bench.BenchReport
+import com.lisdatasolutions.microrag.testing.bench.DevFiles
+import com.lisdatasolutions.microrag.testing.bench.DeviceConditions
 import java.io.File
 import java.util.UUID
 import java.util.concurrent.CopyOnWriteArraySet
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.JsonPrimitive
 import org.junit.After
 import org.junit.Assume.assumeTrue
 import org.junit.Test
@@ -47,6 +51,9 @@ import org.junit.runner.RunWith
  * installed it is loaded first, as after a chat, and the engines are sampled at every progress: the
  * LLM is never loaded during the run. Logged with `indexing-benchmark`; SC-001 (≤ 5 min on the GPU)
  * applies on the reference phone only (D-022).
+ *
+ * F14 T048 (FR-033): without the 270M installed (the reference phone has the multimodal mode on, D-082), the verified
+ * copy in `dev-models` is used, and the figures also go to `files/reports` as `f14-indexing-*`.
  */
 @RequiresModels
 @RunWith(AndroidJUnit4::class)
@@ -74,14 +81,19 @@ class IndexingBenchmarkTest {
     fun twoHundredPagesOnTheCpu() = index(ComputeBackend.CPU)
 
     private fun index(backend: ComputeBackend) = runBlocking<Unit> {
-        val model = File(context.noBackupFilesDir, "models/${embedding.fileName}")
-        assumeTrue("${embedding.fileName} is not installed", model.isFile)
+        val model = File(context.noBackupFilesDir, "models/${embedding.fileName}").takeIf { it.isFile }
+            ?: DevFiles.verified(context, DevFiles.EG2_270M)
+        assumeTrue("${embedding.fileName} is neither installed nor in dev-models", model != null)
+        checkNotNull(model)
         assumeTrue("the emulator's GPU init blocks in native code", backend == ComputeBackend.CPU || !EmbeddingProbes.isEmulator)
         assumeTrue(pdf.isAvailable)
         val id = importTwoHundredPages()
 
         val dispatchers = AppDispatchers.create()
         val coordinator = EngineCoordinator(logger)
+        val report = BenchReport(context, "indexing-${backend.name.lowercase()}", sqliteVector = "-")
+        report.model(embedding.id.name, embedding.sha256, backend.name, null)
+        report.start = DeviceConditions.snapshot(context)
         try {
             val factory = LiteRtEngineFactory(context, dispatchers)
             val llmLoaded = preloadTheLlm(coordinator, factory)
@@ -114,6 +126,16 @@ class IndexingBenchmarkTest {
                     "pages=${document.pageCount} chunks=$chunks total_ms=${ended - started} embedding_ms=${ended - embeddingStarted} " +
                     "rate=${"%.2f".format(chunks / embeddingSeconds)} llm_preloaded=$llmLoaded llm_during_run=$llmSeen",
             )
+            report.variant("text-200-pages").extra.apply {
+                put("pages", JsonPrimitive(document.pageCount ?: 0))
+                put("chunks", JsonPrimitive(chunks))
+                put("totalMs", JsonPrimitive(ended - started))
+                put("embeddingMs", JsonPrimitive(ended - embeddingStarted))
+                put("chunksPerSecond", JsonPrimitive(chunks / embeddingSeconds))
+                put("llmPreloaded", JsonPrimitive(llmLoaded))
+            }
+            report.end = DeviceConditions.snapshot(context)
+            report.write()
             assertThat(document.status).isEqualTo(DocumentStatus.DONE)
             assertThat(temp.index.storedChunkCounts(listOf(id))[id]).isEqualTo(chunks)
             assertWithMessage("backend reported by the run").that(backends).containsExactly(backend)

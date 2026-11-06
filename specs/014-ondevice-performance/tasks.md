@@ -290,14 +290,14 @@ description: "Lista de tareas de F14 — Rendimiento en dispositivo y decisión 
 
 **Purpose**: todas las medidas en el A063 y las decisiones con las reglas.
 
-- [ ] T045 **Preguntar al usuario** antes de empezar, con la duración estimada. Después:
+- [X] T045 **Preguntar al usuario** antes de empezar, con la duración estimada. Después:
   - anotar los ajustes del teléfono;
   - `svc power stayon usb` y `wm dismiss-keyguard`;
   - instalar los APK de depuración y de pruebas con `adb -s`;
   - `BenchDirsTest`
-- [ ] T046 Copiar con `adb push` los bancos, las preguntas y los vectores de consulta a `…/files/dev-bench/`, y la 270M y E4B a `…/files/dev-models/`, y verificar los SHA-256
-- [ ] T047 `PrefixCacheGoldenTest` (T027). Las respuestas que cambien se juzgan con la regla de calidad antes de decidir el prefijo
-- [ ] T048 `StartupBenchmarkTest`, `IndexingBenchmarkTest` y `VisualIngestBenchmarkTest` (arranque e ingesta, FR-033)
+- [X] T046 Copiar con `adb push` los bancos, las preguntas y los vectores de consulta a `…/files/dev-bench/`, y la 270M y E4B a `…/files/dev-models/`, y verificar los SHA-256
+- [ ] T047 `PrefixCacheGoldenTest` (T027). Las respuestas que cambien se juzgan con la regla de calidad antes de decidir el prefijo. Primera pasada: en la GPU, 4 de 20 idénticas; en la CPU, 2 de 5. La prueba guarda dónde se separan las respuestas (solo números), y la calidad se juzga solo si el prefijo da la ganancia de T050
+- [X] T048 `StartupBenchmarkTest`, `IndexingBenchmarkTest` y `VisualIngestBenchmarkTest` (arranque e ingesta, FR-033). `IndexingBenchmarkTest` usa la 270M de `dev-models` si no está instalada y deja su informe; la limpieza borra también `f19-visual-ingest-*`
 - [ ] T049 `SearchScaleBenchmarkTest` con 10k, 50k y 100k (y los subconjuntos), `PageSearchBenchmarkTest` y `EmbedderComparisonBenchmarkTest`:
   - fijar `INT8_MIN_CHUNKS` e `INT8_CANDIDATES` (Recall@20 con reordenación ≥ 0,97) en `RagParameters.kt`, y si INT8 no lo cumple, decidir con las cifras (FR-008);
   - si las páginas pasan de 20 ms, implementar su ruta INT8 (`pages_quant_dirty`, contrato I3) con su caso en `RagIndexInt8Test`

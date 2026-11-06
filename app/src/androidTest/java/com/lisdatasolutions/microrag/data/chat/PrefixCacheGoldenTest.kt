@@ -7,6 +7,7 @@ import com.lisdatasolutions.microrag.core.dispatchers.AppDispatchers
 import com.lisdatasolutions.microrag.data.ingest.PlatformPdfOpener
 import com.lisdatasolutions.microrag.data.retrieval.EngineQueryEmbedder
 import com.lisdatasolutions.microrag.data.retrieval.HybridRetriever
+import com.lisdatasolutions.microrag.domain.model.ComputeBackend
 import com.lisdatasolutions.microrag.debug.feasibility.RequiresModels
 import com.lisdatasolutions.microrag.domain.model.ModelCatalog
 import com.lisdatasolutions.microrag.domain.model.ModelId
@@ -30,6 +31,7 @@ import java.io.File
 import java.util.UUID
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonArray
 import org.junit.After
 import org.junit.Assume.assumeTrue
 import org.junit.Test
@@ -40,7 +42,10 @@ import org.junit.runner.RunWith
  * cloned must be the answer to the whole prompt in one message, as on the desktop (the same tokens). One engine
  * answers both in turn, whole, over the evaluation corpus; nothing of the user is read. Differences are reported, not
  * failed: a split prefill on the GPU may diverge in a token, and then the answers that change go to the quality rule.
- * The report keeps how many answers differ, never their text.
+ * The report keeps how many answers differ, never their text: per question only where the two answers part (the
+ * characters they share from the start) and their lengths, which tell a different prompt (they part at once) from the
+ * rounding of a split prefill on the GPU (they part late). `-e f14.backend cpu` runs the same check on the CPU, and
+ * `-e f14.questions` sets how many questions.
  */
 @RequiresModels
 @RunWith(AndroidJUnit4::class)
@@ -52,6 +57,9 @@ class PrefixCacheGoldenTest {
     private lateinit var temp: TempRagIndex
     private val pdf = PlatformPdfOpener()
     private val models = InstalledModels(context)
+    private val arguments = InstrumentationRegistry.getArguments()
+    private val forcedBackend = arguments.getString("f14.backend")?.let { ComputeBackend.valueOf(it.uppercase()) }
+    private val questionCount = arguments.getString("f14.questions")?.toInt()
     private val questions = RetrievalGoldenFiles.parity(
         instrumentation.context.assets.open(RetrievalGoldenFiles.PARITY).bufferedReader().use { it.readText() },
     ).filter { it.previous == null }
@@ -76,30 +84,35 @@ class PrefixCacheGoldenTest {
         try {
             temp = BenchCorpus.open(context, root, pdf, coordinator, factory, models.pathOf(textEmbedder)!!, textEmbedder)
             val retriever = HybridRetriever(temp.index, EngineQueryEmbedder(coordinator, factory, models, textEmbedder = { textEmbedder }), temp.logger)
-            val measured = questions.take(if (Build.MODEL == REFERENCE_PHONE) QUESTIONS else 2)
+            val measured = questions.take(questionCount ?: if (Build.MODEL == REFERENCE_PHONE) QUESTIONS else 2)
             val prompts = measured.map { q ->
                 val blocks = (retriever.retrieve(RetrievalRequest(q.question)).outcome as? RetrievalOutcome.Blocks)?.blocks.orEmpty()
                 PromptBuilder.buildSplit(q.question, blocks.map { PromptBuilder.Block(it.documentName, it.headingPath, it.page, it.text) }, null)
             }
             coordinator.releaseAll()
 
-            val backend = models.preparedBackends.value.getValue(ModelId.GEMMA4_E2B)
+            val backend = forcedBackend ?: models.preparedBackends.value.getValue(ModelId.GEMMA4_E2B)
             val config = GenerationConfig(RagParameters.LLM_MAX_NUM_TOKENS, RagParameters.MAX_OUTPUT_TOKENS, greedy = true, prefixCache = true)
             val generator = factory.generator(ModelCatalog.byId(ModelId.GEMMA4_E2B), models.pathOf(ModelId.GEMMA4_E2B)!!, backend, config)
             val variant = report.variant("prefix-vs-whole", mapOf("questions" to "${measured.size}", "backend" to backend.name))
-            var different = 0
+            val pairs = mutableListOf<Triple<Int, Int, Int>>()
             try {
                 generator.initialize()
                 prompts.forEach { prompt ->
                     val whole = text(generator, GenerationPrompt.Text(prompt.whole))
                     val split = text(generator, GenerationPrompt.Split(prompt.prefix, prompt.rest))
-                    if (whole != split) different++
+                    pairs += Triple(whole.commonPrefixWith(split).length, whole.length, split.length)
                 }
             } finally {
                 generator.close()
             }
+            val different = pairs.count { (shared, whole, split) -> shared < whole || whole != split }
             variant.extra["identical"] = JsonPrimitive(measured.size - different)
             variant.extra["different"] = JsonPrimitive(different)
+            // Numbers only: the characters both answers share from the start, and the length of each.
+            variant.extra["sharedChars"] = buildJsonArray { pairs.forEach { add(JsonPrimitive(it.first)) } }
+            variant.extra["wholeChars"] = buildJsonArray { pairs.forEach { add(JsonPrimitive(it.second)) } }
+            variant.extra["splitChars"] = buildJsonArray { pairs.forEach { add(JsonPrimitive(it.third)) } }
             report.end = DeviceConditions.snapshot(context)
             report.write()
         } finally {
