@@ -5,15 +5,27 @@ The generated part of benchmarks.md sits between two markers; the text around it
 """
 
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 
 START = "<!-- device-report:start -->"
 END = "<!-- device-report:end -->"
 
 
+# The benches of F19 and F20 that F14 repeats leave flat JSON, named <bench>-<epoch ms>.json.
+FLAT = ("visual-chat", "f19-visual-ingest")
+
+
+def _flat(path, bench):
+    started = datetime.fromtimestamp(int(path.stem.rsplit("-", 1)[1]) / 1000, timezone.utc)
+    return {"bench": bench, "started": started.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "flat": json.loads(path.read_text(encoding="utf-8"))}
+
+
 def load(folder):
     """The reports in [folder], oldest first by their start time."""
     reports = [json.loads(p.read_text(encoding="utf-8")) for p in sorted(Path(folder).glob("f14-*.json"))]
+    reports += [_flat(p, bench) for bench in FLAT for p in sorted(Path(folder).glob(f"{bench}-*.json"))]
     return sorted(reports, key=lambda r: r.get("started", ""))
 
 
@@ -49,13 +61,20 @@ def _label(variant):
     return variant["name"] + (f" ({', '.join(f'{k}={v}' for k, v in parameters.items())})" if parameters else "")
 
 
+def _heading(report):
+    return f"### {report['bench']} · {report.get('started', '')[:16].replace('T', ' ')} UTC"
+
+
 def table(report):
-    """One bench: its session line and a row per variant and phase."""
+    """One bench: its session line and a row per variant and phase, or a row per figure of a flat report."""
+    if "flat" in report:
+        rows = [f"| {k} | {_value(v)} |" for k, v in report["flat"].items() if not isinstance(v, (list, dict))]
+        return "\n".join([_heading(report), "", "| Medida | Valor |", "|---|---:|", *rows])
     thermal, battery, peak = _conditions(report)
     runtimes = report.get("runtimes", {})
     models = ", ".join(f"{m['id']} ({m.get('backend', '?')}, {m.get('precision', 'por defecto')})" for m in report.get("models", []))
     lines = [
-        f"### {report['bench']} · {report.get('started', '')[:16].replace('T', ' ')}",
+        _heading(report),
         "",
         f"{report.get('device', '?')}, Android API {report.get('android', '?')} · LiteRT-LM {runtimes.get('litertlm', '?')} · "
         f"SQLite-Vector {runtimes.get('sqliteVector', '?')}" + (f" · {models}" if models else ""),
