@@ -113,6 +113,16 @@ Nada se ha medido aún en el teléfono. Las cifras del Mac son orientativas.
     - INT8 sola no llega a 0,97 de Recall@20 en ningún tamaño.
     - Con la reordenación, el recall es 1,000, pero leer los 100 vectores F32 cuesta unos 13 ms en la mediana y deja el p95 en 41,5 ms a 10k.
     - La app pide 50 candidatos (`CANDIDATES`) y preselecciona `max(50, INT8_CANDIDATES)`. **Segunda pasada:** 50 frente a 100, y INT8 en los subconjuntos, con uno nuevo de 7,5k.
+  - **Recall por candidatos, en el escritorio** (los mismos bancos y SQLite-Vector 1.2.0, sin exclusiones; las 426 consultas frente al `vector_full_scan` exacto):
+
+    | Candidatos reordenados | 10k | 50k | 100k |
+    |---:|---:|---:|---:|
+    | 20 (INT8 sola) | 0,9635 | 0,9612 | 0,9555 |
+    | 30 | 0,9998 | 0,9993 | 0,9991 |
+    | 50 | 1,0000 | 0,9999 | 1,0000 |
+    | 100 | 1,0000 | 1,0000 | 1,0000 |
+
+    INT8 sola da en el escritorio lo mismo que en el teléfono (0,9635 frente a 0,966 a 10k). Con 50 candidatos el recall no baja en ningún tamaño, así que la segunda pasada solo tiene que medir el tiempo de 50 en el teléfono.
 
 ## R4. Medidas en el teléfono: método común (FR-004, FR-005, FR-036)
 
