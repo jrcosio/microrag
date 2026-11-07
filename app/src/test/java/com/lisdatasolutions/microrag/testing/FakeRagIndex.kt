@@ -81,16 +81,18 @@ class FakeRagIndex(initial: IndexCompatibility = IndexCompatibility.Compatible) 
     /** `rag_meta.quant_dirty` (D-030): set by every write that changes chunks. */
     var quantDirty = false
 
-    /** F14: the minimums of every refreshQuantized call, and a switch to make the next one fail. */
+    /** F14: the minimums of every refreshQuantized call (chunks, and pages), and a switch to make the next one fail. */
     val quantizedRefreshes = mutableListOf<Int>()
+    val quantizedPageMinimums = mutableListOf<Int>()
     var failNextQuantizedRefresh = false
     private var quantizedPreloaded = false
 
     override suspend fun quantizedState(): QuantizedState =
         QuantizedState(current = !quantDirty, preloaded = quantizedPreloaded && !quantDirty, searchableChunks = searchableChunkCount())
 
-    override suspend fun refreshQuantized(minChunks: Int): QuantizedState {
+    override suspend fun refreshQuantized(minChunks: Int, minPages: Int): QuantizedState {
         quantizedRefreshes += minChunks
+        quantizedPageMinimums += minPages
         quantizedPreloaded = false
         if (failNextQuantizedRefresh) {
             failNextQuantizedRefresh = false

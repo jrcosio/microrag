@@ -5,7 +5,7 @@
 | Elemento | Dónde | Valores | Regla |
 |---|---|---|---|
 | `quant_dirty` | `rag_meta` (ya existe, F04) | `'0'` al día · `'1'` desfasado | Se pone a 1 en toda operación que cambia fragmentos. Pasa a 0 solo tras un `vector_quantize` completo de `chunks` |
-| `pages_quant_dirty` | `rag_meta` (nueva, solo si las páginas usan INT8, R10) | igual | Igual para `pages`: `insertPage`, borrado de páginas. Si falta, se lee como `'1'` |
+| `pages_quant_dirty` | `rag_meta` (nueva, solo si las páginas usan INT8, R10) | igual | Igual para `pages`: `insertPage` y los borrados de páginas **quitan** la clave, y solo una reconstrucción correcta escribe `'0'`. Si falta, se lee como `'1'`, así que un fichero con páginas y sin copia conserva sus claves |
 | `vector0_chunks_embedding` | tabla de SQLite-Vector | datos INT8 | La crea y la sustituye `vector_quantize`. Es reconstruible (constitución III). No la escribe la app |
 | `vector0_pages_embedding` | igual | igual | Solo si las páginas usan INT8 |
 | `int8Preloaded` | memoria de `DefaultRagIndex` | sí / no | Se pone a sí tras `vector_quantize_preload` en la conexión abierta; a no en `markQuantDirty` y al empezar `refreshQuantized`; se pierde al cerrarla o al morir el proceso |

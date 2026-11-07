@@ -174,10 +174,11 @@ interface RagIndex {
 
     /**
      * Rebuilds the INT8 copy when it is stale and there are at least [minChunks] searchable chunks, then preloads it;
-     * preloads only, when it is current. Never throws for a failed rebuild or preload: the copy stays unused and the
-     * vector search stays exact (constitution V). Returns the state after the attempt.
+     * preloads only, when it is current. The same for the page vectors from [minPages] pages. Never throws for a
+     * failed rebuild or preload: the copy stays unused and the search stays exact (constitution V). Returns the state
+     * after the attempt.
      */
-    suspend fun refreshQuantized(minChunks: Int): QuantizedState
+    suspend fun refreshQuantized(minChunks: Int, minPages: Int = Int.MAX_VALUE): QuantizedState
 
     /**
      * Exact top-[k] search by cosine distance; [query] has 256 components and unit norm. Only chunks

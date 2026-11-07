@@ -57,7 +57,7 @@ class BenchBank(private val context: Context, val dir: File) {
     fun queryVectors(): List<FloatArray> = vectors(File(dir, "queries.f32"), questions().size)
 
     /** The bank's database with its first [limit] chunks (whole documents), built now or reused. */
-    fun open(limit: Int = size): Opened {
+    fun open(limit: Int = size, int8Candidates: Int = RagParameters.INT8_CANDIDATES): Opened {
         require(limit % CHUNKS_PER_DOCUMENT == 0 && limit <= size) { "limit $limit" }
         val folder = File(context.cacheDir, CACHE).apply { mkdirs() }
         val name = dir.name + if (limit == size) "" else "-$limit"
@@ -69,7 +69,7 @@ class BenchBank(private val context: Context, val dir: File) {
             listOf("", "-wal", "-shm", "-journal").forEach { File(db.path + it).delete() }
             stamp.delete()
         }
-        val opened = Opened(db, reused = reuse)
+        val opened = Opened(db, reused = reuse, int8Candidates = int8Candidates)
         if (!reuse) {
             runBlocking { load(opened.index, limit) }
             stamp.writeText(manifestText)
@@ -137,7 +137,7 @@ class BenchBank(private val context: Context, val dir: File) {
     }
 
     /** An open bank database on its own single-thread dispatcher; closing keeps the file for the next bench. */
-    inner class Opened(val dbFile: File, val reused: Boolean) : Closeable {
+    inner class Opened(val dbFile: File, val reused: Boolean, int8Candidates: Int) : Closeable {
         val logger = CapturingLogger()
         private val dispatcher = Executors.newSingleThreadExecutor { Thread(it, "bench-db") }.asCoroutineDispatcher()
 
@@ -150,6 +150,7 @@ class BenchBank(private val context: Context, val dir: File) {
             logger = logger,
             migrations = RagMigrations.all,
             clock = { System.currentTimeMillis() },
+            int8Candidates = int8Candidates,
         )
 
         /** A separate connection with the extension, for the SQL the benches time directly; the caller's block closes it. */

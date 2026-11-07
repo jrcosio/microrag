@@ -35,7 +35,8 @@ import org.junit.runner.RunWith
  * reorder; and, on the 10k bank, the exact vector search over its first 1k, 2.5k and 5k chunks, to fix the size from
  * which the app uses INT8. Every question the bank has, in [rounds] rounds. Skips when `dev-bench` has no bank.
  *
- * Arguments: `f14.bank` (bank-10000,…), `f14.rounds` (2) and `f14.embedder` (installed, 270m or none).
+ * Arguments: `f14.bank` (bank-10000,…), `f14.rounds` (2), `f14.embedder` (installed, 270m or none) and
+ * `f14.candidates` (the INT8 preselections to reorder, the app's first: `100,50`).
  */
 @RunWith(AndroidJUnit4::class)
 class SearchScaleBenchmarkTest {
@@ -46,6 +47,7 @@ class SearchScaleBenchmarkTest {
     private val banks = arguments.getString("f14.bank")?.split(",") ?: listOf("bank-10000", "bank-50000", "bank-100000")
     private val rounds = arguments.getString("f14.rounds")?.toInt() ?: 2
     private val embedderChoice = arguments.getString("f14.embedder") ?: "installed"
+    private val candidateCounts = arguments.getString("f14.candidates")?.split(",")?.map { it.toInt() } ?: listOf(RagParameters.INT8_CANDIDATES)
 
     @Test
     fun searchAtScale() = runBlocking<Unit> {
@@ -108,11 +110,11 @@ class SearchScaleBenchmarkTest {
         val rebuilt = opened.index.refreshQuantized(minChunks = 1)
         val rebuildMs = ms(rebuildStarted)
         opened.close()
-        val reopened = bank.open()
+        val reopened = bank.open(int8Candidates = candidateCounts.first())
         val preloadStarted = System.nanoTime()
         val preloaded = reopened.index.refreshQuantized(minChunks = 1)
         val preloadMs = ms(preloadStarted)
-        val int8 = report.variant("int8-rerank", mapOf("bank" to "${bank.size}", "candidates" to "${RagParameters.INT8_CANDIDATES}"))
+        val int8 = report.variant("int8-rerank", mapOf("bank" to "${bank.size}", "candidates" to "${candidateCounts.first()}"))
         int8.extra["rebuildAndPreloadMs"] = JsonPrimitive(rebuildMs)
         int8.extra["preloadMs"] = JsonPrimitive(preloadMs)
         int8.extra["usable"] = JsonPrimitive(rebuilt.usable && preloaded.usable)
@@ -145,18 +147,34 @@ class SearchScaleBenchmarkTest {
         }
         reopened.close()
 
-        // The exact vector search over the first chunks of the 10k bank: from which size it passes 20 ms (FR-008).
+        // Other preselections for the exact reorder, on the copy already built: their cost and their recall.
+        candidateCounts.drop(1).forEach { candidates ->
+            bank.open(int8Candidates = candidates).use { other ->
+                other.index.refreshQuantized(minChunks = 1)
+                val variant = report.variant("int8-rerank", mapOf("bank" to "${bank.size}", "candidates" to "$candidates"))
+                val hits = mutableListOf<Double>()
+                searchRounds(variant, other.index, questions, vectors, embedder, folderScope) { i, ids ->
+                    if (exactTop[i] != null && hits.size < questions.size) hits += recall(exactTop.getValue(i), ids)
+                }
+                variant.extra["recallAt20"] = JsonPrimitive(hits.average())
+            }
+        }
+
+        // The exact vector search over the first chunks of the 10k bank: from which size it passes 20 ms (FR-008); and
+        // the INT8 one with the reorder on the same subset, from which size it is the faster.
         if (bank.size == SUBSETS_OF) {
             SUBSETS.forEach { limit ->
-                bank.open(limit).use { subset ->
-                    val variant = report.variant("f32-subset", mapOf("bank" to "$limit"))
-                    repeat(rounds) {
+                bank.open(limit, int8Candidates = candidateCounts.first()).use { subset ->
+                    suspend fun vectorRounds(variant: BenchReport.Variant) = repeat(rounds) {
                         vectors.forEachIndexed { i, vector ->
                             val started = System.nanoTime()
                             subset.index.vectorSearch(vector, RagParameters.CANDIDATES)
                             variant.add(Sample("vector", ms(started), questions[i].id, DeviceConditions.thermalNow(context)))
                         }
                     }
+                    vectorRounds(report.variant("f32-subset", mapOf("bank" to "$limit")))
+                    subset.index.refreshQuantized(minChunks = 1)
+                    vectorRounds(report.variant("int8-subset", mapOf("bank" to "$limit", "candidates" to "${candidateCounts.first()}")))
                 }
             }
         }
@@ -212,7 +230,7 @@ class SearchScaleBenchmarkTest {
     private companion object {
         const val RECALL_K = 20
         const val SUBSETS_OF = 10_000
-        val SUBSETS = listOf(1_000, 2_500, 5_000)
+        val SUBSETS = listOf(1_000, 2_500, 5_000, 7_500)
 
         /** About what a chunk takes in the database with its text, vector, FTS rows and INT8 copy. */
         const val BYTES_PER_CHUNK = 6_000L

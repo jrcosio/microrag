@@ -211,8 +211,17 @@ data class FolderRef(val id: Long, val createdAtMs: Long)
 
 /**
  * F14 (research R3, data-model §1): the INT8 copy of the chunk vectors. [current] is `quant_dirty = 0`; [preloaded]
- * holds for this connection only. The vector search uses it only when [usable].
+ * holds for this connection only. The vector search uses it only when [usable]. The `pages` fields are the same for
+ * the page vectors (`pages_quant_dirty`, research R10), and the page search uses theirs only when [pagesUsable].
  */
-data class QuantizedState(val current: Boolean, val preloaded: Boolean, val searchableChunks: Int) {
+data class QuantizedState(
+    val current: Boolean,
+    val preloaded: Boolean,
+    val searchableChunks: Int,
+    val pagesCurrent: Boolean = false,
+    val pagesPreloaded: Boolean = false,
+    val pages: Int = 0,
+) {
     val usable: Boolean get() = current && preloaded
+    val pagesUsable: Boolean get() = pagesCurrent && pagesPreloaded
 }

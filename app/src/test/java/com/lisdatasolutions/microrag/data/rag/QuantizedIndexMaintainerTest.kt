@@ -24,6 +24,7 @@ class QuantizedIndexMaintainerTest {
         scope = backgroundScope,
         logger = logger,
         minChunks = { minChunks },
+        minPages = { minChunks / 2 },
         debounceMs = DEBOUNCE,
     )
 
@@ -67,6 +68,7 @@ class QuantizedIndexMaintainerTest {
         runCurrent()
 
         assertThat(index.quantizedRefreshes).containsExactly(10_000)
+        assertThat(index.quantizedPageMinimums).containsExactly(5_000)
         assertThat(logger.lines.single()).contains("reason=STARTUP")
     }
 

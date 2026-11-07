@@ -15,7 +15,7 @@ interface RagIndex {
      * Preloads only, when it is current. Never throws for a failed rebuild: the index stays stale and the search
      * stays exact (constitution V). Returns the state after the attempt.
      */
-    suspend fun refreshQuantized(minChunks: Int): QuantizedState
+    suspend fun refreshQuantized(minChunks: Int, minPages: Int = Int.MAX_VALUE): QuantizedState
 }
 
 data class QuantizedState(val current: Boolean, val preloaded: Boolean, val searchableChunks: Int) {
@@ -43,7 +43,7 @@ data class QuantizedState(val current: Boolean, val preloaded: Boolean, val sear
 | Operación | Hoy | F14 |
 |---|---|---|
 | `insertChunks`, `deleteDocument`, `publishReindex`, `removeFromIndex`, `deleteChunks` | `markQuantDirty` | igual, y además `int8Preloaded = false` |
-| `insertPage`, borrado de páginas | — | `markPagesQuantDirty`, solo si las páginas usan INT8 |
+| `insertPage`, `deleteDocument`, `publishReindex`, `removeFromIndex` (las páginas) | — | `markPagesQuantDirty`: quita `pages_quant_dirty` (si falta, está desfasado) y `pagesInt8Preloaded = false` (T049: las páginas usan INT8 desde `PAGES_INT8_MIN`) |
 | `setIncluded`, `setIndexMode` | — | no cambian vectores: el filtro `SEARCHABLE` se aplica después del scan |
 
 ## I4. `QuantizedIndexMaintainer` (`data/rag`)
@@ -89,4 +89,5 @@ class QuantizedIndexMaintainer(
   7. `tableNames()` y la detección de ficheros vacíos no cambian con las tablas `vector0_*`.
   8. Reconstrucción correcta seguida de una precarga que falla: `int8Preloaded` sigue a falso y la búsqueda es exacta (nunca usa una precarga anterior).
   9. Bajo `INT8_MIN_CHUNKS`: `refreshQuantized` no crea `vector0_*` ni cambia `quant_dirty`.
+  10. Páginas (T049): la búsqueda INT8 reordenada da el top-k exacto en cada ámbito y sin las excluidas; cada cambio de páginas la desfasa y una página nueva igual a la consulta sale enseguida; bajo el mínimo de páginas no se crea `vector0_pages_embedding`.
 - **Banco (`SearchScaleBenchmarkTest`):** el Recall@20 con y sin reordenación frente a F32, los tiempos de cuantizar y precargar, y la memoria.

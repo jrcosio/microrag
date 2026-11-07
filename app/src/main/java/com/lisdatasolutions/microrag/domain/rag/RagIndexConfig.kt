@@ -16,6 +16,9 @@ object RagMetaKeys {
     const val NORMALIZER_VERSION = "normalizer_version"
     const val QUANT_DIRTY = "quant_dirty"
 
+    /** F14 (research R10, data-model §1): `quant_dirty` for the page vectors, `'0'` only while current; missing is stale. */
+    const val PAGES_QUANT_DIRTY = "pages_quant_dirty"
+
     /** Checked on open; `quant_dirty` only tracks the INT8 index, which F14 decides on. */
     val VALIDATED = listOf(
         SCHEMA_VERSION, EMBEDDING_MODEL_SHA256, EMBEDDING_DIMS, EMBEDDING_DOC_PREFIX, EMBEDDING_QUERY_PREFIX,

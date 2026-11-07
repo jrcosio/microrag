@@ -72,6 +72,12 @@ object RagParameters {
     const val INT8_CANDIDATES = 100
     const val INT8_MIN_CHUNKS = 10_000
 
+    /**
+     * F14 (research R10, FR-023): the page vectors use their INT8 copy, with the same reorder, from this many pages on.
+     * The exact page search passed 20 ms between 5,000 (15.1 ms) and 10,000 pages (24.0 ms) on the A063.
+     */
+    const val PAGES_INT8_MIN = 5_000
+
     /** SQLite-Vector's buffer while quantizing: 100k chunks need 26.4 MB. */
     const val INT8_MAX_MEMORY_MB = 64
 
