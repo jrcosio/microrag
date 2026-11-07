@@ -1,6 +1,6 @@
 # Informe de cierre — F14 Rendimiento en dispositivo y decisión INT8
 
-> **Estado:** pendiente de la revisión de cierre con el usuario (T062).
+> **Estado:** ✅ aprobada por el usuario el 2026-11-07 (D-098), sin cambios en la revisión de cierre. MTP y FP32 quedan solo anotados.
 
 **Rama:** `014-ondevice-performance`, creada desde `b938f78`.
 **Fecha:** del 2026-11-06 al 2026-11-07 (fase del teléfono el 2026-11-07, con permiso del usuario).

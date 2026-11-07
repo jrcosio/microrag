@@ -2544,6 +2544,41 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G47).
 
 ---
 
+## D-098 — Resultado de F14: rendimiento en dispositivo, medido en el teléfono
+
+- **Fecha:** 2026-11-07
+- **Decisión:** F14 queda cerrada con las cifras reales del A063 en `specs/014-ondevice-performance/benchmarks.md`, que sustituyen a los presupuestos del informe del RAG móvil.
+  1. **Criterios:**
+     - SC-002: INT8 da 9,8 ms de p95 con 10k fragmentos y Recall@20 de 1,000 (D-092);
+     - SC-003: la híbrida da 154 ms con la 270M;
+     - SC-004: el primer token sostenido da 4,63 s de p95 (D-094);
+     - SC-001, SC-005, SC-006, SC-008, SC-009 y SC-010 también se cumplen;
+     - SC-007 no: ninguna variante del seguimiento con páginas llega al 90 %, así que se queda la de hoy (D-096).
+  2. **Adoptado:**
+     - INT8 con 50 candidatos desde 5.000 fragmentos y páginas;
+     - el estimador de tokens por clases;
+     - la precarga por ámbito;
+     - «unos 9 s» para Equilibrado;
+     - LiteRT-LM 0.19.1 y SQLite-Vector 1.2.0, con la constitución 1.2.1.
+  3. **No adoptado:** el prefijo reutilizado, la plantilla corta, MTP, FP32, `v4-cifras`, 3 bloques, la reordenación α, las variantes de seguimiento con páginas y la búsqueda entre idiomas. E2B se queda frente a E4B.
+  4. **Batería instrumentada:**
+     - A063: 1.046 de 1.046;
+     - `Pixel_10`: 1.059 de 1.059;
+     - API 33: 1.055 de 1.059, con los 4 fallos conocidos de Atrás;
+     - JVM 1.370, lint sin avisos y Python 318.
+  5. **MTP y FP32** solo quedan anotados como opciones medidas (D-094 y D-095), sin ficha en el roadmap:
+     - MTP: la respuesta entera pasa de 21,0 a 14,8 s de p95, pero cambian las respuestas;
+     - FP32: 0 cifras deformadas, con unos 2,2 s más de primer token.
+  6. **Teléfono:** queda limpio, con los ajustes como estaban y el modo multimodal activo. La biblioteca del usuario no se tocó.
+  7. **Cierre aprobado** por el usuario el 2026-11-07, sin cambios en el informe.
+- **Motivo:** cerrar F14 con las decisiones pendientes de D-023, D-026, D-034, D-035, D-051, D-052, D-057, D-062 y D-086 tomadas con cifras del teléfono de referencia.
+- **Origen:** implement de F14, fase del teléfono y revisión de cierre, aprobadas por el usuario.
+- **Afecta:**
+  - F14 (cierre);
+  - F15, que parte de estas cifras y de los avisos que quedan: la sesión con reposo a 5,04 s y la búsqueda léxica a 50k y 100k.
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.

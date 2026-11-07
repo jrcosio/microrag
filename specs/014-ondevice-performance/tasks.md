@@ -363,7 +363,7 @@ description: "Lista de tareas de F14 — Rendimiento en dispositivo y decisión 
   - instrumentadas: `Pixel_10` 1.059/1.059 y API 33 1.055/1.059, con los 4 fallos conocidos de Atrás;
   - el dex de release no tiene `BenchReport`, `BenchBank`, `DevFiles`, `dev-bench` ni `dev-models`;
   - el único registro nuevo del producto (`int8 refresh …`) lleva solo números
-- [ ] T062 `specs/014-ondevice-performance/report.md` (informe de cierre: implementado, verificación, cifras, decisiones y lo que queda) y la **revisión de cierre con el usuario**. La integración y el push van solo con su aprobación
+- [X] T062 `specs/014-ondevice-performance/report.md` (informe de cierre: implementado, verificación, cifras, decisiones y lo que queda) y la **revisión de cierre con el usuario**. La integración y el push van solo con su aprobación
 
 ---
 
