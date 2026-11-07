@@ -2,8 +2,6 @@ package com.lisdatasolutions.microrag.data.retrieval
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import com.lisdatasolutions.microrag.data.rag.toFloatArrayLe
-import com.lisdatasolutions.microrag.data.rag.toLeBlob
 import com.lisdatasolutions.microrag.domain.rag.DocumentStatus
 import com.lisdatasolutions.microrag.domain.rag.IndexMode
 import com.lisdatasolutions.microrag.domain.rag.NewDocument
@@ -30,9 +28,9 @@ import org.junit.runner.RunWith
 
 /**
  * F14 T037 (research R10, contract B2, US6, FR-023): the page search over banks of 1k, 5k and 10k page vectors (the
- * F18 visual corpus's real pages, perturbed on the desktop), in a temporary index. The exact search is the app's;
- * the INT8 one is SQL on the same file, because the app's INT8 route for pages is built only if these figures ask for
- * it. The queries are real pages with noise, as a question about a page would land near it.
+ * F18 visual corpus's real pages, perturbed on the desktop), in a temporary index. Both searches are the app's: the
+ * exact one, and the INT8 one with the exact reorder once its copy is built and preloaded (T049; the first pass timed
+ * the same SQL directly). The queries are real pages with noise, as a question about a page would land near it.
  */
 @RunWith(AndroidJUnit4::class)
 class PageSearchBenchmarkTest {
@@ -79,29 +77,21 @@ class PageSearchBenchmarkTest {
                 }
             }
 
-            temp.withRaw { db ->
-                db.initVector(EmbeddingMath.DIMENSIONS)
-                val variant = report.variant("int8-rerank", mapOf("pages" to "$pages", "candidates" to "${RagParameters.INT8_CANDIDATES}"))
-                val started = System.nanoTime()
-                db.queryOne("SELECT vector_quantize('pages', 'embedding', 'qtype=INT8,max_memory=${RagParameters.INT8_MAX_MEMORY_MB}MB')") { }
-                db.queryOne("SELECT vector_quantize_preload('pages', 'embedding')") { }
-                variant.extra["quantizeAndPreloadMs"] = JsonPrimitive(ms(started))
-                val found = mutableListOf<List<Int>>()
-                repeat(rounds) { round ->
-                    queries.forEach { q ->
-                        val t = System.nanoTime()
-                        val candidates = db.query(INT8_PAGES_SQL, q.toLeBlob(), RagParameters.INT8_CANDIDATES) { it.getLong(0) }
-                        val top = db.query(
-                            "SELECT p.id, p.page, p.document_id, p.embedding FROM pages p WHERE p.id IN (${candidates.joinToString(",") { "?" }})",
-                            *candidates.toTypedArray(),
-                        ) { row -> Triple(row.getLong(2).toInt() + row.getLong(1).toInt() * 100_000, 1.0 - EmbeddingMath.dot(q, row.getBlob(3).toFloatArrayLe()), row.getLong(0)) }
-                            .sortedWith(compareBy({ it.second }, { it.third })).take(RagParameters.PAGE_CANDIDATES).map { it.first }
-                        variant.add(Sample("page-search", ms(t), thermal = DeviceConditions.thermalNow(context)))
-                        if (round == 0) found += top
-                    }
+            val variant = report.variant("int8-rerank", mapOf("pages" to "$pages", "candidates" to "${RagParameters.INT8_CANDIDATES}"))
+            val started = System.nanoTime()
+            val state = temp.index.refreshQuantized(minChunks = Int.MAX_VALUE, minPages = 1)
+            variant.extra["quantizeAndPreloadMs"] = JsonPrimitive(ms(started))
+            variant.extra["usable"] = JsonPrimitive(state.pagesUsable)
+            val found = mutableListOf<List<Int>>()
+            repeat(rounds) { round ->
+                queries.forEach { q ->
+                    val t = System.nanoTime()
+                    val hits = temp.index.pageSearch(q, RagParameters.PAGE_CANDIDATES)
+                    variant.add(Sample("page-search", ms(t), thermal = DeviceConditions.thermalNow(context)))
+                    if (round == 0) found += hits.map { it.page * 100_000 + it.documentId.toInt() }
                 }
-                variant.extra["recallAt5"] = JsonPrimitive(found.indices.map { i -> found[i].count { it in exactTop[i] }.toDouble() / exactTop[i].size }.average())
             }
+            variant.extra["recallAt5"] = JsonPrimitive(found.indices.map { i -> found[i].count { it in exactTop[i] }.toDouble() / exactTop[i].size }.average())
         }
         report.end = DeviceConditions.snapshot(context)
         report.write()
@@ -118,8 +108,5 @@ class PageSearchBenchmarkTest {
         const val WIDTH = 543
         const val HEIGHT = 768
         const val SIZE = 90_000L
-        const val INT8_PAGES_SQL = "WITH v AS MATERIALIZED (SELECT rowid, distance FROM vector_quantize_scan('pages', 'embedding', ?)) " +
-            "SELECT v.rowid FROM v JOIN pages p ON p.id = v.rowid JOIN documents d ON d.id = p.document_id " +
-            "WHERE d.status = 'done' AND d.included = 1 ORDER BY v.distance LIMIT ?"
     }
 }
