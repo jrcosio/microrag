@@ -46,7 +46,7 @@ class PageDetailScreenTest {
         compose.onNodeWithText("Cuánto detalle lee Gemma en la página que entra en cada respuesta.").assertExists()
         compose.onNode(hasText("Equilibrado") and isSelectable()).assertIsSelected()
         compose.onNodeWithText("Menos detalle. Unos 6,5 s por respuesta.", useUnmergedTree = true).assertExists()
-        compose.onNodeWithText("El detalle con que se indexan las páginas. Unos 8,5 s por respuesta.", useUnmergedTree = true).assertExists()
+        compose.onNodeWithText("El detalle con que se indexan las páginas. Unos 9 s por respuesta.", useUnmergedTree = true).assertExists()
         compose.onNodeWithText("Para letra pequeña y tablas densas. Unos 14,5 s por respuesta.", useUnmergedTree = true).assertExists()
         compose.onNodeWithText("Tiempos medidos en el teléfono de referencia. Las respuestas sin páginas no cambian.").assertExists()
     }

@@ -304,8 +304,8 @@ description: "Lista de tareas de F14 — Rendimiento en dispositivo y decisión 
 - [X] T050 `GenerationBenchmarkTest`: `base` con 4, 6 y 8 bloques; después `prefix`, `mtp`, `fp32` y `v4-cifras` en modo alterno. **Hecho:** con 4 bloques, p95 de 5,49 s. El prefijo da +1,10 s y no se adopta; `v4-corta` se descarta por cota (0,19 s como mucho). MTP sube la decodificación un 49,8 % sin empeorar el primer token, pero cambia 10 de 20 respuestas greedy (el control da 20 de 20) y no se adopta. FP32 da +2,21 s y no se adopta. `v4-cifras` no cuesta primer token (research R5–R8)
 - [X] T051 `NumericFidelityBenchmarkTest` (`default`, `fp32` y `v4-cifras`), con la revisión de las respuestas marcadas en el escritorio (`offline/testset/numeric/review.csv`). **Hecho:** deforman alguna cifra 15 de 62 con `v4`, 0 con FP32 y 16 con `v4-cifras`, que no se adopta (R8)
 - [X] T052 `SustainedChatBenchmarkTest` base: `sin-reposo` y `con-reposo`. **Hecho:** p95 del primer token de 4,63 s sin reposo (111 respuestas) y 5,04 s con reposo (34), sin estrés térmico (R5)
-- [ ] T053 `VisualChatBenchmarkTest`: `detalles`, `sostenido` y `recarga`
-- [ ] T054 Variante `e4b` de `GenerationBenchmarkTest` (T043)
+- [X] T053 `VisualChatBenchmarkTest`: `detalles`, `sostenido` y `recarga`. **Hecho:** Equilibrado da un p95 de 9,58 s en 20 preguntas y de 9,11 s en 71 respuestas sostenidas, así que pasa a anunciar «unos 9 s». La precarga por ámbito baja la primera respuesta con página de 15,9 a 9,4 s de p95 sin subir el pico, y se adopta (R10)
+- [X] T054 Variante `e4b` de `GenerationBenchmarkTest` (T043). **Hecho:** carga, pero da 13,64 s de p95 frente a 5,49 s de E2B, con un pico de 4,51 GB. Se recomienda seguir con E2B (R11)
 - [ ] T055 **Decidir** con `f14_rules.json`:
   - prefijo, especulativa, bloques, FP32 o `v4-cifras`, precarga por ámbito e INT8 de páginas;
   - poner los interruptores adoptados en `RagParameters.kt`;

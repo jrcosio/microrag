@@ -287,6 +287,21 @@ Nada se ha medido aún en el teléfono. Las cifras del Mac son orientativas.
     - **Pruebas:** tres casos nuevos en `RagIndexInt8Test` (12 de 12 y el paquete `data.rag`, 113 de 113, en los dos emuladores).
 - **Consulta con la 440M frente a la 270M:** la 270M se copia a `dev-models` (D-088). Se mide el p50 y p95 de la consulta y el RSS de las dos, alternando el orden.
 - **Primer token con páginas en sesión sostenida:** `VisualChatBenchmarkTest` gana un modo sostenido (25 min sin reposo, con Equilibrado) además de sus 20 preguntas por detalle.
+  - **Resultado de las 20 preguntas por detalle (T053, `visual-chat-1794028014400`):**
+
+    | Respuesta | p50 | p95 |
+    |---|---:|---:|
+    | Sin página | 3,83 s | 4,82 s |
+    | Rápido | 5,42 s | 6,69 s |
+    | Equilibrado | 8,31 s | **9,58 s** |
+    | Detallado | 14,20 s | 14,39 s |
+
+    La recarga al pasar a la visión es de 13,7 s, y el pico de RSS, de 4,68 GB. Rápido y Detallado coinciden con D-086 (6,5 y 14,5 s), pero Equilibrado pasa de los 8,5 s anunciados.
+  - **Resultado de la sesión sostenida (T053, `f14-visual-sustained-1794031100141`):**
+    - 72 respuestas enteras en 25 min, sin estrés térmico (`NONE` en todas) y con un pico de RSS de 3,84 GB;
+    - la primera (15,4 s) incluye la carga de Gemma con visión. Las otras 71 dan un p50 de 8,44 s y un p95 de **9,11 s**;
+    - por tramos de 5 min, el p95 va de 8,8 a 9,2 s, sin deriva.
+  - **Decisión:** Equilibrado anuncia «unos 9 s» (`PageDetail.BALANCED`, 90 décimas): el p95 de las 71 respuestas, redondeado al medio segundo como los otros dos. Rápido y Detallado no cambian.
 - **Recarga de Gemma con visión (14,2 s):**
   - con D-083 la página entra siempre que el ámbito tenga páginas, así que la recarga ocurre al pasar de un ámbito sin páginas a uno con páginas (o al revés);
   - hoy `WarmUpAnswerEngineUseCase` decide la visión con la biblioteca entera (`chatLibraryState()`), no con el ámbito;
@@ -294,6 +309,17 @@ Nada se ha medido aún en el teléfono. Las cifras del Mac son orientativas.
   - **regla (D-090):** se adopta si baja al menos 0,3 s la primera respuesta tras cambiar de ámbito, sin subir el pico de memoria más de 200 MB;
   - nunca hay dos engines en GPU: el coordinador libera uno antes de cargar el otro;
   - se mide la espera de la primera respuesta tras cambiar de ámbito, con y sin precarga, y la memoria.
+  - **Resultado (T053, `f14-visual-reload-1794028936317`, 5 preguntas, cada una tras una respuesta sin página):**
+
+    | Primera respuesta con página | p50 | p95 |
+    |---|---:|---:|
+    | Sin precarga | 15,43 s | 15,88 s |
+    | Con precarga (5 s escribiendo) | 8,81 s | 9,42 s |
+
+    - La precarga baja la espera 6,5 s de p95, igual que una respuesta de Equilibrado con el motor ya cargado.
+    - **Memoria:** el pico de toda la prueba es de 3,63 GB. La precarga carga el mismo motor que cargaría la respuesta, después de liberar el otro, así que no sube el pico.
+    - **Decisión:** pasa la regla y se adopta (`PREWARM_BY_SCOPE = true`).
+    - Con el modo apagado, el predicado da siempre «sin visión» y el motor ya cargado no cambia.
 - **Regla de seguimiento con páginas** (`offline/testset/visual/followups.jsonl`, nuevo): unos 40 pares sobre el corpus visual:
   - **cambio de documento:** una pregunta con página sobre X y luego una corta sobre Y;
   - **seguimiento real:** la segunda continúa la misma tabla, por ejemplo «¿y en 2021?».
@@ -319,6 +345,19 @@ Nada se ha medido aún en el teléfono. Las cifras del Mac son orientativas.
 - **Si no carga** (memoria o GPU): «no cabe» o «no carga», con el error.
 - **Limpieza:** una prueba de limpieza borra los ficheros y sus entradas de `verification.json` (lecciones de F18).
 - **Recomendación:** con las cifras y la calidad de F05 (+6,5 puntos automáticos, D-035), en DECISIONS. El cambio de modelo no entra en F14.
+- **Resultado (T054, `f14-generation-e4b-1794031682423`, 4 bloques en la GPU, 20 preguntas, con el embedder cargado):** E4B carga y responde, pero no cabe en el presupuesto.
+
+  | Medida | E2B (T050) | E4B |
+  |---|---:|---:|
+  | Primer token p50 / p95 | 4,82 / 5,49 s | 10,77 / 13,64 s |
+  | Respuesta entera p50 / p95 | 13,7 / 22,9 s | 26,4 / 37,9 s |
+  | Prefill p50 | 348 tok/s | 130 tok/s |
+  | Decodificación p50 | 7,6 tok/s | 5,2 tok/s |
+  | Carga | 6,2 s | 22,8 s |
+  | Pico de RSS | 2,93 GB | 4,51 GB |
+
+  - Sin estrés térmico.
+  - **Recomendación:** seguir con E2B. E4B duplica el primer token (p95 de 13,6 s frente al límite de 5 s), y su pico de memoria es el del modo multimodal más 0,6 GB. Los 6,5 puntos de F05 no compensan esa espera en el A063.
 
 ## R12. Palancas de calidad (FR-030–FR-032)
 

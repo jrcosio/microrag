@@ -92,8 +92,11 @@ object RagParameters {
     const val SPECULATIVE_DECODING = false
     val ACTIVATION_PRECISION: String? = null
 
-    /** F14 (research R10, contract G7): load Gemma with or without vision on a change of scope, before the question. */
-    const val PREWARM_BY_SCOPE = false
+    /**
+     * F14 (research R10, contract G7): load Gemma with or without vision on a change of scope, before the question.
+     * Adopted on the phone: the first answer with a page after a change of scope, p95 15.9 s → 9.4 s, same peak.
+     */
+    const val PREWARM_BY_SCOPE = true
 
     /** F14 (research R10, contract G8): how a follow-up searches the pages; `visual-followup-review` decides it. */
     val PAGE_FOLLOW_UP = PageFollowUp.JOINED

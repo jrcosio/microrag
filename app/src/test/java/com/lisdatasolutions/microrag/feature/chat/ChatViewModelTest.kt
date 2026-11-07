@@ -19,6 +19,7 @@ import com.lisdatasolutions.microrag.domain.chat.TurnState
 import com.lisdatasolutions.microrag.domain.chat.TurnUpdate
 import com.lisdatasolutions.microrag.domain.indexing.IndexingState
 import com.lisdatasolutions.microrag.domain.indexing.RunProgress
+import com.lisdatasolutions.microrag.domain.multimodal.PageDetail
 import com.lisdatasolutions.microrag.domain.rag.DocumentRef
 import com.lisdatasolutions.microrag.domain.rag.Folder
 import com.lisdatasolutions.microrag.domain.rag.FolderRef
@@ -985,7 +986,7 @@ class ChatViewModelTest {
 
         val reading = vm.state.value.turns.last()
         assertThat(reading.status).isEqualTo(TurnStatus.READING_PAGE)
-        assertThat(reading.pageWaitTenths).isEqualTo(85)
+        assertThat(reading.pageWaitTenths).isEqualTo(PageDetail.BALANCED.estimateTenthsOfSecond)
 
         graph.session.active.value = asked.copy(state = TurnState.GENERATING, text = "La tabla [1]", blocks = listOf(page), pageTokens = 140)
         advanceUntilIdle()
