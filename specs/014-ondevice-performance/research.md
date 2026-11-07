@@ -180,7 +180,11 @@ Nada se ha medido aún en el teléfono. Las cifras del Mac son orientativas.
   - **Banco alterno:** la decodificación sube de 7,21 a 10,80 tok/s en la mediana (**+49,8 %**).
   - **Primer token:** p95 de 5,50 a 5,39 s, sin empeorar.
   - **Respuesta completa:** el total p95 baja de 20,96 a 14,84 s.
-  - **Pendiente:** la igualdad greedy de las goldens, que compara `PrefixCacheGoldenTest -e f14.compare mtp` con el control `repeat`.
+  - **Igualdad greedy** (`PrefixCacheGoldenTest -e f14.compare mtp`, 20 goldens en la GPU): **10 de 20 cambian**.
+    - Cinco se separan en los primeros 60 caracteres, y en una la respuesta pasa de 297 a 1.224 caracteres.
+    - El control `repeat` (el mismo prompt dos veces en un motor) da 20 de 20 idénticas.
+    - El motor sin especulativa de la prueba de MTP, cargado en otra sesión, da las mismas 20 longitudes que el control. Así que lo que cambia las respuestas es la especulativa, no la recarga.
+  - **Decisión:** no cumple la regla fijada (`greedy_identical`), y **no se adopta**. El interruptor queda apagado.
 
 ## R8. fp16 y FP32 (FR-020, FR-021)
 
