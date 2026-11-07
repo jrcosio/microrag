@@ -325,13 +325,24 @@ description: "Lista de tareas de F14 — Rendimiento en dispositivo y decisión 
   - no se adoptan el prefijo, MTP, FP32, `v4-cifras`, 3 bloques, la reordenación α ni las variantes de seguimiento;
   - Equilibrado pasa a «unos 9 s»;
   - ninguna adoptada toca el primer token del chat de texto, así que la sesión sostenida no se repite. SC-004 se cumple con 4,63 s, y la excepción D-057 deja de hacer falta
-- [ ] T056 Batería instrumentada completa en el teléfono con lo adoptado. En el escritorio, `ablations` con el modo apagado (FR-038, SC-009)
+- [X] T056 Batería instrumentada completa en el teléfono con lo adoptado. En el escritorio, `ablations` con el modo apagado (FR-038, SC-009).
+
+  **Hecho:**
+  - **A063:** 1.046 de 1.046 en 64 min, sin `@RequiresNetwork` y sin los bancos de F14, que se midieron uno a uno en T047–T054, ni las suites de F18. Se saltan 9, las de siempre, que piden argumentos o modelos no instalados. Pantalla encendida con `svc power stayon true` (el teléfono carga como «AC»);
+  - **escritorio:** `ablations` con el modo apagado da las mismas cifras que en F20
 - [X] T057 [US8] Repetir `order-review` en el escritorio con lo adoptado en T055 (estimador y bloques), frente a su regla (R12, FR-030). Si se adopta, medir su coste en el teléfono antes de T058. **Hecho** antes de T055, porque los dos ya estaban decididos (4 bloques en T031 y la estimación en T036) y T055 no los toca: las mismas cifras de D-051, +1,4 puntos, y no se adopta
-- [ ] T058 Limpieza:
+- [X] T058 Limpieza:
   - `BenchCleanupTest`;
   - comprobar sin capturas que no quedan `dev-bench`, `cacheDir/bench`, la 270M, E4B ni informes (`f14-*` y `visual-chat-*`);
   - restaurar los ajustes y `stay_on = 0`;
   - el modo multimodal sigue activado (SC-010)
+
+  **Hecho:**
+  - `BenchCleanupTest` 2/2 con `-e f14.cleanup true`;
+  - no quedan `cache/bench`, informes ni ficheros en `dev-bench` y `dev-models`, y las dos carpetas vacías se quitaron;
+  - se borraron los 39 ficheros `f14-*` de `/data/local/tmp`;
+  - ajustes como al empezar: fuente 1.0, rotación 0/0, modo noche, idioma de la app vacío, pantalla 1.800.000 ms y `stay_on` 0;
+  - no se tocaron el modo ni la biblioteca del usuario
 
 ---
 

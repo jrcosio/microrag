@@ -57,7 +57,7 @@
 | `Pixel_10` (API 37), instrumentadas sin `@RequiresNetwork` | 1.059 de 1.059 |
 | `MicroRAG_API33` (API 33) | 1.055 de 1.059: los 4 fallos conocidos de Atrás desde F13 |
 | `RagIndexInt8Test` | 13 de 13 en los dos emuladores, con el caso nuevo de los excluidos que llenan la cabeza |
-| A063, instrumentadas (T056) | (pendiente) |
+| A063 (API 35), instrumentadas (T056) | 1.046 de 1.046 en 64 min, sin `@RequiresNetwork`, sin los bancos de F14 (medidos uno a uno en T047–T054) y sin las suites de F18. Se saltan 9, las de siempre (piden argumentos o modelos no instalados). Pantalla encendida todo el tiempo y sin bloqueos |
 | Release (`assembleRelease`) | Sin `BenchReport`, `BenchBank`, `DevFiles`, `dev-bench` ni `dev-models` en el dex. La ruta INT8 del producto sí está |
 
 ## 3. Validación por criterio
@@ -73,7 +73,7 @@
 | SC-007: seguimiento con páginas ≥ 90 % en los cambios | ❌ Ninguna variante llega: 45,8 % como mucho. Se queda `JOINED` (D-096), como permite la spec |
 | SC-008: cifras deformadas y estimación de tokens medidas y decididas | ✅ D-095 (15 de 62 con fp16, 0 con FP32, 16 con `v4-cifras`) y D-093 (p95 real/estimado de 1,000 con cifras) |
 | SC-009: con el modo apagado y sin palancas, `ablations` igual y la batería en verde | ✅ `ablations` igual que en F20; baterías en §2 |
-| SC-010: nada de bancos en release, y el teléfono limpio y sin cambios del usuario | (pendiente de T058). La biblioteca del usuario tiene 97 fragmentos buscables, por debajo del umbral, así que no se crea ninguna copia INT8 en ella |
+| SC-010: nada de bancos en release, y el teléfono limpio y sin cambios del usuario | ✅ Release sin bancos (§2). En el A063, `BenchCleanupTest` borró los bancos, `cache/bench`, la 270M, E4B y los informes, y se quitaron los ficheros de `/data/local/tmp`. Los ajustes quedan como al empezar y el modo sigue activo. La biblioteca del usuario tiene 97 fragmentos buscables, por debajo del umbral, así que no se crea ninguna copia INT8 en ella |
 
 ## 4. Cifras medidas
 
