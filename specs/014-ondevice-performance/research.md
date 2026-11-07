@@ -259,6 +259,7 @@ Nada se ha medido aún en el teléfono. Las cifras del Mac son orientativas.
 - **Reordenación α = 0,5:** `order-review` ya existe. Se repite con la regla de F10 (+2 puntos de Recall@bloques sin pasar el presupuesto), **después de decidir en el teléfono** las palancas que cambian el contexto (estimador y bloques), porque son las que pueden cambiar su resultado.
   - **Sin cambios en el contexto,** el resultado es el de D-051 (+1,4 puntos), y no se adopta.
   - **Coste en el teléfono:** solo se mide si se adopta (es aritmética sobre 20 candidatos que ya están en memoria). FR-030 se corrigió en el analyze (D-090).
+  - **Resultado (T057):** repetido con 0.19.1, 4 bloques (T031) y la estimación adoptada (R9). La estimación solo toca el límite de 2.000 tokens, no el selector, así que el contexto no cambia. Salen las mismas cifras de D-051: D-034 0,889 y α = 0,5 0,903 (+1,4 puntos; la regla pide 2). No se adopta, y no hay coste que medir en el teléfono.
 - **Búsqueda entre idiomas (solo se evalúa, D-088):** `crosslang-review` gana dos variantes:
   1. **por idioma del documento:** normalizador inglés (palabras vacías y raíces Snowball del inglés, con `snowballstemmer`, que es puro Python) para los documentos del índice `en`, y la pregunta normalizada con los dos normalizadores (OR en FTS);
   2. la anterior más **peso en la búsqueda por significado:** RRF con peso 2 en la lista vectorial cuando los idiomas de la pregunta y del documento no coinciden.

@@ -313,7 +313,7 @@ description: "Lista de tareas de F14 — Rendimiento en dispositivo y decisión 
   - si el p95 sigue por encima de 5 s, **preguntar al usuario** si se actualiza la excepción D-057;
   - si cambia una espera anunciada (D-086), ajustar `PageDetail` y sus pruebas
 - [ ] T056 Batería instrumentada completa en el teléfono con lo adoptado. En el escritorio, `ablations` con el modo apagado (FR-038, SC-009)
-- [ ] T057 [US8] Repetir `order-review` en el escritorio con lo adoptado en T055 (estimador y bloques), frente a su regla (R12, FR-030). Si se adopta, medir su coste en el teléfono antes de T058
+- [X] T057 [US8] Repetir `order-review` en el escritorio con lo adoptado en T055 (estimador y bloques), frente a su regla (R12, FR-030). Si se adopta, medir su coste en el teléfono antes de T058. **Hecho** antes de T055, porque los dos ya estaban decididos (4 bloques en T031 y la estimación en T036) y T055 no los toca: las mismas cifras de D-051, +1,4 puntos, y no se adopta
 - [ ] T058 Limpieza:
   - `BenchCleanupTest`;
   - comprobar sin capturas que no quedan `dev-bench`, `cacheDir/bench`, la 270M, E4B ni informes (`f14-*` y `visual-chat-*`);

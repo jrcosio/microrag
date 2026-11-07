@@ -191,6 +191,8 @@ Regla de adopción (clarify de F10): una variante solo entra en la app si sube e
 
 Decisión (D-051): ninguna variante cumple la regla. La mejor, «Reordenación de los 20 primeros, α = 0,5», sube 1.4 puntos. La app mantiene D-034, y esa variante queda anotada como palanca para F14.
 
+Repetida en F14 (T057), con LiteRT-LM 0.19.1, 4 bloques y la estimación de tokens adoptada: las mismas cifras. La estimación solo cambia el límite de 2.000 tokens del prompt, no el selector. α = 0,5 sigue en +1,4 puntos y no se adopta.
+
 ## Revisión de la plantilla (D-035, F11)
 
 La configuración elegida con otras plantillas del prompt, con la misma recuperación y las mismas preguntas. Criba con la regla automática frente a «informe»: al menos 1 punto más de respuestas correctas, negativas ≥ 85 % y como mucho 2 puntos menos de citas (la regla es más estricta con las citas que el juicio manual). Las que pasan se juzgan a mano en las respuestas que cambian (`reports/template-review.csv`); las demás heredan el juicio manual de F05.
