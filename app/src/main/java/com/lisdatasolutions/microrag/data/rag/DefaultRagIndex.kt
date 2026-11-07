@@ -575,11 +575,19 @@ class DefaultRagIndex(
     /**
      * F14 (research R3, contract I2): the INT8 copy preselects [int8Candidates] searchable chunks with the same
      * filters as [exactSearch], and their stored F32 vectors order them by the exact cosine distance.
+     *
+     * Without a scope it first reads the head of the copy, [QUANTIZED_HEAD_FACTOR] times the candidates: when the
+     * hidden chunks leave that many searchable ones there, they are the same as with every hidden chunk on top, and
+     * joining a few rows instead of thousands is most of the search on the phone (T049). Otherwise it widens to k + m.
      */
     private fun quantizedSearch(db: RagConnection, query: FloatArray, k: Int, scope: SearchScope): List<ScoredChunk> {
         val wanted = maxOf(k, int8Candidates)
         val candidates = when (scope) {
-            SearchScope.All -> db.query(QUANTIZED_SEARCH_SQL, query.toLeBlob(), wanted + hiddenChunks(db), wanted) { it.getLong(0) }
+            SearchScope.All -> {
+                val head = db.query(QUANTIZED_SEARCH_SQL, query.toLeBlob(), wanted * QUANTIZED_HEAD_FACTOR, wanted) { it.getLong(0) }
+                if (head.size >= wanted) head
+                else db.query(QUANTIZED_SEARCH_SQL, query.toLeBlob(), wanted + hiddenChunks(db), wanted) { it.getLong(0) }
+            }
             is SearchScope.Only -> {
                 val (condition, args) = scopeCondition(scope)
                 db.query(scopedQuantizedSearchSql(condition), query.toLeBlob(), *args, wanted) { it.getLong(0) }
@@ -1062,6 +1070,9 @@ class DefaultRagIndex(
 
         /** Below SQLite's default limit of variables, two per key. */
         private const val MAX_KEYS_PER_QUERY = 400
+
+        /** F14 (T049): the head of the INT8 copy [quantizedSearch] reads first, in times the candidates. */
+        private const val QUANTIZED_HEAD_FACTOR = 2
 
         /** [libraryPage] reads the shadow's status after the [DOCUMENT_COLUMNS]. */
         private const val SHADOW_STATUS_COLUMN = 20

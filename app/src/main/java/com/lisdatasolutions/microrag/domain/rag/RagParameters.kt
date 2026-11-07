@@ -65,12 +65,13 @@ object RagParameters {
     const val LLM_MAX_NUM_IMAGES = 1
 
     /**
-     * F14 (research R3, data-model §2): the INT8 copy preselects this many candidates, which the exact distance
-     * reorders; it is used from [INT8_MIN_CHUNKS] searchable chunks on (constitution IV: only past 20 ms). The bench
-     * of the phone phase fixes both; 10,000 is where F04 already measured 23.1 ms.
+     * F14 (research R3, data-model §2): the INT8 copy preselects this many candidates, chunks or pages, which the
+     * exact distance reorders; chunks use it from [INT8_MIN_CHUNKS] searchable ones on (constitution IV: only past
+     * 20 ms). Fixed on the phone (T049): 50 keep Recall@20 at 1.000 from 10k to 100k chunks, and the page Recall@5
+     * too; the exact search alone passed 20 ms between 5,000 (18.2 ms) and 7,500 chunks (27.1 ms).
      */
-    const val INT8_CANDIDATES = 100
-    const val INT8_MIN_CHUNKS = 10_000
+    const val INT8_CANDIDATES = 50
+    const val INT8_MIN_CHUNKS = 5_000
 
     /**
      * F14 (research R10, FR-023): the page vectors use their INT8 copy, with the same reorder, from this many pages on.

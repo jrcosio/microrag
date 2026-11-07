@@ -9,7 +9,9 @@ import com.lisdatasolutions.microrag.domain.rag.IndexMode
 import com.lisdatasolutions.microrag.domain.rag.NewDocument
 import com.lisdatasolutions.microrag.domain.rag.PageInput
 import com.lisdatasolutions.microrag.domain.rag.RagMetaKeys
+import com.lisdatasolutions.microrag.domain.rag.RagParameters
 import com.lisdatasolutions.microrag.domain.rag.SearchScope
+import com.lisdatasolutions.microrag.rag.runtime.EmbeddingMath
 import com.lisdatasolutions.microrag.testing.TempRagIndex
 import com.lisdatasolutions.microrag.testing.TempRagIndex.Companion.chunk
 import com.lisdatasolutions.microrag.testing.TempRagIndex.Companion.unitVector
@@ -185,6 +187,33 @@ class RagIndexInt8Test {
         assertThat(excluded).isEmpty()
     }
 
+    // T049 (research R3): the search first reads the head of the copy, twice the candidates, and widens it to every
+    // hidden chunk only when the excluded ones leave fewer searchable candidates there.
+    @Test
+    fun excludedChunksCrowdingTheHead_stillGiveWhatTheExactSearchGives() = runBlocking<Unit> {
+        val temp = temp()
+        val docs = temp.fill()
+        val query = unitVector(1_005)
+        val crowd = temp.index.addDocument(NewDocument(displayName = "Excluido.txt", contentHash = "int8-crowd"))
+        val near = 2 * RagParameters.INT8_CANDIDATES + 1
+        temp.index.insertChunks(crowd, (0 until near).map { o -> chunk(o, vector = nearTo(query, seed = 500_000 + o)) })
+        temp.index.updateStatus(crowd, DocumentStatus.DONE, chunkCount = near)
+        temp.index.setIncluded(crowd, false)
+        val exact = temp.index.vectorSearch(query, K)
+
+        temp.index.refreshQuantized(minChunks = 1)
+        val quantized = temp.index.vectorSearch(query, K)
+
+        assertThat(quantized.map { it.id }).containsExactlyElementsIn(exact.map { it.id }).inOrder()
+        assertThat(temp.index.loadChunks(quantized.map { it.id }).values.map { it.documentId }).containsNoneOf(crowd, docs.last())
+    }
+
+    /** A unit vector a little off [query], nearer to it than any other chunk of [fill]. */
+    private fun nearTo(query: FloatArray, seed: Int): FloatArray {
+        val noise = unitVector(seed)
+        return EmbeddingMath.truncateAndNormalize(FloatArray(query.size) { query[it] + NEAR_NOISE * noise[it] })
+    }
+
     @Test
     fun theQuantizedTables_leaveTheFileCompatible() = runBlocking<Unit> {
         val temp = temp()
@@ -284,5 +313,6 @@ class RagIndexInt8Test {
         const val PAGES = 40
         const val K = 10
         const val PAGE_K = 5
+        const val NEAR_NOISE = 0.05f
     }
 }

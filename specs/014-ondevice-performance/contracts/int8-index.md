@@ -31,12 +31,13 @@ data class QuantizedState(val current: Boolean, val preloaded: Boolean, val sear
 |---|---|
 | Reconstruir | `SELECT vector_quantize('chunks','embedding','qtype=INT8,max_memory=64MB')` y después `UPDATE rag_meta SET value='0' WHERE key='quant_dirty'`, en la misma transacción que lee el recuento |
 | Precargar | `SELECT vector_quantize_preload('chunks','embedding')` |
-| Top sin ámbito | `WITH v AS MATERIALIZED (SELECT rowid, distance FROM vector_quantize_scan('chunks','embedding',?,?)) …`, con el mismo JOIN y filtro `SEARCHABLE` que `VECTOR_SEARCH_SQL`, y `LIMIT INT8_CANDIDATES + m` |
+| Top sin ámbito | `WITH v AS MATERIALIZED (SELECT rowid, distance FROM vector_quantize_scan('chunks','embedding',?,?)) …`, con el mismo JOIN y filtro `SEARCHABLE` que `VECTOR_SEARCH_SQL`. Primero la cabeza, `2 × INT8_CANDIDATES`; si deja menos de `INT8_CANDIDATES` buscables, otra vez con `INT8_CANDIDATES + m` (T049) |
 | Con ámbito | streaming `vector_quantize_scan('chunks','embedding',?)` con el filtro de `scopeCondition` y `ORDER BY distance LIMIT INT8_CANDIDATES` |
 | Reordenar | `SELECT id, embedding FROM chunks WHERE id IN (…)`, y en Kotlin `1 − dot(q, v)` sobre los blobs float32 (normalizados) |
 
 - **Resultado:** los primeros k por la distancia exacta reordenada. El `VectorHit` lleva la distancia exacta, así que la RRF y el diagnóstico no cambian.
 - **Desempate:** por distancia exacta y después por `id`, como hoy.
+- **Por qué la cabeza (T049):** con un 32 % de fragmentos ocultos, `+ m` une unas 3.250 filas en cada búsqueda, y en el teléfono esa unión era la mayor parte del tiempo. Si la cabeza ya tiene `INT8_CANDIDATES` buscables, son los mismos que con `+ m`, porque cualquier buscable fuera de la cabeza está más lejos que todos los de dentro.
 
 ## I3. Desfasar (todas en la transacción que cambia los datos)
 
@@ -86,6 +87,7 @@ class QuantizedIndexMaintainer(
   4. Reabrir la conexión: sin precargar, búsqueda exacta; tras `refreshQuantized`, INT8.
   5. Fallo simulado (por ejemplo, `max_memory` demasiado bajo): `quant_dirty` sigue a 1, la búsqueda es exacta y no hay excepción.
   6. Ámbito y exclusiones: el mismo resultado con INT8 que con la exacta.
+  6b. Excluidos que llenan la cabeza (más de `2 × INT8_CANDIDATES` más cerca que cualquier buscable): el mismo resultado que la exacta, con la segunda lectura.
   7. `tableNames()` y la detección de ficheros vacíos no cambian con las tablas `vector0_*`.
   8. Reconstrucción correcta seguida de una precarga que falla: `int8Preloaded` sigue a falso y la búsqueda es exacta (nunca usa una precarga anterior).
   9. Bajo `INT8_MIN_CHUNKS`: `refreshQuantized` no crea `vector0_*` ni cambia `quant_dirty`.
