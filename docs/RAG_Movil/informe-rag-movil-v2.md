@@ -142,6 +142,8 @@ Comparado con un prefill de varios miles de tokens en el LLM, estas cifras son r
 | INT8 pierde calidad | INT8 top-100 → reranking F32 |
 | > 300k vectores o p95 < 5 ms obligatorio | Evaluar USearch, con SQLite como verdad |
 
+> **Medido en F14 (2026-11-07):** estas cifras eran un presupuesto. Las medidas en el teléfono de referencia (Nothing Phone (1) A063), con 256D, están en `specs/014-ondevice-performance/benchmarks.md` §7. La búsqueda vectorial F32 sola da un p95 de 66 ms con 10k fragmentos, 184 ms con 50k y 375 ms con 100k, muy por encima del presupuesto. Por eso la app usa INT8 precargado, con 50 candidatos reordenados en F32, desde 5.000 fragmentos. Con 10k da 9,8 ms de p95 y un Recall@20 de 1,000 (D-092).
+
 ## Embeddings con EmbeddingGemma 2
 
 ### Prefijos
@@ -1060,6 +1062,8 @@ Cada ablación es un cambio de parámetro y una re-ejecución del script de eval
 | Sostenido | 20–30 minutos de preguntas consecutivas para detectar *throttling* |
 
 Objetivo de experiencia para el POC: **primer token en ≤ 3 s** en el teléfono de referencia con 6 bloques. Si no se alcanza, la primera palanca es reducir bloques o tokens por bloque, no el motor vectorial.
+
+> **Medido en F14 (2026-11-07):** todos los bloques de esta tabla están medidos en el teléfono de referencia, en `specs/014-ondevice-performance/benchmarks.md` §7 y §8. Con 4 bloques, el primer token desde la pregunta da un p95 de 4,63 s en una sesión de 25 minutos, dentro de los 5 s de la constitución. Con 6 bloques, el banco corto da 7,56 s, así que el objetivo de 3 s con 6 bloques no se alcanza en el A063.
 
 ## Privacidad y copias de seguridad
 

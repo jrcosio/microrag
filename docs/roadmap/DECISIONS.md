@@ -2422,6 +2422,128 @@ Los huecos aún sin resolver están en `INVENTARIO.md` §6 (G01–G47).
 
 ---
 
+## D-091 — Runtimes: LiteRT-LM 0.19.1 y SQLite-Vector 1.2.0 (F14)
+
+- **Fecha:** 2026-11-07
+- **Decisión:** la app y el harness pasan a LiteRT-LM 0.19.1 (`litert-lm-api` 0.19.1 en el escritorio) y a SQLite-Vector 1.2.0. Todo F14 se midió con ellos. La constitución pasa a 1.2.1 (PATCH): «Restricciones técnicas» dice «0.19.x» en lugar de «0.18.x» (D-090).
+- **Comprobaciones** (research R1, T003–T005):
+  - el golden de la 270M en el escritorio da los 50 vectores idénticos (coseno mínimo 1,00000);
+  - las 426 respuestas de `v4` en la GPU del Mac son idénticas, así que la base de las palancas no cambia (81,1 % correctas, 91,1 % negativas y 94,3 % citas);
+  - JVM 1.355/1.355 y lint sin los avisos de versión;
+  - la batería sin modelos en los emuladores no tiene fallos nuevos;
+  - en el A063, 19/19 en la sesión corta (`EmbeddingGoldenTest` con la 440M, el humo de Gemma con y sin visión, las goldens de prompt, normalizador e ingesta, la extensión 1.2.0 y `RagIndexInt8Test`).
+- **Motivo:**
+  - 0.19 trae `clone()` y la decodificación especulativa, dos palancas de F14;
+  - SQLite-Vector 1.2.0 arregla fallos de memoria sin cambiar la API ni los índices.
+- **Origen:** clarify (D-088) y analyze (D-090) de F14, con las goldens en el teléfono.
+- **Afecta:** la constitución (1.2.1); `gradle/libs.versions.toml` y `offline/requirements.txt`; D-031, que sigue valiendo.
+
+---
+
+## D-092 — INT8 en la búsqueda de fragmentos y de páginas (F14)
+
+- **Fecha:** 2026-11-07
+- **Decisión:** la app usa la copia INT8 de SQLite-Vector, precargada y con la reordenación exacta. Así cumple la constitución IV (20 ms) y SC-003 (200 ms).
+  1. **Cuándo:** desde 5.000 fragmentos buscables (`INT8_MIN_CHUNKS`) y desde 5.000 páginas (`PAGES_INT8_MIN`). La búsqueda exacta sola pasa de 20 ms entre 5.000 (18–22 ms) y 7.500 fragmentos (27–32 ms). Las páginas, entre 5.000 (15,1 ms) y 10.000 (24,0 ms).
+  2. **Cómo:**
+     - la copia preselecciona 50 candidatos (`INT8_CANDIDATES`), y la app los ordena con la distancia exacta de sus vectores F32;
+     - sin ámbito, lee primero la cabeza de la copia (100 filas) y solo la amplía a todos los ocultos si allí quedan menos de 50 buscables. El resultado es el mismo;
+     - se usa solo con la copia al día y precargada en la conexión, y si no, la búsqueda es exacta;
+     - un mantenedor en segundo plano la reconstruye tras la ingesta, el borrado y el reindexado, y la precarga al arrancar.
+  3. **Cifras en el A063** (10.000 fragmentos sintéticos con un 32 % ocultos, 426 preguntas × 2 rondas, la 270M):
+
+     | | F32 | INT8 + reordenar 50 |
+     |---|---:|---:|
+     | Vectorial sola p95 | 65,1 ms | **9,8 ms** |
+     | Recall@20 frente a F32 | — | **1,000** |
+     | Híbrida completa p95 | 249 ms | **154 ms** |
+     | Híbrida con ámbito de carpeta p95 | 272 ms | 185 ms |
+
+     - **Con 50k y 100k** (la 440M): la vectorial baja de 216 a 16,7 ms y de 441 a 22,4 ms de p95, con Recall@20 de 1,000. La híbrida baja de 446 a 224 ms y de 778 a 352 ms; lo que queda es sobre todo la búsqueda léxica.
+     - **INT8 sin reordenar:** da un Recall@20 de 0,966, por debajo de 0,97.
+     - **Reconstruir y precargar:** 11 ms con 10k fragmentos, y 576 y 818 ms con 50k y 100k (primera pasada). La base crece un 3–4 %.
+     - **Páginas:** con 10.000, 27,5 → 18,0 ms de p95 y Recall@5 de 1,000.
+  4. **Hallazgo:** con la unión de k + m filas de F10, 50 candidatos daban 40,6 ms de p95, porque unir unas 3.250 filas era casi todo el tiempo. Leer primero la cabeza lo baja a 9,8 ms.
+- **Motivo:** SC-002 y SC-003 de F14, y la constitución IV («si el p95 vectorial pasa de 20 ms, INT8 + preload»).
+- **Origen:** fase del teléfono de F14 (T049), research R3 y R10.
+- **Afecta:**
+  - `RagParameters.INT8_CANDIDATES`, `INT8_MIN_CHUNKS` y `PAGES_INT8_MIN`;
+  - `DefaultRagIndex` y `QuantizedIndexMaintainer`;
+  - D-052, que queda resuelta: el total p95 baja de 200 ms con la 270M;
+  - F10 (SC-003) y F17 (búsqueda con ámbito).
+- **Biblioteca del usuario del A063:** 97 fragmentos buscables, así que no se crea ninguna copia INT8 en ella (SC-010).
+
+---
+
+## D-093 — Contexto y modelo: 4 bloques, estimador de tokens nuevo y E2B frente a E4B (F14)
+
+- **Fecha:** 2026-11-07
+- **Decisión:**
+  1. **Bloques:** se quedan 4. Con 6 y 8 bloques, el p95 del primer token en el A063 sube de 5,49 s a 7,56 y 8,36 s. Con 3 bloques, las respuestas correctas bajan 1,35 puntos (79,7 % frente a 81,1 %, 224 respuestas juzgadas a mano), y la regla admite 1.
+  2. **Estimador de tokens** (D-034): se adopta el de clases de caracteres, con 4,5644 caracteres por token en el texto, 0,5242 en los dígitos y 4,4305 en el resto, en la app y en el harness. Con texto que tiene al menos un 10 % de dígitos, el p95 de tokens reales entre estimados pasa de 2,182 a 1,000. Con el límite de 2.000 tokens cambian 2 de 426 prompts, cada uno con un bloque menos, y sus respuestas siguen siendo correctas: la calidad de `v4` no cambia.
+  3. **Perfil de modelo:** sigue Gemma 4 E2B (D-035). E4B carga en el A063 y responde, pero con 4 bloques da un p95 del primer token de 13,64 s frente a 5,49 s, decodifica a 5,2 tok/s frente a 7,6, tarda 22,8 s en cargar frente a 6,2 s, y su pico de RSS es de 4,51 GB frente a 2,93 GB. Los 6,5 puntos que ganaba en F05 no compensan esa espera.
+- **Medida:** `GenerationBenchmarkTest` en el A063, con 20 preguntas por variante en la GPU y con el embedder cargado; `f14-review` y `token-review` en el escritorio.
+- **Motivo:** las reglas de `offline/config/f14_rules.json`, fijadas antes de medir (D-088, D-090).
+- **Origen:** implement y fase del teléfono de F14 (T031, T036, T050 y T054).
+- **Afecta:** `RagParameters.TOKEN_ESTIMATE` y `offline/config/rag_parameters.json`; D-034 (el estimador); D-035 (E4B, medido).
+
+---
+
+## D-094 — Primer token en la sesión sostenida y palancas del prompt (F14)
+
+- **Fecha:** 2026-11-07
+- **Decisión:**
+  1. **SC-004 se cumple:** en una sesión de 25 minutos sin reposo, con 111 respuestas enteras, el p95 del primer token desde la pregunta es de **4,63 s** (p50 de 3,60 s), sin estrés térmico. Por tramos de 5 minutos va de 4,54 a 4,64 s. La excepción de D-057 deja de hacer falta con LiteRT-LM 0.19.1 y 4 bloques.
+  2. **Con 30 s de reposo** entre preguntas, la sesión da un p95 de 5,04 s con 34 respuestas: pasa 0,04 s del límite. Se informa al usuario en el cierre; la sesión sin reposo es la que decide (research R5).
+  3. **Prefijo reutilizado** (`clone()` de 0.19.1): no se adopta. En el banco corto sube el p95 1,10 s (7,23 → 8,32 s), porque el prefill de la parte nueva baja de 355 a 254 tok/s.
+  4. **Plantilla más corta (`v4-corta`):** se descarta sin medir. Su cota de ganancia es de 0,19 s, por debajo de los 0,3 s de la regla.
+  5. **Decodificación especulativa (MTP):** no se adopta. Sube la decodificación un 49,8 % (7,2 → 10,8 tok/s) sin empeorar el primer token, pero cambia 10 de 20 respuestas greedy, frente a 20 de 20 iguales en el control. La regla de D-090 pide respuestas idénticas.
+- **Desglose del primer token** (sesión sin reposo, p95): embedding de la consulta 178 ms, recuperación 242 ms, prompt 36 ms y motor 4,36 s.
+- **Motivo:** las reglas de D-088 y D-090. MTP queda como opción del usuario, con una ganancia grande en la respuesta entera (p95 de 21,0 → 14,8 s) a cambio de respuestas que no son las mismas.
+- **Origen:** fase del teléfono de F14 (T047, T050 y T052).
+- **Afecta:** D-026 y D-057 (la excepción ya no hace falta con estas cifras); `RagParameters.PREFIX_CACHE` y `SPECULATIVE_DECODING`, que siguen en `false` y `OFF`.
+
+---
+
+## D-095 — Cifras deformadas con fp16 (F14)
+
+- **Fecha:** 2026-11-07
+- **Decisión:** Gemma sigue en la GPU con las activaciones del fichero (fp16) y la plantilla `v4`. El riesgo queda documentado.
+  - **FP32** no deforma ninguna cifra (0 de 62), pero sube el p95 del primer token 2,21 s (5,09 → 7,30 s), y la regla admite 0,5 s;
+  - **`v4-cifras`**, con la instrucción de copiar las cifras tal cual, deforma 16 de 62 frente a 15 con `v4`, y la regla pedía como mucho la mitad.
+- **Medida:** 62 preguntas sobre bloques llenos de cifras (`offline/testset/numeric`), con `NumericFidelityBenchmarkTest` en el A063. Una respuesta cuenta si tiene alguna cifra que no está en sus fuentes ni en la pregunta; las marcadas se revisaron a mano (`offline/testset/numeric/review.csv`, D-033).
+- **Riesgo que queda:** sobre texto muy denso en cifras, 1 de cada 4 respuestas deforma alguna. Sobre el corpus de evaluación fueron 2 de 60 en F18. FP32 sigue disponible como opción del usuario a cambio de unos 2,2 s.
+- **Origen:** fase del teléfono de F14 (T050 y T051).
+- **Afecta:** D-023 (FP32, medido de nuevo); `RagParameters.ACTIVATION_PRECISION`, que sigue en `null`.
+
+---
+
+## D-096 — Modo multimodal: precarga por ámbito, espera de Equilibrado y seguimiento con páginas (F14)
+
+- **Fecha:** 2026-11-07
+- **Decisión:**
+  1. **Precarga por ámbito:** se adopta (`PREWARM_BY_SCOPE = true`). Al cambiar a un ámbito con páginas, el chat carga Gemma con visión antes de la pregunta, y al revés. La primera respuesta con página tras una sin página baja de un p95 de 15,9 s a 9,4 s, con el mismo pico de memoria (3,63 GB), porque el coordinador libera un motor antes de cargar el otro. Con el modo apagado no cambia nada.
+  2. **Espera de Equilibrado:** Ajustes y el chat anuncian «unos 9 s» en lugar de «unos 8,5 s» (`PageDetail.BALANCED`, 90 décimas). Es el p95 de 71 respuestas en 25 minutos (9,11 s), redondeado al medio segundo como los otros dos. La pasada de 20 preguntas dio 9,58 s. Rápido y Detallado no cambian (6,69 y 14,39 s).
+  3. **Seguimiento con páginas:** se queda la consulta unida de hoy (`JOINED`). En 40 pares revisados, ninguna variante acierta la página del documento nuevo en el 90 % de los cambios. La consulta unida acierta el 8,3 %, la pregunta nueva sola el 45,8 % y la mejor de las dos el 29,2 %, que no pierde seguimientos reales y queda anotada.
+  4. **Consulta con la 440M:** tarda lo mismo que con la 270M (p50 de 123 ms y p95 de 124–125 ms en el A063), con el mismo pico de RSS.
+- **Además, informativo:** la sesión de 25 minutos con Equilibrado no tuvo estrés térmico (pico de RSS de 3,84 GB), y el pico con Detallado es de 4,68 GB.
+- **Motivo:** las reglas de D-090 (precarga y seguimiento) y la de D-086 (el texto dice el p95 medido).
+- **Origen:** fase del teléfono de F14 (T041, T049 y T053).
+- **Afecta:** `RagParameters.PREWARM_BY_SCOPE` y `PAGE_FOLLOW_UP`; `PageDetail` y sus pruebas; D-086 (Equilibrado) y D-087.
+
+---
+
+## D-097 — Palancas de calidad: reordenación α = 0,5 y búsqueda entre idiomas (F14)
+
+- **Fecha:** 2026-11-07
+- **Decisión:**
+  1. **Reordenación α = 0,5 de los 20 primeros:** no se adopta. Con 0.19.1, 4 bloques y el estimador nuevo, el Recall@bloques sube de 0,889 a 0,903 (+1,4 puntos), las mismas cifras de D-051, y la regla pide 2.
+  2. **Búsqueda entre idiomas:** no se implementa, y la tarjeta «Búsqueda multilingüe» no cambia (D-062). Ni siquiera su techo, la búsqueda solo por significado, llega a la regla de 10 puntos. Da 63,2 % de respuestas correctas en ES·EN frente a 82,5 % en el mismo idioma, y 66,0 % en EN·ES frente a 80,0 %. Son 81 respuestas juzgadas a mano. La variante con palabras vacías y raíces del inglés solo cambia la búsqueda por palabras, que entre idiomas distintos no encuentra nada, así que no se evaluó (filtro previo).
+- **Origen:** implement de F14 (T044 y T057).
+- **Afecta:** D-051 y D-062.
+
+---
+
 ## Pendientes de decisión
 
 Se presentan al usuario junto con el inventario. Detalle en `INVENTARIO.md` §6.

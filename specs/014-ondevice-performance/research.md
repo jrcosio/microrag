@@ -123,6 +123,49 @@ Nada se ha medido aún en el teléfono. Las cifras del Mac son orientativas.
     | 100 | 1,0000 | 1,0000 | 1,0000 |
 
     INT8 sola da en el escritorio lo mismo que en el teléfono (0,9635 frente a 0,966 a 10k). Con 50 candidatos el recall no baja en ningún tamaño, así que la segunda pasada solo tiene que medir el tiempo de 50 en el teléfono.
+  - **Segunda pasada en el A063 (10k, la 270M, `f14-search-10000-1794033495138`):**
+
+    | Variante | Vectorial p50 | p95 | Recall@20 | Híbrida p95 |
+    |---|---:|---:|---:|---:|
+    | F32 | 46,8 ms | 65,7 ms | — | 247 ms |
+    | INT8 + reordenar 50 | 22,0 ms | 40,6 ms | 1,000 | 204 ms |
+    | INT8 + reordenar 100 | 33,1 ms | 41,4 ms | 1,000 | 200 ms |
+    | INT8 sola (top 20) | 10,3 ms | 10,6 ms | 0,966 | — |
+
+    Subconjuntos, búsquedas vectoriales seguidas, p95: F32 da 10,1, 10,4, 17,9 y 27,1 ms con 1k, 2,5k, 5k y 7,5k; INT8 + reordenar 50 da 7,7, 11,4, 8,7 y 12,0 ms.
+  - **Por qué 50 candidatos no bajan de 41 ms:**
+    - el banco tiene 128 documentos excluidos (3.200 fragmentos, el 32 %), así que cada búsqueda pide al escaneo k + m = 3.250 filas y las une con `chunks` y `documents` antes de reordenar;
+    - en el escritorio, con la misma forma, esa unión es casi todo el tiempo: el escaneo de 3.250 tarda 0,81 ms, la unión 2,96 ms y la reordenación de 50 filas 0,02 ms;
+    - leyendo primero la cabeza, 2 × 50 = 100 filas, y ampliando a k + m solo si quedan menos de 50 buscables, la búsqueda tarda 0,25 ms y da el mismo resultado: un buscable fuera de la cabeza está más lejos que todos los de dentro.
+  - **Decisión (T049):**
+    - la búsqueda sin ámbito lee primero la cabeza (contrato I2), con su caso en `RagIndexInt8Test` (excluidos que llenan la cabeza; 13 de 13 en los dos emuladores);
+    - `INT8_CANDIDATES = 50`, para fragmentos y páginas. En el escritorio, las páginas dan Recall@5 de 1,000 con 20, 50 y 100 candidatos en los tres bancos;
+    - `INT8_MIN_CHUNKS = 5.000`: la exacta sola pasa de 20 ms entre 5k (17,9–18,2 ms) y 7,5k (27,1 ms), y se redondea hacia abajo, como se decidió. La biblioteca del usuario del A063 tiene 97 fragmentos buscables (log numérico de la app), así que las pruebas no la cambian (SC-010).
+  - **Tercera pasada** con la cabeza: 10k con la 270M y 2 rondas; 50k y 100k con la 440M y 1 ronda; y las páginas.
+    - **10k con la 270M** (`f14-search-10000-1794034908853`, sin estrés térmico):
+
+      | Variante | Vectorial p50 | p95 | Recall@20 | Híbrida p50 | p95 | Con ámbito de carpeta p95 |
+      |---|---:|---:|---:|---:|---:|---:|
+      | F32 | 46,1 ms | 65,1 ms | — | 173 ms | 249 ms | 272 ms |
+      | INT8 + reordenar 50, con la cabeza | **8,2 ms** | **9,8 ms** | **1,000** | 144 ms | **154 ms** | 185 ms |
+
+    - **Desglose de la híbrida con INT8 (p95):** embedding 137 ms, vectorial 18 ms y léxica 94 ms, en paralelo.
+    - **Subconjuntos, p95:**
+      - F32: 8,6, 11,2, 21,9 y 31,6 ms con 1k, 2,5k, 5k y 7,5k;
+      - INT8 + reordenar 50: 5,4, 7,8, 11,6 y 15,7 ms.
+    - **Reconstruir y precargar:** 11 ms; precargar al abrir, 21 ms.
+    - **SC-002 se cumple:** 9,8 ms ≤ 20 ms con Recall@20 1,000 ≥ 0,97.
+    - **SC-003 se cumple:** 154 ms ≤ 200 ms con la 270M, el modo por defecto.
+    - **50k y 100k con la 440M, 1 ronda:**
+
+      | Banco | F32 vectorial p95 | INT8 + reordenar 50 p95 · Recall@20 | Híbrida F32 p95 | Híbrida INT8 p95 |
+      |---|---:|---:|---:|---:|
+      | 50k (`f14-search-50000-1794035782064`) | 216 ms | **16,7 ms** · 1,000 | 446 ms | 224 ms |
+      | 100k (`f14-search-100000-1794037194344`) | 441 ms | **22,4 ms** · 1,000 | 778 ms | 352 ms |
+
+      - Con 50k y 100k, la híbrida pasa de 200 ms por la léxica (209 y 335 ms de p95 dentro de la híbrida), no por la vectorial.
+      - INT8 sola (top 20) da un Recall@20 de 0,960 y 0,959.
+      - Precargar al abrir tarda 37 y 55 ms, con 13,2 y 26,4 MB.
 
 ## R4. Medidas en el teléfono: método común (FR-004, FR-005, FR-036)
 
@@ -280,12 +323,22 @@ Nada se ha medido aún en el teléfono. Las cifras del Mac son orientativas.
     | 10.000 | **24,0 ms** | 14,5 ms | 1,000 |
 
     Con 10.000 páginas pasa de 20 ms, así que la ruta INT8 de páginas se implementa con la misma regla que los fragmentos (FR-023).
+    - **Con la ruta de la app** (escaneo en streaming con el filtro de buscables y reordenación, `PageSearchBenchmarkTest`, tercera pasada con 50 candidatos):
+
+      | Páginas | F32 p95 | INT8 + reordenar 50 p95 | Recall@5 |
+      |---:|---:|---:|---:|
+      | 1.000 | 8,4 ms | 11,6 ms | 1,000 |
+      | 5.000 | 16,6 ms | 14,6 ms | 1,000 |
+      | 10.000 | 27,5 ms | **18,0 ms** | 1,000 |
+
+      Con 100 candidatos daba 15,2, 12,7 y 17,1 ms. Con 1.000 páginas la exacta es más rápida, y por eso INT8 empieza en 5.000.
     - **Desde cuándo:** desde `PAGES_INT8_MIN = 5.000` páginas, el mayor tamaño medido por debajo de 20 ms. INT8 es más rápida en todos los tamaños.
     - **Estado:** `pages_quant_dirty`, que se **quita** en cada cambio de páginas (si falta, está desfasada) y vale `'0'` solo tras reconstruir.
     - **Precarga:** su propia marca `pagesInt8Preloaded`.
     - **Mantenimiento:** el mismo `refreshQuantized` y el mantenedor de R3.
     - **Pruebas:** tres casos nuevos en `RagIndexInt8Test` (12 de 12 y el paquete `data.rag`, 113 de 113, en los dos emuladores).
 - **Consulta con la 440M frente a la 270M:** la 270M se copia a `dev-models` (D-088). Se mide el p50 y p95 de la consulta y el RSS de las dos, alternando el orden.
+  - **Resultado (T049, `f14-embedders-1794020766404`, 200 consultas cada una en 4 rondas alternas):** lo mismo. La 440M da un p50 y p95 de 123 y 125 ms; la 270M, de 123 y 124 ms. El pico de RSS es de 603–635 MB con la 440M y de 601–621 MB con la 270M. Con el modo activo, la consulta no se hace más lenta por usar la 440M.
 - **Primer token con páginas en sesión sostenida:** `VisualChatBenchmarkTest` gana un modo sostenido (25 min sin reposo, con Equilibrado) además de sus 20 preguntas por detalle.
   - **Resultado de las 20 preguntas por detalle (T053, `visual-chat-1794028014400`):**
 

@@ -298,20 +298,33 @@ description: "Lista de tareas de F14 — Rendimiento en dispositivo y decisión 
 - [X] T046 Copiar con `adb push` los bancos, las preguntas y los vectores de consulta a `…/files/dev-bench/`, y la 270M y E4B a `…/files/dev-models/`, y verificar los SHA-256
 - [X] T047 `PrefixCacheGoldenTest` (T027). Las respuestas que cambien se juzgan con la regla de calidad antes de decidir el prefijo. Primera pasada: en la GPU, 4 de 20 idénticas; en la CPU, 2 de 5. La prueba guarda dónde se separan las respuestas (solo números), y la calidad se juzga solo si el prefijo da la ganancia de T050. **Hecho:** T050 da +1,10 s de p95 con el prefijo, así que no se adopta y no hay calidad que juzgar. La prueba compara también MTP (`-e f14.compare mtp`) y el control `repeat` (research R6, R7)
 - [X] T048 `StartupBenchmarkTest`, `IndexingBenchmarkTest` y `VisualIngestBenchmarkTest` (arranque e ingesta, FR-033). `IndexingBenchmarkTest` usa la 270M de `dev-models` si no está instalada y deja su informe; la limpieza borra también `f19-visual-ingest-*`
-- [ ] T049 `SearchScaleBenchmarkTest` con 10k, 50k y 100k (y los subconjuntos), `PageSearchBenchmarkTest` y `EmbedderComparisonBenchmarkTest`:
+- [X] T049 `SearchScaleBenchmarkTest` con 10k, 50k y 100k (y los subconjuntos), `PageSearchBenchmarkTest` y `EmbedderComparisonBenchmarkTest`:
   - fijar `INT8_MIN_CHUNKS` e `INT8_CANDIDATES` (Recall@20 con reordenación ≥ 0,97) en `RagParameters.kt`, y si INT8 no lo cumple, decidir con las cifras (FR-008);
   - si las páginas pasan de 20 ms, implementar su ruta INT8 (`pages_quant_dirty`, contrato I3) con su caso en `RagIndexInt8Test`
+
+  **Hecho** en tres pasadas (R3, D-092):
+  - la segunda mostró que unir k + m filas dejaba INT8 en 40,6 ms con 10k, y la búsqueda pasó a leer primero la cabeza de la copia, con su caso en `RagIndexInt8Test`;
+  - en la tercera, con 50 candidatos, la vectorial da 9,8 ms de p95 con 10k (Recall@20 1,000) y la híbrida 154 ms con la 270M (SC-002 y SC-003);
+  - 50k da 16,7 ms y 100k 22,4 ms;
+  - las páginas usan INT8 desde 5.000, con 18,0 ms con 10.000;
+  - `INT8_CANDIDATES = 50` e `INT8_MIN_CHUNKS = 5.000`
 - [X] T050 `GenerationBenchmarkTest`: `base` con 4, 6 y 8 bloques; después `prefix`, `mtp`, `fp32` y `v4-cifras` en modo alterno. **Hecho:** con 4 bloques, p95 de 5,49 s. El prefijo da +1,10 s y no se adopta; `v4-corta` se descarta por cota (0,19 s como mucho). MTP sube la decodificación un 49,8 % sin empeorar el primer token, pero cambia 10 de 20 respuestas greedy (el control da 20 de 20) y no se adopta. FP32 da +2,21 s y no se adopta. `v4-cifras` no cuesta primer token (research R5–R8)
 - [X] T051 `NumericFidelityBenchmarkTest` (`default`, `fp32` y `v4-cifras`), con la revisión de las respuestas marcadas en el escritorio (`offline/testset/numeric/review.csv`). **Hecho:** deforman alguna cifra 15 de 62 con `v4`, 0 con FP32 y 16 con `v4-cifras`, que no se adopta (R8)
 - [X] T052 `SustainedChatBenchmarkTest` base: `sin-reposo` y `con-reposo`. **Hecho:** p95 del primer token de 4,63 s sin reposo (111 respuestas) y 5,04 s con reposo (34), sin estrés térmico (R5)
 - [X] T053 `VisualChatBenchmarkTest`: `detalles`, `sostenido` y `recarga`. **Hecho:** Equilibrado da un p95 de 9,58 s en 20 preguntas y de 9,11 s en 71 respuestas sostenidas, así que pasa a anunciar «unos 9 s». La precarga por ámbito baja la primera respuesta con página de 15,9 a 9,4 s de p95 sin subir el pico, y se adopta (R10)
 - [X] T054 Variante `e4b` de `GenerationBenchmarkTest` (T043). **Hecho:** carga, pero da 13,64 s de p95 frente a 5,49 s de E2B, con un pico de 4,51 GB. Se recomienda seguir con E2B (R11)
-- [ ] T055 **Decidir** con `f14_rules.json`:
+- [X] T055 **Decidir** con `f14_rules.json`:
   - prefijo, especulativa, bloques, FP32 o `v4-cifras`, precarga por ámbito e INT8 de páginas;
   - poner los interruptores adoptados en `RagParameters.kt`;
   - repetir `SustainedChatBenchmarkTest` `sin-reposo` con lo adoptado (SC-004);
   - si el p95 sigue por encima de 5 s, **preguntar al usuario** si se actualiza la excepción D-057;
   - si cambia una espera anunciada (D-086), ajustar `PageDetail` y sus pruebas
+
+  **Hecho** (D-092–D-097):
+  - se adoptan INT8 con 50 candidatos desde 5.000 fragmentos y páginas, el estimador y la precarga por ámbito;
+  - no se adoptan el prefijo, MTP, FP32, `v4-cifras`, 3 bloques, la reordenación α ni las variantes de seguimiento;
+  - Equilibrado pasa a «unos 9 s»;
+  - ninguna adoptada toca el primer token del chat de texto, así que la sesión sostenida no se repite. SC-004 se cumple con 4,63 s, y la excepción D-057 deja de hacer falta
 - [ ] T056 Batería instrumentada completa en el teléfono con lo adoptado. En el escritorio, `ablations` con el modo apagado (FR-038, SC-009)
 - [X] T057 [US8] Repetir `order-review` en el escritorio con lo adoptado en T055 (estimador y bloques), frente a su regla (R12, FR-030). Si se adopta, medir su coste en el teléfono antes de T058. **Hecho** antes de T055, porque los dos ya estaban decididos (4 bloques en T031 y la estimación en T036) y T055 no los toca: las mismas cifras de D-051, +1,4 puntos, y no se adopta
 - [ ] T058 Limpieza:

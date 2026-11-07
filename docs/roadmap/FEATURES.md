@@ -662,7 +662,15 @@ También se introduce `EngineCoordinator`, que garantiza que nunca haya dos engi
 ## F14 — Rendimiento en dispositivo y decisión INT8
 
 - **Tipo:** Técnica. Diagnóstico y benchmark internos, solo en debug.
-- **Estado:** 🟨 en curso en la rama `014-ondevice-performance` desde el 2026-11-06. Specify y clarify aprobados el 2026-11-06, con la decisión D-088: la 270M y E4B se copian al A063 solo para medir; las palancas del primer token se adoptan si bajan el p95 sostenido al menos 0,3 s sin perder más de 1 punto de `v4`; FP32 solo si sube el p95 ≤ 0,5 s, y si no, una instrucción en el prompt; la búsqueda entre idiomas solo se evalúa; LiteRT-LM 0.19.1 y SQLite-Vector 1.2.0 se prueban al empezar. Plan hecho el 2026-11-06, con la decisión D-089: INT8 con reordenación exacta y un mantenedor en segundo plano; bancos construidos en el escritorio con textos y vectores reales; palancas con interruptor decididas tras la fase del teléfono. Tareas y analyze el 2026-11-06, con la decisión D-090: enmienda PATCH 1.2.1 si se adoptan los runtimes, criterio propio para la especulativa, una sesión corta de goldens en el A063 al principio, el banco corto decide cada palanca, `v4-cifras` también con páginas y las reglas que faltaban. Spec en `specs/014-ondevice-performance/spec.md`.
+- **Estado:** 🟨 en curso en la rama `014-ondevice-performance` desde el 2026-11-06. Specify y clarify aprobados el 2026-11-06, con la decisión D-088: la 270M y E4B se copian al A063 solo para medir; las palancas del primer token se adoptan si bajan el p95 sostenido al menos 0,3 s sin perder más de 1 punto de `v4`; FP32 solo si sube el p95 ≤ 0,5 s, y si no, una instrucción en el prompt; la búsqueda entre idiomas solo se evalúa; LiteRT-LM 0.19.1 y SQLite-Vector 1.2.0 se prueban al empezar. Plan hecho el 2026-11-06, con la decisión D-089: INT8 con reordenación exacta y un mantenedor en segundo plano; bancos construidos en el escritorio con textos y vectores reales; palancas con interruptor decididas tras la fase del teléfono. Tareas y analyze el 2026-11-06, con la decisión D-090: enmienda PATCH 1.2.1 si se adoptan los runtimes, criterio propio para la especulativa, una sesión corta de goldens en el A063 al principio, el banco corto decide cada palanca, `v4-cifras` también con páginas y las reglas que faltaban. Implementada del 2026-11-06 al 2026-11-07, con LiteRT-LM 0.19.1 y SQLite-Vector 1.2.0 (D-091, constitución 1.2.1), y fase del teléfono el 2026-11-07. Decisiones:
+  - D-092: INT8 con 50 candidatos reordenados desde 5.000 fragmentos y páginas. Con 10k, la vectorial da 9,8 ms de p95 con Recall@20 de 1,000, y la híbrida 154 ms con la 270M.
+  - D-093: se quedan 4 bloques; se adopta el estimador de tokens por clases; sigue E2B, porque E4B da 13,6 s de primer token.
+  - D-094: primer token sostenido con un p95 de 4,63 s (SC-004). El prefijo, la plantilla corta y MTP no se adoptan.
+  - D-095: fp16 se queda; FP32 cuesta 2,2 s y `v4-cifras` no ayuda.
+  - D-096: se adopta la precarga por ámbito y Equilibrado anuncia unos 9 s.
+  - D-097: ni la reordenación α ni la búsqueda entre idiomas.
+
+  Cifras en `specs/014-ondevice-performance/benchmarks.md`. Spec en `specs/014-ondevice-performance/spec.md`.
 
 **Objetivo.** Completar la tabla de benchmarks del informe con corpus de 10k, 50k y 100k chunks:
 - búsqueda F32 frente a INT8 (p50/p95/p99), FTS e híbrida;
