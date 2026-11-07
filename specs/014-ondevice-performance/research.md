@@ -98,6 +98,21 @@ Nada se ha medido aún en el teléfono. Las cifras del Mac son orientativas.
   - reconstruir en otra conexión: `vector_quantize` escribe, y solo hay una conexión de escritura;
   - reconstrucción incremental: la API no la tiene;
   - 1BIT o UINT8: peor recall con coseno.
+- **Resultado en el A063 (T049, primera pasada, 426 preguntas × 2 rondas, la 440M):**
+
+  | Banco | Vectorial F32 p95 | INT8 sola p95 · Recall@20 | INT8 + reordenar 100 p95 · Recall@20 | Híbrida F32 p95 | Híbrida INT8 p95 | Precarga · memoria |
+  |---|---:|---:|---:|---:|---:|---:|
+  | 10k | 66,3 ms | 10,7 ms · 0,966 | 41,5 ms · 1,000 | 247 ms | 203 ms | 35 ms · 2,6 MB |
+  | 50k | 184 ms | 60,0 ms · 0,960 | 77,3 ms · 1,000 | 365 ms | 267 ms | 54 ms · 13,2 MB |
+  | 100k | 375 ms | 139 ms · 0,959 | 155 ms · 1,000 | 691 ms | 460 ms | 55 ms · 26,4 MB |
+
+  - **Reconstruir y precargar:** 73, 576 y 818 ms. La base crece un 3–4 %.
+  - **Subconjuntos del banco de 10k, F32 p95:** 1k 14,0 ms, 2,5k 10,4 ms y 5k 18,2 ms. El límite de 20 ms se pasa entre 5k y 10k.
+  - **Con la 270M** (SC-003): la híbrida p95 da 247 ms en F32 y 206 ms con INT8. La consulta tarda lo mismo con las dos (p50 123 ms, embedders), y es la mayor parte: embedding p95 163 ms, vectorial 75 ms y léxica 124 ms (las dos últimas dentro de la híbrida, en paralelo).
+  - **Lectura:**
+    - INT8 sola no llega a 0,97 de Recall@20 en ningún tamaño.
+    - Con la reordenación, el recall es 1,000, pero leer los 100 vectores F32 cuesta unos 13 ms en la mediana y deja el p95 en 41,5 ms a 10k.
+    - La app pide 50 candidatos (`CANDIDATES`) y preselecciona `max(50, INT8_CANDIDATES)`. **Segunda pasada:** 50 frente a 100, y INT8 en los subconjuntos, con uno nuevo de 7,5k.
 
 ## R4. Medidas en el teléfono: método común (FR-004, FR-005, FR-036)
 
@@ -223,6 +238,20 @@ Nada se ha medido aún en el teléfono. Las cifras del Mac son orientativas.
   - bancos de 1.000, 5.000 y 10.000 páginas, hechos de los vectores reales de las páginas del corpus visual de F18 (unas 300, embebidos con la 440M) perturbados con ruido gaussiano y renormalizados, con semilla fija;
   - no hay 10.000 páginas reales distintas, y una biblioteca con el modo activo rara vez pasa de unos pocos miles;
   - se mide F32 frente a INT8 con el criterio de 20 ms. La variante INT8 del banco usa SQL directo sobre la base del banco; la ruta INT8 de páginas de la app solo se implementa si las cifras la piden. Si no, las páginas se quedan en F32 y `pages_quant_dirty` no se usa.
+  - **Resultado (T049, 100 consultas × 2 rondas):**
+
+    | Páginas | F32 p95 | INT8 + reordenar 100 p95 | Recall@5 |
+    |---:|---:|---:|---:|
+    | 1.000 | 8,0 ms | 4,2 ms | 1,000 |
+    | 5.000 | 15,1 ms | 8,7 ms | 1,000 |
+    | 10.000 | **24,0 ms** | 14,5 ms | 1,000 |
+
+    Con 10.000 páginas pasa de 20 ms, así que la ruta INT8 de páginas se implementa con la misma regla que los fragmentos (FR-023).
+    - **Desde cuándo:** desde `PAGES_INT8_MIN = 5.000` páginas, el mayor tamaño medido por debajo de 20 ms. INT8 es más rápida en todos los tamaños.
+    - **Estado:** `pages_quant_dirty`, que se **quita** en cada cambio de páginas (si falta, está desfasada) y vale `'0'` solo tras reconstruir.
+    - **Precarga:** su propia marca `pagesInt8Preloaded`.
+    - **Mantenimiento:** el mismo `refreshQuantized` y el mantenedor de R3.
+    - **Pruebas:** tres casos nuevos en `RagIndexInt8Test` (12 de 12 y el paquete `data.rag`, 113 de 113, en los dos emuladores).
 - **Consulta con la 440M frente a la 270M:** la 270M se copia a `dev-models` (D-088). Se mide el p50 y p95 de la consulta y el RSS de las dos, alternando el orden.
 - **Primer token con páginas en sesión sostenida:** `VisualChatBenchmarkTest` gana un modo sostenido (25 min sin reposo, con Equilibrado) además de sus 20 preguntas por detalle.
 - **Recarga de Gemma con visión (14,2 s):**
