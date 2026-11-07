@@ -302,8 +302,8 @@ description: "Lista de tareas de F14 — Rendimiento en dispositivo y decisión 
   - fijar `INT8_MIN_CHUNKS` e `INT8_CANDIDATES` (Recall@20 con reordenación ≥ 0,97) en `RagParameters.kt`, y si INT8 no lo cumple, decidir con las cifras (FR-008);
   - si las páginas pasan de 20 ms, implementar su ruta INT8 (`pages_quant_dirty`, contrato I3) con su caso en `RagIndexInt8Test`
 - [X] T050 `GenerationBenchmarkTest`: `base` con 4, 6 y 8 bloques; después `prefix`, `mtp`, `fp32` y `v4-cifras` en modo alterno. **Hecho:** con 4 bloques, p95 de 5,49 s. El prefijo da +1,10 s y no se adopta; `v4-corta` se descarta por cota (0,19 s como mucho). MTP sube la decodificación un 49,8 % sin empeorar el primer token, pero cambia 10 de 20 respuestas greedy (el control da 20 de 20) y no se adopta. FP32 da +2,21 s y no se adopta. `v4-cifras` no cuesta primer token (research R5–R8)
-- [ ] T051 `NumericFidelityBenchmarkTest` (`default`, `fp32` y `v4-cifras`), con la revisión de las respuestas marcadas en el escritorio (`offline/testset/numeric/review.csv`)
-- [ ] T052 `SustainedChatBenchmarkTest` base: `sin-reposo` y `con-reposo`
+- [X] T051 `NumericFidelityBenchmarkTest` (`default`, `fp32` y `v4-cifras`), con la revisión de las respuestas marcadas en el escritorio (`offline/testset/numeric/review.csv`). **Hecho:** deforman alguna cifra 15 de 62 con `v4`, 0 con FP32 y 16 con `v4-cifras`, que no se adopta (R8)
+- [X] T052 `SustainedChatBenchmarkTest` base: `sin-reposo` y `con-reposo`. **Hecho:** p95 del primer token de 4,63 s sin reposo (111 respuestas) y 5,04 s con reposo (34), sin estrés térmico (R5)
 - [ ] T053 `VisualChatBenchmarkTest`: `detalles`, `sostenido` y `recarga`
 - [ ] T054 Variante `e4b` de `GenerationBenchmarkTest` (T043)
 - [ ] T055 **Decidir** con `f14_rules.json`:

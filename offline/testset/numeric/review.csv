@@ -1,0 +1,39 @@
+variant,id,flagged,verdict,note
+v4-fp16,n001,1.5,deformed,1.501 written as 1.50 and 3.750 as 3750
+v4-fp16,n004,222;7.5501,deformed,22.2 as 222 and 7.501 as 7.5501
+v4-fp16,n005,22.5,deformed,225.018 as 22.5.018
+v4-fp16,n008,111,deformed,ex 9018 11 10 as ex 9018 111 000
+v4-fp16,n009,2070,deformed,partida 2207 10 as 2070
+v4-fp16,n010,20191,deformed,2019 or the right year as 20191
+v4-fp16,n014,201212;30,deformed,2012 as 201212; 30 de noviembre is the right date of the decree and not a deformation
+v4-fp16,n015,206,deformed,the year as 206
+v4-fp16,n022,1000;111;350,deformed,apartado 11 as 111 and 35 and 100 as 350 and 1000
+v4-fp16,n023,700;800;900,deformed,70 80 90 as 700 800 900
+v4-fp16,n026,130.01;85;850.01;90000,deformed,85.000 and 85.001 and 130.001 and 190.000 lose or gain digits
+v4-fp16,n028,12023;1994;29,deformed,Ley 12/2023 as 12023/2024/2024/2024; Ley 29/1994 is right and not a deformation
+v4-fp16,n031,195;319,deformed,Ley 31/1995 as 319/195
+v4-fp16,n034,2002;34,correct,Ley 34/2002 is the right law although its number is not in the blocks
+v4-fp16,n053,201,deformed,1 de enero de 2011 as 201
+v4-fp16,n054,4.666,deformed,4.666 msnm as 4,6660
+v4-fp32,n014,30,correct,30 de noviembre is the right date of the decree although not in the blocks
+v4-fp32,n028,1994;29,correct,Ley 29/1994 is the right law although its number is not in the blocks
+v4-fp32,n034,2002;34,correct,Ley 34/2002 is the right law although its number is not in the blocks
+v4-fp32,n055,19.75,correct,19 750 hectáreas written as 19,750 with the same digits
+v4-cifras-fp16,n001,3.75,deformed,3.750 as 3.7500
+v4-cifras-fp16,n003,800,deformed,80 por ciento as 800
+v4-cifras-fp16,n004,2.1;222.2;9.6,deformed,22.2 as 222.2 and 22.16 as 2.1.6 and 9.600 as 9.60
+v4-cifras-fp16,n007,2500,deformed,250 millones as 2500
+v4-cifras-fp16,n008,901811110,deformed,ex 9018 11 10 as 901811110
+v4-cifras-fp16,n009,227,deformed,partida 2207 10 as 227 10
+v4-cifras-fp16,n010,2011,deformed,the date of entry into force with a wrong year
+v4-cifras-fp16,n014,30112,deformed,30 de noviembre as 30112 and BOE-A-2012 as BOE-A-2-2012
+v4-cifras-fp16,n015,206;600,deformed,60 días as 600 and the year as 206
+v4-cifras-fp16,n017,11;2002;34,correct,Ley 34/2002 de 11 de julio is the right law although not in the blocks
+v4-cifras-fp16,n021,1000;29,deformed,20 por 100 as 20 por 1000; Ley 29/1994 is right
+v4-cifras-fp16,n022,111,deformed,apartado 11 as 111
+v4-cifras-fp16,n026,13000;19000;85,deformed,130.000 and 190.000 lose digits
+v4-cifras-fp16,n027,194,deformed,the year of the index month as 194
+v4-cifras-fp16,n028,1994;23;29,deformed,Ley 12/2023 as 12/23; Ley 29/1994 is right
+v4-cifras-fp16,n034,2002;34,correct,Ley 34/2002 is the right law although not in the blocks
+v4-cifras-fp16,n054,4.666,deformed,4.666 msnm as 4,6660
+v4-cifras-fp16,n056,197.3,deformed,19.3 km as 197.3

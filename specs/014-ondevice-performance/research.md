@@ -149,6 +149,17 @@ Nada se ha medido aún en el teléfono. Las cifras del Mac son orientativas.
   - Con las 60 respuestas, el primer token sube **2,74 ms por token** de prompt (D-057 daba 3,1), con 0,63 s fijos.
   - La base con 4 bloques varía entre sesiones: p95 de 4,43 a 7,23 s en las cinco del día. Por eso las palancas se deciden alternando, nunca contra otra sesión.
   - En el teléfono, la estimación adoptada (R9) da reales/estimados de media 0,946, p95 0,990 y máximo 1,021.
+- **Resultado de la sesión sostenida (T052, base con 4 bloques, chat de texto de extremo a extremo, 25 min):**
+
+  | Sesión | Respuestas | Primer token p50 / p95 / p99 | Total p50 / p95 | Estado térmico |
+  |---|---:|---:|---:|---|
+  | Sin reposo | 111 | 3,60 / **4,63** / 4,66 s | 11,2 / 29,6 s | `NONE` en todas |
+  | Con reposo de 30 s | 34 | 3,70 / **5,04** / 5,40 s | 11,5 / 34,6 s | `NONE` en todas |
+
+  - **Por tramos de 5 minutos**, el p95 sin reposo se queda entre 4,54 y 4,64 s: no hay deriva térmica. Con reposo va de 4,20 a 5,40 s, con unas 7 respuestas por tramo.
+  - **Desglose (sin reposo, p50):** consulta 158 ms, búsqueda 215 ms, prompt 12 ms y primer token del motor 3,34 s.
+  - **Memoria:** el RSS pasa de 2,70 a 3,32 GB tras 111 respuestas sin reposo, y queda en 2,80 GB con reposo.
+  - **SC-004:** la sesión que decide es la sin reposo (R5, D-090), y con nada adoptado que toque el primer token del texto es también la final: **4,63 s ≤ 5 s**. Con reposo pasa por 0,04 s: el reposo deja bajar la frecuencia de la GPU entre preguntas. Se informa al usuario en el cierre.
 
 ## R6. Reutilizar el prefijo fijo del prompt (FR-017)
 
@@ -216,6 +227,18 @@ Nada se ha medido aún en el teléfono. Las cifras del Mac son orientativas.
   - **Medido en el teléfono (T050):**
     - **FP32:** el primer token p95 sube de 5,09 a 7,30 s (**+2,21 s**; p50 de 4,08 a 5,32 s), y la decodificación baja de 8,3 a 6,5 tok/s. Pasa de los 0,5 s de la regla, así que FP32 no se adopta y la salida es `v4-cifras`.
     - **`v4-cifras`:** no cuesta primer token (p95 de 4,43 a 4,45 s). Se decide con sus deformaciones en T051.
+  - **Medido en el teléfono (T051, 62 preguntas, contexto fijo):** el detector marca 16 respuestas con `v4`, 4 con FP32 y 18 con `v4-cifras`. Revisadas a mano (`offline/testset/numeric/review.csv`, D-033), las que deforman alguna cifra son:
+
+    | Variante | Marcadas | Deformadas | Las demás |
+    |---|---:|---:|---|
+    | `v4`, fp16 | 16 | **15** (24 %) | una ley bien citada que no está en los bloques |
+    | `v4`, FP32 | 4 | **0** | fechas y leyes bien citadas, y «19,750» con los mismos dígitos |
+    | `v4-cifras`, fp16 | 18 | **16** | dos leyes bien citadas |
+
+    - Los fallos son de dígitos repetidos, perdidos o cambiados: «2019» como «20191», «225.018» como «22.5.018», «19,3 km» como «197,3», «Ley 31/1995» como «319/195».
+    - **`v4-cifras` no se adopta:** deforma 16, y la regla pide como mucho la mitad de las de `v4` (7). Su revisión de calidad en el harness no hace falta.
+    - **FP32 no se adopta:** las quita todas, pero cuesta 2,21 s de primer token (regla: 0,5 s).
+    - **Lo que queda:** con fp16, una de cada cuatro respuestas sobre texto muy denso en cifras (este conjunto, con distractores parecidos a propósito) deforma alguna. En F18 fueron 2 de 60 con las preguntas normales. Se registra en DECISIONS como riesgo conocido, y FP32 queda como opción del usuario a cambio de los 2,2 s.
   - **Alcance (D-090):** texto y páginas. `buildVisual` toma la plantilla de `PROMPT_TEMPLATE`, así que la v5-visual cambia con ella. Se actualizan `visual_prompt.py` y `VisualPromptGoldenTest`, y las respuestas con páginas se miden en el teléfono, sin regla de calidad visual (D-078).
 
 ## R9. La estimación de tokens (FR-022)
