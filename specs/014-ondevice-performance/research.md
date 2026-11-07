@@ -123,6 +123,17 @@ Nada se ha medido aún en el teléfono. Las cifras del Mac son orientativas.
 
   Por pregunta: primer token, total, tokens, estado térmico y batería. Se resume en tramos de 5 minutos, y la batería por cada 10 minutos. Si el estado térmico llega a `SEVERE`, la sesión para y queda registrado.
 - **Qué decide las palancas (D-090):** el banco corto de `GenerationBenchmarkTest`, 20 preguntas alternando la base y la palanca, pregunta a pregunta, en las mismas condiciones térmicas. Una sesión sostenida por palanca serían unas 3 horas más de teléfono. La sesión sostenida sin reposo con la base, y la final con todas las adoptadas, confirman SC-004.
+- **Resultado (T050, A063 en GPU, 20 preguntas, salida cortada a 128 tokens):**
+
+  | Bloques | Tokens reales (p50) | Primer token p50 / p95 | Prefill p50 | Decodificación p50 |
+  |---|---:|---:|---:|---:|
+  | 4 | 1.353 | 4,82 / 5,49 s | 348 tok/s | 7,6 tok/s |
+  | 6 | 1.731 | 6,00 / 7,56 s | 356 tok/s | 10,0 tok/s |
+  | 8 | 2.090 | 5,40 / 8,36 s | 365 tok/s | 9,2 tok/s |
+
+  - Con las 60 respuestas, el primer token sube **2,74 ms por token** de prompt (D-057 daba 3,1), con 0,63 s fijos.
+  - La base con 4 bloques varía entre sesiones: p95 de 4,43 a 7,23 s en las cinco del día. Por eso las palancas se deciden alternando, nunca contra otra sesión.
+  - En el teléfono, la estimación adoptada (R9) da reales/estimados de media 0,946, p95 0,990 y máximo 1,021.
 
 ## R6. Reutilizar el prefijo fijo del prompt (FR-017)
 
@@ -148,6 +159,14 @@ Nada se ha medido aún en el teléfono. Las cifras del Mac son orientativas.
 - **Plantilla más corta (D-090):** con el prefijo reutilizado, las reglas ya no cuestan prefill. La `v4-corta` solo se evalúa si el prefijo no está disponible o no se adopta; si no, se descarta con ese motivo.
 - **Interruptor:** `GenerationConfig.prefixCache`, con su valor por defecto en `RagParameters` según el resultado de la fase del teléfono.
 - **Alternativas descartadas:** `CachedSession` o `PrefixCache` de C++, que no están expuestos en Kotlin.
+- **Resultado (T047, T050):** el prefijo **no se adopta**.
+  - **Banco alterno:** el primer token **sube**, p50 de 5,63 a 6,32 s y p95 de 7,23 a 8,32 s (+1,10 s).
+  - **Por qué:** el prefijo son solo unos 177 tokens del prompt (el resto que se procesa baja de 1.353 a 1.176 en la mediana), y clonar la conversación en la GPU cuesta más que esos 0,5 s de prefill.
+  - **Calidad:** como no da la ganancia, la calidad de las respuestas que cambian (T047: en la GPU 4 de 20 idénticas, en la CPU 2 de 5) no se juzga. El interruptor queda apagado.
+- **Plantilla más corta (evaluada al no adoptarse el prefijo, D-090):**
+  - **Medida:** las reglas de `v4` son 173 tokens con el tokenizador de Gemma. Una versión corta con las mismas reglas y la frase de negativa exacta, fijada antes de medir, deja 103 tokens: ahorra 70, unos **0,19 s** con la pendiente del teléfono (R5).
+  - **Cota:** quitar las reglas enteras ahorraría 0,47 s. Llegar a 0,3 s exige dejarlas en unos 63 tokens, y solo la frase de negativa ocupa 15.
+  - **Decisión:** no puede cumplir la regla de 0,3 s, así que se descarta sin pasar por el teléfono ni por el harness.
 
 ## R7. Decodificación especulativa (MTP)
 
@@ -157,6 +176,11 @@ Nada se ha medido aún en el teléfono. Las cifras del Mac son orientativas.
 - **Encaje con la regla:** no baja el primer token, así que no cumple la regla de FR-017, que es sobre el primer token. Pero acorta la respuesta completa y, con greedy, no debería cambiar el texto.
 - **Criterio aprobado (D-090):** se adopta si sube la decodificación al menos un 20 %, no empeora el p95 del primer token más de 0,3 s y las respuestas greedy de las goldens no cambian.
 - **Interruptor:** `GenerationConfig.speculative` (OFF o ADAPTIVE).
+- **Resultado (T050):**
+  - **Banco alterno:** la decodificación sube de 7,21 a 10,80 tok/s en la mediana (**+49,8 %**).
+  - **Primer token:** p95 de 5,50 a 5,39 s, sin empeorar.
+  - **Respuesta completa:** el total p95 baja de 20,96 a 14,84 s.
+  - **Pendiente:** la igualdad greedy de las goldens, que compara `PrefixCacheGoldenTest -e f14.compare mtp` con el control `repeat`.
 
 ## R8. fp16 y FP32 (FR-020, FR-021)
 
@@ -170,6 +194,9 @@ Nada se ha medido aún en el teléfono. Las cifras del Mac son orientativas.
   - FP32 se adopta si el p95 del primer token sube ≤ 0,5 s en el banco corto, con las palancas ya adoptadas (R6 podría compensar parte del coste), y la sesión sostenida final lo confirma.
   - Si no, se evalúa una instrucción más fuerte. `v4` ya tiene «Copia cifras, plazos, importes y números de artículo tal como aparecen en la fuente que citas.», y los 2 fallos de 60 ocurrieron con ella. La variante candidata (`v4-cifras`) mueve la regla al final, junto a la PREGUNTA, y pide copiar cada cifra «dígito a dígito». Se adopta si da como mucho la mitad de respuestas con cifras deformadas que `v4` en el teléfono y cumple la regla de calidad de FR-017 en el harness (D-090).
   - **Medido en el Mac (T033):** de 62 respuestas, `v4` deforma alguna cifra en 12 con fp16 y en 0 con FP32; `v4-cifras`, en 18 con fp16 y en 0 con FP32. La instrucción no ayuda: el fallo es de precisión. Como `v4-cifras` debe cumplir antes la regla de las deformaciones en el teléfono, su revisión de calidad (426 respuestas) solo se hace si la cumple.
+  - **Medido en el teléfono (T050):**
+    - **FP32:** el primer token p95 sube de 5,09 a 7,30 s (**+2,21 s**; p50 de 4,08 a 5,32 s), y la decodificación baja de 8,3 a 6,5 tok/s. Pasa de los 0,5 s de la regla, así que FP32 no se adopta y la salida es `v4-cifras`.
+    - **`v4-cifras`:** no cuesta primer token (p95 de 4,43 a 4,45 s). Se decide con sus deformaciones en T051.
   - **Alcance (D-090):** texto y páginas. `buildVisual` toma la plantilla de `PROMPT_TEMPLATE`, así que la v5-visual cambia con ella. Se actualizan `visual_prompt.py` y `VisualPromptGoldenTest`, y las respuestas con páginas se miden en el teléfono, sin regla de calidad visual (D-078).
 
 ## R9. La estimación de tokens (FR-022)

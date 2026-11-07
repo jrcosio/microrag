@@ -296,12 +296,12 @@ description: "Lista de tareas de F14 — Rendimiento en dispositivo y decisión 
   - instalar los APK de depuración y de pruebas con `adb -s`;
   - `BenchDirsTest`
 - [X] T046 Copiar con `adb push` los bancos, las preguntas y los vectores de consulta a `…/files/dev-bench/`, y la 270M y E4B a `…/files/dev-models/`, y verificar los SHA-256
-- [ ] T047 `PrefixCacheGoldenTest` (T027). Las respuestas que cambien se juzgan con la regla de calidad antes de decidir el prefijo. Primera pasada: en la GPU, 4 de 20 idénticas; en la CPU, 2 de 5. La prueba guarda dónde se separan las respuestas (solo números), y la calidad se juzga solo si el prefijo da la ganancia de T050
+- [X] T047 `PrefixCacheGoldenTest` (T027). Las respuestas que cambien se juzgan con la regla de calidad antes de decidir el prefijo. Primera pasada: en la GPU, 4 de 20 idénticas; en la CPU, 2 de 5. La prueba guarda dónde se separan las respuestas (solo números), y la calidad se juzga solo si el prefijo da la ganancia de T050. **Hecho:** T050 da +1,10 s de p95 con el prefijo, así que no se adopta y no hay calidad que juzgar. La prueba compara también MTP (`-e f14.compare mtp`) y el control `repeat` (research R6, R7)
 - [X] T048 `StartupBenchmarkTest`, `IndexingBenchmarkTest` y `VisualIngestBenchmarkTest` (arranque e ingesta, FR-033). `IndexingBenchmarkTest` usa la 270M de `dev-models` si no está instalada y deja su informe; la limpieza borra también `f19-visual-ingest-*`
 - [ ] T049 `SearchScaleBenchmarkTest` con 10k, 50k y 100k (y los subconjuntos), `PageSearchBenchmarkTest` y `EmbedderComparisonBenchmarkTest`:
   - fijar `INT8_MIN_CHUNKS` e `INT8_CANDIDATES` (Recall@20 con reordenación ≥ 0,97) en `RagParameters.kt`, y si INT8 no lo cumple, decidir con las cifras (FR-008);
   - si las páginas pasan de 20 ms, implementar su ruta INT8 (`pages_quant_dirty`, contrato I3) con su caso en `RagIndexInt8Test`
-- [ ] T050 `GenerationBenchmarkTest`: `base` con 4, 6 y 8 bloques; después `prefix`, `mtp`, `fp32` y `v4-cifras` en modo alterno
+- [X] T050 `GenerationBenchmarkTest`: `base` con 4, 6 y 8 bloques; después `prefix`, `mtp`, `fp32` y `v4-cifras` en modo alterno. **Hecho:** con 4 bloques, p95 de 5,49 s. El prefijo da +1,10 s y no se adopta; `v4-corta` se descarta por cota (0,19 s como mucho). MTP sube la decodificación un 49,8 % sin empeorar el primer token (falta la igualdad greedy). FP32 da +2,21 s y no se adopta. `v4-cifras` no cuesta primer token (research R5–R8)
 - [ ] T051 `NumericFidelityBenchmarkTest` (`default`, `fp32` y `v4-cifras`), con la revisión de las respuestas marcadas en el escritorio (`offline/testset/numeric/review.csv`)
 - [ ] T052 `SustainedChatBenchmarkTest` base: `sin-reposo` y `con-reposo`
 - [ ] T053 `VisualChatBenchmarkTest`: `detalles`, `sostenido` y `recarga`

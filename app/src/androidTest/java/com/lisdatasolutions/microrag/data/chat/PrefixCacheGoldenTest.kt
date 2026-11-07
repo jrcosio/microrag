@@ -20,6 +20,7 @@ import com.lisdatasolutions.microrag.rag.runtime.EngineCoordinator
 import com.lisdatasolutions.microrag.rag.runtime.GenerationConfig
 import com.lisdatasolutions.microrag.rag.runtime.GenerationEvent
 import com.lisdatasolutions.microrag.rag.runtime.GenerationPrompt
+import com.lisdatasolutions.microrag.rag.runtime.SpeculativeMode
 import com.lisdatasolutions.microrag.rag.runtime.TextGenerator
 import com.lisdatasolutions.microrag.rag.runtime.litert.LiteRtEngineFactory
 import com.lisdatasolutions.microrag.testing.bench.BenchCorpus
@@ -46,6 +47,10 @@ import org.junit.runner.RunWith
  * characters they share from the start) and their lengths, which tell a different prompt (they part at once) from the
  * rounding of a split prefill on the GPU (they part late). `-e f14.backend cpu` runs the same check on the CPU, and
  * `-e f14.questions` sets how many questions.
+ *
+ * `-e f14.compare` picks what is set against the whole prompt: `prefix` (the default), `mtp` (the same prompt with
+ * speculative decoding, FR-017: the greedy answers of the goldens must not change; the two engines one after the
+ * other, constitution IV) or `repeat` (the whole prompt twice on one engine: the control of how far greedy repeats).
  */
 @RequiresModels
 @RunWith(AndroidJUnit4::class)
@@ -60,6 +65,7 @@ class PrefixCacheGoldenTest {
     private val arguments = InstrumentationRegistry.getArguments()
     private val forcedBackend = arguments.getString("f14.backend")?.let { ComputeBackend.valueOf(it.uppercase()) }
     private val questionCount = arguments.getString("f14.questions")?.toInt()
+    private val compare = arguments.getString("f14.compare") ?: "prefix"
     private val questions = RetrievalGoldenFiles.parity(
         instrumentation.context.assets.open(RetrievalGoldenFiles.PARITY).bufferedReader().use { it.readText() },
     ).filter { it.previous == null }
@@ -79,7 +85,7 @@ class PrefixCacheGoldenTest {
         val dispatchers = AppDispatchers.create()
         val coordinator = EngineCoordinator(com.lisdatasolutions.microrag.testing.CapturingLogger())
         val factory = LiteRtEngineFactory(context, dispatchers)
-        val report = BenchReport(context, "prefix-golden", sqliteVector = "-")
+        val report = BenchReport(context, "$compare-golden", sqliteVector = "-")
         report.start = DeviceConditions.snapshot(context)
         try {
             temp = BenchCorpus.open(context, root, pdf, coordinator, factory, models.pathOf(textEmbedder)!!, textEmbedder)
@@ -92,20 +98,16 @@ class PrefixCacheGoldenTest {
             coordinator.releaseAll()
 
             val backend = forcedBackend ?: models.preparedBackends.value.getValue(ModelId.GEMMA4_E2B)
-            val config = GenerationConfig(RagParameters.LLM_MAX_NUM_TOKENS, RagParameters.MAX_OUTPUT_TOKENS, greedy = true, prefixCache = true)
-            val generator = factory.generator(ModelCatalog.byId(ModelId.GEMMA4_E2B), models.pathOf(ModelId.GEMMA4_E2B)!!, backend, config)
-            val variant = report.variant("prefix-vs-whole", mapOf("questions" to "${measured.size}", "backend" to backend.name))
-            val pairs = mutableListOf<Triple<Int, Int, Int>>()
-            try {
-                generator.initialize()
-                prompts.forEach { prompt ->
-                    val whole = text(generator, GenerationPrompt.Text(prompt.whole))
-                    val split = text(generator, GenerationPrompt.Split(prompt.prefix, prompt.rest))
-                    pairs += Triple(whole.commonPrefixWith(split).length, whole.length, split.length)
-                }
-            } finally {
-                generator.close()
+            val config = GenerationConfig(RagParameters.LLM_MAX_NUM_TOKENS, RagParameters.MAX_OUTPUT_TOKENS, greedy = true)
+            val generator = { c: GenerationConfig -> factory.generator(ModelCatalog.byId(ModelId.GEMMA4_E2B), models.pathOf(ModelId.GEMMA4_E2B)!!, backend, c) }
+            val variant = report.variant("$compare-vs-whole", mapOf("questions" to "${measured.size}", "backend" to backend.name))
+            val answers = when (compare) {
+                "prefix" -> inTurn(generator(config.copy(prefixCache = true)), prompts) { GenerationPrompt.Split(it.prefix, it.rest) }
+                "repeat" -> inTurn(generator(config), prompts) { GenerationPrompt.Text(it.whole) }
+                "mtp" -> all(generator(config), prompts).zip(all(generator(config.copy(speculative = SpeculativeMode.ADAPTIVE)), prompts))
+                else -> error("f14.compare: prefix, mtp or repeat")
             }
+            val pairs = answers.map { (whole, other) -> Triple(whole.commonPrefixWith(other).length, whole.length, other.length) }
             val different = pairs.count { (shared, whole, split) -> shared < whole || whole != split }
             variant.extra["identical"] = JsonPrimitive(measured.size - different)
             variant.extra["different"] = JsonPrimitive(different)
@@ -120,6 +122,24 @@ class PrefixCacheGoldenTest {
             dispatchers.close()
         }
     }
+
+    /** One engine answers each prompt whole and then as [other] says, in turn. */
+    private suspend fun inTurn(generator: TextGenerator, prompts: List<PromptBuilder.SplitPrompt>, other: (PromptBuilder.SplitPrompt) -> GenerationPrompt) =
+        try {
+            generator.initialize()
+            prompts.map { text(generator, GenerationPrompt.Text(it.whole)) to text(generator, other(it)) }
+        } finally {
+            generator.close()
+        }
+
+    /** One engine answers every prompt whole and is closed before the next is loaded (constitution IV). */
+    private suspend fun all(generator: TextGenerator, prompts: List<PromptBuilder.SplitPrompt>) =
+        try {
+            generator.initialize()
+            prompts.map { text(generator, GenerationPrompt.Text(it.whole)) }
+        } finally {
+            generator.close()
+        }
 
     private suspend fun text(generator: TextGenerator, prompt: GenerationPrompt): String {
         val out = StringBuilder()
