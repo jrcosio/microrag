@@ -343,9 +343,15 @@ description: "Lista de tareas de F14 — Rendimiento en dispositivo y decisión 
   - si se adoptaron los runtimes, la enmienda PATCH 1.2.1 con `/speckit-constitution` (R1, D-090).
 
   `docs/roadmap/FEATURES.md` al día
-- [ ] T061 Verificación final:
+- [X] T061 Verificación final:
   - JVM, lint y la batería instrumentada sin modelos en los emuladores;
   - `assembleRelease` sin los bancos (están en `androidTest`) ni texto en logcat (SC-010)
+
+  **Hecho** con el código final:
+  - JVM 1.370/1.370, lint sin avisos y Python 318/318;
+  - instrumentadas: `Pixel_10` 1.059/1.059 y API 33 1.055/1.059, con los 4 fallos conocidos de Atrás;
+  - el dex de release no tiene `BenchReport`, `BenchBank`, `DevFiles`, `dev-bench` ni `dev-models`;
+  - el único registro nuevo del producto (`int8 refresh …`) lleva solo números
 - [ ] T062 `specs/014-ondevice-performance/report.md` (informe de cierre: implementado, verificación, cifras, decisiones y lo que queda) y la **revisión de cierre con el usuario**. La integración y el push van solo con su aprobación
 
 ---
