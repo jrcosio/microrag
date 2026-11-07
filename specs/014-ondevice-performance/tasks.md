@@ -147,7 +147,7 @@ description: "Lista de tareas de F14 — Rendimiento en dispositivo y decisión 
 
 **Independent Test**: `SearchScaleBenchmarkTest` con el banco de 10k en el emulador (sin modelo: sin la fase de embedding), y con los tres bancos en el teléfono (T049).
 
-- [ ] T019 [P] [US1] Construir en el escritorio los bancos de 10k, 50k y 100k (`run_eval.py bench-bank`, en segundo plano por su duración) y verificar sus manifiestos
+- [X] T019 [P] [US1] Construir en el escritorio los bancos de 10k, 50k y 100k (`run_eval.py bench-bank`, en segundo plano por su duración) y verificar sus manifiestos. **Hecho:** 400, 2.000 y 4.000 documentos de 25 fragmentos, con las 426 consultas; los SHA-256 de los tres manifiestos coinciden
 - [X] T020 [US1] `…/androidTest/data/retrieval/SearchScaleBenchmarkTest.kt` (contrato B2):
   - variantes `f32`, `int8`, `int8-rerank` e `int8-nopreload`;
   - embedder: el instalado (440M) y la 270M desde `dev-models` (SC-003);
