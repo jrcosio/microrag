@@ -348,12 +348,12 @@ description: "Lista de tareas de F14 — Rendimiento en dispositivo y decisión 
 
 ## Phase 12: Polish & Cross-Cutting Concerns
 
-- [ ] T059 [P] `run_eval.py device-report` → `specs/014-ondevice-performance/benchmarks.md` (SC-001), con las secciones de R14, y la nota que remite a él en `docs/RAG_Movil/informe-rag-movil-v2.md` (FR-034)
-- [ ] T060 DECISIONS:
+- [X] T059 [P] `run_eval.py device-report` → `specs/014-ondevice-performance/benchmarks.md` (SC-001), con las secciones de R14, y la nota que remite a él en `docs/RAG_Movil/informe-rag-movil-v2.md` (FR-034). **Hecho:** §7, un resumen a mano por bloque; §8, las tablas de los 41 informes; las dos notas del informe
+- [X] T060 DECISIONS:
   - INT8, bloques, perfil de modelo, primer token (cerrar o actualizar D-057), fp16, estimador, seguimiento con páginas, recarga y cada palanca, con sus cifras (FR-035);
   - si se adoptaron los runtimes, la enmienda PATCH 1.2.1 con `/speckit-constitution` (R1, D-090).
 
-  `docs/roadmap/FEATURES.md` al día
+  `docs/roadmap/FEATURES.md` al día. **Hecho:** D-091–D-097, constitución 1.2.1 y la ficha de F14
 - [X] T061 Verificación final:
   - JVM, lint y la batería instrumentada sin modelos en los emuladores;
   - `assembleRelease` sin los bancos (están en `androidTest`) ni texto en logcat (SC-010)
