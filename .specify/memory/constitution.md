@@ -1,26 +1,16 @@
 <!--
 Sync Impact Report
-- Versión: 1.1.1 → 1.2.0 (MINOR). Amplía la guía de III, IV y las Restricciones con el modo multimodal opcional (D-078). No quita ni redefine principios: con el modo apagado rige lo mismo que en 1.1.1. Aprobado por el usuario en el clarify de F19 (2026-11-05).
-- Principios modificados (sin cambios de título):
-  - III. RAG según el informe técnico:
-    - el espacio de páginas se registra en `rag_meta`;
-    - la 440M es el embedder del modo multimodal y puede sustituir a la 270M sin reindexar, tras validar en el dispositivo la identidad de los vectores de texto (coseno mínimo ≥ 0,9999);
-    - los vectores de página van a 256D con L2;
-    - una cita puede apuntar a un `chunkId` o a una página real.
-  - IV. Rendimiento y recursos:
-    - las respuestas con páginas tienen su propio primer token, medido y avisado;
-    - el codificador de visión corre en CPU;
-    - la indexación visual se mide e informa.
-- Secciones modificadas: Restricciones técnicas (la 440M en el modo multimodal; escaneados, JPG y PNG con el modo activo).
+- Versión: 1.2.0 → 1.2.1 (PATCH). Solo cambia el número de versión de una restricción técnica: LiteRT-LM pasa de 0.18.x a 0.19.x en Android y en Python offline. No cambia ningún principio; la II ya exige las goldens en cada cambio de versión, y pasaron con 0.19.1 (F14, research R1). Aprobado por el usuario en el analyze de F14 (D-090, punto 1) y registrado en D-091.
+- Principios modificados: ninguno.
+- Secciones modificadas: Restricciones técnicas (Runtime: «0.18.x» → «0.19.x» para LiteRT-LM y `litert-lm-api`).
 - Secciones añadidas: ninguna.
 - Secciones eliminadas: ninguna.
 - Plantillas dependientes:
   - ✅ .specify/templates/plan-template.md: su «Constitution Check» lee este fichero en tiempo de ejecución; no requiere cambios.
-  - ✅ .specify/templates/spec-template.md, tasks-template.md y .claude/skills/speckit-*: sin referencias al modelo de embeddings ni a las citas.
+  - ✅ .specify/templates/spec-template.md, tasks-template.md y .claude/skills/speckit-*: sin referencias a la versión de LiteRT-LM.
 - Documentos dependientes:
-  - ✅ docs/roadmap/FEATURES.md: F19–F20 ya describen el modo opcional (D-078).
-  - ✅ docs/roadmap/DECISIONS.md: D-079 registra la enmienda.
-  - ✅ specs/019-visual-indexing/constitution-amendment.md: la propuesta aprobada.
+  - ✅ docs/roadmap/DECISIONS.md: D-091 registra la enmienda.
+  - ✅ gradle/libs.versions.toml y offline/requirements.txt: ya en 0.19.1 desde T003–T005 de F14.
 - TODO diferidos: ninguno.
 -->
 
@@ -221,8 +211,8 @@ Los parámetros de este principio solo cambian con una evaluación documentada (
   - Teléfono de referencia: Nothing Phone (1), A063. Snapdragon 778G+ (SM7325), Adreno 642L, 12 GB de RAM y Android 15 (D-022).
 - **SDK:** minSdk 31 (D-017). El mínimo absoluto es 26, que exige el AAR de SQLite-Vector. targetSdk según el scaffold vigente.
 - **Runtime:**
-  - LiteRT-LM 0.18.x (Google Maven) en Android.
-  - `litert-lm-api` 0.18.x en Python offline.
+  - LiteRT-LM 0.19.x (Google Maven) en Android.
+  - `litert-lm-api` 0.19.x en Python offline.
 - **Modelos:**
   - LLM: Gemma 4 E2B instruction-tuned, fichero genérico `gemma-4-E2B-it.litertlm`, en GPU (D-023).
   - Embeddings: EmbeddingGemma 2 de 270M de solo texto (`embeddinggemma-2-text-270m.litertlm`) a 256D (D-025), por defecto. Con el modo multimodal, EmbeddingGemma 2 de 440M (`embeddinggemma-2-text-vision-440m.litertlm`), a 256D para texto y páginas y a 140 tokens por imagen (D-078).
@@ -258,4 +248,4 @@ Los parámetros de este principio solo cambian con una evaluación documentada (
   - PATCH: aclaraciones y redacción.
 - **Cumplimiento:** se verifica en el *Constitution Check* de `/speckit-plan` y en `/speckit-analyze`. Un incumplimiento no justificado bloquea `/speckit-implement`.
 
-**Version**: 1.2.0 | **Ratified**: 2026-10-25 | **Last Amended**: 2026-11-05
+**Version**: 1.2.1 | **Ratified**: 2026-10-25 | **Last Amended**: 2026-11-07
